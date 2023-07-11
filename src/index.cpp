@@ -1,10 +1,18 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
+#include <memory>
+#include <string>
 #include <vector>
 using namespace std;
-
+// ANSI color codes
+constexpr auto RESET = "\033[0m";
+constexpr auto RED = "\033[31m";
+constexpr auto GREEN = "\033[32m";
+constexpr auto YELLOW = "\033[33m";
+constexpr auto BLUE = "\033[34m";
 enum SyntaxKind {
   NumberToken,
   WhitespaceToken,
@@ -22,7 +30,16 @@ enum SyntaxKind {
   CompilationUnit,
 };
 std::map<SyntaxKind, std::string> enum_to_string_map;
-
+bool isInt32(const std::string &str) {
+  try {
+    size_t pos;
+    int32_t number = std::stoi(str, &pos);
+    return pos == str.size() && number >= std::numeric_limits<int32_t>::min() &&
+           number <= std::numeric_limits<int32_t>::max();
+  } catch (const std::exception &) {
+    return false;
+  }
+}
 void init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::NumberToken] = "NumberToken";
   enum_to_string_map[SyntaxKind::WhitespaceToken] = "WhitespaceToken";
@@ -60,14 +77,14 @@ private:
   string text;
 
 private:
-  void *value;
+  unique_ptr<int> value;
 
 public:
-  SyntaxToken(SyntaxKind kind, int position, string text, void *value) {
+  SyntaxToken(SyntaxKind kind, int position, string text, unique_ptr<int> v) {
     this->kind = kind;
     this->position = position;
     this->text = text;
-    this->value = value;
+    this->value = move(v);
   }
 
 public:
@@ -80,7 +97,10 @@ public:
   string getText() { return this->text; }
 
 public:
-  void *getValue() { return this->value; }
+  unique_ptr<int> getValue() { return move(this->value); }
+
+public:
+  string getKindText() { return enum_to_string_map[this->kind]; }
 
 public:
   int getUnaryOperatorPrecedence() {
@@ -122,6 +142,9 @@ private:
   int position;
 
 public:
+  vector<string> logs;
+
+public:
   Lexer(string text) { this->text = text; }
 
 private:
@@ -148,7 +171,17 @@ public:
       }
       int length = this->position - start;
       string text = this->text.substr(start, length);
-      return new SyntaxToken(NumberToken, start, text, new int(stoi(text)));
+      try {
+        if (isInt32(text) == false) {
+          throw exception();
+        }
+      } catch (exception e) {
+        logs.push_back("ERROR: bad number input not i32: " + text);
+        return new SyntaxToken(BadToken, start, text, nullptr);
+      }
+      int res = stoi(text);
+
+      return new SyntaxToken(NumberToken, start, text, make_unique<int>(res));
     }
 
     if (isspace(this->getCurrent())) {
@@ -177,6 +210,8 @@ public:
       return new SyntaxToken(CloseParenthesisToken, this->position++, ")",
                              nullptr);
     default:
+      logs.push_back("ERROR: bad character input: " +
+                     this->text.substr(this->position, 1));
       return new SyntaxToken(BadToken, this->position++,
                              this->text.substr(this->position - 1, 1), nullptr);
     }
@@ -200,6 +235,7 @@ private:
 public:
   vector<SyntaxNode *> children;
   NumberExpressionSyntax(SyntaxToken *numberToken) {
+    cout << numberToken->getText() << "gekl" << endl;
     this->numberToken = numberToken;
 
     children.push_back(this->numberToken);
@@ -207,6 +243,9 @@ public:
 
 public:
   SyntaxKind getKind() { return NumberExpression; }
+
+public:
+  string getKindText() { return enum_to_string_map[this->getKind()]; }
 
 public:
   SyntaxToken *getNumberToken() { return this->numberToken; }
@@ -288,20 +327,18 @@ public:
   vector<SyntaxNode *> getChildren() { return children; }
 };
 
-class CompilationUnitSyntax : public SyntaxNode {
+class CompilationUnitSyntax {
 private:
   ExpressionSyntax *expression;
   SyntaxToken *endOfFileToken;
 
 public:
-  vector<SyntaxNode *> children;
-
-  CompilationUnitSyntax(ExpressionSyntax *expression,
+  vector<string> logs;
+  CompilationUnitSyntax(vector<string> &logs, ExpressionSyntax *expression,
                         SyntaxToken *endOfFileToken) {
     this->expression = expression;
     this->endOfFileToken = endOfFileToken;
-    children.push_back(this->expression);
-    children.push_back(this->endOfFileToken);
+    this->logs = logs;
   }
 
 public:
@@ -312,14 +349,15 @@ public:
 
 public:
   SyntaxToken *getEndOfFileToken() { return this->endOfFileToken; }
-
-public:
-  vector<SyntaxNode *> getChildren() { return children; }
 };
+
 class Parser {
 private:
   std::vector<SyntaxToken *> tokens;
   int position;
+
+public:
+  vector<string> logs;
 
 public:
   Parser(string text) {
@@ -331,6 +369,10 @@ public:
         this->tokens.push_back(token);
       }
     } while (token->getKind() != EndOfFileToken);
+
+    if (lexer->logs.size()) {
+      this->logs = lexer->logs;
+    }
   }
 
 private:
@@ -357,7 +399,11 @@ private:
     if (this->getCurrent()->getKind() == kind) {
       return this->nextToken();
     }
-    return new SyntaxToken(kind, this->getCurrent()->getPosition(), nullptr,
+    this->logs.push_back("ERROR: unexpected token <" +
+                         this->getCurrent()->getKindText() + ">, expected <" +
+                         enum_to_string_map[EndOfFileToken] + ">");
+
+    return new SyntaxToken(kind, this->getCurrent()->getPosition(), "\0",
                            nullptr);
   }
 
@@ -365,7 +411,7 @@ public:
   CompilationUnitSyntax *parseCompilationUnit() {
     ExpressionSyntax *expression = this->parseExpression();
     SyntaxToken *endOfFileToken = this->match(EndOfFileToken);
-    return new CompilationUnitSyntax(expression, endOfFileToken);
+    return new CompilationUnitSyntax(this->logs, expression, endOfFileToken);
   }
 
 private:
@@ -417,58 +463,56 @@ private:
   }
 };
 
-// class Evaluator {
-// public:
-//   static int evaluate(ExpressionSyntax *node) {
-//     switch (node->getKind()) {
-//     case NumberExpression: {
-//       NumberExpressionSyntax *numberExpression =
-//           (NumberExpressionSyntax *)node;
-//       return *(int *)numberExpression->getNumberToken()->getValue();
-//     }
-//     case BinaryExpression: {
-//       BinaryExpressionSyntax *binaryExpression =
-//           (BinaryExpressionSyntax *)node;
-//       int left = Evaluator::evaluate(binaryExpression->getLeft());
-//       int right = Evaluator::evaluate(binaryExpression->getRight());
-//       switch (binaryExpression->getOperatorToken()->getKind()) {
-//       case PlusToken:
-//         return left + right;
-//       case MinusToken:
-//         return left - right;
-//       case StarToken:
-//         return left * right;
-//       case SlashToken:
-//         return left / right;
-//       default:
-//         throw "Unexpected binary operator";
-//       }
-//     }
-//     case ParenthesizedExpression: {
-//       ParenthesizedExpressionSyntax *parenthesizedExpression =
-//           (ParenthesizedExpressionSyntax *)node;
-//       return Evaluator::evaluate(parenthesizedExpression->getExpression());
-//     }
-//     default:
-//       throw "Unexpected node";
-//     }
-//   }
-// };
+class Evaluator {
+public:
+  static int evaluate(ExpressionSyntax *node) {
 
-// class Compiler
-// {
+    switch (node->getKind()) {
+    case NumberExpression: {
+      NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)node;
 
-// public:
-//   static int compile(string text)
-//   {
-//     Parser *parser = new Parser(text);
+      return *(numberExpression->getNumberToken()->getValue().get());
+    }
+    case BinaryExpression: {
+      BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)node;
+      int left = Evaluator::evaluate(binaryExpression->getLeft());
+      int right = Evaluator::evaluate(binaryExpression->getRight());
+      switch (binaryExpression->getOperatorToken()->getKind()) {
+      case PlusToken:
+        return left + right;
+      case MinusToken:
+        return left - right;
+      case StarToken:
+        return left * right;
+      case SlashToken:
+        return left / right;
+      default:
+        throw "Unexpected binary operator";
+      }
+    }
+    case ParenthesizedExpression: {
+      ParenthesizedExpressionSyntax *parenthesizedExpression =
+          (ParenthesizedExpressionSyntax *)node;
+      return Evaluator::evaluate(parenthesizedExpression->getExpression());
+    }
+    default:
+      throw "Unexpected node";
+    }
+  }
+};
 
-//     // CompilationUnitSyntax *compilationUnit =
-//     parser->parseCompilationUnit();
-//     // return Evaluator::evaluate(compilationUnit->getExpression());
-//     return 0;
-//   }
-// };
+class Compiler {
+
+public:
+  static int compile(string text) {
+    Parser *parser = new Parser(text);
+
+    // CompilationUnitSyntax *compilationUnit =
+    parser->parseCompilationUnit();
+    // return Evaluator::evaluate(compilationUnit->getExpression());
+    return 0;
+  }
+};
 
 void prettyPrint(SyntaxNode *node, string indent = "", bool isLast = true) {
   cout << indent;
@@ -494,8 +538,19 @@ int main() {
   getline(cin, line);
 
   Parser *parser = new Parser(line);
+  CompilationUnitSyntax *compilationUnit =
+      (CompilationUnitSyntax *)parser->parseCompilationUnit();
 
-  prettyPrint(parser->parseCompilationUnit()->getExpression());
+  prettyPrint(compilationUnit->getExpression());
+  if (compilationUnit->logs.size()) {
+    for (int i = 0; i < parser->parseCompilationUnit()->logs.size(); i++) {
+      cout << RED << parser->parseCompilationUnit()->logs[i] << RESET << endl;
+    }
+  } else {
+
+    cout << GREEN << Evaluator::evaluate(compilationUnit->getExpression())
+         << RESET << endl;
+  }
 
   return 0;
 }
