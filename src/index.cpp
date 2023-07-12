@@ -77,14 +77,15 @@ private:
   string text;
 
 private:
-  unique_ptr<int> value;
+  int *value = nullptr;
 
 public:
-  SyntaxToken(SyntaxKind kind, int position, string text, unique_ptr<int> v) {
+  SyntaxToken(SyntaxKind kind, int position, string text, int *v) {
     this->kind = kind;
     this->position = position;
     this->text = text;
-    this->value = move(v);
+    if (v != nullptr)
+      this->value = new int(*v);
   }
 
 public:
@@ -97,7 +98,7 @@ public:
   string getText() { return this->text; }
 
 public:
-  unique_ptr<int> getValue() { return move(this->value); }
+  int getValue() { return *(this->value); }
 
 public:
   string getKindText() { return enum_to_string_map[this->kind]; }
@@ -181,7 +182,7 @@ public:
       }
       int res = stoi(text);
 
-      return new SyntaxToken(NumberToken, start, text, make_unique<int>(res));
+      return new SyntaxToken(NumberToken, start, text, &(res));
     }
 
     if (isspace(this->getCurrent())) {
@@ -235,7 +236,7 @@ private:
 public:
   vector<SyntaxNode *> children;
   NumberExpressionSyntax(SyntaxToken *numberToken) {
-    cout << numberToken->getText() << "gekl" << endl;
+
     this->numberToken = numberToken;
 
     children.push_back(this->numberToken);
@@ -436,7 +437,9 @@ private:
         break;
       }
       SyntaxToken *operatorToken = this->nextToken();
+
       ExpressionSyntax *right = this->parseExpression(precedence);
+
       left = new BinaryExpressionSyntax(left, operatorToken, right);
     }
 
@@ -471,12 +474,13 @@ public:
     case NumberExpression: {
       NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)node;
 
-      return *(numberExpression->getNumberToken()->getValue().get());
+      return (int)(numberExpression->getNumberToken()->getValue());
     }
     case BinaryExpression: {
       BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)node;
       int left = Evaluator::evaluate(binaryExpression->getLeft());
       int right = Evaluator::evaluate(binaryExpression->getRight());
+
       switch (binaryExpression->getOperatorToken()->getKind()) {
       case PlusToken:
         return left + right;
@@ -485,6 +489,12 @@ public:
       case StarToken:
         return left * right;
       case SlashToken:
+
+        if (right == 0) {
+
+          throw "Divide by zero exception";
+          return 0;
+        }
         return left / right;
       default:
         throw "Unexpected binary operator";
@@ -501,18 +511,18 @@ public:
   }
 };
 
-class Compiler {
+// class Compiler {
 
-public:
-  static int compile(string text) {
-    Parser *parser = new Parser(text);
+// public:
+//   static int compile(string text) {
+//     Parser *parser = new Parser(text);
 
-    // CompilationUnitSyntax *compilationUnit =
-    parser->parseCompilationUnit();
-    // return Evaluator::evaluate(compilationUnit->getExpression());
-    return 0;
-  }
-};
+//     // CompilationUnitSyntax *compilationUnit =
+//     parser->parseCompilationUnit();
+//     // return Evaluator::evaluate(compilationUnit->getExpression());
+//     return 0;
+//   }
+// };
 
 void prettyPrint(SyntaxNode *node, string indent = "", bool isLast = true) {
   cout << indent;
@@ -523,7 +533,12 @@ void prettyPrint(SyntaxNode *node, string indent = "", bool isLast = true) {
     cout << "|-";
     indent += "| ";
   }
-  cout << enum_to_string_map[node->getKind()] << endl;
+  cout << enum_to_string_map[node->getKind()];
+  if (node->getKind() == NumberExpression) {
+    cout << " "
+         << (((NumberExpressionSyntax *)node)->getNumberToken()->getValue());
+  }
+  cout << endl;
   vector<SyntaxNode *> children = node->getChildren();
   for (int i = 0; i < children.size(); i++) {
     prettyPrint(children[i], indent, i == children.size() - 1);
