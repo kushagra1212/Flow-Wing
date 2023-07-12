@@ -1,0 +1,27 @@
+#include "../syntax/SyntaxNode.h"
+#include "../syntax/expression/NumberExpressionSyntax.cpp"
+
+namespace Utils {
+void prettyPrint(SyntaxNode *node, std::string indent = "",
+                 bool isLast = true) {
+  std::cout << indent;
+  if (isLast) {
+    std::cout << "\\-";
+    indent += "  ";
+  } else {
+    std::cout << "|-";
+    indent += "| ";
+  }
+  std::cout << SyntaxKindUtils::enum_to_string_map[node->getKind()];
+  if (node->getKind() == SyntaxKindUtils::NumberExpression) {
+    std::cout
+        << " "
+        << (((NumberExpressionSyntax *)node)->getNumberToken()->getValue());
+  }
+  std::cout << "\n";
+  std::vector<SyntaxNode *> children = node->getChildren();
+  for (int i = 0; i < children.size(); i++) {
+    prettyPrint(children[i], indent, i == children.size() - 1);
+  }
+}
+} // namespace Utils
