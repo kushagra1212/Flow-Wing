@@ -1,6 +1,4 @@
-#include "../SyntaxToken.cpp"
-#include "ExpressionSyntax.h"
-
+#include "BinaryExpressionSyntax.h"
 class BinaryExpressionSyntax : public ExpressionSyntax {
 
 private:
@@ -22,7 +20,7 @@ public:
 
 public:
   SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::BinaryExpression;
+    return SyntaxKindUtils::SyntaxKind::BinaryExpression;
   }
 
 public:

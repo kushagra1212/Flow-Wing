@@ -1,7 +1,9 @@
-#include "compiler/Evaluator.cpp"
-#include "parser/Parser.cpp"
-#include "utils/Utils.cpp"
+
+#include "compiler/Evaluator.h"
+#include "parser/Parser.h"
+#include "utils/Utils.h"
 using namespace std;
+using namespace SyntaxKindUtils;
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
@@ -25,7 +27,7 @@ constexpr auto BLUE = "\033[34m";
 
 int main() {
 
-  SyntaxKindUtils::init_enum_to_string_map();
+  init_enum_to_string_map();
   string line;
   bool seeTree = false;
   while (true) {

@@ -1,5 +1,4 @@
-#include "../syntax/SyntaxNode.h"
-#include "../syntax/expression/NumberExpressionSyntax.cpp"
+#include "Utils.h"
 
 namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "",

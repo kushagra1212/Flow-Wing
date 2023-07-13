@@ -1,5 +1,5 @@
 
-#include "Common.h"
+#include "SyntaxKindUtils.h"
 namespace SyntaxKindUtils {
 enum SyntaxKind {
   NumberToken,

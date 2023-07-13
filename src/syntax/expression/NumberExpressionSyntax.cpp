@@ -1,5 +1,4 @@
-#include "../SyntaxToken.cpp"
-#include "ExpressionSyntax.h"
+#include "NumberExpressionSyntax.h"
 class NumberExpressionSyntax : public ExpressionSyntax {
 
 private:
@@ -16,7 +15,7 @@ public:
 
 public:
   SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::NumberExpression;
+    return SyntaxKindUtils::SyntaxKind::NumberExpression;
   }
 
 public:

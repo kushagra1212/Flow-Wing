@@ -1,5 +1,4 @@
-#include "SyntaxToken.cpp"
-#include "expression/ExpressionSyntax.h"
+#include "CompilationUnitSyntax.h"
 class CompilationUnitSyntax {
 private:
   ExpressionSyntax *expression;
@@ -17,7 +16,7 @@ public:
 
 public:
   SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::CompilationUnit;
+    return SyntaxKindUtils::SyntaxKind::CompilationUnit;
   }
 
 public:

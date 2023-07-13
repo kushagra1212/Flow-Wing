@@ -1,7 +1,7 @@
 
 #ifndef __SYNTAXNODE_H__
 #define __SYNTAXNODE_H__
-#include "SyntaxKindUtils.cpp"
+#include "SyntaxKindUtils.h"
 
 class SyntaxNode {
 

@@ -1,5 +1,6 @@
 #include "SyntaxNode.h"
-
+#ifndef SYNTAXTOKEN_H
+#define SYNTAXTOKEN_H
 class SyntaxToken : public SyntaxNode {
 private:
   SyntaxKindUtils::SyntaxKind kind;
@@ -70,3 +71,4 @@ public:
   std::vector<SyntaxNode *> children;
   std::vector<SyntaxNode *> getChildren() { return children; }
 };
+#endif

@@ -1,8 +1,4 @@
-#include "../lexer/Lexer.cpp"
-#include "../syntax/CompilationUnitSyntax.cpp"
-#include "../syntax/expression/BinaryExpressionSyntax.cpp"
-#include "../syntax/expression/NumberExpressionSyntax.cpp"
-#include "../syntax/expression/ParenthesizedExpressionSyntax.cpp"
+#include "Parser.h"
 class Parser {
 private:
   std::vector<SyntaxToken *> tokens;
@@ -17,11 +13,11 @@ public:
     SyntaxToken *token;
     do {
       token = lexer->nextToken();
-      if (token->getKind() != SyntaxKindUtils::WhitespaceToken &&
-          token->getKind() != SyntaxKindUtils::BadToken) {
+      if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
+          token->getKind() != SyntaxKindUtils::SyntaxKind::BadToken) {
         this->tokens.push_back(token);
       }
-    } while (token->getKind() != SyntaxKindUtils::EndOfFileToken);
+    } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 
     if (lexer->logs.size()) {
       this->logs = lexer->logs;
@@ -52,11 +48,11 @@ private:
     if (this->getCurrent()->getKind() == kind) {
       return this->nextToken();
     }
-    this->logs.push_back(
-        "ERROR: unexpected token <" + this->getCurrent()->getKindText() +
-        ">, expected <" +
-        SyntaxKindUtils::enum_to_string_map[SyntaxKindUtils::EndOfFileToken] +
-        ">");
+    this->logs.push_back("ERROR: unexpected token <" +
+                         this->getCurrent()->getKindText() + ">, expected <" +
+                         SyntaxKindUtils::enum_to_string_map
+                             [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
+                         ">");
 
     return new SyntaxToken(kind, this->getCurrent()->getPosition(), "\0",
                            nullptr);
@@ -65,7 +61,8 @@ private:
 public:
   CompilationUnitSyntax *parseCompilationUnit() {
     ExpressionSyntax *expression = this->parseExpression();
-    SyntaxToken *endOfFileToken = this->match(SyntaxKindUtils::EndOfFileToken);
+    SyntaxToken *endOfFileToken =
+        this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
     return new CompilationUnitSyntax(this->logs, expression, endOfFileToken);
   }
 
@@ -106,7 +103,8 @@ private:
     case SyntaxKindUtils::OpenParenthesisToken: {
       SyntaxToken *left = this->nextToken();
       ExpressionSyntax *expression = this->parseExpression();
-      SyntaxToken *right = this->match(SyntaxKindUtils::CloseParenthesisToken);
+      SyntaxToken *right =
+          this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
       return new ParenthesizedExpressionSyntax(left, expression, right);
     }
     case SyntaxKindUtils::NumberToken: {
@@ -115,7 +113,7 @@ private:
     }
     default:
       return new NumberExpressionSyntax(
-          new SyntaxToken(SyntaxKindUtils::NumberToken,
+          new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken,
                           this->getCurrent()->getPosition(), "0", nullptr));
     }
   }

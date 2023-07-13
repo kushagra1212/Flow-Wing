@@ -1,5 +1,4 @@
-#include "../SyntaxToken.cpp"
-#include "ExpressionSyntax.h"
+#include "ParenthesizedExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
 private:
   SyntaxToken *openParenthesisToken;
@@ -22,7 +21,7 @@ public:
 
 public:
   SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::ParenthesizedExpression;
+    return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
   }
 
 public:

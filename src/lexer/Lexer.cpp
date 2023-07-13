@@ -1,6 +1,4 @@
-#include "../syntax/SyntaxToken.cpp"
-#include "Common.h"
-
+#include "Lexer.h"
 class Lexer {
 
 private:
@@ -29,8 +27,8 @@ private:
 public:
   SyntaxToken *nextToken() {
     if (this->position >= this->text.length()) {
-      return new SyntaxToken(SyntaxKindUtils::EndOfFileToken, this->position,
-                             "\0", nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+                             this->position, "\0", nullptr);
     }
 
     if (isdigit(this->getCurrent())) {
@@ -46,11 +44,13 @@ public:
         }
       } catch (std::exception e) {
         logs.push_back("ERROR: bad number input not i32: " + text);
-        return new SyntaxToken(SyntaxKindUtils::BadToken, start, text, nullptr);
+        return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start,
+                               text, nullptr);
       }
       int res = stoi(text);
 
-      return new SyntaxToken(SyntaxKindUtils::NumberToken, start, text, &(res));
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken, start,
+                             text, &(res));
     }
 
     if (isspace(this->getCurrent())) {
@@ -60,33 +60,34 @@ public:
       }
       int length = this->position - start;
       std::string text = this->text.substr(start, length);
-      return new SyntaxToken(SyntaxKindUtils::WhitespaceToken, start, text,
-                             nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::WhitespaceToken,
+                             start, text, nullptr);
     }
 
     switch (this->getCurrent()) {
     case '+':
-      return new SyntaxToken(SyntaxKindUtils::PlusToken, this->position++, "+",
-                             nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PlusToken,
+                             this->position++, "+", nullptr);
     case '-':
-      return new SyntaxToken(SyntaxKindUtils::MinusToken, this->position++, "-",
-                             nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::MinusToken,
+                             this->position++, "-", nullptr);
     case '*':
-      return new SyntaxToken(SyntaxKindUtils::StarToken, this->position++, "*",
-                             nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::StarToken,
+                             this->position++, "*", nullptr);
     case '/':
-      return new SyntaxToken(SyntaxKindUtils::SlashToken, this->position++, "/",
-                             nullptr);
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::SlashToken,
+                             this->position++, "/", nullptr);
     case '(':
-      return new SyntaxToken(SyntaxKindUtils::OpenParenthesisToken,
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken,
                              this->position++, "(", nullptr);
     case ')':
-      return new SyntaxToken(SyntaxKindUtils::CloseParenthesisToken,
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken,
                              this->position++, ")", nullptr);
     default:
       logs.push_back("ERROR: bad character input: " +
                      this->text.substr(this->position, 1));
-      return new SyntaxToken(SyntaxKindUtils::BadToken, this->position++,
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
+                             this->position++,
                              this->text.substr(this->position - 1, 1), nullptr);
     }
   }

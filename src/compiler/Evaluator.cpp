@@ -1,16 +1,10 @@
-
-#include "../syntax/SyntaxKindUtils.cpp"
-#include "../syntax/expression/BinaryExpressionSyntax.cpp"
-#include "../syntax/expression/ExpressionSyntax.h"
-#include "../syntax/expression/NumberExpressionSyntax.cpp"
-#include "../syntax/expression/ParenthesizedExpressionSyntax.cpp"
-
+#include "Evaluator.h"
 class Evaluator {
 public:
   static int evaluate(ExpressionSyntax *node) {
 
     switch (node->getKind()) {
-    case SyntaxKindUtils::NumberExpression: {
+    case SyntaxKindUtils::SyntaxKind::NumberExpression: {
       NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)node;
 
       return (int)(numberExpression->getNumberToken()->getValue());
@@ -20,13 +14,13 @@ public:
       int left = Evaluator::evaluate(binaryExpression->getLeft());
       int right = Evaluator::evaluate(binaryExpression->getRight());
       switch (binaryExpression->getOperatorToken()->getKind()) {
-      case SyntaxKindUtils::PlusToken:
+      case SyntaxKindUtils::SyntaxKind::PlusToken:
         return left + right;
-      case SyntaxKindUtils::MinusToken:
+      case SyntaxKindUtils::SyntaxKind::MinusToken:
         return left - right;
-      case SyntaxKindUtils::StarToken:
+      case SyntaxKindUtils::SyntaxKind::StarToken:
         return left * right;
-      case SyntaxKindUtils::SlashToken: {
+      case SyntaxKindUtils::SyntaxKind::SlashToken: {
         if (right == 0) {
           throw "ERROR: Division by zero";
         }
@@ -36,7 +30,7 @@ public:
         throw "Unexpected binary operator";
       }
     }
-    case SyntaxKindUtils::ParenthesizedExpression: {
+    case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
       ParenthesizedExpressionSyntax *parenthesizedExpression =
           (ParenthesizedExpressionSyntax *)node;
       return Evaluator::evaluate(parenthesizedExpression->getExpression());
