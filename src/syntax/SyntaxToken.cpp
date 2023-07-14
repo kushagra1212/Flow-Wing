@@ -25,7 +25,7 @@ int SyntaxToken::getUnaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::PlusToken:
   case SyntaxKindUtils::MinusToken:
-    return 3;
+    return 5;
   default:
     return 0;
   }

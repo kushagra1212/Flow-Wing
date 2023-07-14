@@ -19,6 +19,7 @@ Parser::Parser(std::string text) {
 SyntaxToken *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
+
     return this->tokens[this->tokens.size() - 1];
   }
   return this->tokens[index];
@@ -54,15 +55,16 @@ CompilationUnitSyntax *Parser::parseCompilationUnit() {
 }
 
 ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
+
   ExpressionSyntax *left;
   int unaryOperatorPrecedence =
       this->getCurrent()->getUnaryOperatorPrecedence();
+
   if (unaryOperatorPrecedence != 0 &&
       unaryOperatorPrecedence >= parentPrecedence) {
     SyntaxToken *operatorToken = this->nextToken();
     ExpressionSyntax *operand = this->parseExpression(unaryOperatorPrecedence);
-    left = new BinaryExpressionSyntax(new NumberExpressionSyntax(operatorToken),
-                                      operatorToken, operand);
+    left = new UnaryExpressionSyntax(operatorToken, operand);
   } else {
     left = this->parsePrimaryExpression();
   }

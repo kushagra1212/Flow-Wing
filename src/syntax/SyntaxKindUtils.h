@@ -21,6 +21,7 @@ enum SyntaxKind {
   // Experssions
 
   LiteralExpression,
+  UnaryExpression,
   BinaryExpression,
   ParenthesizedExpression,
   CompilationUnit,

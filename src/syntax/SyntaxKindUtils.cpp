@@ -27,6 +27,7 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::BadToken] = "BadToken";
   enum_to_string_map[SyntaxKind::EndOfFileToken] = "EndOfFileToken";
   enum_to_string_map[SyntaxKind::LiteralExpression] = "LiteralExpression";
+  enum_to_string_map[SyntaxKind::UnaryExpression] = "UnaryExpression";
   enum_to_string_map[SyntaxKind::BinaryExpression] = "BinaryExpression";
   enum_to_string_map[SyntaxKind::ParenthesizedExpression] =
       "ParenthesizedExpression";

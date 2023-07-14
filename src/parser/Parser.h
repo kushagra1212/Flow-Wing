@@ -5,6 +5,7 @@
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/NumberExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../syntax/expression/UnaryExpressionSyntax.h"
 class Parser {
 private:
   std::vector<SyntaxToken *> tokens;

@@ -8,6 +8,18 @@ int Evaluator::evaluate(ExpressionSyntax *node) {
 
     return (int)(numberExpression->getNumberToken()->getValue());
   }
+  case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
+    UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)node;
+    int operand = Evaluator::evaluate(unaryExpression->getOperand());
+    switch (unaryExpression->getOperatorToken()->getKind()) {
+    case SyntaxKindUtils::SyntaxKind::PlusToken:
+      return operand;
+    case SyntaxKindUtils::SyntaxKind::MinusToken:
+      return -operand;
+    default:
+      throw "Unexpected unary operator";
+    }
+  }
   case SyntaxKindUtils::BinaryExpression: {
     BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)node;
     int left = Evaluator::evaluate(binaryExpression->getLeft());
