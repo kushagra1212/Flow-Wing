@@ -18,6 +18,13 @@ enum SyntaxKind {
   BadToken,
   EndOfFileToken,
 
+  // Keywords
+  TrueKeyword,
+  FalseKeyword,
+
+  // Identifiers
+  IdentifierToken,
+
   // Experssions
 
   LiteralExpression,

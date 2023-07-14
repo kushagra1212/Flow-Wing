@@ -3,7 +3,7 @@
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../../syntax/expression/BinaryExpressionSyntax.h"
 #include "../../syntax/expression/ExpressionSyntax.h"
-#include "../../syntax/expression/NumberExpressionSyntax.h"
+#include "../../syntax/expression/LiteralExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
 #include "../BinderKindUtils.h"

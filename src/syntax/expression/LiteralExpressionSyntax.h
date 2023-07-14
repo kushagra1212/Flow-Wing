@@ -1,15 +1,16 @@
-#ifndef NUMBEREXPRESSIONSYNTAX_H
-#define NUMBEREXPRESSIONSYNTAX_H
+#pragma once
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
-class NumberExpressionSyntax : public ExpressionSyntax {
+
+template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
 
 private:
-  SyntaxToken *numberToken;
+  SyntaxToken *token;
+  T value;
 
 public:
   std::vector<SyntaxNode *> children;
-  NumberExpressionSyntax(SyntaxToken *numberToken);
+  LiteralExpressionSyntax(SyntaxToken *token, T value);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -18,9 +19,11 @@ public:
   std::string getKindText();
 
 public:
-  SyntaxToken *getNumberToken();
+  SyntaxToken *getToken();
 
 public:
   std::vector<SyntaxNode *> getChildren();
+
+public:
+  T getValue();
 };
-#endif

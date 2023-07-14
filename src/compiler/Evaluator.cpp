@@ -3,7 +3,8 @@ int Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
-    BoundLiteralExpression *literalExpression = (BoundLiteralExpression *)node;
+    BoundLiteralExpression<int> *literalExpression =
+        (BoundLiteralExpression<int> *)node;
 
     return (int)(literalExpression->getValue());
   }

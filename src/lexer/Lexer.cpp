@@ -39,6 +39,28 @@ SyntaxToken *Lexer::nextToken() {
                            text, &(res));
   }
 
+  // Check true or false
+
+  if (isalpha(this->getCurrent())) {
+    int start = this->position;
+    while (isalpha(this->getCurrent())) {
+      this->next();
+    }
+    int length = this->position - start;
+    std::string text = this->text.substr(start, length);
+    if (text == "true") {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::TrueKeyword, start,
+                             text, nullptr);
+    }
+    if (text == "false") {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::FalseKeyword, start,
+                             text, nullptr);
+    }
+
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::IdentifierToken, start,
+                           text, nullptr);
+  }
+
   if (isspace(this->getCurrent())) {
     int start = this->position;
     while (isspace(this->getCurrent())) {

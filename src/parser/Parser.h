@@ -3,7 +3,7 @@
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
-#include "../syntax/expression/NumberExpressionSyntax.h"
+#include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 class Parser {

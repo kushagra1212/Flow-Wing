@@ -95,11 +95,22 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
   }
   case SyntaxKindUtils::NumberToken: {
     SyntaxToken *numberToken = this->nextToken();
-    return new NumberExpressionSyntax(numberToken);
+    return new LiteralExpressionSyntax<int>(numberToken,
+                                            numberToken->getValue());
+  }
+  case SyntaxKindUtils::TrueKeyword:
+  case SyntaxKindUtils::FalseKeyword: {
+    SyntaxToken *keywordToken = this->nextToken();
+    bool value =
+        keywordToken->getKind() == SyntaxKindUtils::SyntaxKind::TrueKeyword
+            ? true
+            : false;
+    return new LiteralExpressionSyntax<bool>(keywordToken, value);
   }
   default:
-    return new NumberExpressionSyntax(
+    return new LiteralExpressionSyntax(
         new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken,
-                        this->getCurrent()->getPosition(), "0", nullptr));
+                        this->getCurrent()->getPosition(), "0", nullptr),
+        0);
   }
 }

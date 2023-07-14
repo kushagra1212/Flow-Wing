@@ -4,10 +4,10 @@
 BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
-    NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)syntax;
+    LiteralExpressionSyntax<int> *numberExpression =
+        (LiteralExpressionSyntax<int> *)syntax;
 
-    return new BoundLiteralExpression(
-        numberExpression->getNumberToken()->getValue());
+    return new BoundLiteralExpression(numberExpression->getValue());
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
     UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;

@@ -3,12 +3,12 @@
 #include "../BoundExpression.h"
 #include <typeinfo>
 
-class BoundLiteralExpression : public BoundExpression {
+template <typename T> class BoundLiteralExpression : public BoundExpression {
 private:
-  int value;
+  T value;
 
 public:
-  BoundLiteralExpression(int value);
+  BoundLiteralExpression(T value);
 
 public:
   BinderKindUtils::BoundNodeKind getKind();
@@ -17,5 +17,5 @@ public:
   const std::type_info &getType();
 
 public:
-  int getValue();
+  T getValue();
 };
