@@ -9,6 +9,10 @@ Parser::Parser(std::string text) {
         token->getKind() != SyntaxKindUtils::SyntaxKind::BadToken) {
       this->tokens.push_back(token);
     }
+    if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
+      this->logs.push_back("ERROR: unexpected character <" + token->getText() +
+                           ">");
+    }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 
   if (lexer->logs.size()) {
@@ -38,7 +42,7 @@ SyntaxToken *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
     return this->nextToken();
   }
   this->logs.push_back("ERROR: unexpected token <" +
-                       this->getCurrent()->getKindText() + ">, expected <" +
+                       this->getCurrent()->getText() + ">, expected <" +
                        SyntaxKindUtils::enum_to_string_map
                            [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
                        ">");

@@ -16,6 +16,8 @@ bool SyntaxKindUtils::isInt32(const std::string &str) {
 
 void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::NumberToken] = "NumberToken";
+  enum_to_string_map[SyntaxKind::TrueKeyword] = "TrueKeyword";
+  enum_to_string_map[SyntaxKind::FalseKeyword] = "FalseKeyword";
   enum_to_string_map[SyntaxKind::WhitespaceToken] = "WhitespaceToken";
   enum_to_string_map[SyntaxKind::PlusToken] = "PlusToken";
   enum_to_string_map[SyntaxKind::MinusToken] = "MinusToken";

@@ -46,12 +46,14 @@ int main() {
         (CompilationUnitSyntax *)parser->parseCompilationUnit();
     Binder *binder = new Binder();
 
+    compilationUnit->logs.insert(compilationUnit->logs.end(),
+                                 binder->logs.begin(), binder->logs.end());
+
     if (seeTree)
       Utils::prettyPrint(compilationUnit->getExpression());
     if (compilationUnit->logs.size()) {
-      for (int i = 0; i < parser->parseCompilationUnit()->logs.size(); i++) {
-        std::cout << RED << parser->parseCompilationUnit()->logs[i] << RESET
-                  << std::endl;
+      for (int i = 0; i < compilationUnit->logs.size(); i++) {
+        std::cout << RED << compilationUnit->logs[i] << RESET << std::endl;
       }
     } else {
 
