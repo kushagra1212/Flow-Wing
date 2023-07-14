@@ -4,6 +4,9 @@
 #include "Common.h"
 namespace SyntaxKindUtils {
 enum SyntaxKind {
+
+  // Tokens
+
   NumberToken,
   WhitespaceToken,
   PlusToken,
@@ -14,7 +17,10 @@ enum SyntaxKind {
   CloseParenthesisToken,
   BadToken,
   EndOfFileToken,
-  NumberExpression,
+
+  // Experssions
+
+  LiteralExpression,
   BinaryExpression,
   ParenthesizedExpression,
   CompilationUnit,

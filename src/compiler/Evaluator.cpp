@@ -3,7 +3,7 @@
 int Evaluator::evaluate(ExpressionSyntax *node) {
 
   switch (node->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::NumberExpression: {
+  case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
     NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)node;
 
     return (int)(numberExpression->getNumberToken()->getValue());

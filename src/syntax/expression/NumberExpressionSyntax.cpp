@@ -8,7 +8,7 @@ NumberExpressionSyntax::NumberExpressionSyntax(SyntaxToken *numberToken) {
 }
 
 SyntaxKindUtils::SyntaxKind NumberExpressionSyntax::getKind() {
-  return SyntaxKindUtils::SyntaxKind::NumberExpression;
+  return SyntaxKindUtils::SyntaxKind::LiteralExpression;
 }
 std::string NumberExpressionSyntax::getKindText() {
   return SyntaxKindUtils::enum_to_string_map[this->getKind()];

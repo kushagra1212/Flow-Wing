@@ -10,7 +10,7 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
     indent += "| ";
   }
   std::cout << SyntaxKindUtils::enum_to_string_map[node->getKind()];
-  if (node->getKind() == SyntaxKindUtils::NumberExpression) {
+  if (node->getKind() == SyntaxKindUtils::LiteralExpression) {
     std::cout
         << " "
         << (((NumberExpressionSyntax *)node)->getNumberToken()->getValue());
