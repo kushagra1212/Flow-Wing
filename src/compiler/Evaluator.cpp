@@ -1,37 +1,36 @@
 #include "Evaluator.h"
-
-int Evaluator::evaluate(ExpressionSyntax *node) {
+int Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
-    NumberExpressionSyntax *numberExpression = (NumberExpressionSyntax *)node;
+  case BinderKindUtils::BoundNodeKind::LiteralExpression: {
+    BoundLiteralExpression *literalExpression = (BoundLiteralExpression *)node;
 
-    return (int)(numberExpression->getNumberToken()->getValue());
+    return (int)(literalExpression->getValue());
   }
-  case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
-    UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)node;
+  case BinderKindUtils::BoundNodeKind::UnaryExpression: {
+    BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
     int operand = Evaluator::evaluate(unaryExpression->getOperand());
-    switch (unaryExpression->getOperatorToken()->getKind()) {
-    case SyntaxKindUtils::SyntaxKind::PlusToken:
+    switch (unaryExpression->getOperator()) {
+    case BinderKindUtils::BoundUnaryOperatorKind::Identity:
       return operand;
-    case SyntaxKindUtils::SyntaxKind::MinusToken:
+    case BinderKindUtils::BoundUnaryOperatorKind::Negation:
       return -operand;
     default:
       throw "Unexpected unary operator";
     }
   }
-  case SyntaxKindUtils::BinaryExpression: {
-    BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)node;
+  case BinderKindUtils::BoundNodeKind::BinaryExpression: {
+    BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
     int left = Evaluator::evaluate(binaryExpression->getLeft());
     int right = Evaluator::evaluate(binaryExpression->getRight());
-    switch (binaryExpression->getOperatorToken()->getKind()) {
-    case SyntaxKindUtils::SyntaxKind::PlusToken:
+    switch (binaryExpression->getOperator()) {
+    case BinderKindUtils::BoundBinaryOperatorKind::Addition:
       return left + right;
-    case SyntaxKindUtils::SyntaxKind::MinusToken:
+    case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
       return left - right;
-    case SyntaxKindUtils::SyntaxKind::StarToken:
+    case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
       return left * right;
-    case SyntaxKindUtils::SyntaxKind::SlashToken: {
+    case BinderKindUtils::BoundBinaryOperatorKind::Division: {
       if (right == 0) {
         throw "ERROR: Division by zero";
       }
@@ -41,9 +40,9 @@ int Evaluator::evaluate(ExpressionSyntax *node) {
       throw "Unexpected binary operator";
     }
   }
-  case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
-    ParenthesizedExpressionSyntax *parenthesizedExpression =
-        (ParenthesizedExpressionSyntax *)node;
+  case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
+    BoundParenthesizedExpression *parenthesizedExpression =
+        (BoundParenthesizedExpression *)node;
     return Evaluator::evaluate(parenthesizedExpression->getExpression());
   }
   default:

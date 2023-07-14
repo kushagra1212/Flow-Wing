@@ -44,6 +44,8 @@ int main() {
     Parser *parser = new Parser(line);
     CompilationUnitSyntax *compilationUnit =
         (CompilationUnitSyntax *)parser->parseCompilationUnit();
+    Binder *binder = new Binder();
+
     if (seeTree)
       Utils::prettyPrint(compilationUnit->getExpression());
     if (compilationUnit->logs.size()) {
@@ -55,7 +57,8 @@ int main() {
 
       try {
         std::cout << GREEN
-                  << Evaluator::evaluate(compilationUnit->getExpression())
+                  << Evaluator::evaluate(binder->bindExpression(
+                         compilationUnit->getExpression()))
                   << RESET << std::endl;
       } catch (const char *msg) {
         std::cout << RED << msg << RESET << std::endl;
