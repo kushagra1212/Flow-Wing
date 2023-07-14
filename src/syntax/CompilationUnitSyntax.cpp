@@ -1,27 +1,21 @@
 #include "CompilationUnitSyntax.h"
-class CompilationUnitSyntax {
-private:
-  ExpressionSyntax *expression;
-  SyntaxToken *endOfFileToken;
 
-public:
-  std::vector<std::string> logs;
-  CompilationUnitSyntax(std::vector<std::string> &logs,
-                        ExpressionSyntax *expression,
-                        SyntaxToken *endOfFileToken) {
-    this->expression = expression;
-    this->endOfFileToken = endOfFileToken;
-    this->logs = logs;
-  }
+CompilationUnitSyntax::CompilationUnitSyntax(std::vector<std::string> &logs,
+                                             ExpressionSyntax *expression,
+                                             SyntaxToken *endOfFileToken) {
+  this->expression = expression;
+  this->endOfFileToken = endOfFileToken;
+  this->logs = logs;
+}
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::SyntaxKind::CompilationUnit;
-  }
+SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
+  return SyntaxKindUtils::SyntaxKind::CompilationUnit;
+}
 
-public:
-  ExpressionSyntax *getExpression() { return this->expression; }
+ExpressionSyntax *CompilationUnitSyntax::getExpression() {
+  return this->expression;
+}
 
-public:
-  SyntaxToken *getEndOfFileToken() { return this->endOfFileToken; }
-};
+SyntaxToken *CompilationUnitSyntax::getEndOfFileToken() {
+  return this->endOfFileToken;
+}

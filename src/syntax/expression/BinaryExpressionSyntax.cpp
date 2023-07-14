@@ -1,37 +1,28 @@
 #include "BinaryExpressionSyntax.h"
-class BinaryExpressionSyntax : public ExpressionSyntax {
 
-private:
-  ExpressionSyntax *left;
-  SyntaxToken *operatorToken;
-  ExpressionSyntax *right;
+BinaryExpressionSyntax::BinaryExpressionSyntax(ExpressionSyntax *left,
+                                               SyntaxToken *operatorToken,
+                                               ExpressionSyntax *right) {
+  this->left = left;
+  this->operatorToken = operatorToken;
+  this->right = right;
+  children.push_back(this->left);
+  children.push_back(this->operatorToken);
+  children.push_back(this->right);
+}
 
-public:
-  std::vector<SyntaxNode *> children;
-  BinaryExpressionSyntax(ExpressionSyntax *left, SyntaxToken *operatorToken,
-                         ExpressionSyntax *right) {
-    this->left = left;
-    this->operatorToken = operatorToken;
-    this->right = right;
-    children.push_back(this->left);
-    children.push_back(this->operatorToken);
-    children.push_back(this->right);
-  }
+SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() {
+  return SyntaxKindUtils::SyntaxKind::BinaryExpression;
+}
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::SyntaxKind::BinaryExpression;
-  }
+ExpressionSyntax *BinaryExpressionSyntax::getLeft() { return this->left; }
 
-public:
-  ExpressionSyntax *getLeft() { return this->left; }
+SyntaxToken *BinaryExpressionSyntax::getOperatorToken() {
+  return this->operatorToken;
+}
 
-public:
-  SyntaxToken *getOperatorToken() { return this->operatorToken; }
+ExpressionSyntax *BinaryExpressionSyntax::getRight() { return this->right; }
 
-public:
-  ExpressionSyntax *getRight() { return this->right; }
-
-public:
-  std::vector<SyntaxNode *> getChildren() { return children; }
-};
+std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
+  return children;
+}

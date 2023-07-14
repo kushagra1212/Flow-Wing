@@ -2,8 +2,6 @@
 #include "compiler/Evaluator.h"
 #include "parser/Parser.h"
 #include "utils/Utils.h"
-using namespace std;
-using namespace SyntaxKindUtils;
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
@@ -27,11 +25,11 @@ constexpr auto BLUE = "\033[34m";
 
 int main() {
 
-  init_enum_to_string_map();
-  string line;
+  SyntaxKindUtils::init_enum_to_string_map();
+  std::string line;
   bool seeTree = false;
   while (true) {
-    getline(cin, line);
+    std::getline(std::cin, line);
     if (line == "`exit") {
       break;
     }
@@ -50,15 +48,17 @@ int main() {
       Utils::prettyPrint(compilationUnit->getExpression());
     if (compilationUnit->logs.size()) {
       for (int i = 0; i < parser->parseCompilationUnit()->logs.size(); i++) {
-        cout << RED << parser->parseCompilationUnit()->logs[i] << RESET << endl;
+        std::cout << RED << parser->parseCompilationUnit()->logs[i] << RESET
+                  << std::endl;
       }
     } else {
 
       try {
-        cout << GREEN << Evaluator::evaluate(compilationUnit->getExpression())
-             << RESET << endl;
+        std::cout << GREEN
+                  << Evaluator::evaluate(compilationUnit->getExpression())
+                  << RESET << std::endl;
       } catch (const char *msg) {
-        cout << RED << msg << RESET << endl;
+        std::cout << RED << msg << RESET << std::endl;
         break;
       }
     }

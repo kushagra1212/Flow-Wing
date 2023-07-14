@@ -3,7 +3,7 @@ project(elang)
 
 set(CMAKE_CXX_STANDARD 17)
 
-file(GLOB_RECURSE SOURCES src/main.cpp)
+file(GLOB_RECURSE SOURCES src/main.cpp src/**/*.cpp)
 
 add_executable(elang ${SOURCES})
 target_include_directories(elang PRIVATE src)

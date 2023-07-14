@@ -1,24 +1,9 @@
 
 #include "SyntaxKindUtils.h"
-namespace SyntaxKindUtils {
-enum SyntaxKind {
-  NumberToken,
-  WhitespaceToken,
-  PlusToken,
-  MinusToken,
-  StarToken,
-  SlashToken,
-  OpenParenthesisToken,
-  CloseParenthesisToken,
-  BadToken,
-  EndOfFileToken,
-  NumberExpression,
-  BinaryExpression,
-  ParenthesizedExpression,
-  CompilationUnit,
-};
-std::map<SyntaxKind, std::string> enum_to_string_map;
-bool isInt32(const std::string &str) {
+
+std::map<SyntaxKindUtils::SyntaxKind, std::string>
+    SyntaxKindUtils::enum_to_string_map;
+bool SyntaxKindUtils::isInt32(const std::string &str) {
   try {
     size_t pos;
     int32_t number = std::stoi(str, &pos);
@@ -29,7 +14,7 @@ bool isInt32(const std::string &str) {
   }
 }
 
-void init_enum_to_string_map() {
+void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::NumberToken] = "NumberToken";
   enum_to_string_map[SyntaxKind::WhitespaceToken] = "WhitespaceToken";
   enum_to_string_map[SyntaxKind::PlusToken] = "PlusToken";
@@ -47,4 +32,3 @@ void init_enum_to_string_map() {
       "ParenthesizedExpression";
   enum_to_string_map[SyntaxKind::CompilationUnit] = "CompilationUnit";
 }
-} // namespace SyntaxKindUtils

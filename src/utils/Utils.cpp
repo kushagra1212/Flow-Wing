@@ -1,8 +1,6 @@
 #include "Utils.h"
 
-namespace Utils {
-void prettyPrint(SyntaxNode *node, std::string indent = "",
-                 bool isLast = true) {
+void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   std::cout << indent;
   if (isLast) {
     std::cout << "\\-";
@@ -20,7 +18,6 @@ void prettyPrint(SyntaxNode *node, std::string indent = "",
   std::cout << "\n";
   std::vector<SyntaxNode *> children = node->getChildren();
   for (int i = 0; i < children.size(); i++) {
-    prettyPrint(children[i], indent, i == children.size() - 1);
+    Utils::prettyPrint(children[i], indent, i == children.size() - 1);
   }
 }
-} // namespace Utils
