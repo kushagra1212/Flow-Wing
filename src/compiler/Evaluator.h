@@ -23,7 +23,7 @@ class Evaluator {
 public:
   template <typename T> static T evaluate(BoundExpression *node);
 
-  static std::unordered_map<std::string, int> variables;
+  static std::unordered_map<std::string, std::any> variables;
   template <typename T>
   static T
   binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op,

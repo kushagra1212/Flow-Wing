@@ -1,6 +1,6 @@
 #include "Evaluator.h"
 
-std::unordered_map<std::string, int> Evaluator::variables;
+std::unordered_map<std::string, std::any> Evaluator::variables;
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -89,8 +89,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     Evaluator::variables[variable_name] = 0;
     switch (assignmentExpression->getOperator()) {
     case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
-      Evaluator::variables[variable_name] = std::any_cast<int>(
-          Evaluator::evaluate<std::any>(assignmentExpression->getRight()));
+      Evaluator::variables[variable_name] =
+          Evaluator::evaluate<std::any>(assignmentExpression->getRight());
       break;
     }
     default:
