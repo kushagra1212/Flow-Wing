@@ -59,4 +59,6 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::CaretToken] = "CaretToken";
   enum_to_string_map[SyntaxKind::TildeToken] = "TildeToken";
   enum_to_string_map[SyntaxKind::PercentToken] = "PercentToken";
+  enum_to_string_map[SyntaxKind::VariableExpression] = "VariableExpression";
+  enum_to_string_map[SyntaxKind::AssignmentExpression] = "AssignmentExpression";
 }

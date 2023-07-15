@@ -47,6 +47,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       return operand;
     case BinderKindUtils::BoundUnaryOperatorKind::Negation:
       return -operand;
+    case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation:
+      return !operand;
     default:
       throw "Unexpected unary operator";
     }
@@ -86,11 +88,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       throw "Unexpected variable name";
     }
     std::string variable_name = std::any_cast<std::string>(variable);
-    Evaluator::variables[variable_name] = 0;
+
     switch (assignmentExpression->getOperator()) {
     case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
+
       Evaluator::variables[variable_name] =
           Evaluator::evaluate<std::any>(assignmentExpression->getRight());
+
       break;
     }
     default:
