@@ -14,8 +14,14 @@
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
+#include <any>
 class Evaluator {
 public:
-  static int evaluate(BoundExpression *node);
+  template <typename T> static T evaluate(BoundExpression *node);
+
+  template <typename T>
+  static T
+  binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op,
+                            int left, int right);
 };
 #endif

@@ -4,20 +4,22 @@
 BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
-    LiteralExpressionSyntax<int> *numberExpression =
-        (LiteralExpressionSyntax<int> *)syntax;
 
-    return new BoundLiteralExpression(numberExpression->getValue());
+    if (auto intExpression =
+            dynamic_cast<LiteralExpressionSyntax<int> *>(syntax)) {
+      return new BoundLiteralExpression<int>(intExpression->getValue());
+    } else if (auto boolExpression =
+                   dynamic_cast<LiteralExpressionSyntax<bool> *>(syntax)) {
+
+      return new BoundLiteralExpression<bool>(boolExpression->getValue());
+    }
+
+    return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
     UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;
     BoundExpression *operand = bindExpression(unaryExpression->getOperand());
     BinderKindUtils::BoundUnaryOperatorKind op;
-
-    if (operand->getType() != typeid(int)) {
-      logs.push_back("Unary operator can only be applied to numbers");
-      return operand;
-    }
 
     switch (unaryExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::PlusToken:
@@ -37,10 +39,10 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     BoundExpression *right = bindExpression(binaryExpression->getRight());
     BinderKindUtils::BoundBinaryOperatorKind op;
 
-    if (left->getType() != typeid(int) || right->getType() != typeid(int)) {
-      logs.push_back("Binary operator can only be applied to numbers");
-      return left;
-    }
+    // if (left->getType() != typeid(int) || right->getType() != typeid(int)) {
+    //   logs.push_back("Binary operator can only be applied to numbers");
+    //   return left;
+    // }
 
     switch (binaryExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::PlusToken:

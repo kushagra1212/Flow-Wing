@@ -1,8 +1,8 @@
 #pragma once
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
+#include <iostream>
 #include <typeinfo>
-
 template <typename T> class BoundLiteralExpression : public BoundExpression {
 private:
   T value;

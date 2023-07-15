@@ -2,6 +2,7 @@
 #include "compiler/Evaluator.h"
 #include "parser/Parser.h"
 #include "utils/Utils.h"
+#include <any>
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
@@ -58,10 +59,18 @@ int main() {
     } else {
 
       try {
-        std::cout << GREEN
-                  << Evaluator::evaluate(binder->bindExpression(
-                         compilationUnit->getExpression()))
-                  << RESET << std::endl;
+        std::any result = Evaluator::evaluate<std::any>(
+            binder->bindExpression(compilationUnit->getExpression()));
+        if (result.type() == typeid(int)) {
+          int intValue = std::any_cast<int>(result);
+          std::cout << intValue << std::endl;
+        } else if (result.type() == typeid(bool)) {
+
+          bool boolValue = std::any_cast<bool>(result);
+          std::cout << (boolValue ? "true" : "false") << std::endl;
+        } else {
+          throw "Unexpected result type";
+        }
       } catch (const char *msg) {
         std::cout << RED << msg << RESET << std::endl;
         break;

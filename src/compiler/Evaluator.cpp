@@ -1,16 +1,33 @@
 #include "Evaluator.h"
-int Evaluator::evaluate(BoundExpression *node) {
+
+template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
-    BoundLiteralExpression<int> *literalExpression =
-        (BoundLiteralExpression<int> *)node;
 
-    return (int)(literalExpression->getValue());
+    if (auto literalExpression =
+            dynamic_cast<BoundLiteralExpression<int> *>(node))
+      return (literalExpression->getValue());
+    else if (auto literalExpression =
+                 dynamic_cast<BoundLiteralExpression<bool> *>(node)) {
+
+      return (literalExpression->getValue());
+    }
+
+    return 0;
   }
   case BinderKindUtils::BoundNodeKind::UnaryExpression: {
     BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
-    int operand = Evaluator::evaluate(unaryExpression->getOperand());
+    std::any operand_any =
+        (Evaluator::evaluate<std::any>(unaryExpression->getOperand()));
+    int operand = 1;
+    if (operand_any.type() == typeid(bool)) {
+      bool operand_bool = std::any_cast<bool>(operand_any);
+      operand = operand_bool ? 1 : 0;
+    } else {
+      operand = std::any_cast<int>(operand_any);
+    }
+
     switch (unaryExpression->getOperator()) {
     case BinderKindUtils::BoundUnaryOperatorKind::Identity:
       return operand;
@@ -22,31 +39,56 @@ int Evaluator::evaluate(BoundExpression *node) {
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
-    int left = Evaluator::evaluate(binaryExpression->getLeft());
-    int right = Evaluator::evaluate(binaryExpression->getRight());
-    switch (binaryExpression->getOperator()) {
-    case BinderKindUtils::BoundBinaryOperatorKind::Addition:
-      return left + right;
-    case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
-      return left - right;
-    case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
-      return left * right;
-    case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-      if (right == 0) {
-        throw "ERROR: Division by zero";
-      }
-      return left / right;
+    std::any left_any =
+        (Evaluator::evaluate<std::any>(binaryExpression->getLeft()));
+    std::any right_any =
+        (Evaluator::evaluate<std::any>(binaryExpression->getRight()));
+
+    int left = 1, right = 1;
+    if (left_any.type() == typeid(bool)) {
+      bool left_bool = std::any_cast<bool>(left_any);
+      left = left_bool ? 1 : 0;
+    } else {
+      left = std::any_cast<int>(left_any);
     }
-    default:
-      throw "Unexpected binary operator";
+
+    if (right_any.type() == typeid(bool)) {
+      bool right_bool = std::any_cast<bool>(right_any);
+      right = right_bool ? 1 : 0;
+    } else {
+      right = std::any_cast<int>(right_any);
     }
+
+    return Evaluator::binaryExpressionEvaluator<T>(
+        binaryExpression->getOperator(), left, right);
   }
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
     BoundParenthesizedExpression *parenthesizedExpression =
         (BoundParenthesizedExpression *)node;
-    return Evaluator::evaluate(parenthesizedExpression->getExpression());
+    return Evaluator::evaluate<T>(parenthesizedExpression->getExpression());
   }
   default:
     throw "Unexpected node";
   }
 }
+
+template <typename T>
+T Evaluator::binaryExpressionEvaluator(
+    BinderKindUtils::BoundBinaryOperatorKind op, int left, int right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  default:
+    throw "Unexpected binary operator";
+  }
+}
+
+template int Evaluator::evaluate<int>(BoundExpression *node);
+template bool Evaluator::evaluate<bool>(BoundExpression *node);
+template std::any Evaluator::evaluate<std::any>(BoundExpression *node);
