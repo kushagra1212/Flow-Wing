@@ -2,6 +2,7 @@
 #define PARSER_H
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
+#include "../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"

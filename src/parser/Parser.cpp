@@ -60,6 +60,19 @@ CompilationUnitSyntax *Parser::parseCompilationUnit() {
 
 ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
 
+  // parse assignment expression
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+    if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
+      SyntaxToken *identifierToken = this->nextToken();
+      SyntaxToken *operatorToken = this->nextToken();
+      ExpressionSyntax *right = this->parseExpression();
+      return new AssignmentExpressionSyntax(identifierToken, operatorToken,
+                                            right);
+    }
+  }
+
   ExpressionSyntax *left;
   int unaryOperatorPrecedence =
       this->getCurrent()->getUnaryOperatorPrecedence();
