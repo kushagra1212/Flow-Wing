@@ -32,6 +32,7 @@ enum BoundBinaryOperatorKind {
   BitwiseAnd,
   BitwiseOr,
   BitwiseXor,
+  Modulus,
   VariableDeclaration,
 };
 } // namespace BinderKindUtils

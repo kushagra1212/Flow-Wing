@@ -66,6 +66,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     case SyntaxKindUtils::SyntaxKind::SlashToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Division;
       break;
+    case SyntaxKindUtils::SyntaxKind::PercentToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Modulus;
+      break;
     case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Equals;
       break;

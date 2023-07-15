@@ -36,6 +36,7 @@ int SyntaxToken::getBinaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::StarToken:
   case SyntaxKindUtils::SyntaxKind::SlashToken:
+  case SyntaxKindUtils::SyntaxKind::PercentToken:
     return 9;
   case SyntaxKindUtils::SyntaxKind::PlusToken:
   case SyntaxKindUtils::SyntaxKind::MinusToken:

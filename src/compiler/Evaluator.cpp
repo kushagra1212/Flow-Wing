@@ -180,6 +180,8 @@ T Evaluator::binaryExpressionEvaluator(
     return left | right;
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     return left ^ right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    return left % right;
   default:
     throw "Unexpected binary operator";
   }
