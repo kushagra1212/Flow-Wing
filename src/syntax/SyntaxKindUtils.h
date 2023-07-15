@@ -17,7 +17,29 @@ enum SyntaxKind {
   CloseParenthesisToken,
   BadToken,
   EndOfFileToken,
+  AmpersandAmpersandToken,
+  PipePipeToken,
+  EqualsEqualsToken,
+  EqualsToken,
+  BangToken,
+  BangEqualsToken,
+  LessOrEqualsToken,
+  LessToken,
+  GreaterOrEqualsToken,
+  GreaterToken,
+  SemiColonToken,
+  CommaToken,
 
+  // Braces
+
+  OpenBraceToken,
+  CloseBraceToken,
+
+  // Strings
+
+  StringToken,
+
+  SemicolonToken,
   // Keywords
   TrueKeyword,
   FalseKeyword,

@@ -26,5 +26,8 @@ private:
 
 public:
   SyntaxToken *nextToken();
+
+private:
+  SyntaxToken *readString();
 };
 #endif // LEXER_H

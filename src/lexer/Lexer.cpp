@@ -91,6 +91,82 @@ SyntaxToken *Lexer::nextToken() {
   case ')':
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken,
                            this->position++, ")", nullptr);
+  case '&':
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '&') {
+      return new SyntaxToken(
+          SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
+          this->position++, "&&", nullptr);
+    }
+    logs.push_back("ERROR: bad character input: " +
+                   this->text.substr(this->position, 1));
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
+                           this->position++,
+                           this->text.substr(this->position - 1, 1), nullptr);
+  case '|': {
+
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '|') {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PipePipeToken,
+                             this->position++, "||", nullptr);
+    }
+    logs.push_back("ERROR: bad character input: " +
+                   this->text.substr(this->position, 1));
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
+                           this->position++,
+                           this->text.substr(this->position - 1, 1), nullptr);
+  }
+  case '=':
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '=') {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsEqualsToken,
+                             this->position++, "==", nullptr);
+    }
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsToken,
+                           this->position++, "=", nullptr);
+
+  case '!':
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '=') {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangEqualsToken,
+                             this->position++, "!=", nullptr);
+    }
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangToken,
+                           this->position++, "!", nullptr);
+
+  case '<':
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '=') {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessOrEqualsToken,
+                             this->position++, "<=", nullptr);
+    }
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessToken,
+                           this->position++, "<", nullptr);
+
+  case '>':
+    if (this->position + 1 < this->text.length() &&
+        this->text[this->position + 1] == '=') {
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken,
+                             this->position++, ">=", nullptr);
+    }
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterToken,
+                           this->position++, ">", nullptr);
+
+  case ';':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::SemicolonToken,
+                           this->position++, ";", nullptr);
+  case ',':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CommaToken,
+                           this->position++, ",", nullptr);
+  case '{':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::OpenBraceToken,
+                           this->position++, "{", nullptr);
+  case '}':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseBraceToken,
+                           this->position++, "}", nullptr);
+  case '"':
+    return this->readString();
+
   default:
     logs.push_back("ERROR: bad character input: " +
                    this->text.substr(this->position, 1));
@@ -98,4 +174,52 @@ SyntaxToken *Lexer::nextToken() {
                            this->position++,
                            this->text.substr(this->position - 1, 1), nullptr);
   }
+}
+
+SyntaxToken *Lexer::readString() {
+  int start = this->position++;
+  std::string text = "";
+  while (this->getCurrent() != '"') {
+    if (this->getCurrent() == '\0') {
+      logs.push_back("ERROR: unterminated string literal");
+      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start,
+                             this->text.substr(start, this->position - start),
+                             nullptr);
+    }
+    if (this->getCurrent() == '\\') {
+      this->next();
+      switch (this->getCurrent()) {
+      case '"':
+        text += '"';
+        break;
+      case '\\':
+        text += '\\';
+        break;
+      case 'n':
+        text += '\n';
+        break;
+      case 'r':
+        text += '\r';
+        break;
+      case 't':
+        text += '\t';
+        break;
+      default:
+        logs.push_back("ERROR: bad character escape sequence: \\" +
+                       this->text.substr(this->position, 1));
+        return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start,
+                               this->text.substr(start, this->position - start),
+                               nullptr);
+      }
+    } else {
+      text += this->getCurrent();
+    }
+    this->next();
+  }
+  this->next();
+  return new SyntaxToken(SyntaxKindUtils::SyntaxKind::StringToken, start,
+                         this->text.substr(start, this->position - start),
+                         nullptr);
+
+  //&(text)
 }
