@@ -34,6 +34,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     case SyntaxKindUtils::SyntaxKind::MinusToken:
       op = BinderKindUtils::BoundUnaryOperatorKind::Negation;
       break;
+    case SyntaxKindUtils::SyntaxKind::BangToken:
+      op = BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation;
+      break;
     default:
       throw "Unexpected unary operator";
     }
@@ -62,6 +65,42 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
       break;
     case SyntaxKindUtils::SyntaxKind::SlashToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Division;
+      break;
+    case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Equals;
+      break;
+    case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::NotEquals;
+      break;
+    case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd;
+      break;
+    case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::LogicalOr;
+      break;
+    case SyntaxKindUtils::SyntaxKind::LessToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Less;
+      break;
+    case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals;
+      break;
+    case SyntaxKindUtils::SyntaxKind::GreaterToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Greater;
+      break;
+    case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals;
+      break;
+    case SyntaxKindUtils::SyntaxKind::EqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;
+      break;
+    case SyntaxKindUtils::SyntaxKind::AmpersandToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd;
+      break;
+    case SyntaxKindUtils::SyntaxKind::PipeToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr;
+      break;
+    case SyntaxKindUtils::SyntaxKind::CaretToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor;
       break;
     default:
       throw "Unexpected binary operator";

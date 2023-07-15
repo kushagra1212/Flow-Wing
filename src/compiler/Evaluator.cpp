@@ -104,6 +104,30 @@ T Evaluator::binaryExpressionEvaluator(
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
     return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Assignment:
+    return right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    return left & right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    return left | right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    return left ^ right;
   default:
     throw "Unexpected binary operator";
   }

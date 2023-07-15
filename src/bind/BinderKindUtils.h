@@ -22,5 +22,13 @@ enum BoundBinaryOperatorKind {
   LogicalOr,
   Equals,
   NotEquals,
+  Less,
+  LessOrEquals,
+  Greater,
+  GreaterOrEquals,
+  Assignment,
+  BitwiseAnd,
+  BitwiseOr,
+  BitwiseXor,
 };
 } // namespace BinderKindUtils

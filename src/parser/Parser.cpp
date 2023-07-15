@@ -118,6 +118,7 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
             : false;
     return new LiteralExpressionSyntax<bool>(keywordToken, value);
   }
+
   default:
     return new LiteralExpressionSyntax(
         new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken,

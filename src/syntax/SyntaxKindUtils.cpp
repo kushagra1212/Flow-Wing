@@ -34,4 +34,29 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::ParenthesizedExpression] =
       "ParenthesizedExpression";
   enum_to_string_map[SyntaxKind::CompilationUnit] = "CompilationUnit";
+  enum_to_string_map[SyntaxKind::AmpersandAmpersandToken] =
+      "AmpersandAmpersandToken";
+  enum_to_string_map[SyntaxKind::PipePipeToken] = "PipePipeToken";
+  enum_to_string_map[SyntaxKind::EqualsEqualsToken] = "EqualsEqualsToken";
+  enum_to_string_map[SyntaxKind::EqualsToken] = "EqualsToken";
+  enum_to_string_map[SyntaxKind::BangToken] = "BangToken";
+  enum_to_string_map[SyntaxKind::BangEqualsToken] = "BangEqualsToken";
+  enum_to_string_map[SyntaxKind::LessOrEqualsToken] = "LessOrEqualsToken";
+  enum_to_string_map[SyntaxKind::LessToken] = "LessToken";
+  enum_to_string_map[SyntaxKind::GreaterOrEqualsToken] = "GreaterOrEqualsToken";
+  enum_to_string_map[SyntaxKind::GreaterToken] = "GreaterToken";
+  enum_to_string_map[SyntaxKind::SemiColonToken] = "SemiColonToken";
+  enum_to_string_map[SyntaxKind::CommaToken] = "CommaToken";
+  enum_to_string_map[SyntaxKind::OpenBraceToken] = "OpenBraceToken";
+  enum_to_string_map[SyntaxKind::CloseBraceToken] = "CloseBraceToken";
+  enum_to_string_map[SyntaxKind::StringToken] = "StringToken";
+  enum_to_string_map[SyntaxKind::IdentifierToken] = "IdentifierToken";
+
+  enum_to_string_map[SyntaxKind::SemicolonToken] = "SemicolonToken";
+
+  enum_to_string_map[SyntaxKind::AmpersandToken] = "AmpersandToken";
+  enum_to_string_map[SyntaxKind::PipeToken] = "PipeToken";
+  enum_to_string_map[SyntaxKind::CaretToken] = "CaretToken";
+  enum_to_string_map[SyntaxKind::TildeToken] = "TildeToken";
+  enum_to_string_map[SyntaxKind::PercentToken] = "PercentToken";
 }

@@ -30,6 +30,16 @@ enum SyntaxKind {
   SemiColonToken,
   CommaToken,
 
+  // Bitwise
+
+  AmpersandToken,
+  PipeToken,
+  CaretToken,
+  TildeToken,
+
+  // percent
+  PercentToken,
+
   // Braces
 
   OpenBraceToken,

@@ -91,66 +91,87 @@ SyntaxToken *Lexer::nextToken() {
   case ')':
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken,
                            this->position++, ")", nullptr);
-  case '&':
+  case '&': {
+
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '&') {
+      this->next();
       return new SyntaxToken(
           SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
           this->position++, "&&", nullptr);
     }
-    logs.push_back("ERROR: bad character input: " +
-                   this->text.substr(this->position, 1));
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
-                           this->position++,
-                           this->text.substr(this->position - 1, 1), nullptr);
+
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::AmpersandToken,
+                           this->position++, "&", nullptr);
+  }
+  case '^':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CaretToken,
+                           this->position++, "^", nullptr);
+  case '%':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PercentToken,
+                           this->position++, "%", nullptr);
+  case '~':
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::TildeToken,
+                           this->position++, "~", nullptr);
   case '|': {
 
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '|') {
+      this->next();
       return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PipePipeToken,
                              this->position++, "||", nullptr);
     }
-    logs.push_back("ERROR: bad character input: " +
-                   this->text.substr(this->position, 1));
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
-                           this->position++,
-                           this->text.substr(this->position - 1, 1), nullptr);
+
+    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PipeToken,
+                           this->position++, "|", nullptr);
   }
-  case '=':
+  case '=': {
+
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
+      this->next();
       return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsEqualsToken,
                              this->position++, "==", nullptr);
     }
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsToken,
                            this->position++, "=", nullptr);
+  }
 
-  case '!':
+  case '!': {
+
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
+      this->next();
       return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangEqualsToken,
                              this->position++, "!=", nullptr);
     }
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangToken,
                            this->position++, "!", nullptr);
+  }
 
-  case '<':
+  case '<': {
+
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
+      this->next();
       return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessOrEqualsToken,
                              this->position++, "<=", nullptr);
     }
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessToken,
                            this->position++, "<", nullptr);
+  }
 
-  case '>':
+  case '>': {
+
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
+      this->next();
       return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken,
                              this->position++, ">=", nullptr);
     }
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterToken,
                            this->position++, ">", nullptr);
+  }
 
   case ';':
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::SemicolonToken,

@@ -23,9 +23,10 @@ std::string SyntaxToken::getKindText() {
 
 int SyntaxToken::getUnaryOperatorPrecedence() {
   switch (this->kind) {
-  case SyntaxKindUtils::PlusToken:
-  case SyntaxKindUtils::MinusToken:
-    return 5;
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+  case SyntaxKindUtils::SyntaxKind::BangToken:
+    return 10;
   default:
     return 0;
   }
@@ -33,11 +34,31 @@ int SyntaxToken::getUnaryOperatorPrecedence() {
 
 int SyntaxToken::getBinaryOperatorPrecedence() {
   switch (this->kind) {
-  case SyntaxKindUtils::StarToken:
-  case SyntaxKindUtils::SlashToken:
+  case SyntaxKindUtils::SyntaxKind::StarToken:
+  case SyntaxKindUtils::SyntaxKind::SlashToken:
+    return 9;
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+    return 8;
+
+  case SyntaxKindUtils::SyntaxKind::LessToken:
+  case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
+    return 7;
+  case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
+    return 6;
+  case SyntaxKindUtils::SyntaxKind::AmpersandToken:
+    return 5;
+  case SyntaxKindUtils::SyntaxKind::CaretToken:
+    return 4;
+  case SyntaxKindUtils::SyntaxKind::PipeToken:
+    return 3;
+
+  case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
     return 2;
-  case SyntaxKindUtils::PlusToken:
-  case SyntaxKindUtils::MinusToken:
+  case SyntaxKindUtils::SyntaxKind::PipePipeToken:
     return 1;
   default:
     return 0;
