@@ -68,8 +68,18 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
       SyntaxToken *identifierToken = this->nextToken();
       SyntaxToken *operatorToken = this->nextToken();
       ExpressionSyntax *right = this->parseExpression();
-      return new AssignmentExpressionSyntax(identifierToken, operatorToken,
-                                            right);
+      return new AssignmentExpressionSyntax(
+          new LiteralExpressionSyntax<std::string>(
+              identifierToken, *(std::static_pointer_cast<std::string>(
+                                   identifierToken->getValue()))),
+          operatorToken, right);
+    } else if (this->peek(0)->getKind() ==
+               SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+      SyntaxToken *identifierToken = this->nextToken();
+      return new VariableExpressionSyntax(
+          new LiteralExpressionSyntax<std::string>(
+              identifierToken, *(std::static_pointer_cast<std::string>(
+                                   identifierToken->getValue()))));
     }
   }
 

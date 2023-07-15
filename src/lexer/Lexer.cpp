@@ -58,20 +58,7 @@ SyntaxToken *Lexer::nextToken() {
     }
 
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::IdentifierToken, start,
-                           text, nullptr);
-  }
-
-  // check for variable name
-
-  if (isalpha(this->getCurrent())) {
-    int start = this->position;
-    while (isalpha(this->getCurrent())) {
-      this->next();
-    }
-    int length = this->position - start;
-    std::string text = this->text.substr(start, length);
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::IdentifierToken, start,
-                           text, nullptr);
+                           text, std::make_shared<std::string>(text));
   }
 
   if (isspace(this->getCurrent())) {

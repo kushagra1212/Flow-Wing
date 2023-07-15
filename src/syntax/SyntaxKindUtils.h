@@ -64,6 +64,7 @@ enum SyntaxKind {
   BinaryExpression,
   ParenthesizedExpression,
   AssignmentExpression,
+  VariableExpression,
   CompilationUnit,
 };
 extern std::map<SyntaxKind, std::string> enum_to_string_map;

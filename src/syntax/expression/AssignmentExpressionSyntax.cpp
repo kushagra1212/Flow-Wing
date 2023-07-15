@@ -1,10 +1,8 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    SyntaxToken *identifierToken, SyntaxToken *operatorToken,
-    ExpressionSyntax *right)
-    : identifierToken(identifierToken), operatorToken(operatorToken),
-      right(right) {}
+    ExpressionSyntax *left, SyntaxToken *operatorToken, ExpressionSyntax *right)
+    : left(left), operatorToken(operatorToken), right(right) {}
 
 SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
 
@@ -13,13 +11,9 @@ SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
 
 std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
 
-  std::vector<SyntaxNode *> children = {identifierToken, operatorToken, right};
+  std::vector<SyntaxNode *> children = {left, operatorToken, right};
 
   return children;
-}
-
-SyntaxToken *AssignmentExpressionSyntax::getIdentifierToken() {
-  return identifierToken;
 }
 
 SyntaxToken *AssignmentExpressionSyntax::getOperatorToken() {
@@ -27,3 +21,5 @@ SyntaxToken *AssignmentExpressionSyntax::getOperatorToken() {
 }
 
 ExpressionSyntax *AssignmentExpressionSyntax::getRight() { return right; }
+
+ExpressionSyntax *AssignmentExpressionSyntax::getLeft() { return left; }

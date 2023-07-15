@@ -5,6 +5,8 @@ enum BoundNodeKind {
   BinaryExpression,
   LiteralExpression,
   ParenthesizedExpression,
+  AssignmentExpression,
+  VariableExpression
 };
 
 enum BoundUnaryOperatorKind {
@@ -30,5 +32,6 @@ enum BoundBinaryOperatorKind {
   BitwiseAnd,
   BitwiseOr,
   BitwiseXor,
+  VariableDeclaration,
 };
 } // namespace BinderKindUtils

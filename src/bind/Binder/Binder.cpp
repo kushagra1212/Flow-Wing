@@ -107,6 +107,35 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     }
     return new BoundBinaryExpression(left, op, right);
   }
+
+    // Assignment Expression
+
+  case SyntaxKindUtils::SyntaxKind::AssignmentExpression: {
+    AssignmentExpressionSyntax *assignmentExpression =
+        (AssignmentExpressionSyntax *)syntax;
+    BoundExpression *left = bindExpression(assignmentExpression->getLeft());
+    BoundExpression *right = bindExpression(assignmentExpression->getRight());
+    BinderKindUtils::BoundBinaryOperatorKind op;
+
+    switch (assignmentExpression->getOperatorToken()->getKind()) {
+    case SyntaxKindUtils::SyntaxKind::EqualsToken:
+      op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;
+      break;
+    default:
+      throw "Unexpected assignment operator";
+    }
+    return new BoundAssignmentExpression(left, op, right);
+  }
+
+  case SyntaxKindUtils::SyntaxKind::VariableExpression: {
+    VariableExpressionSyntax *variableExpressionSyntax =
+        (VariableExpressionSyntax *)syntax;
+
+    BoundExpression *identifierExpression =
+        bindExpression(variableExpressionSyntax->getIdentifier());
+
+    return new BoundVariableExpression(identifierExpression);
+  }
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
     ParenthesizedExpressionSyntax *parenthesizedExpression =
         (ParenthesizedExpressionSyntax *)syntax;

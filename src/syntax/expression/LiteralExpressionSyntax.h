@@ -11,7 +11,6 @@ private:
   T value;
 
 public:
-  std::vector<SyntaxNode *> children;
   LiteralExpressionSyntax(SyntaxToken *token, T value);
 
 public:

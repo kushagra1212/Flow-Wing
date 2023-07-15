@@ -7,6 +7,7 @@
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
+#include "../syntax/expression/VariableExpressionSyntax.h"
 class Parser {
 private:
   std::vector<SyntaxToken *> tokens;

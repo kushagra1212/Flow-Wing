@@ -9,16 +9,21 @@
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 
+#include "../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../bind/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../bind/BoundExpression.h"
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
 #include <any>
+#include <string>
+#include <unordered_map>
 class Evaluator {
+
 public:
   template <typename T> static T evaluate(BoundExpression *node);
 
+  static std::unordered_map<std::string, int> variables;
   template <typename T>
   static T
   binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op,

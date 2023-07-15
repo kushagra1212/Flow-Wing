@@ -12,8 +12,6 @@ LiteralExpressionSyntax<T>::LiteralExpressionSyntax(SyntaxToken *token,
 
   this->token = token;
   this->value = value;
-
-  children.push_back(this->token);
 }
 template <typename T>
 SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() {
@@ -27,6 +25,8 @@ template <typename T> SyntaxToken *LiteralExpressionSyntax<T>::getToken() {
 }
 template <typename T>
 std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
+
+  std::vector<SyntaxNode *> children = {this->token};
   return children;
 }
 template <typename T> T LiteralExpressionSyntax<T>::getValue() {

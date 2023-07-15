@@ -1,5 +1,6 @@
 #include "Evaluator.h"
 
+std::unordered_map<std::string, int> Evaluator::variables;
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -49,6 +50,53 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     default:
       throw "Unexpected unary operator";
     }
+  }
+  case BinderKindUtils::BoundNodeKind::VariableExpression: {
+    BoundVariableExpression *variableExpression =
+        (BoundVariableExpression *)node;
+
+    std::any variable = Evaluator::evaluate<std::any>(
+        variableExpression->getIdentifierExpression());
+    if (variable.type() != typeid(std::string)) {
+      throw "Unexpected variable name";
+    }
+
+    std::string variable_name = std::any_cast<std::string>(variable);
+    switch (variableExpression->getKind()) {
+    case BinderKindUtils::BoundNodeKind::VariableExpression: {
+      if (Evaluator::variables.find(variable_name) !=
+          Evaluator::variables.end()) {
+        return Evaluator::variables[variable_name];
+      } else {
+        throw "variable is undefined";
+      }
+    }
+    default:
+      throw "Unexpected Variable found";
+    }
+  }
+
+  case BinderKindUtils::BoundNodeKind::AssignmentExpression: {
+    BoundAssignmentExpression *assignmentExpression =
+        (BoundAssignmentExpression *)node;
+
+    std::any variable =
+        Evaluator::evaluate<std::any>(assignmentExpression->getLeft());
+    if (variable.type() != typeid(std::string)) {
+      throw "Unexpected variable name";
+    }
+    std::string variable_name = std::any_cast<std::string>(variable);
+    Evaluator::variables[variable_name] = 0;
+    switch (assignmentExpression->getOperator()) {
+    case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
+      Evaluator::variables[variable_name] = std::any_cast<int>(
+          Evaluator::evaluate<std::any>(assignmentExpression->getRight()));
+      break;
+    }
+    default:
+      throw "Unexpected assignment operator";
+    }
+    return Evaluator::variables[variable_name];
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
