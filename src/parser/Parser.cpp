@@ -120,9 +120,11 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
   }
 
   default:
-    return new LiteralExpressionSyntax(
-        new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken,
-                        this->getCurrent()->getPosition(), "0", nullptr),
-        0);
+    this->logs.push_back("ERROR: unexpected token <" +
+                         this->getCurrent()->getText() + ">, expected <" +
+                         SyntaxKindUtils::enum_to_string_map
+                             [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
+                         ">");
+    return new LiteralExpressionSyntax<int>(this->getCurrent(), 0);
   }
 }
