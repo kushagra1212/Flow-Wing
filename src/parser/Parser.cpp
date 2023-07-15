@@ -60,29 +60,6 @@ CompilationUnitSyntax *Parser::parseCompilationUnit() {
 
 ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
 
-  // parse assignment expression
-
-  if (this->getCurrent()->getKind() ==
-      SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-    if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-      SyntaxToken *identifierToken = this->nextToken();
-      SyntaxToken *operatorToken = this->nextToken();
-      ExpressionSyntax *right = this->parseExpression();
-      return new AssignmentExpressionSyntax(
-          new LiteralExpressionSyntax<std::string>(
-              identifierToken, *(std::static_pointer_cast<std::string>(
-                                   identifierToken->getValue()))),
-          operatorToken, right);
-    } else if (this->peek(0)->getKind() ==
-               SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-      SyntaxToken *identifierToken = this->nextToken();
-      return new VariableExpressionSyntax(
-          new LiteralExpressionSyntax<std::string>(
-              identifierToken, *(std::static_pointer_cast<std::string>(
-                                   identifierToken->getValue()))));
-    }
-  }
-
   ExpressionSyntax *left;
   int unaryOperatorPrecedence =
       this->getCurrent()->getUnaryOperatorPrecedence();
@@ -141,7 +118,24 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
             : false;
     return new LiteralExpressionSyntax<bool>(keywordToken, value);
   }
-
+  case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
+    if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
+      SyntaxToken *identifierToken = this->nextToken();
+      SyntaxToken *operatorToken = this->nextToken();
+      ExpressionSyntax *right = this->parseExpression();
+      return new AssignmentExpressionSyntax(
+          new LiteralExpressionSyntax<std::string>(
+              identifierToken, *(std::static_pointer_cast<std::string>(
+                                   identifierToken->getValue()))),
+          operatorToken, right);
+    } else {
+      SyntaxToken *identifierToken = this->nextToken();
+      return new VariableExpressionSyntax(
+          new LiteralExpressionSyntax<std::string>(
+              identifierToken, *(std::static_pointer_cast<std::string>(
+                                   identifierToken->getValue()))));
+    }
+  }
   default:
     this->logs.push_back("ERROR: unexpected token <" +
                          this->getCurrent()->getText() + ">, expected <" +
