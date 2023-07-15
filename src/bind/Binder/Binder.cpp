@@ -12,6 +12,12 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
                    dynamic_cast<LiteralExpressionSyntax<bool> *>(syntax)) {
 
       return new BoundLiteralExpression<bool>(boolExpression->getValue());
+    } else if (auto stringExpression =
+                   dynamic_cast<LiteralExpressionSyntax<std::string> *>(
+                       syntax)) {
+
+      return new BoundLiteralExpression<std::string>(
+          stringExpression->getValue());
     }
 
     return nullptr;

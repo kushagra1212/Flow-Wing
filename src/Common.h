@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 #include <algorithm>
+#include <any>
 #include <exception>
 #include <iostream>
 #include <iterator>

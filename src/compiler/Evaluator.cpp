@@ -12,6 +12,12 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
                  dynamic_cast<BoundLiteralExpression<bool> *>(node)) {
 
       return (literalExpression->getValue());
+    } else if (auto literalExpression =
+                   dynamic_cast<BoundLiteralExpression<std::string> *>(node)) {
+
+      return (literalExpression->getValue());
+    } else {
+      throw "Unexpected literal expression";
     }
 
     return 0;
@@ -21,6 +27,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     std::any operand_any =
         (Evaluator::evaluate<std::any>(unaryExpression->getOperand()));
     int operand = 1;
+
+    if (operand_any.type() == typeid(std::string)) {
+
+      throw "Unexpected string in unary expression";
+      return 0;
+    }
+
     if (operand_any.type() == typeid(bool)) {
       bool operand_bool = std::any_cast<bool>(operand_any);
       operand = operand_bool ? 1 : 0;
@@ -45,6 +58,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         (Evaluator::evaluate<std::any>(binaryExpression->getRight()));
 
     int left = 1, right = 1;
+    if (left_any.type() == typeid(std::string) ||
+        right_any.type() == typeid(std::string)) {
+
+      throw "Unexpected string in binary expression";
+      return 0;
+    }
+
     if (left_any.type() == typeid(bool)) {
       bool left_bool = std::any_cast<bool>(left_any);
       left = left_bool ? 1 : 0;
@@ -88,7 +108,4 @@ T Evaluator::binaryExpressionEvaluator(
     throw "Unexpected binary operator";
   }
 }
-
-template int Evaluator::evaluate<int>(BoundExpression *node);
-template bool Evaluator::evaluate<bool>(BoundExpression *node);
 template std::any Evaluator::evaluate<std::any>(BoundExpression *node);

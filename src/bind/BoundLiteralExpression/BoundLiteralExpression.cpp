@@ -1,5 +1,11 @@
 #include "BoundLiteralExpression.h"
 
+template class BoundLiteralExpression<int>;
+template class BoundLiteralExpression<double>;
+template class BoundLiteralExpression<bool>;
+template class BoundLiteralExpression<std::string>;
+template class BoundLiteralExpression<char>;
+
 template <typename T>
 BoundLiteralExpression<T>::BoundLiteralExpression(T value) {
   this->value = value;
@@ -17,5 +23,3 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
 }
 
 template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
-template class BoundLiteralExpression<int>;
-template class BoundLiteralExpression<bool>;

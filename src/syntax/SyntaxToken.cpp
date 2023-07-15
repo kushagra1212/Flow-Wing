@@ -1,12 +1,12 @@
 #include "SyntaxToken.h"
 
 SyntaxToken::SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position,
-                         std::string text, int *v) {
+                         std::string text, std::shared_ptr<void> value) {
   this->kind = kind;
   this->position = position;
   this->text = text;
-  if (v != nullptr)
-    this->value = new int(*v);
+  if (value != nullptr)
+    this->value = std::move(value);
 }
 
 SyntaxKindUtils::SyntaxKind SyntaxToken::getKind() { return this->kind; }
@@ -15,7 +15,7 @@ int SyntaxToken::getPosition() { return this->position; }
 
 std::string SyntaxToken::getText() { return this->text; }
 
-int SyntaxToken::getValue() { return *(this->value); }
+std::shared_ptr<void> SyntaxToken::getValue() { return (this->value); }
 
 std::string SyntaxToken::getKindText() {
   return SyntaxKindUtils::enum_to_string_map[this->kind];

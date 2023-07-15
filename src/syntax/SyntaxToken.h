@@ -13,11 +13,11 @@ private:
   std::string text;
 
 private:
-  int *value = nullptr;
+  std::shared_ptr<void> value;
 
 public:
   SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position, std::string text,
-              int *v);
+              std::shared_ptr<void> value);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -29,7 +29,7 @@ public:
   std::string getText();
 
 public:
-  int getValue();
+  std::shared_ptr<void> getValue();
 
 public:
   std::string getKindText();

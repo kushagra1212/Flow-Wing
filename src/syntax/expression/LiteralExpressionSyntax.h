@@ -1,6 +1,8 @@
 #pragma once
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
+#include <any>
+#include <string>
 
 template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
 

@@ -1,4 +1,11 @@
 #include "LiteralExpressionSyntax.h"
+
+template class LiteralExpressionSyntax<int>;
+template class LiteralExpressionSyntax<double>;
+template class LiteralExpressionSyntax<bool>;
+template class LiteralExpressionSyntax<std::string>;
+template class LiteralExpressionSyntax<char>;
+
 template <typename T>
 LiteralExpressionSyntax<T>::LiteralExpressionSyntax(SyntaxToken *token,
                                                     T value) {
@@ -25,5 +32,3 @@ std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
 template <typename T> T LiteralExpressionSyntax<T>::getValue() {
   return this->value;
 }
-template class LiteralExpressionSyntax<int>;
-template class LiteralExpressionSyntax<bool>;

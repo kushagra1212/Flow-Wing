@@ -36,7 +36,7 @@ SyntaxToken *Lexer::nextToken() {
     int res = stoi(text);
 
     return new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken, start,
-                           text, &(res));
+                           text, std::make_shared<int>(res));
   }
 
   // Check true or false
@@ -219,7 +219,7 @@ SyntaxToken *Lexer::readString() {
   this->next();
   return new SyntaxToken(SyntaxKindUtils::SyntaxKind::StringToken, start,
                          this->text.substr(start, this->position - start),
-                         nullptr);
+                         std::make_shared<std::string>(text));
 
   //&(text)
 }

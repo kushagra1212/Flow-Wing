@@ -99,8 +99,15 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
   }
   case SyntaxKindUtils::NumberToken: {
     SyntaxToken *numberToken = this->nextToken();
-    return new LiteralExpressionSyntax<int>(numberToken,
-                                            numberToken->getValue());
+    return new LiteralExpressionSyntax<int>(
+        numberToken, *(std::static_pointer_cast<int>(numberToken->getValue())));
+  }
+
+  case SyntaxKindUtils::StringToken: {
+    SyntaxToken *stringToken = this->nextToken();
+    return new LiteralExpressionSyntax<std::string>(
+        stringToken,
+        *(std::static_pointer_cast<std::string>(stringToken->getValue())));
   }
   case SyntaxKindUtils::TrueKeyword:
   case SyntaxKindUtils::FalseKeyword: {

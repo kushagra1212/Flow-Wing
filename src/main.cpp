@@ -61,13 +61,18 @@ int main() {
       try {
         std::any result = Evaluator::evaluate<std::any>(
             binder->bindExpression(compilationUnit->getExpression()));
-        if (result.type() == typeid(int)) {
+        if (result.type() != typeid(std::string) &&
+            result.type() != typeid(bool)) {
           int intValue = std::any_cast<int>(result);
           std::cout << intValue << std::endl;
         } else if (result.type() == typeid(bool)) {
 
           bool boolValue = std::any_cast<bool>(result);
           std::cout << (boolValue ? "true" : "false") << std::endl;
+        } else if (result.type() == typeid(std::string)) {
+
+          std::string stringValue = std::any_cast<std::string>(result);
+          std::cout << stringValue << std::endl;
         } else {
           throw "Unexpected result type";
         }
