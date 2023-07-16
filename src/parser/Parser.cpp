@@ -1,12 +1,13 @@
 #include "Parser.h"
 
-Parser::Parser(std::string text) {
+Parser::Parser(std::vector<std::string> text) {
   Lexer *lexer = new Lexer(text);
   SyntaxToken<std::any> *token;
   do {
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
-        token->getKind() != SyntaxKindUtils::SyntaxKind::BadToken) {
+        token->getKind() != SyntaxKindUtils::SyntaxKind::BadToken &&
+        token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
       this->tokens.push_back(token);
     }
     if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {

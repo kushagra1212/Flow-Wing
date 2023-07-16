@@ -29,6 +29,7 @@ enum SyntaxKind {
   GreaterToken,
   SemiColonToken,
   CommaToken,
+  EndOfLineToken,
 
   // Bitwise
 

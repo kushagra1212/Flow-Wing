@@ -8,6 +8,7 @@
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax.h"
+
 #include <typeindex>
 class Parser {
 private:
@@ -18,7 +19,7 @@ public:
   std::vector<std::string> logs;
 
 public:
-  Parser(std::string text);
+  Parser(std::vector<std::string> text);
 
 private:
   SyntaxToken<std::any> *peek(int offset);
