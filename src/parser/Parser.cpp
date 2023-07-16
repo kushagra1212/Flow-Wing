@@ -2,7 +2,7 @@
 
 Parser::Parser(std::string text) {
   Lexer *lexer = new Lexer(text);
-  SyntaxToken *token;
+  SyntaxToken<std::any> *token;
   do {
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -20,7 +20,7 @@ Parser::Parser(std::string text) {
   }
 }
 
-SyntaxToken *Parser::peek(int offset) {
+SyntaxToken<std::any> *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
 
@@ -29,15 +29,15 @@ SyntaxToken *Parser::peek(int offset) {
   return this->tokens[index];
 }
 
-SyntaxToken *Parser::getCurrent() { return this->peek(0); }
+SyntaxToken<std::any> *Parser::getCurrent() { return this->peek(0); }
 
-SyntaxToken *Parser::nextToken() {
-  SyntaxToken *current = this->getCurrent();
+SyntaxToken<std::any> *Parser::nextToken() {
+  SyntaxToken<std::any> *current = this->getCurrent();
   this->position++;
   return current;
 }
 
-SyntaxToken *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
+SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return this->nextToken();
   }
@@ -47,13 +47,13 @@ SyntaxToken *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
                            [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
                        ">");
 
-  return new SyntaxToken(kind, this->getCurrent()->getPosition(), "\0",
-                         nullptr);
+  return new SyntaxToken<std::any>(kind, this->getCurrent()->getPosition(),
+                                   "\0", 0);
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
   ExpressionSyntax *expression = this->parseExpression();
-  SyntaxToken *endOfFileToken =
+  SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
   return new CompilationUnitSyntax(this->logs, expression, endOfFileToken);
 }
@@ -66,7 +66,7 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
 
   if (unaryOperatorPrecedence != 0 &&
       unaryOperatorPrecedence >= parentPrecedence) {
-    SyntaxToken *operatorToken = this->nextToken();
+    SyntaxToken<std::any> *operatorToken = this->nextToken();
     ExpressionSyntax *operand = this->parseExpression(unaryOperatorPrecedence);
     left = new UnaryExpressionSyntax(operatorToken, operand);
   } else {
@@ -78,7 +78,7 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
     if (precedence == 0 || precedence <= parentPrecedence) {
       break;
     }
-    SyntaxToken *operatorToken = this->nextToken();
+    SyntaxToken<std::any> *operatorToken = this->nextToken();
 
     ExpressionSyntax *right = this->parseExpression(precedence);
 
@@ -91,49 +91,46 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
 ExpressionSyntax *Parser::parsePrimaryExpression() {
   switch (this->getCurrent()->getKind()) {
   case SyntaxKindUtils::OpenParenthesisToken: {
-    SyntaxToken *left = this->nextToken();
+    SyntaxToken<std::any> *left = this->nextToken();
     ExpressionSyntax *expression = this->parseExpression();
-    SyntaxToken *right =
+    SyntaxToken<std::any> *right =
         this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
     return new ParenthesizedExpressionSyntax(left, expression, right);
   }
   case SyntaxKindUtils::NumberToken: {
-    SyntaxToken *numberToken = this->nextToken();
-    return new LiteralExpressionSyntax<int>(
-        numberToken, *(std::static_pointer_cast<int>(numberToken->getValue())));
+    SyntaxToken<std::any> *numberToken = this->nextToken();
+
+    return new LiteralExpressionSyntax<std::any>(numberToken,
+                                                 (numberToken->getValue()));
   }
 
   case SyntaxKindUtils::StringToken: {
-    SyntaxToken *stringToken = this->nextToken();
-    return new LiteralExpressionSyntax<std::string>(
-        stringToken,
-        *(std::static_pointer_cast<std::string>(stringToken->getValue())));
+    SyntaxToken<std::any> *stringToken = this->nextToken();
+    return new LiteralExpressionSyntax<std::any>(stringToken,
+                                                 stringToken->getValue());
   }
   case SyntaxKindUtils::TrueKeyword:
   case SyntaxKindUtils::FalseKeyword: {
-    SyntaxToken *keywordToken = this->nextToken();
+    SyntaxToken<std::any> *keywordToken = this->nextToken();
     bool value =
         keywordToken->getKind() == SyntaxKindUtils::SyntaxKind::TrueKeyword
             ? true
             : false;
-    return new LiteralExpressionSyntax<bool>(keywordToken, value);
+    return new LiteralExpressionSyntax<std::any>(keywordToken, value);
   }
   case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
     if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-      SyntaxToken *identifierToken = this->nextToken();
-      SyntaxToken *operatorToken = this->nextToken();
+      SyntaxToken<std::any> *identifierToken = this->nextToken();
+      SyntaxToken<std::any> *operatorToken = this->nextToken();
       ExpressionSyntax *right = this->parseExpression();
       return new AssignmentExpressionSyntax(
-          new LiteralExpressionSyntax<std::string>(
-              identifierToken, *(std::static_pointer_cast<std::string>(
-                                   identifierToken->getValue()))),
+          new LiteralExpressionSyntax<std::any>(identifierToken,
+                                                identifierToken->getValue()),
           operatorToken, right);
     } else {
-      SyntaxToken *identifierToken = this->nextToken();
-      return new VariableExpressionSyntax(
-          new LiteralExpressionSyntax<std::string>(
-              identifierToken, *(std::static_pointer_cast<std::string>(
-                                   identifierToken->getValue()))));
+      SyntaxToken<std::any> *identifierToken = this->nextToken();
+      return new VariableExpressionSyntax(new LiteralExpressionSyntax<std::any>(
+          identifierToken, identifierToken->getValue()));
     }
   }
   default:
@@ -142,6 +139,6 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
                          SyntaxKindUtils::enum_to_string_map
                              [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
                          ">");
-    return new LiteralExpressionSyntax<int>(this->getCurrent(), 0);
+    return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
   }
 }

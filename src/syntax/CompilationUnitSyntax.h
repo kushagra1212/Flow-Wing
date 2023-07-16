@@ -5,13 +5,13 @@
 class CompilationUnitSyntax {
 private:
   ExpressionSyntax *expression;
-  SyntaxToken *endOfFileToken;
+  SyntaxToken<std::any> *endOfFileToken;
 
 public:
   std::vector<std::string> logs;
   CompilationUnitSyntax(std::vector<std::string> &logs,
                         ExpressionSyntax *expression,
-                        SyntaxToken *endOfFileToken);
+                        SyntaxToken<std::any> *endOfFileToken);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -20,6 +20,6 @@ public:
   ExpressionSyntax *getExpression();
 
 public:
-  SyntaxToken *getEndOfFileToken();
+  SyntaxToken<std::any> *getEndOfFileToken();
 };
 #endif

@@ -11,32 +11,59 @@ char Lexer::getCurrent() {
 
 void Lexer::next() { this->position++; }
 
-SyntaxToken *Lexer::nextToken() {
+SyntaxToken<std::any> *Lexer::nextToken() {
   if (this->position >= this->text.length()) {
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EndOfFileToken,
-                           this->position, "\0", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::EndOfFileToken, this->position, "\0", 0);
   }
+
+  // check for int
 
   if (isdigit(this->getCurrent())) {
     int start = this->position;
     while (isdigit(this->getCurrent())) {
       this->next();
     }
+
+    // check for double
+
+    if (this->getCurrent() == '.') {
+      this->next();
+      while (isdigit(this->getCurrent())) {
+        this->next();
+      }
+      int length = this->position - start;
+      std::string text = this->text.substr(start, length);
+      try {
+        if (SyntaxKindUtils::isDouble(text) == false) {
+          throw std::exception();
+        }
+      } catch (std::exception e) {
+        logs.push_back("ERROR: bad number input not double: " + text);
+        return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::BadToken,
+                                         start, text, 0);
+      }
+      double res = stod(text);
+
+      return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::NumberToken,
+                                       start, text, (res));
+    }
+
     int length = this->position - start;
     std::string text = this->text.substr(start, length);
     try {
-      if (SyntaxKindUtils::isInt32(text) == false) {
+      if (SyntaxKindUtils::isInt64(text) == false) {
         throw std::exception();
       }
     } catch (std::exception e) {
       logs.push_back("ERROR: bad number input not i32: " + text);
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start, text,
-                             nullptr);
+      return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::BadToken,
+                                       start, text, 0);
     }
     int res = stoi(text);
 
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::NumberToken, start,
-                           text, std::make_shared<int>(res));
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::NumberToken,
+                                     start, text, res);
   }
 
   // Check true or false
@@ -49,16 +76,16 @@ SyntaxToken *Lexer::nextToken() {
     int length = this->position - start;
     std::string text = this->text.substr(start, length);
     if (text == "true") {
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::TrueKeyword, start,
-                             text, nullptr);
+      return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::TrueKeyword,
+                                       start, text, true);
     }
     if (text == "false") {
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::FalseKeyword, start,
-                             text, nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::FalseKeyword, start, text, false);
     }
 
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::IdentifierToken, start,
-                           text, std::make_shared<std::string>(text));
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::IdentifierToken, start, text, (text));
   }
 
   if (isspace(this->getCurrent())) {
@@ -68,73 +95,77 @@ SyntaxToken *Lexer::nextToken() {
     }
     int length = this->position - start;
     std::string text = this->text.substr(start, length);
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::WhitespaceToken, start,
-                           text, nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::WhitespaceToken, start, text, 0);
   }
 
   switch (this->getCurrent()) {
   case '+':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PlusToken,
-                           this->position++, "+", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::PlusToken,
+                                     this->position++, "+", 0);
   case '-':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::MinusToken,
-                           this->position++, "-", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::MinusToken,
+                                     this->position++, "-", 0);
   case '*':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::StarToken,
-                           this->position++, "*", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::StarToken,
+                                     this->position++, "*", 0);
   case '/':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::SlashToken,
-                           this->position++, "/", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::SlashToken,
+                                     this->position++, "/", 0);
   case '(':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken,
-                           this->position++, "(", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::OpenParenthesisToken, this->position++,
+        "(", 0);
   case ')':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken,
-                           this->position++, ")", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::CloseParenthesisToken, this->position++,
+        ")", 0);
   case '&': {
 
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '&') {
       this->next();
-      return new SyntaxToken(
+      return new SyntaxToken<std::any>(
           SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
-          this->position++, "&&", nullptr);
+          this->position++, "&&", 0);
     }
 
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::AmpersandToken,
-                           this->position++, "&", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::AmpersandToken, this->position++, "&", 0);
   }
   case '^':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CaretToken,
-                           this->position++, "^", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::CaretToken,
+                                     this->position++, "^", 0);
   case '%':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PercentToken,
-                           this->position++, "%", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::PercentToken,
+                                     this->position++, "%", 0);
   case '~':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::TildeToken,
-                           this->position++, "~", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::TildeToken,
+                                     this->position++, "~", 0);
   case '|': {
 
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '|') {
       this->next();
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PipePipeToken,
-                             this->position++, "||", nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::PipePipeToken, this->position++, "||",
+          0);
     }
 
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::PipeToken,
-                           this->position++, "|", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::PipeToken,
+                                     this->position++, "|", 0);
   }
   case '=': {
 
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
       this->next();
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsEqualsToken,
-                             this->position++, "==", nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::EqualsEqualsToken, this->position++,
+          "==", 0);
     }
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::EqualsToken,
-                           this->position++, "=", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::EqualsToken,
+                                     this->position++, "=", 0);
   }
 
   case '!': {
@@ -142,11 +173,12 @@ SyntaxToken *Lexer::nextToken() {
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
       this->next();
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangEqualsToken,
-                             this->position++, "!=", nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::BangEqualsToken, this->position++,
+          "!=", 0);
     }
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BangToken,
-                           this->position++, "!", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::BangToken,
+                                     this->position++, "!", 0);
   }
 
   case '<': {
@@ -154,11 +186,12 @@ SyntaxToken *Lexer::nextToken() {
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
       this->next();
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessOrEqualsToken,
-                             this->position++, "<=", nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::LessOrEqualsToken, this->position++,
+          "<=", 0);
     }
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::LessToken,
-                           this->position++, "<", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::LessToken,
+                                     this->position++, "<", 0);
   }
 
   case '>': {
@@ -166,46 +199,47 @@ SyntaxToken *Lexer::nextToken() {
     if (this->position + 1 < this->text.length() &&
         this->text[this->position + 1] == '=') {
       this->next();
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken,
-                             this->position++, ">=", nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken, this->position++,
+          ">=", 0);
     }
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::GreaterToken,
-                           this->position++, ">", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::GreaterToken,
+                                     this->position++, ">", 0);
   }
 
   case ';':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::SemicolonToken,
-                           this->position++, ";", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::SemicolonToken, this->position++, ";", 0);
   case ',':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CommaToken,
-                           this->position++, ",", nullptr);
+    return new SyntaxToken<std::any>(SyntaxKindUtils::SyntaxKind::CommaToken,
+                                     this->position++, ",", 0);
   case '{':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::OpenBraceToken,
-                           this->position++, "{", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::OpenBraceToken, this->position++, "{", 0);
   case '}':
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::CloseBraceToken,
-                           this->position++, "}", nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::CloseBraceToken, this->position++, "}", 0);
   case '"':
     return this->readString();
 
   default:
     logs.push_back("ERROR: bad character input: " +
                    this->text.substr(this->position, 1));
-    return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken,
-                           this->position++,
-                           this->text.substr(this->position - 1, 1), nullptr);
+    return new SyntaxToken<std::any>(
+        SyntaxKindUtils::SyntaxKind::BadToken, this->position++,
+        this->text.substr(this->position - 1, 1), 0);
   }
 }
 
-SyntaxToken *Lexer::readString() {
+SyntaxToken<std::any> *Lexer::readString() {
   int start = this->position++;
   std::string text = "";
   while (this->getCurrent() != '"') {
     if (this->getCurrent() == '\0') {
       logs.push_back("ERROR: unterminated string literal");
-      return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start,
-                             this->text.substr(start, this->position - start),
-                             nullptr);
+      return new SyntaxToken<std::any>(
+          SyntaxKindUtils::SyntaxKind::BadToken, start,
+          this->text.substr(start, this->position - start), 0);
     }
     if (this->getCurrent() == '\\') {
       this->next();
@@ -228,9 +262,9 @@ SyntaxToken *Lexer::readString() {
       default:
         logs.push_back("ERROR: bad character escape sequence: \\" +
                        this->text.substr(this->position, 1));
-        return new SyntaxToken(SyntaxKindUtils::SyntaxKind::BadToken, start,
-                               this->text.substr(start, this->position - start),
-                               nullptr);
+        return new SyntaxToken<std::any>(
+            SyntaxKindUtils::SyntaxKind::BadToken, start,
+            this->text.substr(start, this->position - start), 0);
       }
     } else {
       text += this->getCurrent();
@@ -238,9 +272,9 @@ SyntaxToken *Lexer::readString() {
     this->next();
   }
   this->next();
-  return new SyntaxToken(SyntaxKindUtils::SyntaxKind::StringToken, start,
-                         this->text.substr(start, this->position - start),
-                         std::make_shared<std::string>(text));
+  return new SyntaxToken<std::any>(
+      SyntaxKindUtils::SyntaxKind::StringToken, start,
+      this->text.substr(start, this->position - start), (text));
 
   //&(text)
 }

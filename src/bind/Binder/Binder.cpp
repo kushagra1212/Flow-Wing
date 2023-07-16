@@ -5,22 +5,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
 
-    if (auto intExpression =
-            dynamic_cast<LiteralExpressionSyntax<int> *>(syntax)) {
-      return new BoundLiteralExpression<int>(intExpression->getValue());
-    } else if (auto boolExpression =
-                   dynamic_cast<LiteralExpressionSyntax<bool> *>(syntax)) {
-
-      return new BoundLiteralExpression<bool>(boolExpression->getValue());
-    } else if (auto stringExpression =
-                   dynamic_cast<LiteralExpressionSyntax<std::string> *>(
-                       syntax)) {
-
-      return new BoundLiteralExpression<std::string>(
-          stringExpression->getValue());
-    }
-
-    return nullptr;
+    std::any value = ((LiteralExpressionSyntax<std::any> *)syntax)->getValue();
+    return new BoundLiteralExpression<std::any>(value);
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
     UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;

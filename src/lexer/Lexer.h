@@ -25,9 +25,9 @@ private:
   void next();
 
 public:
-  SyntaxToken *nextToken();
+  SyntaxToken<std::any> *nextToken();
 
 private:
-  SyntaxToken *readString();
+  SyntaxToken<std::any> *readString();
 };
 #endif // LEXER_H

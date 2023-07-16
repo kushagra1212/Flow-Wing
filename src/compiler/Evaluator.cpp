@@ -1,27 +1,31 @@
 #include "Evaluator.h"
 
+template class BoundLiteralExpression<std::any>;
+template class BoundLiteralExpression<int>;
+template class BoundLiteralExpression<double>;
+template class BoundLiteralExpression<bool>;
+template class BoundLiteralExpression<std::string>;
+template class BoundLiteralExpression<char>;
+
+template std::any Evaluator::evaluate<std::any>(BoundExpression *node);
 std::unordered_map<std::string, std::any> Evaluator::variables;
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
 
-    if (auto literalExpression =
-            dynamic_cast<BoundLiteralExpression<int> *>(node))
-      return (literalExpression->getValue());
-    else if (auto literalExpression =
-                 dynamic_cast<BoundLiteralExpression<bool> *>(node)) {
-
-      return (literalExpression->getValue());
-    } else if (auto literalExpression =
-                   dynamic_cast<BoundLiteralExpression<std::string> *>(node)) {
-
-      return (literalExpression->getValue());
+    std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+    if (value.type() == typeid(int)) {
+      return std::any_cast<int>(value);
+    } else if (value.type() == typeid(bool)) {
+      return std::any_cast<bool>(value);
+    } else if (value.type() == typeid(std::string)) {
+      return std::any_cast<std::string>(value);
+    } else if (value.type() == typeid(double)) {
+      return std::any_cast<double>(value);
     } else {
       throw "Unexpected literal expression";
     }
-
-    return 0;
   }
   case BinderKindUtils::BoundNodeKind::UnaryExpression: {
     BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
@@ -109,30 +113,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     std::any right_any =
         (Evaluator::evaluate<std::any>(binaryExpression->getRight()));
 
-    int left = 1, right = 1;
-    if (left_any.type() == typeid(std::string) ||
-        right_any.type() == typeid(std::string)) {
-
-      throw "Unexpected string in binary expression";
-      return 0;
-    }
-
-    if (left_any.type() == typeid(bool)) {
-      bool left_bool = std::any_cast<bool>(left_any);
-      left = left_bool ? 1 : 0;
-    } else {
-      left = std::any_cast<int>(left_any);
-    }
-
-    if (right_any.type() == typeid(bool)) {
-      bool right_bool = std::any_cast<bool>(right_any);
-      right = right_bool ? 1 : 0;
-    } else {
-      right = std::any_cast<int>(right_any);
-    }
-
-    return Evaluator::binaryExpressionEvaluator<T>(
-        binaryExpression->getOperator(), left, right);
+    return Evaluator::binaryExpressionEvaluator<std::any>(
+        binaryExpression->getOperator(), left_any, right_any);
   }
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
     BoundParenthesizedExpression *parenthesizedExpression =
@@ -146,7 +128,115 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
 template <typename T>
 T Evaluator::binaryExpressionEvaluator(
-    BinderKindUtils::BoundBinaryOperatorKind op, int left, int right) {
+    BinderKindUtils::BoundBinaryOperatorKind op, T left, T right) {
+  if (left.type() == typeid(int) && right.type() == typeid(int)) {
+    return binaryExpressionEvaluatorIntIntHandler<int, int, int>(
+        op, std::any_cast<int>(left), std::any_cast<int>(right));
+  } else if (left.type() == typeid(double) && right.type() == typeid(double)) {
+
+    return binaryExpressionEvaluatorDoubleDoubleHandler<double, double, double>(
+        op, std::any_cast<double>(left), std::any_cast<double>(right));
+  } else if (left.type() == typeid(double) && right.type() == typeid(int)) {
+
+    return binaryExpressionEvaluatorDoubleIntHandler<double, int, double>(
+        op, std::any_cast<double>(left), std::any_cast<int>(right));
+  } else if (left.type() == typeid(int) && right.type() == typeid(double)) {
+
+    return binaryExpressionEvaluatorIntDoubleHandler<int, double, double>(
+        op, std::any_cast<int>(left), std::any_cast<double>(right));
+  } else if (left.type() == typeid(bool) && right.type() == typeid(bool)) {
+
+    return binaryExpressionEvaluatorBoolBoolHandler<bool, bool, std::any>(
+        op, std::any_cast<bool>(left), std::any_cast<bool>(right));
+
+  } else if (left.type() == typeid(std::string) &&
+             right.type() == typeid(std::string)) {
+    return binaryExpressionEvaluatorStringStringHandler<std::string,
+                                                        std::string, std::any>(
+        op, std::any_cast<std::string>(left),
+        std::any_cast<std::string>(right));
+  } else if (left.type() == typeid(std::string) &&
+             right.type() == typeid(int)) {
+    return binaryExpressionEvaluatorStringIntHandler<std::string, int,
+                                                     std::any>(
+        op, std::any_cast<std::string>(left), std::any_cast<int>(right));
+  } else if (left.type() == typeid(int) &&
+             right.type() == typeid(std::string)) {
+    return binaryExpressionEvaluatorIntStringHandler<int, std::string,
+                                                     std::any>(
+        op, std::any_cast<int>(left), std::any_cast<std::string>(right));
+  } else if (left.type() == typeid(std::string) &&
+             right.type() == typeid(double)) {
+    return binaryExpressionEvaluatorStringDoubleHandler<std::string, double,
+                                                        std::any>(
+        op, std::any_cast<std::string>(left), std::any_cast<double>(right));
+  } else if (left.type() == typeid(double) &&
+             right.type() == typeid(std::string)) {
+    return binaryExpressionEvaluatorDoubleStringHandler<double, std::string,
+                                                        std::any>(
+        op, std::any_cast<double>(left), std::any_cast<std::string>(right));
+  } else if (left.type() == typeid(std::string) &&
+             right.type() == typeid(bool)) {
+    return binaryExpressionEvaluatorStringBoolHandler<std::string, bool,
+                                                      std::any>(
+        op, std::any_cast<std::string>(left), std::any_cast<bool>(right));
+  } else if (left.type() == typeid(bool) &&
+             right.type() == typeid(std::string)) {
+    return binaryExpressionEvaluatorBoolStringHandler<bool, std::string,
+                                                      std::any>(
+        op, std::any_cast<bool>(left), std::any_cast<std::string>(right));
+  }
+  // intbool
+  else if (left.type() == typeid(int) && right.type() == typeid(bool)) {
+    return binaryExpressionEvaluatorIntBoolHandler<int, bool, int>(
+        op, std::any_cast<int>(left), std::any_cast<bool>(right));
+  }
+  // boolint
+  else if (left.type() == typeid(bool) && right.type() == typeid(int)) {
+    return binaryExpressionEvaluatorBoolIntHandler<bool, int, int>(
+        op, std::any_cast<bool>(left), std::any_cast<int>(right));
+  }
+
+  // doublebool
+  else if (left.type() == typeid(double) && right.type() == typeid(bool)) {
+    return binaryExpressionEvaluatorDoubleBoolHandler<double, bool, double>(
+        op, std::any_cast<double>(left), std::any_cast<bool>(right));
+  }
+  // booldouble
+  else if (left.type() == typeid(bool) && right.type() == typeid(double)) {
+    return binaryExpressionEvaluatorBoolDoubleHandler<bool, double, double>(
+        op, std::any_cast<bool>(left), std::any_cast<double>(right));
+  } else {
+    throw std::runtime_error("Incompatible operand types");
+  }
+}
+
+template <typename V, typename U, typename Z> // BoolDouble
+Z Evaluator::binaryExpressionEvaluatorBoolDoubleHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  default:
+    throw std::runtime_error("Incompatible operand types");
+  }
+}
+
+template <typename V, typename U, typename Z> // IntInt
+Z Evaluator::binaryExpressionEvaluatorIntIntHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
   switch (op) {
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
     return left + right;
@@ -172,8 +262,6 @@ T Evaluator::binaryExpressionEvaluator(
     return left > right;
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
     return left >= right;
-  case BinderKindUtils::BoundBinaryOperatorKind::Assignment:
-    return right;
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
     return left & right;
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
@@ -183,7 +271,605 @@ T Evaluator::binaryExpressionEvaluator(
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
     return left % right;
   default:
-    throw "Unexpected binary operator";
+    throw std::runtime_error("Unexpected binary operator");
   }
 }
-template std::any Evaluator::evaluate<std::any>(BoundExpression *node);
+
+template <typename V, typename U, typename Z> // DoubleDouble
+Z Evaluator::binaryExpressionEvaluatorDoubleDoubleHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for double");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // BoolBool
+Z Evaluator::binaryExpressionEvaluatorBoolBoolHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    throw std::runtime_error("Less not supported for bool");
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    throw std::runtime_error("Less or equals not supported for bool");
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    throw std::runtime_error("Greater not supported for bool");
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    throw std::runtime_error("Greater or equals not supported for bool");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    return left & right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    return left | right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    return left ^ right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for bool");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // StringString
+Z Evaluator::binaryExpressionEvaluatorStringStringHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for string");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // IntString
+Z Evaluator::binaryExpressionEvaluatorIntStringHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return std::to_string(left) + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= std::stoi(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Assignment:
+    throw std::runtime_error("Assignment not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for string");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // StringInt
+Z Evaluator::binaryExpressionEvaluatorStringIntHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + std::to_string(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return std::stoi(left) == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return std::stoi(left) != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return std::stoi(left) < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return std::stoi(left) <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return std::stoi(left) > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return std::stoi(left) >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for string");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // DoubleInt
+Z Evaluator::binaryExpressionEvaluatorDoubleIntHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for double");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // IntDouble
+Z Evaluator::binaryExpressionEvaluatorIntDoubleHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for double");
+  default:
+    throw std::runtime_error("Unexpected binary operator");
+  }
+}
+
+template <typename V, typename U, typename Z> // StringDouble
+Z Evaluator::binaryExpressionEvaluatorStringDoubleHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + std::to_string(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return std::stod(left) == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return std::stod(left) != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return std::stod(left) < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return std::stod(left) <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return std::stod(left) > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return std::stod(left) >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for string");
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // DoubleString
+Z Evaluator::binaryExpressionEvaluatorDoubleStringHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return std::to_string(left) + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= std::stod(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Modulus not supported for string");
+  default:
+    throw std::runtime_error(
+        " Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // StringBool
+Z Evaluator::binaryExpressionEvaluatorStringBoolHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    throw std::runtime_error("Addition not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == std::to_string(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != std::to_string(right);
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    throw std::runtime_error("Less not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    throw std::runtime_error("Less or equals not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    throw std::runtime_error("Greater not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    throw std::runtime_error("Greater or equals not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Mod not supported for string");
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // BoolString
+Z Evaluator::binaryExpressionEvaluatorBoolStringHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    throw std::runtime_error("Addition not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    throw std::runtime_error("Logical and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    throw std::runtime_error("Logical or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return std::to_string(left) == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return std::to_string(left) != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    throw std::runtime_error("Less not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    throw std::runtime_error("Less or equals not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    throw std::runtime_error("Greater not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    throw std::runtime_error("Greater or equals not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Assignment:
+    throw std::runtime_error("Assignment not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for string");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Mod not supported for string");
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // IntBool
+Z Evaluator::binaryExpressionEvaluatorIntBoolHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return left + right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    return left - right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    return left * right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    return left / right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    return left & right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    return left | right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    return left ^ right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    return left % right;
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // BoolInt
+Z Evaluator::binaryExpressionEvaluatorBoolIntHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    throw std::runtime_error("Addition not supported for int");
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for int");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for int");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for int");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    return left & right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    return left | right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    return left ^ right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    return left % right;
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}
+
+template <typename V, typename U, typename Z> // DoubleBool
+Z Evaluator::binaryExpressionEvaluatorDoubleBoolHandler(
+    BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+    const U &right) {
+  switch (op) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    throw std::runtime_error("Addition not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
+    throw std::runtime_error("Subtraction not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
+    throw std::runtime_error("Multiplication not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    throw std::runtime_error("Division not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
+    return left && right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
+    return left || right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return left == right;
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return left < right;
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return left <= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return left > right;
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return left >= right;
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
+    throw std::runtime_error("Bitwise and not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
+    throw std::runtime_error("Bitwise or not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
+    throw std::runtime_error("Bitwise xor not supported for double");
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    throw std::runtime_error("Mod not supported for double");
+  default:
+    throw std::runtime_error(
+        "Unexpected binary operator"); // TODO: add error message
+  }
+}

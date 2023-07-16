@@ -2,7 +2,8 @@
 #ifndef SYNTAXTOKEN_H
 #define SYNTAXTOKEN_H
 #include "SyntaxNode.h"
-class SyntaxToken : public SyntaxNode {
+
+template <typename T> class SyntaxToken : public SyntaxNode {
 private:
   SyntaxKindUtils::SyntaxKind kind;
 
@@ -13,11 +14,11 @@ private:
   std::string text;
 
 private:
-  std::shared_ptr<void> value;
+  T value;
 
 public:
   SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position, std::string text,
-              std::shared_ptr<void> value);
+              T value);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -29,7 +30,7 @@ public:
   std::string getText();
 
 public:
-  std::shared_ptr<void> getValue();
+  T getValue();
 
 public:
   std::string getKindText();

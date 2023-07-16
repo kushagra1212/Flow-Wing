@@ -11,7 +11,17 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   }
   std::cout << SyntaxKindUtils::enum_to_string_map[node->getKind()];
   if (node->getKind() == SyntaxKindUtils::LiteralExpression) {
-    std::cout << " " << (((LiteralExpressionSyntax<int> *)node)->getValue());
+
+    std::any value = ((LiteralExpressionSyntax<std::any> *)node)->getValue();
+    if (value.type() == typeid(int)) {
+      std::cout << " " << std::any_cast<int>(value);
+    } else if (value.type() == typeid(bool)) {
+      std::cout << " " << std::any_cast<bool>(value);
+    } else if (value.type() == typeid(std::string)) {
+      std::cout << " " << std::any_cast<std::string>(value);
+    } else {
+      std::cout << " " << std::any_cast<double>(value);
+    }
   }
   std::cout << "\n";
   std::vector<SyntaxNode *> children = node->getChildren();

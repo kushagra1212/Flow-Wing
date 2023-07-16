@@ -1,8 +1,8 @@
 #include "BinaryExpressionSyntax.h"
 
-BinaryExpressionSyntax::BinaryExpressionSyntax(ExpressionSyntax *left,
-                                               SyntaxToken *operatorToken,
-                                               ExpressionSyntax *right) {
+BinaryExpressionSyntax::BinaryExpressionSyntax(
+    ExpressionSyntax *left, SyntaxToken<std::any> *operatorToken,
+    ExpressionSyntax *right) {
   this->left = left;
   this->operatorToken = operatorToken;
   this->right = right;
@@ -17,7 +17,7 @@ SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() {
 
 ExpressionSyntax *BinaryExpressionSyntax::getLeft() { return this->left; }
 
-SyntaxToken *BinaryExpressionSyntax::getOperatorToken() {
+SyntaxToken<std::any> *BinaryExpressionSyntax::getOperatorToken() {
   return this->operatorToken;
 }
 

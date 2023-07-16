@@ -1,14 +1,14 @@
 #include "LiteralExpressionSyntax.h"
 
+template class LiteralExpressionSyntax<std::any>;
 template class LiteralExpressionSyntax<int>;
 template class LiteralExpressionSyntax<double>;
 template class LiteralExpressionSyntax<bool>;
 template class LiteralExpressionSyntax<std::string>;
 template class LiteralExpressionSyntax<char>;
-
 template <typename T>
-LiteralExpressionSyntax<T>::LiteralExpressionSyntax(SyntaxToken *token,
-                                                    T value) {
+LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
+    SyntaxToken<std::any> *token, T value) {
 
   this->token = token;
   this->value = value;
@@ -20,7 +20,8 @@ SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() {
 template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::enum_to_string_map[this->getKind()];
 }
-template <typename T> SyntaxToken *LiteralExpressionSyntax<T>::getToken() {
+template <typename T>
+SyntaxToken<std::any> *LiteralExpressionSyntax<T>::getToken() {
   return this->token;
 }
 template <typename T>

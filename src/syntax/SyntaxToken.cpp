@@ -1,27 +1,35 @@
 #include "SyntaxToken.h"
 
-SyntaxToken::SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position,
-                         std::string text, std::shared_ptr<void> value) {
+template class SyntaxToken<std::any>;
+template class SyntaxToken<int>;
+template class SyntaxToken<double>;
+template class SyntaxToken<bool>;
+template class SyntaxToken<std::string>;
+template class SyntaxToken<char>;
+
+template <typename T>
+SyntaxToken<T>::SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position,
+                            std::string text, T value) {
   this->kind = kind;
   this->position = position;
   this->text = text;
-  if (value != nullptr)
-    this->value = std::move(value);
+  this->value = value;
 }
 
-SyntaxKindUtils::SyntaxKind SyntaxToken::getKind() { return this->kind; }
-
-int SyntaxToken::getPosition() { return this->position; }
-
-std::string SyntaxToken::getText() { return this->text; }
-
-std::shared_ptr<void> SyntaxToken::getValue() { return (this->value); }
-
-std::string SyntaxToken::getKindText() {
+template <typename T> SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() {
+  return this->kind;
+}
+template <typename T> int SyntaxToken<T>::getPosition() {
+  return this->position;
+}
+template <typename T> std::string SyntaxToken<T>::getText() {
+  return this->text;
+}
+template <typename T> T SyntaxToken<T>::getValue() { return (this->value); }
+template <typename T> std::string SyntaxToken<T>::getKindText() {
   return SyntaxKindUtils::enum_to_string_map[this->kind];
 }
-
-int SyntaxToken::getUnaryOperatorPrecedence() {
+template <typename T> int SyntaxToken<T>::getUnaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::PlusToken:
   case SyntaxKindUtils::SyntaxKind::MinusToken:
@@ -31,8 +39,7 @@ int SyntaxToken::getUnaryOperatorPrecedence() {
     return 0;
   }
 }
-
-int SyntaxToken::getBinaryOperatorPrecedence() {
+template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::StarToken:
   case SyntaxKindUtils::SyntaxKind::SlashToken:
@@ -65,5 +72,6 @@ int SyntaxToken::getBinaryOperatorPrecedence() {
     return 0;
   }
 }
-
-std::vector<SyntaxNode *> SyntaxToken::getChildren() { return children; }
+template <typename T> std::vector<SyntaxNode *> SyntaxToken<T>::getChildren() {
+  return children;
+}

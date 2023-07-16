@@ -5,11 +5,12 @@
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
   ExpressionSyntax *left;
-  SyntaxToken *operatorToken;
+  SyntaxToken<std::any> *operatorToken;
   ExpressionSyntax *right;
 
 public:
-  AssignmentExpressionSyntax(ExpressionSyntax *left, SyntaxToken *operatorToken,
+  AssignmentExpressionSyntax(ExpressionSyntax *left,
+                             SyntaxToken<std::any> *operatorToken,
                              ExpressionSyntax *right);
 
 public:
@@ -19,7 +20,7 @@ public:
   std::vector<SyntaxNode *> getChildren();
 
 public:
-  SyntaxToken *getOperatorToken();
+  SyntaxToken<std::any> *getOperatorToken();
 
 public:
   ExpressionSyntax *getRight();

@@ -53,6 +53,7 @@
     "stop_token": "cpp",
     "thread": "cpp",
     "any": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "typeindex": "cpp"
   }
 }

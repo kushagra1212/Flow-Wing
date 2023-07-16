@@ -1,7 +1,8 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    ExpressionSyntax *left, SyntaxToken *operatorToken, ExpressionSyntax *right)
+    ExpressionSyntax *left, SyntaxToken<std::any> *operatorToken,
+    ExpressionSyntax *right)
     : left(left), operatorToken(operatorToken), right(right) {}
 
 SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
@@ -16,7 +17,7 @@ std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
   return children;
 }
 
-SyntaxToken *AssignmentExpressionSyntax::getOperatorToken() {
+SyntaxToken<std::any> *AssignmentExpressionSyntax::getOperatorToken() {
   return operatorToken;
 }
 

@@ -1,8 +1,8 @@
 #include "ParenthesizedExpressionSyntax.h"
 
 ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
-    SyntaxToken *openParenthesisToken, ExpressionSyntax *expression,
-    SyntaxToken *closeParenthesisToken) {
+    SyntaxToken<std::any> *openParenthesisToken, ExpressionSyntax *expression,
+    SyntaxToken<std::any> *closeParenthesisToken) {
   this->openParenthesisToken = openParenthesisToken;
   this->expression = expression;
   this->closeParenthesisToken = closeParenthesisToken;
@@ -15,7 +15,8 @@ SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
 
-SyntaxToken *ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
+SyntaxToken<std::any> *
+ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
   return this->openParenthesisToken;
 }
 
@@ -23,7 +24,8 @@ ExpressionSyntax *ParenthesizedExpressionSyntax::getExpression() {
   return this->expression;
 }
 
-SyntaxToken *ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
+SyntaxToken<std::any> *
+ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
   return this->closeParenthesisToken;
 }
 

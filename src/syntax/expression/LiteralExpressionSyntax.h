@@ -7,11 +7,11 @@
 template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
 
 private:
-  SyntaxToken *token;
+  SyntaxToken<std::any> *token;
   T value;
 
 public:
-  LiteralExpressionSyntax(SyntaxToken *token, T value);
+  LiteralExpressionSyntax(SyntaxToken<std::any> *token, T value);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -20,7 +20,7 @@ public:
   std::string getKindText();
 
 public:
-  SyntaxToken *getToken();
+  SyntaxToken<std::any> *getToken();
 
 public:
   std::vector<SyntaxNode *> getChildren();

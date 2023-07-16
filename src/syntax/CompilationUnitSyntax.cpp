@@ -1,8 +1,8 @@
 #include "CompilationUnitSyntax.h"
 
-CompilationUnitSyntax::CompilationUnitSyntax(std::vector<std::string> &logs,
-                                             ExpressionSyntax *expression,
-                                             SyntaxToken *endOfFileToken) {
+CompilationUnitSyntax::CompilationUnitSyntax(
+    std::vector<std::string> &logs, ExpressionSyntax *expression,
+    SyntaxToken<std::any> *endOfFileToken) {
   this->expression = expression;
   this->endOfFileToken = endOfFileToken;
   this->logs = logs;
@@ -16,6 +16,6 @@ ExpressionSyntax *CompilationUnitSyntax::getExpression() {
   return this->expression;
 }
 
-SyntaxToken *CompilationUnitSyntax::getEndOfFileToken() {
+SyntaxToken<std::any> *CompilationUnitSyntax::getEndOfFileToken() {
   return this->endOfFileToken;
 }

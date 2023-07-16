@@ -18,6 +18,7 @@
 #include <any>
 #include <string>
 #include <unordered_map>
+
 class Evaluator {
 
 public:
@@ -26,7 +27,89 @@ public:
   static std::unordered_map<std::string, std::any> variables;
   template <typename T>
   static T
-  binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op,
-                            int left, int right);
+  binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op, T left,
+                            T right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorIntIntHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorIntDoubleHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorDoubleIntHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorDoubleDoubleHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorStringStringHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorStringIntHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorIntStringHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorStringDoubleHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorDoubleStringHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorStringBoolHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorBoolStringHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorBoolBoolHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorBoolIntHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorIntBoolHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  // DoubleBool
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorDoubleBoolHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
+
+  // BoolDouble
+  template <typename V, typename U, typename Z>
+  static Z binaryExpressionEvaluatorBoolDoubleHandler(
+      BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
+      const U &right);
 };
 #endif

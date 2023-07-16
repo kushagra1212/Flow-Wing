@@ -8,9 +8,10 @@
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax.h"
+#include <typeindex>
 class Parser {
 private:
-  std::vector<SyntaxToken *> tokens;
+  std::vector<SyntaxToken<std::any> *> tokens;
   int position;
 
 public:
@@ -20,16 +21,16 @@ public:
   Parser(std::string text);
 
 private:
-  SyntaxToken *peek(int offset);
+  SyntaxToken<std::any> *peek(int offset);
 
 private:
-  SyntaxToken *getCurrent();
+  SyntaxToken<std::any> *getCurrent();
 
 private:
-  SyntaxToken *nextToken();
+  SyntaxToken<std::any> *nextToken();
 
 private:
-  SyntaxToken *match(SyntaxKindUtils::SyntaxKind kind);
+  SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
 
 public:
   CompilationUnitSyntax *parseCompilationUnit();

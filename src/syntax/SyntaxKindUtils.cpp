@@ -14,6 +14,28 @@ bool SyntaxKindUtils::isInt32(const std::string &str) {
   }
 }
 
+bool SyntaxKindUtils::isInt64(const std::string &str) {
+  try {
+    size_t pos;
+    int64_t number = std::stoll(str, &pos);
+    return pos == str.size() && number >= std::numeric_limits<int64_t>::min() &&
+           number <= std::numeric_limits<int64_t>::max();
+  } catch (const std::exception &) {
+    return false;
+  }
+}
+
+bool SyntaxKindUtils::isDouble(const std::string &str) {
+  try {
+    size_t pos;
+    double number = std::stod(str, &pos);
+    return pos == str.size() && number >= std::numeric_limits<double>::min() &&
+           number <= std::numeric_limits<double>::max();
+  } catch (const std::exception &) {
+    return false;
+  }
+}
+
 void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::NumberToken] = "NumberToken";
   enum_to_string_map[SyntaxKind::TrueKeyword] = "TrueKeyword";

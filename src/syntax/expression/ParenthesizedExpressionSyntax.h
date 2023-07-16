@@ -4,28 +4,28 @@
 #include "ExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
 private:
-  SyntaxToken *openParenthesisToken;
+  SyntaxToken<std::any> *openParenthesisToken;
   ExpressionSyntax *expression;
-  SyntaxToken *closeParenthesisToken;
+  SyntaxToken<std::any> *closeParenthesisToken;
 
 public:
   std::vector<SyntaxNode *> children;
 
-  ParenthesizedExpressionSyntax(SyntaxToken *openParenthesisToken,
+  ParenthesizedExpressionSyntax(SyntaxToken<std::any> *openParenthesisToken,
                                 ExpressionSyntax *expression,
-                                SyntaxToken *closeParenthesisToken);
+                                SyntaxToken<std::any> *closeParenthesisToken);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 
 public:
-  SyntaxToken *getOpenParenthesisToken();
+  SyntaxToken<std::any> *getOpenParenthesisToken();
 
 public:
   ExpressionSyntax *getExpression();
 
 public:
-  SyntaxToken *getCloseParenthesisToken();
+  SyntaxToken<std::any> *getCloseParenthesisToken();
 
 public:
   std::vector<SyntaxNode *> getChildren();

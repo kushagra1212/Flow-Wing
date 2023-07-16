@@ -1,7 +1,7 @@
 #include "UnaryExpressionSyntax.h"
 
-UnaryExpressionSyntax::UnaryExpressionSyntax(SyntaxToken *operatorToken,
-                                             ExpressionSyntax *operand) {
+UnaryExpressionSyntax::UnaryExpressionSyntax(
+    SyntaxToken<std::any> *operatorToken, ExpressionSyntax *operand) {
 
   this->operatorToken = operatorToken;
   this->operand = operand;
@@ -13,7 +13,7 @@ SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::UnaryExpression;
 }
 
-SyntaxToken *UnaryExpressionSyntax::getOperatorToken() {
+SyntaxToken<std::any> *UnaryExpressionSyntax::getOperatorToken() {
   return this->operatorToken;
 }
 
