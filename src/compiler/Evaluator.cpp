@@ -44,6 +44,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         variableExpression->getIdentifierExpression());
     if (variable.type() != typeid(std::string)) {
       Evaluator::logs.push_back("Error: Unexpected variable name");
+      return nullptr;
     }
 
     std::string variable_name = std::any_cast<std::string>(variable);
@@ -54,6 +55,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return Evaluator::variables[variable_name];
       } else {
         Evaluator::logs.push_back("Error: variable is undefined");
+        return nullptr;
       }
     }
     default:
@@ -70,6 +72,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         Evaluator::evaluate<std::any>(assignmentExpression->getLeft());
     if (variable.type() != typeid(std::string)) {
       Evaluator::logs.push_back("Error Unexpected variable name");
+      return nullptr;
     }
     std::string variable_name = std::any_cast<std::string>(variable);
 
@@ -83,6 +86,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     }
     default:
       Evaluator::logs.push_back("Error: Unexpected assignment operator");
+      return nullptr;
     }
     return nullptr;
   }

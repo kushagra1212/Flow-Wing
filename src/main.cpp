@@ -11,19 +11,6 @@ constexpr auto GREEN = "\033[32m";
 constexpr auto YELLOW = "\033[33m";
 constexpr auto BLUE = "\033[34m";
 
-// class Compiler {
-
-// public:
-//   static int compile(string text) {
-//     Parser *parser = new Parser(text);
-
-//     // CompilationUnitSyntax *compilationUnit =
-//     parser->parseCompilationUnit();
-//     // return Evaluator::evaluate(compilationUnit->getExpression());
-//     return 0;
-//   }
-// };
-
 int main() {
 
   SyntaxKindUtils::init_enum_to_string_map();

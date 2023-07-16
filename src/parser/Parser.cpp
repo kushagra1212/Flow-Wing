@@ -3,6 +3,10 @@
 Parser::Parser(std::vector<std::string> text) {
   Lexer *lexer = new Lexer(text);
   SyntaxToken<std::any> *token;
+
+  if (lexer->logs.size()) {
+    this->logs = lexer->logs;
+  }
   do {
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -11,14 +15,12 @@ Parser::Parser(std::vector<std::string> text) {
       this->tokens.push_back(token);
     }
     if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
-      this->logs.push_back("ERROR: unexpected character <" + token->getText() +
-                           ">");
+      this->logs.push_back('(' + std::to_string(token->getLineNumber()) + ',' +
+                           std::to_string(token->getPosition()) +
+                           ") ERROR: unexpected character <" +
+                           token->getText() + ">");
     }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-
-  if (lexer->logs.size()) {
-    this->logs = lexer->logs;
-  }
 }
 
 SyntaxToken<std::any> *Parser::peek(int offset) {
@@ -48,8 +50,8 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
                            [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
                        ">");
 
-  return new SyntaxToken<std::any>(kind, this->getCurrent()->getPosition(),
-                                   "\0", 0);
+  return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(), kind,
+                                   this->getCurrent()->getPosition(), "\0", 0);
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {

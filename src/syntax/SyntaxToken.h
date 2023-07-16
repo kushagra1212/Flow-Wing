@@ -8,6 +8,7 @@ private:
   SyntaxKindUtils::SyntaxKind kind;
 
 private:
+  int lineNumber;
   int position;
 
 private:
@@ -17,14 +18,17 @@ private:
   T value;
 
 public:
-  SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position, std::string text,
-              T value);
+  SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind, int position,
+              std::string text, T value);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 
 public:
   int getPosition();
+
+public:
+  int getLineNumber();
 
 public:
   std::string getText();

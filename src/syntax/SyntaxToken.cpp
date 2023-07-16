@@ -8,12 +8,13 @@ template class SyntaxToken<std::string>;
 template class SyntaxToken<char>;
 
 template <typename T>
-SyntaxToken<T>::SyntaxToken(SyntaxKindUtils::SyntaxKind kind, int position,
-                            std::string text, T value) {
+SyntaxToken<T>::SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind,
+                            int position, std::string text, T value) {
   this->kind = kind;
   this->position = position;
   this->text = text;
   this->value = value;
+  this->lineNumber = lineNumber;
 }
 
 template <typename T> SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() {
@@ -22,6 +23,11 @@ template <typename T> SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() {
 template <typename T> int SyntaxToken<T>::getPosition() {
   return this->position;
 }
+
+template <typename T> int SyntaxToken<T>::getLineNumber() {
+  return this->lineNumber;
+}
+
 template <typename T> std::string SyntaxToken<T>::getText() {
   return this->text;
 }
