@@ -30,6 +30,15 @@ public:
   binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op, T left,
                             T right);
 
+  template <typename T>
+  static T unaryExpressionEvaluator(BinderKindUtils::BoundUnaryOperatorKind op,
+                                    T operand);
+
+  template <typename V, typename U>
+  static U
+  unaryExpressionEvaluatorHandler(BinderKindUtils::BoundUnaryOperatorKind op,
+                                  V operand);
+
   template <typename V, typename U, typename Z>
   static Z binaryExpressionEvaluatorIntIntHandler(
       BinderKindUtils::BoundBinaryOperatorKind op, const V &left,

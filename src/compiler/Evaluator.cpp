@@ -31,31 +31,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
     std::any operand_any =
         (Evaluator::evaluate<std::any>(unaryExpression->getOperand()));
-    int operand = 1;
-
-    if (operand_any.type() == typeid(std::string)) {
-
-      throw "Error: Unexpected string in unary expression";
-      return 0;
-    }
-
-    if (operand_any.type() == typeid(bool)) {
-      bool operand_bool = std::any_cast<bool>(operand_any);
-      operand = operand_bool ? 1 : 0;
-    } else {
-      operand = std::any_cast<int>(operand_any);
-    }
-
-    switch (unaryExpression->getOperator()) {
-    case BinderKindUtils::BoundUnaryOperatorKind::Identity:
-      return operand;
-    case BinderKindUtils::BoundUnaryOperatorKind::Negation:
-      return -operand;
-    case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation:
-      return !operand;
-    default:
-      throw "Error: Unexpected unary operator";
-    }
+    return Evaluator::unaryExpressionEvaluator<std::any>(
+        unaryExpression->getOperator(), operand_any);
   }
   case BinderKindUtils::BoundNodeKind::VariableExpression: {
     BoundVariableExpression *variableExpression =
@@ -123,6 +100,49 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
   }
   default:
     throw "Error: Unexpected node";
+  }
+}
+
+template <typename T>
+T Evaluator::unaryExpressionEvaluator(
+    BinderKindUtils::BoundUnaryOperatorKind op, T operand) {
+  if (operand.type() == typeid(int)) {
+    return Evaluator::unaryExpressionEvaluatorHandler<int, std::any>(
+        op, std::any_cast<int>(operand));
+  } else if (operand.type() == typeid(double)) {
+    return Evaluator::unaryExpressionEvaluatorHandler<double, std::any>(
+        op, std::any_cast<double>(operand));
+  } else if (operand.type() == typeid(bool)) {
+    return Evaluator::unaryExpressionEvaluatorHandler<bool, std::any>(
+        op, std::any_cast<bool>(operand));
+  } else {
+    throw "Error: Unexpected operand type";
+  }
+}
+
+// switch (unaryExpression->getOperator()) {
+// case BinderKindUtils::BoundUnaryOperatorKind::Identity:
+//   return operand;
+// case BinderKindUtils::BoundUnaryOperatorKind::Negation:
+//   return -operand;
+// case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation:
+//   return !operand;
+// default:
+//   throw "Error: Unexpected unary operator";
+// }
+
+template <typename V, typename U> // Int
+U Evaluator::unaryExpressionEvaluatorHandler(
+    BinderKindUtils::BoundUnaryOperatorKind op, V operand) {
+  switch (op) {
+  case BinderKindUtils::BoundUnaryOperatorKind::Identity:
+    return operand;
+  case BinderKindUtils::BoundUnaryOperatorKind::Negation:
+    return -operand;
+  case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation:
+    return !operand;
+  default:
+    throw "Error: Unexpected unary operator";
   }
 }
 
