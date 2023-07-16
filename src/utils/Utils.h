@@ -5,6 +5,7 @@
 #include "Common.h"
 namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
+std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 } // namespace Utils
 
 #endif // UTILS_H

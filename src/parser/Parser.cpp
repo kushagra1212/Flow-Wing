@@ -15,10 +15,9 @@ Parser::Parser(std::vector<std::string> text) {
       this->tokens.push_back(token);
     }
     if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
-      this->logs.push_back('(' + std::to_string(token->getLineNumber()) + ',' +
-                           std::to_string(token->getPosition()) +
-                           ") ERROR: unexpected character <" +
-                           token->getText() + ">");
+      this->logs.push_back(Utils::getLineNumberAndPosition(token) +
+                           "ERROR: unexpected character <" + token->getText() +
+                           ">");
     }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 }
@@ -44,7 +43,8 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return this->nextToken();
   }
-  this->logs.push_back("ERROR: unexpected token <" +
+  this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
+                       "ERROR: unexpected token <" +
                        this->getCurrent()->getText() + ">, expected <" +
                        SyntaxKindUtils::enum_to_string_map
                            [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
@@ -137,7 +137,8 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
     }
   }
   default:
-    this->logs.push_back("ERROR: unexpected token <" +
+    this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
+                         "ERROR: unexpected token <" +
                          this->getCurrent()->getText() + ">, expected <" +
                          SyntaxKindUtils::enum_to_string_map
                              [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +

@@ -29,3 +29,8 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
     Utils::prettyPrint(children[i], indent, i == children.size() - 1);
   }
 }
+
+std::string Utils::getLineNumberAndPosition(SyntaxToken<std::any> *token) {
+  return "line " + std::to_string(token->getLineNumber()) + ":" +
+         std::to_string(token->getPosition());
+}

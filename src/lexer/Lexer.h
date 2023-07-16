@@ -2,8 +2,8 @@
 #define LEXER_H
 
 #include "../syntax/SyntaxToken.h"
+#include "../utils/Utils.h"
 #include "Common.h"
-
 class Lexer {
 
 private:

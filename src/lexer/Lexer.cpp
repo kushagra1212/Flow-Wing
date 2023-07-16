@@ -50,10 +50,12 @@ SyntaxToken<std::any> *Lexer::nextToken() {
           throw std::exception();
         }
       } catch (std::exception e) {
-        logs.push_back("ERROR: bad number input not double: " + text);
-        return new SyntaxToken<std::any>(this->lineNumber,
-                                         SyntaxKindUtils::SyntaxKind::BadToken,
-                                         start, text, 0);
+        SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
+            this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+            text, 0);
+        logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
+                       "ERROR: bad number input not double: " + text);
+        return newSyntaxToken;
       }
       double res = stod(text);
 
@@ -69,10 +71,14 @@ SyntaxToken<std::any> *Lexer::nextToken() {
         throw std::exception();
       }
     } catch (std::exception e) {
-      logs.push_back("ERROR: bad number input not i32: " + text);
-      return new SyntaxToken<std::any>(this->lineNumber,
-                                       SyntaxKindUtils::SyntaxKind::BadToken,
-                                       start, text, 0);
+
+      SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start, text,
+          0);
+
+      logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
+                     "ERROR: bad number input not i32: " + text);
+      return newSyntaxToken;
     }
     int res = stoi(text);
 
@@ -260,12 +266,15 @@ SyntaxToken<std::any> *Lexer::nextToken() {
     return this->readString();
 
   default:
-    logs.push_back("ERROR: bad character input: " +
-                   this->text[lineNumber].substr(this->position, 1));
-    return new SyntaxToken<std::any>(
+
+    SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken,
         this->position++, this->text[lineNumber].substr(this->position - 1, 1),
         0);
+    logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
+                   "ERROR: bad character input: " +
+                   this->text[lineNumber].substr(this->position, 1));
+    return newSyntaxToken;
   }
 }
 
@@ -274,10 +283,14 @@ SyntaxToken<std::any> *Lexer::readString() {
   std::string text = "";
   while (this->getCurrent() != '"') {
     if (this->getCurrent() == '\0') {
-      logs.push_back("ERROR: unterminated string literal");
-      return new SyntaxToken<std::any>(
+
+      SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
           this->text[lineNumber].substr(start, this->position - start), 0);
+
+      logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
+                     "ERROR: unterminated string literal");
+      return newSyntaxToken;
     }
     if (this->getCurrent() == '\\') {
       this->next();
@@ -298,11 +311,13 @@ SyntaxToken<std::any> *Lexer::readString() {
         text += '\t';
         break;
       default:
-        logs.push_back("ERROR: bad character escape sequence: \\" +
-                       this->text[lineNumber].substr(this->position, 1));
-        return new SyntaxToken<std::any>(
+        SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
             this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
             this->text[lineNumber].substr(start, this->position - start), 0);
+        logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
+                       "ERROR: bad character escape sequence: \\" +
+                       this->text[lineNumber].substr(this->position, 1));
+        return newSyntaxToken;
       }
     } else {
       text += this->getCurrent();
