@@ -15,11 +15,15 @@
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../utils/Utils.h"
 #include <any>
 #include <string>
 #include <unordered_map>
 
 class Evaluator {
+
+private:
+  static int assignment_counter;
 
 public:
   template <typename T> static T evaluate(BoundExpression *node);

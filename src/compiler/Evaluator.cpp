@@ -11,7 +11,7 @@ template std::any Evaluator::evaluate<std::any>(BoundExpression *node);
 std::unordered_map<std::string, std::any> Evaluator::variables;
 
 std::vector<std::string> Evaluator::logs;
-
+int Evaluator::assignment_counter = 0;
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -75,7 +75,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       return nullptr;
     }
     std::string variable_name = std::any_cast<std::string>(variable);
-
+    Evaluator::assignment_counter++;
     switch (assignmentExpression->getOperator()) {
     case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
 
@@ -88,7 +88,11 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       Evaluator::logs.push_back("Error: Unexpected assignment operator");
       return nullptr;
     }
-    return nullptr;
+    Evaluator::assignment_counter--;
+    if (Evaluator::assignment_counter)
+      return Evaluator::variables[variable_name];
+    else
+      return nullptr;
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
@@ -97,8 +101,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     std::any right_any =
         (Evaluator::evaluate<std::any>(binaryExpression->getRight()));
 
-    return Evaluator::binaryExpressionEvaluator<std::any>(
-        binaryExpression->getOperator(), left_any, right_any);
+    try {
+      return Evaluator::binaryExpressionEvaluator<std::any>(
+          binaryExpression->getOperator(), left_any, right_any);
+    } catch (const std::exception &e) {
+      Evaluator::logs.push_back(e.what());
+      return nullptr;
+    }
   }
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
     BoundParenthesizedExpression *parenthesizedExpression =
@@ -255,11 +264,21 @@ Z Evaluator::binaryExpressionEvaluatorBoolDoubleHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Bool Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
     return left == right;
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
     return left != right;
+  case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
+    if (!right) {
+      throw std::runtime_error("Error: Bool Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back("Error: Incompatible operand types");
     return left;
@@ -278,6 +297,10 @@ Z Evaluator::binaryExpressionEvaluatorIntIntHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Integer Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     return left && right;
@@ -302,7 +325,11 @@ Z Evaluator::binaryExpressionEvaluatorIntIntHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     return left ^ right;
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    return left % right;
+    if (!right) {
+      throw std::runtime_error("Error: Integer Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back("Error: Unexpected binary operator");
     return left;
@@ -321,6 +348,10 @@ Z Evaluator::binaryExpressionEvaluatorDoubleDoubleHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Double Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     return left && right;
@@ -345,7 +376,11 @@ Z Evaluator::binaryExpressionEvaluatorDoubleDoubleHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     Evaluator::logs.push_back("Error: Bitwise xor not supported for double");
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    Evaluator::logs.push_back("Error: Modulus not supported for double");
+    if (!right) {
+      throw std::runtime_error("Error: Double Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back("Error: Unexpected binary operator");
     return left;
@@ -364,6 +399,10 @@ Z Evaluator::binaryExpressionEvaluatorBoolBoolHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Bool Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     return left && right;
@@ -389,7 +428,11 @@ Z Evaluator::binaryExpressionEvaluatorBoolBoolHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     return left ^ right;
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    Evaluator::logs.push_back("Error: Modulus not supported for bool");
+    if (!right) {
+      throw std::runtime_error("Error: Bool Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back("Error: Unexpected binary operator");
     return left;
@@ -539,6 +582,10 @@ Z Evaluator::binaryExpressionEvaluatorDoubleIntHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Double Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     Evaluator::logs.push_back("Error: Logical and not supported for double");
@@ -563,7 +610,11 @@ Z Evaluator::binaryExpressionEvaluatorDoubleIntHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     Evaluator::logs.push_back("Error: Bitwise xor not supported for double");
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    Evaluator::logs.push_back("Error: Modulus not supported for double");
+    if (!right) {
+      throw std::runtime_error("Error: Double Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back("Error: Unexpected binary operator");
     return left;
@@ -582,6 +633,10 @@ Z Evaluator::binaryExpressionEvaluatorIntDoubleHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Double Division by zero");
+      return left;
+    };
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     Evaluator::logs.push_back("Error: Logical and not supported for double");
@@ -805,6 +860,10 @@ Z Evaluator::binaryExpressionEvaluatorIntBoolHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return left * right;
   case BinderKindUtils::BoundBinaryOperatorKind::Division:
+    if (!right) {
+      throw std::runtime_error("Error: Integer Division by zero");
+      return left;
+    }
     return left / right;
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
     return left && right;
@@ -829,7 +888,11 @@ Z Evaluator::binaryExpressionEvaluatorIntBoolHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     return left ^ right;
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    return left % right;
+    if (!right) {
+      throw std::runtime_error("Error: Integer Modulus by zero");
+      return left;
+    }
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back(
         "Error: Unexpected binary operator"); // TODO: add error message
@@ -873,7 +936,7 @@ Z Evaluator::binaryExpressionEvaluatorBoolIntHandler(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     return left ^ right;
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    return left % right;
+    return static_cast<int>(left) % static_cast<int>(right);
   default:
     Evaluator::logs.push_back(
         "Error: Unexpected binary operator"); // TODO: add error message

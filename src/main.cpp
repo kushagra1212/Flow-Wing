@@ -50,6 +50,7 @@ int main() {
       for (int i = 0; i < compilationUnit->logs.size(); i++) {
         std::cout << RED << compilationUnit->logs[i] << RESET << std::endl;
       }
+      text.pop_back();
     } else {
       text = std::vector<std::string>();
       try {

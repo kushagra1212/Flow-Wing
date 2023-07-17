@@ -31,6 +31,6 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 }
 
 std::string Utils::getLineNumberAndPosition(SyntaxToken<std::any> *token) {
-  return "line " + std::to_string(token->getLineNumber()) + ":" +
-         std::to_string(token->getPosition());
+  return "line " + std::to_string(token->getLineNumber() + 1) + ":" +
+         std::to_string(token->getPosition() + 1) + " ";
 }

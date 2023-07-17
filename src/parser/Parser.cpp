@@ -46,12 +46,12 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
                        "ERROR: unexpected token <" +
                        this->getCurrent()->getText() + ">, expected <" +
-                       SyntaxKindUtils::enum_to_string_map
-                           [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
-                       ">");
+                       SyntaxKindUtils::enum_to_string_map[kind] + ">");
 
-  return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(), kind,
-                                   this->getCurrent()->getPosition(), "\0", 0);
+  return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
+                                   SyntaxKindUtils::SyntaxKind::EndOfLineToken,
+                                   this->getCurrent()->getPosition(), "\0",
+                                   "\0");
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
@@ -137,12 +137,7 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
     }
   }
   default:
-    this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
-                         "ERROR: unexpected token <" +
-                         this->getCurrent()->getText() + ">, expected <" +
-                         SyntaxKindUtils::enum_to_string_map
-                             [SyntaxKindUtils::SyntaxKind::EndOfFileToken] +
-                         ">");
+
     return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
   }
 }
