@@ -85,7 +85,6 @@ int main() {
 
       } catch (const char *msg) {
         std::cout << RED << msg << RESET << std::endl;
-        break;
       }
     }
   }
