@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../../statements/StatementSyntax.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../../syntax/expression/AssignmentExpressionSyntax.h"
@@ -38,4 +39,7 @@ public:
 
 public:
   static BoundScope *CreateParentScope(BoundScopeGlobal *parent);
+
+public:
+  BoundStatement *Binder::bindStatement(StatementSyntax *syntax);
 };

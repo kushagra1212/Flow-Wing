@@ -67,6 +67,11 @@ enum SyntaxKind {
   AssignmentExpression,
   VariableExpression,
   CompilationUnit,
+
+  // Statements
+  ExpressionStatement,
+  BlockStatement
+
 };
 extern std::map<SyntaxKind, std::string> enum_to_string_map;
 bool isInt32(const std::string &str);

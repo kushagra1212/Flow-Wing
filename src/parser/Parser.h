@@ -8,6 +8,9 @@
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax.h"
+#include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
+#include "../syntax/statements/StatementSyntax.h"
 #include "../utils/Utils.h"
 #include <typeindex>
 class Parser {
@@ -35,6 +38,12 @@ private:
 
 public:
   CompilationUnitSyntax *parseCompilationUnit();
+
+private:
+  StatementSyntax *parseStatement();
+  BlockStatementSyntax *parseBlockStatement();
+
+  ExpressionStatementSyntax *parseExpressionStatement();
 
 private:
   ExpressionSyntax *parseExpression(int parentPrecedence = 0);

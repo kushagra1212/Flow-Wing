@@ -1,6 +1,28 @@
 
 #include "Binder.h"
 
+BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
+  switch (syntax->getKind()) {
+  case SyntaxKindUtils::SyntaxKind::ExpressionStatement: {
+    ExpressionStatementSyntax *expressionStatement =
+        (ExpressionStatementSyntax *)syntax;
+    BoundExpression *expression =
+        bindExpression(expressionStatement->getExpression());
+    return new BindExpressionStatement(expression);
+  }
+  case SyntaxKindUtils::SyntaxKind::BlockStatement: {
+    BlockStatementSyntax *blockStatement = (BlockStatementSyntax *)syntax;
+    std::vector<BoundStatement *> statements;
+    for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+      statements.push_back(bindStatement(blockStatement->getStatements()[i]));
+    }
+    return new BindBlockStatement(statements);
+  }
+  default:
+    throw "Unexpected syntax";
+  }
+}
+
 BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {

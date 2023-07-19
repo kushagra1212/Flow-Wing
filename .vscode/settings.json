@@ -54,6 +54,7 @@
     "thread": "cpp",
     "any": "cpp",
     "sstream": "cpp",
-    "typeindex": "cpp"
+    "typeindex": "cpp",
+    "stack": "cpp"
   }
 }

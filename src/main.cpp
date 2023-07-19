@@ -10,6 +10,15 @@ constexpr auto RED = "\033[31m";
 constexpr auto GREEN = "\033[32m";
 constexpr auto YELLOW = "\033[33m";
 constexpr auto BLUE = "\033[34m";
+int countBraces(const std::string &line, const char &brace) {
+  int count = 0;
+  for (char c : line) {
+    if (c == brace) {
+      count++;
+    }
+  }
+  return count;
+}
 
 int main() {
 
@@ -18,9 +27,13 @@ int main() {
   Evaluator *previousEvaluator = nullptr;
   bool seeTree = false;
   std::vector<std::string> text;
+  int braceCount = 0;
   while (true) {
-    std::cout << GREEN << ">>> " << RESET;
-
+    if (braceCount) {
+      std::cout << YELLOW << "... " << RESET;
+    } else {
+      std::cout << GREEN << ">>> " << RESET;
+    }
     std::getline(std::cin, line);
     if (line == "") {
       continue;
@@ -37,8 +50,13 @@ int main() {
       continue;
     }
     text.push_back(line);
+
+    braceCount = countBraces(line, '{') - countBraces(line, '}') + braceCount;
+
+    if (braceCount) {
+      continue;
+    }
     Parser *parser = new Parser(text);
-    text.pop_back();
 
     CompilationUnitSyntax *compilationUnit =
         (CompilationUnitSyntax *)parser->parseCompilationUnit();
@@ -54,6 +72,7 @@ int main() {
                                  global_scope->logs.begin(),
                                  global_scope->logs.end());
 
+    text = std::vector<std::string>();
     if (seeTree)
       Utils::prettyPrint(compilationUnit->getExpression());
     if (compilationUnit->logs.size()) {

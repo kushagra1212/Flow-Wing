@@ -6,7 +6,10 @@ enum BoundNodeKind {
   LiteralExpression,
   ParenthesizedExpression,
   AssignmentExpression,
-  VariableExpression
+  VariableExpression,
+
+  // Statements
+  BoundStatementKind
 };
 
 enum BoundUnaryOperatorKind {

@@ -54,10 +54,40 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
-  ExpressionSyntax *expression = this->parseExpression();
+  StatementSyntax *statement = this->parseStatement();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return new CompilationUnitSyntax(this->logs, expression, endOfFileToken);
+  return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
+}
+
+BlockStatementSyntax *Parser::parseBlockStatement() {
+  SyntaxToken<std::any> *openBraceToken =
+      this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+
+  std::vector<StatementSyntax *> statements;
+  while (this->getCurrent()->getKind() !=
+         SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
+    StatementSyntax *statement = this->parseStatement();
+    statements.push_back(statement);
+  }
+
+  SyntaxToken<std::any> *closeBraceToken =
+      this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
+
+  return new BlockStatementSyntax(openBraceToken, statements, closeBraceToken);
+}
+
+ExpressionStatementSyntax *Parser::parseExpressionStatement() {
+  ExpressionSyntax *expression = this->parseExpression();
+  return new ExpressionStatementSyntax(expression);
+}
+StatementSyntax *Parser::parseStatement() {
+  switch (this->getCurrent()->getKind()) {
+  case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
+    return (StatementSyntax *)this->parseBlockStatement();
+  default:
+    return (StatementSyntax *)this->parseExpressionStatement();
+  }
 }
 
 ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
