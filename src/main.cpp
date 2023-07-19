@@ -71,6 +71,10 @@ int main() {
           for (int i = 0; i < Evaluator::logs.size(); i++) {
             std::cout << RED << Evaluator::logs[i] << RESET << std::endl;
           }
+          Evaluator::logs.clear();
+
+          previousEvaluator = currentEvaluator;
+
         } else {
           if (result.type() == typeid(int)) {
             int intValue = std::any_cast<int>(result);

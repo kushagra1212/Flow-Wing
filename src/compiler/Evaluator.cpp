@@ -108,10 +108,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       return nullptr;
     }
     Evaluator::assignment_counter--;
-    if (Evaluator::assignment_counter)
-      return Evaluator::variables[variable_name];
-    else
-      return nullptr;
+    return Evaluator::variables[variable_name];
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
