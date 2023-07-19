@@ -12,6 +12,25 @@ std::unordered_map<std::string, std::any> Evaluator::variables;
 
 std::vector<std::string> Evaluator::logs;
 int Evaluator::assignment_counter = 0;
+
+Evaluator::Evaluator(Evaluator *previous,
+                     CompilationUnitSyntax *compilation_unit) {
+  this->compilation_unit = compilation_unit;
+  this->previous = previous;
+}
+BoundScopeGlobal *Evaluator::getRoot() {
+  if (root == nullptr) {
+    if (previous != nullptr)
+      root = Binder::bindGlobalScope(previous->root, compilation_unit);
+    else
+      root = Binder::bindGlobalScope(nullptr, compilation_unit);
+  }
+  return root;
+}
+
+Evaluator *Evaluator::continueWith(CompilationUnitSyntax *compilation_unit) {
+  return new Evaluator(this, compilation_unit);
+}
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {

@@ -15,6 +15,7 @@ int main() {
 
   SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
+  Evaluator *previousEvaluator = nullptr;
   bool seeTree = false;
   std::vector<std::string> text;
   while (true) {
@@ -37,12 +38,21 @@ int main() {
     }
     text.push_back(line);
     Parser *parser = new Parser(text);
+    text.pop_back();
+
     CompilationUnitSyntax *compilationUnit =
         (CompilationUnitSyntax *)parser->parseCompilationUnit();
-    Binder *binder = new Binder();
+    Evaluator *currentEvaluator =
+        previousEvaluator == nullptr
+            ? new Evaluator(previousEvaluator, compilationUnit)
+            : previousEvaluator->continueWith(compilationUnit);
+    BoundScopeGlobal *global_scope = Binder::bindGlobalScope(
+        previousEvaluator ? previousEvaluator->getRoot() : nullptr,
+        compilationUnit);
 
     compilationUnit->logs.insert(compilationUnit->logs.end(),
-                                 binder->logs.begin(), binder->logs.end());
+                                 global_scope->logs.begin(),
+                                 global_scope->logs.end());
 
     if (seeTree)
       Utils::prettyPrint(compilationUnit->getExpression());
@@ -50,14 +60,12 @@ int main() {
       for (int i = 0; i < compilationUnit->logs.size(); i++) {
         std::cout << RED << compilationUnit->logs[i] << RESET << std::endl;
       }
-      text.pop_back();
+
     } else {
-      text = std::vector<std::string>();
       try {
 
-        Evaluator::logs = std::vector<std::string>();
-        std::any result = Evaluator::evaluate<std::any>(
-            binder->bindExpression(compilationUnit->getExpression()));
+        std::any result =
+            currentEvaluator->evaluate<std::any>(global_scope->expression);
 
         if (Evaluator::logs.size()) {
           for (int i = 0; i < Evaluator::logs.size(); i++) {
@@ -82,6 +90,7 @@ int main() {
             throw "Unexpected result type";
           }
         }
+        previousEvaluator = currentEvaluator;
 
       } catch (const char *msg) {
         std::cout << RED << msg << RESET << std::endl;

@@ -102,10 +102,16 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::AssignmentExpression: {
     AssignmentExpressionSyntax *assignmentExpression =
         (AssignmentExpressionSyntax *)syntax;
-    BoundExpression *left = bindExpression(assignmentExpression->getLeft());
+    BoundLiteralExpression<std::any> *identifierExpression =
+        (BoundLiteralExpression<std::any> *)bindExpression(
+            assignmentExpression->getLeft());
     BoundExpression *right = bindExpression(assignmentExpression->getRight());
+    std::string variable_str =
+        std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
-
+    if (!root->tryDeclareVariable(variable_str)) {
+      logs.push_back("Error: Variable " + variable_str + " does not exist");
+    }
     switch (assignmentExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::EqualsToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;
@@ -113,16 +119,22 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected assignment operator";
     }
-    return new BoundAssignmentExpression(left, op, right);
+    return new BoundAssignmentExpression(identifierExpression, op, right);
   }
 
   case SyntaxKindUtils::SyntaxKind::VariableExpression: {
     VariableExpressionSyntax *variableExpressionSyntax =
         (VariableExpressionSyntax *)syntax;
 
-    BoundExpression *identifierExpression =
-        bindExpression(variableExpressionSyntax->getIdentifier());
-
+    BoundLiteralExpression<std::any> *identifierExpression =
+        (BoundLiteralExpression<std::any> *)bindExpression(
+            variableExpressionSyntax->getIdentifier());
+    std::string variable_str =
+        std::any_cast<std::string>(identifierExpression->getValue());
+    if (!root->tryLookupVariable(variable_str)) {
+      logs.push_back("Error: Variable " + variable_str + " does not exist");
+      return identifierExpression;
+    }
     return new BoundVariableExpression(identifierExpression);
   }
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
@@ -133,4 +145,38 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   default:
     throw "Unexpected syntax";
   }
+}
+BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
+  std::stack<BoundScopeGlobal *> stack = std::stack<BoundScopeGlobal *>();
+
+  while (parent != nullptr) {
+    stack.push(parent);
+    parent = parent->previous;
+  }
+
+  BoundScope *current = nullptr;
+
+  while (!stack.empty()) {
+    parent = stack.top();
+    stack.pop();
+    BoundScope *scope = new BoundScope(current);
+    for (auto &pair : parent->variables) {
+      scope->variables[pair.first] = pair.second;
+    }
+    current = scope;
+  }
+
+  return current;
+}
+
+Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
+
+BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
+                                          CompilationUnitSyntax *syntax) {
+
+  Binder *binder = new Binder(Binder::CreateParentScope(previous));
+  BoundExpression *expression = binder->bindExpression(syntax->getExpression());
+  std::vector<std::string> logs = binder->logs;
+  std::unordered_map<std::string, std::any> variables = binder->root->variables;
+  return new BoundScopeGlobal(previous, variables, logs, expression);
 }

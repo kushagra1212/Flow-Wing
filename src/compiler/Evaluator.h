@@ -25,7 +25,20 @@ class Evaluator {
 private:
   static int assignment_counter;
 
+private:
+  BoundScopeGlobal *root = nullptr;
+
 public:
+  CompilationUnitSyntax *compilation_unit;
+  Evaluator *previous = nullptr;
+  Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
+
+public:
+  BoundScopeGlobal *getRoot();
+
+public:
+  Evaluator *continueWith(CompilationUnitSyntax *compilation_unit);
+
   template <typename T> static T evaluate(BoundExpression *node);
   static std::vector<std::string> logs;
   static std::unordered_map<std::string, std::any> variables;

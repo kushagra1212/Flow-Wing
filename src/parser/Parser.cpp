@@ -50,8 +50,7 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
                                    SyntaxKindUtils::SyntaxKind::EndOfLineToken,
-                                   this->getCurrent()->getPosition(), "\0",
-                                   "\0");
+                                   this->getCurrent()->getPosition(), "\0", 0);
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
@@ -137,7 +136,9 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
     }
   }
   default:
-
+    this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
+                         "ERROR: unexpected token <" +
+                         this->getCurrent()->getText() + ">");
     return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
   }
 }
