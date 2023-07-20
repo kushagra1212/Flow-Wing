@@ -12,3 +12,7 @@ SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() {
 std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
   return std::vector<SyntaxNode *>{this->expression};
 }
+
+ExpressionSyntax *ExpressionStatementSyntax::getExpression() {
+  return this->expression;
+}

@@ -1,6 +1,5 @@
 
 #pragma once
-#include "../../statements/StatementSyntax.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../../syntax/expression/AssignmentExpressionSyntax.h"
@@ -10,11 +9,17 @@
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
 #include "../../syntax/expression/VariableExpressionSyntax.h"
+#include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
+#include "../../syntax/statements/StatementSyntax.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../BoundBlockStatement/BoundBlockStatement.h"
 #include "../BoundExpression.h"
+#include "../BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../BoundStatement/BoundStatement.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../BoundVariableExpression/BoundVariableExpression.h"
 #include "BoundScope/BoundScope.h"
@@ -41,5 +46,5 @@ public:
   static BoundScope *CreateParentScope(BoundScopeGlobal *parent);
 
 public:
-  BoundStatement *Binder::bindStatement(StatementSyntax *syntax);
+  BoundStatement *bindStatement(StatementSyntax *syntax);
 };

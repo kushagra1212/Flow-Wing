@@ -3,6 +3,6 @@
 BoundScopeGlobal::BoundScopeGlobal(
     BoundScopeGlobal *previous,
     std::unordered_map<std::string, std::any> variables,
-    std::vector<std::string> logs, BoundExpression *expression)
+    std::vector<std::string> logs, BoundStatement *statement)
     : previous(previous), variables(variables), logs(logs),
-      expression(expression) {}
+      statement(statement) {}

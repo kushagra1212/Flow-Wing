@@ -7,7 +7,6 @@ template class BoundLiteralExpression<bool>;
 template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
-template std::any Evaluator::evaluate<std::any>(BoundExpression *node);
 std::unordered_map<std::string, std::any> Evaluator::variables;
 
 std::vector<std::string> Evaluator::logs;
@@ -31,6 +30,29 @@ BoundScopeGlobal *Evaluator::getRoot() {
 Evaluator *Evaluator::continueWith(CompilationUnitSyntax *compilation_unit) {
   return new Evaluator(this, compilation_unit);
 }
+
+void Evaluator::evaluateStatement(BoundStatement *node) {
+  switch (node->getKind()) {
+  case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
+    BoundExpressionStatement *expressionStatement =
+        (BoundExpressionStatement *)node;
+    last_value = this->evaluate<std::any>(expressionStatement->getExpression());
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::BlockStatement: {
+    BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
+    std::vector<BoundStatement *> statements = blockStatement->getStatements();
+    for (BoundStatement *statement : statements) {
+      this->evaluateStatement(statement);
+    }
+    break;
+  }
+  default: {
+    Evaluator::logs.push_back("Error: Unexpected node" + node->getKind());
+  }
+  }
+}
+
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {

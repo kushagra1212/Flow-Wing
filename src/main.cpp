@@ -73,8 +73,9 @@ int main() {
                                  global_scope->logs.end());
 
     text = std::vector<std::string>();
-    if (seeTree)
-      Utils::prettyPrint(compilationUnit->getExpression());
+    if (seeTree) {
+      // Utils::prettyPrint(compilationUnit->getExpression());
+    }
     if (compilationUnit->logs.size()) {
       for (int i = 0; i < compilationUnit->logs.size(); i++) {
         std::cout << RED << compilationUnit->logs[i] << RESET << std::endl;
@@ -83,8 +84,9 @@ int main() {
     } else {
       try {
 
-        std::any result =
-            currentEvaluator->evaluate<std::any>(global_scope->expression);
+        currentEvaluator->evaluateStatement(global_scope->statement);
+
+        std::any result = currentEvaluator->last_value;
 
         if (Evaluator::logs.size()) {
           for (int i = 0; i < Evaluator::logs.size(); i++) {
@@ -93,7 +95,6 @@ int main() {
           Evaluator::logs.clear();
 
           previousEvaluator = currentEvaluator;
-
         } else {
           if (result.type() == typeid(int)) {
             int intValue = std::any_cast<int>(result);

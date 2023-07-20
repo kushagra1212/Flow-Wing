@@ -1,5 +1,6 @@
+#pragma once
+#include "../../expression/ExpressionSyntax.h"
 #include "../StatementSyntax.h"
-#include "../expression/ExpressionSyntax.h"
 
 class ExpressionStatementSyntax : public StatementSyntax {
 private:
@@ -8,11 +9,9 @@ private:
 public:
   ExpressionStatementSyntax(ExpressionSyntax *expression);
 
-  SyntaxKindUtils::SyntaxKind getKind() {
-    return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
-  }
+  SyntaxKindUtils::SyntaxKind getKind();
 
-  std::vector<SyntaxNode *> getChildren() {
-    return std::vector<SyntaxNode *>{this->expression};
-  }
+  std::vector<SyntaxNode *> getChildren();
+
+  ExpressionSyntax *getExpression();
 };

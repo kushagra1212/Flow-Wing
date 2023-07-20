@@ -9,7 +9,9 @@ enum BoundNodeKind {
   VariableExpression,
 
   // Statements
-  BoundStatementKind
+  BoundStatementKind,
+  ExpressionStatement,
+  BlockStatement
 };
 
 enum BoundUnaryOperatorKind {

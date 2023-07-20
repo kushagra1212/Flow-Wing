@@ -1,6 +1,5 @@
 
-#ifndef EVALUATOR_H
-#define EVALUATOR_H
+#pragma once
 #include "../bind/Binder/Binder.h"
 #include "../syntax/SyntaxKindUtils.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
@@ -29,6 +28,7 @@ private:
   BoundScopeGlobal *root = nullptr;
 
 public:
+  std::any last_value;
   CompilationUnitSyntax *compilation_unit;
   Evaluator *previous = nullptr;
   Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
@@ -39,7 +39,9 @@ public:
 public:
   Evaluator *continueWith(CompilationUnitSyntax *compilation_unit);
 
-  template <typename T> static T evaluate(BoundExpression *node);
+  template <typename T> T evaluate(BoundExpression *node);
+
+  void evaluateStatement(BoundStatement *node);
   static std::vector<std::string> logs;
   static std::unordered_map<std::string, std::any> variables;
   template <typename T>
@@ -138,4 +140,3 @@ public:
       BinderKindUtils::BoundBinaryOperatorKind op, const V &left,
       const U &right);
 };
-#endif

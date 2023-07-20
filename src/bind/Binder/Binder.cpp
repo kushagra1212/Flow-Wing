@@ -8,7 +8,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         (ExpressionStatementSyntax *)syntax;
     BoundExpression *expression =
         bindExpression(expressionStatement->getExpression());
-    return new BindExpressionStatement(expression);
+    return new BoundExpressionStatement(expression);
   }
   case SyntaxKindUtils::SyntaxKind::BlockStatement: {
     BlockStatementSyntax *blockStatement = (BlockStatementSyntax *)syntax;
@@ -16,7 +16,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     for (int i = 0; i < blockStatement->getStatements().size(); i++) {
       statements.push_back(bindStatement(blockStatement->getStatements()[i]));
     }
-    return new BindBlockStatement(statements);
+    return new BoundBlockStatement(statements);
   }
   default:
     throw "Unexpected syntax";
@@ -197,8 +197,8 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
                                           CompilationUnitSyntax *syntax) {
 
   Binder *binder = new Binder(Binder::CreateParentScope(previous));
-  BoundExpression *expression = binder->bindExpression(syntax->getExpression());
+  BoundStatement *statement = binder->bindStatement(syntax->getStatement());
   std::vector<std::string> logs = binder->logs;
   std::unordered_map<std::string, std::any> variables = binder->root->variables;
-  return new BoundScopeGlobal(previous, variables, logs, expression);
+  return new BoundScopeGlobal(previous, variables, logs, statement);
 }
