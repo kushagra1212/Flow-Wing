@@ -12,11 +12,33 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
   }
   case SyntaxKindUtils::SyntaxKind::BlockStatement: {
     BlockStatementSyntax *blockStatement = (BlockStatementSyntax *)syntax;
+
+    this->root = new BoundScope(this->root);
+
     std::vector<BoundStatement *> statements;
     for (int i = 0; i < blockStatement->getStatements().size(); i++) {
       statements.push_back(bindStatement(blockStatement->getStatements()[i]));
     }
+
+    this->root = this->root->parent;
     return new BoundBlockStatement(statements);
+  }
+  case SyntaxKindUtils::SyntaxKind::VariableDeclaration: {
+    VariableDeclarationSyntax *variableDeclaration =
+        (VariableDeclarationSyntax *)syntax;
+    BoundExpression *initializer =
+        bindExpression(variableDeclaration->getInitializer());
+
+    std::string variable_str = std::any_cast<std::string>(
+        variableDeclaration->getIdentifier()->getValue());
+    bool isConst = variableDeclaration->getKeyword()->getKind() ==
+                   SyntaxKindUtils::SyntaxKind::ConstKeyword;
+
+    if (!root->tryDeclareVariable(variable_str)) {
+      logs.push_back("Error: Variable " + variable_str + " already exists");
+    }
+
+    return new BoundVariableDeclaration(variable_str, isConst, initializer);
   }
   default:
     throw "Unexpected syntax";
@@ -131,9 +153,10 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
-    if (!root->tryDeclareVariable(variable_str)) {
-      logs.push_back("Error: Variable " + variable_str + " does not exist");
-    }
+    // if (!root->tryDeclareVariable(variable_str)) {
+    //   logs.push_back("Error: Variable " + variable_str + " does not exist");
+    //   return identifierExpression;
+    // }
     switch (assignmentExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::EqualsToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;

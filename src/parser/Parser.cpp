@@ -85,9 +85,27 @@ StatementSyntax *Parser::parseStatement() {
   switch (this->getCurrent()->getKind()) {
   case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
     return (StatementSyntax *)this->parseBlockStatement();
+  case SyntaxKindUtils::SyntaxKind::VarKeyword:
+  case SyntaxKindUtils::SyntaxKind::ConstKeyword:
+    return (StatementSyntax *)this->parseVariableDeclaration();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+StatementSyntax *Parser::parseVariableDeclaration() {
+
+  SyntaxToken<std::any> *keyword = this->match(
+      SyntaxKindUtils::SyntaxKind::VarKeyword == this->getCurrent()->getKind()
+          ? SyntaxKindUtils::SyntaxKind::VarKeyword
+          : SyntaxKindUtils::SyntaxKind::ConstKeyword);
+  SyntaxToken<std::any> *identifier =
+      this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+  SyntaxToken<std::any> *equalsToken =
+      this->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
+  ExpressionSyntax *initializer = this->parseExpression();
+  return new VariableDeclarationSyntax(keyword, identifier, equalsToken,
+                                       initializer);
 }
 
 ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {

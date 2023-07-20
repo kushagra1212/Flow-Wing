@@ -3,7 +3,9 @@
 BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
 
 bool BoundScope::tryDeclareVariable(std::string name) {
-
+  if (this->variables.find(name) != this->variables.end()) {
+    return false;
+  }
   this->variables[name] = std::any();
   return true;
 }

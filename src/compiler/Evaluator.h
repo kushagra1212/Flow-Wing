@@ -22,9 +22,6 @@
 class Evaluator {
 
 private:
-  static int assignment_counter;
-
-private:
   BoundScopeGlobal *root = nullptr;
 
 public:
@@ -43,7 +40,6 @@ public:
 
   void evaluateStatement(BoundStatement *node);
   static std::vector<std::string> logs;
-  static std::unordered_map<std::string, std::any> variables;
   template <typename T>
   static T
   binaryExpressionEvaluator(BinderKindUtils::BoundBinaryOperatorKind op, T left,

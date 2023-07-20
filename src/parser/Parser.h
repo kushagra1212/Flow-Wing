@@ -11,6 +11,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
+#include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../utils/Utils.h"
 #include <typeindex>
 class Parser {
@@ -44,6 +45,8 @@ private:
   BlockStatementSyntax *parseBlockStatement();
 
   ExpressionStatementSyntax *parseExpressionStatement();
+
+  StatementSyntax *parseVariableDeclaration();
 
 private:
   ExpressionSyntax *parseExpression(int parentPrecedence = 0);

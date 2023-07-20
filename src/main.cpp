@@ -64,17 +64,17 @@ int main() {
         previousEvaluator == nullptr
             ? new Evaluator(previousEvaluator, compilationUnit)
             : previousEvaluator->continueWith(compilationUnit);
-    BoundScopeGlobal *global_scope = Binder::bindGlobalScope(
-        previousEvaluator ? previousEvaluator->getRoot() : nullptr,
-        compilationUnit);
+    BoundScopeGlobal *global_scope = currentEvaluator->getRoot();
 
     compilationUnit->logs.insert(compilationUnit->logs.end(),
                                  global_scope->logs.begin(),
                                  global_scope->logs.end());
 
     text = std::vector<std::string>();
+
+    previousEvaluator = currentEvaluator;
     if (seeTree) {
-      // Utils::prettyPrint(compilationUnit->getExpression());
+      Utils::prettyPrint(compilationUnit->getStatement());
     }
     if (compilationUnit->logs.size()) {
       for (int i = 0; i < compilationUnit->logs.size(); i++) {
@@ -88,13 +88,12 @@ int main() {
 
         std::any result = currentEvaluator->last_value;
 
-        if (Evaluator::logs.size()) {
-          for (int i = 0; i < Evaluator::logs.size(); i++) {
-            std::cout << RED << Evaluator::logs[i] << RESET << std::endl;
+        if (currentEvaluator->getRoot()->logs.size()) {
+          for (int i = 0; i < currentEvaluator->getRoot()->logs.size(); i++) {
+            std::cout << RED << currentEvaluator->getRoot()->logs[i] << RESET
+                      << std::endl;
           }
-          Evaluator::logs.clear();
 
-          previousEvaluator = currentEvaluator;
         } else {
           if (result.type() == typeid(int)) {
             int intValue = std::any_cast<int>(result);
@@ -114,8 +113,6 @@ int main() {
             throw "Unexpected result type";
           }
         }
-        previousEvaluator = currentEvaluator;
-
       } catch (const char *msg) {
         std::cout << RED << msg << RESET << std::endl;
       }

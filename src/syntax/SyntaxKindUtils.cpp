@@ -86,4 +86,7 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::PercentToken] = "PercentToken";
 
   enum_to_string_map[SyntaxKind::EndOfLineToken] = "EndOfLineToken";
+  enum_to_string_map[SyntaxKind::VarKeyword] = "VarKeyword";
+  enum_to_string_map[SyntaxKind::ConstKeyword] = "ConstKeyword";
+  enum_to_string_map[SyntaxKind::VariableDeclaration] = "VariableDeclaration";
 }

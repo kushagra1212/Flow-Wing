@@ -11,7 +11,11 @@ enum BoundNodeKind {
   // Statements
   BoundStatementKind,
   ExpressionStatement,
-  BlockStatement
+  BlockStatement,
+
+  // declarations
+
+  VariableDeclaration
 };
 
 enum BoundUnaryOperatorKind {
@@ -38,6 +42,5 @@ enum BoundBinaryOperatorKind {
   BitwiseOr,
   BitwiseXor,
   Modulus,
-  VariableDeclaration,
 };
 } // namespace BinderKindUtils
