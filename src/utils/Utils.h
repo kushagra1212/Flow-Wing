@@ -6,6 +6,13 @@
 namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
+
+struct Variable {
+  std::any value;
+  bool isConst;
+  Variable(std::any value, bool isConst);
+};
+
 } // namespace Utils
 
 #endif // UTILS_H

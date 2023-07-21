@@ -34,7 +34,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     bool isConst = variableDeclaration->getKeyword()->getKind() ==
                    SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
-    if (!root->tryDeclareVariable(variable_str)) {
+    if (!root->tryDeclareVariable(variable_str,
+                                  Utils::Variable(nullptr, isConst))) {
       logs.push_back("Error: Variable " + variable_str + " already exists");
     }
 
@@ -157,6 +158,10 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     //   logs.push_back("Error: Variable " + variable_str + " does not exist");
     //   return identifierExpression;
     // }
+    if (std::any_cast<Utils::Variable>(root->variables[variable_str]).isConst) {
+      logs.push_back("Error: Variable " + variable_str + " is const");
+      return identifierExpression;
+    }
     switch (assignmentExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::EqualsToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;

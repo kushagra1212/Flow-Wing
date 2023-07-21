@@ -34,3 +34,9 @@ std::string Utils::getLineNumberAndPosition(SyntaxToken<std::any> *token) {
   return "line " + std::to_string(token->getLineNumber() + 1) + ":" +
          std::to_string(token->getPosition() + 1) + " ";
 }
+
+Utils::Variable::Variable(std::any value, bool isConst) {
+
+  this->value = value;
+  this->isConst = isConst;
+}

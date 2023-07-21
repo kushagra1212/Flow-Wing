@@ -2,11 +2,11 @@
 
 BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
 
-bool BoundScope::tryDeclareVariable(std::string name) {
+bool BoundScope::tryDeclareVariable(std::string name, std::any initialValue) {
   if (this->variables.find(name) != this->variables.end()) {
     return false;
   }
-  this->variables[name] = std::any();
+  this->variables[name] = initialValue;
   return true;
 }
 

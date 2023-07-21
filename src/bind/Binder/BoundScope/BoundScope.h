@@ -8,7 +8,7 @@ public:
   BoundScope(BoundScope *parent);
 
 public:
-  bool tryDeclareVariable(std::string name);
+  bool tryDeclareVariable(std::string name, std::any initialValue);
 
   bool tryLookupVariable(std::string name);
 

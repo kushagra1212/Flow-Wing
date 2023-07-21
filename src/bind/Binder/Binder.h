@@ -13,6 +13,7 @@
 #include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../BoundBinaryExpression/BoundBinaryExpression.h"
