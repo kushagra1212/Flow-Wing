@@ -31,7 +31,7 @@ private:
 public:
   SyntaxToken<std::any> *nextToken();
 
-private:
+public:
   SyntaxToken<std::any> *readString();
 };
 #endif // LEXER_H

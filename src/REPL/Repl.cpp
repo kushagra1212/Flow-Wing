@@ -11,11 +11,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
   SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
-  if (braceCount) {
-    outputStream << YELLOW << "... " << RESET;
-  } else {
-    outputStream << GREEN << ">>> " << RESET;
-  }
+
   while (std::getline(inputStream, line)) {
     if (braceCount) {
       outputStream << YELLOW << "... " << RESET;
@@ -62,7 +58,7 @@ void Repl::compileAndEvaluate(const std::string &line,
                                globalScope->logs.begin(),
                                globalScope->logs.end());
 
-  text.clear();
+  text = std::vector<std::string>();
   previousEvaluator = currentEvaluator;
 
   if (seeTree) {
@@ -118,7 +114,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
       continue;
     }
 
-    if (line == "`:exit") {
+    if (line == ":exit") {
       break;
     }
 
@@ -138,7 +134,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << YELLOW << "Welcome to the " << GREEN << "C++" << YELLOW
+  outputStream << YELLOW << "Welcome to the " << GREEN << "elang" << YELLOW
                << " REPL!" << RESET << std::endl;
   outputStream << YELLOW
                << "Type `:exit` to exit, `:cls` to clear the screen, "

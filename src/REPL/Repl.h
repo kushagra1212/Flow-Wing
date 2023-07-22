@@ -18,7 +18,6 @@ public:
   void runForTest(std::istream &inputStream, std::ostream &outputStream);
   bool isTreeVisible() const;
 
-private:
   // Helper functions
   void printWelcomeMessage(std::ostream &outputStream);
   void processInput(const std::string &line);
@@ -27,6 +26,7 @@ private:
 
   void compileAndEvaluate(const std::string &line, std::ostream &outputStream);
   // Data members
+private:
   std::shared_ptr<Evaluator> previousEvaluator;
   bool seeTree;
   std::vector<std::string> text;
