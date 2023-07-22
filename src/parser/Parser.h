@@ -13,6 +13,7 @@
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
 #include <typeindex>
 class Parser {
@@ -39,7 +40,7 @@ private:
   SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
 
 public:
-  CompilationUnitSyntax *parseCompilationUnit();
+  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
 private:
   StatementSyntax *parseStatement();
@@ -50,6 +51,8 @@ private:
   StatementSyntax *parseVariableDeclaration();
 
   IfStatementSyntax *parseIfStatement();
+
+  WhileStatementSyntax *parseWhileStatement();
 
 private:
   ExpressionSyntax *parseExpression(int parentPrecedence = 0);

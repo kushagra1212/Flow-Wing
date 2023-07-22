@@ -49,15 +49,18 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
                        SyntaxKindUtils::enum_to_string_map[kind] + ">");
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
-                                   SyntaxKindUtils::SyntaxKind::EndOfLineToken,
+                                   SyntaxKindUtils::SyntaxKind::EndOfFileToken,
                                    this->getCurrent()->getPosition(), "\0", 0);
 }
 
-CompilationUnitSyntax *Parser::parseCompilationUnit() {
+std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
   StatementSyntax *statement = this->parseStatement();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
+  // return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
+
+  return std::make_unique<CompilationUnitSyntax>(this->logs, statement,
+                                                 endOfFileToken);
 }
 
 BlockStatementSyntax *Parser::parseBlockStatement() {
@@ -95,6 +98,11 @@ StatementSyntax *Parser::parseStatement() {
     return (StatementSyntax *)this->parseVariableDeclaration();
   case SyntaxKindUtils::SyntaxKind::IfKeyword:
     return (StatementSyntax *)this->parseIfStatement();
+  case SyntaxKindUtils::SyntaxKind::WhileKeyword:
+    return (StatementSyntax *)this->parseWhileStatement();
+  case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
+  case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
+    return (StatementSyntax *)this->nextToken();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
@@ -115,6 +123,14 @@ IfStatementSyntax *Parser::parseIfStatement() {
     elseClause = new ElseClauseSyntax(elseKeyword, elseStatement);
   }
   return new IfStatementSyntax(keyword, condition, statement, elseClause);
+}
+
+WhileStatementSyntax *Parser::parseWhileStatement() {
+  SyntaxToken<std::any> *keyword =
+      this->match(SyntaxKindUtils::SyntaxKind::WhileKeyword);
+  ExpressionSyntax *condition = this->parseExpression();
+  BlockStatementSyntax *statement = this->parseBlockStatement();
+  return new WhileStatementSyntax(keyword, condition, statement);
 }
 
 StatementSyntax *Parser::parseVariableDeclaration() {

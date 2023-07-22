@@ -124,6 +124,12 @@ SyntaxToken<std::any> *Lexer::nextToken() {
                                        start, text, "else");
     }
 
+    if (text == "while") {
+      return new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::WhileKeyword, start,
+          text, "while");
+    }
+
     if (text == "const") {
       return new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,

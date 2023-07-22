@@ -14,6 +14,7 @@
 #include "../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -27,6 +28,7 @@
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "../BoundVariableExpression/BoundVariableExpression.h"
+#include "../BoundWhileStatement/BoundWhileStatement.h"
 #include "BoundScope/BoundScope.h"
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
 #include <stack>
@@ -44,8 +46,9 @@ public:
   BoundExpression *bindExpression(ExpressionSyntax *syntax);
 
 public:
-  static BoundScopeGlobal *bindGlobalScope(BoundScopeGlobal *previous,
-                                           CompilationUnitSyntax *syntax);
+  static BoundScopeGlobal *
+  bindGlobalScope(BoundScopeGlobal *previous,
+                  std::shared_ptr<CompilationUnitSyntax> syntax);
 
 public:
   static BoundScope *CreateParentScope(BoundScopeGlobal *parent);

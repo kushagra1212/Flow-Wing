@@ -8,7 +8,7 @@ template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
 Evaluator::Evaluator(Evaluator *previous,
-                     CompilationUnitSyntax *compilation_unit) {
+                     std::shared_ptr<CompilationUnitSyntax> compilation_unit) {
   this->compilation_unit = compilation_unit;
   this->previous = previous;
 }
@@ -22,8 +22,9 @@ BoundScopeGlobal *Evaluator::getRoot() {
   return root;
 }
 
-Evaluator *Evaluator::continueWith(CompilationUnitSyntax *compilation_unit) {
-  return new Evaluator(this, compilation_unit);
+std::unique_ptr<Evaluator> Evaluator::continueWith(
+    std::shared_ptr<CompilationUnitSyntax> compilation_unit) {
+  return std::make_unique<Evaluator>(this, compilation_unit);
 }
 
 void Evaluator::evaluateStatement(BoundStatement *node) {
@@ -70,6 +71,28 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
         this->evaluateStatement(ifStatement->getThenStatement());
       } else if (ifStatement->getElseStatement() != nullptr) {
         this->evaluateStatement(ifStatement->getElseStatement());
+      }
+    } else {
+      this->root->logs.push_back("Error: Unexpected condition type");
+      return;
+    }
+    break;
+  }
+
+  case BinderKindUtils::BoundNodeKind::WhileStatement: {
+    BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
+    std::any condition =
+        this->evaluate<std::any>(whileStatement->getCondition());
+
+    if (condition.type() == typeid(bool)) {
+      while (std::any_cast<bool>(condition)) {
+        this->evaluateStatement(whileStatement->getBody());
+        condition = this->evaluate<std::any>(whileStatement->getCondition());
+      }
+    } else if (condition.type() == typeid(int)) {
+      while (std::any_cast<int>(condition)) {
+        this->evaluateStatement(whileStatement->getBody());
+        condition = this->evaluate<std::any>(whileStatement->getCondition());
       }
     } else {
       this->root->logs.push_back("Error: Unexpected condition type");

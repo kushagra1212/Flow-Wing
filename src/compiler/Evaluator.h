@@ -26,15 +26,17 @@ private:
 
 public:
   std::any last_value;
-  CompilationUnitSyntax *compilation_unit;
+  std::shared_ptr<CompilationUnitSyntax> compilation_unit;
   Evaluator *previous = nullptr;
-  Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
+  Evaluator(Evaluator *previous,
+            std::shared_ptr<CompilationUnitSyntax> compilation_unit);
 
 public:
   BoundScopeGlobal *getRoot();
 
 public:
-  Evaluator *continueWith(CompilationUnitSyntax *compilation_unit);
+  std::unique_ptr<Evaluator>
+  continueWith(std::shared_ptr<CompilationUnitSyntax> compilation_unit);
 
   template <typename T> T evaluate(BoundExpression *node);
 

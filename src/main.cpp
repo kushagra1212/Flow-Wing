@@ -1,9 +1,9 @@
 
+#include "Common.h"
 #include "compiler/Evaluator.h"
 #include "parser/Parser.h"
 #include "utils/Utils.h"
 #include <any>
-
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
 constexpr auto RED = "\033[31m";
@@ -24,7 +24,7 @@ int main() {
 
   SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
-  Evaluator *previousEvaluator = nullptr;
+  std::unique_ptr<Evaluator> previousEvaluator = nullptr;
   bool seeTree = false;
   std::vector<std::string> text;
   int braceCount = 0;
@@ -58,11 +58,13 @@ int main() {
     }
     Parser *parser = new Parser(text);
 
-    CompilationUnitSyntax *compilationUnit =
-        (CompilationUnitSyntax *)parser->parseCompilationUnit();
-    Evaluator *currentEvaluator =
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit =
+        (parser->parseCompilationUnit());
+
+    std::unique_ptr<Evaluator> currentEvaluator =
         previousEvaluator == nullptr
-            ? new Evaluator(previousEvaluator, compilationUnit)
+            ? std::make_unique<Evaluator>(std::move(previousEvaluator),
+                                          compilationUnit)
             : previousEvaluator->continueWith(compilationUnit);
     BoundScopeGlobal *global_scope = currentEvaluator->getRoot();
 
@@ -110,11 +112,11 @@ int main() {
           } else if (result.type() == typeid(std::nullptr_t)) {
             std::cout << "hi";
           } else {
-            throw "Unexpected result type";
+            std::runtime_error("Unexpected result type");
           }
         }
-      } catch (const char *msg) {
-        std::cout << RED << msg << RESET << std::endl;
+      } catch (std::exception &e) {
+        std::cout << RED << e.what() << RESET << std::endl;
       }
     }
   }

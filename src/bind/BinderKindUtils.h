@@ -13,6 +13,7 @@ enum BoundNodeKind {
   ExpressionStatement,
   BlockStatement,
   IfStatement,
+  WhileStatement,
 
   // declarations
 

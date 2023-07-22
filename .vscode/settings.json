@@ -55,6 +55,13 @@
     "any": "cpp",
     "sstream": "cpp",
     "typeindex": "cpp",
-    "stack": "cpp"
+    "stack": "cpp",
+    "condition_variable": "cpp",
+    "set": "cpp",
+    "optional": "cpp",
+    "iomanip": "cpp",
+    "mutex": "cpp",
+    "cinttypes": "cpp",
+    "variant": "cpp"
   }
 }

@@ -93,4 +93,6 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::ElseKeyword] = "ElseKeyword";
   enum_to_string_map[SyntaxKind::ElseClause] = "ElseClause";
   enum_to_string_map[SyntaxKind::IfStatement] = "IfStatement";
+  enum_to_string_map[SyntaxKind::WhileKeyword] = "WhileKeyword";
+  enum_to_string_map[SyntaxKind::WhileStatement] = "WhileStatement";
 }
