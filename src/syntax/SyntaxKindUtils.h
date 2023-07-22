@@ -56,6 +56,10 @@ enum SyntaxKind {
   FalseKeyword,
   VarKeyword,
   ConstKeyword,
+  IfKeyword,
+  ElseKeyword,
+
+  ElseClause,
 
   // Identifiers
   IdentifierToken,
@@ -73,7 +77,8 @@ enum SyntaxKind {
   // Statements
   ExpressionStatement,
   BlockStatement,
-  VariableDeclaration
+  VariableDeclaration,
+  IfStatement,
 
 };
 extern std::map<SyntaxKind, std::string> enum_to_string_map;

@@ -88,9 +88,27 @@ StatementSyntax *Parser::parseStatement() {
   case SyntaxKindUtils::SyntaxKind::VarKeyword:
   case SyntaxKindUtils::SyntaxKind::ConstKeyword:
     return (StatementSyntax *)this->parseVariableDeclaration();
+  case SyntaxKindUtils::SyntaxKind::IfKeyword:
+    return (StatementSyntax *)this->parseIfStatement();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+IfStatementSyntax *Parser::parseIfStatement() {
+  SyntaxToken<std::any> *keyword =
+      this->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
+  ExpressionSyntax *condition = this->parseExpression();
+  StatementSyntax *statement = this->parseStatement();
+  ElseClauseSyntax *elseClause = nullptr;
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ElseKeyword) {
+    SyntaxToken<std::any> *elseKeyword =
+        this->match(SyntaxKindUtils::SyntaxKind::ElseKeyword);
+    StatementSyntax *elseStatement = this->parseStatement();
+    elseClause = new ElseClauseSyntax(elseKeyword, elseStatement);
+  }
+  return new IfStatementSyntax(keyword, condition, statement, elseClause);
 }
 
 StatementSyntax *Parser::parseVariableDeclaration() {

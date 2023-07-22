@@ -89,4 +89,8 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::VarKeyword] = "VarKeyword";
   enum_to_string_map[SyntaxKind::ConstKeyword] = "ConstKeyword";
   enum_to_string_map[SyntaxKind::VariableDeclaration] = "VariableDeclaration";
+  enum_to_string_map[SyntaxKind::IfKeyword] = "IfKeyword";
+  enum_to_string_map[SyntaxKind::ElseKeyword] = "ElseKeyword";
+  enum_to_string_map[SyntaxKind::ElseClause] = "ElseClause";
+  enum_to_string_map[SyntaxKind::IfStatement] = "IfStatement";
 }

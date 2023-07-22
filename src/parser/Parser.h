@@ -10,6 +10,7 @@
 #include "../syntax/expression/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
+#include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../utils/Utils.h"
@@ -47,6 +48,8 @@ private:
   ExpressionStatementSyntax *parseExpressionStatement();
 
   StatementSyntax *parseVariableDeclaration();
+
+  IfStatementSyntax *parseIfStatement();
 
 private:
   ExpressionSyntax *parseExpression(int parentPrecedence = 0);

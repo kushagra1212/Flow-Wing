@@ -53,6 +53,28 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     last_value = this->root->variables[variable_name];
     break;
   }
+  case BinderKindUtils::BoundNodeKind::IfStatement: {
+    BoundIfStatement *ifStatement = (BoundIfStatement *)node;
+    std::any condition = this->evaluate<std::any>(ifStatement->getCondition());
+
+    if (condition.type() == typeid(bool)) {
+      if (std::any_cast<bool>(condition)) {
+        this->evaluateStatement(ifStatement->getThenStatement());
+      } else if (ifStatement->getElseStatement() != nullptr) {
+        this->evaluateStatement(ifStatement->getElseStatement());
+      }
+    } else if (condition.type() == typeid(int)) {
+      if (std::any_cast<int>(condition)) {
+        this->evaluateStatement(ifStatement->getThenStatement());
+      } else if (ifStatement->getElseStatement() != nullptr) {
+        this->evaluateStatement(ifStatement->getElseStatement());
+      }
+    } else {
+      this->root->logs.push_back("Error: Unexpected condition type");
+      return;
+    }
+    break;
+  }
   default: {
     this->root->logs.push_back("Error: Unexpected node" + node->getKind());
   }

@@ -112,6 +112,18 @@ SyntaxToken<std::any> *Lexer::nextToken() {
                                        start, text, "var");
     }
 
+    if (text == "if") {
+      return new SyntaxToken<std::any>(this->lineNumber,
+                                       SyntaxKindUtils::SyntaxKind::IfKeyword,
+                                       start, text, "if");
+    }
+
+    if (text == "else") {
+      return new SyntaxToken<std::any>(this->lineNumber,
+                                       SyntaxKindUtils::SyntaxKind::ElseKeyword,
+                                       start, text, "else");
+    }
+
     if (text == "const") {
       return new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,

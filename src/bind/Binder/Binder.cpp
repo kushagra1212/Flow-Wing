@@ -41,6 +41,17 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     return new BoundVariableDeclaration(variable_str, isConst, initializer);
   }
+  case SyntaxKindUtils::SyntaxKind::IfStatement: {
+    IfStatementSyntax *ifStatement = (IfStatementSyntax *)syntax;
+    BoundExpression *condition = bindExpression(ifStatement->getCondition());
+    BoundStatement *thenStatement = bindStatement(ifStatement->getStatement());
+    BoundStatement *elseStatement = nullptr;
+    if (ifStatement->getElseClause() != nullptr) {
+      elseStatement =
+          bindStatement(ifStatement->getElseClause()->getStatement());
+    }
+    return new BoundIfStatement(condition, thenStatement, elseStatement);
+  }
   default:
     throw "Unexpected syntax";
   }
