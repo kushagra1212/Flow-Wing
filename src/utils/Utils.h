@@ -10,7 +10,11 @@ std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 struct Variable {
   std::any value;
   bool isConst;
-  Variable(std::any value, bool isConst);
+  Variable() {}
+  Variable(std::any value, bool isConst) {
+    this->value = value;
+    this->isConst = isConst;
+  }
 };
 
 } // namespace Utils

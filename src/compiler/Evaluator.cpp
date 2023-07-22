@@ -48,9 +48,11 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
         (BoundVariableDeclaration *)node;
     std::string variable_name = variableDeclaration->getVariable();
 
-    this->root->variables[variable_name] =
-        this->evaluate<std::any>(variableDeclaration->getInitializer());
-    last_value = this->root->variables[variable_name];
+    this->root->variables[variable_name] = Utils::Variable(
+        this->evaluate<std::any>(variableDeclaration->getInitializer()),
+        variableDeclaration->isConst());
+
+    last_value = this->root->variables[variable_name].value;
     break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
@@ -121,7 +123,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     case BinderKindUtils::BoundNodeKind::VariableExpression: {
       if (this->root->variables.find(variable_name) !=
           this->root->variables.end()) {
-        return this->root->variables[variable_name];
+        return this->root->variables[variable_name].value;
       } else {
         this->root->logs.push_back("Error: variable is undefined");
         return nullptr;
@@ -148,8 +150,9 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     switch (assignmentExpression->getOperator()) {
     case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
 
-      this->root->variables[variable_name] =
-          this->evaluate<std::any>(assignmentExpression->getRight());
+      this->root->variables[variable_name] = Utils::Variable(
+          this->evaluate<std::any>(assignmentExpression->getRight()),
+          this->root->variables[variable_name].isConst);
 
       break;
     }
@@ -157,7 +160,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       this->root->logs.push_back("Error: Unexpected assignment operator");
       return nullptr;
     }
-    return this->root->variables[variable_name];
+    return this->root->variables[variable_name].value;
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;

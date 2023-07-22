@@ -2,7 +2,8 @@
 
 BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
 
-bool BoundScope::tryDeclareVariable(std::string name, std::any initialValue) {
+bool BoundScope::tryDeclareVariable(
+    std::string name, const struct Utils::Variable &initialValue) {
   if (this->variables.find(name) != this->variables.end()) {
     return false;
   }
@@ -20,7 +21,8 @@ bool BoundScope::tryLookupVariable(std::string name) {
   return this->parent->tryLookupVariable(name);
 }
 
-bool BoundScope::tryAssignVariable(std::string name, std::any value) {
+bool BoundScope::tryAssignVariable(std::string name,
+                                   const struct Utils::Variable &value) {
   if (this->variables.find(name) != this->variables.end()) {
     this->variables[name] = value;
     return true;

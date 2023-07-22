@@ -165,14 +165,15 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
-    // if (!root->tryDeclareVariable(variable_str)) {
-    //   logs.push_back("Error: Variable " + variable_str + " does not exist");
-    //   return identifierExpression;
-    // }
-    if (std::any_cast<Utils::Variable>(root->variables[variable_str]).isConst) {
+    if (!root->tryLookupVariable(variable_str)) {
+      logs.push_back("Error: Variable " + variable_str + " does not exist");
+      return identifierExpression;
+    }
+    if (root->variables[variable_str].isConst) {
       logs.push_back("Error: Variable " + variable_str + " is const");
       return identifierExpression;
     }
+
     switch (assignmentExpression->getOperatorToken()->getKind()) {
     case SyntaxKindUtils::SyntaxKind::EqualsToken:
       op = BinderKindUtils::BoundBinaryOperatorKind::Assignment;
@@ -238,6 +239,7 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
   Binder *binder = new Binder(Binder::CreateParentScope(previous));
   BoundStatement *statement = binder->bindStatement(syntax->getStatement());
   std::vector<std::string> logs = binder->logs;
-  std::unordered_map<std::string, std::any> variables = binder->root->variables;
+  std::map<std::string, struct Utils::Variable> variables =
+      binder->root->variables;
   return new BoundScopeGlobal(previous, variables, logs, statement);
 }
