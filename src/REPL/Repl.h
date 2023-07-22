@@ -14,7 +14,9 @@ public:
   void run();
 
   // Run the REPL with custom input/output streams for testing
+  void runWithStream(std::istream &inputStream, std::ostream &outputStream);
   void runForTest(std::istream &inputStream, std::ostream &outputStream);
+  bool isTreeVisible() const;
 
 private:
   // Helper functions
@@ -23,6 +25,7 @@ private:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
+  void compileAndEvaluate(const std::string &line, std::ostream &outputStream);
   // Data members
   std::shared_ptr<Evaluator> previousEvaluator;
   bool seeTree;

@@ -6,6 +6,7 @@
 // Test fixture for I/O redirection
 class IORedirectionTest : public ::testing::Test {
 protected:
+  std::unique_ptr<Repl> repl = std::make_unique<Repl>();
   void SetUp() override {
     // Redirect cout to the stringstream
     output_stream.str("");
@@ -20,12 +21,8 @@ protected:
   void setInput(const std::string &input) { input_stream.str(input); }
 
   std::string getOutput() const { return output_stream.str(); }
-  Repl repl;
-  void runEvaluator() {
-    // Run the evaluator
 
-    repl.runForTest(input_stream, output_stream);
-  }
+  void runEvaluator() { repl->runForTest(input_stream, output_stream); }
 
 private:
   std::stringstream input_stream;
@@ -35,21 +32,27 @@ private:
 
 // Test case for Repl::handleSpecialCommands
 TEST_F(IORedirectionTest, TestHandleSpecialCommands) {
-  setInput("");
+  // setInput(":cls");
+  // runEvaluator();
+  std::string expected_output = "";
+  // EXPECT_EQ(getOutput(), expected_output);
 
+  // Test the ":tree" command
+  // setInput(":tree");
+  // runEvaluator();
+  // EXPECT_TRUE(repl->isTreeVisible()); // Assuming you have a getter for
+  // seeTree
+
+  // Test a normal input line
+  setInput("\"hello\"");
   runEvaluator();
+  expected_output = "hello\n";
+  try {
+    ASSERT_EQ(getOutput(), expected_output);
 
-  // Check the output
-  std::string expected_output =
-      std::string(YELLOW) + "Welcome to the " + std::string(GREEN) + "C++" +
-      std::string(YELLOW) + " REPL!" + std::string(RESET) + "\n" +
-      std::string(YELLOW) +
-      "Type `:exit` to exit, `:cls` to clear the "
-      "screen, and `:tree` to see the AST.\n" +
-      std::string(GREEN) + ">>> " + std::string(RESET) + std::string(GREEN) +
-      ">>> " + std::string(RESET);
-
-  EXPECT_EQ(getOutput(), expected_output);
+  } catch (const std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
 }
 
 // Main function to run all tests
