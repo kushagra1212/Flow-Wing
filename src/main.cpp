@@ -108,7 +108,7 @@ int main() {
             double doubleValue = std::any_cast<double>(result);
             std::cout << doubleValue << std::endl;
           } else if (result.type() == typeid(std::nullptr_t)) {
-
+            std::cout << "hi";
           } else {
             throw "Unexpected result type";
           }

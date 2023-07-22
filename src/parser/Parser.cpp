@@ -66,7 +66,12 @@ BlockStatementSyntax *Parser::parseBlockStatement() {
 
   std::vector<StatementSyntax *> statements;
   while (this->getCurrent()->getKind() !=
-         SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
+             SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
+
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken
+
+  ) {
     StatementSyntax *statement = this->parseStatement();
     statements.push_back(statement);
   }
@@ -99,13 +104,14 @@ IfStatementSyntax *Parser::parseIfStatement() {
   SyntaxToken<std::any> *keyword =
       this->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
   ExpressionSyntax *condition = this->parseExpression();
-  StatementSyntax *statement = this->parseStatement();
+
+  BlockStatementSyntax *statement = this->parseBlockStatement();
   ElseClauseSyntax *elseClause = nullptr;
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ElseKeyword) {
     SyntaxToken<std::any> *elseKeyword =
         this->match(SyntaxKindUtils::SyntaxKind::ElseKeyword);
-    StatementSyntax *elseStatement = this->parseStatement();
+    BlockStatementSyntax *elseStatement = this->parseBlockStatement();
     elseClause = new ElseClauseSyntax(elseKeyword, elseStatement);
   }
   return new IfStatementSyntax(keyword, condition, statement, elseClause);

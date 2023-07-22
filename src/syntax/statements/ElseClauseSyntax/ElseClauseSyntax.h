@@ -2,18 +2,18 @@
 #include "../../SyntaxKindUtils.h"
 #include "../../SyntaxNode.h"
 #include "../../SyntaxToken.h"
+#include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../StatementSyntax.h"
-
 class ElseClauseSyntax : public SyntaxNode {
 private:
   SyntaxToken<std::any> *elseKeyword;
-  StatementSyntax *statement;
+  BlockStatementSyntax *statement;
 
 public:
   ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
-                   StatementSyntax *statement);
+                   BlockStatementSyntax *statement);
   SyntaxToken<std::any> *getElseKeyword() const;
-  StatementSyntax *getStatement() const;
+  BlockStatementSyntax *getStatement() const;
   SyntaxKindUtils::SyntaxKind getKind() override;
   std::vector<SyntaxNode *> getChildren() override;
 };

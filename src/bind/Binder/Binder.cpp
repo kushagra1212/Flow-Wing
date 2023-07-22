@@ -44,11 +44,12 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::IfStatement: {
     IfStatementSyntax *ifStatement = (IfStatementSyntax *)syntax;
     BoundExpression *condition = bindExpression(ifStatement->getCondition());
-    BoundStatement *thenStatement = bindStatement(ifStatement->getStatement());
+    BoundStatement *thenStatement =
+        bindStatement((StatementSyntax *)(ifStatement->getStatement()));
     BoundStatement *elseStatement = nullptr;
     if (ifStatement->getElseClause() != nullptr) {
-      elseStatement =
-          bindStatement(ifStatement->getElseClause()->getStatement());
+      elseStatement = bindStatement(
+          (StatementSyntax *)ifStatement->getElseClause()->getStatement());
     }
     return new BoundIfStatement(condition, thenStatement, elseStatement);
   }

@@ -1,7 +1,7 @@
 #include "ElseClauseSyntax.h"
 
 ElseClauseSyntax::ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
-                                   StatementSyntax *statement)
+                                   BlockStatementSyntax *statement)
     : elseKeyword(elseKeyword), statement(statement) {}
 
 SyntaxToken<std::any> *ElseClauseSyntax::getElseKeyword() const {
@@ -9,12 +9,14 @@ SyntaxToken<std::any> *ElseClauseSyntax::getElseKeyword() const {
   return elseKeyword;
 }
 
-StatementSyntax *ElseClauseSyntax::getStatement() const { return statement; }
+BlockStatementSyntax *ElseClauseSyntax::getStatement() const {
+  return statement;
+}
 
 SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ElseClause;
 }
 
 std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
-  return {elseKeyword, statement};
+  return {elseKeyword, (SyntaxNode *)statement};
 }
