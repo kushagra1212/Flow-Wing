@@ -24,7 +24,7 @@ int main() {
 
   SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
-  std::unique_ptr<Evaluator> previousEvaluator = nullptr;
+  std::shared_ptr<Evaluator> previousEvaluator = nullptr;
   bool seeTree = false;
   std::vector<std::string> text;
   int braceCount = 0;
@@ -61,10 +61,9 @@ int main() {
     std::shared_ptr<CompilationUnitSyntax> compilationUnit =
         (parser->parseCompilationUnit());
 
-    std::unique_ptr<Evaluator> currentEvaluator =
+    std::shared_ptr<Evaluator> currentEvaluator =
         previousEvaluator == nullptr
-            ? std::make_unique<Evaluator>(std::move(previousEvaluator),
-                                          compilationUnit)
+            ? std::make_shared<Evaluator>(previousEvaluator, compilationUnit)
             : previousEvaluator->continueWith(compilationUnit);
     BoundScopeGlobal *global_scope = currentEvaluator->getRoot();
 
@@ -74,7 +73,6 @@ int main() {
 
     text = std::vector<std::string>();
 
-    previousEvaluator = currentEvaluator;
     if (seeTree) {
       Utils::prettyPrint(compilationUnit->getStatement());
     }
@@ -118,6 +116,8 @@ int main() {
       } catch (std::exception &e) {
         std::cout << RED << e.what() << RESET << std::endl;
       }
+
+      previousEvaluator = (currentEvaluator);
     }
   }
 

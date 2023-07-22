@@ -1,12 +1,15 @@
 {
-  "configurations": [
-    {
-      "name": "Linux",
-      "includePath": ["${workspaceFolder}/**"],
-      "defines": [],
-      "compilerPath": "/usr/bin/gcc",
-      "intelliSenseMode": "linux-gcc-x64"
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/tests"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
 }

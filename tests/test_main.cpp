@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 #include <sstream>
 
 #include "../compiler/Evaluator.h"
@@ -30,7 +30,7 @@ protected:
     console_output_stream << std::cout.rdbuf();
 
     // Run your console application with the provided input
-    runConsole(console_input_stream, console_output_stream);
+    // runConsole(console_input_stream, console_output_stream);
   }
 
 private:

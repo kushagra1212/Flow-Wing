@@ -53,13 +53,13 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
                                    this->getCurrent()->getPosition(), "\0", 0);
 }
 
-std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
+std::shared_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
   StatementSyntax *statement = this->parseStatement();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
   // return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
 
-  return std::make_unique<CompilationUnitSyntax>(this->logs, statement,
+  return std::make_shared<CompilationUnitSyntax>(this->logs, statement,
                                                  endOfFileToken);
 }
 

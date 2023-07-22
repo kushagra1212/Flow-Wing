@@ -40,7 +40,7 @@ private:
   SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
 
 public:
-  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
+  std::shared_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
 private:
   StatementSyntax *parseStatement();
