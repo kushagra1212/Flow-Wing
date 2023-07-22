@@ -1,7 +1,7 @@
-#include "gtest/gtest.h"
-#include <sstream>
+#include "../src/REPL/Repl.h"
+#include <gtest/gtest.h>
 
-#include "../compiler/Evaluator.h"
+#include <sstream>
 
 // Test fixture for I/O redirection
 class IORedirectionTest : public ::testing::Test {
@@ -20,17 +20,11 @@ protected:
   void setInput(const std::string &input) { input_stream.str(input); }
 
   std::string getOutput() const { return output_stream.str(); }
-
+  Repl repl;
   void runEvaluator() {
+    // Run the evaluator
 
-    std::stringstream console_input_stream;
-    std::stringstream console_output_stream;
-
-    console_input_stream << input_stream.rdbuf();
-    console_output_stream << std::cout.rdbuf();
-
-    // Run your console application with the provided input
-    // runConsole(console_input_stream, console_output_stream);
+    repl.runForTest(input_stream, output_stream);
   }
 
 private:
@@ -39,15 +33,27 @@ private:
   std::streambuf *saved_cout_buf;
 };
 
-// Example test case
-TEST_F(IORedirectionTest, TestExample) {
-  // Set the input for the test case
-  setInput("1 + 2\n"); // Replace with the input you want to test
+// Test case for Repl::handleSpecialCommands
+TEST_F(IORedirectionTest, TestHandleSpecialCommands) {
+  setInput("");
 
-  // Run the evaluator
   runEvaluator();
 
   // Check the output
-  std::string expected_output = "3\n"; // Replace with the expected output
+  std::string expected_output =
+      std::string(YELLOW) + "Welcome to the " + std::string(GREEN) + "C++" +
+      std::string(YELLOW) + " REPL!" + std::string(RESET) + "\n" +
+      std::string(YELLOW) +
+      "Type `:exit` to exit, `:cls` to clear the "
+      "screen, and `:tree` to see the AST.\n" +
+      std::string(GREEN) + ">>> " + std::string(RESET) + std::string(GREEN) +
+      ">>> " + std::string(RESET);
+
   EXPECT_EQ(getOutput(), expected_output);
+}
+
+// Main function to run all tests
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

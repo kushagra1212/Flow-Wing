@@ -1,9 +1,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "../Common.h"
 #include "../syntax/SyntaxToken.h"
 #include "../utils/Utils.h"
-#include "Common.h"
 class Lexer {
 
 private:

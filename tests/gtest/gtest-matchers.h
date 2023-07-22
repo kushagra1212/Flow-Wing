@@ -32,15 +32,10 @@
 // This file implements just enough of the matcher interface to allow
 // EXPECT_DEATH and friends to accept a matcher argument.
 
-// IWYU pragma: private, include "gtest/gtest.h"
-// IWYU pragma: friend gtest/.*
-// IWYU pragma: friend gmock/.*
-
 #ifndef GOOGLETEST_INCLUDE_GTEST_GTEST_MATCHERS_H_
 #define GOOGLETEST_INCLUDE_GTEST_GTEST_MATCHERS_H_
 
 #include <atomic>
-#include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -103,17 +98,17 @@ class MatchResultListener {
  private:
   ::std::ostream* const stream_;
 
-  MatchResultListener(const MatchResultListener&) = delete;
-  MatchResultListener& operator=(const MatchResultListener&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(MatchResultListener);
 };
 
-inline MatchResultListener::~MatchResultListener() = default;
+inline MatchResultListener::~MatchResultListener() {
+}
 
 // An instance of a subclass of this knows how to describe itself as a
 // matcher.
 class GTEST_API_ MatcherDescriberInterface {
  public:
-  virtual ~MatcherDescriberInterface() = default;
+  virtual ~MatcherDescriberInterface() {}
 
   // Describes this matcher to an ostream.  The function should print
   // a verb phrase that describes the property a value matching this
@@ -179,14 +174,38 @@ class MatcherInterface : public MatcherDescriberInterface {
 
 namespace internal {
 
+struct AnyEq {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a == b; }
+};
+struct AnyNe {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a != b; }
+};
+struct AnyLt {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a < b; }
+};
+struct AnyGt {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a > b; }
+};
+struct AnyLe {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a <= b; }
+};
+struct AnyGe {
+  template <typename A, typename B>
+  bool operator()(const A& a, const B& b) const { return a >= b; }
+};
+
 // A match result listener that ignores the explanation.
 class DummyMatchResultListener : public MatchResultListener {
  public:
   DummyMatchResultListener() : MatchResultListener(nullptr) {}
 
  private:
-  DummyMatchResultListener(const DummyMatchResultListener&) = delete;
-  DummyMatchResultListener& operator=(const DummyMatchResultListener&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(DummyMatchResultListener);
 };
 
 // A match result listener that forwards the explanation to a given
@@ -198,9 +217,7 @@ class StreamMatchResultListener : public MatchResultListener {
       : MatchResultListener(os) {}
 
  private:
-  StreamMatchResultListener(const StreamMatchResultListener&) = delete;
-  StreamMatchResultListener& operator=(const StreamMatchResultListener&) =
-      delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(StreamMatchResultListener);
 };
 
 struct SharedPayloadBase {
@@ -267,18 +284,17 @@ class MatcherBase : private MatcherDescriberInterface {
   }
 
  protected:
-  MatcherBase() : vtable_(nullptr), buffer_() {}
+  MatcherBase() : vtable_(nullptr) {}
 
   // Constructs a matcher from its implementation.
   template <typename U>
-  explicit MatcherBase(const MatcherInterface<U>* impl)
-      : vtable_(nullptr), buffer_() {
+  explicit MatcherBase(const MatcherInterface<U>* impl) {
     Init(impl);
   }
 
   template <typename M, typename = typename std::remove_reference<
                             M>::type::is_gtest_matcher>
-  MatcherBase(M&& m) : vtable_(nullptr), buffer_() {  // NOLINT
+  MatcherBase(M&& m) {  // NOLINT
     Init(std::forward<M>(m));
   }
 
@@ -404,8 +420,8 @@ class MatcherBase : private MatcherDescriberInterface {
     static const M& Get(const MatcherBase& m) {
       // When inlined along with Init, need to be explicit to avoid violating
       // strict aliasing rules.
-      const M* ptr =
-          static_cast<const M*>(static_cast<const void*>(&m.buffer_));
+      const M *ptr = static_cast<const M*>(
+          static_cast<const void*>(&m.buffer_));
       return *ptr;
     }
     static void Init(MatcherBase& m, M impl) {
@@ -494,7 +510,7 @@ template <>
 class GTEST_API_ Matcher<const std::string&>
     : public internal::MatcherBase<const std::string&> {
  public:
-  Matcher() = default;
+  Matcher() {}
 
   explicit Matcher(const MatcherInterface<const std::string&>* impl)
       : internal::MatcherBase<const std::string&>(impl) {}
@@ -516,7 +532,7 @@ template <>
 class GTEST_API_ Matcher<std::string>
     : public internal::MatcherBase<std::string> {
  public:
-  Matcher() = default;
+  Matcher() {}
 
   explicit Matcher(const MatcherInterface<const std::string&>* impl)
       : internal::MatcherBase<std::string>(impl) {}
@@ -544,7 +560,7 @@ template <>
 class GTEST_API_ Matcher<const internal::StringView&>
     : public internal::MatcherBase<const internal::StringView&> {
  public:
-  Matcher() = default;
+  Matcher() {}
 
   explicit Matcher(const MatcherInterface<const internal::StringView&>* impl)
       : internal::MatcherBase<const internal::StringView&>(impl) {}
@@ -570,7 +586,7 @@ template <>
 class GTEST_API_ Matcher<internal::StringView>
     : public internal::MatcherBase<internal::StringView> {
  public:
-  Matcher() = default;
+  Matcher() {}
 
   explicit Matcher(const MatcherInterface<const internal::StringView&>* impl)
       : internal::MatcherBase<internal::StringView>(impl) {}
@@ -722,53 +738,50 @@ class ComparisonBase {
 };
 
 template <typename Rhs>
-class EqMatcher : public ComparisonBase<EqMatcher<Rhs>, Rhs, std::equal_to<>> {
+class EqMatcher : public ComparisonBase<EqMatcher<Rhs>, Rhs, AnyEq> {
  public:
   explicit EqMatcher(const Rhs& rhs)
-      : ComparisonBase<EqMatcher<Rhs>, Rhs, std::equal_to<>>(rhs) {}
+      : ComparisonBase<EqMatcher<Rhs>, Rhs, AnyEq>(rhs) { }
   static const char* Desc() { return "is equal to"; }
   static const char* NegatedDesc() { return "isn't equal to"; }
 };
 template <typename Rhs>
-class NeMatcher
-    : public ComparisonBase<NeMatcher<Rhs>, Rhs, std::not_equal_to<>> {
+class NeMatcher : public ComparisonBase<NeMatcher<Rhs>, Rhs, AnyNe> {
  public:
   explicit NeMatcher(const Rhs& rhs)
-      : ComparisonBase<NeMatcher<Rhs>, Rhs, std::not_equal_to<>>(rhs) {}
+      : ComparisonBase<NeMatcher<Rhs>, Rhs, AnyNe>(rhs) { }
   static const char* Desc() { return "isn't equal to"; }
   static const char* NegatedDesc() { return "is equal to"; }
 };
 template <typename Rhs>
-class LtMatcher : public ComparisonBase<LtMatcher<Rhs>, Rhs, std::less<>> {
+class LtMatcher : public ComparisonBase<LtMatcher<Rhs>, Rhs, AnyLt> {
  public:
   explicit LtMatcher(const Rhs& rhs)
-      : ComparisonBase<LtMatcher<Rhs>, Rhs, std::less<>>(rhs) {}
+      : ComparisonBase<LtMatcher<Rhs>, Rhs, AnyLt>(rhs) { }
   static const char* Desc() { return "is <"; }
   static const char* NegatedDesc() { return "isn't <"; }
 };
 template <typename Rhs>
-class GtMatcher : public ComparisonBase<GtMatcher<Rhs>, Rhs, std::greater<>> {
+class GtMatcher : public ComparisonBase<GtMatcher<Rhs>, Rhs, AnyGt> {
  public:
   explicit GtMatcher(const Rhs& rhs)
-      : ComparisonBase<GtMatcher<Rhs>, Rhs, std::greater<>>(rhs) {}
+      : ComparisonBase<GtMatcher<Rhs>, Rhs, AnyGt>(rhs) { }
   static const char* Desc() { return "is >"; }
   static const char* NegatedDesc() { return "isn't >"; }
 };
 template <typename Rhs>
-class LeMatcher
-    : public ComparisonBase<LeMatcher<Rhs>, Rhs, std::less_equal<>> {
+class LeMatcher : public ComparisonBase<LeMatcher<Rhs>, Rhs, AnyLe> {
  public:
   explicit LeMatcher(const Rhs& rhs)
-      : ComparisonBase<LeMatcher<Rhs>, Rhs, std::less_equal<>>(rhs) {}
+      : ComparisonBase<LeMatcher<Rhs>, Rhs, AnyLe>(rhs) { }
   static const char* Desc() { return "is <="; }
   static const char* NegatedDesc() { return "isn't <="; }
 };
 template <typename Rhs>
-class GeMatcher
-    : public ComparisonBase<GeMatcher<Rhs>, Rhs, std::greater_equal<>> {
+class GeMatcher : public ComparisonBase<GeMatcher<Rhs>, Rhs, AnyGe> {
  public:
   explicit GeMatcher(const Rhs& rhs)
-      : ComparisonBase<GeMatcher<Rhs>, Rhs, std::greater_equal<>>(rhs) {}
+      : ComparisonBase<GeMatcher<Rhs>, Rhs, AnyGe>(rhs) { }
   static const char* Desc() { return "is >="; }
   static const char* NegatedDesc() { return "isn't >="; }
 };
@@ -809,7 +822,7 @@ class MatchesRegexMatcher {
   template <class MatcheeStringType>
   bool MatchAndExplain(const MatcheeStringType& s,
                        MatchResultListener* /* listener */) const {
-    const std::string s2(s);
+    const std::string& s2(s);
     return full_match_ ? RE::FullMatch(s2, *regex_)
                        : RE::PartialMatch(s2, *regex_);
   }
@@ -859,16 +872,12 @@ PolymorphicMatcher<internal::MatchesRegexMatcher> ContainsRegex(
 // Note: if the parameter of Eq() were declared as const T&, Eq("foo")
 // wouldn't compile.
 template <typename T>
-inline internal::EqMatcher<T> Eq(T x) {
-  return internal::EqMatcher<T>(x);
-}
+inline internal::EqMatcher<T> Eq(T x) { return internal::EqMatcher<T>(x); }
 
 // Constructs a Matcher<T> from a 'value' of type T.  The constructed
 // matcher matches any value that's equal to 'value'.
 template <typename T>
-Matcher<T>::Matcher(T value) {
-  *this = Eq(value);
-}
+Matcher<T>::Matcher(T value) { *this = Eq(value); }
 
 // Creates a monomorphic matcher that matches anything with type Lhs
 // and equal to rhs.  A user may need to use this instead of Eq(...)
@@ -883,9 +892,7 @@ Matcher<T>::Matcher(T value) {
 // can always write Matcher<T>(Lt(5)) to be explicit about the type,
 // for example.
 template <typename Lhs, typename Rhs>
-inline Matcher<Lhs> TypedEq(const Rhs& rhs) {
-  return Eq(rhs);
-}
+inline Matcher<Lhs> TypedEq(const Rhs& rhs) { return Eq(rhs); }
 
 // Creates a polymorphic matcher that matches anything >= x.
 template <typename Rhs>
