@@ -460,6 +460,22 @@ TEST_F(IORedirectionTest, TestComplexMultipleWhileLoop) {
   ASSERT_EQ(getOutput(), "100\n");
 }
 
+// Test for for loop
+
+TEST_F(IORedirectionTest, TestForLoop) {
+  setInput("{var x = 0\nfor(var i = 0 to 9) {x = x + i}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "45\n");
+}
+
+// Test for for loop without perenthesis
+
+TEST_F(IORedirectionTest, TestForLoopWithoutPerenthesis) {
+  setInput("{var x = 0\nfor var i = 0 to 9 {x = x + i}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "45\n");
+}
+
 // Test fixture for Lexer class
 class LexerTest : public ::testing::Test {
 protected:
