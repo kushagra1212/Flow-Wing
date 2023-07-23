@@ -100,12 +100,32 @@ StatementSyntax *Parser::parseStatement() {
     return (StatementSyntax *)this->parseIfStatement();
   case SyntaxKindUtils::SyntaxKind::WhileKeyword:
     return (StatementSyntax *)this->parseWhileStatement();
+
+  case SyntaxKindUtils::SyntaxKind::ForKeyword:
+    return (StatementSyntax *)this->parseForStatement();
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
   case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
     return (StatementSyntax *)this->nextToken();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+ForStatementSyntax *Parser::parseForStatement() {
+  SyntaxToken<std::any> *keyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ForKeyword);
+
+  VariableDeclarationSyntax *identifier =
+      (VariableDeclarationSyntax *)this->parseVariableDeclaration();
+
+  SyntaxToken<std::any> *toKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
+
+  LiteralExpressionSyntax<std::any> *upperBound =
+      (LiteralExpressionSyntax<std::any> *)this->parsePrimaryExpression();
+
+  BlockStatementSyntax *statement = this->parseBlockStatement();
+  return new ForStatementSyntax(identifier, upperBound, statement);
 }
 
 IfStatementSyntax *Parser::parseIfStatement() {

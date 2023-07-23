@@ -95,4 +95,9 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::IfStatement] = "IfStatement";
   enum_to_string_map[SyntaxKind::WhileKeyword] = "WhileKeyword";
   enum_to_string_map[SyntaxKind::WhileStatement] = "WhileStatement";
+  enum_to_string_map[SyntaxKind::ForKeyword] = "ForKeyword";
+  enum_to_string_map[SyntaxKind::ToKeyword] = "ToKeyword";
+  enum_to_string_map[SyntaxKind::ForStatement] = "ForStatement";
+  enum_to_string_map[SyntaxKind::BlockStatement] = "BlockStatement";
+  enum_to_string_map[SyntaxKind::ExpressionStatement] = "ExpressionStatement";
 }

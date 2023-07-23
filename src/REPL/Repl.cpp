@@ -12,12 +12,13 @@ void Repl::runWithStream(std::istream &inputStream,
   SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
 
-  while (std::getline(inputStream, line)) {
+  while (true) {
     if (braceCount) {
       outputStream << YELLOW << "... " << RESET;
     } else {
       outputStream << GREEN << ">>> " << RESET;
     }
+    std::getline(inputStream, line);
     // Common Function to run both REPL and tests
     if (line.empty()) {
       continue;

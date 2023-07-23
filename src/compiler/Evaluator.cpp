@@ -102,6 +102,42 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     }
     break;
   }
+
+  case BinderKindUtils::BoundNodeKind::ForStatement: {
+    BoundForStatement *forStatement = (BoundForStatement *)node;
+
+    std::any lowerBound = this->evaluate<std::any>(
+        forStatement->getVariableDeclaration()->getInitializer());
+
+    std::any upperBound =
+        this->evaluate<std::any>(forStatement->getUpperBound());
+
+    if (lowerBound.type() == typeid(int) && upperBound.type() == typeid(int)) {
+      for (int i = std::any_cast<int>(lowerBound);
+           i <= std::any_cast<int>(upperBound); i++) {
+        this->root
+            ->variables[forStatement->getVariableDeclaration()->getVariable()] =
+            Utils::Variable(i,
+                            forStatement->getVariableDeclaration()->isConst());
+        this->evaluateStatement(forStatement->getStatement());
+      }
+    } else if (lowerBound.type() == typeid(double) &&
+               upperBound.type() == typeid(double)) {
+      for (double i = std::any_cast<double>(lowerBound);
+           i <= std::any_cast<double>(upperBound); i++) {
+        this->root
+            ->variables[forStatement->getVariableDeclaration()->getVariable()] =
+            Utils::Variable(i,
+                            forStatement->getVariableDeclaration()->isConst());
+        this->evaluateStatement(forStatement->getStatement());
+      }
+    } else {
+      this->root->logs.push_back("Error: Unexpected condition type");
+      return;
+    }
+
+    break;
+  }
   default: {
     this->root->logs.push_back("Error: Unexpected node" + node->getKind());
   }

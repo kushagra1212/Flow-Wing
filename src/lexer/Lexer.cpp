@@ -130,6 +130,18 @@ SyntaxToken<std::any> *Lexer::nextToken() {
           text, "while");
     }
 
+    if (text == "for") {
+      return new SyntaxToken<std::any>(this->lineNumber,
+                                       SyntaxKindUtils::SyntaxKind::ForKeyword,
+                                       start, text, "for");
+    }
+
+    if (text == "to") {
+      return new SyntaxToken<std::any>(this->lineNumber,
+                                       SyntaxKindUtils::SyntaxKind::ToKeyword,
+                                       start, text, "to");
+    }
+
     if (text == "const") {
       return new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,

@@ -60,6 +60,22 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         bindStatement((StatementSyntax *)whileStatement->getBody());
     return new BoundWhileStatement(condition, body);
   }
+
+  case SyntaxKindUtils::SyntaxKind::ForStatement: {
+    ForStatementSyntax *forStatement = (ForStatementSyntax *)syntax;
+    BoundVariableDeclaration *variableDeclaration =
+        (BoundVariableDeclaration *)bindStatement(
+            (StatementSyntax *)forStatement->getVariableDeclaration());
+
+    BoundLiteralExpression<std::any> *upperBound =
+        (BoundLiteralExpression<std::any> *)bindExpression(
+            forStatement->getUpperBound());
+
+    BoundStatement *body =
+        bindStatement((StatementSyntax *)forStatement->getStatement());
+
+    return new BoundForStatement(variableDeclaration, upperBound, (body));
+  }
   default:
     throw "Unexpected syntax";
   }
