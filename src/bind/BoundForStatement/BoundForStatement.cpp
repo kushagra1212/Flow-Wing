@@ -3,7 +3,7 @@
 BoundForStatement::BoundForStatement(
     BoundVariableDeclaration *variableDeclaration,
 
-    BoundLiteralExpression<std::any> *upperBound, BoundStatement *statement)
+    BoundExpression *upperBound, BoundStatement *statement)
     : variableDeclaration((variableDeclaration)), upperBound(upperBound),
       statement((statement)) {}
 
@@ -22,7 +22,7 @@ BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
   return BinderKindUtils::BoundNodeKind::ForStatement;
 }
 
-BoundLiteralExpression<std::any> *BoundForStatement::getUpperBound() const {
+BoundExpression *BoundForStatement::getUpperBound() const {
 
   return this->upperBound;
 }

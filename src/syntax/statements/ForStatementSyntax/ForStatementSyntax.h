@@ -6,11 +6,12 @@
 #include "../../expression/LiteralExpressionSyntax.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+
 class ForStatementSyntax : public StatementSyntax {
 
 public:
   ForStatementSyntax(VariableDeclarationSyntax *variableDeclaration,
-                     LiteralExpressionSyntax<std::any> *upperBound,
+                     ExpressionSyntax *upperBound,
                      BlockStatementSyntax *statement);
 
   BlockStatementSyntax *getStatement() const;
@@ -21,12 +22,12 @@ public:
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  LiteralExpressionSyntax<std::any> *getUpperBound() const;
+  ExpressionSyntax *getUpperBound() const;
 
 private:
   VariableDeclarationSyntax *variableDeclaration;
   BlockStatementSyntax *statement;
-  LiteralExpressionSyntax<std::any> *upperBound;
+  ExpressionSyntax *upperBound;
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

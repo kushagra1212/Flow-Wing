@@ -11,7 +11,7 @@ class BoundForStatement : public BoundStatement {
 
 public:
   BoundForStatement(BoundVariableDeclaration *variableDeclaration,
-                    BoundLiteralExpression<std::any> *upperBound,
+                    BoundExpression *upperBound,
 
                     BoundStatement *statement);
 
@@ -19,7 +19,7 @@ public:
 
   BoundStatement *getStatement() const;
 
-  BoundLiteralExpression<std::any> *getUpperBound() const;
+  BoundExpression *getUpperBound() const;
 
   BinderKindUtils::BoundNodeKind getKind() override;
 
@@ -28,7 +28,7 @@ private:
 
   BoundStatement *statement;
 
-  BoundLiteralExpression<std::any> *upperBound;
+  BoundExpression *upperBound;
 };
 
 #endif // BOUND_FOR_STATEMENT_H

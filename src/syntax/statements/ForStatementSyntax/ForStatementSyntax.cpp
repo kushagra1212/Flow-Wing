@@ -2,8 +2,7 @@
 
 ForStatementSyntax::ForStatementSyntax(
     VariableDeclarationSyntax *variableDeclaration,
-    LiteralExpressionSyntax<std::any> *upperBound,
-    BlockStatementSyntax *statement)
+    ExpressionSyntax *upperBound, BlockStatementSyntax *statement)
     : variableDeclaration(variableDeclaration), upperBound(upperBound),
       statement(statement) {}
 
@@ -19,7 +18,7 @@ std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
   return {this->variableDeclaration, (SyntaxNode *)this->statement};
 }
 
-LiteralExpressionSyntax<std::any> *ForStatementSyntax::getUpperBound() const {
+ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
   return this->upperBound;
 }
 

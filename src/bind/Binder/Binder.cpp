@@ -67,7 +67,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         (BoundVariableDeclaration *)bindStatement(
             (StatementSyntax *)forStatement->getVariableDeclaration());
 
-    BoundLiteralExpression<std::any> *upperBound =
+    BoundExpression *upperBound =
         (BoundLiteralExpression<std::any> *)bindExpression(
             forStatement->getUpperBound());
 
