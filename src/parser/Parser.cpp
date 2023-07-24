@@ -121,8 +121,14 @@ ForStatementSyntax *Parser::parseForStatement() {
     hadOpenParenthesis = true;
   }
 
-  VariableDeclarationSyntax *identifier =
-      (VariableDeclarationSyntax *)this->parseVariableDeclaration();
+  StatementSyntax *statementSyntax = nullptr;
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::VarKeyword) {
+    statementSyntax = this->parseVariableDeclaration();
+  } else {
+    statementSyntax = this->parseExpressionStatement();
+  }
 
   SyntaxToken<std::any> *toKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
@@ -134,7 +140,7 @@ ForStatementSyntax *Parser::parseForStatement() {
   }
 
   BlockStatementSyntax *statement = this->parseBlockStatement();
-  return new ForStatementSyntax(identifier, upperBound, statement);
+  return new ForStatementSyntax(statementSyntax, upperBound, statement);
 }
 
 IfStatementSyntax *Parser::parseIfStatement() {

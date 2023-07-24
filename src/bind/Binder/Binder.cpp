@@ -63,9 +63,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
     ForStatementSyntax *forStatement = (ForStatementSyntax *)syntax;
-    BoundVariableDeclaration *variableDeclaration =
-        (BoundVariableDeclaration *)bindStatement(
-            (StatementSyntax *)forStatement->getVariableDeclaration());
+    BoundStatement *intializer = (BoundStatement *)bindStatement(
+        (StatementSyntax *)forStatement->getInitialization());
 
     BoundExpression *upperBound =
         (BoundLiteralExpression<std::any> *)bindExpression(
@@ -74,7 +73,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     BoundStatement *body =
         bindStatement((StatementSyntax *)forStatement->getStatement());
 
-    return new BoundForStatement(variableDeclaration, upperBound, (body));
+    return new BoundForStatement(intializer, upperBound, (body));
   }
   default:
     throw "Unexpected syntax";

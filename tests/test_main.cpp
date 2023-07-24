@@ -476,6 +476,44 @@ TEST_F(IORedirectionTest, TestForLoopWithoutPerenthesis) {
   ASSERT_EQ(getOutput(), "45\n");
 }
 
+// Test for for loop and variable redeclaration
+
+TEST_F(IORedirectionTest, TestForLoopAndVariableRedeclaration) {
+  setInput("{var x = 0\nfor var i = 0 to 9 {var x = 1\nx = x + i}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+// Test for for loop and variable assignment
+
+TEST_F(IORedirectionTest, TestForLoopAndVariableAssignmentInCondition) {
+  setInput("{var x = 0\nfor var i = 0 to x {var x = 1\nx = x + i}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "1\n");
+}
+
+// Test for for loop and variable assignment in condition
+
+TEST_F(IORedirectionTest, TestForLoopAndVariableAssignmentInCondition2) {
+  setInput("{var x = 10\nfor x to 20 {}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+TEST_F(IORedirectionTest,
+       TestForLoopAndVariableAssignmentInConditionNoVariableDeclaration) {
+  setInput("{var x = 10\nfor 2 to 5 {x=x+1}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "14\n");
+}
+
+TEST_F(IORedirectionTest,
+       TestForLoopAndVariableAssignmentInConditionWithVariableDeclaration) {
+  setInput("{var x = 20\nfor var y = 0 to 3 {x=x+1}\nx}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "24\n");
+}
+
 // Test fixture for Lexer class
 class LexerTest : public ::testing::Test {
 protected:

@@ -1,9 +1,9 @@
 #include "ForStatementSyntax.h"
 
-ForStatementSyntax::ForStatementSyntax(
-    VariableDeclarationSyntax *variableDeclaration,
-    ExpressionSyntax *upperBound, BlockStatementSyntax *statement)
-    : variableDeclaration(variableDeclaration), upperBound(upperBound),
+ForStatementSyntax::ForStatementSyntax(StatementSyntax *initialization,
+                                       ExpressionSyntax *upperBound,
+                                       BlockStatementSyntax *statement)
+    : initialization(initialization), upperBound(upperBound),
       statement(statement) {}
 
 BlockStatementSyntax *ForStatementSyntax::getStatement() const {
@@ -15,13 +15,13 @@ SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() {
 }
 
 std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
-  return {this->variableDeclaration, (SyntaxNode *)this->statement};
+  return {this->initialization, (SyntaxNode *)this->statement};
 }
 
 ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
   return this->upperBound;
 }
 
-VariableDeclarationSyntax *ForStatementSyntax::getVariableDeclaration() const {
-  return this->variableDeclaration;
+StatementSyntax *ForStatementSyntax::getInitialization() const {
+  return this->initialization;
 }

@@ -1,15 +1,15 @@
 #include "BoundForStatement.h"
 
-BoundForStatement::BoundForStatement(
-    BoundVariableDeclaration *variableDeclaration,
+BoundForStatement::BoundForStatement(BoundStatement *initialization,
 
-    BoundExpression *upperBound, BoundStatement *statement)
-    : variableDeclaration((variableDeclaration)), upperBound(upperBound),
+                                     BoundExpression *upperBound,
+                                     BoundStatement *statement)
+    : initialization((initialization)), upperBound(upperBound),
       statement((statement)) {}
 
-BoundVariableDeclaration *BoundForStatement::getVariableDeclaration() const {
+BoundStatement *BoundForStatement::getInitialization() const {
 
-  return this->variableDeclaration;
+  return this->initialization;
 }
 
 BoundStatement *BoundForStatement::getStatement() const {

@@ -105,30 +105,48 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::ForStatement: {
     BoundForStatement *forStatement = (BoundForStatement *)node;
+    std::string variable_name = "";
 
-    std::any lowerBound = this->evaluate<std::any>(
-        forStatement->getVariableDeclaration()->getInitializer());
+    std::any lowerBound = 0;
+    if (forStatement->getInitialization()->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      BoundVariableDeclaration *variableDeclaration =
+          (BoundVariableDeclaration *)forStatement->getInitialization();
+
+      variable_name = variableDeclaration->getVariable();
+      this->evaluateStatement(variableDeclaration);
+
+      lowerBound = this->root->variables[variable_name].value;
+    } else {
+      this->evaluateStatement(forStatement->getInitialization());
+
+      lowerBound = this->last_value;
+    }
 
     std::any upperBound =
         this->evaluate<std::any>(forStatement->getUpperBound());
 
-    if (lowerBound.type() == typeid(int) && upperBound.type() == typeid(int)) {
+    if (lowerBound.type() != upperBound.type()) {
+      this->root->logs.push_back("Error: Incompatible types");
+      return;
+    }
+
+    if (lowerBound.type() == typeid(int)) {
       for (int i = std::any_cast<int>(lowerBound);
            i <= std::any_cast<int>(upperBound); i++) {
-        this->root
-            ->variables[forStatement->getVariableDeclaration()->getVariable()] =
-            Utils::Variable(i,
-                            forStatement->getVariableDeclaration()->isConst());
+        if (variable_name != "") {
+          this->root->variables[variable_name] = Utils::Variable(
+              i, (this->root->variables[variable_name]).isConst);
+        }
         this->evaluateStatement(forStatement->getStatement());
       }
-    } else if (lowerBound.type() == typeid(double) &&
-               upperBound.type() == typeid(double)) {
+    } else if (lowerBound.type() == typeid(double)) {
       for (double i = std::any_cast<double>(lowerBound);
            i <= std::any_cast<double>(upperBound); i++) {
-        this->root
-            ->variables[forStatement->getVariableDeclaration()->getVariable()] =
-            Utils::Variable(i,
-                            forStatement->getVariableDeclaration()->isConst());
+        if (variable_name != "") {
+          this->root->variables[variable_name] = Utils::Variable(
+              i, (this->root->variables[variable_name]).isConst);
+        }
         this->evaluateStatement(forStatement->getStatement());
       }
     } else {
@@ -215,6 +233,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
           this->evaluate<std::any>(assignmentExpression->getRight()),
           this->root->variables[variable_name].isConst);
 
+      this->last_value = this->root->variables[variable_name].value;
       break;
     }
     default:

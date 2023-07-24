@@ -10,12 +10,11 @@
 class BoundForStatement : public BoundStatement {
 
 public:
-  BoundForStatement(BoundVariableDeclaration *variableDeclaration,
-                    BoundExpression *upperBound,
+  BoundForStatement(BoundStatement *initialization, BoundExpression *upperBound,
 
                     BoundStatement *statement);
 
-  BoundVariableDeclaration *getVariableDeclaration() const;
+  BoundStatement *getInitialization() const;
 
   BoundStatement *getStatement() const;
 
@@ -24,7 +23,7 @@ public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
 private:
-  BoundVariableDeclaration *variableDeclaration;
+  BoundStatement *initialization;
 
   BoundStatement *statement;
 

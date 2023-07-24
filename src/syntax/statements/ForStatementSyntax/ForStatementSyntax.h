@@ -10,13 +10,13 @@
 class ForStatementSyntax : public StatementSyntax {
 
 public:
-  ForStatementSyntax(VariableDeclarationSyntax *variableDeclaration,
+  ForStatementSyntax(StatementSyntax *initialization,
                      ExpressionSyntax *upperBound,
                      BlockStatementSyntax *statement);
 
   BlockStatementSyntax *getStatement() const;
 
-  VariableDeclarationSyntax *getVariableDeclaration() const;
+  StatementSyntax *getInitialization() const;
 
   std::vector<SyntaxNode *> getChildren() override;
 
@@ -25,7 +25,7 @@ public:
   ExpressionSyntax *getUpperBound() const;
 
 private:
-  VariableDeclarationSyntax *variableDeclaration;
+  StatementSyntax *initialization;
   BlockStatementSyntax *statement;
   ExpressionSyntax *upperBound;
 };
