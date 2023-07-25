@@ -186,6 +186,39 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType10) {
             "\x1B[31mError: Addition not supported for string\x1B[0m\n");
 }
 
+// Test Case for String concatenation
+
+TEST_F(IORedirectionTest, TestStringConcatenation) {
+  setInput("var y = \"Hello\" + \"World\"");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "HelloWorld\n");
+}
+
+// Test Case for String  concatenation with integer
+
+TEST_F(IORedirectionTest, TestStringConcatenationWithInteger) {
+  setInput("var y = \"Hello\" + 1");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "Hello1\n");
+}
+
+// Test Case for String  concatenation with double
+
+TEST_F(IORedirectionTest, TestStringConcatenationWithDouble) {
+  setInput("var y = \"Hello\" + 1.0");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "Hello1.000000\n");
+}
+
+// Test Case for String  concatenation with bool
+
+TEST_F(IORedirectionTest, TestStringConcatenationWithBool) {
+  setInput("var y = \"Hello\" + true");
+  runEvaluator();
+  ASSERT_EQ(getOutput(),
+            "\x1B[31mError: Addition not supported for string\x1B[0m\n");
+}
+
 // Bitwise operators
 
 // Test case for executing a single expression with a commbianation of string &
