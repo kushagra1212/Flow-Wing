@@ -13,11 +13,12 @@ void Repl::runWithStream(std::istream &inputStream,
   std::string line;
 
   while (true) {
-    if (braceCount) {
+    if (braceCount || text.size()) {
       outputStream << YELLOW << "... " << RESET;
     } else {
       outputStream << GREEN << ">>> " << RESET;
     }
+    line = "";
     std::getline(inputStream, line);
     // Common Function to run both REPL and tests
     if (line.empty()) {
@@ -37,7 +38,16 @@ void Repl::runWithStream(std::istream &inputStream,
     if (braceCount) {
       continue;
     }
-    compileAndEvaluate(line, outputStream);
+
+    Parser *parser = new Parser(text);
+
+    CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+    if (compilationUnit->logs.size()) {
+      continue;
+    } else {
+
+      compileAndEvaluate(line, outputStream);
+    }
   }
 }
 
@@ -45,14 +55,13 @@ void Repl::compileAndEvaluate(const std::string &line,
                               std::ostream &outputStream) {
 
   Parser *parser = new Parser(text);
-  std::shared_ptr<CompilationUnitSyntax> compilationUnit =
-      parser->parseCompilationUnit();
-  delete parser;
 
-  std::shared_ptr<Evaluator> currentEvaluator =
+  CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+
+  Evaluator *currentEvaluator =
       previousEvaluator == nullptr
-          ? std::make_shared<Evaluator>(previousEvaluator, compilationUnit)
-          : previousEvaluator->continueWith(compilationUnit);
+          ? new Evaluator(previousEvaluator, (compilationUnit))
+          : previousEvaluator->continueWith((compilationUnit));
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
   compilationUnit->logs.insert(compilationUnit->logs.end(),

@@ -27,7 +27,7 @@ public:
   void compileAndEvaluate(const std::string &line, std::ostream &outputStream);
   // Data members
 private:
-  std::shared_ptr<Evaluator> previousEvaluator;
+  Evaluator *previousEvaluator;
   bool seeTree;
   std::vector<std::string> text;
   int braceCount;

@@ -41,7 +41,7 @@ private:
   SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
 
 public:
-  std::shared_ptr<CompilationUnitSyntax> parseCompilationUnit();
+  CompilationUnitSyntax *parseCompilationUnit();
 
 private:
   StatementSyntax *parseStatement();

@@ -7,8 +7,8 @@ template class BoundLiteralExpression<bool>;
 template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
-Evaluator::Evaluator(std::shared_ptr<Evaluator> previous,
-                     std::shared_ptr<CompilationUnitSyntax> compilation_unit) {
+Evaluator::Evaluator(Evaluator *previous,
+                     CompilationUnitSyntax *compilation_unit) {
   this->compilation_unit = compilation_unit;
   this->previous = (previous);
 }
@@ -22,11 +22,9 @@ BoundScopeGlobal *Evaluator::getRoot() {
   return root;
 }
 
-std::shared_ptr<Evaluator> Evaluator::continueWith(
-    std::shared_ptr<CompilationUnitSyntax> compilation_unit) {
-  return std::make_shared<Evaluator>(
-      std::make_shared<Evaluator>(this->previous, this->compilation_unit),
-      compilation_unit);
+Evaluator *Evaluator::continueWith(CompilationUnitSyntax *compilation_unit) {
+  return new Evaluator(new Evaluator(this->previous, this->compilation_unit),
+                       compilation_unit);
 }
 
 void Evaluator::evaluateStatement(BoundStatement *node) {
