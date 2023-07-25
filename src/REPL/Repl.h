@@ -25,6 +25,9 @@ public:
   int countBraces(const std::string &line, char brace);
 
   void compileAndEvaluate(const std::string &line, std::ostream &outputStream);
+
+  void compileAndEvaluateForTests(const std::string &line,
+                                  std::ostream &outputStream);
   // Data members
 private:
   Evaluator *previousEvaluator;

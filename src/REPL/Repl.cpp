@@ -1,5 +1,6 @@
 #include "Repl.h"
-Repl::Repl() : seeTree(false), braceCount(0) {}
+Repl::Repl()
+    : seeTree(false), braceCount(0), previousEvaluator(nullptr), text() {}
 
 Repl::~Repl() {}
 
@@ -38,7 +39,7 @@ void Repl::runWithStream(std::istream &inputStream,
     Parser *parser = new Parser(text);
 
     CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
-
+    delete parser;
     if (line.empty() && compilationUnit->logs.size()) {
       compileAndEvaluate(line, outputStream);
       text = std::vector<std::string>();
@@ -49,6 +50,7 @@ void Repl::runWithStream(std::istream &inputStream,
     } else {
       compileAndEvaluate(line, outputStream);
     }
+    delete compilationUnit;
   }
 }
 
@@ -59,6 +61,7 @@ void Repl::compileAndEvaluate(const std::string &line,
 
   CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
 
+  delete parser;
   Evaluator *currentEvaluator =
       previousEvaluator == nullptr
           ? new Evaluator(previousEvaluator, (compilationUnit))
@@ -112,6 +115,9 @@ void Repl::compileAndEvaluate(const std::string &line,
       outputStream << RED << e.what() << RESET << "\n";
     }
   }
+
+  delete compilationUnit;
+  delete currentEvaluator;
 }
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
