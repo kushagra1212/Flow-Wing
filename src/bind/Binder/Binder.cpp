@@ -102,6 +102,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     case SyntaxKindUtils::SyntaxKind::BangToken:
       op = BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation;
       break;
+    case SyntaxKindUtils::SyntaxKind::TildeToken:
+      op = BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation;
+      break;
     default:
       throw "Unexpected unary operator";
     }

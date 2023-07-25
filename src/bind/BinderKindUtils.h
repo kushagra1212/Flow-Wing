@@ -25,6 +25,7 @@ enum BoundUnaryOperatorKind {
   Identity,
   Negation,
   LogicalNegation,
+  BitwiseNegation,
 };
 
 enum BoundBinaryOperatorKind {

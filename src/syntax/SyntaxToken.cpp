@@ -40,6 +40,7 @@ template <typename T> int SyntaxToken<T>::getUnaryOperatorPrecedence() {
   case SyntaxKindUtils::SyntaxKind::PlusToken:
   case SyntaxKindUtils::SyntaxKind::MinusToken:
   case SyntaxKindUtils::SyntaxKind::BangToken:
+  case SyntaxKindUtils::SyntaxKind::TildeToken:
     return 10;
   default:
     return 0;

@@ -307,6 +307,8 @@ U Evaluator::unaryExpressionEvaluatorHandler(
     return -operand;
   case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation:
     return !operand;
+  case BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation:
+    return ~int(operand);
   default:
     throw std::runtime_error("Error: Unexpected unary operator");
     return operand;
