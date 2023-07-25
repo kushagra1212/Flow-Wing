@@ -21,9 +21,6 @@ void Repl::runWithStream(std::istream &inputStream,
     line = "";
     std::getline(inputStream, line);
     // Common Function to run both REPL and tests
-    if (line.empty()) {
-      continue;
-    }
 
     if (line == "`:exit") {
       break;
@@ -38,14 +35,18 @@ void Repl::runWithStream(std::istream &inputStream,
     if (braceCount) {
       continue;
     }
-
     Parser *parser = new Parser(text);
 
     CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
-    if (compilationUnit->logs.size()) {
+
+    if (line.empty() && compilationUnit->logs.size()) {
+      compileAndEvaluate(line, outputStream);
+      text = std::vector<std::string>();
+    } else if (compilationUnit->logs.size() || line.empty()) {
+      if (line.empty())
+        text.pop_back();
       continue;
     } else {
-
       compileAndEvaluate(line, outputStream);
     }
   }
