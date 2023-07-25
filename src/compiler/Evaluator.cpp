@@ -307,6 +307,94 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return nullptr;
       }
       return nullptr;
+    } else if (function.name == Utils::BuiltInFunctions::String.name) {
+      if (function.arity() == 1) {
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[0]));
+        if (value.type() == typeid(std::string)) {
+          return std::any_cast<std::string>(value);
+        } else if (value.type() == typeid(int)) {
+          return std::to_string(std::any_cast<int>(value));
+        } else if (value.type() == typeid(double)) {
+          return std::to_string(std::any_cast<double>(value));
+        } else if (value.type() == typeid(bool)) {
+          return std::to_string(std::any_cast<bool>(value));
+        } else {
+          this->root->logs.push_back(
+              "Error: Unexpected function call argument: required string");
+          return nullptr;
+        }
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
+    } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
+      if (function.arity() == 1) {
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[0]));
+        if (value.type() == typeid(std::string)) {
+          return std::stoi(std::any_cast<std::string>(value));
+        } else if (value.type() == typeid(int)) {
+          return std::any_cast<int>(value);
+        } else if (value.type() == typeid(double)) {
+          return int(std::any_cast<double>(value));
+        } else if (value.type() == typeid(bool)) {
+          return int(std::any_cast<bool>(value));
+        } else {
+          this->root->logs.push_back(
+              "Error: Unexpected function call argument: required int");
+          return nullptr;
+        }
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
+    } else if (function.name == Utils::BuiltInFunctions::Double.name) {
+      if (function.arity() == 1) {
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[0]));
+        if (value.type() == typeid(std::string)) {
+          return std::stod(std::any_cast<std::string>(value));
+        } else if (value.type() == typeid(int)) {
+          return double(std::any_cast<int>(value));
+        } else if (value.type() == typeid(double)) {
+          return std::any_cast<double>(value);
+        } else if (value.type() == typeid(bool)) {
+          return double(std::any_cast<bool>(value));
+        } else {
+          this->root->logs.push_back(
+              "Error: Unexpected function call argument: required double");
+          return nullptr;
+        }
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
+    } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
+      if (function.arity() == 1) {
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[0]));
+        if (value.type() == typeid(std::string)) {
+          return std::any_cast<std::string>(value) == "true";
+        } else if (value.type() == typeid(int)) {
+          return std::any_cast<int>(value) == 1;
+        } else if (value.type() == typeid(double)) {
+          return std::any_cast<double>(value) == 1;
+        } else if (value.type() == typeid(bool)) {
+          return std::any_cast<bool>(value);
+        } else {
+          this->root->logs.push_back(
+              "Error: Unexpected function call argument: required bool");
+          return nullptr;
+        }
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
     } else {
       // std::vector<std::any> arguments;
       // for (BoundExpression *argument : callExpression->getArguments()) {
@@ -324,7 +412,6 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
   }
   }
 }
-
 template <typename T>
 T Evaluator::unaryExpressionEvaluator(
     BinderKindUtils::BoundUnaryOperatorKind op, T operand) {

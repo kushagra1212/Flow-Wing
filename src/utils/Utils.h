@@ -8,7 +8,7 @@ namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
-enum type { INT, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
+enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
 enum class SymbolKind {
   Variable,
@@ -60,7 +60,7 @@ struct FunctionSymbol {
   }
 
   const std::type_info &getReturnType() {
-    if (return_type == type::INT) {
+    if (return_type == type::INT32) {
       return typeid(int);
     } else if (return_type == type::DOUBLE) {
       return typeid(double);
@@ -84,20 +84,17 @@ public:
   static FunctionSymbol input;
   static FunctionSymbol random;
 
-  static std::vector<FunctionSymbol> getAllFunctions();
+  // Conversations
 
-  static FunctionSymbol getFunctionSymbol(std::string name);
-};
-
-class ConversionFunctions : public BuiltInFunctions {
-
-public:
   static FunctionSymbol String;
   static FunctionSymbol Int32;
   static FunctionSymbol Double;
   static FunctionSymbol Bool;
   static FunctionSymbol Void;
-  static FunctionSymbol Unknown;
+
+  static std::vector<FunctionSymbol> getAllFunctions();
+
+  static FunctionSymbol getFunctionSymbol(std::string name);
 };
 
 } // namespace Utils

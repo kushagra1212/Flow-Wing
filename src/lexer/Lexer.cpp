@@ -91,7 +91,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
 
   if (isalpha(this->getCurrent())) {
     int start = this->position;
-    while (isalpha(this->getCurrent())) {
+    while (isalnum(this->getCurrent())) {
       this->next();
     }
     int length = this->position - start;
