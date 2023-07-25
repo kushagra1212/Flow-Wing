@@ -22,7 +22,9 @@ void Repl::runWithStream(std::istream &inputStream,
     line = "";
     std::getline(inputStream, line);
     // Common Function to run both REPL and tests
-
+    if (line.empty() && !text.size()) {
+      continue;
+    }
     if (line == "`:exit") {
       break;
     }
@@ -31,6 +33,7 @@ void Repl::runWithStream(std::istream &inputStream,
       continue;
     }
     text.push_back(line);
+
     braceCount = countBraces(line, '{') - countBraces(line, '}') + braceCount;
 
     if (braceCount) {
@@ -39,18 +42,14 @@ void Repl::runWithStream(std::istream &inputStream,
     Parser *parser = new Parser(text);
 
     CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
-    delete parser;
-    if (line.empty() && compilationUnit->logs.size()) {
-      compileAndEvaluate(line, outputStream);
-      text = std::vector<std::string>();
-    } else if (compilationUnit->logs.size() || line.empty()) {
-      if (line.empty())
-        text.pop_back();
+    if (!line.empty() && compilationUnit->logs.size()) {
       continue;
+    } else if (line.empty() && text.size()) {
+      compileAndEvaluate(line, outputStream);
     } else {
       compileAndEvaluate(line, outputStream);
     }
-    delete compilationUnit;
+    text = std::vector<std::string>();
   }
 }
 

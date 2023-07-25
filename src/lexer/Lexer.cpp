@@ -315,6 +315,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
     logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
                    "ERROR: bad character input: " +
                    this->text[lineNumber].substr(this->position, 1));
+
     return newSyntaxToken;
   }
 }
