@@ -378,11 +378,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
         if (value.type() == typeid(std::string)) {
-          return std::any_cast<std::string>(value) == "true";
+          bool is = std::any_cast<std::string>(value) == "false" ||
+                    std::any_cast<std::string>(value) == "0";
+          return !is;
         } else if (value.type() == typeid(int)) {
-          return std::any_cast<int>(value) == 1;
+          return std::any_cast<int>(value) != 0;
         } else if (value.type() == typeid(double)) {
-          return std::any_cast<double>(value) == 1;
+          return std::any_cast<double>(value) != 0;
         } else if (value.type() == typeid(bool)) {
           return std::any_cast<bool>(value);
         } else {

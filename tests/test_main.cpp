@@ -547,6 +547,104 @@ TEST_F(IORedirectionTest,
   ASSERT_EQ(getOutput(), "24\n");
 }
 
+// Test For Conversion  Int32 to String
+
+TEST_F(IORedirectionTest, TestForConversionInt32ToString) {
+  setInput("String(10)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+// Test For Conversion  Double to String
+
+TEST_F(IORedirectionTest, TestForConversionDoubleToString) {
+  setInput("String(10.0)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10.000000\n");
+}
+
+// Test For Conversion  Bool to String
+
+TEST_F(IORedirectionTest, TestForConversionBoolToString) {
+  setInput("String(true)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "1\n");
+}
+
+// Test For Conversion  String to Int32
+
+TEST_F(IORedirectionTest, TestForConversionStringToInt32) {
+  setInput("Int32(\"10\")");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+// Test For Conversion  Double to Int32
+
+TEST_F(IORedirectionTest, TestForConversionDoubleToInt32) {
+  setInput("Int32(10.0)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+// Test For Conversion  Bool to Int32
+
+TEST_F(IORedirectionTest, TestForConversionBoolToInt32) {
+  setInput("Int32(true)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "1\n");
+}
+
+// Test For Conversion  String to Double
+
+TEST_F(IORedirectionTest, TestForConversionStringToDouble) {
+  setInput("Double(\"10.1\")");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10.1\n");
+}
+
+// Test For Conversion  Int32 to Double
+
+TEST_F(IORedirectionTest, TestForConversionInt32ToDouble) {
+  setInput("Double(10)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "10\n");
+}
+
+// Test For Conversion  Bool to Double
+
+TEST_F(IORedirectionTest, TestForConversionBoolToDouble) {
+  setInput("Double(true)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "1\n");
+}
+
+// Test For Conversion  Int32 to Bool
+
+TEST_F(IORedirectionTest, TestForConversionInt32ToBool) {
+  setInput("Bool(10)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "true\n");
+}
+
+// Test For Conversion  Double to Bool
+
+TEST_F(IORedirectionTest, TestForConversionDoubleToBool) {
+  setInput("Bool(10.0)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "true\n");
+}
+
+// Test For Conversion  String to Bool
+
+TEST_F(IORedirectionTest, TestForConversionStringToBool) {
+  setInput("Bool(\"10\")");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "true\n");
+}
+
+// Test For Conversion  String to String
+
 // Test fixture for Lexer class
 class LexerTest : public ::testing::Test {
 protected:
