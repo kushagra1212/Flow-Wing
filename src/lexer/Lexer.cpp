@@ -294,7 +294,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
   case ',':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::CommaToken,
-                                     this->position++, ",", 0);
+                                     this->position++, ",", ",");
   case '{':
     return new SyntaxToken<std::any>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::OpenBraceToken,

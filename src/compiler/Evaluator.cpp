@@ -259,6 +259,65 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         (BoundParenthesizedExpression *)node;
     return this->evaluate<T>(parenthesizedExpression->getExpression());
   }
+  case BinderKindUtils::BoundNodeKind::CallExpression: {
+    BoundCallExpression *callExpression = (BoundCallExpression *)node;
+
+    Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+
+    if (function.name == Utils::BuiltInFunctions::input.name) {
+
+      if (function.arity() == 0) {
+        std::string input;
+        std::getline(std::cin, input);
+        return input;
+      } else if (function.arity() == 1) {
+        std::cout << std::any_cast<std::string>(this->evaluate<std::any>(
+                         callExpression->getArguments()[0]))
+                  << "\n";
+        std::string input;
+        std::getline(std::cin, input);
+        return input;
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
+
+    } else if (function.name == Utils::BuiltInFunctions::print.name) {
+
+      if (function.arity() == 0) {
+        std::cout << "\n";
+        return nullptr;
+      } else if (function.arity() == 1) {
+
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[0]));
+        if (value.type() != typeid(std::string)) {
+
+          // input has to be string
+          this->root->logs.push_back(
+              "Error: Unexpected function call argument: required string");
+        } else {
+          std::cout << std::any_cast<std::string>(value) << "\n";
+        }
+        return nullptr;
+      } else {
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
+        return nullptr;
+      }
+      return nullptr;
+    } else {
+      // std::vector<std::any> arguments;
+      // for (BoundExpression *argument : callExpression->getArguments()) {
+      //   arguments.push_back(this->evaluate<std::any>(argument));
+      // }
+      // return function.call(arguments);
+
+      this->root->logs.push_back("Error: Unexpected function call");
+      return nullptr;
+    }
+  }
   default: {
     this->root->logs.push_back("Error: Unexpected node");
     return nullptr;

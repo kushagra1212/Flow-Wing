@@ -7,6 +7,7 @@ enum BoundNodeKind {
   ParenthesizedExpression,
   AssignmentExpression,
   VariableExpression,
+  CallExpression,
 
   // Statements
   BoundStatementKind,

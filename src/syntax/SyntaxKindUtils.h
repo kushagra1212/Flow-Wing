@@ -76,6 +76,7 @@ enum SyntaxKind {
   AssignmentExpression,
   VariableExpression,
   CompilationUnit,
+  CallExpression,
 
   // Statements
   ExpressionStatement,

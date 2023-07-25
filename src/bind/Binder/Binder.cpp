@@ -230,6 +230,38 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
         (ParenthesizedExpressionSyntax *)syntax;
     return bindExpression(parenthesizedExpression->getExpression());
   }
+  case SyntaxKindUtils::SyntaxKind::CallExpression: {
+    CallExpressionSyntax *callExpression = (CallExpressionSyntax *)syntax;
+    BoundLiteralExpression<std::any> *identifier =
+        (BoundLiteralExpression<std::any> *)bindExpression(
+            callExpression->getIdentifier());
+
+    Utils::FunctionSymbol functionSymbol =
+        Utils::BuiltInFunctions::getFunctionSymbol(
+            std::any_cast<std::string>(identifier->getValue()));
+
+    if (functionSymbol.kind == Utils::SymbolKind::None) {
+      logs.push_back("Error: Function " +
+                     std::any_cast<std::string>(identifier->getValue()) +
+                     " does not exist");
+      return identifier;
+    }
+
+    if (callExpression->getArguments().size() != functionSymbol.arity()) {
+      logs.push_back("Error: Function " +
+                     std::any_cast<std::string>(identifier->getValue()) +
+                     " requires " + std::to_string(functionSymbol.arity()) +
+                     " arguments");
+      return identifier;
+    }
+
+    std::vector<BoundExpression *> arguments;
+    for (int i = 0; i < callExpression->getArguments().size(); i++) {
+      arguments.push_back(bindExpression(callExpression->getArguments()[i]));
+    }
+
+    return new BoundCallExpression(functionSymbol, arguments);
+  }
   default:
     throw "Unexpected syntax";
   }

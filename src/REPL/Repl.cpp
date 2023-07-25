@@ -41,7 +41,7 @@ void Repl::runWithStream(std::istream &inputStream,
     }
     Parser *parser = new Parser(text);
 
-    CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
     if (!line.empty() && compilationUnit->logs.size()) {
       continue;
     } else if (line.empty() && text.size()) {

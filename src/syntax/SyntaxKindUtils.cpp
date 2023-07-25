@@ -100,4 +100,5 @@ void SyntaxKindUtils::init_enum_to_string_map() {
   enum_to_string_map[SyntaxKind::ForStatement] = "ForStatement";
   enum_to_string_map[SyntaxKind::BlockStatement] = "BlockStatement";
   enum_to_string_map[SyntaxKind::ExpressionStatement] = "ExpressionStatement";
+  enum_to_string_map[SyntaxKind::CallExpression] = "CallExpression";
 }

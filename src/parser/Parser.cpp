@@ -239,25 +239,57 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
             : false;
     return new LiteralExpressionSyntax<std::any>(keywordToken, value);
   }
+  case SyntaxKindUtils::SyntaxKind::CommaToken: {
+    return new LiteralExpressionSyntax<std::any>(this->nextToken(), ",");
+  }
   case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-    if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-      SyntaxToken<std::any> *identifierToken = this->nextToken();
-      SyntaxToken<std::any> *operatorToken = this->nextToken();
-      ExpressionSyntax *right = this->parseExpression();
-      return new AssignmentExpressionSyntax(
-          new LiteralExpressionSyntax<std::any>(identifierToken,
-                                                identifierToken->getValue()),
-          operatorToken, right);
-    } else {
-      SyntaxToken<std::any> *identifierToken = this->nextToken();
-      return new VariableExpressionSyntax(new LiteralExpressionSyntax<std::any>(
-          identifierToken, identifierToken->getValue()));
-    }
+    return this->parseNameorCallExpression();
   }
   default:
     this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
                          "ERROR: unexpected token <" +
                          this->getCurrent()->getText() + ">");
     return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
+  }
+}
+
+ExpressionSyntax *Parser::parseNameorCallExpression() {
+  if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
+    SyntaxToken<std::any> *identifierToken = this->nextToken();
+    SyntaxToken<std::any> *operatorToken = this->nextToken();
+    ExpressionSyntax *right = this->parseExpression();
+    return new AssignmentExpressionSyntax(
+        new LiteralExpressionSyntax<std::any>(identifierToken,
+                                              identifierToken->getValue()),
+        operatorToken, right);
+  } else if (this->peek(1)->getKind() ==
+             SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+    SyntaxToken<std::any> *identifierToken =
+        this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+    SyntaxToken<std::any> *openParenthesisToken =
+        this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+    std::vector<ExpressionSyntax *> arguments;
+    while (this->getCurrent()->getKind() !=
+               SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
+           this->getCurrent()->getKind() !=
+               SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+      ExpressionSyntax *expression = this->parsePrimaryExpression();
+      arguments.push_back(expression);
+      if (this->getCurrent()->getKind() !=
+          SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {
+        this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+      }
+    }
+
+    SyntaxToken<std::any> *closeParenthesisToken =
+        this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+    return new CallExpressionSyntax(
+        new LiteralExpressionSyntax<std::any>(identifierToken,
+                                              identifierToken->getValue()),
+        openParenthesisToken, arguments, closeParenthesisToken);
+  } else {
+    SyntaxToken<std::any> *identifierToken = this->nextToken();
+    return new VariableExpressionSyntax(new LiteralExpressionSyntax<std::any>(
+        identifierToken, identifierToken->getValue()));
   }
 }
