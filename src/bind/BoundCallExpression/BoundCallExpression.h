@@ -10,7 +10,6 @@ class BoundCallExpression : public BoundExpression {
 public:
   BoundCallExpression(Utils::FunctionSymbol functionalSymbol,
                       const std::vector<BoundExpression *> &arguments);
-  ~BoundCallExpression();
 
   const std::string &getName() const;
   const std::vector<BoundExpression *> &getArguments() const;

@@ -7,12 +7,6 @@ BoundCallExpression::BoundCallExpression(
   this->arguments = arguments;
 }
 
-BoundCallExpression::~BoundCallExpression() {
-  for (auto &argument : arguments) {
-    delete argument;
-  }
-}
-
 const std::string &BoundCallExpression::getName() const {
   return functionalSymbol.name;
 }

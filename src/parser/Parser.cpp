@@ -273,7 +273,7 @@ ExpressionSyntax *Parser::parseNameorCallExpression() {
                SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
            this->getCurrent()->getKind() !=
                SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-      ExpressionSyntax *expression = this->parsePrimaryExpression();
+      ExpressionSyntax *expression = this->parseExpression();
       arguments.push_back(expression);
       if (this->getCurrent()->getKind() !=
           SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {

@@ -247,13 +247,13 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
       return identifier;
     }
 
-    if (callExpression->getArguments().size() != functionSymbol.arity()) {
-      logs.push_back("Error: Function " +
-                     std::any_cast<std::string>(identifier->getValue()) +
-                     " requires " + std::to_string(functionSymbol.arity()) +
-                     " arguments");
-      return identifier;
-    }
+    // if (callExpression->getArguments().size() != functionSymbol.arity()) {
+    //   logs.push_back("Error: Function " +
+    //                  std::any_cast<std::string>(identifier->getValue()) +
+    //                  " requires " + std::to_string(functionSymbol.arity()) +
+    //                  " arguments");
+    //   return identifier;
+    // }
 
     std::vector<BoundExpression *> arguments;
     for (int i = 0; i < callExpression->getArguments().size(); i++) {

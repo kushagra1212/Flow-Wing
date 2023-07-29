@@ -24,7 +24,8 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void compileAndEvaluate(const std::string &line, std::ostream &outputStream);
+  void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
+                          std::ostream &outputStream);
 
   void compileAndEvaluateForTests(const std::string &line,
                                   std::ostream &outputStream);

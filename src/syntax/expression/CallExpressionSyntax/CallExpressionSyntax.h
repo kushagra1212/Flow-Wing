@@ -12,14 +12,7 @@ public:
                        SyntaxToken<std::any> *openParenthesisToken,
                        std::vector<ExpressionSyntax *> arguments,
                        SyntaxToken<std::any> *closeParenthesisToken);
-  ~CallExpressionSyntax() {
-    delete identifier;
-    delete openParenthesisToken;
-    for (auto &argument : arguments) {
-      delete argument;
-    }
-    delete closeParenthesisToken;
-  }
+
   ExpressionSyntax *getIdentifier() const;
   SyntaxToken<std::any> *getOpenParenthesisToken() const;
   std::vector<ExpressionSyntax *> getArguments() const;

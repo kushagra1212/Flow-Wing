@@ -1,6 +1,9 @@
 #include "Repl.h"
 Repl::Repl()
-    : seeTree(false), braceCount(0), previousEvaluator(nullptr), text() {}
+    : seeTree(false), braceCount(0), previousEvaluator(nullptr), text() {
+
+  SyntaxKindUtils::init_enum_to_string_map();
+}
 
 Repl::~Repl() {}
 
@@ -10,7 +13,6 @@ void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
   printWelcomeMessage(outputStream);
 
-  SyntaxKindUtils::init_enum_to_string_map();
   std::string line;
 
   while (true) {
@@ -45,22 +47,17 @@ void Repl::runWithStream(std::istream &inputStream,
     if (!line.empty() && compilationUnit->logs.size()) {
       continue;
     } else if (line.empty() && text.size()) {
-      compileAndEvaluate(line, outputStream);
+      compileAndEvaluate(compilationUnit, outputStream);
     } else {
-      compileAndEvaluate(line, outputStream);
+      compileAndEvaluate(compilationUnit, outputStream);
     }
     text = std::vector<std::string>();
   }
 }
 
-void Repl::compileAndEvaluate(const std::string &line,
+void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                               std::ostream &outputStream) {
 
-  Parser *parser = new Parser(text);
-
-  CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
-
-  delete parser;
   Evaluator *currentEvaluator =
       previousEvaluator == nullptr
           ? new Evaluator(previousEvaluator, (compilationUnit))
@@ -114,9 +111,6 @@ void Repl::compileAndEvaluate(const std::string &line,
       outputStream << RED << e.what() << RESET << "\n";
     }
   }
-
-  delete compilationUnit;
-  delete currentEvaluator;
 }
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
@@ -144,8 +138,11 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
     if (braceCount) {
       continue;
     }
+    Parser *parser = new Parser(text);
 
-    this->compileAndEvaluate(line, outputStream);
+    CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+
+    this->compileAndEvaluate(compilationUnit, outputStream);
   }
 }
 

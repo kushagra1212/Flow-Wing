@@ -8,6 +8,7 @@ namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
+std::string convertAnyToString(const std::any value);
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
 enum class SymbolKind {

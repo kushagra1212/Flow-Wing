@@ -643,6 +643,15 @@ TEST_F(IORedirectionTest, TestForConversionStringToBool) {
   ASSERT_EQ(getOutput(), "true\n");
 }
 
+// Test for inbuilt function print
+
+TEST_F(IORedirectionTest, TestForInbuiltFunctionPrint) {
+  setInput("{var x =2 var y =x x=x+1 y = Int32(y) y=y+1 print(\"hello\" + x "
+           "+\" hii \"+y)}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "hello3 hii 3");
+}
+
 // Test For Conversion  String to String
 
 // Test fixture for Lexer class

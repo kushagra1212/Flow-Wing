@@ -264,16 +264,17 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
     Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
 
+    std::size_t arguments_size = callExpression->getArguments().size();
+
     if (function.name == Utils::BuiltInFunctions::input.name) {
 
-      if (function.arity() == 0) {
+      if (arguments_size == 0) {
         std::string input;
         std::getline(std::cin, input);
         return input;
-      } else if (function.arity() == 1) {
-        std::cout << std::any_cast<std::string>(this->evaluate<std::any>(
-                         callExpression->getArguments()[0]))
-                  << "\n";
+      } else if (arguments_size == 1) {
+        std::cout << std::any_cast<std::string>(
+            this->evaluate<std::any>(callExpression->getArguments()[0]));
         std::string input;
         std::getline(std::cin, input);
         return input;
@@ -285,20 +286,20 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
     } else if (function.name == Utils::BuiltInFunctions::print.name) {
 
-      if (function.arity() == 0) {
-        std::cout << "\n";
+      if (arguments_size == 0) {
+
+        this->root->logs.push_back(
+            "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
-      } else if (function.arity() == 1) {
+      } else if (arguments_size == 1) {
 
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
-        if (value.type() != typeid(std::string)) {
 
-          // input has to be string
-          this->root->logs.push_back(
-              "Error: Unexpected function call argument: required string");
-        } else {
-          std::cout << std::any_cast<std::string>(value) << "\n";
+        try {
+          std::cout << Utils::convertAnyToString(value);
+        } catch (const std::exception &e) {
+          this->root->logs.push_back(e.what());
         }
         return nullptr;
       } else {
@@ -308,7 +309,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       }
       return nullptr;
     } else if (function.name == Utils::BuiltInFunctions::String.name) {
-      if (function.arity() == 1) {
+      if (arguments_size == 1) {
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
         if (value.type() == typeid(std::string)) {
@@ -330,7 +331,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return nullptr;
       }
     } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
-      if (function.arity() == 1) {
+      if (arguments_size == 1) {
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
         if (value.type() == typeid(std::string)) {
@@ -352,7 +353,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return nullptr;
       }
     } else if (function.name == Utils::BuiltInFunctions::Double.name) {
-      if (function.arity() == 1) {
+      if (arguments_size == 1) {
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
         if (value.type() == typeid(std::string)) {
@@ -374,7 +375,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return nullptr;
       }
     } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
-      if (function.arity() == 1) {
+      if (arguments_size == 1) {
         std::any value = (this->evaluate<std::any>(
             (BoundExpression *)callExpression->getArguments()[0]));
         if (value.type() == typeid(std::string)) {
