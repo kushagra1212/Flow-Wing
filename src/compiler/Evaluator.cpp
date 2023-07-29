@@ -7,10 +7,12 @@ template class BoundLiteralExpression<bool>;
 template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
-Evaluator::Evaluator(Evaluator *previous,
+Evaluator::Evaluator(std::unique_ptr<Evaluator> previous,
                      CompilationUnitSyntax *compilation_unit) {
   this->compilation_unit = compilation_unit;
-  this->previous = (previous);
+
+  if (previous != nullptr)
+    this->previous = std::move(previous);
 }
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
@@ -20,11 +22,6 @@ BoundScopeGlobal *Evaluator::getRoot() {
       root = Binder::bindGlobalScope(nullptr, compilation_unit);
   }
   return root;
-}
-
-Evaluator *Evaluator::continueWith(CompilationUnitSyntax *compilation_unit) {
-  return new Evaluator(new Evaluator(this->previous, this->compilation_unit),
-                       compilation_unit);
 }
 
 void Evaluator::evaluateStatement(BoundStatement *node) {
