@@ -297,6 +297,10 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
   Binder *binder = new Binder(Binder::CreateParentScope(previous));
   BoundStatement *statement = binder->bindStatement(syntax->getStatement());
   std::vector<std::string> logs = binder->logs;
+  if (previous != nullptr) {
+    logs.insert(logs.end(), previous->logs.begin(), previous->logs.end());
+  }
+
   std::map<std::string, struct Utils::Variable> variables =
       binder->root->variables;
   return new BoundScopeGlobal(previous, variables, logs, statement);
