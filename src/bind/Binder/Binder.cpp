@@ -281,7 +281,7 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
     stack.pop();
     BoundScope *scope = new BoundScope(current);
     for (auto &pair : parent->variables) {
-      scope->variables[pair.first] = pair.second;
+      scope->tryDeclareVariable(pair.first, pair.second);
     }
     current = scope;
   }
