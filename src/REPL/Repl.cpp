@@ -72,7 +72,7 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
   text = std::vector<std::string>();
 
   if (seeTree) {
-    Utils::prettyPrint(compilationUnit->getStatement());
+    Utils::prettyPrint(compilationUnit->getMembers());
   }
 
   if (compilationUnit->logs.size()) {

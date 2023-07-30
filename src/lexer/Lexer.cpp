@@ -135,6 +135,11 @@ SyntaxToken<std::any> *Lexer::nextToken() {
                                        SyntaxKindUtils::SyntaxKind::ForKeyword,
                                        start, text, "for");
     }
+    if (text == "fun") {
+      return new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::FunctionKeyword, start,
+          text, "fun");
+    }
 
     if (text == "to") {
       return new SyntaxToken<std::any>(this->lineNumber,

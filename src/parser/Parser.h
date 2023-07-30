@@ -2,6 +2,7 @@
 #define PARSER_H
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
+#include "../syntax/MemberSyntax.h"
 #include "../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
@@ -12,7 +13,10 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
+#include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
@@ -59,6 +63,14 @@ private:
   ForStatementSyntax *parseForStatement();
 
   ExpressionSyntax *parseNameorCallExpression();
+
+  std::vector<MemberSyntax *> parseMemberList();
+
+  MemberSyntax *parseMember();
+
+  FunctionDeclarationSyntax *parseFunctionDeclaration();
+
+  GlobalStatementSyntax *parseGlobalStatement();
 
 private:
   ExpressionSyntax *parseExpression(int parentPrecedence = 0);

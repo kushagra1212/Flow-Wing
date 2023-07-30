@@ -61,6 +61,7 @@ enum SyntaxKind {
   WhileKeyword,
   ForKeyword,
   ToKeyword,
+  FunctionKeyword,
 
   ElseClause,
 
@@ -79,12 +80,17 @@ enum SyntaxKind {
   CallExpression,
 
   // Statements
+  GlobalStatement,
   ExpressionStatement,
   BlockStatement,
   VariableDeclaration,
   IfStatement,
   WhileStatement,
-  ForStatement
+  ForStatement,
+
+  FunctionDeclarationSyntax,
+
+  ParameterSyntax
 
 };
 extern std::map<SyntaxKind, std::string> enum_to_string_map;

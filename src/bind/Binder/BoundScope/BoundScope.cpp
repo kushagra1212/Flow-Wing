@@ -11,6 +11,15 @@ bool BoundScope::tryDeclareVariable(
   return true;
 }
 
+bool BoundScope::tryDeclareFunction(
+    std::string name, const struct Utils::FunctionSymbol &function) {
+  if (this->functions.find(name) != this->functions.end()) {
+    return false;
+  }
+  this->functions[name] = function;
+  return true;
+}
+
 bool BoundScope::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {
     return true;

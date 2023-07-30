@@ -280,6 +280,11 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
     parent = stack.top();
     stack.pop();
     BoundScope *scope = new BoundScope(current);
+
+    for (auto &pair : parent->functions) {
+      scope->tryDeclareFunction(pair.first, pair.second);
+    }
+
     for (auto &pair : parent->variables) {
       scope->tryDeclareVariable(pair.first, pair.second);
     }
@@ -289,13 +294,70 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
   return current;
 }
 
+void Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
+  std::vector<Utils::FunctionParameterSymbol> parameters;
+
+  std::unordered_map<std::string, int> alreadyDeclared;
+
+  for (int i = 0; i < syntax->getParameters().size(); i++) {
+
+    if (alreadyDeclared.find(
+            syntax->getParameters()[i]->getIdentifierToken()->getText()) !=
+        alreadyDeclared.end()) {
+      this->logs.push_back(
+          "Error: Parameter " +
+          syntax->getParameters()[i]->getIdentifierToken()->getText() +
+          " already declared");
+      return;
+    }
+
+    alreadyDeclared.insert(std::make_pair(
+        syntax->getParameters()[i]->getIdentifierToken()->getText(), 1));
+
+    parameters.push_back(Utils::FunctionParameterSymbol(
+        syntax->getParameters()[i]->getIdentifierToken()->getText(), false));
+  }
+
+  Utils::FunctionSymbol functionSymbol = Utils::FunctionSymbol(
+      syntax->getIdentifierToken()->getText(), parameters, Utils::type::VOID);
+  if (!this->root->tryDeclareFunction(functionSymbol.name, functionSymbol)) {
+    this->logs.push_back("Error: Function " + functionSymbol.name +
+                         " already declared");
+    return;
+  }
+}
+
+BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
+  return bindStatement(syntax->getStatement());
+}
+
 Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
 
 BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
                                           CompilationUnitSyntax *syntax) {
 
   Binder *binder = new Binder(Binder::CreateParentScope(previous));
-  BoundStatement *statement = binder->bindStatement(syntax->getStatement());
+  std::vector<BoundStatement *> statements;
+  for (int i = 0; i < syntax->getMembers().size(); i++) {
+    if (syntax->getMembers()[i]->getKind() ==
+        SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
+      FunctionDeclarationSyntax *functionDeclarationSyntax =
+          (FunctionDeclarationSyntax *)syntax->getMembers()[i];
+      binder->bindFunctionDeclaration(functionDeclarationSyntax);
+    } else if (syntax->getMembers()[i]->getKind() ==
+               SyntaxKindUtils::SyntaxKind::GlobalStatement) {
+      GlobalStatementSyntax *globalStatementSyntax =
+          (GlobalStatementSyntax *)syntax->getMembers()[i];
+      BoundStatement *statement =
+          binder->bindGlobalStatement(globalStatementSyntax);
+      statements.push_back(statement);
+    } else {
+      throw "Unexpected global member";
+    }
+  }
+
+  BoundStatement *statement = new BoundBlockStatement(statements);
+
   std::vector<std::string> logs = binder->logs;
   if (previous != nullptr) {
     logs.insert(logs.end(), previous->logs.begin(), previous->logs.end());
@@ -303,5 +365,8 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
 
   std::map<std::string, struct Utils::Variable> variables =
       binder->root->variables;
-  return new BoundScopeGlobal(previous, variables, logs, statement);
+
+  std::map<std::string, struct Utils::FunctionSymbol> functions =
+      binder->root->functions;
+  return new BoundScopeGlobal(previous, variables, functions, logs, statement);
 }

@@ -53,10 +53,57 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
 }
 
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
-  StatementSyntax *statement = this->parseStatement();
+  std::vector<MemberSyntax *> members = this->parseMemberList();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
+  return new CompilationUnitSyntax(this->logs, members, endOfFileToken);
+}
+
+std::vector<MemberSyntax *> Parser::parseMemberList() {
+  std::vector<MemberSyntax *> members;
+  while (this->getCurrent()->getKind() !=
+         SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    MemberSyntax *member = this->parseMember();
+    members.push_back(member);
+  }
+  return members;
+}
+
+MemberSyntax *Parser::parseMember() {
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
+    return (MemberSyntax *)this->parseFunctionDeclaration();
+  }
+  return this->parseGlobalStatement();
+}
+
+FunctionDeclarationSyntax *Parser::parseFunctionDeclaration() {
+  SyntaxToken<std::any> *functionKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword);
+  SyntaxToken<std::any> *identifier =
+      this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+  SyntaxToken<std::any> *openParenthesisToken =
+      this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+  std::vector<ParameterSyntax *> parameters;
+  while (this->getCurrent()->getKind() !=
+         SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {
+    if (parameters.size() > 0) {
+      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+    }
+    parameters.push_back(new ParameterSyntax(
+        this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+  }
+  SyntaxToken<std::any> *closeParenthesisToken =
+      this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+  BlockStatementSyntax *body = this->parseBlockStatement();
+  return new FunctionDeclarationSyntax(functionKeyword, identifier,
+                                       openParenthesisToken, parameters,
+                                       closeParenthesisToken, body);
+}
+
+GlobalStatementSyntax *Parser::parseGlobalStatement() {
+  StatementSyntax *statement = this->parseStatement();
+  return new GlobalStatementSyntax(statement);
 }
 
 BlockStatementSyntax *Parser::parseBlockStatement() {

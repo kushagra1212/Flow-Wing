@@ -1,7 +1,7 @@
 #pragma once
 #include "../../SyntaxToken.h"
 #include "../StatementSyntax.h"
-class BlockStatementSyntax : StatementSyntax {
+class BlockStatementSyntax : public StatementSyntax {
 private:
   SyntaxToken<std::any> *openBraceToken;
   std::vector<StatementSyntax *> statements;

@@ -1,6 +1,7 @@
 #include "Utils.h"
 
 void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
+
   std::cout << indent;
   if (isLast) {
     std::cout << "\\-";
@@ -9,6 +10,7 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
     std::cout << "|-";
     indent += "| ";
   }
+
   std::cout << SyntaxKindUtils::enum_to_string_map[node->getKind()];
   if (node->getKind() == SyntaxKindUtils::LiteralExpression) {
 
@@ -27,6 +29,31 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   std::vector<SyntaxNode *> children = node->getChildren();
   for (int i = 0; i < children.size(); i++) {
     Utils::prettyPrint(children[i], indent, i == children.size() - 1);
+  }
+}
+
+void Utils::prettyPrint(std::vector<MemberSyntax *> members, std::string indent,
+                        bool isLast) {
+  std::cout << indent;
+  if (isLast) {
+    std::cout << "\\-";
+    indent += "  ";
+  } else {
+    std::cout << "|-";
+    indent += "| ";
+  }
+
+  std::cout << "Members\n";
+  for (int i = 0; i < members.size(); i++) {
+
+    if (members[i]->getKind() == SyntaxKindUtils::SyntaxKind::GlobalStatement) {
+
+      Utils::prettyPrint(
+          dynamic_cast<GlobalStatementSyntax *>(members[i])->getStatement(),
+          indent, true);
+    } else {
+      Utils::prettyPrint(dynamic_cast<SyntaxNode *>(members[i]), indent, true);
+    }
   }
 }
 

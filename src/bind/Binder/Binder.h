@@ -13,6 +13,8 @@
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
+#include "../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "../../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
@@ -48,6 +50,10 @@ public:
 
 public:
   BoundExpression *bindExpression(ExpressionSyntax *syntax);
+
+  BoundStatement *bindGlobalStatement(GlobalStatementSyntax *syntax);
+
+  void bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
 
 public:
   static BoundScopeGlobal *bindGlobalScope(BoundScopeGlobal *previous,
