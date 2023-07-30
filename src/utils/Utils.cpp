@@ -32,8 +32,8 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   }
 }
 
-void Utils::prettyPrint(std::vector<MemberSyntax *> members, std::string indent,
-                        bool isLast) {
+void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
+                        std::string indent, bool isLast) {
   std::cout << indent;
   if (isLast) {
     std::cout << "\\-";
@@ -43,17 +43,13 @@ void Utils::prettyPrint(std::vector<MemberSyntax *> members, std::string indent,
     indent += "| ";
   }
 
-  std::cout << "Members\n";
-  for (int i = 0; i < members.size(); i++) {
+  std::cout << SyntaxKindUtils::enum_to_string_map[compilationUnit->getKind()]
+            << '\n';
+  for (int i = 0; i < compilationUnit->getMembers().size(); i++) {
 
-    if (members[i]->getKind() == SyntaxKindUtils::SyntaxKind::GlobalStatement) {
-
-      Utils::prettyPrint(
-          dynamic_cast<GlobalStatementSyntax *>(members[i])->getStatement(),
-          indent, true);
-    } else {
-      Utils::prettyPrint(dynamic_cast<SyntaxNode *>(members[i]), indent, true);
-    }
+    Utils::prettyPrint(
+        dynamic_cast<SyntaxNode *>(compilationUnit->getMembers()[i]), indent,
+        true);
   }
 }
 

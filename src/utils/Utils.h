@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include "../Common.h"
+#include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/SyntaxNode.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
@@ -9,8 +10,8 @@
 namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
-void prettyPrint(std::vector<MemberSyntax *> members, std::string indent = "",
-                 bool isLast = true);
+void prettyPrint(CompilationUnitSyntax *compilationUnit,
+                 std::string indent = "", bool isLast = true);
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
 std::string convertAnyToString(const std::any value);
