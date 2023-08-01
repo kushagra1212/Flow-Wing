@@ -17,6 +17,8 @@ public:
                             SyntaxToken<std::any> *identifier,
                             SyntaxToken<std::any> *equalsToken,
                             ExpressionSyntax *initializer);
+
+  ~VariableDeclarationSyntax();
   SyntaxKindUtils::SyntaxKind getKind() override;
   std::vector<SyntaxNode *> getChildren() override;
   SyntaxToken<std::any> *getIdentifier() const;

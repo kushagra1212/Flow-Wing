@@ -15,6 +15,8 @@ private:
 public:
   ParameterSyntax(SyntaxToken<std::any> *identifierToken);
 
+  ~ParameterSyntax();
+
   SyntaxToken<std::any> *getIdentifierToken() const;
 
   SyntaxKindUtils::SyntaxKind getKind() override;

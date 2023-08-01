@@ -15,6 +15,8 @@ public:
                                 ExpressionSyntax *expression,
                                 SyntaxToken<std::any> *closeParenthesisToken);
 
+  ~ParenthesizedExpressionSyntax();
+
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 

@@ -14,6 +14,8 @@ public:
                      ExpressionSyntax *upperBound,
                      BlockStatementSyntax *statement);
 
+  ~ForStatementSyntax();
+
   BlockStatementSyntax *getStatement() const;
 
   StatementSyntax *getInitialization() const;

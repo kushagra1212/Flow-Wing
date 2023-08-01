@@ -24,3 +24,9 @@ SyntaxToken<std::any> *AssignmentExpressionSyntax::getOperatorToken() {
 ExpressionSyntax *AssignmentExpressionSyntax::getRight() { return right; }
 
 ExpressionSyntax *AssignmentExpressionSyntax::getLeft() { return left; }
+
+AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
+  delete left;
+  delete operatorToken;
+  delete right;
+}

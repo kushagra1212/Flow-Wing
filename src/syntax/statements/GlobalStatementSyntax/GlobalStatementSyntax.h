@@ -12,6 +12,8 @@ private:
 public:
   GlobalStatementSyntax(StatementSyntax *statement);
 
+  ~GlobalStatementSyntax();
+
   StatementSyntax *getStatement() const;
 
   SyntaxKindUtils::SyntaxKind getKind() override;

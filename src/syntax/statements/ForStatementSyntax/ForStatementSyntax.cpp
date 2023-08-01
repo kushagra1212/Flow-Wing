@@ -25,3 +25,9 @@ ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
 StatementSyntax *ForStatementSyntax::getInitialization() const {
   return this->initialization;
 }
+
+ForStatementSyntax::~ForStatementSyntax() {
+  delete this->initialization;
+  delete this->upperBound;
+  delete this->statement;
+}

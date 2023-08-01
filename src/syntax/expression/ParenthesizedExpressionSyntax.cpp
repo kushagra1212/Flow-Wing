@@ -32,3 +32,9 @@ ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
 std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
   return children;
 }
+
+ParenthesizedExpressionSyntax::~ParenthesizedExpressionSyntax() {
+  delete this->openParenthesisToken;
+  delete this->expression;
+  delete this->closeParenthesisToken;
+}

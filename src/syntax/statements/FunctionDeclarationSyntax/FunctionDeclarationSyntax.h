@@ -26,6 +26,8 @@ public:
                             SyntaxToken<std::any> *closeParenthesisToken,
                             BlockStatementSyntax *body);
 
+  ~FunctionDeclarationSyntax();
+
   SyntaxToken<std::any> *getFunctionKeyword() const;
   SyntaxToken<std::any> *getIdentifierToken() const;
   SyntaxToken<std::any> *getOpenParenthesisToken() const;

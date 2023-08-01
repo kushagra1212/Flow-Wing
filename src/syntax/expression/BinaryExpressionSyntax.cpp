@@ -26,3 +26,9 @@ ExpressionSyntax *BinaryExpressionSyntax::getRight() { return this->right; }
 std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
   return children;
 }
+
+BinaryExpressionSyntax::~BinaryExpressionSyntax() {
+  delete this->left;
+  delete this->operatorToken;
+  delete this->right;
+}

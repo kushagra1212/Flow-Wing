@@ -13,6 +13,8 @@ public:
                              SyntaxToken<std::any> *operatorToken,
                              ExpressionSyntax *right);
 
+  ~AssignmentExpressionSyntax();
+
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 

@@ -19,3 +19,7 @@ std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
   std::vector<SyntaxNode *> children = {identifierExpression};
   return children;
 }
+
+VariableExpressionSyntax::~VariableExpressionSyntax() {
+  delete this->identifierExpression;
+}

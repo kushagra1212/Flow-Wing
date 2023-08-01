@@ -31,5 +31,12 @@ SyntaxToken<std::any> *VariableDeclarationSyntax::getKeyword() const {
   return _keyword;
 }
 
+VariableDeclarationSyntax::~VariableDeclarationSyntax() {
+  delete _keyword;
+  delete _identifier;
+  delete _equalsToken;
+  delete _initializer;
+}
+
 // Path:
 // src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h

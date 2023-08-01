@@ -14,6 +14,7 @@ public:
   CompilationUnitSyntax(std::vector<std::string> &logs,
                         std::vector<MemberSyntax *> members,
                         SyntaxToken<std::any> *endOfFileToken);
+  ~CompilationUnitSyntax();
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();

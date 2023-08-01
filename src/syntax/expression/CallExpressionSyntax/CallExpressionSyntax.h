@@ -13,6 +13,8 @@ public:
                        std::vector<ExpressionSyntax *> arguments,
                        SyntaxToken<std::any> *closeParenthesisToken);
 
+  ~CallExpressionSyntax();
+
   ExpressionSyntax *getIdentifier() const;
   SyntaxToken<std::any> *getOpenParenthesisToken() const;
   std::vector<ExpressionSyntax *> getArguments() const;

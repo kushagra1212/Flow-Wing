@@ -24,3 +24,9 @@ ExpressionSyntax *WhileStatementSyntax::getCondition() const {
 }
 
 BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
+
+WhileStatementSyntax::~WhileStatementSyntax() {
+  delete _whileKeyword;
+  delete _condition;
+  delete _body;
+}

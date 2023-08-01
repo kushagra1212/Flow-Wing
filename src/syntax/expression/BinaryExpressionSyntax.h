@@ -15,6 +15,8 @@ public:
                          SyntaxToken<std::any> *operatorToken,
                          ExpressionSyntax *right);
 
+  ~BinaryExpressionSyntax();
+
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 

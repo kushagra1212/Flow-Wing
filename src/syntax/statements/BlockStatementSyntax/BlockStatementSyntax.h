@@ -11,6 +11,8 @@ public:
   BlockStatementSyntax(SyntaxToken<std::any> *openBraceToken,
                        std::vector<StatementSyntax *> statements,
                        SyntaxToken<std::any> *closeBraceToken);
+
+  ~BlockStatementSyntax();
   SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<SyntaxNode *> getChildren();

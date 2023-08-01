@@ -7,6 +7,8 @@ private:
 public:
   VariableExpressionSyntax(ExpressionSyntax *identifierExpression);
 
+  ~VariableExpressionSyntax();
+
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 

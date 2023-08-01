@@ -22,3 +22,8 @@ ExpressionSyntax *UnaryExpressionSyntax::getOperand() { return this->operand; }
 std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
   return children;
 }
+
+UnaryExpressionSyntax::~UnaryExpressionSyntax() {
+  delete this->operatorToken;
+  delete this->operand;
+}

@@ -34,3 +34,11 @@ std::vector<StatementSyntax *> BlockStatementSyntax::getStatements() {
 SyntaxToken<std::any> *BlockStatementSyntax::getCloseBraceToken() {
   return this->closeBraceToken;
 }
+
+BlockStatementSyntax::~BlockStatementSyntax() {
+  delete this->openBraceToken;
+  for (int i = 0; i < this->statements.size(); i++) {
+    delete this->statements[i];
+  }
+  delete this->closeBraceToken;
+}

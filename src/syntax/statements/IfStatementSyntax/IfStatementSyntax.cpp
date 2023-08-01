@@ -33,3 +33,10 @@ std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
   }
   return children;
 }
+
+IfStatementSyntax::~IfStatementSyntax() {
+  delete ifKeyword;
+  delete condition;
+  delete statement;
+  delete elseClause;
+}

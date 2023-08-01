@@ -19,3 +19,10 @@ std::vector<MemberSyntax *> CompilationUnitSyntax::getMembers() {
 SyntaxToken<std::any> *CompilationUnitSyntax::getEndOfFileToken() {
   return this->endOfFileToken;
 }
+
+CompilationUnitSyntax::~CompilationUnitSyntax() {
+  for (auto member : this->members) {
+    delete member;
+  }
+  delete this->endOfFileToken;
+}

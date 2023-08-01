@@ -40,3 +40,12 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
   children.push_back(closeParenthesisToken);
   return children;
 }
+
+CallExpressionSyntax::~CallExpressionSyntax() {
+  delete identifier;
+  delete openParenthesisToken;
+  for (auto &argument : arguments) {
+    delete argument;
+  }
+  delete closeParenthesisToken;
+}

@@ -57,3 +57,14 @@ std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
   children.push_back((_body));
   return children;
 }
+
+FunctionDeclarationSyntax::~FunctionDeclarationSyntax() {
+  delete _functionKeyword;
+  delete _identifierToken;
+  delete _openParenthesisToken;
+  for (ParameterSyntax *parameter : _parameters) {
+    delete parameter;
+  }
+  delete _closeParenthesisToken;
+  delete _body;
+}

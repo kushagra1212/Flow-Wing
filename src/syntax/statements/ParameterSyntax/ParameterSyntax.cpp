@@ -19,3 +19,5 @@ std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
   children.push_back(_identifierToken);
   return children;
 }
+
+ParameterSyntax::~ParameterSyntax() { delete _identifierToken; }

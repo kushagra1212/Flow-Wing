@@ -14,6 +14,8 @@ public:
   UnaryExpressionSyntax(SyntaxToken<std::any> *operatorToken,
                         ExpressionSyntax *operand);
 
+  ~UnaryExpressionSyntax();
+
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 
