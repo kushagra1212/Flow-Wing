@@ -49,3 +49,5 @@ std::vector<std::string> BoundScope::getVariablesKeys() {
   }
   return variables;
 }
+
+BoundScope::~BoundScope() { delete this->parent; }

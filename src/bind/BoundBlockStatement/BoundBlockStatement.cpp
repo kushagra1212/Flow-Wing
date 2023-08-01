@@ -11,3 +11,9 @@ BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() {
 std::vector<BoundStatement *> BoundBlockStatement::getStatements() {
   return statements;
 }
+
+BoundBlockStatement::~BoundBlockStatement() {
+  for (auto statement : statements) {
+    delete statement;
+  }
+}

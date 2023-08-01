@@ -10,6 +10,8 @@ private:
 public:
   BoundParenthesizedExpression(BoundExpression *expression);
 
+  ~BoundParenthesizedExpression();
+
 public:
 public:
   BinderKindUtils::BoundNodeKind getKind();

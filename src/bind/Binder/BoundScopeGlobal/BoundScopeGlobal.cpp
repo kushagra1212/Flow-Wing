@@ -7,3 +7,8 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::vector<std::string> logs, BoundStatement *statement)
     : previous(previous), variables(variables), logs(logs),
       statement(statement), functions(functions) {}
+
+BoundScopeGlobal::~BoundScopeGlobal() {
+  delete this->statement;
+  delete this->previous;
+}

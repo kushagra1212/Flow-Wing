@@ -27,3 +27,9 @@ BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
 const std::type_info &BoundCallExpression::getType() {
   return functionalSymbol.getReturnType();
 }
+
+BoundCallExpression::~BoundCallExpression() {
+  for (auto &argument : arguments) {
+    delete argument;
+  }
+}

@@ -16,3 +16,5 @@ BoundExpression *BoundVariableDeclaration::getInitializer() const {
 }
 
 bool BoundVariableDeclaration::isConst() const { return _isConst; }
+
+BoundVariableDeclaration::~BoundVariableDeclaration() { delete _initializer; }

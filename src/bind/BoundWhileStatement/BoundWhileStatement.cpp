@@ -14,3 +14,8 @@ BoundExpression *BoundWhileStatement::getCondition() const {
 }
 
 BoundStatement *BoundWhileStatement::getBody() const { return _body; }
+
+BoundWhileStatement::~BoundWhileStatement() {
+  delete _condition;
+  delete _body;
+}

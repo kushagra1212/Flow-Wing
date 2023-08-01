@@ -20,3 +20,8 @@ BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {
 BoundExpression *BoundBinaryExpression::getLeft() { return left; }
 
 BoundExpression *BoundBinaryExpression::getRight() { return right; }
+
+BoundBinaryExpression::~BoundBinaryExpression() {
+  delete left;
+  delete right;
+}

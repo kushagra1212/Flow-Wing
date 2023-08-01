@@ -10,6 +10,8 @@ public:
 
   BoundScope(BoundScope *parent);
 
+  ~BoundScope();
+
 public:
   bool tryDeclareVariable(std::string name,
                           const struct Utils::Variable &initialValue);

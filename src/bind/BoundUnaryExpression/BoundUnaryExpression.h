@@ -11,6 +11,8 @@ public:
   BoundUnaryExpression(BinderKindUtils::BoundUnaryOperatorKind op,
                        BoundExpression *operand);
 
+  ~BoundUnaryExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 

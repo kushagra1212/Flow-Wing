@@ -12,3 +12,5 @@ BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() {
 BoundExpression *BoundExpressionStatement::getExpression() {
   return expression;
 }
+
+BoundExpressionStatement::~BoundExpressionStatement() { delete expression; }

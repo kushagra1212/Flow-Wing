@@ -16,3 +16,7 @@ const std::type_info &BoundVariableExpression::getType() {
 BoundExpression *BoundVariableExpression::getIdentifierExpression() {
   return this->identiferExpression;
 }
+
+BoundVariableExpression::~BoundVariableExpression() {
+  delete this->identiferExpression;
+}

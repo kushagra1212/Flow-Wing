@@ -46,11 +46,12 @@ void Repl::runWithStream(std::istream &inputStream,
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
     if (!line.empty() && compilationUnit->logs.size()) {
       continue;
-    } else if (line.empty() && text.size()) {
-      compileAndEvaluate(compilationUnit, outputStream);
     } else {
       compileAndEvaluate(compilationUnit, outputStream);
     }
+
+    delete parser;
+    delete compilationUnit;
     text = std::vector<std::string>();
   }
 }

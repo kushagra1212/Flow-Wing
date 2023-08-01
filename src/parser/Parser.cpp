@@ -21,6 +21,12 @@ Parser::Parser(std::vector<std::string> text) {
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 }
 
+Parser::~Parser() {
+  for (int i = 0; i < this->tokens.size(); i++) {
+    delete this->tokens[i];
+  }
+}
+
 SyntaxToken<std::any> *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {

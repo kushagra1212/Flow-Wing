@@ -24,3 +24,8 @@ BoundAssignmentExpression::getOperator() {
 BoundExpression *BoundAssignmentExpression::getLeft() { return left; }
 
 BoundExpression *BoundAssignmentExpression::getRight() { return right; }
+
+BoundAssignmentExpression::~BoundAssignmentExpression() {
+  delete left;
+  delete right;
+}

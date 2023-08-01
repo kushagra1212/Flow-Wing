@@ -370,3 +370,5 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
       binder->root->functions;
   return new BoundScopeGlobal(previous, variables, functions, logs, statement);
 }
+
+Binder::~Binder() { delete this->root; }

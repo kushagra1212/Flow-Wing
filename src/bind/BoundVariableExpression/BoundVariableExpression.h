@@ -8,6 +8,8 @@ private:
 public:
   BoundVariableExpression(BoundExpression *identiferExpression);
 
+  ~BoundVariableExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 

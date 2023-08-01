@@ -20,3 +20,9 @@ BoundStatement *BoundIfStatement::getThenStatement() const {
 BoundStatement *BoundIfStatement::getElseStatement() const {
   return _elseStatement;
 }
+
+BoundIfStatement::~BoundIfStatement() {
+  delete _condition;
+  delete _thenStatement;
+  delete _elseStatement;
+}

@@ -26,3 +26,9 @@ BoundExpression *BoundForStatement::getUpperBound() const {
 
   return this->upperBound;
 }
+
+BoundForStatement::~BoundForStatement() {
+  delete initialization;
+  delete statement;
+  delete upperBound;
+}

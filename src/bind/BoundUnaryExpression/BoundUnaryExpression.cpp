@@ -19,3 +19,5 @@ BinderKindUtils::BoundUnaryOperatorKind BoundUnaryExpression::getOperator() {
 }
 
 BoundExpression *BoundUnaryExpression::getOperand() { return operand; }
+
+BoundUnaryExpression::~BoundUnaryExpression() { delete operand; }

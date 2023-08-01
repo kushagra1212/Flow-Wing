@@ -14,6 +14,8 @@ private:
 public:
   BoundVariableDeclaration(std::string variable, bool isConst,
                            BoundExpression *initializer);
+
+  ~BoundVariableDeclaration();
   BinderKindUtils::BoundNodeKind getKind() override;
   std::string getVariable() const;
   BoundExpression *getInitializer() const;

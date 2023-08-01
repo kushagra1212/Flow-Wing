@@ -9,6 +9,8 @@ private:
 public:
   BoundBlockStatement(std::vector<BoundStatement *> statements);
 
+  ~BoundBlockStatement();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 

@@ -14,6 +14,8 @@ public:
 
                     BoundStatement *statement);
 
+  ~BoundForStatement();
+
   BoundStatement *getInitialization() const;
 
   BoundStatement *getStatement() const;

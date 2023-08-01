@@ -48,6 +48,8 @@ private:
 public:
   Binder(BoundScope *root);
 
+  ~Binder();
+
 public:
   BoundExpression *bindExpression(ExpressionSyntax *syntax);
 

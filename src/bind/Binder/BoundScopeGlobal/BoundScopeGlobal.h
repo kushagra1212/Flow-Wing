@@ -10,6 +10,8 @@ public:
                    std::map<std::string, Utils::FunctionSymbol> functions,
                    std::vector<std::string> logs, BoundStatement *statement);
 
+  ~BoundScopeGlobal();
+
 public:
   BoundScopeGlobal *previous;
   std::map<std::string, Utils::Variable> variables;

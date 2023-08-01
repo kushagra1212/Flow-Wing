@@ -33,6 +33,8 @@ public:
 public:
   Parser(std::vector<std::string> text);
 
+  ~Parser();
+
 private:
   SyntaxToken<std::any> *peek(int offset);
 

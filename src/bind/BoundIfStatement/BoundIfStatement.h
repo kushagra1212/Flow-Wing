@@ -11,6 +11,8 @@ private:
 public:
   BoundIfStatement(BoundExpression *condition, BoundStatement *thenStatement,
                    BoundStatement *elseStatement);
+
+  ~BoundIfStatement();
   BinderKindUtils::BoundNodeKind getKind() override;
   BoundExpression *getCondition() const;
   BoundStatement *getThenStatement() const;

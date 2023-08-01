@@ -12,6 +12,8 @@ private:
 public:
   BoundExpressionStatement(BoundExpression *expression);
 
+  ~BoundExpressionStatement();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 

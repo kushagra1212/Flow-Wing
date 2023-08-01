@@ -11,6 +11,8 @@ private:
 public:
   BoundLiteralExpression(T value);
 
+  ~BoundLiteralExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 

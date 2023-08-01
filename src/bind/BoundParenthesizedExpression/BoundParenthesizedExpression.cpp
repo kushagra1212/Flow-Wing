@@ -16,3 +16,7 @@ const std::type_info &BoundParenthesizedExpression::getType() {
 BoundExpression *BoundParenthesizedExpression::getExpression() {
   return expression;
 }
+
+BoundParenthesizedExpression::~BoundParenthesizedExpression() {
+  delete expression;
+}

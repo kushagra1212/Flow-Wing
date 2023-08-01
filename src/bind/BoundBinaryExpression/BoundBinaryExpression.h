@@ -14,6 +14,8 @@ public:
                         BinderKindUtils::BoundBinaryOperatorKind op,
                         BoundExpression *right);
 
+  ~BoundBinaryExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
