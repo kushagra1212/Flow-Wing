@@ -7,12 +7,11 @@ template class BoundLiteralExpression<bool>;
 template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
-Evaluator::Evaluator(std::unique_ptr<Evaluator> previous,
+Evaluator::Evaluator(Evaluator *previous,
                      CompilationUnitSyntax *compilation_unit) {
   this->compilation_unit = compilation_unit;
 
-  if (previous != nullptr)
-    this->previous = std::move(previous);
+  this->previous = previous;
 }
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
@@ -45,6 +44,12 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     BoundVariableDeclaration *variableDeclaration =
         (BoundVariableDeclaration *)node;
     std::string variable_name = variableDeclaration->getVariable();
+
+    // if (this->root->variables.find(variable_name) !=
+    //     this->root->variables.end()) {
+    //   this->root->logs.push_back("Error: Variable already declared");
+    //   return;
+    // }
 
     this->root->variables[variable_name] = Utils::Variable(
         this->evaluate<std::any>(variableDeclaration->getInitializer()),

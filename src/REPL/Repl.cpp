@@ -50,8 +50,6 @@ void Repl::runWithStream(std::istream &inputStream,
       compileAndEvaluate(compilationUnit, outputStream);
     }
 
-    delete parser;
-    delete compilationUnit;
     text = std::vector<std::string>();
   }
 }
@@ -59,11 +57,8 @@ void Repl::runWithStream(std::istream &inputStream,
 void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                               std::ostream &outputStream) {
 
-  std::unique_ptr<Evaluator> currentEvaluator =
-      previousEvaluator == nullptr
-          ? std::make_unique<Evaluator>(nullptr, compilationUnit)
-          : std::make_unique<Evaluator>(std::move(previousEvaluator),
-                                        compilationUnit);
+  Evaluator *currentEvaluator =
+      new Evaluator(previousEvaluator, compilationUnit);
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
   compilationUnit->logs.insert(compilationUnit->logs.end(),
@@ -72,6 +67,7 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
 
   text = std::vector<std::string>();
 
+  previousEvaluator = currentEvaluator;
   if (seeTree) {
     Utils::prettyPrint(compilationUnit);
   }
@@ -112,8 +108,6 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
       outputStream << RED << e.what() << RESET << "\n";
     }
   }
-
-  previousEvaluator = std::move(currentEvaluator);
 }
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {

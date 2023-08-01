@@ -27,9 +27,8 @@ private:
 public:
   std::any last_value;
   CompilationUnitSyntax *compilation_unit;
-  std::unique_ptr<Evaluator> previous = nullptr;
-  Evaluator(std::unique_ptr<Evaluator> previous,
-            CompilationUnitSyntax *compilation_unit);
+  Evaluator *previous = nullptr;
+  Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
 
 public:
   BoundScopeGlobal *getRoot();
