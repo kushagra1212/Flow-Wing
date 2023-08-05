@@ -77,41 +77,42 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
     for (const std::string &log : compilationUnit->logs) {
       outputStream << RED << log << RESET << "\n";
     }
-  } else {
+    return;
+  }
 
-    try {
-      currentEvaluator->evaluateStatement(globalScope->statement);
-      std::any result = currentEvaluator->last_value;
+  try {
+    currentEvaluator->evaluateStatement(globalScope->statement);
+    std::any result = currentEvaluator->last_value;
 
-      if (currentEvaluator->getRoot()->logs.size()) {
-        for (const std::string &log : currentEvaluator->getRoot()->logs) {
-          outputStream << RED << log << RESET << "\n";
-        }
-      } else {
-
-        if (result.type() == typeid(int)) {
-          int intValue = std::any_cast<int>(result);
-          outputStream << intValue << "\n";
-        } else if (result.type() == typeid(bool)) {
-          bool boolValue = std::any_cast<bool>(result);
-          outputStream << (boolValue ? "true" : "false") << "\n";
-        } else if (result.type() == typeid(std::string)) {
-          std::string stringValue = std::any_cast<std::string>(result);
-          outputStream << stringValue << "\n";
-        } else if (result.type() == typeid(double)) {
-          double doubleValue = std::any_cast<double>(result);
-          outputStream << doubleValue << "\n";
-        } else if (result.type() == typeid(std::nullptr_t)) {
-          // Handle the nullptr_t case if needed
-        } else {
-          previousEvaluator = currentEvaluator->previous;
-          throw std::runtime_error("Unexpected result type");
-        }
+    if (currentEvaluator->getRoot()->logs.size()) {
+      for (const std::string &log : currentEvaluator->getRoot()->logs) {
+        outputStream << RED << log << RESET << "\n";
       }
-      previousEvaluator = currentEvaluator;
-    } catch (const std::exception &e) {
-      outputStream << RED << e.what() << RESET << "\n";
+      return;
+    } else {
+
+      if (result.type() == typeid(int)) {
+        int intValue = std::any_cast<int>(result);
+        outputStream << intValue << "\n";
+      } else if (result.type() == typeid(bool)) {
+        bool boolValue = std::any_cast<bool>(result);
+        outputStream << (boolValue ? "true" : "false") << "\n";
+      } else if (result.type() == typeid(std::string)) {
+        std::string stringValue = std::any_cast<std::string>(result);
+        outputStream << stringValue << "\n";
+      } else if (result.type() == typeid(double)) {
+        double doubleValue = std::any_cast<double>(result);
+        outputStream << doubleValue << "\n";
+      } else if (result.type() == typeid(std::nullptr_t)) {
+        // Handle the nullptr_t case if needed
+      } else {
+        throw std::runtime_error("Unexpected result type");
+      }
     }
+    previousEvaluator = currentEvaluator;
+  } catch (const std::exception &e) {
+    previousEvaluator = currentEvaluator->previous;
+    outputStream << RED << e.what() << RESET << "\n";
   }
 }
 

@@ -345,8 +345,10 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
 
   Binder *binder = new Binder(nullptr);
 
-  if (previous)
+  if (previous) {
     binder->root->variables = previous->variables;
+    binder->root->functions = previous->functions;
+  }
 
   std::vector<BoundStatement *> statements;
 
