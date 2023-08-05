@@ -93,14 +93,13 @@ enum SyntaxKind {
   ParameterSyntax
 
 };
-extern std::map<SyntaxKind, std::string> enum_to_string_map;
 bool isInt32(const std::string &str);
 
 bool isInt64(const std::string &str);
 
 bool isDouble(const std::string &str);
 
-void init_enum_to_string_map();
+std::string to_string(SyntaxKind kind);
 } // namespace SyntaxKindUtils
 
 #endif // SYNTAXKINDUTILS_H

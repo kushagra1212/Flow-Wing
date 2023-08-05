@@ -13,14 +13,72 @@ Evaluator::Evaluator(Evaluator *previous,
 
   this->previous = previous;
 }
+
+Evaluator::~Evaluator() {}
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
     if (previous != nullptr)
       root = Binder::bindGlobalScope(previous->root, compilation_unit);
     else
       root = Binder::bindGlobalScope(nullptr, compilation_unit);
+
+    this->variable_stack.push(this->root->variables);
   }
   return root;
+}
+
+void Evaluator::declareVariable(std::string name, Utils::Variable variable) {
+  std::map<std::string, Utils::Variable> &current_scope =
+      this->variable_stack.top();
+
+  current_scope[name] = variable;
+}
+
+Utils::Variable Evaluator::getVariable(std::string name) {
+  std::stack<std::map<std::string, Utils::Variable>> variable_stack_copy =
+      this->variable_stack;
+
+  while (!variable_stack_copy.empty()) {
+    std::map<std::string, Utils::Variable> current_scope =
+        variable_stack_copy.top();
+
+    if (current_scope.find(name) != current_scope.end()) {
+      return current_scope[name];
+    }
+
+    variable_stack_copy.pop();
+  }
+
+  this->root->logs.push_back("Error: Variable '" + name + "' is not declared");
+  return Utils::Variable();
+}
+
+void Evaluator::assignVariable(std::string name, Utils::Variable variable) {
+  std::stack<std::map<std::string, Utils::Variable>> variable_stack_copy;
+  bool found = false;
+  while (!this->variable_stack.empty()) {
+    std::map<std::string, Utils::Variable> &current_scope =
+        this->variable_stack.top();
+
+    if (current_scope.find(name) != current_scope.end()) {
+      current_scope[name] = variable;
+
+      found = true;
+      break;
+    }
+
+    variable_stack_copy.push(current_scope);
+
+    this->variable_stack.pop();
+  }
+  while (!variable_stack_copy.empty()) {
+    this->variable_stack.push(variable_stack_copy.top());
+    variable_stack_copy.pop();
+  }
+  if (!found) {
+    this->root->logs.push_back("Error: Variable '" + name +
+                               "' is not declared");
+  }
 }
 
 void Evaluator::evaluateStatement(BoundStatement *node) {
@@ -35,9 +93,21 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 
     BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
     std::vector<BoundStatement *> statements = blockStatement->getStatements();
-    for (BoundStatement *statement : statements) {
-      this->evaluateStatement(statement);
+
+    if (!blockStatement->getGlobal()) {
+      this->variable_stack.push(std::map<std::string, Utils::Variable>());
+
+      for (BoundStatement *statement : statements) {
+        this->evaluateStatement(statement);
+      }
+
+      this->variable_stack.pop();
+    } else {
+      for (BoundStatement *statement : statements) {
+        this->evaluateStatement(statement);
+      }
     }
+
     break;
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
@@ -45,17 +115,14 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
         (BoundVariableDeclaration *)node;
     std::string variable_name = variableDeclaration->getVariable();
 
-    // if (this->root->variables.find(variable_name) !=
-    //     this->root->variables.end()) {
-    //   this->root->logs.push_back("Error: Variable already declared");
-    //   return;
-    // }
+    this->declareVariable(
+        variable_name,
+        Utils::Variable(
+            this->evaluate<std::any>(variableDeclaration->getInitializer()),
+            variableDeclaration->isConst()));
 
-    this->root->variables[variable_name] = Utils::Variable(
-        this->evaluate<std::any>(variableDeclaration->getInitializer()),
-        variableDeclaration->isConst());
+    last_value = this->getVariable(variable_name).value;
 
-    last_value = this->root->variables[variable_name].value;
     break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
@@ -116,7 +183,7 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       variable_name = variableDeclaration->getVariable();
       this->evaluateStatement(variableDeclaration);
 
-      lowerBound = this->root->variables[variable_name].value;
+      lowerBound = this->getVariable(variable_name).value;
     } else {
       this->evaluateStatement(forStatement->getInitialization());
 
@@ -135,8 +202,9 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       for (int i = std::any_cast<int>(lowerBound);
            i <= std::any_cast<int>(upperBound); i++) {
         if (variable_name != "") {
-          this->root->variables[variable_name] = Utils::Variable(
-              i, (this->root->variables[variable_name]).isConst);
+          this->assignVariable(
+              variable_name,
+              Utils::Variable(i, (this->getVariable(variable_name)).isConst));
         }
         this->evaluateStatement(forStatement->getStatement());
       }
@@ -144,8 +212,9 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       for (double i = std::any_cast<double>(lowerBound);
            i <= std::any_cast<double>(upperBound); i++) {
         if (variable_name != "") {
-          this->root->variables[variable_name] = Utils::Variable(
-              i, (this->root->variables[variable_name]).isConst);
+          this->assignVariable(
+              variable_name,
+              Utils::Variable(i, (this->getVariable(variable_name)).isConst));
         }
         this->evaluateStatement(forStatement->getStatement());
       }
@@ -160,6 +229,8 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     this->root->logs.push_back("Error: Unexpected node" + node->getKind());
   }
   }
+
+  this->root->variables = this->variable_stack.top();
 }
 
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
@@ -200,13 +271,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     std::string variable_name = std::any_cast<std::string>(variable);
     switch (variableExpression->getKind()) {
     case BinderKindUtils::BoundNodeKind::VariableExpression: {
-      if (this->root->variables.find(variable_name) !=
-          this->root->variables.end()) {
-        return this->root->variables[variable_name].value;
-      } else {
-        this->root->logs.push_back("Error: variable is undefined");
-        return nullptr;
-      }
+      return this->getVariable(variable_name).value;
     }
     default:
       this->root->logs.push_back("Error: Unexpected Variable found");
@@ -220,27 +285,30 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
     std::any variable =
         this->evaluate<std::any>(assignmentExpression->getLeft());
+
     if (variable.type() != typeid(std::string)) {
       this->root->logs.push_back("Error Unexpected variable name");
       return nullptr;
     }
     std::string variable_name = std::any_cast<std::string>(variable);
 
+    std::any evaluatedRight =
+        this->evaluate<std::any>(assignmentExpression->getRight());
+    bool isConst = this->getVariable(variable_name).isConst;
     switch (assignmentExpression->getOperator()) {
     case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
 
-      this->root->variables[variable_name] = Utils::Variable(
-          this->evaluate<std::any>(assignmentExpression->getRight()),
-          this->root->variables[variable_name].isConst);
+      this->assignVariable(variable_name,
+                           Utils::Variable(evaluatedRight, isConst));
 
-      this->last_value = this->root->variables[variable_name].value;
+      this->last_value = this->getVariable(variable_name).value;
       break;
     }
     default:
       this->root->logs.push_back("Error: Unexpected assignment operator");
       return nullptr;
     }
-    return this->root->variables[variable_name].value;
+    return this->getVariable(variable_name).value;
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
@@ -249,7 +317,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         (this->evaluate<std::any>(binaryExpression->getRight()));
 
     try {
-      return Evaluator::binaryExpressionEvaluator<std::any>(
+      return this->binaryExpressionEvaluator<std::any>(
           binaryExpression->getOperator(), left_any, right_any);
     } catch (const std::exception &e) {
       this->root->logs.push_back(e.what());
@@ -487,39 +555,49 @@ T Evaluator::binaryExpressionEvaluator(
     return binaryExpressionEvaluatorBoolBoolHandler<bool, bool, std::any>(
         op, std::any_cast<bool>(left), std::any_cast<bool>(right));
 
-  } else if (left.type() == typeid(std::string) &&
-             right.type() == typeid(std::string)) {
+  }
+  // stringstring
+  else if (left.type() == typeid(std::string) &&
+           right.type() == typeid(std::string)) {
     return binaryExpressionEvaluatorStringStringHandler<std::string,
                                                         std::string, std::any>(
         op, std::any_cast<std::string>(left),
         std::any_cast<std::string>(right));
-  } else if (left.type() == typeid(std::string) &&
-             right.type() == typeid(int)) {
+  }
+  // stringint
+  else if (left.type() == typeid(std::string) && right.type() == typeid(int)) {
     return binaryExpressionEvaluatorStringIntHandler<std::string, int,
                                                      std::any>(
         op, std::any_cast<std::string>(left), std::any_cast<int>(right));
-  } else if (left.type() == typeid(int) &&
-             right.type() == typeid(std::string)) {
+  }
+  // intstring
+  else if (left.type() == typeid(int) && right.type() == typeid(std::string)) {
     return binaryExpressionEvaluatorIntStringHandler<int, std::string,
                                                      std::any>(
         op, std::any_cast<int>(left), std::any_cast<std::string>(right));
-  } else if (left.type() == typeid(std::string) &&
-             right.type() == typeid(double)) {
+  }
+  // stringdouble
+  else if (left.type() == typeid(std::string) &&
+           right.type() == typeid(double)) {
     return binaryExpressionEvaluatorStringDoubleHandler<std::string, double,
                                                         std::any>(
         op, std::any_cast<std::string>(left), std::any_cast<double>(right));
-  } else if (left.type() == typeid(double) &&
-             right.type() == typeid(std::string)) {
+  }
+  // doublestring
+  else if (left.type() == typeid(double) &&
+           right.type() == typeid(std::string)) {
     return binaryExpressionEvaluatorDoubleStringHandler<double, std::string,
                                                         std::any>(
         op, std::any_cast<double>(left), std::any_cast<std::string>(right));
-  } else if (left.type() == typeid(std::string) &&
-             right.type() == typeid(bool)) {
+  }
+  // stringbool
+  else if (left.type() == typeid(std::string) && right.type() == typeid(bool)) {
     return binaryExpressionEvaluatorStringBoolHandler<std::string, bool,
                                                       std::any>(
         op, std::any_cast<std::string>(left), std::any_cast<bool>(right));
-  } else if (left.type() == typeid(bool) &&
-             right.type() == typeid(std::string)) {
+  }
+  // boolstring
+  else if (left.type() == typeid(bool) && right.type() == typeid(std::string)) {
     return binaryExpressionEvaluatorBoolStringHandler<bool, std::string,
                                                       std::any>(
         op, std::any_cast<bool>(left), std::any_cast<std::string>(right));

@@ -4,11 +4,13 @@ BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
 
 bool BoundScope::tryDeclareVariable(
     std::string name, const struct Utils::Variable &initialValue) {
-  if (this->variables.find(name) != this->variables.end()) {
-    return false;
+  if (this->variables.find(name) == this->variables.end()) {
+
+    this->variables[name] = initialValue;
+    return true;
   }
-  this->variables[name] = initialValue;
-  return true;
+
+  return false;
 }
 
 bool BoundScope::tryDeclareFunction(
@@ -43,9 +45,23 @@ bool BoundScope::tryAssignVariable(std::string name,
 }
 
 std::vector<std::string> BoundScope::getVariablesKeys() {
-  std::vector<std::string> variables;
-  for (auto &variable : this->variables) {
-    variables.push_back(variable.first);
+  std::vector<std::string> keys;
+  if (this->parent != nullptr) {
+    keys = this->parent->getVariablesKeys();
+  }
+  for (auto const &x : this->variables) {
+    keys.push_back(x.first);
+  }
+  return keys;
+}
+
+std::map<std::string, Utils::Variable> BoundScope::getVariables() {
+  std::map<std::string, Utils::Variable> variables;
+  if (this->parent != nullptr) {
+    variables = this->parent->getVariables();
+  }
+  for (auto const &x : this->variables) {
+    variables[x.first] = x.second;
   }
   return variables;
 }

@@ -5,10 +5,11 @@
 class BoundBlockStatement : public BoundStatement {
 private:
   std::vector<BoundStatement *> statements;
+  bool global;
 
 public:
+  BoundBlockStatement(std::vector<BoundStatement *> statements, bool global);
   BoundBlockStatement(std::vector<BoundStatement *> statements);
-
   ~BoundBlockStatement();
 
 public:
@@ -16,4 +17,9 @@ public:
 
 public:
   std::vector<BoundStatement *> getStatements();
+
+  bool getGlobal() const;
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

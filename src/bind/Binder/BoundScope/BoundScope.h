@@ -23,5 +23,7 @@ public:
   bool tryDeclareFunction(std::string name,
                           const struct Utils::FunctionSymbol &function);
 
+  std::map<std::string, Utils::Variable> getVariables();
+
   std::vector<std::string> getVariablesKeys();
 };

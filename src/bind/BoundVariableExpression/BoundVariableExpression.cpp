@@ -17,6 +17,10 @@ BoundExpression *BoundVariableExpression::getIdentifierExpression() {
   return this->identiferExpression;
 }
 
+std::vector<BoundNode *> BoundVariableExpression::getChildren() {
+  return std::vector<BoundNode *>{this->identiferExpression};
+}
+
 BoundVariableExpression::~BoundVariableExpression() {
   delete this->identiferExpression;
 }

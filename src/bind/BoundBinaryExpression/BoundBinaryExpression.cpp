@@ -21,6 +21,10 @@ BoundExpression *BoundBinaryExpression::getLeft() { return left; }
 
 BoundExpression *BoundBinaryExpression::getRight() { return right; }
 
+std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
+  return std::vector<BoundNode *>{left, right};
+}
+
 BoundBinaryExpression::~BoundBinaryExpression() {
   delete left;
   delete right;

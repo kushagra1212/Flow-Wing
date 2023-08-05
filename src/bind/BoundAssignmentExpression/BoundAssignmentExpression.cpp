@@ -25,6 +25,10 @@ BoundExpression *BoundAssignmentExpression::getLeft() { return left; }
 
 BoundExpression *BoundAssignmentExpression::getRight() { return right; }
 
+std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
+  return std::vector<BoundNode *>{left, right};
+}
+
 BoundAssignmentExpression::~BoundAssignmentExpression() {
   delete left;
   delete right;

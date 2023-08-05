@@ -17,6 +17,10 @@ BoundExpression *BoundParenthesizedExpression::getExpression() {
   return expression;
 }
 
+std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
+  return std::vector<BoundNode *>{expression};
+}
+
 BoundParenthesizedExpression::~BoundParenthesizedExpression() {
   delete expression;
 }

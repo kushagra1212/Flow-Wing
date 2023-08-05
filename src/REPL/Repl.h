@@ -16,25 +16,22 @@ public:
   // Run the REPL with custom input/output streams for testing
   void runWithStream(std::istream &inputStream, std::ostream &outputStream);
   void runForTest(std::istream &inputStream, std::ostream &outputStream);
-  bool isTreeVisible() const;
-
+  bool isSyntaxTreeVisible() const;
+  bool isBoundTreeVisible() const;
   // Helper functions
   void printWelcomeMessage(std::ostream &outputStream);
-  void processInput(const std::string &line);
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
   void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                           std::ostream &outputStream);
 
-  void compileAndEvaluateForTests(const std::string &line,
-                                  std::ostream &outputStream);
   // Data members
 private:
   Evaluator *previousEvaluator;
-  bool seeTree;
-  std::vector<std::string> text;
+  bool showSyntaxTree, showBoundTree, exit;
   int braceCount;
+  std::vector<std::string> text = std::vector<std::string>();
 };
 
 #endif // REPL_H

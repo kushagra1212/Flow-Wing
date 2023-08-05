@@ -24,4 +24,7 @@ public:
 
 public:
   BoundExpression *getOperand();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

@@ -15,6 +15,13 @@ BoundExpression *BoundWhileStatement::getCondition() const {
 
 BoundStatement *BoundWhileStatement::getBody() const { return _body; }
 
+std::vector<BoundNode *> BoundWhileStatement::getChildren() {
+  std::vector<BoundNode *> children;
+  children.push_back(_condition);
+  children.push_back(_body);
+  return children;
+}
+
 BoundWhileStatement::~BoundWhileStatement() {
   delete _condition;
   delete _body;

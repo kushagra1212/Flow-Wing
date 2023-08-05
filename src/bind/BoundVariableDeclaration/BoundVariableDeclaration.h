@@ -20,5 +20,8 @@ public:
   std::string getVariable() const;
   BoundExpression *getInitializer() const;
 
+public:
+  std::vector<BoundNode *> getChildren() override;
+
   bool isConst() const;
 };

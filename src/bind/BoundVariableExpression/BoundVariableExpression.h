@@ -18,4 +18,7 @@ public:
 
 public:
   BoundExpression *getIdentifierExpression();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

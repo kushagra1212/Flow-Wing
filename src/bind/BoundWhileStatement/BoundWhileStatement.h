@@ -15,4 +15,5 @@ public:
   BinderKindUtils::BoundNodeKind getKind() override;
   BoundExpression *getCondition() const;
   BoundStatement *getBody() const;
+  std::vector<BoundNode *> getChildren() override;
 };

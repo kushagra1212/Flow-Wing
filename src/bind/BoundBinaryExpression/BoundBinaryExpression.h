@@ -30,4 +30,7 @@ public:
 
 public:
   BoundExpression *getRight();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

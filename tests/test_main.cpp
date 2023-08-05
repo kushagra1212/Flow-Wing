@@ -35,10 +35,18 @@ protected:
 
 // Test case for Repl::handleSpecialCommands
 
-TEST_F(IORedirectionTest, TestHandleSpecialCommands) {
-  setInput(":tree");
+TEST_F(IORedirectionTest, TestHandleShowSyntaxTree) {
+  setInput(":st");
   runEvaluator();
-  ASSERT_TRUE(repl->isTreeVisible());
+  ASSERT_TRUE(repl->isSyntaxTreeVisible());
+}
+
+// Test case for Repl::handleSpecialCommands
+
+TEST_F(IORedirectionTest, TestHandleShowBoundTree) {
+  setInput(":bt");
+  runEvaluator();
+  ASSERT_TRUE(repl->isBoundTreeVisible());
 }
 
 // Test case for Repl::countBraces
@@ -50,18 +58,10 @@ TEST_F(IORedirectionTest, TestCountBraces) {
   ASSERT_EQ(repl->countBraces("{{}}", '}'), 2);
 }
 
-// Test case for Repl::processInput
-
-TEST_F(IORedirectionTest, TestProcessInput) {
-  setInput("1 + 2");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
-}
-
 // Test case for Repl::compileAndEvaluate
 
 TEST_F(IORedirectionTest, TestCompileAndEvaluate) {
-  setInput("1 + 2");
+  setInput("1");
   runEvaluator();
   ASSERT_EQ(getOutput(), "3\n");
 }

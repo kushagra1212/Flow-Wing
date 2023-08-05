@@ -21,20 +21,27 @@
 
 class Evaluator {
 
-private:
-  BoundScopeGlobal *root = nullptr;
-
 public:
-  std::any last_value;
+  BoundScopeGlobal *root = nullptr;
+  std::any last_value = nullptr;
   CompilationUnitSyntax *compilation_unit;
   Evaluator *previous = nullptr;
+  std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
+  ~Evaluator();
 
 public:
   BoundScopeGlobal *getRoot();
 
 public:
   template <typename T> T evaluate(BoundExpression *node);
+
+public:
+  void declareVariable(std::string name, Utils::Variable variable);
+
+  Utils::Variable getVariable(std::string name);
+
+  void assignVariable(std::string name, Utils::Variable variable);
 
   void evaluateStatement(BoundStatement *node);
   static std::vector<std::string> logs;

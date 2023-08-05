@@ -22,6 +22,8 @@ public:
 
   Utils::FunctionSymbol getFunctionSymbol() const;
 
+  std::vector<BoundNode *> getChildren() override;
+
 private:
   Utils::FunctionSymbol functionalSymbol;
   std::vector<BoundExpression *> arguments;

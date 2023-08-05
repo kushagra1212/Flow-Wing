@@ -13,4 +13,8 @@ BoundExpression *BoundExpressionStatement::getExpression() {
   return expression;
 }
 
+std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
+  return std::vector<BoundNode *>{expression};
+}
+
 BoundExpressionStatement::~BoundExpressionStatement() { delete expression; }

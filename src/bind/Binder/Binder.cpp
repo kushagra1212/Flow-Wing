@@ -17,11 +17,17 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     std::vector<BoundStatement *> statements;
     for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-      statements.push_back(bindStatement(blockStatement->getStatements()[i]));
+
+      BoundStatement *statement =
+          bindStatement(blockStatement->getStatements()[i]);
+      statements.push_back(statement);
     }
 
+    BoundStatement *statement = new BoundBlockStatement(statements, false);
+
     this->root = this->root->parent;
-    return new BoundBlockStatement(statements);
+
+    return statement;
   }
   case SyntaxKindUtils::SyntaxKind::VariableDeclaration: {
     VariableDeclarationSyntax *variableDeclaration =
@@ -35,7 +41,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                    SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
     if (!root->tryDeclareVariable(variable_str,
-                                  Utils::Variable(nullptr, isConst))) {
+                                  Utils::Variable(nullptr, false))) {
       logs.push_back("Error: Variable " + variable_str + " already exists");
     }
 
@@ -187,7 +193,6 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     BoundLiteralExpression<std::any> *identifierExpression =
         (BoundLiteralExpression<std::any> *)bindExpression(
             assignmentExpression->getLeft());
-    BoundExpression *right = bindExpression(assignmentExpression->getRight());
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
@@ -207,6 +212,7 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected assignment operator";
     }
+    BoundExpression *right = bindExpression(assignmentExpression->getRight());
     return new BoundAssignmentExpression(identifierExpression, op, right);
   }
 
@@ -282,12 +288,13 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
     BoundScope *scope = new BoundScope(current);
 
     for (auto &pair : parent->functions) {
-      scope->tryDeclareFunction(pair.first, pair.second);
+      scope->functions[pair.first] = pair.second;
     }
 
     for (auto &pair : parent->variables) {
-      scope->tryDeclareVariable(pair.first, pair.second);
+      scope->variables[pair.first] = pair.second;
     }
+
     current = scope;
   }
 
@@ -336,8 +343,13 @@ Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
 BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
                                           CompilationUnitSyntax *syntax) {
 
-  Binder *binder = new Binder(Binder::CreateParentScope(previous));
+  Binder *binder = new Binder(nullptr);
+
+  if (previous)
+    binder->root->variables = previous->variables;
+
   std::vector<BoundStatement *> statements;
+
   for (int i = 0; i < syntax->getMembers().size(); i++) {
     if (syntax->getMembers()[i]->getKind() ==
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
@@ -356,18 +368,17 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
     }
   }
 
-  BoundStatement *statement = new BoundBlockStatement(statements);
+  BoundStatement *statement = new BoundBlockStatement(statements, true);
 
   std::vector<std::string> logs = binder->logs;
   if (previous != nullptr) {
     logs.insert(logs.end(), previous->logs.begin(), previous->logs.end());
   }
 
-  std::map<std::string, struct Utils::Variable> variables =
-      binder->root->variables;
-
-  std::map<std::string, struct Utils::FunctionSymbol> functions =
+  std::map<std::string, Utils::Variable> variables = binder->root->variables;
+  std::map<std::string, Utils::FunctionSymbol> functions =
       binder->root->functions;
+
   return new BoundScopeGlobal(previous, variables, functions, logs, statement);
 }
 

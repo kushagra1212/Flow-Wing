@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include "../Common.h"
+#include "../bind/BinderKindUtils.h"
+#include "../bind/BoundNode.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/SyntaxNode.h"
@@ -12,9 +14,15 @@ void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
 void prettyPrint(CompilationUnitSyntax *compilationUnit,
                  std::string indent = "", bool isLast = true);
+
+void prettyPrint(BoundNode *statement, std::string indent = "",
+                 bool isLast = true);
+
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
 std::string convertAnyToString(const std::any value);
+
+std::string getTypeString(const std::any &value);
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
 enum class SymbolKind {

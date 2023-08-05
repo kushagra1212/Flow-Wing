@@ -21,6 +21,14 @@ BoundStatement *BoundIfStatement::getElseStatement() const {
   return _elseStatement;
 }
 
+std::vector<BoundNode *> BoundIfStatement::getChildren() {
+  std::vector<BoundNode *> children;
+  children.push_back(_condition);
+  children.push_back(_thenStatement);
+  children.push_back(_elseStatement);
+  return children;
+}
+
 BoundIfStatement::~BoundIfStatement() {
   delete _condition;
   delete _thenStatement;

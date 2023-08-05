@@ -21,4 +21,7 @@ public:
 
 public:
   BoundExpression *getExpression();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

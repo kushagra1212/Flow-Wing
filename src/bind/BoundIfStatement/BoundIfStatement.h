@@ -17,4 +17,7 @@ public:
   BoundExpression *getCondition() const;
   BoundStatement *getThenStatement() const;
   BoundStatement *getElseStatement() const;
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

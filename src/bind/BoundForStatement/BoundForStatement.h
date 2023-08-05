@@ -24,6 +24,8 @@ public:
 
   BinderKindUtils::BoundNodeKind getKind() override;
 
+  std::vector<BoundNode *> getChildren() override;
+
 private:
   BoundStatement *initialization;
 

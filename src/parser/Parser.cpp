@@ -51,7 +51,7 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
                        "ERROR: unexpected token <" +
                        this->getCurrent()->getText() + ">, expected <" +
-                       SyntaxKindUtils::enum_to_string_map[kind] + ">");
+                       SyntaxKindUtils::to_string(kind) + ">");
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
                                    SyntaxKindUtils::SyntaxKind::EndOfFileToken,

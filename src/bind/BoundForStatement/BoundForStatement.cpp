@@ -27,6 +27,14 @@ BoundExpression *BoundForStatement::getUpperBound() const {
   return this->upperBound;
 }
 
+std::vector<BoundNode *> BoundForStatement::getChildren() {
+  std::vector<BoundNode *> children;
+  children.push_back(initialization);
+  children.push_back(statement);
+  children.push_back(upperBound);
+  return children;
+}
+
 BoundForStatement::~BoundForStatement() {
   delete initialization;
   delete statement;

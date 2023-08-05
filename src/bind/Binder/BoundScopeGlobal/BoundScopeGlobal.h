@@ -11,6 +11,9 @@ public:
                    std::vector<std::string> logs, BoundStatement *statement);
 
   ~BoundScopeGlobal();
+  bool tryLookupVariable(std::string name);
+  bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
+  Utils::Variable getVariable(std::string name);
 
 public:
   BoundScopeGlobal *previous;

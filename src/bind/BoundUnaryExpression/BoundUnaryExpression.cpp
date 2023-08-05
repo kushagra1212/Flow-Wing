@@ -20,4 +20,8 @@ BinderKindUtils::BoundUnaryOperatorKind BoundUnaryExpression::getOperator() {
 
 BoundExpression *BoundUnaryExpression::getOperand() { return operand; }
 
+std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
+  return std::vector<BoundNode *>{operand};
+}
+
 BoundUnaryExpression::~BoundUnaryExpression() { delete operand; }

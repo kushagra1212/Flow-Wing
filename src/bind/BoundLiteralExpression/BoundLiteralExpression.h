@@ -21,4 +21,7 @@ public:
 
 public:
   T getValue();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };
