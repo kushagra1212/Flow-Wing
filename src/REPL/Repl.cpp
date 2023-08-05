@@ -30,23 +30,23 @@ void Repl::runWithStream(std::istream &inputStream,
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
-
-    while (std::getline(inputStream, line)) {
-
+    while (true) {
+      std::getline(inputStream, line);
       if (handleSpecialCommands(line)) {
         break;
       }
 
-      text.push_back(line);
       if (line.empty()) {
         emptyLines++;
         if (emptyLines == 2)
           break;
 
+        outputStream << YELLOW << "... " << RESET;
         continue;
       }
       emptyLines = 0;
 
+      text.push_back(line);
       Parser *parser = new Parser(text);
 
       if (parser->logs.size()) {
@@ -54,16 +54,17 @@ void Repl::runWithStream(std::istream &inputStream,
         text = std::vector<std::string>();
         break;
       }
-
       CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
 
       if (compilationUnit->logs.size()) {
+        emptyLines++;
         outputStream << YELLOW << "... " << RESET;
         continue;
       }
 
       break;
     }
+
     if (text.size() == 0) {
       continue;
     }

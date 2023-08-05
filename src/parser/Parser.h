@@ -46,6 +46,7 @@ private:
 
 private:
   SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
+  bool matchKind(SyntaxKindUtils::SyntaxKind kind);
 
 public:
   CompilationUnitSyntax *parseCompilationUnit();

@@ -80,7 +80,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
           0);
 
       logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
-                     "ERROR: bad number input not i32: " + text);
+                     "ERROR: bad number input not Int64: " + text);
       return newSyntaxToken;
     }
     int res = stoi(text);
@@ -163,6 +163,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
 
   if (isspace(this->getCurrent())) {
     int start = this->position;
+
     while (isspace(this->getCurrent())) {
       this->next();
     }
@@ -326,6 +327,10 @@ SyntaxToken<std::any> *Lexer::nextToken() {
 
     return newSyntaxToken;
   }
+
+  return new SyntaxToken<std::any>(this->lineNumber,
+                                   SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+                                   this->position, "", 0);
 }
 
 SyntaxToken<std::any> *Lexer::readString() {

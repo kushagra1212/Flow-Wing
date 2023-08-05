@@ -25,6 +25,7 @@ BoundScopeGlobal *Evaluator::getRoot() {
       root = Binder::bindGlobalScope(nullptr, compilation_unit);
 
     this->variable_stack.push(this->root->variables);
+    this->function_stack.push(this->root->functions);
   }
   return root;
 }
@@ -53,6 +54,33 @@ Utils::Variable Evaluator::getVariable(std::string name) {
 
   this->root->logs.push_back("Error: Variable '" + name + "' is not declared");
   return Utils::Variable();
+}
+
+void Evaluator::defineFunction(std::string name,
+                               BoundFunctionDeclaration *functionDeclaration) {
+  std::map<std::string, BoundFunctionDeclaration *> &current_scope =
+      this->function_stack.top();
+
+  current_scope[name] = functionDeclaration;
+}
+
+BoundFunctionDeclaration *Evaluator::getFunction(std::string name) {
+  std::stack<std::map<std::string, BoundFunctionDeclaration *>>
+      function_stack_copy = this->function_stack;
+
+  while (!function_stack_copy.empty()) {
+    std::map<std::string, BoundFunctionDeclaration *> current_scope =
+        function_stack_copy.top();
+
+    if (current_scope.find(name) != current_scope.end()) {
+      return current_scope[name];
+    }
+
+    function_stack_copy.pop();
+  }
+
+  this->root->logs.push_back("Error: Function '" + name + "' is not declared");
+  return nullptr;
 }
 
 void Evaluator::assignVariable(std::string name, Utils::Variable variable) {
@@ -230,6 +258,11 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
 
+    BoundFunctionDeclaration *functionDeclaration =
+        (BoundFunctionDeclaration *)node;
+    this->defineFunction(functionDeclaration->functionSymbol.name,
+                         functionDeclaration);
+
     break;
   }
 
@@ -240,6 +273,7 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
   }
 
   this->root->variables = this->variable_stack.top();
+  this->root->functions = this->function_stack.top();
 }
 
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
@@ -477,14 +511,40 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
-    } else {
-      // std::vector<std::any> arguments;
-      // for (BoundExpression *argument : callExpression->getArguments()) {
-      //   arguments.push_back(this->evaluate<std::any>(argument));
-      // }
-      // return function.call(arguments);
+    }
 
-      this->root->logs.push_back("Error: Unexpected function call");
+    BoundFunctionDeclaration *functionDefination =
+        this->getFunction(function.name);
+    if (functionDefination != nullptr) {
+
+      if (functionDefination->functionSymbol.parameters.size() !=
+          arguments_size) {
+        this->root->logs.push_back("Error: Function arguments does not match");
+        return nullptr;
+      }
+
+      this->variable_stack.push(std::map<std::string, Utils::Variable>());
+
+      std::map<std::string, Utils::Variable> &function_Variables =
+          this->variable_stack.top();
+
+      for (int i = 0; i < arguments_size; i++) {
+        std::any value = (this->evaluate<std::any>(
+            (BoundExpression *)callExpression->getArguments()[i]));
+        function_Variables[functionDefination->functionSymbol.parameters[i]
+                               .name] =
+            Utils::Variable(
+                value,
+                functionDefination->functionSymbol.parameters[i].isConst);
+      }
+
+      this->evaluateStatement(functionDefination->body);
+
+      this->variable_stack.pop();
+
+      return nullptr;
+    } else {
+      this->root->logs.push_back("Error: Function not found");
       return nullptr;
     }
   }

@@ -74,6 +74,7 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
     return 2;
   case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsToken:
     return 1;
   default:
     return 0;

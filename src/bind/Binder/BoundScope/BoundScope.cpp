@@ -35,8 +35,8 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-bool BoundScope::tryDeclareFunction(
-    std::string name, const struct Utils::FunctionSymbol &function) {
+bool BoundScope::tryDeclareFunction(std::string name,
+                                    BoundFunctionDeclaration *function) {
   if (this->functions.find(name) == this->functions.end()) {
 
     this->functions[name] = function;

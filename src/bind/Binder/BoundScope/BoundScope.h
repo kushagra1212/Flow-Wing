@@ -1,10 +1,11 @@
 #pragma once
 #include "../../../Common.h"
 #include "../../../utils/Utils.h"
+#include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 class BoundScope {
 public:
   std::map<std::string, struct Utils::Variable> variables;
-  std::map<std::string, struct Utils::FunctionSymbol> functions;
+  std::map<std::string, BoundFunctionDeclaration *> functions;
 
   BoundScope *parent;
 
@@ -20,8 +21,7 @@ public:
 
   bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
 
-  bool tryDeclareFunction(std::string name,
-                          const struct Utils::FunctionSymbol &function);
+  bool tryDeclareFunction(std::string name, BoundFunctionDeclaration *function);
 
   bool tryLookupFunction(std::string name);
 };

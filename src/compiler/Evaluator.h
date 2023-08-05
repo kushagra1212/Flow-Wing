@@ -27,6 +27,8 @@ public:
   CompilationUnitSyntax *compilation_unit;
   Evaluator *previous = nullptr;
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
+  std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
+
   Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
   ~Evaluator();
 
@@ -38,6 +40,10 @@ public:
 
 public:
   void declareVariable(std::string name, Utils::Variable variable);
+
+  void defineFunction(std::string name,
+                      BoundFunctionDeclaration *functionDeclaration);
+  BoundFunctionDeclaration *getFunction(std::string name);
 
   Utils::Variable getVariable(std::string name);
 

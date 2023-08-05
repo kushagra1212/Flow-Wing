@@ -256,14 +256,27 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
         Utils::BuiltInFunctions::getFunctionSymbol(
             std::any_cast<std::string>(identifier->getValue()));
 
-    if (functionSymbol.kind == Utils::SymbolKind::None) {
-      logs.push_back(Utils::getLineNumberAndPosition(
-                         callExpression->getIdentifier()->getToken()) +
-                     "Error: Function " +
-                     callExpression->getIdentifier()->getToken()->getText() +
-                     " does not exist");
-      return identifier;
+    if (functionSymbol.name == "") {
+      std::vector<Utils::FunctionParameterSymbol> parameters;
+
+      for (int i = 0; i < callExpression->getArguments().size(); i++) {
+        parameters.push_back(
+            Utils::FunctionParameterSymbol(std::to_string(i), false));
+      }
+
+      functionSymbol = Utils::FunctionSymbol(
+          std::any_cast<std::string>(identifier->getValue()), parameters,
+          Utils::type::VOID);
     }
+
+    // if (functionSymbol.kind == Utils::SymbolKind::None) {
+    //   logs.push_back(Utils::getLineNumberAndPosition(
+    //                      callExpression->getIdentifier()->getToken()) +
+    //                  "Error: Function " +
+    //                  callExpression->getIdentifier()->getToken()->getText() +
+    //                  " does not exist");
+    //   return identifier;
+    // }
 
     // if (callExpression->getArguments().size() != functionSymbol.arity()) {
     //   logs.push_back("Error: Function " +
@@ -299,10 +312,6 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
     stack.pop();
     BoundScope *scope = new BoundScope(current);
 
-    for (auto &pair : parent->functions) {
-      scope->functions[pair.first] = pair.second;
-    }
-
     for (auto &pair : parent->variables) {
       scope->variables[pair.first] = pair.second;
     }
@@ -317,40 +326,39 @@ BoundStatement *
 Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   std::vector<Utils::FunctionParameterSymbol> parameters;
 
-  std::unordered_map<std::string, int> alreadyDeclared;
+  this->root = new BoundScope(this->root);
+  std::string function_name = syntax->getIdentifierToken()->getText();
 
   for (int i = 0; i < syntax->getParameters().size(); i++) {
-
-    if (alreadyDeclared.find(
-            syntax->getParameters()[i]->getIdentifierToken()->getText()) !=
-        alreadyDeclared.end()) {
+    std::string variable_str =
+        syntax->getParameters()[i]->getIdentifierToken()->getText();
+    if (!this->root->tryDeclareVariable(variable_str,
+                                        Utils::Variable(nullptr, false))) {
       this->logs.push_back(
-
           Utils::getLineNumberAndPosition(
               syntax->getParameters()[i]->getIdentifierToken()) +
-          "Error: Parameter " +
-          syntax->getParameters()[i]->getIdentifierToken()->getText() +
-          " already declared");
-      break;
+          "Error: Parameter " + variable_str + " already declared");
     }
-
-    alreadyDeclared.insert(std::make_pair(
-        syntax->getParameters()[i]->getIdentifierToken()->getText(), 1));
 
     parameters.push_back(Utils::FunctionParameterSymbol(
         syntax->getParameters()[i]->getIdentifierToken()->getText(), false));
   }
 
-  Utils::FunctionSymbol functionSymbol = Utils::FunctionSymbol(
-      syntax->getIdentifierToken()->getText(), parameters, Utils::type::VOID);
-  if (!this->root->tryDeclareFunction(functionSymbol.name, functionSymbol)) {
+  Utils::FunctionSymbol functionSymbol =
+      Utils::FunctionSymbol(function_name, parameters, Utils::type::VOID);
+
+  BoundBlockStatement *body =
+      (BoundBlockStatement *)bindStatement(syntax->getBody());
+  BoundFunctionDeclaration *fd =
+      new BoundFunctionDeclaration(functionSymbol, body);
+
+  if (!this->root->tryDeclareFunction(functionSymbol.name, fd)) {
     this->logs.push_back(
         Utils::getLineNumberAndPosition(syntax->getFunctionKeyword()) +
         "Error: Function " + functionSymbol.name + " already declared");
   }
-  BoundBlockStatement *body =
-      (BoundBlockStatement *)bindStatement(syntax->getBody());
-  return new BoundFunctionDeclaration(functionSymbol, body);
+  this->root = this->root->parent;
+  return fd;
 }
 
 BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
@@ -398,7 +406,7 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
   }
 
   std::map<std::string, Utils::Variable> variables = binder->root->variables;
-  std::map<std::string, Utils::FunctionSymbol> functions =
+  std::map<std::string, BoundFunctionDeclaration *> functions =
       binder->root->functions;
 
   return new BoundScopeGlobal(previous, variables, functions, logs, statement);

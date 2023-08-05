@@ -56,10 +56,12 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
       ">, expected <" + SyntaxKindUtils::to_string(kind) + ">");
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
-                                   SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+                                   SyntaxKindUtils::SyntaxKind::EndOfLineToken,
                                    this->getCurrent()->getPosition(), "\0", 0);
 }
-
+bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
+  return this->getCurrent()->getKind() == kind;
+}
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
   std::vector<MemberSyntax *> members = this->parseMemberList();
   SyntaxToken<std::any> *endOfFileToken =
@@ -93,17 +95,24 @@ FunctionDeclarationSyntax *Parser::parseFunctionDeclaration() {
   SyntaxToken<std::any> *openParenthesisToken =
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
   std::vector<ParameterSyntax *> parameters;
+
   while (this->getCurrent()->getKind() !=
-         SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {
+             SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+
     if (parameters.size() > 0) {
+
       this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
     }
+
     parameters.push_back(new ParameterSyntax(
         this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
   }
   SyntaxToken<std::any> *closeParenthesisToken =
       this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
   BlockStatementSyntax *body = this->parseBlockStatement();
+
   return new FunctionDeclarationSyntax(functionKeyword, identifier,
                                        openParenthesisToken, parameters,
                                        closeParenthesisToken, body);
@@ -115,6 +124,7 @@ GlobalStatementSyntax *Parser::parseGlobalStatement() {
 }
 
 BlockStatementSyntax *Parser::parseBlockStatement() {
+
   SyntaxToken<std::any> *openBraceToken =
       this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
 
@@ -254,6 +264,7 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
     if (precedence == 0 || precedence <= parentPrecedence) {
       break;
     }
+
     SyntaxToken<std::any> *operatorToken = this->nextToken();
 
     ExpressionSyntax *right = this->parseExpression(precedence);
