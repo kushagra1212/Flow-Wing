@@ -42,7 +42,9 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     if (!root->tryDeclareVariable(variable_str,
                                   Utils::Variable(nullptr, false))) {
-      logs.push_back("Error: Variable " + variable_str + " already exists");
+      logs.push_back(Utils::getLineNumberAndPosition(
+                         variableDeclaration->getIdentifier()) +
+                     "Error: Variable " + variable_str + " already exists");
     }
 
     return new BoundVariableDeclaration(variable_str, isConst, initializer);
@@ -197,11 +199,16 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
     if (!root->tryLookupVariable(variable_str)) {
-      logs.push_back("Error: Variable " + variable_str + " does not exist");
+      logs.push_back(Utils::getLineNumberAndPosition(
+                         assignmentExpression->getOperatorToken()) +
+                     "Error: Can not assign to undeclared variable " +
+                     variable_str);
       return identifierExpression;
     }
     if (root->variables[variable_str].isConst) {
-      logs.push_back("Error: Variable " + variable_str + " is const");
+      logs.push_back(Utils::getLineNumberAndPosition(
+                         assignmentExpression->getOperatorToken()) +
+                     "Error: Can not assign to const variable " + variable_str);
       return identifierExpression;
     }
 
@@ -226,7 +233,10 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     if (!root->tryLookupVariable(variable_str)) {
-      logs.push_back("Error: Variable " + variable_str + " does not exist");
+      logs.push_back(
+          Utils::getLineNumberAndPosition(
+              variableExpressionSyntax->getIdentifier()->getToken()) +
+          "Error: Variable " + variable_str + " does not exist");
       return identifierExpression;
     }
     return new BoundVariableExpression(identifierExpression);
@@ -247,8 +257,10 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
             std::any_cast<std::string>(identifier->getValue()));
 
     if (functionSymbol.kind == Utils::SymbolKind::None) {
-      logs.push_back("Error: Function " +
-                     std::any_cast<std::string>(identifier->getValue()) +
+      logs.push_back(Utils::getLineNumberAndPosition(
+                         callExpression->getIdentifier()->getToken()) +
+                     "Error: Function " +
+                     callExpression->getIdentifier()->getToken()->getText() +
                      " does not exist");
       return identifier;
     }
@@ -301,7 +313,8 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
   return current;
 }
 
-void Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
+BoundStatement *
+Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   std::vector<Utils::FunctionParameterSymbol> parameters;
 
   std::unordered_map<std::string, int> alreadyDeclared;
@@ -312,10 +325,13 @@ void Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
             syntax->getParameters()[i]->getIdentifierToken()->getText()) !=
         alreadyDeclared.end()) {
       this->logs.push_back(
+
+          Utils::getLineNumberAndPosition(
+              syntax->getParameters()[i]->getIdentifierToken()) +
           "Error: Parameter " +
           syntax->getParameters()[i]->getIdentifierToken()->getText() +
           " already declared");
-      return;
+      break;
     }
 
     alreadyDeclared.insert(std::make_pair(
@@ -328,10 +344,13 @@ void Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   Utils::FunctionSymbol functionSymbol = Utils::FunctionSymbol(
       syntax->getIdentifierToken()->getText(), parameters, Utils::type::VOID);
   if (!this->root->tryDeclareFunction(functionSymbol.name, functionSymbol)) {
-    this->logs.push_back("Error: Function " + functionSymbol.name +
-                         " already declared");
-    return;
+    this->logs.push_back(
+        Utils::getLineNumberAndPosition(syntax->getFunctionKeyword()) +
+        "Error: Function " + functionSymbol.name + " already declared");
   }
+  BoundBlockStatement *body =
+      (BoundBlockStatement *)bindStatement(syntax->getBody());
+  return new BoundFunctionDeclaration(functionSymbol, body);
 }
 
 BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
@@ -357,7 +376,8 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
       FunctionDeclarationSyntax *functionDeclarationSyntax =
           (FunctionDeclarationSyntax *)syntax->getMembers()[i];
-      binder->bindFunctionDeclaration(functionDeclarationSyntax);
+      statements.push_back(
+          binder->bindFunctionDeclaration(functionDeclarationSyntax));
     } else if (syntax->getMembers()[i]->getKind() ==
                SyntaxKindUtils::SyntaxKind::GlobalStatement) {
       GlobalStatementSyntax *globalStatementSyntax =

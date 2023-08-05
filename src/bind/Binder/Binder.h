@@ -28,6 +28,7 @@
 #include "../BoundExpression.h"
 #include "../BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../BoundForStatement/BoundForStatement.h"
+#include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../BoundIfStatement/BoundIfStatement.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundStatement/BoundStatement.h"
@@ -55,7 +56,7 @@ public:
 
   BoundStatement *bindGlobalStatement(GlobalStatementSyntax *syntax);
 
-  void bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
+  BoundStatement *bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
 
 public:
   static BoundScopeGlobal *bindGlobalScope(BoundScopeGlobal *previous,

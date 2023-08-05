@@ -13,15 +13,6 @@ bool BoundScope::tryDeclareVariable(
   return false;
 }
 
-bool BoundScope::tryDeclareFunction(
-    std::string name, const struct Utils::FunctionSymbol &function) {
-  if (this->functions.find(name) != this->functions.end()) {
-    return false;
-  }
-  this->functions[name] = function;
-  return true;
-}
-
 bool BoundScope::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {
     return true;
@@ -44,26 +35,27 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-std::vector<std::string> BoundScope::getVariablesKeys() {
-  std::vector<std::string> keys;
-  if (this->parent != nullptr) {
-    keys = this->parent->getVariablesKeys();
+bool BoundScope::tryDeclareFunction(
+    std::string name, const struct Utils::FunctionSymbol &function) {
+  if (this->functions.find(name) == this->functions.end()) {
+
+    this->functions[name] = function;
+    return true;
   }
-  for (auto const &x : this->variables) {
-    keys.push_back(x.first);
-  }
-  return keys;
+
+  return false;
 }
 
-std::map<std::string, Utils::Variable> BoundScope::getVariables() {
-  std::map<std::string, Utils::Variable> variables;
-  if (this->parent != nullptr) {
-    variables = this->parent->getVariables();
+bool BoundScope::tryLookupFunction(std::string name) {
+  if (this->functions.find(name) != this->functions.end()) {
+    return true;
   }
-  for (auto const &x : this->variables) {
-    variables[x.first] = x.second;
+  if (this->parent == nullptr) {
+    return false;
   }
-  return variables;
+  return this->parent->tryLookupFunction(name);
 }
 
-BoundScope::~BoundScope() { delete this->parent; }
+BoundScope::~BoundScope() {
+  // /delete this->parent;
+}

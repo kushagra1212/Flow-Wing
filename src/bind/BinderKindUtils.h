@@ -21,7 +21,8 @@ enum BoundNodeKind {
 
   // declarations
 
-  VariableDeclaration
+  VariableDeclaration,
+  FunctionDeclaration
 };
 
 enum BoundUnaryOperatorKind {

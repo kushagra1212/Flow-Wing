@@ -2,7 +2,7 @@
 #include "VariableExpressionSyntax.h"
 
 VariableExpressionSyntax::VariableExpressionSyntax(
-    ExpressionSyntax *identifierExpression) {
+    LiteralExpressionSyntax<std::any> *identifierExpression) {
   this->identifierExpression = identifierExpression;
 }
 
@@ -10,7 +10,7 @@ SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::VariableExpression;
 }
 
-ExpressionSyntax *VariableExpressionSyntax::getIdentifier() {
+LiteralExpressionSyntax<std::any> *VariableExpressionSyntax::getIdentifier() {
   return this->identifierExpression;
 }
 

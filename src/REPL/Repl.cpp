@@ -5,11 +5,23 @@ Repl::Repl()
 
 Repl::~Repl() {}
 
-void Repl::run() { runWithStream(std::cin, std::cout); }
+void Repl::run() {
+  printWelcomeMessage(std::cout);
+  runWithStream(std::cin, std::cout);
+}
+
+void Repl::printErrors(const std::vector<std::string> &errors,
+                       std::ostream &outputStream, bool isWarning = false) {
+  for (const std::string &error : errors) {
+    if (isWarning)
+      outputStream << YELLOW << error << RESET << "\n";
+    else
+      std::cout << RED << error << RESET << "\n";
+  }
+}
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  printWelcomeMessage(outputStream);
 
   while (!exit) {
 
@@ -18,27 +30,38 @@ void Repl::runWithStream(std::istream &inputStream,
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
-    while (std::getline(inputStream, line)) {
-      if (line.empty()) {
-        emptyLines++;
-        if (emptyLines == 2) {
-          break;
-        }
-      } else if (handleSpecialCommands(line)) {
 
+    while (std::getline(inputStream, line)) {
+
+      if (handleSpecialCommands(line)) {
         break;
-      } else {
-        emptyLines = 0;
       }
 
       text.push_back(line);
+      if (line.empty()) {
+        emptyLines++;
+        if (emptyLines == 2)
+          break;
+
+        continue;
+      }
+      emptyLines = 0;
+
       Parser *parser = new Parser(text);
+
+      if (parser->logs.size()) {
+        printErrors(parser->logs, outputStream);
+        text = std::vector<std::string>();
+        break;
+      }
+
       CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
 
       if (compilationUnit->logs.size()) {
         outputStream << YELLOW << "... " << RESET;
         continue;
       }
+
       break;
     }
     if (text.size() == 0) {
@@ -46,10 +69,10 @@ void Repl::runWithStream(std::istream &inputStream,
     }
 
     Parser *parser = new Parser(text);
-
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
-
-    if (!exit)
+    if (compilationUnit->logs.size()) {
+      printErrors(compilationUnit->logs, outputStream);
+    } else if (!exit)
       compileAndEvaluate(compilationUnit, outputStream);
   }
 }
@@ -61,11 +84,7 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
       new Evaluator(previousEvaluator, compilationUnit);
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
-  compilationUnit->logs.insert(compilationUnit->logs.end(),
-                               globalScope->logs.begin(),
-                               globalScope->logs.end());
 
-  text = std::vector<std::string>();
   if (showSyntaxTree) {
     Utils::prettyPrint(compilationUnit);
   }
@@ -73,24 +92,14 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement);
   }
-  if (compilationUnit->logs.size()) {
-    for (const std::string &log : compilationUnit->logs) {
-      outputStream << RED << log << RESET << "\n";
-    }
-    return;
-  }
 
   try {
     currentEvaluator->evaluateStatement(globalScope->statement);
     std::any result = currentEvaluator->last_value;
 
-    if (currentEvaluator->getRoot()->logs.size()) {
-      for (const std::string &log : currentEvaluator->getRoot()->logs) {
-        outputStream << RED << log << RESET << "\n";
-      }
-      return;
+    if (globalScope->logs.size()) {
+      printErrors(globalScope->logs, outputStream);
     } else {
-
       if (result.type() == typeid(int)) {
         int intValue = std::any_cast<int>(result);
         outputStream << intValue << "\n";
@@ -105,13 +114,14 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
         outputStream << doubleValue << "\n";
       } else if (result.type() == typeid(std::nullptr_t)) {
         // Handle the nullptr_t case if needed
+
       } else {
         throw std::runtime_error("Unexpected result type");
       }
+      previousEvaluator = currentEvaluator;
     }
-    previousEvaluator = currentEvaluator;
+
   } catch (const std::exception &e) {
-    previousEvaluator = currentEvaluator->previous;
     outputStream << RED << e.what() << RESET << "\n";
   }
 }

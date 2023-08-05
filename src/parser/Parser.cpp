@@ -4,9 +4,6 @@ Parser::Parser(std::vector<std::string> text) {
   Lexer *lexer = new Lexer(text);
   SyntaxToken<std::any> *token;
 
-  if (lexer->logs.size()) {
-    this->logs = lexer->logs;
-  }
   do {
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -19,6 +16,10 @@ Parser::Parser(std::vector<std::string> text) {
                            ">");
     }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
+
+  if (lexer->logs.size()) {
+    this->logs.insert(this->logs.end(), lexer->logs.begin(), lexer->logs.end());
+  }
 }
 
 Parser::~Parser() {
@@ -48,10 +49,11 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return this->nextToken();
   }
-  this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
-                       "ERROR: unexpected token <" +
-                       this->getCurrent()->getText() + ">, expected <" +
-                       SyntaxKindUtils::to_string(kind) + ">");
+  this->logs.push_back(
+      Utils::getLineNumberAndPosition(this->getCurrent()) +
+      "ERROR: unexpected token <" +
+      SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+      ">, expected <" + SyntaxKindUtils::to_string(kind) + ">");
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
                                    SyntaxKindUtils::SyntaxKind::EndOfFileToken,
@@ -299,9 +301,10 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
     return this->parseNameorCallExpression();
   }
   default:
-    this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
-                         "ERROR: unexpected token <" +
-                         this->getCurrent()->getText() + ">");
+    this->logs.push_back(
+        Utils::getLineNumberAndPosition(this->getCurrent()) +
+        "ERROR: unexpected token <" +
+        SyntaxKindUtils::to_string(this->getCurrent()->getKind()) + ">");
     return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
   }
 }

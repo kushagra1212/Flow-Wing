@@ -1,11 +1,13 @@
 #pragma once
 #include "ExpressionSyntax.h"
+#include "LiteralExpressionSyntax.h"
 class VariableExpressionSyntax : public ExpressionSyntax {
 private:
-  ExpressionSyntax *identifierExpression;
+  LiteralExpressionSyntax<std::any> *identifierExpression;
 
 public:
-  VariableExpressionSyntax(ExpressionSyntax *identifierExpression);
+  VariableExpressionSyntax(
+      LiteralExpressionSyntax<std::any> *identifierExpression);
 
   ~VariableExpressionSyntax();
 
@@ -13,7 +15,7 @@ public:
   SyntaxKindUtils::SyntaxKind getKind();
 
 public:
-  ExpressionSyntax *getIdentifier();
+  LiteralExpressionSyntax<std::any> *getIdentifier();
 
 public:
   std::vector<SyntaxNode *> getChildren();

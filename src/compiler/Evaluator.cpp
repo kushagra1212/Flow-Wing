@@ -14,7 +14,9 @@ Evaluator::Evaluator(Evaluator *previous,
   this->previous = previous;
 }
 
-Evaluator::~Evaluator() {}
+Evaluator::~Evaluator() {
+  // delete this->root;
+}
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
     if (previous != nullptr)
@@ -225,8 +227,15 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 
     break;
   }
+
+  case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
+
+    break;
+  }
+
   default: {
-    this->root->logs.push_back("Error: Unexpected node" + node->getKind());
+    this->root->logs.push_back("Error: Unexpected node" +
+                               BinderKindUtils::to_string(node->getKind()));
   }
   }
 

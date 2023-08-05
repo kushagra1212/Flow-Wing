@@ -26,6 +26,8 @@ public:
   void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                           std::ostream &outputStream);
 
+  void printErrors(const std::vector<std::string> &errors,
+                   std::ostream &outputStream, bool isWarning);
   // Data members
 private:
   Evaluator *previousEvaluator;

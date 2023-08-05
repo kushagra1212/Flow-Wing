@@ -2,14 +2,15 @@
 #include "../../Common.h"
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
+#include "LiteralExpressionSyntax.h"
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
-  ExpressionSyntax *left;
+  LiteralExpressionSyntax<std::any> *left;
   SyntaxToken<std::any> *operatorToken;
   ExpressionSyntax *right;
 
 public:
-  AssignmentExpressionSyntax(ExpressionSyntax *left,
+  AssignmentExpressionSyntax(LiteralExpressionSyntax<std::any> *left,
                              SyntaxToken<std::any> *operatorToken,
                              ExpressionSyntax *right);
 
@@ -28,5 +29,5 @@ public:
   ExpressionSyntax *getRight();
 
 public:
-  ExpressionSyntax *getLeft();
+  LiteralExpressionSyntax<std::any> *getLeft();
 };

@@ -15,19 +15,22 @@ void Lexer::updatePosition() {
 void Lexer::next() { this->position++; }
 
 SyntaxToken<std::any> *Lexer::nextToken() {
-  if (this->position >= this->text[lineNumber].length()) {
-
-    this->updatePosition();
-    return new SyntaxToken<std::any>(
-        this->lineNumber, SyntaxKindUtils::SyntaxKind::EndOfLineToken,
-        this->position, "\0", 0);
-  }
 
   if (this->lineNumber >= this->text.size()) {
     return new SyntaxToken<std::any>(
-        this->lineNumber, SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+        this->lineNumber++, SyntaxKindUtils::SyntaxKind::EndOfFileToken,
         this->position, "\0", 0);
   }
+
+  if (this->position >= this->text[lineNumber].length()) {
+    int prevPosition = this->position;
+    int prevLineNumber = this->lineNumber;
+    this->updatePosition();
+    return new SyntaxToken<std::any>(
+        prevLineNumber, SyntaxKindUtils::SyntaxKind::EndOfLineToken,
+        prevPosition, "\r\n", 0);
+  }
+
   // check for int
 
   if (isdigit(this->getCurrent())) {
@@ -174,19 +177,19 @@ SyntaxToken<std::any> *Lexer::nextToken() {
   case '+':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::PlusToken,
-                                     this->position++, "+", 0);
+                                     this->position++, "+", "+");
   case '-':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::MinusToken,
-                                     this->position++, "-", 0);
+                                     this->position++, "-", "-");
   case '*':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::StarToken,
-                                     this->position++, "*", 0);
+                                     this->position++, "*", "*");
   case '/':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::SlashToken,
-                                     this->position++, "/", 0);
+                                     this->position++, "/", "/");
   case '(':
     return new SyntaxToken<std::any>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::OpenParenthesisToken,
@@ -203,25 +206,25 @@ SyntaxToken<std::any> *Lexer::nextToken() {
       return new SyntaxToken<std::any>(
           this->lineNumber,
           SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
-          this->position++, "&&", 0);
+          this->position++, "&&", "&&");
     }
 
     return new SyntaxToken<std::any>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::AmpersandToken,
-        this->position++, "&", 0);
+        this->position++, "&", "&");
   }
   case '^':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::CaretToken,
-                                     this->position++, "^", 0);
+                                     this->position++, "^", "^");
   case '%':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::PercentToken,
-                                     this->position++, "%", 0);
+                                     this->position++, "%", "%");
   case '~':
     return new SyntaxToken<std::any>(this->lineNumber,
                                      SyntaxKindUtils::SyntaxKind::TildeToken,
-                                     this->position++, "~", 0);
+                                     this->position++, "~", "~");
   case '|': {
 
     if (this->position + 1 < this->text[lineNumber].length() &&
@@ -316,7 +319,7 @@ SyntaxToken<std::any> *Lexer::nextToken() {
     SyntaxToken<std::any> *newSyntaxToken = new SyntaxToken<std::any>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken,
         this->position++, this->text[lineNumber].substr(this->position - 1, 1),
-        0);
+        this->text[lineNumber].substr(this->position - 1, 1));
     logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken) +
                    "ERROR: bad character input: " +
                    this->text[lineNumber].substr(this->position, 1));
