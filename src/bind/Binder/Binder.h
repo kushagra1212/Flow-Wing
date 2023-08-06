@@ -41,14 +41,13 @@
 #include <stack>
 class Binder {
 private:
-  std::vector<std::string> logs;
-
 private:
   BoundScope *root;
 
 public:
   Binder(BoundScope *root);
 
+  std::vector<std::string> logs;
   ~Binder();
 
 public:

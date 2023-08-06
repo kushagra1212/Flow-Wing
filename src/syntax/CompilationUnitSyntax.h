@@ -10,9 +10,7 @@ private:
   SyntaxToken<std::any> *endOfFileToken;
 
 public:
-  std::vector<std::string> logs;
-  CompilationUnitSyntax(std::vector<std::string> &logs,
-                        std::vector<MemberSyntax *> members,
+  CompilationUnitSyntax(std::vector<MemberSyntax *> members,
                         SyntaxToken<std::any> *endOfFileToken);
   ~CompilationUnitSyntax();
 

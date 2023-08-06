@@ -30,12 +30,26 @@ ExpressionSyntax *VariableDeclarationSyntax::getInitializer() const {
 SyntaxToken<std::any> *VariableDeclarationSyntax::getKeyword() const {
   return _keyword;
 }
-
 VariableDeclarationSyntax::~VariableDeclarationSyntax() {
-  delete _keyword;
-  delete _identifier;
-  delete _equalsToken;
-  delete _initializer;
+  if (_keyword != nullptr) {
+    delete _keyword;
+    _keyword = nullptr;
+  }
+
+  if (_identifier != nullptr) {
+    delete _identifier;
+    _identifier = nullptr;
+  }
+
+  if (_equalsToken != nullptr) {
+    delete _equalsToken;
+    _equalsToken = nullptr;
+  }
+
+  if (_initializer != nullptr) {
+    delete _initializer;
+    _initializer = nullptr;
+  }
 }
 
 // Path:

@@ -30,6 +30,13 @@ std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
 }
 
 BoundAssignmentExpression::~BoundAssignmentExpression() {
-  delete left;
-  delete right;
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
 }

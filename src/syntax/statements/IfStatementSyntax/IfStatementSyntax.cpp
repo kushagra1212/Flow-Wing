@@ -35,8 +35,23 @@ std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
 }
 
 IfStatementSyntax::~IfStatementSyntax() {
-  delete ifKeyword;
-  delete condition;
-  delete statement;
-  delete elseClause;
+  if (ifKeyword != nullptr) {
+    delete ifKeyword;
+    ifKeyword = nullptr;
+  }
+
+  if (condition != nullptr) {
+    delete condition;
+    condition = nullptr;
+  }
+
+  if (statement != nullptr) {
+    delete statement;
+    statement = nullptr;
+  }
+
+  if (elseClause != nullptr) {
+    delete elseClause;
+    elseClause = nullptr;
+  }
 }

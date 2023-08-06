@@ -21,4 +21,9 @@ std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
   return std::vector<BoundNode *>{_initializer};
 }
 
-BoundVariableDeclaration::~BoundVariableDeclaration() { delete _initializer; }
+BoundVariableDeclaration::~BoundVariableDeclaration() {
+  if (_initializer != nullptr) {
+    delete _initializer;
+    _initializer = nullptr;
+  }
+}

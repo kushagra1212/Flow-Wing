@@ -42,9 +42,10 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     if (!root->tryDeclareVariable(variable_str,
                                   Utils::Variable(nullptr, false))) {
-      logs.push_back(Utils::getLineNumberAndPosition(
-                         variableDeclaration->getIdentifier()) +
-                     "Error: Variable " + variable_str + " already exists");
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               variableDeclaration->getIdentifier()) +
+                           "Error: Variable " + variable_str +
+                           " already exists");
     }
 
     return new BoundVariableDeclaration(variable_str, isConst, initializer);
@@ -125,7 +126,7 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     BinderKindUtils::BoundBinaryOperatorKind op;
 
     // if (left->getType() != typeid(int) || right->getType() != typeid(int)) {
-    //   logs.push_back("Binary operator can only be applied to numbers");
+    //   this->logs.push_back("Binary operator can only be applied to numbers");
     //   return left;
     // }
 
@@ -199,16 +200,17 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
     if (!root->tryLookupVariable(variable_str)) {
-      logs.push_back(Utils::getLineNumberAndPosition(
-                         assignmentExpression->getOperatorToken()) +
-                     "Error: Can not assign to undeclared variable " +
-                     variable_str);
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               assignmentExpression->getOperatorToken()) +
+                           "Error: Can not assign to undeclared variable " +
+                           variable_str);
       return identifierExpression;
     }
     if (root->variables[variable_str].isConst) {
-      logs.push_back(Utils::getLineNumberAndPosition(
-                         assignmentExpression->getOperatorToken()) +
-                     "Error: Can not assign to const variable " + variable_str);
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               assignmentExpression->getOperatorToken()) +
+                           "Error: Can not assign to const variable " +
+                           variable_str);
       return identifierExpression;
     }
 
@@ -233,7 +235,7 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     if (!root->tryLookupVariable(variable_str)) {
-      logs.push_back(
+      this->logs.push_back(
           Utils::getLineNumberAndPosition(
               variableExpressionSyntax->getIdentifier()->getToken()) +
           "Error: Variable " + variable_str + " does not exist");
@@ -270,7 +272,7 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     }
 
     // if (functionSymbol.kind == Utils::SymbolKind::None) {
-    //   logs.push_back(Utils::getLineNumberAndPosition(
+    //   this->logs.push_back(Utils::getLineNumberAndPosition(
     //                      callExpression->getIdentifier()->getToken()) +
     //                  "Error: Function " +
     //                  callExpression->getIdentifier()->getToken()->getText() +
@@ -279,7 +281,7 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     // }
 
     // if (callExpression->getArguments().size() != functionSymbol.arity()) {
-    //   logs.push_back("Error: Function " +
+    //   this->logs.push_back("Error: Function " +
     //                  std::any_cast<std::string>(identifier->getValue()) +
     //                  " requires " + std::to_string(functionSymbol.arity()) +
     //                  " arguments");
@@ -400,16 +402,28 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
 
   BoundStatement *statement = new BoundBlockStatement(statements, true);
 
-  std::vector<std::string> logs = binder->logs;
+  std::vector<std::string> _logs;
+
+  for (const std::string &log : binder->logs) {
+    _logs.push_back(log);
+  }
+
   if (previous != nullptr) {
-    logs.insert(logs.end(), previous->logs.begin(), previous->logs.end());
+    for (const std::string &log : previous->logs) {
+      _logs.push_back(log);
+    }
   }
 
   std::map<std::string, Utils::Variable> variables = binder->root->variables;
   std::map<std::string, BoundFunctionDeclaration *> functions =
       binder->root->functions;
 
-  return new BoundScopeGlobal(previous, variables, functions, logs, statement);
+  return new BoundScopeGlobal(previous, variables, functions, _logs, statement);
 }
 
-Binder::~Binder() { delete this->root; }
+Binder::~Binder() {
+  if (this->root != nullptr) {
+    delete this->root;
+    this->root = nullptr;
+  }
+}

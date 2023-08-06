@@ -21,5 +21,8 @@ std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
 }
 
 VariableExpressionSyntax::~VariableExpressionSyntax() {
-  delete this->identifierExpression;
+  if (this->identifierExpression != nullptr) {
+    delete this->identifierExpression;
+    this->identifierExpression = nullptr;
+  }
 }

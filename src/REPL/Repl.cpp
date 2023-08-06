@@ -56,7 +56,7 @@ void Repl::runWithStream(std::istream &inputStream,
       }
       CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
 
-      if (compilationUnit->logs.size()) {
+      if (parser->logs.size()) {
         emptyLines++;
         outputStream << YELLOW << "... " << RESET;
         continue;
@@ -71,8 +71,8 @@ void Repl::runWithStream(std::istream &inputStream,
 
     Parser *parser = new Parser(text);
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
-    if (compilationUnit->logs.size()) {
-      printErrors(compilationUnit->logs, outputStream);
+    if (parser->logs.size()) {
+      printErrors(parser->logs, outputStream);
     } else if (!exit)
       compileAndEvaluate(compilationUnit, outputStream);
   }
@@ -129,34 +129,52 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
+  std::vector<std::string> text = std::vector<std::string>();
   std::string line;
-
-  while (std::getline(inputStream, line)) {
-
-    if (line.empty()) {
-      continue;
-    }
-
-    if (line == ":exit") {
+  int emptyLines = 0;
+  while (true) {
+    std::getline(inputStream, line);
+    if (handleSpecialCommands(line)) {
       break;
     }
 
-    if (handleSpecialCommands(line)) {
+    if (line.empty()) {
+      emptyLines++;
+      if (emptyLines == 2)
+        break;
+
       continue;
     }
+    emptyLines = 0;
 
     text.push_back(line);
-    braceCount = countBraces(line, '{') - countBraces(line, '}') + braceCount;
-
-    if (braceCount) {
-      continue;
-    }
     Parser *parser = new Parser(text);
 
-    CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+    if (parser->logs.size()) {
+      printErrors(parser->logs, outputStream);
+      text = std::vector<std::string>();
+      break;
+    }
+    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
 
-    this->compileAndEvaluate(compilationUnit, outputStream);
+    if (parser->logs.size()) {
+      emptyLines++;
+      continue;
+    }
+
+    break;
   }
+
+  if (text.size() == 0) {
+    return;
+  }
+
+  Parser *parser = new Parser(text);
+  CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+  if (parser->logs.size()) {
+    printErrors(parser->logs, outputStream);
+  } else if (!exit)
+    compileAndEvaluate(compilationUnit, outputStream);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {

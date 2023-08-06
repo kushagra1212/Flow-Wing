@@ -22,6 +22,13 @@ std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
 }
 
 ElseClauseSyntax::~ElseClauseSyntax() {
-  delete elseKeyword;
-  delete statement;
+  if (elseKeyword != nullptr) {
+    delete elseKeyword;
+    elseKeyword = nullptr;
+  }
+
+  if (statement != nullptr) {
+    delete statement;
+    statement = nullptr;
+  }
 }

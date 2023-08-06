@@ -36,9 +36,21 @@ SyntaxToken<std::any> *BlockStatementSyntax::getCloseBraceToken() {
 }
 
 BlockStatementSyntax::~BlockStatementSyntax() {
-  delete this->openBraceToken;
-  for (int i = 0; i < this->statements.size(); i++) {
-    delete this->statements[i];
+  if (this->openBraceToken != nullptr) {
+    delete this->openBraceToken;
+    this->openBraceToken = nullptr;
   }
-  delete this->closeBraceToken;
+
+  for (int i = 0; i < this->statements.size(); i++) {
+    if (this->statements[i] != nullptr) {
+      delete this->statements[i];
+      this->statements[i] = nullptr;
+    }
+  }
+  this->statements.clear();
+
+  if (this->closeBraceToken != nullptr) {
+    delete this->closeBraceToken;
+    this->closeBraceToken = nullptr;
+  }
 }

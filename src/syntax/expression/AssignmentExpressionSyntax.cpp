@@ -28,7 +28,18 @@ LiteralExpressionSyntax<std::any> *AssignmentExpressionSyntax::getLeft() {
 }
 
 AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
-  delete left;
-  delete operatorToken;
-  delete right;
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (operatorToken != nullptr) {
+    delete operatorToken;
+    operatorToken = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
 }

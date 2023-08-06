@@ -16,5 +16,9 @@ BoundExpression *BoundExpressionStatement::getExpression() {
 std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
   return std::vector<BoundNode *>{expression};
 }
-
-BoundExpressionStatement::~BoundExpressionStatement() { delete expression; }
+BoundExpressionStatement::~BoundExpressionStatement() {
+  if (expression != nullptr) {
+    delete expression;
+    expression = nullptr;
+  }
+}

@@ -17,5 +17,9 @@ std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
   children.push_back(_statement);
   return children;
 }
-
-GlobalStatementSyntax::~GlobalStatementSyntax() { delete _statement; }
+GlobalStatementSyntax::~GlobalStatementSyntax() {
+  if (_statement != nullptr) {
+    delete _statement;
+    _statement = nullptr;
+  }
+}

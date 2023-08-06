@@ -1,11 +1,10 @@
 #include "CompilationUnitSyntax.h"
 
 CompilationUnitSyntax::CompilationUnitSyntax(
-    std::vector<std::string> &logs, std::vector<MemberSyntax *> members,
+    std::vector<MemberSyntax *> members,
     SyntaxToken<std::any> *endOfFileToken) {
   this->members = members;
   this->endOfFileToken = endOfFileToken;
-  this->logs = logs;
 }
 
 SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
@@ -22,7 +21,15 @@ SyntaxToken<std::any> *CompilationUnitSyntax::getEndOfFileToken() {
 
 CompilationUnitSyntax::~CompilationUnitSyntax() {
   for (auto member : this->members) {
-    delete member;
+    if (member != nullptr) {
+      delete member;
+      member = nullptr;
+    }
   }
-  delete this->endOfFileToken;
+  this->members.clear();
+
+  if (this->endOfFileToken != nullptr) {
+    delete this->endOfFileToken;
+    this->endOfFileToken = nullptr;
+  }
 }

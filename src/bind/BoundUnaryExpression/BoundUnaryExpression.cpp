@@ -24,4 +24,9 @@ std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
   return std::vector<BoundNode *>{operand};
 }
 
-BoundUnaryExpression::~BoundUnaryExpression() { delete operand; }
+BoundUnaryExpression::~BoundUnaryExpression() {
+  if (operand != nullptr) {
+    delete operand;
+    operand = nullptr;
+  }
+}

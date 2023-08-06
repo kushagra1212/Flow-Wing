@@ -26,6 +26,13 @@ std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
 }
 
 BoundBinaryExpression::~BoundBinaryExpression() {
-  delete left;
-  delete right;
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
 }

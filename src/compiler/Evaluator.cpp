@@ -15,8 +15,22 @@ Evaluator::Evaluator(Evaluator *previous,
 }
 
 Evaluator::~Evaluator() {
-  // delete this->root;
+  // if (this->root != nullptr) {
+  //   delete this->root;
+  //   this->root = nullptr;
+  // }
+
+  // if (this->compilation_unit != nullptr) {
+  //   delete this->compilation_unit;
+  //   this->compilation_unit = nullptr;
+  // }
+
+  // if (this->previous != nullptr) {
+  //   delete this->previous;
+  //   this->previous = nullptr;
+  // }
 }
+
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
     if (previous != nullptr)

@@ -22,5 +22,8 @@ std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
 }
 
 BoundParenthesizedExpression::~BoundParenthesizedExpression() {
-  delete expression;
+  if (expression != nullptr) {
+    delete expression;
+    expression = nullptr;
+  }
 }

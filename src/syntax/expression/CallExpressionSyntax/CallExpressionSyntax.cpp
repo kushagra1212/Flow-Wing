@@ -43,10 +43,26 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
 }
 
 CallExpressionSyntax::~CallExpressionSyntax() {
-  delete identifier;
-  delete openParenthesisToken;
-  for (auto &argument : arguments) {
-    delete argument;
+  if (identifier != nullptr) {
+    delete identifier;
+    identifier = nullptr;
   }
-  delete closeParenthesisToken;
+
+  if (openParenthesisToken != nullptr) {
+    delete openParenthesisToken;
+    openParenthesisToken = nullptr;
+  }
+
+  for (auto &argument : arguments) {
+    if (argument != nullptr) {
+      delete argument;
+      argument = nullptr;
+    }
+  }
+  arguments.clear();
+
+  if (closeParenthesisToken != nullptr) {
+    delete closeParenthesisToken;
+    closeParenthesisToken = nullptr;
+  }
 }

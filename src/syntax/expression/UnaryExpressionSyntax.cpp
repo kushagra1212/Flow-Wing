@@ -24,6 +24,13 @@ std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
 }
 
 UnaryExpressionSyntax::~UnaryExpressionSyntax() {
-  delete this->operatorToken;
-  delete this->operand;
+  if (this->operatorToken != nullptr) {
+    delete this->operatorToken;
+    this->operatorToken = nullptr;
+  }
+
+  if (this->operand != nullptr) {
+    delete this->operand;
+    this->operand = nullptr;
+  }
 }

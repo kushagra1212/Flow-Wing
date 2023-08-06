@@ -18,5 +18,8 @@ ExpressionSyntax *ExpressionStatementSyntax::getExpression() {
 }
 
 ExpressionStatementSyntax::~ExpressionStatementSyntax() {
-  delete this->expression;
+  if (this->expression != nullptr) {
+    delete this->expression;
+    this->expression = nullptr;
+  }
 }

@@ -1,10 +1,10 @@
 #include "Parser.h"
+Parser::Parser(const std::vector<std::string> &text) {
 
-Parser::Parser(std::vector<std::string> text) {
   Lexer *lexer = new Lexer(text);
   SyntaxToken<std::any> *token;
-
   do {
+
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
         token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
@@ -17,14 +17,17 @@ Parser::Parser(std::vector<std::string> text) {
     }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 
-  if (lexer->logs.size()) {
-    this->logs.insert(this->logs.end(), lexer->logs.begin(), lexer->logs.end());
+  for (auto log : lexer->logs) {
+    this->logs.push_back(log);
   }
 }
 
 Parser::~Parser() {
-  for (int i = 0; i < this->tokens.size(); i++) {
-    delete this->tokens[i];
+  for (auto token : this->tokens) {
+    if (token != nullptr) {
+      delete token;
+      token = nullptr;
+    }
   }
 }
 
@@ -66,7 +69,7 @@ CompilationUnitSyntax *Parser::parseCompilationUnit() {
   std::vector<MemberSyntax *> members = this->parseMemberList();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return new CompilationUnitSyntax(this->logs, members, endOfFileToken);
+  return new CompilationUnitSyntax(members, endOfFileToken);
 }
 
 std::vector<MemberSyntax *> Parser::parseMemberList() {
@@ -132,6 +135,8 @@ BlockStatementSyntax *Parser::parseBlockStatement() {
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
 
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfLineToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken
 

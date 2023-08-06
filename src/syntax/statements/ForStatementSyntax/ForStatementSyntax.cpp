@@ -27,7 +27,18 @@ StatementSyntax *ForStatementSyntax::getInitialization() const {
 }
 
 ForStatementSyntax::~ForStatementSyntax() {
-  delete this->initialization;
-  delete this->upperBound;
-  delete this->statement;
+  if (this->initialization != nullptr) {
+    delete this->initialization;
+    this->initialization = nullptr;
+  }
+
+  if (this->upperBound != nullptr) {
+    delete this->upperBound;
+    this->upperBound = nullptr;
+  }
+
+  if (this->statement != nullptr) {
+    delete this->statement;
+    this->statement = nullptr;
+  }
 }

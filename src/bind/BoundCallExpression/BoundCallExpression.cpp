@@ -35,9 +35,12 @@ std::vector<BoundNode *> BoundCallExpression::getChildren() {
   }
   return children;
 }
-
 BoundCallExpression::~BoundCallExpression() {
   for (auto &argument : arguments) {
-    delete argument;
+    if (argument != nullptr) {
+      delete argument;
+      argument = nullptr;
+    }
   }
+  arguments.clear();
 }

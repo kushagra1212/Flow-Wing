@@ -36,7 +36,18 @@ std::vector<BoundNode *> BoundForStatement::getChildren() {
 }
 
 BoundForStatement::~BoundForStatement() {
-  delete initialization;
-  delete statement;
-  delete upperBound;
+  if (initialization != nullptr) {
+    delete initialization;
+    initialization = nullptr;
+  }
+
+  if (statement != nullptr) {
+    delete statement;
+    statement = nullptr;
+  }
+
+  if (upperBound != nullptr) {
+    delete upperBound;
+    upperBound = nullptr;
+  }
 }

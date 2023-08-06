@@ -59,12 +59,36 @@ std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
 }
 
 FunctionDeclarationSyntax::~FunctionDeclarationSyntax() {
-  delete _functionKeyword;
-  delete _identifierToken;
-  delete _openParenthesisToken;
-  for (ParameterSyntax *parameter : _parameters) {
-    delete parameter;
+  if (_functionKeyword != nullptr) {
+    delete _functionKeyword;
+    _functionKeyword = nullptr;
   }
-  delete _closeParenthesisToken;
-  delete _body;
+
+  if (_identifierToken != nullptr) {
+    delete _identifierToken;
+    _identifierToken = nullptr;
+  }
+
+  if (_openParenthesisToken != nullptr) {
+    delete _openParenthesisToken;
+    _openParenthesisToken = nullptr;
+  }
+
+  for (ParameterSyntax *parameter : _parameters) {
+    if (parameter != nullptr) {
+      delete parameter;
+      parameter = nullptr;
+    }
+  }
+  _parameters.clear();
+
+  if (_closeParenthesisToken != nullptr) {
+    delete _closeParenthesisToken;
+    _closeParenthesisToken = nullptr;
+  }
+
+  if (_body != nullptr) {
+    delete _body;
+    _body = nullptr;
+  }
 }

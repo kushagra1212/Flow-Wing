@@ -28,6 +28,10 @@ std::vector<BoundNode *> BoundBlockStatement::getChildren() {
 
 BoundBlockStatement::~BoundBlockStatement() {
   for (auto statement : statements) {
-    delete statement;
+    if (statement != nullptr) {
+      delete statement;
+      statement = nullptr;
+    }
   }
+  statements.clear();
 }

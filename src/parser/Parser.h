@@ -31,7 +31,7 @@ public:
   std::vector<std::string> logs;
 
 public:
-  Parser(std::vector<std::string> text);
+  Parser(const std::vector<std::string> &text);
 
   ~Parser();
 

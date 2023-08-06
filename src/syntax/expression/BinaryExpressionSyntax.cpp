@@ -28,7 +28,18 @@ std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
 }
 
 BinaryExpressionSyntax::~BinaryExpressionSyntax() {
-  delete this->left;
-  delete this->operatorToken;
-  delete this->right;
+  if (this->left != nullptr) {
+    delete this->left;
+    this->left = nullptr;
+  }
+
+  if (this->operatorToken != nullptr) {
+    delete this->operatorToken;
+    this->operatorToken = nullptr;
+  }
+
+  if (this->right != nullptr) {
+    delete this->right;
+    this->right = nullptr;
+  }
 }

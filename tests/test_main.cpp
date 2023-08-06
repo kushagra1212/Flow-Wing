@@ -14,6 +14,8 @@ protected:
   void SetUp() override {
     // Redirect cout to the stringstream
 
+    output_stream.str("");
+
     saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
   }
 

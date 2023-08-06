@@ -28,9 +28,19 @@ std::vector<BoundNode *> BoundIfStatement::getChildren() {
   children.push_back(_elseStatement);
   return children;
 }
-
 BoundIfStatement::~BoundIfStatement() {
-  delete _condition;
-  delete _thenStatement;
-  delete _elseStatement;
+  if (_condition != nullptr) {
+    delete _condition;
+    _condition = nullptr;
+  }
+
+  if (_thenStatement != nullptr) {
+    delete _thenStatement;
+    _thenStatement = nullptr;
+  }
+
+  if (_elseStatement != nullptr) {
+    delete _elseStatement;
+    _elseStatement = nullptr;
+  }
 }

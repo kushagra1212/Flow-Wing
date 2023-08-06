@@ -24,7 +24,7 @@ class Evaluator {
 public:
   BoundScopeGlobal *root = nullptr;
   std::any last_value = nullptr;
-  CompilationUnitSyntax *compilation_unit;
+  CompilationUnitSyntax *compilation_unit = nullptr;
   Evaluator *previous = nullptr;
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;

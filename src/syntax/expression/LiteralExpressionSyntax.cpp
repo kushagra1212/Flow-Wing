@@ -35,5 +35,8 @@ template <typename T> T LiteralExpressionSyntax<T>::getValue() {
 }
 
 template <typename T> LiteralExpressionSyntax<T>::~LiteralExpressionSyntax() {
-  delete this->token;
+  if (this->token != nullptr) {
+    delete this->token;
+    this->token = nullptr;
+  }
 }

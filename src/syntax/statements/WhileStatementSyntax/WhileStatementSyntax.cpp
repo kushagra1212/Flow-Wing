@@ -26,7 +26,18 @@ ExpressionSyntax *WhileStatementSyntax::getCondition() const {
 BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
 
 WhileStatementSyntax::~WhileStatementSyntax() {
-  delete _whileKeyword;
-  delete _condition;
-  delete _body;
+  if (_whileKeyword != nullptr) {
+    delete _whileKeyword;
+    _whileKeyword = nullptr;
+  }
+
+  if (_condition != nullptr) {
+    delete _condition;
+    _condition = nullptr;
+  }
+
+  if (_body != nullptr) {
+    delete _body;
+    _body = nullptr;
+  }
 }

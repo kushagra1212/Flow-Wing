@@ -21,8 +21,14 @@ std::vector<BoundNode *> BoundWhileStatement::getChildren() {
   children.push_back(_body);
   return children;
 }
-
 BoundWhileStatement::~BoundWhileStatement() {
-  delete _condition;
-  delete _body;
+  if (_condition != nullptr) {
+    delete _condition;
+    _condition = nullptr;
+  }
+
+  if (_body != nullptr) {
+    delete _body;
+    _body = nullptr;
+  }
 }

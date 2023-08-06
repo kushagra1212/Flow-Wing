@@ -22,5 +22,8 @@ std::vector<BoundNode *> BoundVariableExpression::getChildren() {
 }
 
 BoundVariableExpression::~BoundVariableExpression() {
-  delete this->identiferExpression;
+  if (this->identiferExpression != nullptr) {
+    delete this->identiferExpression;
+    this->identiferExpression = nullptr;
+  }
 }

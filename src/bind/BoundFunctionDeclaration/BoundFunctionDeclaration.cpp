@@ -4,8 +4,6 @@ BoundFunctionDeclaration::BoundFunctionDeclaration(
     Utils::FunctionSymbol functionSymbol, BoundBlockStatement *body)
     : functionSymbol(functionSymbol), body(body) {}
 
-BoundFunctionDeclaration::~BoundFunctionDeclaration() { delete body; }
-
 BinderKindUtils::BoundNodeKind BoundFunctionDeclaration::getKind() {
   return BinderKindUtils::BoundNodeKind::FunctionDeclaration;
 }
@@ -18,4 +16,11 @@ BoundBlockStatement *BoundFunctionDeclaration::getBody() const { return body; }
 
 Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
   return functionSymbol;
+}
+
+BoundFunctionDeclaration::~BoundFunctionDeclaration() {
+  if (body != nullptr) {
+    delete body;
+    body = nullptr;
+  }
 }

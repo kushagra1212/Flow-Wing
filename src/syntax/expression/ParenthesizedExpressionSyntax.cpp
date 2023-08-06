@@ -34,7 +34,18 @@ std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
 }
 
 ParenthesizedExpressionSyntax::~ParenthesizedExpressionSyntax() {
-  delete this->openParenthesisToken;
-  delete this->expression;
-  delete this->closeParenthesisToken;
+  if (this->openParenthesisToken != nullptr) {
+    delete this->openParenthesisToken;
+    this->openParenthesisToken = nullptr;
+  }
+
+  if (this->expression != nullptr) {
+    delete this->expression;
+    this->expression = nullptr;
+  }
+
+  if (this->closeParenthesisToken != nullptr) {
+    delete this->closeParenthesisToken;
+    this->closeParenthesisToken = nullptr;
+  }
 }

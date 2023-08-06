@@ -20,4 +20,9 @@ std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
   return children;
 }
 
-ParameterSyntax::~ParameterSyntax() { delete _identifierToken; }
+ParameterSyntax::~ParameterSyntax() {
+  if (_identifierToken != nullptr) {
+    delete _identifierToken;
+    _identifierToken = nullptr;
+  }
+}
