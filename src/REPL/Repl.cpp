@@ -142,7 +142,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
     if (line.empty()) {
       emptyLines++;
-      if (emptyLines == 2)
+      if (emptyLines == 200)
         break;
 
       continue;
@@ -165,10 +165,6 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
     }
 
     break;
-  }
-
-  if (text.size() == 0) {
-    return;
   }
 
   Parser *parser = new Parser(text);
