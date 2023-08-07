@@ -9,23 +9,23 @@ BoundScopeGlobal::BoundScopeGlobal(
       statement(statement), functions(functions) {}
 
 BoundScopeGlobal::~BoundScopeGlobal() {
-  // if (this->statement != nullptr) {
-  //   delete this->statement;
-  //   this->statement = nullptr;
-  // }
+  if (this->statement != nullptr) {
+    delete this->statement;
+    this->statement = nullptr;
+  }
 
-  // if (this->previous != nullptr) {
-  //   delete this->previous;
-  //   this->previous = nullptr;
-  // }
+  if (this->previous != nullptr) {
+    delete this->previous;
+    this->previous = nullptr;
+  }
 
-  // for (auto &function : this->functions) {
-  //   if (function.second != nullptr) {
-  //     delete function.second;
-  //     function.second = nullptr;
-  //   }
-  // }
-  // this->functions.clear();
+  for (auto &function : this->functions) {
+    if (function.second != nullptr) {
+      delete function.second;
+      function.second = nullptr;
+    }
+  }
+  this->functions.clear();
 }
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {

@@ -28,6 +28,8 @@ public:
 
   void printErrors(const std::vector<std::string> &errors,
                    std::ostream &outputStream, bool isWarning);
+
+  void toggleExit();
   // Data members
 private:
   Evaluator *previousEvaluator;

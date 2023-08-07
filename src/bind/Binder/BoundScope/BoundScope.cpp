@@ -57,8 +57,8 @@ bool BoundScope::tryLookupFunction(std::string name) {
 }
 
 BoundScope::~BoundScope() {
-  // if (this->parent != nullptr) {
-  //   delete this->parent;
-  //   this->parent = nullptr;
-  // }
+  if (this->parent != nullptr) {
+    delete this->parent;
+    this->parent = nullptr;
+  }
 }

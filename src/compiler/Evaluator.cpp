@@ -194,6 +194,8 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::WhileStatement: {
     BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
+
+    this->variable_stack.push(std::map<std::string, Utils::Variable>());
     std::any condition =
         this->evaluate<std::any>(whileStatement->getCondition());
 
@@ -209,8 +211,8 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       }
     } else {
       this->root->logs.push_back("Error: Unexpected condition type");
-      return;
     }
+    this->variable_stack.pop();
     break;
   }
 
@@ -218,6 +220,7 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     BoundForStatement *forStatement = (BoundForStatement *)node;
     std::string variable_name = "";
 
+    this->variable_stack.push(std::map<std::string, Utils::Variable>());
     std::any lowerBound = 0;
     if (forStatement->getInitialization()->getKind() ==
         BinderKindUtils::BoundNodeKind::VariableDeclaration) {
@@ -264,8 +267,9 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       }
     } else {
       this->root->logs.push_back("Error: Unexpected condition type");
-      return;
     }
+
+    this->variable_stack.pop();
 
     break;
   }

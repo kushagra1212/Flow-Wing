@@ -127,6 +127,8 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
   }
 }
 
+void Repl::toggleExit() { exit = !exit; }
+
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
   std::vector<std::string> text = std::vector<std::string>();

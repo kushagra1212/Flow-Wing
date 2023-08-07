@@ -14,8 +14,6 @@ protected:
   void SetUp() override {
     // Redirect cout to the stringstream
 
-    output_stream.str("");
-
     saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
   }
 
@@ -30,6 +28,12 @@ protected:
 
   void runEvaluator() {
     repl = new Repl();
+
+    repl->runForTest(input_stream, output_stream);
+  }
+  void run() {
+    if (repl == nullptr)
+      repl = new Repl();
 
     repl->runForTest(input_stream, output_stream);
   }
@@ -63,7 +67,7 @@ TEST_F(IORedirectionTest, TestCountBraces) {
 // Test case for Repl::compileAndEvaluate
 
 TEST_F(IORedirectionTest, TestCompileAndEvaluate) {
-  setInput("1");
+  setInput("1 + 2");
   runEvaluator();
   ASSERT_EQ(getOutput(), "3\n");
 }
@@ -86,9 +90,10 @@ TEST_F(IORedirectionTest, TestSingleExpression) {
 // Test case for evaluating multiple expressions
 
 TEST_F(IORedirectionTest, TestMultipleExpressions) {
-  setInput("1 + 2\n3 + 4");
+  setInput("var x = 1+2");
+  setInput("var y = 3+4");
   runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n7\n");
+  ASSERT_EQ(getOutput(), "7\n");
 }
 
 // Test case for evaluating a single expression with a variable
@@ -279,9 +284,12 @@ TEST_F(IORedirectionTest, TestSingleStatementWithVariable) {
 // Test Case for evaluating a single statement with a variable
 
 TEST_F(IORedirectionTest, TestSingleStatementWithVariable2) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\ny}");
+
+  setInput("var y = x x= x+1  y = Int32(y) y = y + 1 print(\" hello \"+x "
+           "+\" \" hii\" + y) ");
+
   runEvaluator();
-  ASSERT_EQ(getOutput(), "6\n");
+  ASSERT_EQ(getOutput(), "1-\n");
 }
 
 // Test Case for evaluating a single statement with a variable
@@ -648,9 +656,11 @@ TEST_F(IORedirectionTest, TestForConversionStringToBool) {
 // Test for inbuilt function print
 
 TEST_F(IORedirectionTest, TestForInbuiltFunctionPrint) {
-  setInput("{var x =2 var y =x x=x+1 y = Int32(y) y=y+1 print(\"hello\" + x "
-           "+\" hii \"+y)}");
-  runEvaluator();
+  setInput("var x = 2");
+  repl->runForTest(input_stream, output_stream);
+  setInput("var y = x \n x=x+1 \n  y = Int32(y)\n  y=y+1 \n"
+           "print(\"hello\"+x+\"ss\"+y)");
+
   ASSERT_EQ(getOutput(), "hello3 hii 3");
 }
 

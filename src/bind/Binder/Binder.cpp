@@ -72,6 +72,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
     ForStatementSyntax *forStatement = (ForStatementSyntax *)syntax;
+    this->root = new BoundScope(this->root);
     BoundStatement *intializer = (BoundStatement *)bindStatement(
         (StatementSyntax *)forStatement->getInitialization());
 
@@ -82,6 +83,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     BoundStatement *body =
         bindStatement((StatementSyntax *)forStatement->getStatement());
 
+    this->root = this->root->parent;
     return new BoundForStatement(intializer, upperBound, (body));
   }
   default:
