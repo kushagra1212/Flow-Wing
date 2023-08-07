@@ -152,6 +152,18 @@ SyntaxToken<std::any> *Lexer::nextToken() {
                                        start, text, "to");
     }
 
+    if (text == "continue") {
+      return new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::ContinueKeyword, start,
+          text, "continue");
+    }
+
+    if (text == "break") {
+      return new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::BreakKeyword, start,
+          text, "break");
+    }
+
     if (text == "const") {
       return new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,

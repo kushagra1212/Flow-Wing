@@ -158,6 +158,11 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "FunctionDeclarationSyntax";
   case SyntaxKind::FunctionKeyword:
     return "FunctionKeyword";
+  case SyntaxKind::ContinueKeyword:
+    return "ContinueKeyword";
+  case SyntaxKind::BreakKeyword:
+    return "BreakKeyword";
+
   default:
     return "NotDefined";
   }

@@ -138,19 +138,19 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
     std::vector<BoundStatement *> statements = blockStatement->getStatements();
 
-    if (!blockStatement->getGlobal()) {
+    if (!blockStatement->getGlobal())
       this->variable_stack.push(std::map<std::string, Utils::Variable>());
 
-      for (BoundStatement *statement : statements) {
-        this->evaluateStatement(statement);
-      }
+    for (BoundStatement *statement : statements) {
 
-      this->variable_stack.pop();
-    } else {
-      for (BoundStatement *statement : statements) {
-        this->evaluateStatement(statement);
+      this->evaluateStatement(statement);
+      if (break_count || continue_count) {
+        break;
       }
     }
+
+    if (!blockStatement->getGlobal())
+      this->variable_stack.pop();
 
     break;
   }
@@ -206,8 +206,16 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
       }
     } else if (condition.type() == typeid(int)) {
       while (std::any_cast<int>(condition)) {
+
         this->evaluateStatement(whileStatement->getBody());
         condition = this->evaluate<std::any>(whileStatement->getCondition());
+        if (break_count) {
+          break_count--;
+          break;
+        }
+        if (continue_count) {
+          continue_count--;
+        }
       }
     } else {
       this->root->logs.push_back("Error: Unexpected condition type");
@@ -254,16 +262,14 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
               Utils::Variable(i, (this->getVariable(variable_name)).isConst));
         }
         this->evaluateStatement(forStatement->getStatement());
-      }
-    } else if (lowerBound.type() == typeid(double)) {
-      for (double i = std::any_cast<double>(lowerBound);
-           i <= std::any_cast<double>(upperBound); i++) {
-        if (variable_name != "") {
-          this->assignVariable(
-              variable_name,
-              Utils::Variable(i, (this->getVariable(variable_name)).isConst));
+
+        if (continue_count) {
+          continue_count--;
         }
-        this->evaluateStatement(forStatement->getStatement());
+        if (break_count) {
+          break_count--;
+          break;
+        }
       }
     } else {
       this->root->logs.push_back("Error: Unexpected condition type");
@@ -284,6 +290,14 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     break;
   }
 
+  case BinderKindUtils::BoundNodeKind::BreakStatement: {
+    break_count++;
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::ContinueStatement: {
+    continue_count++;
+    break;
+  }
   default: {
     this->root->logs.push_back("Error: Unexpected node" +
                                BinderKindUtils::to_string(node->getKind()));

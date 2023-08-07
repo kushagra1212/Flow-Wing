@@ -11,6 +11,8 @@
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
@@ -54,6 +56,10 @@ public:
 private:
   StatementSyntax *parseStatement();
   BlockStatementSyntax *parseBlockStatement();
+
+  BreakStatementSyntax *parseBreakStatement();
+
+  ContinueStatementSyntax *parseContinueStatement();
 
   ExpressionStatementSyntax *parseExpressionStatement();
 

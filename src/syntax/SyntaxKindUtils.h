@@ -62,6 +62,8 @@ enum SyntaxKind {
   ForKeyword,
   ToKeyword,
   FunctionKeyword,
+  ContinueKeyword,
+  BreakKeyword,
 
   ElseClause,
 

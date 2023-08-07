@@ -1,6 +1,36 @@
 #include "BoundScope.h"
 
-BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
+BoundScope::BoundScope(BoundScope *parent)
+    : parent(parent), breakable(false), continuable(false) {}
+
+void BoundScope::makeBreakableAndContinuable() {
+  this->breakable = true;
+  this->continuable = true;
+}
+
+bool BoundScope::isBreakable() {
+  if (this->breakable) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isBreakable();
+}
+
+bool BoundScope::isContinuable() {
+  if (this->continuable) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isContinuable();
+}
 
 bool BoundScope::tryDeclareVariable(
     std::string name, const struct Utils::Variable &initialValue) {

@@ -7,6 +7,8 @@ public:
   std::map<std::string, struct Utils::Variable> variables;
   std::map<std::string, BoundFunctionDeclaration *> functions;
 
+  bool breakable, continuable;
+
   BoundScope *parent;
 
   BoundScope(BoundScope *parent);
@@ -14,6 +16,11 @@ public:
   ~BoundScope();
 
 public:
+  void makeBreakableAndContinuable();
+
+  bool isBreakable();
+  bool isContinuable();
+
   bool tryDeclareVariable(std::string name,
                           const struct Utils::Variable &initialValue);
 

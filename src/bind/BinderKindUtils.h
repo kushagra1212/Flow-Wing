@@ -18,6 +18,8 @@ enum BoundNodeKind {
   IfStatement,
   WhileStatement,
   ForStatement,
+  BreakStatement,
+  ContinueStatement,
 
   // declarations
 

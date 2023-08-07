@@ -169,12 +169,28 @@ StatementSyntax *Parser::parseStatement() {
 
   case SyntaxKindUtils::SyntaxKind::ForKeyword:
     return (StatementSyntax *)this->parseForStatement();
+  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
+    return (StatementSyntax *)this->parseBreakStatement();
+  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
+    return (StatementSyntax *)this->parseContinueStatement();
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
   case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
     return (StatementSyntax *)this->nextToken();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+BreakStatementSyntax *Parser::parseBreakStatement() {
+  SyntaxToken<std::any> *breakKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::BreakKeyword);
+  return new BreakStatementSyntax(breakKeyword);
+}
+
+ContinueStatementSyntax *Parser::parseContinueStatement() {
+  SyntaxToken<std::any> *continueKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ContinueKeyword);
+  return new ContinueStatementSyntax(continueKeyword);
 }
 
 ForStatementSyntax *Parser::parseForStatement() {

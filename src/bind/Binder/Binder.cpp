@@ -63,16 +63,23 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     return new BoundIfStatement(condition, thenStatement, elseStatement);
   }
   case SyntaxKindUtils::SyntaxKind::WhileStatement: {
+    this->root = new BoundScope(this->root);
+    this->root->makeBreakableAndContinuable();
+
     WhileStatementSyntax *whileStatement = (WhileStatementSyntax *)syntax;
+
     BoundExpression *condition = bindExpression(whileStatement->getCondition());
     BoundStatement *body =
         bindStatement((StatementSyntax *)whileStatement->getBody());
+
+    this->root = this->root->parent;
     return new BoundWhileStatement(condition, body);
   }
 
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
     ForStatementSyntax *forStatement = (ForStatementSyntax *)syntax;
     this->root = new BoundScope(this->root);
+    this->root->makeBreakableAndContinuable();
     BoundStatement *intializer = (BoundStatement *)bindStatement(
         (StatementSyntax *)forStatement->getInitialization());
 
@@ -85,6 +92,25 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     this->root = this->root->parent;
     return new BoundForStatement(intializer, upperBound, (body));
+  }
+  case SyntaxKindUtils::SyntaxKind::BreakKeyword: {
+    BreakStatementSyntax *breakStatement = (BreakStatementSyntax *)syntax;
+    if (!this->root->isBreakable()) {
+      this->logs.push_back(
+          Utils::getLineNumberAndPosition(breakStatement->getBreakKeyword()) +
+          "Error: Break statement outside of loop");
+    }
+    return new BoundBreakStatement(breakStatement);
+  }
+  case SyntaxKindUtils::SyntaxKind::ContinueKeyword: {
+    ContinueStatementSyntax *continueStatement =
+        (ContinueStatementSyntax *)syntax;
+    if (!this->root->isContinuable()) {
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               continueStatement->getContinueKeyword()) +
+                           "Error: Continue statement outside of loop");
+    }
+    return new BoundContinueStatement(continueStatement);
   }
   default:
     throw "Unexpected syntax";

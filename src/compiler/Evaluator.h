@@ -28,6 +28,7 @@ public:
   Evaluator *previous = nullptr;
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
+  int break_count = 0, continue_count = 0;
 
   Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
   ~Evaluator();

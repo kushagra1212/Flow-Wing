@@ -32,6 +32,10 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "VariableDeclaration";
   case FunctionDeclaration:
     return "FunctionDeclaration";
+  case BreakStatement:
+    return "BreakStatement";
+  case ContinueStatement:
+    return "ContinueStatement";
   default:
     return "NotDefined";
   }
