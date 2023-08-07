@@ -1,14 +1,8 @@
 #include "BoundBreakStatement.h"
 
-BoundBreakStatement::BoundBreakStatement(BreakStatementSyntax *syntax)
-    : _syntax(syntax) {}
+BoundBreakStatement::BoundBreakStatement() {}
 
-BoundBreakStatement::~BoundBreakStatement() {
-  if (_syntax != nullptr) {
-    delete _syntax;
-    _syntax = nullptr;
-  }
-}
+BoundBreakStatement::~BoundBreakStatement() = default;
 
 BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() {
   return BinderKindUtils::BoundNodeKind::BreakStatement;
@@ -16,8 +10,4 @@ BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() {
 
 std::vector<BoundNode *> BoundBreakStatement::getChildren() {
   return std::vector<BoundNode *>{};
-}
-
-BreakStatementSyntax *BoundBreakStatement::getBreakStatement() const {
-  return _syntax;
 }

@@ -19,6 +19,7 @@
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
+#include "../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
@@ -58,6 +59,7 @@ private:
   BlockStatementSyntax *parseBlockStatement();
 
   BreakStatementSyntax *parseBreakStatement();
+  ReturnStatementSyntax *parseReturnStatement();
 
   ContinueStatementSyntax *parseContinueStatement();
 

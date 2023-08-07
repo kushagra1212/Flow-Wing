@@ -298,6 +298,15 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     continue_count++;
     break;
   }
+  case BinderKindUtils::BoundNodeKind::ReturnStatement: {
+    BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
+    if (returnStatement->getReturnExpression() != nullptr) {
+      this->last_value =
+          this->evaluate<std::any>(returnStatement->getReturnExpression());
+      std::cout << Utils::convertAnyToString(this->last_value);
+    }
+    break;
+  }
   default: {
     this->root->logs.push_back("Error: Unexpected node" +
                                BinderKindUtils::to_string(node->getKind()));
@@ -580,6 +589,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       return nullptr;
     }
   }
+
   default: {
     this->root->logs.push_back("Error: Unexpected node");
     return nullptr;

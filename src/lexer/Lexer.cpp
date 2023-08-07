@@ -164,6 +164,12 @@ SyntaxToken<std::any> *Lexer::nextToken() {
           text, "break");
     }
 
+    if (text == "return") {
+      return new SyntaxToken<std::any>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::ReturnKeyword, start,
+          text, "return");
+    }
+
     if (text == "const") {
       return new SyntaxToken<std::any>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,

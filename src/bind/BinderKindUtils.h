@@ -20,6 +20,7 @@ enum BoundNodeKind {
   ForStatement,
   BreakStatement,
   ContinueStatement,
+  ReturnStatement,
 
   // declarations
 

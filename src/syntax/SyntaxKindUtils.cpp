@@ -163,6 +163,9 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::BreakKeyword:
     return "BreakKeyword";
 
+  case SyntaxKind::ReturnKeyword:
+    return "ReturnKeyword";
+
   default:
     return "NotDefined";
   }

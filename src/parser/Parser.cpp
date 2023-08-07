@@ -173,12 +173,30 @@ StatementSyntax *Parser::parseStatement() {
     return (StatementSyntax *)this->parseBreakStatement();
   case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
     return (StatementSyntax *)this->parseContinueStatement();
+  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
+    return (StatementSyntax *)this->parseReturnStatement();
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
   case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
     return (StatementSyntax *)this->nextToken();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+ReturnStatementSyntax *Parser::parseReturnStatement() {
+  SyntaxToken<std::any> *returnKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
+
+  ExpressionSyntax *expression = nullptr;
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+    expression = this->parseExpression();
+    this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+    return new ReturnStatementSyntax(returnKeyword, expression);
+  }
+
+  return new ReturnStatementSyntax(returnKeyword, expression);
 }
 
 BreakStatementSyntax *Parser::parseBreakStatement() {

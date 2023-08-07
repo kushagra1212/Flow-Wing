@@ -1,14 +1,8 @@
 #include "BoundContinueStatement.h"
 
-BoundContinueStatement::BoundContinueStatement(ContinueStatementSyntax *syntax)
-    : _syntax(syntax) {}
+BoundContinueStatement::BoundContinueStatement() {}
 
-BoundContinueStatement::~BoundContinueStatement() {
-  if (_syntax != nullptr) {
-    delete _syntax;
-    _syntax = nullptr;
-  }
-}
+BoundContinueStatement::~BoundContinueStatement() = default;
 
 BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() {
   return BinderKindUtils::BoundNodeKind::ContinueStatement;
@@ -16,8 +10,4 @@ BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() {
 
 std::vector<BoundNode *> BoundContinueStatement::getChildren() {
   return std::vector<BoundNode *>{};
-}
-
-ContinueStatementSyntax *BoundContinueStatement::getContinueStatement() const {
-  return _syntax;
 }

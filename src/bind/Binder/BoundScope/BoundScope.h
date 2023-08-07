@@ -8,6 +8,7 @@ public:
   std::map<std::string, BoundFunctionDeclaration *> functions;
 
   bool breakable, continuable;
+  int functionCounted;
 
   BoundScope *parent;
 
@@ -20,6 +21,11 @@ public:
 
   bool isBreakable();
   bool isContinuable();
+
+  bool isInFunction();
+
+  void incrementFunctionCount();
+  void decrementFunctionCount();
 
   bool tryDeclareVariable(std::string name,
                           const struct Utils::Variable &initialValue);

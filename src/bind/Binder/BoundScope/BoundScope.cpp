@@ -1,7 +1,28 @@
 #include "BoundScope.h"
 
 BoundScope::BoundScope(BoundScope *parent)
-    : parent(parent), breakable(false), continuable(false) {}
+    : parent(parent), breakable(false), continuable(false), functionCounted(0) {
+}
+
+bool BoundScope::isInFunction() {
+  if (this->functionCounted) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isInFunction();
+}
+
+void BoundScope::incrementFunctionCount() { this->functionCounted++; }
+
+void BoundScope::decrementFunctionCount() {
+  if (this->functionCounted > 0) {
+    this->functionCounted--;
+  }
+}
 
 void BoundScope::makeBreakableAndContinuable() {
   this->breakable = true;

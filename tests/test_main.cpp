@@ -225,6 +225,12 @@ TEST_F(IORedirectionTest, TestForForLoop2) {
   ASSERT_EQ(getOutput(), "34034342");
 }
 
+TEST_F(IORedirectionTest, TestForFunction) {
+  setInput("fun add(a,b) { return (a+b) } add(1,2)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "3");
+}
+
 // /*
 //     Statements
 // */

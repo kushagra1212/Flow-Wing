@@ -100,7 +100,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
           Utils::getLineNumberAndPosition(breakStatement->getBreakKeyword()) +
           "Error: Break statement outside of loop");
     }
-    return new BoundBreakStatement(breakStatement);
+    return new BoundBreakStatement();
   }
   case SyntaxKindUtils::SyntaxKind::ContinueKeyword: {
     ContinueStatementSyntax *continueStatement =
@@ -110,7 +110,27 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                                continueStatement->getContinueKeyword()) +
                            "Error: Continue statement outside of loop");
     }
-    return new BoundContinueStatement(continueStatement);
+    return new BoundContinueStatement();
+  }
+
+  case SyntaxKindUtils::SyntaxKind::ReturnKeyword: {
+
+    ReturnStatementSyntax *returnStatement = (ReturnStatementSyntax *)syntax;
+
+    BoundExpression *expression = nullptr;
+    if (!this->root->isInFunction()) {
+      this->logs.push_back(
+          Utils::getLineNumberAndPosition(returnStatement->getReturnKeyword()) +
+          "Error: Return statement outside of function");
+    } else {
+      ExpressionSyntax *returnExpression = returnStatement->getExpression();
+
+      if (returnExpression) {
+        expression = bindExpression(returnStatement->getExpression());
+      }
+    }
+
+    return new BoundReturnStatement(expression);
   }
   default:
     throw "Unexpected syntax";
@@ -357,6 +377,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   std::vector<Utils::FunctionParameterSymbol> parameters;
 
   this->root = new BoundScope(this->root);
+
   std::string function_name = syntax->getIdentifierToken()->getText();
 
   for (int i = 0; i < syntax->getParameters().size(); i++) {
@@ -376,11 +397,13 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   Utils::FunctionSymbol functionSymbol =
       Utils::FunctionSymbol(function_name, parameters, Utils::type::VOID);
-
+  this->root->incrementFunctionCount();
   BoundBlockStatement *body =
       (BoundBlockStatement *)bindStatement(syntax->getBody());
   BoundFunctionDeclaration *fd =
       new BoundFunctionDeclaration(functionSymbol, body);
+
+  this->root->decrementFunctionCount();
 
   if (!this->root->tryDeclareFunction(functionSymbol.name, fd)) {
     this->logs.push_back(
