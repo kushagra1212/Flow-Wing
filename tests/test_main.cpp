@@ -226,7 +226,7 @@ TEST_F(IORedirectionTest, TestForForLoop2) {
 }
 
 TEST_F(IORedirectionTest, TestForFunction) {
-  setInput("fun add(a,b) { return (a+b) } add(1,2)");
+  setInput("fun add(a,b) { return (a+b) } var ans = add(1,2) print(ans)");
   runEvaluator();
   ASSERT_EQ(getOutput(), "3");
 }

@@ -303,7 +303,6 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     if (returnStatement->getReturnExpression() != nullptr) {
       this->last_value =
           this->evaluate<std::any>(returnStatement->getReturnExpression());
-      std::cout << Utils::convertAnyToString(this->last_value);
     }
     break;
   }
@@ -583,7 +582,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
       this->variable_stack.pop();
 
-      return nullptr;
+      return this->last_value;
     } else {
       this->root->logs.push_back("Error: Function not found");
       return nullptr;
