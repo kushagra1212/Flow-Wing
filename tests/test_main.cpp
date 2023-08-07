@@ -230,6 +230,13 @@ TEST_F(IORedirectionTest, TestForFunction) {
   runEvaluator();
   ASSERT_EQ(getOutput(), "3");
 }
+TEST_F(IORedirectionTest, TestForFunctionFactorial) {
+  setInput(
+      "fun fact(n) { if(n==0) { return (1) } else { return (n*fact(n-1))   } } "
+      "var ans = fact(5) print(ans)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "120");
+}
 
 // /*
 //     Statements

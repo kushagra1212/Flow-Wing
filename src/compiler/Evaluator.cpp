@@ -564,6 +564,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       }
 
       this->variable_stack.push(std::map<std::string, Utils::Variable>());
+      this->function_stack.push(
+          std::map<std::string, BoundFunctionDeclaration *>());
 
       std::map<std::string, Utils::Variable> &function_Variables =
           this->variable_stack.top();
@@ -580,6 +582,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
       this->evaluateStatement(functionDefination->body);
 
+      this->function_stack.pop();
       this->variable_stack.pop();
 
       return this->last_value;
