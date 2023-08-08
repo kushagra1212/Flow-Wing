@@ -80,17 +80,26 @@ void Evaluator::defineFunction(std::string name,
 
 BoundFunctionDeclaration *Evaluator::getFunction(std::string name) {
   std::stack<std::map<std::string, BoundFunctionDeclaration *>>
-      function_stack_copy = this->function_stack;
+      function_stack_rest;
 
-  while (!function_stack_copy.empty()) {
+  while (!function_stack.empty()) {
     std::map<std::string, BoundFunctionDeclaration *> current_scope =
-        function_stack_copy.top();
+        function_stack.top();
 
     if (current_scope.find(name) != current_scope.end()) {
+
+      while (!function_stack_rest.empty()) {
+        function_stack.push(function_stack_rest.top());
+        function_stack_rest.pop();
+      }
       return current_scope[name];
     }
-
-    function_stack_copy.pop();
+    function_stack_rest.push(current_scope);
+    function_stack.pop();
+  }
+  while (!function_stack_rest.empty()) {
+    function_stack.push(function_stack_rest.top());
+    function_stack_rest.pop();
   }
 
   this->root->logs.push_back("Error: Function '" + name + "' is not declared");
@@ -125,158 +134,182 @@ void Evaluator::assignVariable(std::string name, Utils::Variable variable) {
   }
 }
 
+void Evaluator::evaluateExpressionStatement(BoundExpressionStatement *node) {
+  BoundExpressionStatement *expressionStatement =
+      (BoundExpressionStatement *)node;
+  last_value = this->evaluate<std::any>(expressionStatement->getExpression());
+}
+
+void Evaluator::evaluateBlockStatement(BoundBlockStatement *node) {
+  BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
+  std::vector<BoundStatement *> statements = blockStatement->getStatements();
+
+  if (!blockStatement->getGlobal())
+    this->variable_stack.push(std::map<std::string, Utils::Variable>());
+
+  for (BoundStatement *statement : statements) {
+
+    this->evaluateStatement(statement);
+    if (break_count || continue_count ||
+        (!return_count_stack.empty() && return_count_stack.top())) {
+      break;
+    }
+  }
+
+  if (!blockStatement->getGlobal())
+    this->variable_stack.pop();
+}
+
+void Evaluator::evaluateVariableDeclaration(BoundVariableDeclaration *node) {
+  BoundVariableDeclaration *variableDeclaration =
+      (BoundVariableDeclaration *)node;
+  std::string variable_name = variableDeclaration->getVariable();
+
+  this->declareVariable(
+      variable_name, Utils::Variable(this->evaluate<std::any>(
+                                         variableDeclaration->getInitializer()),
+                                     variableDeclaration->isConst()));
+
+  last_value = this->getVariable(variable_name).value;
+}
+
+void Evaluator::evaluateIfStatement(BoundIfStatement *node) {
+  BoundIfStatement *ifStatement = (BoundIfStatement *)node;
+  std::any condition = this->evaluate<std::any>(ifStatement->getCondition());
+
+  if (condition.type() == typeid(bool)) {
+    if (std::any_cast<bool>(condition)) {
+      this->evaluateStatement(ifStatement->getThenStatement());
+    } else if (ifStatement->getElseStatement() != nullptr) {
+      this->evaluateStatement(ifStatement->getElseStatement());
+    }
+  } else if (condition.type() == typeid(int)) {
+    if (std::any_cast<int>(condition)) {
+      this->evaluateStatement(ifStatement->getThenStatement());
+    } else if (ifStatement->getElseStatement() != nullptr) {
+      this->evaluateStatement(ifStatement->getElseStatement());
+    }
+  } else {
+    this->root->logs.push_back("Error: Unexpected condition type");
+    return;
+  }
+}
+void Evaluator::evaluateWhileStatement(BoundWhileStatement *node) {
+  BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
+
+  this->variable_stack.push(std::map<std::string, Utils::Variable>());
+  std::any condition = this->evaluate<std::any>(whileStatement->getCondition());
+
+  if (condition.type() == typeid(bool)) {
+    while (std::any_cast<bool>(condition)) {
+      this->evaluateStatement(whileStatement->getBody());
+      condition = this->evaluate<std::any>(whileStatement->getCondition());
+    }
+  } else if (condition.type() == typeid(int)) {
+    while (std::any_cast<int>(condition)) {
+
+      this->evaluateStatement(whileStatement->getBody());
+      condition = this->evaluate<std::any>(whileStatement->getCondition());
+      if (break_count) {
+        break_count--;
+        break;
+      }
+      if (continue_count) {
+        continue_count--;
+      }
+    }
+  } else {
+    this->root->logs.push_back("Error: Unexpected condition type");
+  }
+  this->variable_stack.pop();
+}
+
+void Evaluator::evaluateForStatement(BoundForStatement *node) {
+  BoundForStatement *forStatement = (BoundForStatement *)node;
+  std::string variable_name = "";
+
+  this->variable_stack.push(std::map<std::string, Utils::Variable>());
+  std::any lowerBound = 0;
+  if (forStatement->getInitialization()->getKind() ==
+      BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+    BoundVariableDeclaration *variableDeclaration =
+        (BoundVariableDeclaration *)forStatement->getInitialization();
+
+    variable_name = variableDeclaration->getVariable();
+    this->evaluateStatement(variableDeclaration);
+
+    lowerBound = this->getVariable(variable_name).value;
+  } else {
+    this->evaluateStatement(forStatement->getInitialization());
+
+    lowerBound = this->last_value;
+  }
+
+  std::any upperBound = this->evaluate<std::any>(forStatement->getUpperBound());
+
+  if (lowerBound.type() != upperBound.type()) {
+    this->root->logs.push_back("Error: Incompatible types");
+    return;
+  }
+
+  if (lowerBound.type() == typeid(int)) {
+    for (int i = std::any_cast<int>(lowerBound);
+         i <= std::any_cast<int>(upperBound); i++) {
+      if (variable_name != "") {
+        this->assignVariable(
+            variable_name,
+            Utils::Variable(i, (this->getVariable(variable_name)).isConst));
+      }
+      this->evaluateStatement(forStatement->getStatement());
+
+      if (continue_count) {
+        continue_count--;
+      }
+      if (break_count) {
+        break_count--;
+        break;
+      }
+    }
+  } else {
+    this->root->logs.push_back("Error: Unexpected condition type");
+  }
+
+  this->variable_stack.pop();
+}
+
 void Evaluator::evaluateStatement(BoundStatement *node) {
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
-    BoundExpressionStatement *expressionStatement =
-        (BoundExpressionStatement *)node;
-    last_value = this->evaluate<std::any>(expressionStatement->getExpression());
+
+    this->evaluateExpressionStatement((BoundExpressionStatement *)node);
     break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
 
-    BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
-    std::vector<BoundStatement *> statements = blockStatement->getStatements();
-
-    if (!blockStatement->getGlobal())
-      this->variable_stack.push(std::map<std::string, Utils::Variable>());
-
-    for (BoundStatement *statement : statements) {
-
-      this->evaluateStatement(statement);
-      if (break_count || continue_count) {
-        break;
-      }
-    }
-
-    if (!blockStatement->getGlobal())
-      this->variable_stack.pop();
-
+    this->evaluateBlockStatement((BoundBlockStatement *)node);
     break;
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
-    BoundVariableDeclaration *variableDeclaration =
-        (BoundVariableDeclaration *)node;
-    std::string variable_name = variableDeclaration->getVariable();
 
-    this->declareVariable(
-        variable_name,
-        Utils::Variable(
-            this->evaluate<std::any>(variableDeclaration->getInitializer()),
-            variableDeclaration->isConst()));
-
-    last_value = this->getVariable(variable_name).value;
+    this->evaluateVariableDeclaration((BoundVariableDeclaration *)node);
 
     break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
-    BoundIfStatement *ifStatement = (BoundIfStatement *)node;
-    std::any condition = this->evaluate<std::any>(ifStatement->getCondition());
 
-    if (condition.type() == typeid(bool)) {
-      if (std::any_cast<bool>(condition)) {
-        this->evaluateStatement(ifStatement->getThenStatement());
-      } else if (ifStatement->getElseStatement() != nullptr) {
-        this->evaluateStatement(ifStatement->getElseStatement());
-      }
-    } else if (condition.type() == typeid(int)) {
-      if (std::any_cast<int>(condition)) {
-        this->evaluateStatement(ifStatement->getThenStatement());
-      } else if (ifStatement->getElseStatement() != nullptr) {
-        this->evaluateStatement(ifStatement->getElseStatement());
-      }
-    } else {
-      this->root->logs.push_back("Error: Unexpected condition type");
-      return;
-    }
+    this->evaluateIfStatement((BoundIfStatement *)node);
     break;
   }
 
   case BinderKindUtils::BoundNodeKind::WhileStatement: {
-    BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
 
-    this->variable_stack.push(std::map<std::string, Utils::Variable>());
-    std::any condition =
-        this->evaluate<std::any>(whileStatement->getCondition());
-
-    if (condition.type() == typeid(bool)) {
-      while (std::any_cast<bool>(condition)) {
-        this->evaluateStatement(whileStatement->getBody());
-        condition = this->evaluate<std::any>(whileStatement->getCondition());
-      }
-    } else if (condition.type() == typeid(int)) {
-      while (std::any_cast<int>(condition)) {
-
-        this->evaluateStatement(whileStatement->getBody());
-        condition = this->evaluate<std::any>(whileStatement->getCondition());
-        if (break_count) {
-          break_count--;
-          break;
-        }
-        if (continue_count) {
-          continue_count--;
-        }
-      }
-    } else {
-      this->root->logs.push_back("Error: Unexpected condition type");
-    }
-    this->variable_stack.pop();
+    this->evaluateWhileStatement((BoundWhileStatement *)node);
     break;
   }
 
   case BinderKindUtils::BoundNodeKind::ForStatement: {
-    BoundForStatement *forStatement = (BoundForStatement *)node;
-    std::string variable_name = "";
 
-    this->variable_stack.push(std::map<std::string, Utils::Variable>());
-    std::any lowerBound = 0;
-    if (forStatement->getInitialization()->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      BoundVariableDeclaration *variableDeclaration =
-          (BoundVariableDeclaration *)forStatement->getInitialization();
-
-      variable_name = variableDeclaration->getVariable();
-      this->evaluateStatement(variableDeclaration);
-
-      lowerBound = this->getVariable(variable_name).value;
-    } else {
-      this->evaluateStatement(forStatement->getInitialization());
-
-      lowerBound = this->last_value;
-    }
-
-    std::any upperBound =
-        this->evaluate<std::any>(forStatement->getUpperBound());
-
-    if (lowerBound.type() != upperBound.type()) {
-      this->root->logs.push_back("Error: Incompatible types");
-      return;
-    }
-
-    if (lowerBound.type() == typeid(int)) {
-      for (int i = std::any_cast<int>(lowerBound);
-           i <= std::any_cast<int>(upperBound); i++) {
-        if (variable_name != "") {
-          this->assignVariable(
-              variable_name,
-              Utils::Variable(i, (this->getVariable(variable_name)).isConst));
-        }
-        this->evaluateStatement(forStatement->getStatement());
-
-        if (continue_count) {
-          continue_count--;
-        }
-        if (break_count) {
-          break_count--;
-          break;
-        }
-      }
-    } else {
-      this->root->logs.push_back("Error: Unexpected condition type");
-    }
-
-    this->variable_stack.pop();
-
+    this->evaluateForStatement((BoundForStatement *)node);
     break;
   }
 
@@ -300,6 +333,9 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
     BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
+
+    int &return_count = this->return_count_stack.top();
+    return_count = return_count + 1;
     if (returnStatement->getReturnExpression() != nullptr) {
       this->last_value =
           this->evaluate<std::any>(returnStatement->getReturnExpression());
@@ -316,96 +352,119 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
   this->root->functions = this->function_stack.top();
 }
 
+template <typename T>
+T Evaluator::evaluateLiteralExpression(BoundExpression *node) {
+  std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+
+  if (value.type() == typeid(int)) {
+    return std::any_cast<int>(value);
+  } else if (value.type() == typeid(bool)) {
+    return std::any_cast<bool>(value);
+  } else if (value.type() == typeid(std::string)) {
+    return std::any_cast<std::string>(value);
+  } else if (value.type() == typeid(double)) {
+    return std::any_cast<double>(value);
+  } else {
+    this->root->logs.push_back("Error: Unexpected literal expression");
+    return nullptr;
+  }
+}
+
+template <typename T>
+T Evaluator::evaluateUnaryExpression(BoundExpression *node) {
+  BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
+  std::any operand_any =
+      (this->evaluate<std::any>(unaryExpression->getOperand()));
+  return Evaluator::unaryExpressionEvaluator<std::any>(
+      unaryExpression->getOperator(), operand_any);
+}
+
+template <typename T>
+T Evaluator::evaluateVariableExpression(BoundExpression *node) {
+  BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
+
+  std::any variable =
+      this->evaluate<std::any>(variableExpression->getIdentifierExpression());
+  if (variable.type() != typeid(std::string)) {
+    this->root->logs.push_back("Error: Unexpected variable name");
+    return nullptr;
+  }
+
+  std::string variable_name = std::any_cast<std::string>(variable);
+  switch (variableExpression->getKind()) {
+  case BinderKindUtils::BoundNodeKind::VariableExpression: {
+    return this->getVariable(variable_name).value;
+  }
+  default:
+    this->root->logs.push_back("Error: Unexpected Variable found");
+    return nullptr;
+  }
+}
+
+template <typename T>
+T Evaluator::evaluateAssignmentExpression(BoundExpression *node) {
+  BoundAssignmentExpression *assignmentExpression =
+      (BoundAssignmentExpression *)node;
+
+  std::any variable = this->evaluate<std::any>(assignmentExpression->getLeft());
+
+  if (variable.type() != typeid(std::string)) {
+    this->root->logs.push_back("Error Unexpected variable name");
+    return nullptr;
+  }
+  std::string variable_name = std::any_cast<std::string>(variable);
+
+  std::any evaluatedRight =
+      this->evaluate<std::any>(assignmentExpression->getRight());
+  bool isConst = this->getVariable(variable_name).isConst;
+  switch (assignmentExpression->getOperator()) {
+  case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
+
+    this->assignVariable(variable_name,
+                         Utils::Variable(evaluatedRight, isConst));
+
+    this->last_value = this->getVariable(variable_name).value;
+    return this->getVariable(variable_name).value;
+  }
+  default:
+    this->root->logs.push_back("Error: Unexpected assignment operator");
+    return nullptr;
+  }
+}
+
+template <typename T>
+T Evaluator::evaluateBinaryExpression(BoundExpression *node) {
+  BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
+  std::any left_any = (this->evaluate<std::any>(binaryExpression->getLeft()));
+  std::any right_any = (this->evaluate<std::any>(binaryExpression->getRight()));
+
+  try {
+    return this->binaryExpressionEvaluator<std::any>(
+        binaryExpression->getOperator(), left_any, right_any);
+  } catch (const std::exception &e) {
+    this->root->logs.push_back(e.what());
+    return nullptr;
+  }
+}
+
 template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
-    std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
-    if (value.type() == typeid(int)) {
-      return std::any_cast<int>(value);
-    } else if (value.type() == typeid(bool)) {
-      return std::any_cast<bool>(value);
-    } else if (value.type() == typeid(std::string)) {
-      return std::any_cast<std::string>(value);
-    } else if (value.type() == typeid(double)) {
-      return std::any_cast<double>(value);
-    } else {
-      this->root->logs.push_back("Error: Unexpected literal expression");
-    }
+    return this->evaluateLiteralExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::UnaryExpression: {
-    BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
-    std::any operand_any =
-        (this->evaluate<std::any>(unaryExpression->getOperand()));
-    return Evaluator::unaryExpressionEvaluator<std::any>(
-        unaryExpression->getOperator(), operand_any);
+    return this->evaluateUnaryExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::VariableExpression: {
-    BoundVariableExpression *variableExpression =
-        (BoundVariableExpression *)node;
-
-    std::any variable =
-        this->evaluate<std::any>(variableExpression->getIdentifierExpression());
-    if (variable.type() != typeid(std::string)) {
-      this->root->logs.push_back("Error: Unexpected variable name");
-      return nullptr;
-    }
-
-    std::string variable_name = std::any_cast<std::string>(variable);
-    switch (variableExpression->getKind()) {
-    case BinderKindUtils::BoundNodeKind::VariableExpression: {
-      return this->getVariable(variable_name).value;
-    }
-    default:
-      this->root->logs.push_back("Error: Unexpected Variable found");
-      return nullptr;
-    }
+    return this->evaluateVariableExpression<T>(node);
   }
 
   case BinderKindUtils::BoundNodeKind::AssignmentExpression: {
-    BoundAssignmentExpression *assignmentExpression =
-        (BoundAssignmentExpression *)node;
-
-    std::any variable =
-        this->evaluate<std::any>(assignmentExpression->getLeft());
-
-    if (variable.type() != typeid(std::string)) {
-      this->root->logs.push_back("Error Unexpected variable name");
-      return nullptr;
-    }
-    std::string variable_name = std::any_cast<std::string>(variable);
-
-    std::any evaluatedRight =
-        this->evaluate<std::any>(assignmentExpression->getRight());
-    bool isConst = this->getVariable(variable_name).isConst;
-    switch (assignmentExpression->getOperator()) {
-    case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
-
-      this->assignVariable(variable_name,
-                           Utils::Variable(evaluatedRight, isConst));
-
-      this->last_value = this->getVariable(variable_name).value;
-      break;
-    }
-    default:
-      this->root->logs.push_back("Error: Unexpected assignment operator");
-      return nullptr;
-    }
-    return this->getVariable(variable_name).value;
+    return this->evaluateAssignmentExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
-    BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
-    std::any left_any = (this->evaluate<std::any>(binaryExpression->getLeft()));
-    std::any right_any =
-        (this->evaluate<std::any>(binaryExpression->getRight()));
-
-    try {
-      return this->binaryExpressionEvaluator<std::any>(
-          binaryExpression->getOperator(), left_any, right_any);
-    } catch (const std::exception &e) {
-      this->root->logs.push_back(e.what());
-      return nullptr;
-    }
+    return this->evaluateBinaryExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
     BoundParenthesizedExpression *parenthesizedExpression =
@@ -566,6 +625,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       this->variable_stack.push(std::map<std::string, Utils::Variable>());
       this->function_stack.push(
           std::map<std::string, BoundFunctionDeclaration *>());
+      this->return_count_stack.push(0);
 
       std::map<std::string, Utils::Variable> &function_Variables =
           this->variable_stack.top();
@@ -581,6 +641,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       }
 
       this->evaluateStatement(functionDefination->body);
+
+      this->return_count_stack.pop();
 
       this->function_stack.pop();
       this->variable_stack.pop();

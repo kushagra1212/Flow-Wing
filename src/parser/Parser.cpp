@@ -187,16 +187,16 @@ ReturnStatementSyntax *Parser::parseReturnStatement() {
   SyntaxToken<std::any> *returnKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
 
-  ExpressionSyntax *expression = nullptr;
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-    expression = this->parseExpression();
+
+    ExpressionSyntax *expression = this->parseExpression();
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
     return new ReturnStatementSyntax(returnKeyword, expression);
   }
 
-  return new ReturnStatementSyntax(returnKeyword, expression);
+  return new ReturnStatementSyntax(returnKeyword, nullptr);
 }
 
 BreakStatementSyntax *Parser::parseBreakStatement() {

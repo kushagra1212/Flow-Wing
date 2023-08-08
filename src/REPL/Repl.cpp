@@ -73,8 +73,12 @@ void Repl::runWithStream(std::istream &inputStream,
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
     if (parser->logs.size()) {
       printErrors(parser->logs, outputStream);
-    } else if (!exit)
+    } else if (!exit) {
+      if (showSyntaxTree) {
+        Utils::prettyPrint(compilationUnit);
+      }
       compileAndEvaluate(compilationUnit, outputStream);
+    }
   }
 }
 
@@ -85,10 +89,6 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
       new Evaluator(previousEvaluator, compilationUnit);
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
-
-  if (showSyntaxTree) {
-    Utils::prettyPrint(compilationUnit);
-  }
 
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement);
@@ -114,7 +114,7 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
         double doubleValue = std::any_cast<double>(result);
         outputStream << doubleValue << "\n";
       } else if (result.type() == typeid(std::nullptr_t)) {
-        // Handle the nullptr_t case if needed
+        // outputStream << "null\n";
 
       } else {
         throw std::runtime_error("Unexpected result type");

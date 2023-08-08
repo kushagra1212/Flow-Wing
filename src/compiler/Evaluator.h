@@ -28,6 +28,7 @@ public:
   Evaluator *previous = nullptr;
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
+  std::stack<int> return_count_stack;
   int break_count = 0, continue_count = 0;
 
   Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
@@ -38,6 +39,16 @@ public:
 
 public:
   template <typename T> T evaluate(BoundExpression *node);
+
+  template <typename T> T evaluateLiteralExpression(BoundExpression *node);
+
+  template <typename T> T evaluateUnaryExpression(BoundExpression *node);
+
+  template <typename T> T evaluateBinaryExpression(BoundExpression *node);
+
+  template <typename T> T evaluateAssignmentExpression(BoundExpression *node);
+
+  template <typename T> T evaluateVariableExpression(BoundExpression *node);
 
 public:
   void declareVariable(std::string name, Utils::Variable variable);
@@ -51,6 +62,16 @@ public:
   void assignVariable(std::string name, Utils::Variable variable);
 
   void evaluateStatement(BoundStatement *node);
+
+  void evaluateExpressionStatement(BoundExpressionStatement *node);
+  void evaluateBlockStatement(BoundBlockStatement *node);
+
+  void evaluateVariableDeclaration(BoundVariableDeclaration *node);
+
+  void evaluateIfStatement(BoundIfStatement *node);
+  void evaluateWhileStatement(BoundWhileStatement *node);
+  void evaluateForStatement(BoundForStatement *node);
+
   static std::vector<std::string> logs;
   template <typename T>
   static T

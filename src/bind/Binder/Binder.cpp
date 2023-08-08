@@ -113,7 +113,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     return new BoundContinueStatement();
   }
 
-  case SyntaxKindUtils::SyntaxKind::ReturnKeyword: {
+  case SyntaxKindUtils::SyntaxKind::ReturnStatement: {
 
     ReturnStatementSyntax *returnStatement = (ReturnStatementSyntax *)syntax;
 
@@ -319,20 +319,30 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
           Utils::type::VOID);
     }
 
+    // if (!this->root->tryLookupFunction(
+    //         Utils::convertAnyToString(identifier->getValue()))) {
+    //   this->logs.push_back(Utils::getLineNumberAndPosition(
+    //                            callExpression->getIdentifier()->getToken()) +
+    //                        "Error: Function " +
+    //                        std::any_cast<std::string>(identifier->getValue())
+    //                        + " does not exist");
+    //   return identifier;
+    // }
+
     // if (functionSymbol.kind == Utils::SymbolKind::None) {
     //   this->logs.push_back(Utils::getLineNumberAndPosition(
     //                      callExpression->getIdentifier()->getToken()) +
     //                  "Error: Function " +
-    //                  callExpression->getIdentifier()->getToken()->getText() +
-    //                  " does not exist");
+    //                  callExpression->getIdentifier()->getToken()->getText()
+    //                  + " does not exist");
     //   return identifier;
     // }
 
     // if (callExpression->getArguments().size() != functionSymbol.arity()) {
     //   this->logs.push_back("Error: Function " +
     //                  std::any_cast<std::string>(identifier->getValue()) +
-    //                  " requires " + std::to_string(functionSymbol.arity()) +
-    //                  " arguments");
+    //                  " requires " + std::to_string(functionSymbol.arity())
+    //                  + " arguments");
     //   return identifier;
     // }
 

@@ -30,5 +30,5 @@ std::vector<SyntaxNode *> ReturnStatementSyntax::getChildren() {
 }
 
 SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() {
-  return SyntaxKindUtils::SyntaxKind::ReturnKeyword;
+  return SyntaxKindUtils::SyntaxKind::ReturnStatement;
 }

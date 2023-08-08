@@ -90,6 +90,7 @@ enum SyntaxKind {
   IfStatement,
   WhileStatement,
   ForStatement,
+  ReturnStatement,
 
   FunctionDeclarationSyntax,
 

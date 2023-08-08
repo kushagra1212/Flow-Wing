@@ -1,7 +1,10 @@
 #include "Utils.h"
 
 void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
-
+  if (!node) {
+    // std::cout << "null\n";
+    return;
+  }
   std::cout << indent;
   if (isLast) {
     std::cout << RED_TEXT << "\\-" << RESET;
@@ -34,6 +37,10 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 
 void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
                         std::string indent, bool isLast) {
+  if (!compilationUnit) {
+    // std::cout << "null\n";
+    return;
+  }
   std::cout << indent;
   if (isLast) {
     std::cout << RED_TEXT << "\\-" << RESET;
@@ -53,6 +60,12 @@ void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
 }
 
 void Utils::prettyPrint(BoundNode *statement, std::string indent, bool isLast) {
+
+  if (!statement) {
+    // std::cout << "null\n";
+    return;
+  }
+
   std::cout << indent;
   if (isLast) {
     std::cout << RED_TEXT << "\\-" << RESET;
@@ -65,7 +78,8 @@ void Utils::prettyPrint(BoundNode *statement, std::string indent, bool isLast) {
   std::cout << BinderKindUtils::to_string(statement->getKind()) << '\n';
   for (int i = 0; i < statement->getChildren().size(); i++) {
 
-    Utils::prettyPrint(statement->getChildren()[i], indent, true);
+    Utils::prettyPrint(statement->getChildren()[i], indent,
+                       i == statement->getChildren().size() - 1);
   }
 }
 

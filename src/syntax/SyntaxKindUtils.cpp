@@ -166,6 +166,9 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ReturnKeyword:
     return "ReturnKeyword";
 
+  case SyntaxKind::ReturnStatement:
+    return "ReturnStatement";
+
   default:
     return "NotDefined";
   }

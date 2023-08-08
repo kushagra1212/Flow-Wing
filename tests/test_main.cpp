@@ -224,7 +224,13 @@ TEST_F(IORedirectionTest, TestForForLoop2) {
   runEvaluator();
   ASSERT_EQ(getOutput(), "34034342");
 }
-
+TEST_F(IORedirectionTest, TestForForWhileLoop) {
+  setInput(
+      "var x = 0 while (x<=2) { var y = 3 while(y<=5) { print(x) if (x == 4) { "
+      "break } y = y+1} x=x+1 if(x==1) {continue }print(x)}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "00011122223");
+}
 TEST_F(IORedirectionTest, TestForFunction) {
   setInput("fun add(a,b) { return (a+b) } var ans = add(1,2) print(ans)");
   runEvaluator();
@@ -234,6 +240,12 @@ TEST_F(IORedirectionTest, TestForFunctionFactorial) {
   setInput(
       "fun fact(n) { if(n==0) { return (1) } else { return (n*fact(n-1))   } } "
       "var ans = fact(5) print(ans)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "120");
+}
+TEST_F(IORedirectionTest, TestForFunctionFactorial2) {
+  setInput("fun fact(n) { if(n==1) { return (n) } return (n*fact(n-1))    } "
+           "var ans = fact(5) print(ans)");
   runEvaluator();
   ASSERT_EQ(getOutput(), "120");
 }
