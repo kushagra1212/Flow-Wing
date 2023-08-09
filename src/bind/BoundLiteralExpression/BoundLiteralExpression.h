@@ -11,6 +11,8 @@ private:
 public:
   BoundLiteralExpression(T value);
 
+  ~BoundLiteralExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind();
 
@@ -19,4 +21,7 @@ public:
 
 public:
   T getValue();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

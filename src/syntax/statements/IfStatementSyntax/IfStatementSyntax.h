@@ -12,6 +12,8 @@ public:
                     BlockStatementSyntax *statement,
                     ElseClauseSyntax *elseClause);
 
+  ~IfStatementSyntax();
+
   SyntaxToken<std::any> *getIfKeyword() const;
   ExpressionSyntax *getCondition() const;
   BlockStatementSyntax *getStatement() const;

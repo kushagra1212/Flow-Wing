@@ -10,13 +10,18 @@ private:
 public:
   BoundParenthesizedExpression(BoundExpression *expression);
 
-public:
-public:
-  BinderKindUtils::BoundNodeKind getKind();
+  ~BoundParenthesizedExpression();
 
 public:
-  const std::type_info &getType();
+public:
+  BinderKindUtils::BoundNodeKind getKind() override;
+
+public:
+  const std::type_info &getType() override;
 
 public:
   BoundExpression *getExpression();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

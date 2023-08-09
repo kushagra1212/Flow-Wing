@@ -20,3 +20,27 @@ BoundStatement *BoundIfStatement::getThenStatement() const {
 BoundStatement *BoundIfStatement::getElseStatement() const {
   return _elseStatement;
 }
+
+std::vector<BoundNode *> BoundIfStatement::getChildren() {
+  std::vector<BoundNode *> children;
+  children.push_back(_condition);
+  children.push_back(_thenStatement);
+  children.push_back(_elseStatement);
+  return children;
+}
+BoundIfStatement::~BoundIfStatement() {
+  if (_condition != nullptr) {
+    delete _condition;
+    _condition = nullptr;
+  }
+
+  if (_thenStatement != nullptr) {
+    delete _thenStatement;
+    _thenStatement = nullptr;
+  }
+
+  if (_elseStatement != nullptr) {
+    delete _elseStatement;
+    _elseStatement = nullptr;
+  }
+}

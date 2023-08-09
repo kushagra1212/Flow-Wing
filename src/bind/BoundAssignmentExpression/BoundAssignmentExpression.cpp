@@ -24,3 +24,19 @@ BoundAssignmentExpression::getOperator() {
 BoundExpression *BoundAssignmentExpression::getLeft() { return left; }
 
 BoundExpression *BoundAssignmentExpression::getRight() { return right; }
+
+std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
+  return std::vector<BoundNode *>{left, right};
+}
+
+BoundAssignmentExpression::~BoundAssignmentExpression() {
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
+}

@@ -22,3 +22,15 @@ ExpressionSyntax *UnaryExpressionSyntax::getOperand() { return this->operand; }
 std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
   return children;
 }
+
+UnaryExpressionSyntax::~UnaryExpressionSyntax() {
+  if (this->operatorToken != nullptr) {
+    delete this->operatorToken;
+    this->operatorToken = nullptr;
+  }
+
+  if (this->operand != nullptr) {
+    delete this->operand;
+    this->operand = nullptr;
+  }
+}

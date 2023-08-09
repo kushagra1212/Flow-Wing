@@ -10,7 +10,10 @@ private:
 
 public:
   BoundWhileStatement(BoundExpression *condition, BoundStatement *body);
+
+  ~BoundWhileStatement();
   BinderKindUtils::BoundNodeKind getKind() override;
   BoundExpression *getCondition() const;
   BoundStatement *getBody() const;
+  std::vector<BoundNode *> getChildren() override;
 };

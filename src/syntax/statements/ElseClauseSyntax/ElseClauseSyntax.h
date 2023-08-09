@@ -12,6 +12,7 @@ private:
 public:
   ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
                    BlockStatementSyntax *statement);
+  ~ElseClauseSyntax();
   SyntaxToken<std::any> *getElseKeyword() const;
   BlockStatementSyntax *getStatement() const;
   SyntaxKindUtils::SyntaxKind getKind() override;

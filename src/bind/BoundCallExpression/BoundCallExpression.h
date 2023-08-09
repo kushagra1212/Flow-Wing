@@ -11,14 +11,18 @@ public:
   BoundCallExpression(Utils::FunctionSymbol functionalSymbol,
                       const std::vector<BoundExpression *> &arguments);
 
+  ~BoundCallExpression();
+
   const std::string &getName() const;
   const std::vector<BoundExpression *> &getArguments() const;
 
-  BinderKindUtils::BoundNodeKind getKind();
+  BinderKindUtils::BoundNodeKind getKind() override;
 
-  const std::type_info &getType();
+  const std::type_info &getType() override;
 
   Utils::FunctionSymbol getFunctionSymbol() const;
+
+  std::vector<BoundNode *> getChildren() override;
 
 private:
   Utils::FunctionSymbol functionalSymbol;

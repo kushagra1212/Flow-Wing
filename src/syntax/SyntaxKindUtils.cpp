@@ -1,8 +1,6 @@
 
 #include "SyntaxKindUtils.h"
 
-std::map<SyntaxKindUtils::SyntaxKind, std::string>
-    SyntaxKindUtils::enum_to_string_map;
 bool SyntaxKindUtils::isInt32(const std::string &str) {
   try {
     size_t pos;
@@ -36,69 +34,142 @@ bool SyntaxKindUtils::isDouble(const std::string &str) {
   }
 }
 
-void SyntaxKindUtils::init_enum_to_string_map() {
-  enum_to_string_map[SyntaxKind::NumberToken] = "NumberToken";
-  enum_to_string_map[SyntaxKind::TrueKeyword] = "TrueKeyword";
-  enum_to_string_map[SyntaxKind::FalseKeyword] = "FalseKeyword";
-  enum_to_string_map[SyntaxKind::WhitespaceToken] = "WhitespaceToken";
-  enum_to_string_map[SyntaxKind::PlusToken] = "PlusToken";
-  enum_to_string_map[SyntaxKind::MinusToken] = "MinusToken";
-  enum_to_string_map[SyntaxKind::StarToken] = "StarToken";
-  enum_to_string_map[SyntaxKind::SlashToken] = "SlashToken";
-  enum_to_string_map[SyntaxKind::OpenParenthesisToken] = "OpenParenthesisToken";
-  enum_to_string_map[SyntaxKind::CloseParenthesisToken] =
-      "CloseParenthesisToken";
-  enum_to_string_map[SyntaxKind::BadToken] = "BadToken";
-  enum_to_string_map[SyntaxKind::EndOfFileToken] = "EndOfFileToken";
-  enum_to_string_map[SyntaxKind::LiteralExpression] = "LiteralExpression";
-  enum_to_string_map[SyntaxKind::UnaryExpression] = "UnaryExpression";
-  enum_to_string_map[SyntaxKind::BinaryExpression] = "BinaryExpression";
-  enum_to_string_map[SyntaxKind::ParenthesizedExpression] =
-      "ParenthesizedExpression";
-  enum_to_string_map[SyntaxKind::CompilationUnit] = "CompilationUnit";
-  enum_to_string_map[SyntaxKind::AmpersandAmpersandToken] =
-      "AmpersandAmpersandToken";
-  enum_to_string_map[SyntaxKind::PipePipeToken] = "PipePipeToken";
-  enum_to_string_map[SyntaxKind::EqualsEqualsToken] = "EqualsEqualsToken";
-  enum_to_string_map[SyntaxKind::EqualsToken] = "EqualsToken";
-  enum_to_string_map[SyntaxKind::BangToken] = "BangToken";
-  enum_to_string_map[SyntaxKind::BangEqualsToken] = "BangEqualsToken";
-  enum_to_string_map[SyntaxKind::LessOrEqualsToken] = "LessOrEqualsToken";
-  enum_to_string_map[SyntaxKind::LessToken] = "LessToken";
-  enum_to_string_map[SyntaxKind::GreaterOrEqualsToken] = "GreaterOrEqualsToken";
-  enum_to_string_map[SyntaxKind::GreaterToken] = "GreaterToken";
-  enum_to_string_map[SyntaxKind::SemiColonToken] = "SemiColonToken";
-  enum_to_string_map[SyntaxKind::CommaToken] = "CommaToken";
-  enum_to_string_map[SyntaxKind::OpenBraceToken] = "OpenBraceToken";
-  enum_to_string_map[SyntaxKind::CloseBraceToken] = "CloseBraceToken";
-  enum_to_string_map[SyntaxKind::StringToken] = "StringToken";
-  enum_to_string_map[SyntaxKind::IdentifierToken] = "IdentifierToken";
+std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
+  switch (kind) {
+  case SyntaxKind::NumberToken:
+    return "NumberToken";
+  case SyntaxKind::TrueKeyword:
+    return "TrueKeyword";
+  case SyntaxKind::FalseKeyword:
+    return "FalseKeyword";
+  case SyntaxKind::WhitespaceToken:
+    return "WhitespaceToken";
+  case SyntaxKind::PlusToken:
+    return "PlusToken";
+  case SyntaxKind::MinusToken:
+    return "MinusToken";
+  case SyntaxKind::StarToken:
+    return "StarToken";
+  case SyntaxKind::SlashToken:
+    return "SlashToken";
+  case SyntaxKind::OpenParenthesisToken:
+    return "OpenParenthesisToken";
+  case SyntaxKind::CloseParenthesisToken:
+    return "CloseParenthesisToken";
+  case SyntaxKind::BadToken:
+    return "BadToken";
+  case SyntaxKind::EndOfFileToken:
+    return "EndOfFileToken";
+  case SyntaxKind::LiteralExpression:
+    return "LiteralExpression";
+  case SyntaxKind::UnaryExpression:
+    return "UnaryExpression";
+  case SyntaxKind::BinaryExpression:
+    return "BinaryExpression";
+  case SyntaxKind::ParenthesizedExpression:
+    return "ParenthesizedExpression";
+  case SyntaxKind::CompilationUnit:
+    return "CompilationUnit";
+  case SyntaxKind::AmpersandAmpersandToken:
+    return "AmpersandAmpersandToken";
+  case SyntaxKind::PipePipeToken:
+    return "PipePipeToken";
+  case SyntaxKind::EqualsEqualsToken:
+    return "EqualsEqualsToken";
+  case SyntaxKind::EqualsToken:
+    return "EqualsToken";
+  case SyntaxKind::BangToken:
+    return "BangToken";
+  case SyntaxKind::BangEqualsToken:
+    return "BangEqualsToken";
+  case SyntaxKind::LessOrEqualsToken:
+    return "LessOrEqualsToken";
+  case SyntaxKind::LessToken:
+    return "LessToken";
+  case SyntaxKind::GreaterOrEqualsToken:
+    return "GreaterOrEqualsToken";
+  case SyntaxKind::GreaterToken:
+    return "GreaterToken";
+  case SyntaxKind::SemiColonToken:
+    return "SemiColonToken";
+  case SyntaxKind::CommaToken:
+    return "CommaToken";
+  case SyntaxKind::OpenBraceToken:
+    return "OpenBraceToken";
+  case SyntaxKind::CloseBraceToken:
+    return "CloseBraceToken";
+  case SyntaxKind::StringToken:
+    return "StringToken";
+  case SyntaxKind::IdentifierToken:
+    return "IdentifierToken";
+  case SyntaxKind::SemicolonToken:
+    return "SemicolonToken";
+  case SyntaxKind::AmpersandToken:
+    return "AmpersandToken";
+  case SyntaxKind::PipeToken:
+    return "PipeToken";
+  case SyntaxKind::CaretToken:
+    return "CaretToken";
+  case SyntaxKind::TildeToken:
+    return "TildeToken";
+  case SyntaxKind::PercentToken:
+    return "PercentToken";
+  case SyntaxKind::VariableExpression:
+    return "VariableExpression";
+  case SyntaxKind::AssignmentExpression:
+    return "AssignmentExpression";
+  case SyntaxKind::EndOfLineToken:
+    return "EndOfLineToken";
+  case SyntaxKind::VarKeyword:
+    return "VarKeyword";
+  case SyntaxKind::ConstKeyword:
+    return "ConstKeyword";
+  case SyntaxKind::VariableDeclaration:
+    return "VariableDeclaration";
+  case SyntaxKind::IfKeyword:
+    return "IfKeyword";
+  case SyntaxKind::ElseKeyword:
+    return "ElseKeyword";
+  case SyntaxKind::ElseClause:
+    return "ElseClause";
+  case SyntaxKind::IfStatement:
+    return "IfStatement";
+  case SyntaxKind::WhileKeyword:
+    return "WhileKeyword";
+  case SyntaxKind::WhileStatement:
+    return "WhileStatement";
+  case SyntaxKind::ForKeyword:
+    return "ForKeyword";
+  case SyntaxKind::ToKeyword:
+    return "ToKeyword";
+  case SyntaxKind::ForStatement:
+    return "ForStatement";
+  case SyntaxKind::BlockStatement:
+    return "BlockStatement";
+  case SyntaxKind::ExpressionStatement:
+    return "ExpressionStatement";
+  case SyntaxKind::CallExpression:
+    return "CallExpression";
+  case SyntaxKind::GlobalStatement:
+    return "GlobalStatement";
+  case SyntaxKind::ParameterSyntax:
+    return "ParameterSyntax";
+  case SyntaxKind::FunctionDeclarationSyntax:
+    return "FunctionDeclarationSyntax";
+  case SyntaxKind::FunctionKeyword:
+    return "FunctionKeyword";
+  case SyntaxKind::ContinueKeyword:
+    return "ContinueKeyword";
+  case SyntaxKind::BreakKeyword:
+    return "BreakKeyword";
 
-  enum_to_string_map[SyntaxKind::SemicolonToken] = "SemicolonToken";
+  case SyntaxKind::ReturnKeyword:
+    return "ReturnKeyword";
 
-  enum_to_string_map[SyntaxKind::AmpersandToken] = "AmpersandToken";
-  enum_to_string_map[SyntaxKind::PipeToken] = "PipeToken";
-  enum_to_string_map[SyntaxKind::CaretToken] = "CaretToken";
-  enum_to_string_map[SyntaxKind::TildeToken] = "TildeToken";
-  enum_to_string_map[SyntaxKind::PercentToken] = "PercentToken";
-  enum_to_string_map[SyntaxKind::VariableExpression] = "VariableExpression";
-  enum_to_string_map[SyntaxKind::AssignmentExpression] = "AssignmentExpression";
-  enum_to_string_map[SyntaxKind::PercentToken] = "PercentToken";
+  case SyntaxKind::ReturnStatement:
+    return "ReturnStatement";
 
-  enum_to_string_map[SyntaxKind::EndOfLineToken] = "EndOfLineToken";
-  enum_to_string_map[SyntaxKind::VarKeyword] = "VarKeyword";
-  enum_to_string_map[SyntaxKind::ConstKeyword] = "ConstKeyword";
-  enum_to_string_map[SyntaxKind::VariableDeclaration] = "VariableDeclaration";
-  enum_to_string_map[SyntaxKind::IfKeyword] = "IfKeyword";
-  enum_to_string_map[SyntaxKind::ElseKeyword] = "ElseKeyword";
-  enum_to_string_map[SyntaxKind::ElseClause] = "ElseClause";
-  enum_to_string_map[SyntaxKind::IfStatement] = "IfStatement";
-  enum_to_string_map[SyntaxKind::WhileKeyword] = "WhileKeyword";
-  enum_to_string_map[SyntaxKind::WhileStatement] = "WhileStatement";
-  enum_to_string_map[SyntaxKind::ForKeyword] = "ForKeyword";
-  enum_to_string_map[SyntaxKind::ToKeyword] = "ToKeyword";
-  enum_to_string_map[SyntaxKind::ForStatement] = "ForStatement";
-  enum_to_string_map[SyntaxKind::BlockStatement] = "BlockStatement";
-  enum_to_string_map[SyntaxKind::ExpressionStatement] = "ExpressionStatement";
-  enum_to_string_map[SyntaxKind::CallExpression] = "CallExpression";
+  default:
+    return "NotDefined";
+  }
 }

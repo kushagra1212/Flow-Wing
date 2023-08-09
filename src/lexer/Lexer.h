@@ -17,7 +17,9 @@ public:
   std::vector<std::string> logs;
 
 public:
-  Lexer(std::vector<std::string> text);
+  Lexer(const std::vector<std::string> &text);
+
+  ~Lexer();
 
 private:
   char getCurrent();

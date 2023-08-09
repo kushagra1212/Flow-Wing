@@ -12,3 +12,13 @@ BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() {
 BoundExpression *BoundExpressionStatement::getExpression() {
   return expression;
 }
+
+std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
+  return std::vector<BoundNode *>{expression};
+}
+BoundExpressionStatement::~BoundExpressionStatement() {
+  if (expression != nullptr) {
+    delete expression;
+    expression = nullptr;
+  }
+}

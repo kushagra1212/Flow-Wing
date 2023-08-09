@@ -16,3 +16,14 @@ const std::type_info &BoundParenthesizedExpression::getType() {
 BoundExpression *BoundParenthesizedExpression::getExpression() {
   return expression;
 }
+
+std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
+  return std::vector<BoundNode *>{expression};
+}
+
+BoundParenthesizedExpression::~BoundParenthesizedExpression() {
+  if (expression != nullptr) {
+    delete expression;
+    expression = nullptr;
+  }
+}

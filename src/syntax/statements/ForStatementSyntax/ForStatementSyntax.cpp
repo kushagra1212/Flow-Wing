@@ -25,3 +25,20 @@ ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
 StatementSyntax *ForStatementSyntax::getInitialization() const {
   return this->initialization;
 }
+
+ForStatementSyntax::~ForStatementSyntax() {
+  if (this->initialization != nullptr) {
+    delete this->initialization;
+    this->initialization = nullptr;
+  }
+
+  if (this->upperBound != nullptr) {
+    delete this->upperBound;
+    this->upperBound = nullptr;
+  }
+
+  if (this->statement != nullptr) {
+    delete this->statement;
+    this->statement = nullptr;
+  }
+}

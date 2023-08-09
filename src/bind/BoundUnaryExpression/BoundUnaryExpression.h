@@ -11,15 +11,20 @@ public:
   BoundUnaryExpression(BinderKindUtils::BoundUnaryOperatorKind op,
                        BoundExpression *operand);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind();
+  ~BoundUnaryExpression();
 
 public:
-  const std::type_info &getType();
+  BinderKindUtils::BoundNodeKind getKind() override;
+
+public:
+  const std::type_info &getType() override;
 
 public:
   BinderKindUtils::BoundUnaryOperatorKind getOperator();
 
 public:
   BoundExpression *getOperand();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

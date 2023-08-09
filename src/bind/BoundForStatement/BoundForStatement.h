@@ -14,6 +14,8 @@ public:
 
                     BoundStatement *statement);
 
+  ~BoundForStatement();
+
   BoundStatement *getInitialization() const;
 
   BoundStatement *getStatement() const;
@@ -21,6 +23,8 @@ public:
   BoundExpression *getUpperBound() const;
 
   BinderKindUtils::BoundNodeKind getKind() override;
+
+  std::vector<BoundNode *> getChildren() override;
 
 private:
   BoundStatement *initialization;

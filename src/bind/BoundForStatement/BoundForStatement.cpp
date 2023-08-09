@@ -26,3 +26,28 @@ BoundExpression *BoundForStatement::getUpperBound() const {
 
   return this->upperBound;
 }
+
+std::vector<BoundNode *> BoundForStatement::getChildren() {
+  std::vector<BoundNode *> children;
+  children.push_back(initialization);
+  children.push_back(statement);
+  children.push_back(upperBound);
+  return children;
+}
+
+BoundForStatement::~BoundForStatement() {
+  if (initialization != nullptr) {
+    delete initialization;
+    initialization = nullptr;
+  }
+
+  if (statement != nullptr) {
+    delete statement;
+    statement = nullptr;
+  }
+
+  if (upperBound != nullptr) {
+    delete upperBound;
+    upperBound = nullptr;
+  }
+}

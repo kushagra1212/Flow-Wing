@@ -1,8 +1,8 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    ExpressionSyntax *left, SyntaxToken<std::any> *operatorToken,
-    ExpressionSyntax *right)
+    LiteralExpressionSyntax<std::any> *left,
+    SyntaxToken<std::any> *operatorToken, ExpressionSyntax *right)
     : left(left), operatorToken(operatorToken), right(right) {}
 
 SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
@@ -23,4 +23,23 @@ SyntaxToken<std::any> *AssignmentExpressionSyntax::getOperatorToken() {
 
 ExpressionSyntax *AssignmentExpressionSyntax::getRight() { return right; }
 
-ExpressionSyntax *AssignmentExpressionSyntax::getLeft() { return left; }
+LiteralExpressionSyntax<std::any> *AssignmentExpressionSyntax::getLeft() {
+  return left;
+}
+
+AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (operatorToken != nullptr) {
+    delete operatorToken;
+    operatorToken = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
+}

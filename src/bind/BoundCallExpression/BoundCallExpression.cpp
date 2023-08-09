@@ -27,3 +27,20 @@ BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
 const std::type_info &BoundCallExpression::getType() {
   return functionalSymbol.getReturnType();
 }
+
+std::vector<BoundNode *> BoundCallExpression::getChildren() {
+  std::vector<BoundNode *> children;
+  for (auto &argument : arguments) {
+    children.push_back(argument);
+  }
+  return children;
+}
+BoundCallExpression::~BoundCallExpression() {
+  for (auto &argument : arguments) {
+    if (argument != nullptr) {
+      delete argument;
+      argument = nullptr;
+    }
+  }
+  arguments.clear();
+}

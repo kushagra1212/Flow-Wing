@@ -13,6 +13,8 @@ public:
   WhileStatementSyntax(SyntaxToken<std::any> *whileKeyword,
                        ExpressionSyntax *condition, BlockStatementSyntax *body);
 
+  ~WhileStatementSyntax();
+
   SyntaxKindUtils::SyntaxKind getKind() override;
 
   std::vector<SyntaxNode *> getChildren() override;

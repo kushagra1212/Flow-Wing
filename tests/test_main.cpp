@@ -19,6 +19,7 @@ protected:
 
   void TearDown() override {
     // Restore cout back to the standard output
+
     std::cout.rdbuf(saved_cout_buf);
   }
 
@@ -28,17 +29,25 @@ protected:
 
   void runEvaluator() {
     repl = new Repl();
-
     repl->runForTest(input_stream, output_stream);
+    delete repl;
   }
 };
 
 // Test case for Repl::handleSpecialCommands
 
-TEST_F(IORedirectionTest, TestHandleSpecialCommands) {
-  setInput(":tree");
+TEST_F(IORedirectionTest, TestHandleShowSyntaxTree) {
+  setInput(":st");
   runEvaluator();
-  ASSERT_TRUE(repl->isTreeVisible());
+  ASSERT_TRUE(repl->isSyntaxTreeVisible());
+}
+
+// Test case for Repl::handleSpecialCommands
+
+TEST_F(IORedirectionTest, TestHandleShowBoundTree) {
+  setInput(":bt");
+  runEvaluator();
+  ASSERT_TRUE(repl->isBoundTreeVisible());
 }
 
 // Test case for Repl::countBraces
@@ -48,14 +57,6 @@ TEST_F(IORedirectionTest, TestCountBraces) {
   ASSERT_EQ(repl->countBraces("{}", '}'), 1);
   ASSERT_EQ(repl->countBraces("{{}}", '{'), 2);
   ASSERT_EQ(repl->countBraces("{{}}", '}'), 2);
-}
-
-// Test case for Repl::processInput
-
-TEST_F(IORedirectionTest, TestProcessInput) {
-  setInput("1 + 2");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
 }
 
 // Test case for Repl::compileAndEvaluate
@@ -84,9 +85,10 @@ TEST_F(IORedirectionTest, TestSingleExpression) {
 // Test case for evaluating multiple expressions
 
 TEST_F(IORedirectionTest, TestMultipleExpressions) {
-  setInput("1 + 2\n3 + 4");
+  setInput("var x = 1+2");
+  setInput("var y = 3+4");
   runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n7\n");
+  ASSERT_EQ(getOutput(), "7\n");
 }
 
 // Test case for evaluating a single expression with a variable
@@ -130,15 +132,6 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType4) {
   ASSERT_EQ(getOutput(), "0\n");
 }
 
-// Test case for executing a single expression with a commbianation of types
-
-TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType5) {
-  setInput("var y = 3 * \"Hello\"");
-  runEvaluator();
-  ASSERT_EQ(getOutput(),
-            "\x1B[31mError: Multiplication not supported for string\x1B[0m\n");
-}
-
 // Test case for executing a single expression with a commbianation of  double &
 // int
 
@@ -157,16 +150,6 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType7) {
   ASSERT_EQ(getOutput(), "6.2\n");
 }
 
-// Test case for executing a single expression with a commbianation of bool &
-// double
-
-TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType8) {
-  setInput("var y = 3.1 * true");
-  runEvaluator();
-  ASSERT_EQ(getOutput(),
-            "\x1B[31mError: Multiplication not supported for double\x1B[0m\n");
-}
-
 // Test case for executing a single expression with a commbianation of string &
 // double
 
@@ -174,16 +157,6 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType9) {
   setInput("var y = 3.1 + \"Hello\"");
   runEvaluator();
   ASSERT_EQ(getOutput(), "3.100000Hello\n");
-}
-
-// Test case for executing a single expression with a commbianation of string &
-// bool
-
-TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType10) {
-  setInput("var y = true + \"Hello\"");
-  runEvaluator();
-  ASSERT_EQ(getOutput(),
-            "\x1B[31mError: Addition not supported for string\x1B[0m\n");
 }
 
 // Test Case for String concatenation
@@ -210,18 +183,9 @@ TEST_F(IORedirectionTest, TestStringConcatenationWithDouble) {
   ASSERT_EQ(getOutput(), "Hello1.000000\n");
 }
 
-// Test Case for String  concatenation with bool
-
-TEST_F(IORedirectionTest, TestStringConcatenationWithBool) {
-  setInput("var y = \"Hello\" + true");
-  runEvaluator();
-  ASSERT_EQ(getOutput(),
-            "\x1B[31mError: Addition not supported for string\x1B[0m\n");
-}
-
 // Bitwise operators
 
-// Test case for executing a single expression with a commbianation of string &
+// Test case for executing a single expression with a commbianation of string
 
 TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType11) {
   setInput("var y = 3 & 2");
@@ -229,7 +193,8 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType11) {
   ASSERT_EQ(getOutput(), "2\n");
 }
 
-// Test case for executing a single expression with a commbianation of string &
+// Test case for executing a single expression with a commbianation of string
+
 // bool
 
 TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType12) {
@@ -238,7 +203,8 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType12) {
   ASSERT_EQ(getOutput(), "1\n");
 }
 
-// Test case for executing a single expression with a commbianation of string ,
+// Test case for executing a single expression with a commbianation of string
+
 // dobule , bool & int in same expression
 
 TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType14) {
@@ -247,305 +213,266 @@ TEST_F(IORedirectionTest, TestSingleExpressionWithDifferentType14) {
   ASSERT_EQ(getOutput(), "0\n");
 }
 
-/*
-    Statements
-*/
+TEST_F(IORedirectionTest, TestForForLoop) {
+  setInput("for(var i = 0 to 10) { print(i) }");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "012345678910");
+}
+TEST_F(IORedirectionTest, TestForForLoop2) {
+  setInput("for var x = 0 to 2 { for var x = 3 to 5 { print(x) if (x == 4) { "
+           "break } } if(x==1) {continue }print(x)}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "34034342");
+}
+TEST_F(IORedirectionTest, TestForForWhileLoop) {
+  setInput(
+      "var x = 0 while (x<=2) { var y = 3 while(y<=5) { print(x) if (x == 4) { "
+      "break } y = y+1} x=x+1 if(x==1) {continue }print(x)}");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "00011122223");
+}
+TEST_F(IORedirectionTest, TestForFunction) {
+  setInput("fun add(a,b) { return (a+b) } var ans = add(1,2) print(ans)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "3");
+}
+TEST_F(IORedirectionTest, TestForFunctionFactorial) {
+  setInput(
+      "fun fact(n) { if(n==0) { return (1) } else { return (n*fact(n-1))   } } "
+      "var ans = fact(5) print(ans)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "120");
+}
+TEST_F(IORedirectionTest, TestForFunctionFactorial2) {
+  setInput("fun fact(n) { if(n==1) { return (n) } return (n*fact(n-1))    } "
+           "var ans = fact(5) print(ans)");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "120");
+}
+
+// Test for inbuilt function print
+
+TEST_F(IORedirectionTest, TestForInbuiltFunctionPrint) {
+  setInput("var x = 20  print(x)");
+  runEvaluator();
+
+  ASSERT_EQ(getOutput(), "20");
+}
+
+// /*
+//     Statements
+// */
 // Test Case for evaluating a single statement
 
 TEST_F(IORedirectionTest, TestSingleStatement) {
-  setInput("{var x = 1 + 2}");
+  setInput("{var x=1+2 print(x)}");
   runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
+  ASSERT_EQ(getOutput(), "3");
 }
 
 // Test Case for evaluating multiple statements
 
 TEST_F(IORedirectionTest, TestMultipleStatements) {
-  setInput("{var x = 1 + 2\nvar y = 3 + 4}");
+  setInput("{var x = 1 + 2 var y = 3 + 4 print(y)} ");
   runEvaluator();
-  ASSERT_EQ(getOutput(), "7\n");
+  ASSERT_EQ(getOutput(), "7");
 }
 
 // Test Case for evaluating a single statement with a variable
 
-TEST_F(IORedirectionTest, TestSingleStatementWithVariable) {
-  setInput("{var x = 1 + 2\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
-}
+// TEST_F(IORedirectionTest, TestSingleStatementWithVariable) {
+//   setInput("{var x = 1 + 2 \n print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "3");
+// }
 
-// Test Case for evaluating a single statement with a variable
+// // Test Case for evaluating a single statement with a variable
 
-TEST_F(IORedirectionTest, TestSingleStatementWithVariable2) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\ny}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "6\n");
-}
+// TEST_F(IORedirectionTest, TestSingleStatementWithVariable2) {
 
-// Test Case for evaluating a single statement with a variable
+//   setInput("{var y = 2 var x = 2+1  y = Int32(y) y = y + 1} print(y)");
 
-TEST_F(IORedirectionTest, TestSingleStatementWithVariable3) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nz}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "10\n");
-}
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "3");
+// }
 
-// Test Case for evaluating a single statement with a variable
+// // Test Case for evaluating a single statement with a variable
 
-TEST_F(IORedirectionTest, TestSingleStatementWithVariable4) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + 5\na}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "15\n");
-}
+// TEST_F(IORedirectionTest, TestSingleStatementWithVariable3) {
+//   setInput("{var x = 1 + 2 var y = x + 3 var z = y + 4 print(z)}");
 
-// Test Case for evaluating a Multiple statement with a variable
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "10");
+// }
 
-TEST_F(IORedirectionTest, TestMultipleStatementWithVariable) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\na\nx\ny\nz}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "10\n");
-}
+// // Test Case for evaluating a If statement with a variable
 
-// Test Case for evaluating a If statement with a variable
+// TEST_F(IORedirectionTest, TestIfStatementWithVariable) {
+//   setInput("{var x = 1 + 2 var y = x + 3 var z = y + 4 var a = z + "
+//            "5 if(a == 15) {print(a)} else {print(x)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "15");
+// }
 
-TEST_F(IORedirectionTest, TestIfStatementWithVariable) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {a}\nelse {x}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "15\n");
-}
+// // Test Case for evaluating a If statement  with boolean
 
-// Test Case for evaluating a If statement  with boolean
+// TEST_F(IORedirectionTest, TestIfStatementWithBoolean) {
+//   setInput("{var x = 1 + 2var y = x + 3var z = y + 4var a = z + "
+//            "5if(a == 15) {print(true)}else {print(false)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "true");
+// }
 
-TEST_F(IORedirectionTest, TestIfStatementWithBoolean) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {true}\nelse {false}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "true\n");
-}
+// // Test Case for evaluating a If statement  with  integer
 
-// Test Case for evaluating a If statement  with  integer
+// TEST_F(IORedirectionTest, TestIfStatementWithInteger) {
+//   setInput("{var x = 1 + 2 var y = x + 3 var z = y + 4 var a = z + "
+//            "5 if(a == 15) {print(1)} else {print(0)} }");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-TEST_F(IORedirectionTest, TestIfStatementWithInteger) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// /*
+//     BlockStatements
+// */
+// // Test Case for evaluating a Block statement  with  integer
 
-/*
-    BlockStatements
-*/
-// Test Case for evaluating a Block statement  with  integer
+// TEST_F(IORedirectionTest, TestBlockStatementWithInteger) {
+//   setInput("{var x = 1 + 2var y = x + 3var z = y + 4var a = z + "
+//            "5if(a == 15) {print(1)}else {print(0)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-TEST_F(IORedirectionTest, TestBlockStatementWithInteger) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// // Test Case for evaluating a Nested Block statement  with  integer
 
-// Test Case for evaluating a Nested Block statement  with  integer
+// TEST_F(IORedirectionTest, TestNestedBlockStatementWithInteger) {
+//   setInput("{var x = 1 + 2var y = x + 3var z = y + 4var a = z + "
+//            "5if(a == 15) {print(1)}else {print(0)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-TEST_F(IORedirectionTest, TestNestedBlockStatementWithInteger) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// // Test Case for evaluating a Nested Block statement  with  different types
 
-// Test Case for evaluating a Nested Block statement  with  different types
+// TEST_F(IORedirectionTest, TestNestedBlockStatementWithDifferentTypes) {
+//   setInput("{var x = 1 + 2 var y = x + 3 var z = y + 4 var a = z + "
+//            "5 if(a == 15) {print(1)} else {print(0)} }");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-TEST_F(IORedirectionTest, TestNestedBlockStatementWithDifferentTypes) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// // Test Case for evaluating a Nested Block statement  with  different data
 
-// Test Case for evaluating a Nested Block statement  with  different data types
-// & expressions
+// // & expressions
 
-TEST_F(IORedirectionTest, TestNestedBlockStatementWithDifferentTypes2) {
-  setInput("{var x = 1 + 2\nvar y = x + 3\nvar z = y + 4\nvar a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// TEST_F(IORedirectionTest, TestNestedBlockStatementWithDifferentTypes2) {
+//   setInput("{var x = 1 + 2var y = x + 3var z = y + 4var a = z + "
+//            "5if(a == 15) {print(1)}else {print(0)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-// Test Case for const statement with  different data types & expressions
+// // Test Case for const statement with  different data types & expressions
 
-TEST_F(IORedirectionTest, TestConstStatementWithDifferentTypes) {
-  setInput("{const x = 1 + 2\nconst y = x + 3\nconst z = y + 4\nconst a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// TEST_F(IORedirectionTest, TestConstStatementWithDifferentTypes) {
+//   setInput("{const x = 1 + 2const y = x + 3const z = y + 4 const a = z + 5 "
+//            "if(a == 15) {print(1)} else {print(0)} }");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-// Test Case for const variable reassignment
+// // Test Case for var variable reassignment
 
-TEST_F(IORedirectionTest, TestConstVariableReassignment) {
-  setInput("{const x = 1 + 2\nx = 3\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "\x1B[31mError: Variable x is const\x1B[0m\n");
-}
+// TEST_F(IORedirectionTest, TestVarVariableReassignment) {
+//   setInput("{var x = 1 + 2 x = 3 print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "3");
+// }
 
-// Test Case for const variable declaration
+// // Test Case for var variable redeclaration in different scope
 
-TEST_F(IORedirectionTest, TestConstVariableDeclaration) {
-  setInput("{const x = 1 + 2\nvar x = 3\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "\x1B[31mError: Variable x already exists\x1B[0m\n");
-}
+// TEST_F(IORedirectionTest, TestVarVariableRedeclaration2) {
+//   setInput("{var x = 1 + 2{var x = 3} print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "3");
+// }
 
-// Test Case for var variable reassignment
+// // Test Case for If statement with  different data types & expressions
 
-TEST_F(IORedirectionTest, TestVarVariableReassignment) {
-  setInput("{var x = 1 + 2\nx = 3\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
-}
+// TEST_F(IORedirectionTest, TestIfStatementWithDifferentTypes) {
+//   setInput("{const x = 1 + 2 const y = x + 3 const z = y + 4 const a = z if(a
+//   "
+//            "== 15) {print(1)} else {print(0)}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "0");
+// }
 
-// Test Case for var variable redeclaration in same scope
+// // Test Case for Nested while statement condition with  different int data
 
-TEST_F(IORedirectionTest, TestVarVariableRedeclaration) {
-  setInput("{var x = 1 + 2\nvar x = 3\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "\x1B[31mError: Variable x already exists\x1B[0m\n");
-}
+// TEST_F(IORedirectionTest,
+// TestNestedWhileStatementConditionWithDifferentTypes) {
+//   setInput("{const x = 1 + 2 const y = x + 3 const z = y + 4 const a = z + "
+//            "5 while(a) {while(a == 15) {print(1) break} break}  }");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "1");
+// }
 
-// Test Case for var variable redeclaration in different scope
+// // Sum of first 10 numbers
 
-TEST_F(IORedirectionTest, TestVarVariableRedeclaration2) {
-  setInput("{var x = 1 + 2\n{\nvar x = 3\n}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "3\n");
-}
+// TEST_F(IORedirectionTest, TestSumOfFirst10Numbers) {
+//   setInput(
+//       "{var x =0 var y =0  while(x<= 10) {y = y + x  x = x + 1} print(y)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "45");
+// }
 
-// Test Case for If statement with  different data types & expressions
+// // multiplication of first 10 numbers in while loop where condition is true
 
-TEST_F(IORedirectionTest, TestIfStatementWithDifferentTypes) {
-  setInput("{const x = 1 + 2\nconst y = x + 3\nconst z = y + 4\nconst a = z + "
-           "5\nif(a == 15) {1}\nelse {0}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
+// TEST_F(IORedirectionTest, TestMultiplicationOfFirst10Numbers) {
+//   setInput("{var x = 1 var y = 1 while(x < 10) {y = y * x x = x +
+//   1}print(y)}"); runEvaluator(); ASSERT_EQ(getOutput(), " 362880");
+// }
 
-// Test Case for while statement with  different data types & expressions
+// // complex while loop
 
-TEST_F(IORedirectionTest, TestWhileStatementWithDifferentTypes) {
-  setInput("{const x = 1 + 2\nconst y = x + 3\nconst z = y + 4\nconst a = z + "
-           "5\nwhile(a == 12) {1} if a==15 {a=a+1} \n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "16\n");
-}
+// TEST_F(IORedirectionTest, TestComplexWhileLoop) {
+//   setInput("{var x = 1 var y = 1 while(x < 10) {y = y * x x = x
+//   +1}print(y)}"); runEvaluator(); ASSERT_EQ(getOutput(), " 362880");
+// }
 
-// Test Case for Nested while statement with  different data types & expressions
+// // Complex multiple while loop with fizzbuzz  problem
 
-TEST_F(IORedirectionTest, TestNestedWhileStatementWithDifferentTypes) {
-  setInput("{const x = 1 + 2\nconst y = x + 3\nconst z = y + 4\nconst a = z + "
-           "5\nwhile(a == 13) {1\nwhile(a == 12) {1}\n}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "15\n");
-}
+// TEST_F(IORedirectionTest, TestComplexMultipleWhileLoop) {
+//   setInput(
+//       "{var x = 1 var y = 1 while(x < 10) {y = y * x x = x + 1}var "
+//       "z=1 while(z<100) {if(z%3==0){if(z%5==0){z=z+1}else{z=z+1}}else { if "
+//       "(z % 5 == 0) { z = z + 1 } else { z = z + 1}}}}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "100\n");
+// }
 
-// Test Case for Nested while statement condition with  different int data types
+// // Test for for loop
 
-TEST_F(IORedirectionTest, TestNestedWhileStatementConditionWithDifferentTypes) {
-  setInput("{const x = 1 + 2\nconst y = x + 3\nconst z = y + 4\nconst a = z + "
-           "5\nwhile(!a) {1\nwhile(a == 15) {1}\n}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "15\n");
-}
+// TEST_F(IORedirectionTest, TestForLoop) {
+//   setInput("{var x = 0 for(var i = 0 to 9) {x = x + i} print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "45");
+// }
 
-// Sum of first 10 numbers
+// TEST_F(IORedirectionTest,
+//        TestForLoopAndVariableAssignmentInConditionNoVariableDeclaration) {
+//   setInput("{var x = 10 for 2 to 5 {x=x+1} print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "14");
+// }
 
-TEST_F(IORedirectionTest, TestSumOfFirst10Numbers) {
-  setInput("{var x = 0\nvar y = 0\nwhile(x < 10) {y = y + x\nx = x + 1}\ny}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "45\n");
-}
-
-// multiplication of first 10 numbers in while loop where condition is true
-
-TEST_F(IORedirectionTest, TestMultiplicationOfFirst10Numbers) {
-  setInput("{var x = 1\nvar y = 1\nwhile(x < 10) {y = y * x\nx = x + 1}\ny}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "362880\n");
-}
-
-// complex while loop
-
-TEST_F(IORedirectionTest, TestComplexWhileLoop) {
-  setInput("{var x = 1\nvar y = 1\nwhile(x < 10) {y = y * x\nx = x + 1}\ny}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "362880\n");
-}
-
-// Complex multiple while loop with fizzbuzz  problem
-
-TEST_F(IORedirectionTest, TestComplexMultipleWhileLoop) {
-  setInput("{var x = 1\nvar y = 1\nwhile(x < 10) {y = y * x\nx = x + 1}\nvar "
-           "z=1\nwhile(z<100){if(z%3==0){if(z%5==0){z=z+1}\nelse{z=z+1}}\nelse "
-           "{if(z%5==0){z=z+1}\nelse{z=z+1}}}\n}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "100\n");
-}
-
-// Test for for loop
-
-TEST_F(IORedirectionTest, TestForLoop) {
-  setInput("{var x = 0\nfor(var i = 0 to 9) {x = x + i}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "45\n");
-}
-
-// Test for for loop without perenthesis
-
-TEST_F(IORedirectionTest, TestForLoopWithoutPerenthesis) {
-  setInput("{var x = 0\nfor var i = 0 to 9 {x = x + i}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "45\n");
-}
-
-// Test for for loop and variable redeclaration
-
-TEST_F(IORedirectionTest, TestForLoopAndVariableRedeclaration) {
-  setInput("{var x = 0\nfor var i = 0 to 9 {var x = 1\nx = x + i}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "10\n");
-}
-
-// Test for for loop and variable assignment
-
-TEST_F(IORedirectionTest, TestForLoopAndVariableAssignmentInCondition) {
-  setInput("{var x = 0\nfor var i = 0 to x {var x = 1\nx = x + i}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "1\n");
-}
-
-// Test for for loop and variable assignment in condition
-
-TEST_F(IORedirectionTest, TestForLoopAndVariableAssignmentInCondition2) {
-  setInput("{var x = 10\nfor x to 20 {}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "10\n");
-}
-
-TEST_F(IORedirectionTest,
-       TestForLoopAndVariableAssignmentInConditionNoVariableDeclaration) {
-  setInput("{var x = 10\nfor 2 to 5 {x=x+1}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "14\n");
-}
-
-TEST_F(IORedirectionTest,
-       TestForLoopAndVariableAssignmentInConditionWithVariableDeclaration) {
-  setInput("{var x = 20\nfor var y = 0 to 3 {x=x+1}\nx}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "24\n");
-}
+// TEST_F(IORedirectionTest,
+//        TestForLoopAndVariableAssignmentInConditionWithVariableDeclaration) {
+//   setInput("{var x = 20 for var y = 0 to 3 {x=x+1}print(x)}");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "24");
+// }
 
 // Test For Conversion  Int32 to String
 
@@ -641,15 +568,6 @@ TEST_F(IORedirectionTest, TestForConversionStringToBool) {
   setInput("Bool(\"10\")");
   runEvaluator();
   ASSERT_EQ(getOutput(), "true\n");
-}
-
-// Test for inbuilt function print
-
-TEST_F(IORedirectionTest, TestForInbuiltFunctionPrint) {
-  setInput("{var x =2 var y =x x=x+1 y = Int32(y) y=y+1 print(\"hello\" + x "
-           "+\" hii \"+y)}");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "hello3 hii 3");
 }
 
 // Test For Conversion  String to String

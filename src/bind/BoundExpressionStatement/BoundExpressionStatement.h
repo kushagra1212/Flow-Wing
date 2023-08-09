@@ -12,9 +12,14 @@ private:
 public:
   BoundExpressionStatement(BoundExpression *expression);
 
+  ~BoundExpressionStatement();
+
 public:
-  BinderKindUtils::BoundNodeKind getKind();
+  BinderKindUtils::BoundNodeKind getKind() override;
 
 public:
   BoundExpression *getExpression();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

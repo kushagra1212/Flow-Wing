@@ -24,3 +24,20 @@ ExpressionSyntax *WhileStatementSyntax::getCondition() const {
 }
 
 BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
+
+WhileStatementSyntax::~WhileStatementSyntax() {
+  if (_whileKeyword != nullptr) {
+    delete _whileKeyword;
+    _whileKeyword = nullptr;
+  }
+
+  if (_condition != nullptr) {
+    delete _condition;
+    _condition = nullptr;
+  }
+
+  if (_body != nullptr) {
+    delete _body;
+    _body = nullptr;
+  }
+}

@@ -1,13 +1,10 @@
 #include "Parser.h"
+Parser::Parser(const std::vector<std::string> &text) {
 
-Parser::Parser(std::vector<std::string> text) {
   Lexer *lexer = new Lexer(text);
   SyntaxToken<std::any> *token;
-
-  if (lexer->logs.size()) {
-    this->logs = lexer->logs;
-  }
   do {
+
     token = lexer->nextToken();
     if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
         token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
@@ -19,6 +16,19 @@ Parser::Parser(std::vector<std::string> text) {
                            ">");
     }
   } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
+
+  for (auto log : lexer->logs) {
+    this->logs.push_back(log);
+  }
+}
+
+Parser::~Parser() {
+  for (auto token : this->tokens) {
+    if (token != nullptr) {
+      delete token;
+      token = nullptr;
+    }
+  }
 }
 
 SyntaxToken<std::any> *Parser::peek(int offset) {
@@ -42,24 +52,82 @@ SyntaxToken<std::any> *Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return this->nextToken();
   }
-  this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
-                       "ERROR: unexpected token <" +
-                       this->getCurrent()->getText() + ">, expected <" +
-                       SyntaxKindUtils::enum_to_string_map[kind] + ">");
+  this->logs.push_back(
+      Utils::getLineNumberAndPosition(this->getCurrent()) +
+      "ERROR: unexpected token <" +
+      SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+      ">, expected <" + SyntaxKindUtils::to_string(kind) + ">");
 
   return new SyntaxToken<std::any>(this->getCurrent()->getLineNumber(),
-                                   SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+                                   SyntaxKindUtils::SyntaxKind::EndOfLineToken,
                                    this->getCurrent()->getPosition(), "\0", 0);
 }
-
+bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
+  return this->getCurrent()->getKind() == kind;
+}
 CompilationUnitSyntax *Parser::parseCompilationUnit() {
-  StatementSyntax *statement = this->parseStatement();
+  std::vector<MemberSyntax *> members = this->parseMemberList();
   SyntaxToken<std::any> *endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return new CompilationUnitSyntax(this->logs, statement, endOfFileToken);
+  return new CompilationUnitSyntax(members, endOfFileToken);
+}
+
+std::vector<MemberSyntax *> Parser::parseMemberList() {
+  std::vector<MemberSyntax *> members;
+  while (this->getCurrent()->getKind() !=
+         SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    MemberSyntax *member = this->parseMember();
+    members.push_back(member);
+  }
+  return members;
+}
+
+MemberSyntax *Parser::parseMember() {
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
+    return (MemberSyntax *)this->parseFunctionDeclaration();
+  }
+  return this->parseGlobalStatement();
+}
+
+FunctionDeclarationSyntax *Parser::parseFunctionDeclaration() {
+  SyntaxToken<std::any> *functionKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword);
+  SyntaxToken<std::any> *identifier =
+      this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+  SyntaxToken<std::any> *openParenthesisToken =
+      this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+  std::vector<ParameterSyntax *> parameters;
+
+  while (this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+
+    if (parameters.size() > 0) {
+
+      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+    }
+
+    parameters.push_back(new ParameterSyntax(
+        this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+  }
+  SyntaxToken<std::any> *closeParenthesisToken =
+      this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+  BlockStatementSyntax *body = this->parseBlockStatement();
+
+  return new FunctionDeclarationSyntax(functionKeyword, identifier,
+                                       openParenthesisToken, parameters,
+                                       closeParenthesisToken, body);
+}
+
+GlobalStatementSyntax *Parser::parseGlobalStatement() {
+  StatementSyntax *statement = this->parseStatement();
+  return new GlobalStatementSyntax(statement);
 }
 
 BlockStatementSyntax *Parser::parseBlockStatement() {
+
   SyntaxToken<std::any> *openBraceToken =
       this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
 
@@ -67,6 +135,8 @@ BlockStatementSyntax *Parser::parseBlockStatement() {
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
 
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfLineToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken
 
@@ -99,12 +169,46 @@ StatementSyntax *Parser::parseStatement() {
 
   case SyntaxKindUtils::SyntaxKind::ForKeyword:
     return (StatementSyntax *)this->parseForStatement();
+  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
+    return (StatementSyntax *)this->parseBreakStatement();
+  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
+    return (StatementSyntax *)this->parseContinueStatement();
+  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
+    return (StatementSyntax *)this->parseReturnStatement();
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
   case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
     return (StatementSyntax *)this->nextToken();
   default:
     return (StatementSyntax *)this->parseExpressionStatement();
   }
+}
+
+ReturnStatementSyntax *Parser::parseReturnStatement() {
+  SyntaxToken<std::any> *returnKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
+
+    ExpressionSyntax *expression = this->parseExpression();
+    this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+    return new ReturnStatementSyntax(returnKeyword, expression);
+  }
+
+  return new ReturnStatementSyntax(returnKeyword, nullptr);
+}
+
+BreakStatementSyntax *Parser::parseBreakStatement() {
+  SyntaxToken<std::any> *breakKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::BreakKeyword);
+  return new BreakStatementSyntax(breakKeyword);
+}
+
+ContinueStatementSyntax *Parser::parseContinueStatement() {
+  SyntaxToken<std::any> *continueKeyword =
+      this->match(SyntaxKindUtils::SyntaxKind::ContinueKeyword);
+  return new ContinueStatementSyntax(continueKeyword);
 }
 
 ForStatementSyntax *Parser::parseForStatement() {
@@ -199,6 +303,7 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
     if (precedence == 0 || precedence <= parentPrecedence) {
       break;
     }
+
     SyntaxToken<std::any> *operatorToken = this->nextToken();
 
     ExpressionSyntax *right = this->parseExpression(precedence);
@@ -246,9 +351,10 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
     return this->parseNameorCallExpression();
   }
   default:
-    this->logs.push_back(Utils::getLineNumberAndPosition(this->getCurrent()) +
-                         "ERROR: unexpected token <" +
-                         this->getCurrent()->getText() + ">");
+    this->logs.push_back(
+        Utils::getLineNumberAndPosition(this->getCurrent()) +
+        "ERROR: unexpected token <" +
+        SyntaxKindUtils::to_string(this->getCurrent()->getKind()) + ">");
     return new LiteralExpressionSyntax<std::any>(this->getCurrent(), (int)0);
   }
 }

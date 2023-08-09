@@ -24,3 +24,11 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
 }
 
 template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
+
+template <typename T>
+std::vector<BoundNode *> BoundLiteralExpression<T>::getChildren() {
+  return std::vector<BoundNode *>{};
+}
+
+template <typename T>
+BoundLiteralExpression<T>::~BoundLiteralExpression() = default;

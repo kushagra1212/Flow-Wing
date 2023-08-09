@@ -14,6 +14,8 @@ public:
                         BinderKindUtils::BoundBinaryOperatorKind op,
                         BoundExpression *right);
 
+  ~BoundBinaryExpression();
+
 public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
@@ -28,4 +30,7 @@ public:
 
 public:
   BoundExpression *getRight();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

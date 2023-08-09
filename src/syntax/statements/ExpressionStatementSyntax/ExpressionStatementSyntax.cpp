@@ -16,3 +16,10 @@ std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
 ExpressionSyntax *ExpressionStatementSyntax::getExpression() {
   return this->expression;
 }
+
+ExpressionStatementSyntax::~ExpressionStatementSyntax() {
+  if (this->expression != nullptr) {
+    delete this->expression;
+    this->expression = nullptr;
+  }
+}

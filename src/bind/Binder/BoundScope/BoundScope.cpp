@@ -1,14 +1,67 @@
 #include "BoundScope.h"
 
-BoundScope::BoundScope(BoundScope *parent) : parent(parent) {}
+BoundScope::BoundScope(BoundScope *parent)
+    : parent(parent), breakable(false), continuable(false), functionCounted(0) {
+}
+
+bool BoundScope::isInFunction() {
+  if (this->functionCounted) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isInFunction();
+}
+
+void BoundScope::incrementFunctionCount() { this->functionCounted++; }
+
+void BoundScope::decrementFunctionCount() {
+  if (this->functionCounted > 0) {
+    this->functionCounted--;
+  }
+}
+
+void BoundScope::makeBreakableAndContinuable() {
+  this->breakable = true;
+  this->continuable = true;
+}
+
+bool BoundScope::isBreakable() {
+  if (this->breakable) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isBreakable();
+}
+
+bool BoundScope::isContinuable() {
+  if (this->continuable) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isContinuable();
+}
 
 bool BoundScope::tryDeclareVariable(
     std::string name, const struct Utils::Variable &initialValue) {
-  if (this->variables.find(name) != this->variables.end()) {
-    return false;
+  if (this->variables.find(name) == this->variables.end()) {
+
+    this->variables[name] = initialValue;
+    return true;
   }
-  this->variables[name] = initialValue;
-  return true;
+
+  return false;
 }
 
 bool BoundScope::tryLookupVariable(std::string name) {
@@ -33,10 +86,30 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-std::vector<std::string> BoundScope::getVariablesKeys() {
-  std::vector<std::string> variables;
-  for (auto &variable : this->variables) {
-    variables.push_back(variable.first);
+bool BoundScope::tryDeclareFunction(std::string name,
+                                    BoundFunctionDeclaration *function) {
+  if (this->functions.find(name) == this->functions.end()) {
+
+    this->functions[name] = function;
+    return true;
   }
-  return variables;
+
+  return false;
+}
+
+bool BoundScope::tryLookupFunction(std::string name) {
+  if (this->functions.find(name) != this->functions.end()) {
+    return true;
+  }
+  if (this->parent == nullptr) {
+    return false;
+  }
+  return this->parent->tryLookupFunction(name);
+}
+
+BoundScope::~BoundScope() {
+  if (this->parent != nullptr) {
+    delete this->parent;
+    this->parent = nullptr;
+  }
 }

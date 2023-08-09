@@ -9,6 +9,8 @@ private:
 public:
   ExpressionStatementSyntax(ExpressionSyntax *expression);
 
+  ~ExpressionStatementSyntax();
+
   SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<SyntaxNode *> getChildren();

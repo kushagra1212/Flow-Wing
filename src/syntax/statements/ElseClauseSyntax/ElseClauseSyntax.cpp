@@ -20,3 +20,15 @@ SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() {
 std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
   return {elseKeyword, (SyntaxNode *)statement};
 }
+
+ElseClauseSyntax::~ElseClauseSyntax() {
+  if (elseKeyword != nullptr) {
+    delete elseKeyword;
+    elseKeyword = nullptr;
+  }
+
+  if (statement != nullptr) {
+    delete statement;
+    statement = nullptr;
+  }
+}

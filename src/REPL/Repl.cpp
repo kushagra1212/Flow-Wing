@@ -1,167 +1,188 @@
 #include "Repl.h"
 Repl::Repl()
-    : seeTree(false), braceCount(0), previousEvaluator(nullptr), text() {
-
-  SyntaxKindUtils::init_enum_to_string_map();
-}
+    : showSyntaxTree(false), showBoundTree(false), braceCount(0),
+      previousEvaluator(nullptr), exit(false) {}
 
 Repl::~Repl() {}
 
-void Repl::run() { runWithStream(std::cin, std::cout); }
+void Repl::run() {
+  printWelcomeMessage(std::cout);
+  runWithStream(std::cin, std::cout);
+}
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  printWelcomeMessage(outputStream);
 
-  std::string line;
+  while (!exit) {
 
-  while (true) {
-    if (braceCount || text.size()) {
-      outputStream << YELLOW << "... " << RESET;
-    } else {
-      outputStream << GREEN << ">>> " << RESET;
-    }
-    line = "";
-    std::getline(inputStream, line);
-    // Common Function to run both REPL and tests
-    if (line.empty() && !text.size()) {
-      continue;
-    }
-    if (line == "`:exit") {
+    outputStream << GREEN << ">>> " << RESET;
+
+    std::vector<std::string> text = std::vector<std::string>();
+    std::string line;
+    int emptyLines = 0;
+    while (true) {
+      std::getline(inputStream, line);
+      if (handleSpecialCommands(line)) {
+        break;
+      }
+
+      if (line.empty()) {
+        emptyLines++;
+        if (emptyLines == 2)
+          break;
+
+        outputStream << YELLOW << "... " << RESET;
+        continue;
+      }
+      emptyLines = 0;
+
+      text.push_back(line);
+      Parser *parser = new Parser(text);
+
+      if (parser->logs.size()) {
+        Utils::printErrors(parser->logs, outputStream);
+        text = std::vector<std::string>();
+        break;
+      }
+      CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+
+      if (parser->logs.size()) {
+        emptyLines++;
+        outputStream << YELLOW << "... " << RESET;
+        continue;
+      }
+
       break;
     }
 
-    if (handleSpecialCommands(line)) {
+    if (text.size() == 0) {
       continue;
     }
-    text.push_back(line);
 
-    braceCount = countBraces(line, '{') - countBraces(line, '}') + braceCount;
-
-    if (braceCount) {
-      continue;
-    }
     Parser *parser = new Parser(text);
-
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
-    if (!line.empty() && compilationUnit->logs.size()) {
-      continue;
-    } else if (line.empty() && text.size()) {
-      compileAndEvaluate(compilationUnit, outputStream);
-    } else {
+    if (parser->logs.size()) {
+      Utils::printErrors(parser->logs, outputStream);
+    } else if (!exit) {
+      if (showSyntaxTree) {
+        Utils::prettyPrint(compilationUnit);
+      }
       compileAndEvaluate(compilationUnit, outputStream);
     }
-    text = std::vector<std::string>();
   }
 }
 
 void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                               std::ostream &outputStream) {
-
-  std::unique_ptr<Evaluator> currentEvaluator =
-      previousEvaluator == nullptr
-          ? std::make_unique<Evaluator>(nullptr, compilationUnit)
-          : std::make_unique<Evaluator>(std::move(previousEvaluator),
-                                        compilationUnit);
+  Evaluator *currentEvaluator =
+      new Evaluator(previousEvaluator, compilationUnit);
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
-  compilationUnit->logs.insert(compilationUnit->logs.end(),
-                               globalScope->logs.begin(),
-                               globalScope->logs.end());
 
-  text = std::vector<std::string>();
-
-  if (seeTree) {
-    Utils::prettyPrint(compilationUnit->getStatement());
+  if (showBoundTree) {
+    Utils::prettyPrint(globalScope->statement);
   }
 
-  if (compilationUnit->logs.size()) {
-    for (const std::string &log : compilationUnit->logs) {
-      outputStream << RED << log << RESET << "\n";
-    }
-  } else {
-    try {
-      currentEvaluator->evaluateStatement(globalScope->statement);
-      std::any result = currentEvaluator->last_value;
+  try {
+    currentEvaluator->evaluateStatement(globalScope->statement);
+    std::any result = currentEvaluator->last_value;
 
-      if (currentEvaluator->getRoot()->logs.size()) {
-        for (const std::string &log : currentEvaluator->getRoot()->logs) {
-          outputStream << RED << log << RESET << "\n";
-        }
+    if (globalScope->logs.size()) {
+      Utils::printErrors(globalScope->logs, outputStream);
+    } else {
+      if (result.type() == typeid(int)) {
+        int intValue = std::any_cast<int>(result);
+        outputStream << intValue << "\n";
+      } else if (result.type() == typeid(bool)) {
+        bool boolValue = std::any_cast<bool>(result);
+        outputStream << (boolValue ? "true" : "false") << "\n";
+      } else if (result.type() == typeid(std::string)) {
+        std::string stringValue = std::any_cast<std::string>(result);
+        outputStream << stringValue << "\n";
+      } else if (result.type() == typeid(double)) {
+        double doubleValue = std::any_cast<double>(result);
+        outputStream << doubleValue << "\n";
+      } else if (result.type() == typeid(std::nullptr_t)) {
+        // outputStream << "null\n";
+
       } else {
-        if (result.type() == typeid(int)) {
-          int intValue = std::any_cast<int>(result);
-          outputStream << intValue << "\n";
-        } else if (result.type() == typeid(bool)) {
-          bool boolValue = std::any_cast<bool>(result);
-          outputStream << (boolValue ? "true" : "false") << "\n";
-        } else if (result.type() == typeid(std::string)) {
-          std::string stringValue = std::any_cast<std::string>(result);
-          outputStream << stringValue << "\n";
-        } else if (result.type() == typeid(double)) {
-          double doubleValue = std::any_cast<double>(result);
-          outputStream << doubleValue << "\n";
-        } else if (result.type() == typeid(std::nullptr_t)) {
-          // Handle the nullptr_t case if needed
-        } else {
-          throw std::runtime_error("Unexpected result type");
-        }
+        throw std::runtime_error("Unexpected result type");
       }
-    } catch (const std::exception &e) {
-      outputStream << RED << e.what() << RESET << "\n";
+      previousEvaluator = currentEvaluator;
     }
-  }
 
-  previousEvaluator = std::move(currentEvaluator);
+  } catch (const std::exception &e) {
+    outputStream << RED << e.what() << RESET << "\n";
+  }
 }
+
+void Repl::toggleExit() { exit = !exit; }
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
-  SyntaxKindUtils::init_enum_to_string_map();
+  std::vector<std::string> text = std::vector<std::string>();
   std::string line;
-
-  while (std::getline(inputStream, line)) {
-
-    if (line.empty()) {
-      continue;
-    }
-
-    if (line == ":exit") {
+  int emptyLines = 0;
+  while (true) {
+    std::getline(inputStream, line);
+    if (handleSpecialCommands(line)) {
       break;
     }
 
-    if (handleSpecialCommands(line)) {
+    if (line.empty()) {
+      emptyLines++;
+      if (emptyLines == 200)
+        break;
+
       continue;
     }
+    emptyLines = 0;
 
     text.push_back(line);
-    braceCount = countBraces(line, '{') - countBraces(line, '}') + braceCount;
-
-    if (braceCount) {
-      continue;
-    }
     Parser *parser = new Parser(text);
 
-    CompilationUnitSyntax *compilationUnit = parser->parseCompilationUnit();
+    if (parser->logs.size()) {
+      Utils::printErrors(parser->logs, outputStream);
+      text = std::vector<std::string>();
+      break;
+    }
+    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
 
-    this->compileAndEvaluate(compilationUnit, outputStream);
+    if (parser->logs.size()) {
+      emptyLines++;
+      continue;
+    }
+
+    break;
   }
+
+  Parser *parser = new Parser(text);
+  CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+  if (parser->logs.size()) {
+    Utils::printErrors(parser->logs, outputStream);
+  } else if (!exit)
+    compileAndEvaluate(compilationUnit, outputStream);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
   outputStream << YELLOW << "Welcome to the " << GREEN << "elang" << YELLOW
                << " REPL!" << RESET << std::endl;
   outputStream << YELLOW
-               << "Type `:exit` to exit, `:cls` to clear the screen, "
-                  "and `:tree` to see the AST.\n";
+               << "Type `:exit` to exit, `:cls` to clear the screen.\n";
 }
 
 bool Repl::handleSpecialCommands(const std::string &line) {
   if (line == ":cls") {
     system("clear");
     return true;
-  } else if (line == ":tree") {
-    seeTree = true;
+  } else if (line == ":st") {
+    showSyntaxTree = true;
+    return true;
+  } else if (line == ":bt") {
+    showBoundTree = true;
+    return true;
+  } else if (line == ":exit") {
+    exit = true;
     return true;
   }
   return false;
@@ -177,4 +198,6 @@ int Repl::countBraces(const std::string &line, char brace) {
   return count;
 }
 
-bool Repl::isTreeVisible() const { return seeTree; }
+bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
+
+bool Repl::isBoundTreeVisible() const { return showBoundTree; }

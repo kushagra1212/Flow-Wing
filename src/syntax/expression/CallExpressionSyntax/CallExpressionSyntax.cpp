@@ -1,7 +1,8 @@
 #include "CallExpressionSyntax.h"
 
 CallExpressionSyntax::CallExpressionSyntax(
-    ExpressionSyntax *identifier, SyntaxToken<std::any> *openParenthesisToken,
+    LiteralExpressionSyntax<std::any> *identifier,
+    SyntaxToken<std::any> *openParenthesisToken,
     std::vector<ExpressionSyntax *> arguments,
     SyntaxToken<std::any> *closeParenthesisToken) {
   this->identifier = identifier;
@@ -10,7 +11,7 @@ CallExpressionSyntax::CallExpressionSyntax(
   this->closeParenthesisToken = closeParenthesisToken;
 }
 
-ExpressionSyntax *CallExpressionSyntax::getIdentifier() const {
+LiteralExpressionSyntax<std::any> *CallExpressionSyntax::getIdentifier() const {
   return identifier;
 }
 
@@ -39,4 +40,29 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
   }
   children.push_back(closeParenthesisToken);
   return children;
+}
+
+CallExpressionSyntax::~CallExpressionSyntax() {
+  if (identifier != nullptr) {
+    delete identifier;
+    identifier = nullptr;
+  }
+
+  if (openParenthesisToken != nullptr) {
+    delete openParenthesisToken;
+    openParenthesisToken = nullptr;
+  }
+
+  for (auto &argument : arguments) {
+    if (argument != nullptr) {
+      delete argument;
+      argument = nullptr;
+    }
+  }
+  arguments.clear();
+
+  if (closeParenthesisToken != nullptr) {
+    delete closeParenthesisToken;
+    closeParenthesisToken = nullptr;
+  }
 }

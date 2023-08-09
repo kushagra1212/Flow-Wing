@@ -8,12 +8,17 @@ private:
 public:
   BoundVariableExpression(BoundExpression *identiferExpression);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind();
+  ~BoundVariableExpression();
 
 public:
-  const std::type_info &getType();
+  BinderKindUtils::BoundNodeKind getKind() override;
+
+public:
+  const std::type_info &getType() override;
 
 public:
   BoundExpression *getIdentifierExpression();
+
+public:
+  std::vector<BoundNode *> getChildren() override;
 };

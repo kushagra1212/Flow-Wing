@@ -33,7 +33,7 @@ template <typename T> std::string SyntaxToken<T>::getText() {
 }
 template <typename T> T SyntaxToken<T>::getValue() { return (this->value); }
 template <typename T> std::string SyntaxToken<T>::getKindText() {
-  return SyntaxKindUtils::enum_to_string_map[this->kind];
+  return SyntaxKindUtils::to_string(this->kind);
 }
 template <typename T> int SyntaxToken<T>::getUnaryOperatorPrecedence() {
   switch (this->kind) {
@@ -74,6 +74,7 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
     return 2;
   case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsToken:
     return 1;
   default:
     return 0;

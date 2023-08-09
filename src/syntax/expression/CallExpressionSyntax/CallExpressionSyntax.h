@@ -5,15 +5,18 @@
 #include "../../SyntaxNode.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
+#include "../LiteralExpressionSyntax.h"
 
 class CallExpressionSyntax : public ExpressionSyntax {
 public:
-  CallExpressionSyntax(ExpressionSyntax *identifier,
+  CallExpressionSyntax(LiteralExpressionSyntax<std::any> *identifier,
                        SyntaxToken<std::any> *openParenthesisToken,
                        std::vector<ExpressionSyntax *> arguments,
                        SyntaxToken<std::any> *closeParenthesisToken);
 
-  ExpressionSyntax *getIdentifier() const;
+  ~CallExpressionSyntax();
+
+  LiteralExpressionSyntax<std::any> *getIdentifier() const;
   SyntaxToken<std::any> *getOpenParenthesisToken() const;
   std::vector<ExpressionSyntax *> getArguments() const;
   SyntaxToken<std::any> *getCloseParenthesisToken() const;
@@ -22,7 +25,7 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
 private:
-  ExpressionSyntax *identifier;
+  LiteralExpressionSyntax<std::any> *identifier;
   SyntaxToken<std::any> *openParenthesisToken;
   std::vector<ExpressionSyntax *> arguments;
   SyntaxToken<std::any> *closeParenthesisToken;

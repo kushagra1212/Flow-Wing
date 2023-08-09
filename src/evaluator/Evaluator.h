@@ -21,15 +21,18 @@
 
 class Evaluator {
 
-private:
-  BoundScopeGlobal *root = nullptr;
-
 public:
-  std::any last_value;
-  CompilationUnitSyntax *compilation_unit;
-  std::unique_ptr<Evaluator> previous = nullptr;
-  Evaluator(std::unique_ptr<Evaluator> previous,
-            CompilationUnitSyntax *compilation_unit);
+  BoundScopeGlobal *root = nullptr;
+  std::any last_value = nullptr;
+  CompilationUnitSyntax *compilation_unit = nullptr;
+  Evaluator *previous = nullptr;
+  std::stack<std::map<std::string, Utils::Variable>> variable_stack;
+  std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
+  std::stack<int> return_count_stack;
+  int break_count = 0, continue_count = 0;
+
+  Evaluator(Evaluator *previous, CompilationUnitSyntax *compilation_unit);
+  ~Evaluator();
 
 public:
   BoundScopeGlobal *getRoot();
@@ -37,7 +40,38 @@ public:
 public:
   template <typename T> T evaluate(BoundExpression *node);
 
+  template <typename T> T evaluateLiteralExpression(BoundExpression *node);
+
+  template <typename T> T evaluateUnaryExpression(BoundExpression *node);
+
+  template <typename T> T evaluateBinaryExpression(BoundExpression *node);
+
+  template <typename T> T evaluateAssignmentExpression(BoundExpression *node);
+
+  template <typename T> T evaluateVariableExpression(BoundExpression *node);
+
+public:
+  void declareVariable(std::string name, Utils::Variable variable);
+
+  void defineFunction(std::string name,
+                      BoundFunctionDeclaration *functionDeclaration);
+  BoundFunctionDeclaration *getFunction(std::string name);
+
+  Utils::Variable getVariable(std::string name);
+
+  void assignVariable(std::string name, Utils::Variable variable);
+
   void evaluateStatement(BoundStatement *node);
+
+  void evaluateExpressionStatement(BoundExpressionStatement *node);
+  void evaluateBlockStatement(BoundBlockStatement *node);
+
+  void evaluateVariableDeclaration(BoundVariableDeclaration *node);
+
+  void evaluateIfStatement(BoundIfStatement *node);
+  void evaluateWhileStatement(BoundWhileStatement *node);
+  void evaluateForStatement(BoundForStatement *node);
+
   static std::vector<std::string> logs;
   template <typename T>
   static T

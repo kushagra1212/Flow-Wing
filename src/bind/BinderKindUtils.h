@@ -1,4 +1,6 @@
 #pragma once
+
+#include "../Common.h"
 namespace BinderKindUtils {
 enum BoundNodeKind {
   UnaryExpression,
@@ -16,10 +18,14 @@ enum BoundNodeKind {
   IfStatement,
   WhileStatement,
   ForStatement,
+  BreakStatement,
+  ContinueStatement,
+  ReturnStatement,
 
   // declarations
 
-  VariableDeclaration
+  VariableDeclaration,
+  FunctionDeclaration
 };
 
 enum BoundUnaryOperatorKind {
@@ -48,4 +54,9 @@ enum BoundBinaryOperatorKind {
   BitwiseXor,
   Modulus,
 };
+std::string to_string(BoundNodeKind kind);
+
+std::string to_string(BoundUnaryOperatorKind kind);
+
+std::string to_string(BoundBinaryOperatorKind kind);
 } // namespace BinderKindUtils

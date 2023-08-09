@@ -18,7 +18,7 @@ SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() {
   return SyntaxKindUtils::SyntaxKind::LiteralExpression;
 }
 template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
-  return SyntaxKindUtils::enum_to_string_map[this->getKind()];
+  return SyntaxKindUtils::to_string(this->getKind());
 }
 template <typename T>
 SyntaxToken<std::any> *LiteralExpressionSyntax<T>::getToken() {
@@ -32,4 +32,11 @@ std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
 }
 template <typename T> T LiteralExpressionSyntax<T>::getValue() {
   return this->value;
+}
+
+template <typename T> LiteralExpressionSyntax<T>::~LiteralExpressionSyntax() {
+  if (this->token != nullptr) {
+    delete this->token;
+    this->token = nullptr;
+  }
 }

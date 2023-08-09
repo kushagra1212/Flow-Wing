@@ -16,3 +16,14 @@ const std::type_info &BoundVariableExpression::getType() {
 BoundExpression *BoundVariableExpression::getIdentifierExpression() {
   return this->identiferExpression;
 }
+
+std::vector<BoundNode *> BoundVariableExpression::getChildren() {
+  return std::vector<BoundNode *>{this->identiferExpression};
+}
+
+BoundVariableExpression::~BoundVariableExpression() {
+  if (this->identiferExpression != nullptr) {
+    delete this->identiferExpression;
+    this->identiferExpression = nullptr;
+  }
+}

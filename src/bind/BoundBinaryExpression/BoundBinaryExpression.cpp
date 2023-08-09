@@ -20,3 +20,19 @@ BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {
 BoundExpression *BoundBinaryExpression::getLeft() { return left; }
 
 BoundExpression *BoundBinaryExpression::getRight() { return right; }
+
+std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
+  return std::vector<BoundNode *>{left, right};
+}
+
+BoundBinaryExpression::~BoundBinaryExpression() {
+  if (left != nullptr) {
+    delete left;
+    left = nullptr;
+  }
+
+  if (right != nullptr) {
+    delete right;
+    right = nullptr;
+  }
+}
