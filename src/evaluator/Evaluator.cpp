@@ -74,7 +74,10 @@ void Evaluator::defineFunction(std::string name,
                                BoundFunctionDeclaration *functionDeclaration) {
   std::map<std::string, BoundFunctionDeclaration *> &current_scope =
       this->function_stack.top();
-
+  if (current_scope.find(name) != current_scope.end())
+    this->root->logs.push_back("Error: Function '" + name +
+                               "' is already declared"
+                               " in this scope");
   current_scope[name] = functionDeclaration;
 }
 
@@ -623,8 +626,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       }
 
       this->variable_stack.push(std::map<std::string, Utils::Variable>());
-      this->function_stack.push(
-          std::map<std::string, BoundFunctionDeclaration *>());
+
       this->return_count_stack.push(0);
 
       std::map<std::string, Utils::Variable> &function_Variables =
@@ -644,7 +646,6 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
       this->return_count_stack.pop();
 
-      this->function_stack.pop();
       this->variable_stack.pop();
 
       return this->last_value;

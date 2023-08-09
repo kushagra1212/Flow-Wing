@@ -14,10 +14,10 @@ public:
   ~BoundUnaryExpression();
 
 public:
-  BinderKindUtils::BoundNodeKind getKind();
+  BinderKindUtils::BoundNodeKind getKind() override;
 
 public:
-  const std::type_info &getType();
+  const std::type_info &getType() override;
 
 public:
   BinderKindUtils::BoundUnaryOperatorKind getOperator();

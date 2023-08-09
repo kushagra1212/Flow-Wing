@@ -117,3 +117,13 @@ std::string Utils::getTypeString(const std::any &value) {
     return "unknown";
   }
 }
+
+void Utils::printErrors(const std::vector<std::string> &errors,
+                        std::ostream &outputStream, bool isWarning) {
+  for (const std::string &error : errors) {
+    if (isWarning)
+      outputStream << YELLOW << error << RESET << "\n";
+    else
+      std::cout << RED << error << RESET << "\n";
+  }
+}

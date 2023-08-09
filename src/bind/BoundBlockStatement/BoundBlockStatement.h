@@ -13,7 +13,7 @@ public:
   ~BoundBlockStatement();
 
 public:
-  BinderKindUtils::BoundNodeKind getKind();
+  BinderKindUtils::BoundNodeKind getKind() override;
 
 public:
   std::vector<BoundStatement *> getStatements();

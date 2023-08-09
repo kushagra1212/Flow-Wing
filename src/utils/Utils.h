@@ -17,7 +17,8 @@ void prettyPrint(CompilationUnitSyntax *compilationUnit,
 
 void prettyPrint(BoundNode *statement, std::string indent = "",
                  bool isLast = true);
-
+void printErrors(const std::vector<std::string> &errors,
+                 std::ostream &outputStream, bool isWarning = false);
 std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
 std::string convertAnyToString(const std::any value);

@@ -10,16 +10,6 @@ void Repl::run() {
   runWithStream(std::cin, std::cout);
 }
 
-void Repl::printErrors(const std::vector<std::string> &errors,
-                       std::ostream &outputStream, bool isWarning = false) {
-  for (const std::string &error : errors) {
-    if (isWarning)
-      outputStream << YELLOW << error << RESET << "\n";
-    else
-      std::cout << RED << error << RESET << "\n";
-  }
-}
-
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
@@ -50,7 +40,7 @@ void Repl::runWithStream(std::istream &inputStream,
       Parser *parser = new Parser(text);
 
       if (parser->logs.size()) {
-        printErrors(parser->logs, outputStream);
+        Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
         break;
       }
@@ -72,7 +62,7 @@ void Repl::runWithStream(std::istream &inputStream,
     Parser *parser = new Parser(text);
     CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
     if (parser->logs.size()) {
-      printErrors(parser->logs, outputStream);
+      Utils::printErrors(parser->logs, outputStream);
     } else if (!exit) {
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit);
@@ -84,7 +74,6 @@ void Repl::runWithStream(std::istream &inputStream,
 
 void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                               std::ostream &outputStream) {
-
   Evaluator *currentEvaluator =
       new Evaluator(previousEvaluator, compilationUnit);
 
@@ -99,7 +88,7 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
     std::any result = currentEvaluator->last_value;
 
     if (globalScope->logs.size()) {
-      printErrors(globalScope->logs, outputStream);
+      Utils::printErrors(globalScope->logs, outputStream);
     } else {
       if (result.type() == typeid(int)) {
         int intValue = std::any_cast<int>(result);
@@ -153,7 +142,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
     Parser *parser = new Parser(text);
 
     if (parser->logs.size()) {
-      printErrors(parser->logs, outputStream);
+      Utils::printErrors(parser->logs, outputStream);
       text = std::vector<std::string>();
       break;
     }
@@ -170,7 +159,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   Parser *parser = new Parser(text);
   CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
   if (parser->logs.size()) {
-    printErrors(parser->logs, outputStream);
+    Utils::printErrors(parser->logs, outputStream);
   } else if (!exit)
     compileAndEvaluate(compilationUnit, outputStream);
 }
@@ -179,8 +168,7 @@ void Repl::printWelcomeMessage(std::ostream &outputStream) {
   outputStream << YELLOW << "Welcome to the " << GREEN << "elang" << YELLOW
                << " REPL!" << RESET << std::endl;
   outputStream << YELLOW
-               << "Type `:exit` to exit, `:cls` to clear the screen, "
-                  "and `:bt` to see the AST.\n";
+               << "Type `:exit` to exit, `:cls` to clear the screen.\n";
 }
 
 bool Repl::handleSpecialCommands(const std::string &line) {

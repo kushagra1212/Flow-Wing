@@ -400,9 +400,9 @@ SyntaxToken<std::any> *Lexer::readString() {
     this->next();
   }
   this->next();
-  return new SyntaxToken<std::any>(
-      this->lineNumber, SyntaxKindUtils::SyntaxKind::StringToken, start,
-      this->text[lineNumber].substr(start, this->position - start), (text));
+  return new SyntaxToken<std::any>(this->lineNumber,
+                                   SyntaxKindUtils::SyntaxKind::StringToken,
+                                   start, text, (text));
 
   //&(text)
 }

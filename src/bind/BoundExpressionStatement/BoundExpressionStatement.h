@@ -15,7 +15,7 @@ public:
   ~BoundExpressionStatement();
 
 public:
-  BinderKindUtils::BoundNodeKind getKind();
+  BinderKindUtils::BoundNodeKind getKind() override;
 
 public:
   BoundExpression *getExpression();

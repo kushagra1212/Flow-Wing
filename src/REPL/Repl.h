@@ -2,7 +2,7 @@
 #ifndef REPL_H
 #define REPL_H
 #include "../Common.h"
-#include "../compiler/Evaluator.h"
+#include "../evaluator/Evaluator.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 class Repl {
@@ -25,9 +25,6 @@ public:
 
   void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                           std::ostream &outputStream);
-
-  void printErrors(const std::vector<std::string> &errors,
-                   std::ostream &outputStream, bool isWarning);
 
   void toggleExit();
   // Data members

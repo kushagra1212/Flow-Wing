@@ -62,7 +62,8 @@
     "iomanip": "cpp",
     "mutex": "cpp",
     "cinttypes": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "fstream": "cpp"
   },
   "C_Cpp.errorSquiggles": "enabled"
 }
