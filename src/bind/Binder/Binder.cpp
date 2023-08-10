@@ -41,7 +41,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                    SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
     if (!root->tryDeclareVariable(variable_str,
-                                  Utils::Variable(nullptr, false))) {
+                                  Utils::Variable(nullptr, isConst))) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
                                variableDeclaration->getIdentifier()) +
                            "Error: Variable " + variable_str +
