@@ -13,7 +13,7 @@ private:
 public:
   Compiler();
 
-  void compile(const std::vector<std::string> &text);
+  int compile(const std::vector<std::string> &text);
   ~Compiler();
 };
 

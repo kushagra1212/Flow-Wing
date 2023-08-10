@@ -124,6 +124,6 @@ void Utils::printErrors(const std::vector<std::string> &errors,
     if (isWarning)
       outputStream << YELLOW << error << RESET << "\n";
     else
-      std::cout << RED << error << RESET << "\n";
+      outputStream << RED << error << RESET << "\n";
   }
 }
