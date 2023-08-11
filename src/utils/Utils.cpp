@@ -120,6 +120,7 @@ std::string Utils::getTypeString(const std::any &value) {
 
 void Utils::printErrors(const std::vector<std::string> &errors,
                         std::ostream &outputStream, bool isWarning) {
+  outputStream << "\n";
   for (const std::string &error : errors) {
     if (isWarning)
       outputStream << YELLOW << error << RESET << "\n";
