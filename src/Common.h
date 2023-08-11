@@ -11,6 +11,7 @@
 #include <queue>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
