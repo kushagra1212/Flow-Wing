@@ -74,10 +74,6 @@ void Evaluator::defineFunction(std::string name,
                                BoundFunctionDeclaration *functionDeclaration) {
   std::map<std::string, BoundFunctionDeclaration *> &current_scope =
       this->function_stack.top();
-  if (current_scope.find(name) != current_scope.end())
-    this->root->logs.push_back("Error: Function '" + name +
-                               "' is already declared"
-                               " in this scope");
   current_scope[name] = functionDeclaration;
 }
 

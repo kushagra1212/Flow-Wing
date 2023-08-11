@@ -351,7 +351,12 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
       arguments.push_back(bindExpression(callExpression->getArguments()[i]));
     }
 
-    return new BoundCallExpression(functionSymbol, arguments);
+    BoundCallExpression *boundCallExpression = new BoundCallExpression(
+        identifier, functionSymbol, arguments,
+        Utils::getLineNumberAndPosition(
+            callExpression->getIdentifier()->getToken()));
+    this->_callExpressions.push_back(boundCallExpression);
+    return boundCallExpression;
   }
   default:
     throw "Unexpected syntax";
@@ -430,6 +435,51 @@ BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 
 Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
 
+void Binder::verifyAllCallsAreValid(Binder *binder) {
+
+  std::vector<BoundFunctionDeclaration *> functions =
+      binder->root->getAllFunctions();
+
+  std::unordered_map<std::string, Utils::FunctionSymbol> functionDefinitionMap;
+
+  for (auto &function : functions) {
+
+    functionDefinitionMap[function->getFunctionSymbol().name] =
+        function->getFunctionSymbol();
+  }
+
+  std::vector<Utils::FunctionSymbol> builtInFunctions =
+      Utils::BuiltInFunctions::getAllFunctions();
+
+  for (auto &function : builtInFunctions) {
+    functionDefinitionMap[function.name] = function;
+  }
+
+  for (const auto &callExpression : binder->_callExpressions) {
+    Utils::FunctionSymbol functionSymbol = callExpression->getFunctionSymbol();
+
+    if (functionDefinitionMap.find(functionSymbol.name) ==
+        functionDefinitionMap.end()) {
+      binder->logs.push_back(callExpression->getLineNumberAndPosition() +
+                             "Error: Function " + functionSymbol.name +
+                             " does not exist");
+      continue;
+    }
+
+    Utils::FunctionSymbol functionDefinition =
+        functionDefinitionMap.at(functionSymbol.name);
+
+    if (functionSymbol.parameters.size() !=
+        functionDefinition.parameters.size()) {
+      binder->logs.push_back(
+          callExpression->getLineNumberAndPosition() + "Error: Function " +
+          functionSymbol.name + " requires " +
+          std::to_string(functionDefinition.parameters.size()) + " arguments");
+      continue;
+    }
+  }
+}
+
 BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
                                           CompilationUnitSyntax *syntax) {
 
@@ -460,6 +510,8 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
       throw "Unexpected global member";
     }
   }
+
+  verifyAllCallsAreValid(binder);
 
   BoundStatement *statement = new BoundBlockStatement(statements, true);
 
