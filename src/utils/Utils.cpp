@@ -122,7 +122,7 @@ void Utils::printErrors(const std::vector<std::string> &errors,
                         std::ostream &outputStream, bool isWarning) {
   for (const std::string &error : errors) {
     if (isWarning)
-outputStream  << YELLOW << error << RESET << "\n";
+      outputStream << YELLOW << error << RESET << "\n";
     else
       outputStream << RED << error << RESET << "\n";
   }

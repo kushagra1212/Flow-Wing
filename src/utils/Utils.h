@@ -40,7 +40,7 @@ struct Variable {
   std::any value;
   bool isConst;
   SymbolKind kind;
-  Variable() {}
+  Variable() = default;
   Variable(std::any value, bool isConst) {
     this->value = value;
     this->isConst = isConst;
@@ -52,7 +52,7 @@ struct FunctionParameterSymbol {
   std::string name;
   bool isConst;
   SymbolKind kind;
-  FunctionParameterSymbol() {}
+  FunctionParameterSymbol() = default;
   FunctionParameterSymbol(std::string name, bool isConst) {
     this->name = name;
     this->isConst = isConst;
@@ -91,7 +91,7 @@ struct FunctionSymbol {
     }
   }
 
-  int arity() { return parameters.size(); }
+  int arity() { return (int)parameters.size(); }
 };
 
 class BuiltInFunctions {
