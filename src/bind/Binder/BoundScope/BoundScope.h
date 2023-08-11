@@ -27,6 +27,8 @@ public:
   void incrementFunctionCount();
   void decrementFunctionCount();
 
+  std::vector<BoundFunctionDeclaration *> getAllFunctions();
+
   bool tryDeclareVariable(std::string name,
                           const struct Utils::Variable &initialValue);
 

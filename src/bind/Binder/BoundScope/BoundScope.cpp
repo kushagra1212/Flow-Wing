@@ -88,13 +88,17 @@ bool BoundScope::tryAssignVariable(std::string name,
 
 bool BoundScope::tryDeclareFunction(std::string name,
                                     BoundFunctionDeclaration *function) {
-  if (this->functions.find(name) == this->functions.end()) {
+  if (this->functions.find(name) != this->functions.end()) {
 
-    this->functions[name] = function;
-    return true;
+    return false;
   }
 
-  return false;
+  if (this->parent) {
+    return this->parent->tryDeclareFunction(name, function);
+  }
+
+  this->functions[name] = function;
+  return true;
 }
 
 bool BoundScope::tryLookupFunction(std::string name) {
@@ -105,6 +109,17 @@ bool BoundScope::tryLookupFunction(std::string name) {
     return false;
   }
   return this->parent->tryLookupFunction(name);
+}
+
+std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
+  std::vector<BoundFunctionDeclaration *> result;
+  if (this->parent != nullptr) {
+    result = this->parent->getAllFunctions();
+  }
+  for (auto &function : this->functions) {
+    result.push_back(function.second);
+  }
+  return result;
 }
 
 BoundScope::~BoundScope() {

@@ -50,6 +50,7 @@ class Binder {
 private:
 private:
   BoundScope *root;
+  std::vector<BoundCallExpression *> _callExpressions;
 
 public:
   Binder(BoundScope *root);
@@ -65,6 +66,8 @@ public:
   BoundStatement *bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
 
 public:
+  static void verifyAllCallsAreValid(Binder *binder);
+
   static BoundScopeGlobal *bindGlobalScope(BoundScopeGlobal *previous,
                                            CompilationUnitSyntax *syntax);
 

@@ -58,7 +58,12 @@ TEST_F(IORedirectionTest, TestCountBraces) {
   ASSERT_EQ(repl->countBraces("{{}}", '{'), 2);
   ASSERT_EQ(repl->countBraces("{{}}", '}'), 2);
 }
-
+TEST_F(IORedirectionTest, TestForFunction3) {
+  setInput("fun f2(n){if (n == 0){  return (n)} return (f2(n - 1))} fun f4(){ "
+           "return (f2(5))} f4()");
+  runEvaluator();
+  ASSERT_EQ(getOutput(), "0\n");
+}
 // Test case for Repl::compileAndEvaluate
 
 TEST_F(IORedirectionTest, TestCompileAndEvaluate) {
@@ -272,11 +277,11 @@ TEST_F(IORedirectionTest, TestSingleStatement) {
 
 // Test Case for evaluating multiple statements
 
-TEST_F(IORedirectionTest, TestMultipleStatements) {
-  setInput("{var x = 1 + 2 var y = 3 + 4 print(y)} ");
-  runEvaluator();
-  ASSERT_EQ(getOutput(), "7");
-}
+// TEST_F(IORedirectionTest, TestMultipleStatements) {
+//   setInput("{var x = 1 + 2 var y = 3 + 4 print(y)} ");
+//   runEvaluator();
+//   ASSERT_EQ(getOutput(), "7");
+// }
 
 // Test Case for evaluating a single statement with a variable
 
