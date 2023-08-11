@@ -14,6 +14,8 @@ Evaluator::Evaluator(Evaluator *previous,
   this->previous = previous;
 }
 
+bool Evaluator::hasError() { return this->root->logs.size() > 0; }
+
 Evaluator::~Evaluator() {
   // if (this->root != nullptr) {
   //   delete this->root;
@@ -147,7 +149,8 @@ void Evaluator::evaluateBlockStatement(BoundBlockStatement *node) {
     this->variable_stack.push(std::map<std::string, Utils::Variable>());
 
   for (BoundStatement *statement : statements) {
-
+    if (this->hasError())
+      break;
     this->evaluateStatement(statement);
     if (break_count || continue_count ||
         (!return_count_stack.empty() && return_count_stack.top())) {
@@ -205,6 +208,16 @@ void Evaluator::evaluateWhileStatement(BoundWhileStatement *node) {
     while (std::any_cast<bool>(condition)) {
       this->evaluateStatement(whileStatement->getBody());
       condition = this->evaluate<std::any>(whileStatement->getCondition());
+      if (break_count) {
+        break_count--;
+        break;
+      }
+      if (continue_count) {
+        continue_count--;
+      }
+      if (this->hasError()) {
+        break;
+      }
     }
   } else if (condition.type() == typeid(int)) {
     while (std::any_cast<int>(condition)) {
@@ -217,6 +230,9 @@ void Evaluator::evaluateWhileStatement(BoundWhileStatement *node) {
       }
       if (continue_count) {
         continue_count--;
+      }
+      if (this->hasError()) {
+        break;
       }
     }
   } else {
@@ -272,6 +288,9 @@ void Evaluator::evaluateForStatement(BoundForStatement *node) {
       }
       if (break_count) {
         break_count--;
+        break;
+      }
+      if (this->hasError()) {
         break;
       }
     }
@@ -670,6 +689,8 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
             Utils::Variable(
                 value,
                 functionDefination->functionSymbol.parameters[i].isConst);
+        if (this->hasError())
+          break;
       }
 
       this->evaluateStatement(functionDefination->body);

@@ -37,6 +37,8 @@ public:
 public:
   BoundScopeGlobal *getRoot();
 
+  bool hasError();
+
 public:
   template <typename T> T evaluate(BoundExpression *node);
 
