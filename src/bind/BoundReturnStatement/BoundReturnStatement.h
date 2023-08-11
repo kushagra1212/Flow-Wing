@@ -10,13 +10,16 @@ private:
   BoundExpression *_expression;
 
 public:
-  BoundReturnStatement(BoundExpression *expression);
+  BoundReturnStatement(const std::string &lineAndColumn,
+                       BoundExpression *expression);
 
   ~BoundReturnStatement();
 
   BinderKindUtils::BoundNodeKind getKind() override;
 
   std::vector<BoundNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() const override;
 
   BoundExpression *getReturnExpression() const;
 };

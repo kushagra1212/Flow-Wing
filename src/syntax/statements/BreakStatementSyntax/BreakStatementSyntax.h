@@ -18,6 +18,8 @@ public:
 
   std::vector<SyntaxNode *> getChildren() override;
   SyntaxKindUtils::SyntaxKind getKind() override;
+
+  std::string getLineNumberAndColumn() const override;
 };
 
 #endif // BREAKSTATEMENTSYNTAX_H

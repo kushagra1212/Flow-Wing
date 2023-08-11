@@ -22,3 +22,7 @@ std::vector<SyntaxNode *> ContinueStatementSyntax::getChildren() {
 SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ContinueKeyword;
 }
+
+std::string ContinueStatementSyntax::getLineNumberAndColumn() const {
+  return _continueKeyword->getLineNumberAndColumn();
+}

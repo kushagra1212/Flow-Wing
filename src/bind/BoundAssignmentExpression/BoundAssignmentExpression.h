@@ -8,7 +8,8 @@ private:
   BoundExpression *right;
 
 public:
-  BoundAssignmentExpression(BoundExpression *left,
+  BoundAssignmentExpression(const std::string &lineAndColumn,
+                            BoundExpression *left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
                             BoundExpression *right);
 
@@ -28,6 +29,9 @@ public:
 
 public:
   BoundExpression *getRight();
+
+public:
+  std::string getLineNumberAndColumn() const;
 
 public:
   std::vector<BoundNode *> getChildren();

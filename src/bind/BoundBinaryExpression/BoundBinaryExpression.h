@@ -10,7 +10,7 @@ private:
   BoundExpression *right;
 
 public:
-  BoundBinaryExpression(BoundExpression *left,
+  BoundBinaryExpression(const std::string &lineAndColumn, BoundExpression *left,
                         BinderKindUtils::BoundBinaryOperatorKind op,
                         BoundExpression *right);
 
@@ -33,4 +33,7 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

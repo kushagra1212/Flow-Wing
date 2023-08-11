@@ -1,9 +1,11 @@
 #include "BoundBinaryExpression.h"
 
 BoundBinaryExpression::BoundBinaryExpression(
-    BoundExpression *left, BinderKindUtils::BoundBinaryOperatorKind op,
-    BoundExpression *right)
-    : op(op), left(left), right(right) {}
+    const std::string &lineAndColumn, BoundExpression *left,
+    BinderKindUtils::BoundBinaryOperatorKind op, BoundExpression *right)
+    : op(op), left(left), right(right) {
+  this->_lineAndColumn = lineAndColumn;
+}
 
 BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() {
   return BinderKindUtils::BoundNodeKind::BinaryExpression;
@@ -23,6 +25,10 @@ BoundExpression *BoundBinaryExpression::getRight() { return right; }
 
 std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
   return std::vector<BoundNode *>{left, right};
+}
+
+std::string BoundBinaryExpression::getLineNumberAndColumn() const {
+  return _lineAndColumn;
 }
 
 BoundBinaryExpression::~BoundBinaryExpression() {

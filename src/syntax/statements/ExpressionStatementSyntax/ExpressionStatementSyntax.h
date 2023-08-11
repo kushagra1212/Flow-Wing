@@ -16,4 +16,6 @@ public:
   std::vector<SyntaxNode *> getChildren();
 
   ExpressionSyntax *getExpression();
+
+  std::string getLineNumberAndColumn() const override;
 };

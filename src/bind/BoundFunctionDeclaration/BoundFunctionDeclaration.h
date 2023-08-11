@@ -10,7 +10,8 @@ public:
   BoundBlockStatement *body;
   Utils::FunctionSymbol functionSymbol;
 
-  BoundFunctionDeclaration(Utils::FunctionSymbol functionSymbol,
+  BoundFunctionDeclaration(const std::string &lineAndColumn,
+                           Utils::FunctionSymbol functionSymbol,
                            BoundBlockStatement *body);
 
   ~BoundFunctionDeclaration();
@@ -22,6 +23,8 @@ public:
   BoundBlockStatement *getBody() const;
 
   Utils::FunctionSymbol getFunctionSymbol() const;
+
+  std::string getLineNumberAndColumn() const override;
 };
 
 #endif

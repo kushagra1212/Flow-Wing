@@ -9,10 +9,10 @@
 
 class BoundCallExpression : public BoundExpression {
 public:
-  BoundCallExpression(BoundLiteralExpression<std::any> *callerIdentifier,
+  BoundCallExpression(const std::string &lineAndColumn,
+                      BoundLiteralExpression<std::any> *callerIdentifier,
                       Utils::FunctionSymbol functionalSymbol,
-                      const std::vector<BoundExpression *> &arguments,
-                      const std::string &lineAndColumn);
+                      const std::vector<BoundExpression *> &arguments);
 
   ~BoundCallExpression();
 
@@ -29,13 +29,12 @@ public:
 
   std::vector<BoundNode *> getChildren() override;
 
-  std::string getLineNumberAndPosition() const;
+  std::string getLineNumberAndColumn() const override;
 
 private:
   Utils::FunctionSymbol functionalSymbol;
   BoundLiteralExpression<std::any> *_callerIdentifier;
   std::vector<BoundExpression *> arguments;
-  std::string _lineAndColumn;
 };
 
 #endif // __BOUND_CALL_EXPRESSION_H__

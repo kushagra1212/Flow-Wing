@@ -35,6 +35,10 @@ SyntaxToken<std::any> *BlockStatementSyntax::getCloseBraceToken() {
   return this->closeBraceToken;
 }
 
+std::string BlockStatementSyntax::getLineNumberAndColumn() const {
+  return this->openBraceToken->getLineNumberAndColumn();
+}
+
 BlockStatementSyntax::~BlockStatementSyntax() {
   if (this->openBraceToken != nullptr) {
     delete this->openBraceToken;

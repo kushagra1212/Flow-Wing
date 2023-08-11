@@ -1,8 +1,12 @@
 #include "BoundWhileStatement.h"
 
-BoundWhileStatement::BoundWhileStatement(BoundExpression *condition,
-                                         BoundStatement *body)
-    : _condition(condition), _body(body) {}
+BoundWhileStatement::BoundWhileStatement(
+
+    const std::string &lineAndColumn, BoundExpression *condition,
+    BoundStatement *body)
+    : _condition(condition), _body(body) {
+  this->_lineAndColumn = lineAndColumn;
+}
 
 BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() {
 
@@ -21,6 +25,11 @@ std::vector<BoundNode *> BoundWhileStatement::getChildren() {
   children.push_back(_body);
   return children;
 }
+
+std::string BoundWhileStatement::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
+}
+
 BoundWhileStatement::~BoundWhileStatement() {
   if (_condition != nullptr) {
     delete _condition;

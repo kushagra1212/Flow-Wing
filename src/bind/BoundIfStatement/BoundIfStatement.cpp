@@ -1,10 +1,13 @@
 #include "BoundIfStatement.h"
 
-BoundIfStatement::BoundIfStatement(BoundExpression *condition,
+BoundIfStatement::BoundIfStatement(const std::string &lineAndColumn,
+                                   BoundExpression *condition,
                                    BoundStatement *thenStatement,
                                    BoundStatement *elseStatement)
     : _condition(condition), _thenStatement(thenStatement),
-      _elseStatement(elseStatement) {}
+      _elseStatement(elseStatement) {
+  this->_lineAndColumn = lineAndColumn;
+}
 
 BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() {
 
@@ -19,6 +22,10 @@ BoundStatement *BoundIfStatement::getThenStatement() const {
 
 BoundStatement *BoundIfStatement::getElseStatement() const {
   return _elseStatement;
+}
+
+std::string BoundIfStatement::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundIfStatement::getChildren() {

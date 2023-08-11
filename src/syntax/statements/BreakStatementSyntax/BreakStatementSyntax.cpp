@@ -21,3 +21,7 @@ std::vector<SyntaxNode *> BreakStatementSyntax::getChildren() {
 SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::BreakKeyword;
 }
+
+std::string BreakStatementSyntax::getLineNumberAndColumn() const {
+  return _breakKeyword->getLineNumberAndColumn();
+}

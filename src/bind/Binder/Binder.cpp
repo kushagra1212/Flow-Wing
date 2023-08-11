@@ -8,7 +8,9 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         (ExpressionStatementSyntax *)syntax;
     BoundExpression *expression =
         bindExpression(expressionStatement->getExpression());
-    return new BoundExpressionStatement(expression);
+    return new BoundExpressionStatement(
+        expressionStatement->getExpression()->getLineNumberAndColumn(),
+        expression);
   }
   case SyntaxKindUtils::SyntaxKind::BlockStatement: {
     BlockStatementSyntax *blockStatement = (BlockStatementSyntax *)syntax;
@@ -23,7 +25,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
       statements.push_back(statement);
     }
 
-    BoundStatement *statement = new BoundBlockStatement(statements, false);
+    BoundStatement *statement = new BoundBlockStatement(
+        blockStatement->getLineNumberAndColumn(), statements, false);
 
     this->root = this->root->parent;
 
@@ -48,7 +51,9 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                            " already exists");
     }
 
-    return new BoundVariableDeclaration(variable_str, isConst, initializer);
+    return new BoundVariableDeclaration(
+        variableDeclaration->getLineNumberAndColumn(), variable_str, isConst,
+        initializer);
   }
   case SyntaxKindUtils::SyntaxKind::IfStatement: {
     IfStatementSyntax *ifStatement = (IfStatementSyntax *)syntax;
@@ -60,7 +65,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
       elseStatement = bindStatement(
           (StatementSyntax *)ifStatement->getElseClause()->getStatement());
     }
-    return new BoundIfStatement(condition, thenStatement, elseStatement);
+    return new BoundIfStatement(ifStatement->getLineNumberAndColumn(),
+                                condition, thenStatement, elseStatement);
   }
   case SyntaxKindUtils::SyntaxKind::WhileStatement: {
     this->root = new BoundScope(this->root);
@@ -73,7 +79,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         bindStatement((StatementSyntax *)whileStatement->getBody());
 
     this->root = this->root->parent;
-    return new BoundWhileStatement(condition, body);
+    return new BoundWhileStatement(whileStatement->getLineNumberAndColumn(),
+                                   condition, body);
   }
 
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
@@ -91,7 +98,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         bindStatement((StatementSyntax *)forStatement->getStatement());
 
     this->root = this->root->parent;
-    return new BoundForStatement(intializer, upperBound, (body));
+    return new BoundForStatement(forStatement->getLineNumberAndColumn(),
+                                 intializer, upperBound, body);
   }
   case SyntaxKindUtils::SyntaxKind::BreakKeyword: {
     BreakStatementSyntax *breakStatement = (BreakStatementSyntax *)syntax;
@@ -100,7 +108,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
           Utils::getLineNumberAndPosition(breakStatement->getBreakKeyword()) +
           "Error: Break statement outside of loop");
     }
-    return new BoundBreakStatement();
+    return new BoundBreakStatement(breakStatement->getLineNumberAndColumn());
   }
   case SyntaxKindUtils::SyntaxKind::ContinueKeyword: {
     ContinueStatementSyntax *continueStatement =
@@ -110,7 +118,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                                continueStatement->getContinueKeyword()) +
                            "Error: Continue statement outside of loop");
     }
-    return new BoundContinueStatement();
+    return new BoundContinueStatement(
+        continueStatement->getLineNumberAndColumn());
   }
 
   case SyntaxKindUtils::SyntaxKind::ReturnStatement: {
@@ -130,7 +139,8 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
       }
     }
 
-    return new BoundReturnStatement(expression);
+    return new BoundReturnStatement(returnStatement->getLineNumberAndColumn(),
+                                    expression);
   }
   default:
     throw "Unexpected syntax";
@@ -140,9 +150,11 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
-
-    std::any value = ((LiteralExpressionSyntax<std::any> *)syntax)->getValue();
-    return new BoundLiteralExpression<std::any>(value);
+    LiteralExpressionSyntax<std::any> *literalSyntax =
+        (LiteralExpressionSyntax<std::any> *)syntax;
+    std::any value = literalSyntax->getValue();
+    return new BoundLiteralExpression<std::any>(
+        literalSyntax->getLineNumberAndColumn(), value);
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
     UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;
@@ -165,7 +177,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected unary operator";
     }
-    return new BoundUnaryExpression(op, operand);
+    return new BoundUnaryExpression(unaryExpression->getLineNumberAndColumn(),
+                                    op, operand);
   }
   case SyntaxKindUtils::SyntaxKind::BinaryExpression: {
     BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)syntax;
@@ -233,7 +246,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected binary operator";
     }
-    return new BoundBinaryExpression(left, op, right);
+    return new BoundBinaryExpression(binaryExpression->getLineNumberAndColumn(),
+                                     left, op, right);
   }
 
     // Assignment Expression
@@ -270,7 +284,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
       throw "Unexpected assignment operator";
     }
     BoundExpression *right = bindExpression(assignmentExpression->getRight());
-    return new BoundAssignmentExpression(identifierExpression, op, right);
+    return new BoundAssignmentExpression(
+        assignmentExpression->getLineNumberAndColumn(), identifierExpression,
+        op, right);
   }
 
   case SyntaxKindUtils::SyntaxKind::VariableExpression: {
@@ -289,7 +305,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
           "Error: Variable " + variable_str + " does not exist");
       return identifierExpression;
     }
-    return new BoundVariableExpression(identifierExpression);
+    return new BoundVariableExpression(
+        variableExpressionSyntax->getLineNumberAndColumn(),
+        identifierExpression);
   }
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
     ParenthesizedExpressionSyntax *parenthesizedExpression =
@@ -351,10 +369,9 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
       arguments.push_back(bindExpression(callExpression->getArguments()[i]));
     }
 
-    BoundCallExpression *boundCallExpression = new BoundCallExpression(
-        identifier, functionSymbol, arguments,
-        Utils::getLineNumberAndPosition(
-            callExpression->getIdentifier()->getToken()));
+    BoundCallExpression *boundCallExpression =
+        new BoundCallExpression(callExpression->getLineNumberAndColumn(),
+                                identifier, functionSymbol, arguments);
     this->_callExpressions.push_back(boundCallExpression);
     return boundCallExpression;
   }
@@ -415,8 +432,8 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   this->root->incrementFunctionCount();
   BoundBlockStatement *body =
       (BoundBlockStatement *)bindStatement(syntax->getBody());
-  BoundFunctionDeclaration *fd =
-      new BoundFunctionDeclaration(functionSymbol, body);
+  BoundFunctionDeclaration *fd = new BoundFunctionDeclaration(
+      syntax->getLineNumberAndColumn(), functionSymbol, body);
 
   this->root->decrementFunctionCount();
 
@@ -460,9 +477,9 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
     if (functionDefinitionMap.find(functionSymbol.name) ==
         functionDefinitionMap.end()) {
-      binder->logs.push_back(callExpression->getLineNumberAndPosition() +
-                             "Error: Function " + functionSymbol.name +
-                             " does not exist");
+      binder->logs.push_back(
+          callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+          "Error: Function " + functionSymbol.name + " does not exist");
       continue;
     }
 
@@ -472,8 +489,8 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
     if (functionSymbol.parameters.size() !=
         functionDefinition.parameters.size()) {
       binder->logs.push_back(
-          callExpression->getLineNumberAndPosition() + "Error: Function " +
-          functionSymbol.name + " requires " +
+          callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+          "Error: Function " + functionSymbol.name + " requires " +
           std::to_string(functionDefinition.parameters.size()) + " arguments");
       continue;
     }
@@ -513,7 +530,7 @@ BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
 
   verifyAllCallsAreValid(binder);
 
-  BoundStatement *statement = new BoundBlockStatement(statements, true);
+  BoundStatement *statement = new BoundBlockStatement("", statements, true);
 
   std::vector<std::string> _logs;
 

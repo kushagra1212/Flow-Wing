@@ -24,11 +24,13 @@ public:
 
   std::vector<SyntaxNode *> getChildren() override;
 
+  std::string getLineNumberAndColumn() const override;
+
 private:
-  LiteralExpressionSyntax<std::any> *identifier;
-  SyntaxToken<std::any> *openParenthesisToken;
-  std::vector<ExpressionSyntax *> arguments;
-  SyntaxToken<std::any> *closeParenthesisToken;
+  LiteralExpressionSyntax<std::any> *_identifier;
+  SyntaxToken<std::any> *_openParenthesisToken;
+  std::vector<ExpressionSyntax *> _arguments;
+  SyntaxToken<std::any> *_closeParenthesisToken;
 };
 
 #endif // CALL_EXPRESSION_SYNTAX_H

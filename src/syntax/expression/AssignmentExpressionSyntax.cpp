@@ -27,6 +27,10 @@ LiteralExpressionSyntax<std::any> *AssignmentExpressionSyntax::getLeft() {
   return left;
 }
 
+std::string AssignmentExpressionSyntax::getLineNumberAndColumn() const {
+  return left->getLineNumberAndColumn();
+}
+
 AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
   if (left != nullptr) {
     delete left;

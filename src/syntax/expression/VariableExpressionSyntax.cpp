@@ -20,6 +20,10 @@ std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
   return children;
 }
 
+std::string VariableExpressionSyntax::getLineNumberAndColumn() const {
+  return this->identifierExpression->getLineNumberAndColumn();
+}
+
 VariableExpressionSyntax::~VariableExpressionSyntax() {
   if (this->identifierExpression != nullptr) {
     delete this->identifierExpression;

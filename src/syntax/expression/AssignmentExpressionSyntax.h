@@ -30,4 +30,7 @@ public:
 
 public:
   LiteralExpressionSyntax<std::any> *getLeft();
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

@@ -1,11 +1,12 @@
 #include "BoundAssignmentExpression.h"
 
 BoundAssignmentExpression::BoundAssignmentExpression(
-    BoundExpression *left, BinderKindUtils::BoundBinaryOperatorKind op,
-    BoundExpression *right) {
+    const std::string &lineAndColumn, BoundExpression *left,
+    BinderKindUtils::BoundBinaryOperatorKind op, BoundExpression *right) {
   this->op = op;
   this->left = left;
   this->right = right;
+  this->_lineAndColumn = lineAndColumn;
 }
 
 BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() {
@@ -27,6 +28,9 @@ BoundExpression *BoundAssignmentExpression::getRight() { return right; }
 
 std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
   return std::vector<BoundNode *>{left, right};
+}
+std::string BoundAssignmentExpression::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 BoundAssignmentExpression::~BoundAssignmentExpression() {

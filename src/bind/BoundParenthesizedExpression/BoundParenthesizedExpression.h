@@ -8,7 +8,8 @@ private:
   BoundExpression *expression;
 
 public:
-  BoundParenthesizedExpression(BoundExpression *expression);
+  BoundParenthesizedExpression(const std::string &lineAndColumn,
+                               BoundExpression *expression);
 
   ~BoundParenthesizedExpression();
 
@@ -24,4 +25,7 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

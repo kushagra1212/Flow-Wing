@@ -25,6 +25,10 @@ ExpressionSyntax *WhileStatementSyntax::getCondition() const {
 
 BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
 
+std::string WhileStatementSyntax::getLineNumberAndColumn() const {
+  return _whileKeyword->getLineNumberAndColumn();
+}
+
 WhileStatementSyntax::~WhileStatementSyntax() {
   if (_whileKeyword != nullptr) {
     delete _whileKeyword;

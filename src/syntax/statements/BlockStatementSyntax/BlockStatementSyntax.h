@@ -22,4 +22,6 @@ public:
   std::vector<StatementSyntax *> getStatements();
 
   SyntaxToken<std::any> *getCloseBraceToken();
+
+  std::string getLineNumberAndColumn() const override;
 };

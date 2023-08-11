@@ -10,7 +10,8 @@
 class BoundForStatement : public BoundStatement {
 
 public:
-  BoundForStatement(BoundStatement *initialization, BoundExpression *upperBound,
+  BoundForStatement(const std::string &lineAndColumn,
+                    BoundStatement *initialization, BoundExpression *upperBound,
 
                     BoundStatement *statement);
 
@@ -25,6 +26,8 @@ public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
   std::vector<BoundNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() const override;
 
 private:
   BoundStatement *initialization;

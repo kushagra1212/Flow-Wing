@@ -1,8 +1,9 @@
 #include "BoundVariableExpression.h"
 
 BoundVariableExpression::BoundVariableExpression(
-    BoundExpression *identiferExpression) {
+    const std::string &lineAndColumn, BoundExpression *identiferExpression) {
   this->identiferExpression = identiferExpression;
+  this->_lineAndColumn = lineAndColumn;
 }
 
 BinderKindUtils::BoundNodeKind BoundVariableExpression::getKind() {
@@ -19,6 +20,10 @@ BoundExpression *BoundVariableExpression::getIdentifierExpression() {
 
 std::vector<BoundNode *> BoundVariableExpression::getChildren() {
   return std::vector<BoundNode *>{this->identiferExpression};
+}
+
+std::string BoundVariableExpression::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 BoundVariableExpression::~BoundVariableExpression() {

@@ -6,7 +6,7 @@
 class BoundBreakStatement : public BoundStatement {
 
 public:
-  BoundBreakStatement();
+  BoundBreakStatement(const std::string &lineAndColumn);
 
   ~BoundBreakStatement();
 
@@ -14,6 +14,8 @@ public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
   std::vector<BoundNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() const override;
 };
 
 #endif // BOUDBREAKSTATEMENT_H

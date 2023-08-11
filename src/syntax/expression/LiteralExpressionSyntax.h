@@ -29,4 +29,7 @@ public:
 
 public:
   T getValue();
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

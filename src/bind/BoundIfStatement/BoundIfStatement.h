@@ -9,7 +9,8 @@ private:
   BoundStatement *_elseStatement;
 
 public:
-  BoundIfStatement(BoundExpression *condition, BoundStatement *thenStatement,
+  BoundIfStatement(std::string const &lineAndColumn, BoundExpression *condition,
+                   BoundStatement *thenStatement,
                    BoundStatement *elseStatement);
 
   ~BoundIfStatement();
@@ -17,6 +18,8 @@ public:
   BoundExpression *getCondition() const;
   BoundStatement *getThenStatement() const;
   BoundStatement *getElseStatement() const;
+
+  std::string getLineNumberAndColumn() const override;
 
 public:
   std::vector<BoundNode *> getChildren() override;

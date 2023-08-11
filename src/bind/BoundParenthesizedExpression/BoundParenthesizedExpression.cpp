@@ -1,8 +1,9 @@
 #include "BoundParenthesizedExpression.h"
 
 BoundParenthesizedExpression::BoundParenthesizedExpression(
-    BoundExpression *expression) {
+    const std::string &lineAndColumn, BoundExpression *expression) {
   this->expression = expression;
+  this->_lineAndColumn = lineAndColumn;
 }
 
 BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() {
@@ -19,6 +20,10 @@ BoundExpression *BoundParenthesizedExpression::getExpression() {
 
 std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
   return std::vector<BoundNode *>{expression};
+}
+
+std::string BoundParenthesizedExpression::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 BoundParenthesizedExpression::~BoundParenthesizedExpression() {

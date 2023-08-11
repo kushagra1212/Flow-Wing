@@ -12,8 +12,10 @@ private:
   bool _isConst;
 
 public:
-  BoundVariableDeclaration(std::string variable, bool isConst,
-                           BoundExpression *initializer);
+  BoundVariableDeclaration(
+
+      const std::string &lineAndColumn, std::string variable, bool isConst,
+      BoundExpression *initializer);
 
   ~BoundVariableDeclaration();
   BinderKindUtils::BoundNodeKind getKind() override;
@@ -22,6 +24,9 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 
   bool isConst() const;
 };

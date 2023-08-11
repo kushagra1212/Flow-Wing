@@ -1,12 +1,15 @@
 #include "BoundBlockStatement.h"
 BoundBlockStatement::BoundBlockStatement(
-    std::vector<BoundStatement *> statements, bool global) {
+    const std::string &lineAndColumn, std::vector<BoundStatement *> statements,
+    bool global) {
   this->statements = statements;
   this->global = global;
+  this->_lineAndColumn = lineAndColumn;
 }
 BoundBlockStatement::BoundBlockStatement(
+    const std::string &lineAndColumn,
     std::vector<BoundStatement *> statements) {
-  BoundBlockStatement(statements, false);
+  BoundBlockStatement(lineAndColumn, statements, false);
 }
 BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() {
   return BinderKindUtils::BoundNodeKind::BlockStatement;
@@ -24,6 +27,10 @@ std::vector<BoundNode *> BoundBlockStatement::getChildren() {
     children.push_back(statement);
   }
   return children;
+}
+
+std::string BoundBlockStatement::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 BoundBlockStatement::~BoundBlockStatement() {

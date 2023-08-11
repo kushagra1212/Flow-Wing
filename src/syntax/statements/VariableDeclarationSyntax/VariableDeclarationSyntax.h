@@ -25,4 +25,6 @@ public:
   SyntaxToken<std::any> *getEqualsToken() const;
   ExpressionSyntax *getInitializer() const;
   SyntaxToken<std::any> *getKeyword() const;
+
+  std::string getLineNumberAndColumn() const override;
 };

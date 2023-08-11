@@ -6,7 +6,8 @@ private:
   BoundExpression *identiferExpression;
 
 public:
-  BoundVariableExpression(BoundExpression *identiferExpression);
+  BoundVariableExpression(const std::string &lineAndColumn,
+                          BoundExpression *identiferExpression);
 
   ~BoundVariableExpression();
 
@@ -21,4 +22,7 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

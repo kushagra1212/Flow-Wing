@@ -19,6 +19,15 @@ SyntaxToken<std::any> *CompilationUnitSyntax::getEndOfFileToken() {
   return this->endOfFileToken;
 }
 
+std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
+  std::vector<SyntaxNode *> children = {};
+  for (auto member : this->members) {
+    children.push_back(member);
+  }
+  children.push_back(this->endOfFileToken);
+  return children;
+}
+
 CompilationUnitSyntax::~CompilationUnitSyntax() {
   for (auto member : this->members) {
     if (member != nullptr) {

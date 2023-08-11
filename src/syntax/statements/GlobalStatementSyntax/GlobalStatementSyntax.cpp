@@ -17,6 +17,11 @@ std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
   children.push_back(_statement);
   return children;
 }
+
+std::string GlobalStatementSyntax::getLineNumberAndColumn() const {
+  return _statement->getLineNumberAndColumn();
+}
+
 GlobalStatementSyntax::~GlobalStatementSyntax() {
   if (_statement != nullptr) {
     delete _statement;

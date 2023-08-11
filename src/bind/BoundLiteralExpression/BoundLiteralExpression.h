@@ -9,7 +9,7 @@ private:
   T value;
 
 public:
-  BoundLiteralExpression(T value);
+  BoundLiteralExpression(const std::string &lineAndColumn, T value);
 
   ~BoundLiteralExpression();
 
@@ -21,6 +21,8 @@ public:
 
 public:
   T getValue();
+
+  std::string getLineNumberAndColumn() const override;
 
 public:
   std::vector<BoundNode *> getChildren() override;

@@ -24,4 +24,6 @@ public:
   ExpressionSyntax *getCondition() const;
 
   BlockStatementSyntax *getBody() const;
+
+  std::string getLineNumberAndColumn() const override;
 };

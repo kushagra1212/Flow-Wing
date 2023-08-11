@@ -83,3 +83,8 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
 template <typename T> std::vector<SyntaxNode *> SyntaxToken<T>::getChildren() {
   return children;
 }
+template <typename T>
+std::string SyntaxToken<T>::getLineNumberAndColumn() const {
+  return "line " + std::to_string(this->lineNumber + 1) + ":" +
+         std::to_string(this->position + 1) + " ";
+}

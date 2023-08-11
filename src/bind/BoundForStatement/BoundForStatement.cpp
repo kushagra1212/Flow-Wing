@@ -1,11 +1,14 @@
 #include "BoundForStatement.h"
 
-BoundForStatement::BoundForStatement(BoundStatement *initialization,
+BoundForStatement::BoundForStatement(const std::string &lineAndColumn,
+                                     BoundStatement *initialization,
 
                                      BoundExpression *upperBound,
                                      BoundStatement *statement)
     : initialization((initialization)), upperBound(upperBound),
-      statement((statement)) {}
+      statement((statement)) {
+  this->_lineAndColumn = lineAndColumn;
+}
 
 BoundStatement *BoundForStatement::getInitialization() const {
 
@@ -25,6 +28,10 @@ BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
 BoundExpression *BoundForStatement::getUpperBound() const {
 
   return this->upperBound;
+}
+
+std::string BoundForStatement::getLineNumberAndColumn() const {
+  return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundForStatement::getChildren() {

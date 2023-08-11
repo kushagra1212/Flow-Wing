@@ -10,7 +10,8 @@ private:
   BoundExpression *expression;
 
 public:
-  BoundExpressionStatement(BoundExpression *expression);
+  BoundExpressionStatement(const std::string &lineAndColumn,
+                           BoundExpression *expression);
 
   ~BoundExpressionStatement();
 
@@ -22,4 +23,7 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

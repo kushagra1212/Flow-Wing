@@ -23,6 +23,10 @@ std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
   return children;
 }
 
+std::string UnaryExpressionSyntax::getLineNumberAndColumn() const {
+  return this->operatorToken->getLineNumberAndColumn();
+}
+
 UnaryExpressionSyntax::~UnaryExpressionSyntax() {
   if (this->operatorToken != nullptr) {
     delete this->operatorToken;

@@ -8,10 +8,6 @@ private:
   SyntaxKindUtils::SyntaxKind kind;
 
 private:
-  int lineNumber;
-  int position;
-
-private:
   std::string text;
 
 private:
@@ -44,6 +40,8 @@ public:
 
 public:
   int getBinaryOperatorPrecedence();
+
+  std::string getLineNumberAndColumn() const override;
 
 public:
 public:

@@ -14,6 +14,10 @@ SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
+std::string ParameterSyntax::getLineNumberAndColumn() const {
+  return _identifierToken->getLineNumberAndColumn();
+}
+
 std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
   std::vector<SyntaxNode *> children = {};
   children.push_back(_identifierToken);

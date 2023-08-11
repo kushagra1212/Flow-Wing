@@ -38,6 +38,8 @@ public:
   SyntaxKindUtils::SyntaxKind getKind() override;
 
   std::vector<SyntaxNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() const override;
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

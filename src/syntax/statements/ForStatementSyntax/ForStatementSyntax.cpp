@@ -26,6 +26,10 @@ StatementSyntax *ForStatementSyntax::getInitialization() const {
   return this->initialization;
 }
 
+std::string ForStatementSyntax::getLineNumberAndColumn() const {
+  return this->initialization->getLineNumberAndColumn();
+}
+
 ForStatementSyntax::~ForStatementSyntax() {
   if (this->initialization != nullptr) {
     delete this->initialization;

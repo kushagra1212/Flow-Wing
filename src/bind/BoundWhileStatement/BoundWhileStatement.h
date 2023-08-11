@@ -9,11 +9,13 @@ private:
   BoundStatement *_body;
 
 public:
-  BoundWhileStatement(BoundExpression *condition, BoundStatement *body);
+  BoundWhileStatement(const std::string &lineAndColumn,
+                      BoundExpression *condition, BoundStatement *body);
 
   ~BoundWhileStatement();
   BinderKindUtils::BoundNodeKind getKind() override;
   BoundExpression *getCondition() const;
   BoundStatement *getBody() const;
   std::vector<BoundNode *> getChildren() override;
+  std::string getLineNumberAndColumn() const override;
 };

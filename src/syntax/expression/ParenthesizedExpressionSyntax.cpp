@@ -33,6 +33,10 @@ std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
   return children;
 }
 
+std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() const {
+  return this->openParenthesisToken->getLineNumberAndColumn();
+}
+
 ParenthesizedExpressionSyntax::~ParenthesizedExpressionSyntax() {
   if (this->openParenthesisToken != nullptr) {
     delete this->openParenthesisToken;

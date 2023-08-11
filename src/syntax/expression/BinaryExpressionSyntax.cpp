@@ -27,6 +27,10 @@ std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
   return children;
 }
 
+std::string BinaryExpressionSyntax::getLineNumberAndColumn() const {
+  return this->left->getLineNumberAndColumn();
+}
+
 BinaryExpressionSyntax::~BinaryExpressionSyntax() {
   if (this->left != nullptr) {
     delete this->left;

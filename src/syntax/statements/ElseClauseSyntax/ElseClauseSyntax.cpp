@@ -21,6 +21,10 @@ std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
   return {elseKeyword, (SyntaxNode *)statement};
 }
 
+std::string ElseClauseSyntax::getLineNumberAndColumn() const {
+  return elseKeyword->getLineNumberAndColumn();
+}
+
 ElseClauseSyntax::~ElseClauseSyntax() {
   if (elseKeyword != nullptr) {
     delete elseKeyword;

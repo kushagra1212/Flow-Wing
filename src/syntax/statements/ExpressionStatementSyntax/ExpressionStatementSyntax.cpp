@@ -17,6 +17,10 @@ ExpressionSyntax *ExpressionStatementSyntax::getExpression() {
   return this->expression;
 }
 
+std::string ExpressionStatementSyntax::getLineNumberAndColumn() const {
+  return this->expression->getLineNumberAndColumn();
+}
+
 ExpressionStatementSyntax::~ExpressionStatementSyntax() {
   if (this->expression != nullptr) {
     delete this->expression;

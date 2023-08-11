@@ -30,6 +30,11 @@ ExpressionSyntax *VariableDeclarationSyntax::getInitializer() const {
 SyntaxToken<std::any> *VariableDeclarationSyntax::getKeyword() const {
   return _keyword;
 }
+
+std::string VariableDeclarationSyntax::getLineNumberAndColumn() const {
+  return _keyword->getLineNumberAndColumn();
+}
+
 VariableDeclarationSyntax::~VariableDeclarationSyntax() {
   if (_keyword != nullptr) {
     delete _keyword;

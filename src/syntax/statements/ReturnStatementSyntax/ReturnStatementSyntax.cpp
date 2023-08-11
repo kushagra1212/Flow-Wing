@@ -4,18 +4,6 @@ ReturnStatementSyntax::ReturnStatementSyntax(
     SyntaxToken<std::any> *returnKeyword, ExpressionSyntax *expression)
     : _returnKeyword(returnKeyword), _expression(expression) {}
 
-ReturnStatementSyntax::~ReturnStatementSyntax() {
-  if (_returnKeyword != nullptr) {
-    delete _returnKeyword;
-    _returnKeyword = nullptr;
-  }
-
-  if (_expression != nullptr) {
-    delete _expression;
-    _expression = nullptr;
-  }
-}
-
 SyntaxToken<std::any> *ReturnStatementSyntax::getReturnKeyword() const {
 
   return _returnKeyword;
@@ -31,4 +19,20 @@ std::vector<SyntaxNode *> ReturnStatementSyntax::getChildren() {
 
 SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ReturnStatement;
+}
+
+std::string ReturnStatementSyntax::getLineNumberAndColumn() const {
+  return _returnKeyword->getLineNumberAndColumn();
+}
+
+ReturnStatementSyntax::~ReturnStatementSyntax() {
+  if (_returnKeyword != nullptr) {
+    delete _returnKeyword;
+    _returnKeyword = nullptr;
+  }
+
+  if (_expression != nullptr) {
+    delete _expression;
+    _expression = nullptr;
+  }
 }

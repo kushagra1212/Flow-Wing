@@ -45,6 +45,10 @@ SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
+std::string FunctionDeclarationSyntax::getLineNumberAndColumn() const {
+  return _functionKeyword->getLineNumberAndColumn();
+}
+
 std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
   std::vector<SyntaxNode *> children = {};
   children.push_back(_functionKeyword);

@@ -26,6 +26,8 @@ public:
 
   ExpressionSyntax *getUpperBound() const;
 
+  std::string getLineNumberAndColumn() const override;
+
 private:
   StatementSyntax *initialization;
   BlockStatementSyntax *statement;

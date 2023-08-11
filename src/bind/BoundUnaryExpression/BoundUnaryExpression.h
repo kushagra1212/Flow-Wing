@@ -8,7 +8,8 @@ private:
   BoundExpression *operand;
 
 public:
-  BoundUnaryExpression(BinderKindUtils::BoundUnaryOperatorKind op,
+  BoundUnaryExpression(const std::string &lineAndColumn,
+                       BinderKindUtils::BoundUnaryOperatorKind op,
                        BoundExpression *operand);
 
   ~BoundUnaryExpression();
@@ -27,4 +28,7 @@ public:
 
 public:
   std::vector<BoundNode *> getChildren() override;
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };

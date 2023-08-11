@@ -25,6 +25,10 @@ SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 
+std::string IfStatementSyntax::getLineNumberAndColumn() const {
+  return ifKeyword->getLineNumberAndColumn();
+}
+
 std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
   std::vector<SyntaxNode *> children = {ifKeyword, condition,
                                         (SyntaxNode *)statement};

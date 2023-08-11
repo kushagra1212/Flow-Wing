@@ -34,6 +34,11 @@ template <typename T> T LiteralExpressionSyntax<T>::getValue() {
   return this->value;
 }
 
+template <typename T>
+std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() const {
+  return this->token->getLineNumberAndColumn();
+}
+
 template <typename T> LiteralExpressionSyntax<T>::~LiteralExpressionSyntax() {
   if (this->token != nullptr) {
     delete this->token;

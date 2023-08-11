@@ -31,5 +31,8 @@ public:
 
 public:
   std::vector<SyntaxNode *> getChildren();
+
+public:
+  std::string getLineNumberAndColumn() const override;
 };
 #endif

@@ -22,5 +22,8 @@ public:
 
 public:
   SyntaxToken<std::any> *getEndOfFileToken();
+
+public:
+  std::vector<SyntaxNode *> getChildren();
 };
 #endif

@@ -1,10 +1,10 @@
 #include "BoundCallExpression.h"
 
 BoundCallExpression::BoundCallExpression(
+    const std::string &lineAndColumn,
     BoundLiteralExpression<std::any> *callerIdentifier,
     Utils::FunctionSymbol functionalSymbol,
-    const std::vector<BoundExpression *> &arguments,
-    const std::string &lineAndColumn) {
+    const std::vector<BoundExpression *> &arguments) {
   this->functionalSymbol = functionalSymbol;
   this->arguments = arguments;
   this->_callerIdentifier = callerIdentifier;
@@ -41,7 +41,7 @@ std::vector<BoundNode *> BoundCallExpression::getChildren() {
   return children;
 }
 
-std::string BoundCallExpression::getLineNumberAndPosition() const {
+std::string BoundCallExpression::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
 }
 

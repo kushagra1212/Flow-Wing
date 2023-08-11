@@ -189,7 +189,9 @@ void Evaluator::evaluateIfStatement(BoundIfStatement *node) {
       this->evaluateStatement(ifStatement->getElseStatement());
     }
   } else {
-    this->root->logs.push_back("Error: Unexpected condition type");
+    this->root->logs.push_back(
+        ifStatement->getCondition()->getLineNumberAndColumn() +
+        "Error: Unexpected condition type");
     return;
   }
 }
@@ -218,7 +220,9 @@ void Evaluator::evaluateWhileStatement(BoundWhileStatement *node) {
       }
     }
   } else {
-    this->root->logs.push_back("Error: Unexpected condition type");
+    this->root->logs.push_back(
+        whileStatement->getCondition()->getLineNumberAndColumn() +
+        "Error: Unexpected condition type");
   }
   this->variable_stack.pop();
 }
@@ -247,7 +251,9 @@ void Evaluator::evaluateForStatement(BoundForStatement *node) {
   std::any upperBound = this->evaluate<std::any>(forStatement->getUpperBound());
 
   if (lowerBound.type() != upperBound.type()) {
-    this->root->logs.push_back("Error: Incompatible types");
+    this->root->logs.push_back(
+        forStatement->getUpperBound()->getLineNumberAndColumn() +
+        "Error: Incompatible types");
     return;
   }
 
@@ -270,7 +276,9 @@ void Evaluator::evaluateForStatement(BoundForStatement *node) {
       }
     }
   } else {
-    this->root->logs.push_back("Error: Unexpected condition type");
+    this->root->logs.push_back(
+        forStatement->getInitialization()->getLineNumberAndColumn() +
+        "Error: Unexpected condition type");
   }
 
   this->variable_stack.pop();
@@ -342,7 +350,8 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
     break;
   }
   default: {
-    this->root->logs.push_back("Error: Unexpected node" +
+    this->root->logs.push_back(node->getLineNumberAndColumn() +
+                               "Error: Unexpected node" +
                                BinderKindUtils::to_string(node->getKind()));
   }
   }
@@ -364,7 +373,8 @@ T Evaluator::evaluateLiteralExpression(BoundExpression *node) {
   } else if (value.type() == typeid(double)) {
     return std::any_cast<double>(value);
   } else {
-    this->root->logs.push_back("Error: Unexpected literal expression");
+    this->root->logs.push_back(node->getLineNumberAndColumn() +
+                               "Error: Unexpected literal expression");
     return nullptr;
   }
 }
@@ -385,7 +395,9 @@ T Evaluator::evaluateVariableExpression(BoundExpression *node) {
   std::any variable =
       this->evaluate<std::any>(variableExpression->getIdentifierExpression());
   if (variable.type() != typeid(std::string)) {
-    this->root->logs.push_back("Error: Unexpected variable name");
+    this->root->logs.push_back(variableExpression->getIdentifierExpression()
+                                   ->getLineNumberAndColumn() +
+                               "Error: Unexpected variable name");
     return nullptr;
   }
 
@@ -395,7 +407,9 @@ T Evaluator::evaluateVariableExpression(BoundExpression *node) {
     return this->getVariable(variable_name).value;
   }
   default:
-    this->root->logs.push_back("Error: Unexpected Variable found");
+    this->root->logs.push_back(variableExpression->getIdentifierExpression()
+                                   ->getLineNumberAndColumn() +
+                               "Error: Unexpected Variable found");
     return nullptr;
   }
 }
@@ -408,7 +422,9 @@ T Evaluator::evaluateAssignmentExpression(BoundExpression *node) {
   std::any variable = this->evaluate<std::any>(assignmentExpression->getLeft());
 
   if (variable.type() != typeid(std::string)) {
-    this->root->logs.push_back("Error Unexpected variable name");
+    this->root->logs.push_back(
+        assignmentExpression->getLeft()->getLineNumberAndColumn() +
+        "Error Unexpected variable name");
     return nullptr;
   }
   std::string variable_name = std::any_cast<std::string>(variable);
@@ -426,7 +442,8 @@ T Evaluator::evaluateAssignmentExpression(BoundExpression *node) {
     return this->getVariable(variable_name).value;
   }
   default:
-    this->root->logs.push_back("Error: Unexpected assignment operator");
+    this->root->logs.push_back(assignmentExpression->getLineNumberAndColumn() +
+                               "Error: Unexpected assignment operator");
     return nullptr;
   }
 }
@@ -441,7 +458,8 @@ T Evaluator::evaluateBinaryExpression(BoundExpression *node) {
     return this->binaryExpressionEvaluator<std::any>(
         binaryExpression->getOperator(), left_any, right_any);
   } catch (const std::exception &e) {
-    this->root->logs.push_back(e.what());
+    this->root->logs.push_back(binaryExpression->getLineNumberAndColumn() +
+                               e.what());
     return nullptr;
   }
 }
@@ -491,6 +509,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         return input;
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -500,6 +519,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
       if (arguments_size == 0) {
 
         this->root->logs.push_back(
+            callExpression->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       } else if (arguments_size == 1) {
@@ -510,11 +530,14 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
         try {
           std::cout << Utils::convertAnyToString(value);
         } catch (const std::exception &e) {
-          this->root->logs.push_back(e.what());
+          this->root->logs.push_back(
+              callExpression->getArguments()[0]->getLineNumberAndColumn() +
+              e.what());
         }
         return nullptr;
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -533,11 +556,14 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
           return std::to_string(std::any_cast<bool>(value));
         } else {
           this->root->logs.push_back(
-              "Error: Unexpected function call argument: required string");
+              callExpression->getArguments()[0]->getLineNumberAndColumn() +
+              "Error: Unexpected function call "
+              "argument: required string");
           return nullptr;
         }
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -555,11 +581,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
           return int(std::any_cast<bool>(value));
         } else {
           this->root->logs.push_back(
+              callExpression->getArguments()[0]->getLineNumberAndColumn() +
               "Error: Unexpected function call argument: required int");
           return nullptr;
         }
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -577,11 +605,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
           return double(std::any_cast<bool>(value));
         } else {
           this->root->logs.push_back(
+              callExpression->getArguments()[0]->getLineNumberAndColumn() +
               "Error: Unexpected function call argument: required double");
           return nullptr;
         }
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -601,11 +631,13 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
           return std::any_cast<bool>(value);
         } else {
           this->root->logs.push_back(
+              callExpression->getArguments()[0]->getLineNumberAndColumn() +
               "Error: Unexpected function call argument: required bool");
           return nullptr;
         }
       } else {
         this->root->logs.push_back(
+            callExpression->getArguments()[0]->getLineNumberAndColumn() +
             "Error: Unexpected function cal: arguments does  not match");
         return nullptr;
       }
@@ -617,7 +649,9 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
       if (functionDefination->functionSymbol.parameters.size() !=
           arguments_size) {
-        this->root->logs.push_back("Error: Function arguments does not match");
+        this->root->logs.push_back(
+            callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+            "Error: Function arguments does not match");
         return nullptr;
       }
 
@@ -646,13 +680,16 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
       return this->last_value;
     } else {
-      this->root->logs.push_back("Error: Function not found");
+      this->root->logs.push_back(
+          callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+          "Error: Function not found");
       return nullptr;
     }
   }
 
   default: {
-    this->root->logs.push_back("Error: Unexpected node");
+    this->root->logs.push_back(node->getLineNumberAndColumn() +
+                               "Error: Unexpected node");
     return nullptr;
   }
   }
