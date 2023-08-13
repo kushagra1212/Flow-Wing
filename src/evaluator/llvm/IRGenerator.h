@@ -5,7 +5,8 @@
 
 class IRGenerator {
 
-  std::unique_ptr<llvm::Module> _getModule();
+  std::unique_ptr<llvm::Module>
+  _getModule(const std::vector<std::string> &irFilePaths);
 
 public:
   IRGenerator(IRGenerator *previousEvaluator,
@@ -20,24 +21,29 @@ public:
 
   void define_StringLength();
 
-  llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
-  llvm::Value *generateEvaluateLiteralExpressionFunction(BoundExpression *node);
-  llvm::Value *generateEvaluateUnaryExpressionFunction(BoundExpression *node);
+  llvm::Function *generateEvaluateExpressionStatement(BoundExpression *node);
+  llvm::Function *
+  generateEvaluateLiteralExpressionFunction(BoundExpression *node);
+  llvm::Function *
+  generateEvaluateUnaryExpressionFunction(BoundExpression *node);
 
-  llvm::Value *
+  llvm::Function *
   generateEvaluateVariableExpressionFunction(BoundExpression *node);
-  llvm::Value *
+  llvm::Function *
   generateEvaluateAssignmentExpressionFunction(BoundExpression *node);
-  llvm::Value *
+  llvm::Function *
   generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
-  llvm::Value *generateEvaluateBlockStatement(BoundBlockStatement *node);
-  llvm::Value *generateEvaluateStatement(BoundStatement *node);
+  llvm::Function *generateEvaluateBlockStatement(BoundBlockStatement *node);
+  llvm::Function *generateEvaluateStatement(BoundStatement *node);
 
   void executeGeneratedCode();
   CompilationUnitSyntax *compilation_unit;
   BoundScopeGlobal *getRoot();
   IRGenerator *previous = nullptr;
   BoundScopeGlobal *root = nullptr;
+
+  llvm::Function *getFunction(llvm::Type *Result, std::string name,
+                              bool isVarArg);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;

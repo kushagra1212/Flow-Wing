@@ -35,8 +35,8 @@
 #include <llvm-14/llvm/Support/SourceMgr.h>
 #include <llvm-14/llvm/Support/TargetSelect.h>
 
+#include "llvm-14/llvm//IR/Value.h"
 #include "llvm-14/llvm/IR/Constants.h"
-#include "llvm/IR/Value.h"
 
 // Elang Files Import
 
@@ -71,13 +71,39 @@ std::string getString(BoundExpression *node);
 
 std::string valueToString(llvm::Value *val);
 
-llvm::Value *convertToI8Pointer(llvm::Value *val, llvm::IRBuilder<> *Builder);
-
-bool isStringType(llvm::Type *type);
+llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder);
 
 llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs,
                                 llvm::Module *TheModule,
                                 llvm::IRBuilder<> *Builder);
+
+llvm::Type *getTypeFromAny(std::any value, llvm::LLVMContext *TheContext);
+
+bool isStringType(llvm::Type *type);
+
+bool isIntType(llvm::Type *type);
+
+bool isBoolType(llvm::Type *type);
+
+bool isDoubleType(llvm::Type *type);
+
+llvm::Value *convertToDouble(llvm::Value *val, llvm::IRBuilder<> *Builder);
+
+llvm::Value *convertToInt(llvm::Value *val, llvm::IRBuilder<> *Builder);
+
+llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder);
+
+llvm::Value *getResultFromBinaryOperationOnDouble(
+    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+
+llvm::Value *getResultFromBinaryOperationOnInt(
+    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+
+llvm::Value *getResultFromBinaryOperationOnBool(
+    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
 
 } // namespace IRUtils
 

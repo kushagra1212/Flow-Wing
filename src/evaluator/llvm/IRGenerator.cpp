@@ -7,7 +7,9 @@ IRGenerator::IRGenerator(IRGenerator *previous,
 
   this->previous = previous;
   TheContext = std::make_unique<llvm::LLVMContext>();
-  TheModule = std::move(this->_getModule());
+  std::vector<std::string> irFilePaths = {
+      "../../../src/evaluator/IRFiles/functions.ll"};
+  TheModule = std::move(this->_getModule(irFilePaths));
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -29,36 +31,32 @@ BoundScopeGlobal *IRGenerator::getRoot() {
   return root;
 }
 
-llvm::Value *
+llvm::Function *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+
   llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
                                            TheContext.get(), Builder.get());
-
   if (val == nullptr) {
     return nullptr;
   }
-
   llvm::FunctionType *FT = llvm::FunctionType::get(val->getType(), false);
-
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              "evaluateLiteralExpression", *TheModule);
-
   llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
 
   Builder->SetInsertPoint(BB);
 
   llvm::Value *V = Builder->CreateRet(val);
-
   llvm::verifyFunction(*F);
   // Print LLVM IR to console
 
-  return val;
+  return F;
 }
 
-llvm::Value *
+llvm::Function *
 IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
   BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
   llvm::Value *val =
@@ -142,7 +140,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
 
   llvm::verifyFunction(*F);
 
-  return result;
+  return F;
 }
 
 void IRGenerator::printIR() {
@@ -178,54 +176,55 @@ void IRGenerator::define_StringLength() {
   Builder->CreateRet(finalLength);
 }
 
-std::unique_ptr<llvm::Module> IRGenerator::_getModule() {
-  std::string irCode = R"(
-    declare i8* @malloc(i64)
+std::unique_ptr<llvm::Module>
+IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
+  llvm::SMDiagnostic err;
+  llvm::SourceMgr sourceMgr;
 
-    define i8* @concat_strings(i8* %str1, i8* %str2) {
-        ; Get the lengths of the input strings
-        %len1 = call i64 @strlen(i8* %str1)
-        %len2 = call i64 @strlen(i8* %str2)
-        
-        ; Allocate memory for the concatenated string
-        %totalLen = add i64 %len1, %len2
-        %concatStr = call i8* @malloc(i64 %totalLen)
-        
-        ; Copy characters from the first string to the concatenated string
-        %ptr1 = bitcast i8* %concatStr to i8*
-        call void @memcpy(i8* %ptr1, i8* %str1, i64 %len1, i1 false)
-        
-        ; Copy characters from the second string to the concatenated string
-        %ptr2 = getelementptr i8, i8* %ptr1, i64 %len1
-        call void @memcpy(i8* %ptr2, i8* %str2, i64 %len2, i1 false)
-        
-        ret i8* %concatStr
+  std::unique_ptr<llvm::Module> module = nullptr;
+
+  for (const std::string &filePath : irFilePaths) {
+    llvm::Expected<std::unique_ptr<llvm::Module>> parsedModule =
+        llvm::parseIRFile(filePath, err, *TheContext);
+
+    if (!parsedModule->get()) {
+      llvm::errs() << "Error parsing IR file " << filePath << ": "
+                   << llvm::toString(parsedModule.takeError()) << "\n";
+      continue; // Skip this file and continue with the next one
+    }
+    std::unique_ptr<llvm::Module> parsedModulePtr =
+        std::move(parsedModule.get());
+
+    module = std::move(parsedModulePtr);
+    return std::move(module);
+
+    // Append functions from the parsed module to the current module
+    llvm::Module::FunctionListType &funcList =
+        parsedModulePtr->getFunctionList();
+
+    while (!funcList.empty()) {
+      llvm::Function &func = funcList.front();
+      funcList.pop_front();
+
+      module->getFunctionList().push_back(&func);
     }
 
-    declare i64 @strlen(i8*)
-    declare void @memcpy(i8*, i8*, i64, i1)
-)";
+    // Append global variables from the parsed module to the current module
+    llvm::Module::GlobalListType &globalList = parsedModulePtr->getGlobalList();
 
-  llvm::SMDiagnostic err;
-  std::unique_ptr<llvm::MemoryBuffer> buffer =
-      llvm::MemoryBuffer::getMemBuffer(irCode);
-  llvm::Expected<std::unique_ptr<llvm::Module>> parsedModule =
-      llvm::parseIR(*buffer, err, *TheContext);
+    while (!globalList.empty()) {
+      llvm::GlobalVariable &global = globalList.front();
+      globalList.pop_front();
 
-  if (!parsedModule) {
-    llvm::errs() << "Error parsing IR: "
-                 << llvm::toString(parsedModule.takeError()) << "\n";
-    return nullptr;
+      module->getGlobalList().push_back(&global);
+    }
   }
 
-  std::unique_ptr<llvm::Module> module = std::move(*parsedModule);
-  module->setSourceFileName("ElangModule");
   return std::move(module);
 }
 
 void IRGenerator::defineStandardFunctions() { this->define_StringLength(); }
-
-llvm::Value *
+llvm::Function *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
@@ -253,10 +252,9 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
 
   llvm::verifyFunction(*variableFunction);
 
-  return variableValue;
+  return variableFunction;
 }
-
-llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
+llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     BoundExpression *node) {
 
   BoundAssignmentExpression *assignmentExpression =
@@ -295,130 +293,95 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   llvm::verifyFunction(*assignmentFunction);
 
-  return rhsValue;
+  return assignmentFunction;
 }
 
-llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
+llvm::Function *IRGenerator::getFunction(llvm::Type *Result, std::string name,
+                                         bool isVarArg = false) {
+  llvm::FunctionType *functionType = llvm::FunctionType::get(Result, isVarArg);
+
+  llvm::Function *function = llvm::Function::Create(
+      functionType, llvm::Function::ExternalLinkage, name, *TheModule);
+
+  llvm::BasicBlock *entryBB =
+      llvm::BasicBlock::Create(*TheContext, "entry", function);
+  Builder->SetInsertPoint(entryBB);
+
+  return function;
+}
+
+llvm::Function *IRGenerator::generateEvaluateBinaryExpressionFunction(
     BoundBinaryExpression *node) {
   BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
 
-  llvm::Value *lhsValue = generateEvaluateExpressionStatement(node->getLeft());
-  llvm::Value *rhsValue = generateEvaluateExpressionStatement(node->getRight());
+  llvm::Function *lhsFun = generateEvaluateExpressionStatement(node->getLeft());
+  llvm::Function *rhsFun =
+      generateEvaluateExpressionStatement(node->getRight());
 
-  if (!lhsValue || !rhsValue) {
-    // Handle error in generating IR for operands
+  if (!lhsFun || !rhsFun) {
+    llvm::errs() << "Error in generating IR for operands\n";
     return nullptr;
   }
 
-  llvm::FunctionType *binaryFunctionType =
-      llvm::FunctionType::get(lhsValue->getType(), false);
+  llvm::Type *lhsType = lhsFun->getReturnType();
+  llvm::Type *rhsType = rhsFun->getReturnType();
+  llvm::Function *binaryFunction = nullptr;
+  const std::string &functionName = "evaluateBinaryExpression";
+  llvm::Value *lhsValue = nullptr;
+  llvm::Value *rhsValue = nullptr;
 
-  llvm::Function *binaryFunction = llvm::Function::Create(
-      binaryFunctionType, llvm::Function::ExternalLinkage,
-      "evaluateBinaryExpression", *TheModule);
+  auto assignValues = [&](llvm::Type *_type) {
+    binaryFunction = getFunction(_type, functionName);
+    lhsValue = Builder->CreateCall(lhsFun);
+    rhsValue = Builder->CreateCall(rhsFun);
 
-  llvm::BasicBlock *entryBB =
-      llvm::BasicBlock::Create(*TheContext, "entry", binaryFunction);
-  Builder->SetInsertPoint(entryBB);
-  llvm::Value *result = nullptr;
-
-  if (IRUtils::isStringType(lhsValue->getType()) ||
-      IRUtils::isStringType(rhsValue->getType())) {
-    if (IRUtils::isStringType(lhsValue->getType()) &&
-        IRUtils::isStringType(rhsValue->getType()))
-      result = IRUtils::concatenateStrings(lhsValue, rhsValue, TheModule.get(),
-                                           Builder.get());
-    else if (IRUtils::isStringType(lhsValue->getType())) {
-
-      // convert rhsValue is of llvm::Value type convert it to llvm::Value
-      // string
-
-      result = IRUtils::concatenateStrings(
-          lhsValue, IRUtils::convertToI8Pointer(rhsValue, Builder.get()),
-          TheModule.get(), Builder.get());
-    } else {
-      result = IRUtils::concatenateStrings(
-          IRUtils::convertToI8Pointer(lhsValue, Builder.get()), rhsValue,
-          TheModule.get(), Builder.get());
+    if (!lhsValue || !rhsValue) {
+      llvm::errs() << "Error in generating IR for operands\n";
+      return false;
     }
+    return true;
+  };
+  llvm::Value *result = nullptr;
+  if (IRUtils::isStringType(lhsType) || IRUtils::isStringType(rhsType)) {
 
-  } else {
-    switch (node->getOperator()) {
-    case BinderKindUtils::BoundBinaryOperatorKind::Addition:
-      result = Builder->CreateAdd(lhsValue, rhsValue);
-      break;
-    case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
-      result = Builder->CreateSub(lhsValue, rhsValue);
-      break;
-    case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
-      result = Builder->CreateMul(lhsValue, rhsValue);
-      break;
-    case BinderKindUtils::BoundBinaryOperatorKind::Division:
-      result = Builder->CreateSDiv(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-      result = Builder->CreateSRem(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
-      result = Builder->CreateAnd(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
-      result = Builder->CreateOr(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-      result = Builder->CreateXor(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-      result = Builder->CreateAnd(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-      result = Builder->CreateOr(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-      result = Builder->CreateICmpEQ(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-      result = Builder->CreateICmpNE(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::Less:
-      result = Builder->CreateICmpSLT(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
-
-      result = Builder->CreateICmpSLE(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-      result = Builder->CreateICmpSGT(lhsValue, rhsValue);
-      break;
-
-    case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-      result = Builder->CreateICmpSGE(lhsValue, rhsValue);
-      break;
-
-    // Add more cases for other binary operators
-    default:
-      // Handle unsupported binary operator
+    if (!assignValues(llvm::Type::getInt8PtrTy(*TheContext))) {
       return nullptr;
     }
+    result = IRUtils::concatenateStrings(
+        IRUtils::convertToString(lhsValue, Builder.get()),
+        IRUtils::convertToString(rhsValue, Builder.get()), TheModule.get(),
+        Builder.get());
+  } else if (IRUtils::isDoubleType(lhsType) || IRUtils::isDoubleType(rhsType)) {
+
+    if (!assignValues(llvm::Type::getDoubleTy(*TheContext))) {
+      return nullptr;
+    }
+
+    result = IRUtils::getResultFromBinaryOperationOnDouble(
+        IRUtils::convertToDouble(lhsValue, Builder.get()),
+        IRUtils::convertToDouble(rhsValue, Builder.get()), Builder.get(),
+        TheModule.get(), binaryExpression);
+  } else if (IRUtils::isBoolType(lhsType) && IRUtils::isBoolType(rhsType)) {
+
+    if (!assignValues(llvm::Type::getInt1Ty(*TheContext))) {
+      return nullptr;
+    }
+    result = IRUtils::getResultFromBinaryOperationOnBool(
+        lhsValue, rhsValue, Builder.get(), TheModule.get(), binaryExpression);
+  } else {
+    if (!assignValues(llvm::Type::getInt32Ty(*TheContext))) {
+      return nullptr;
+    }
+    result = IRUtils::getResultFromBinaryOperationOnInt(
+        IRUtils::convertToInt(lhsValue, Builder.get()),
+        IRUtils::convertToInt(rhsValue, Builder.get()), Builder.get(),
+        TheModule.get(), binaryExpression);
   }
   llvm::Value *returnValue = Builder->CreateRet(result);
-
   llvm::verifyFunction(*binaryFunction);
-
-  return result;
+  return binaryFunction;
 }
-llvm::Value *
+llvm::Function *
 IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -458,21 +421,39 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
   }
 }
 
-llvm::Value *
+llvm::Function *
 IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
 
-  llvm::Value *result = nullptr;
   std::map<std::string, llvm::Value *> originalNamedValues = NamedValues;
+  std::vector<llvm::Function *> functions;
+  llvm::Value *result = nullptr;
 
   for (int i = 0; i < node->getStatements().size(); i++) {
-    result = this->generateEvaluateStatement(node->getStatements()[i]);
+    functions.push_back(
+        this->generateEvaluateStatement(node->getStatements()[i]));
   }
-  NamedValues = originalNamedValues;
 
-  return result;
+  llvm::FunctionType *FT = llvm::FunctionType::get(
+      functions[functions.size() - 1]->getReturnType(), false);
+
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                             "evaluateBlockStatement", *TheModule);
+
+  llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
+
+  Builder->SetInsertPoint(BB);
+  for (int i = 0; i < functions.size(); i++) {
+    result = Builder->CreateCall(functions[i]);
+  }
+  llvm::Value *returnValue = Builder->CreateRet(result);
+
+  NamedValues = originalNamedValues;
+  llvm::verifyFunction(*F);
+  return F;
 }
 
-llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
+llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
@@ -560,8 +541,8 @@ void IRGenerator::executeGeneratedCode() {
   //   llvm::Function *function = TheModule->getFunction(funcName);
 
   //   if (function) {
-  //     std::cout << "Function " << funcName << " is defined in the module.\n";
-  //     std::cout << "Function IR:\n";
+  //     std::cout << "Function " << funcName << " is defined in the
+  //     module.\n"; std::cout << "Function IR:\n";
   //     function->print(llvm::errs());
   //   } else {
   //     std::cout << "Function " << funcName
@@ -569,7 +550,7 @@ void IRGenerator::executeGeneratedCode() {
   //   }
   // }
   llvm::Function *evaluateBlockStatement =
-      TheModule->getFunction("evaluateBinaryExpression");
+      TheModule->getFunction("evaluateBlockStatement");
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
@@ -603,9 +584,19 @@ void IRGenerator::executeGeneratedCode() {
   // Print the result based on its data type
 
   if (returnType->isIntegerTy()) {
-    llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+    if (returnType->getIntegerBitWidth() == 1) {
+      llvm::outs() << "Boolean Value: "
+                   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
+    } else {
+      llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+    }
+
   } else if (returnType->isFloatingPointTy()) {
-    llvm::outs() << "Floating-Point Value: " << resultValue.FloatVal << "\n";
+    if (returnType->isFloatTy()) {
+      llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
+    } else {
+      llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
+    }
   } else if (returnType->isPointerTy()) {
     if (resultValue.PointerVal) {
       const char *stringValue =
