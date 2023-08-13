@@ -29,42 +29,12 @@ BoundScopeGlobal *IRGenerator::getRoot() {
   return root;
 }
 
-llvm::Value *IRGenerator::getLLVMValue(std::any value) {
-  if (value.type() == typeid(int)) {
-    return llvm::ConstantInt::get(
-        *TheContext, llvm::APInt(32, std::any_cast<int>(value), true));
-  } else if (value.type() == typeid(double)) {
-    return llvm::ConstantFP::get(*TheContext,
-                                 llvm::APFloat(std::any_cast<double>(value)));
-  } else if (value.type() == typeid(bool)) {
-    return llvm::ConstantInt::get(
-        *TheContext, llvm::APInt(1, std::any_cast<bool>(value), true));
-  } else if (value.type() == typeid(std::string)) {
-
-    const std::string &strValue = std::any_cast<std::string>(value);
-
-    // Create a global constant data array for the string
-    llvm::Constant *strConstant =
-        llvm::ConstantDataArray::getString(*TheContext, strValue);
-
-    // Create a global variable to hold the string constant
-    llvm::GlobalVariable *strGlobal = new llvm::GlobalVariable(
-        *TheModule, strConstant->getType(), true,
-        llvm::GlobalValue::PrivateLinkage, strConstant, "string_constant");
-
-    // Get a pointer to the string global variable
-    return Builder->CreateBitCast(strGlobal,
-                                  llvm::Type::getInt8PtrTy(*TheContext));
-
-  } else {
-    return nullptr;
-  }
-}
 llvm::Value *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
-  llvm::Value *val = this->getLLVMValue(value);
+  llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
+                                           TheContext.get(), Builder.get());
 
   if (val == nullptr) {
     return nullptr;
@@ -250,37 +220,17 @@ std::unique_ptr<llvm::Module> IRGenerator::_getModule() {
 
   std::unique_ptr<llvm::Module> module = std::move(*parsedModule);
   module->setSourceFileName("ElangModule");
-  return module;
-}
-
-size_t IRGenerator::calculateStringLength(llvm::Value *strPtr) {
-  llvm::Function *stringLengthFunc = TheModule->getFunction("stringLength");
-
-  if (!stringLengthFunc) {
-    // Function not found, handle error
-    return 0;
-  }
-
-  llvm::Value *length = Builder->CreateCall(stringLengthFunc, strPtr);
-  return std::any_cast<size_t>(length);
+  return std::move(module);
 }
 
 void IRGenerator::defineStandardFunctions() { this->define_StringLength(); }
-
-std::string IRGenerator::getString(BoundExpression *node) {
-  std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
-  if (value.type() == typeid(std::string)) {
-    return std::any_cast<std::string>(value);
-  }
-  return "";
-}
 
 llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
   std::string variableName =
-      this->getString(variableExpression->getIdentifierExpression());
+      IRUtils::getString(variableExpression->getIdentifierExpression());
 
   llvm::Value *variableValue = NamedValues[variableName];
   if (!variableValue) {
@@ -305,113 +255,6 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
 
   return variableValue;
 }
-std::string IRGenerator::valueToString(llvm::Value *val) {
-  if (!val)
-    return "nullptr";
-
-  llvm::ConstantInt *constInt = llvm::dyn_cast<llvm::ConstantInt>(val);
-  if (constInt) {
-
-    if (constInt->getType()->isIntegerTy(32)) {
-      return std::to_string(constInt->getSExtValue());
-    } else if (constInt->getType()->isIntegerTy(1)) {
-      return constInt->getSExtValue() ? "true" : "false";
-    } else {
-      return std::to_string(constInt->getZExtValue());
-    }
-  }
-
-  llvm::IRBuilder<> builder(val->getContext());
-  llvm::Type *i8PtrType = llvm::Type::getInt8PtrTy(builder.getContext());
-  llvm::Constant *constVal = llvm::dyn_cast<llvm::Constant>(val);
-
-  if (constVal) {
-    llvm::Module *module = builder.GetInsertBlock()->getParent()->getParent();
-    llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *module, i8PtrType, true, llvm::GlobalValue::PrivateLinkage, constExpr);
-
-    std::string str;
-    llvm::raw_string_ostream rso(str);
-    globalVar->printAsOperand(rso, true, module);
-    return rso.str();
-  }
-
-  if (val->getType()->isPointerTy() &&
-      val->getType()->getPointerElementType()->isIntegerTy(8)) {
-    llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    if (constExpr &&
-        constExpr->getOpcode() == llvm::Instruction::GetElementPtr) {
-      llvm::User::op_iterator it = constExpr->op_begin();
-      if (it != constExpr->op_end()) {
-        llvm::Value *basePtr = *it;
-        llvm::GlobalVariable *globalVar =
-            llvm::dyn_cast<llvm::GlobalVariable>(basePtr);
-        if (globalVar && globalVar->isConstant() &&
-            globalVar->hasInitializer()) {
-          llvm::ConstantDataArray *dataArray =
-              llvm::dyn_cast<llvm::ConstantDataArray>(
-                  globalVar->getInitializer());
-          if (dataArray && dataArray->isCString()) {
-            return dataArray->getAsCString().str();
-          }
-        }
-      }
-    }
-  }
-
-  std::string str;
-  llvm::raw_string_ostream rso(str);
-  val->print(rso);
-  return rso.str();
-}
-llvm::Value *IRGenerator::convertToI8Pointer(llvm::Value *val) {
-  llvm::Type *type = val->getType();
-
-  if (type->isPointerTy() && type->getPointerElementType()->isIntegerTy(8)) {
-    llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    if (constExpr &&
-        constExpr->getOpcode() == llvm::Instruction::GetElementPtr) {
-      llvm::User::op_iterator it = constExpr->op_begin();
-      if (it != constExpr->op_end()) {
-        llvm::Value *basePtr = *it;
-        llvm::GlobalVariable *globalVar =
-            llvm::dyn_cast<llvm::GlobalVariable>(basePtr);
-        if (globalVar && globalVar->isConstant() &&
-            globalVar->hasInitializer()) {
-          llvm::ConstantDataArray *dataArray =
-              llvm::dyn_cast<llvm::ConstantDataArray>(
-                  globalVar->getInitializer());
-          if (dataArray && dataArray->isCString()) {
-            llvm::Type *i8Type =
-                llvm::Type::getInt8PtrTy(Builder->getContext());
-            llvm::Value *result = Builder->CreateBitCast(basePtr, i8Type);
-            return result;
-          }
-        }
-      }
-    }
-  }
-
-  // Attempt to convert the value to string
-  std::string stringValue = this->valueToString(val);
-
-  // Create a global constant string and return its pointer
-  if (!stringValue.empty()) {
-    llvm::Constant *stringConstant =
-        llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *Builder->GetInsertBlock()->getParent()->getParent(),
-        stringConstant->getType(), true, llvm::GlobalValue::PrivateLinkage,
-        stringConstant);
-
-    llvm::Value *i8Ptr = Builder->CreateBitCast(
-        globalVar, llvm::Type::getInt8PtrTy(Builder->getContext()));
-    return i8Ptr;
-  }
-
-  return nullptr; // Return nullptr for other types or unrecognized cases
-}
 
 llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     BoundExpression *node) {
@@ -419,7 +262,8 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
   BoundAssignmentExpression *assignmentExpression =
       (BoundAssignmentExpression *)node;
 
-  std::string variableName = this->getString(assignmentExpression->getLeft());
+  std::string variableName =
+      IRUtils::getString(assignmentExpression->getLeft());
 
   llvm::Value *variableValue = NamedValues[variableName];
   if (!variableValue) {
@@ -453,28 +297,6 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   return rhsValue;
 }
-bool IRGenerator::isStringType(llvm::Type *type) {
-  return type->isPointerTy() && type->getPointerElementType()->isIntegerTy(8);
-}
-
-llvm::Value *IRGenerator::concatenateStrings(llvm::Value *lhs,
-                                             llvm::Value *rhs) {
-
-  llvm::Function *stringConcatenateFunc =
-      TheModule->getFunction("concat_strings");
-
-  if (!stringConcatenateFunc) {
-    // Function not found, handle error
-    return nullptr;
-
-  } else {
-
-    llvm::Value *args[] = {lhs, rhs};
-
-    llvm::Value *res = Builder->CreateCall(stringConcatenateFunc, args);
-    return res;
-  }
-}
 
 llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
     BoundBinaryExpression *node) {
@@ -500,17 +322,24 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   Builder->SetInsertPoint(entryBB);
   llvm::Value *result = nullptr;
 
-  if (isStringType(lhsValue->getType()) || isStringType(rhsValue->getType())) {
-    if (isStringType(lhsValue->getType()) && isStringType(rhsValue->getType()))
-      result = concatenateStrings(lhsValue, rhsValue);
-    else if (isStringType(lhsValue->getType())) {
+  if (IRUtils::isStringType(lhsValue->getType()) ||
+      IRUtils::isStringType(rhsValue->getType())) {
+    if (IRUtils::isStringType(lhsValue->getType()) &&
+        IRUtils::isStringType(rhsValue->getType()))
+      result = IRUtils::concatenateStrings(lhsValue, rhsValue, TheModule.get(),
+                                           Builder.get());
+    else if (IRUtils::isStringType(lhsValue->getType())) {
 
       // convert rhsValue is of llvm::Value type convert it to llvm::Value
       // string
 
-      result = concatenateStrings(lhsValue, convertToI8Pointer(rhsValue));
+      result = IRUtils::concatenateStrings(
+          lhsValue, IRUtils::convertToI8Pointer(rhsValue, Builder.get()),
+          TheModule.get(), Builder.get());
     } else {
-      result = concatenateStrings(convertToI8Pointer(lhsValue), rhsValue);
+      result = IRUtils::concatenateStrings(
+          IRUtils::convertToI8Pointer(lhsValue, Builder.get()), rhsValue,
+          TheModule.get(), Builder.get());
     }
 
   } else {
