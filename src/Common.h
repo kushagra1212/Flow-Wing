@@ -2,6 +2,8 @@
 #define COMMON_H
 #include <algorithm>
 #include <any>
+#include <cstdlib> // For malloc
+#include <cstring> // For strlen and memcpy
 #include <exception>
 #include <iostream>
 #include <iterator>

@@ -1,5 +1,4 @@
 #include "Evaluator.h"
-
 template class BoundLiteralExpression<std::any>;
 template class BoundLiteralExpression<int>;
 template class BoundLiteralExpression<double>;
@@ -79,7 +78,7 @@ void Evaluator::defineFunction(std::string name,
   current_scope[name] = functionDeclaration;
 }
 
-BoundFunctionDeclaration *Evaluator::getFunction(std::string name) {
+BoundFunctionDeclaration *Evaluator::_getFunction(std::string name) {
   std::stack<std::map<std::string, BoundFunctionDeclaration *>>
       function_stack_rest;
 
@@ -136,9 +135,8 @@ void Evaluator::assignVariable(std::string name, Utils::Variable variable) {
 }
 
 void Evaluator::evaluateExpressionStatement(BoundExpressionStatement *node) {
-  BoundExpressionStatement *expressionStatement =
-      (BoundExpressionStatement *)node;
-  last_value = this->evaluate<std::any>(expressionStatement->getExpression());
+
+  last_value = this->evaluate<std::any>(node->getExpression());
 }
 
 void Evaluator::evaluateBlockStatement(BoundBlockStatement *node) {
@@ -303,11 +301,20 @@ void Evaluator::evaluateForStatement(BoundForStatement *node) {
   this->variable_stack.pop();
 }
 
+void Evaluator::evaluator(BoundStatement *node) {
+
+  this->evaluateStatement(node);
+}
+
 void Evaluator::evaluateStatement(BoundStatement *node) {
+
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
 
+    // Print the generated IR
+
     this->evaluateExpressionStatement((BoundExpressionStatement *)node);
+
     break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
@@ -382,7 +389,6 @@ void Evaluator::evaluateStatement(BoundStatement *node) {
 template <typename T>
 T Evaluator::evaluateLiteralExpression(BoundExpression *node) {
   std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
-
   if (value.type() == typeid(int)) {
     return std::any_cast<int>(value);
   } else if (value.type() == typeid(bool)) {
@@ -403,6 +409,7 @@ T Evaluator::evaluateUnaryExpression(BoundExpression *node) {
   BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
   std::any operand_any =
       (this->evaluate<std::any>(unaryExpression->getOperand()));
+
   return Evaluator::unaryExpressionEvaluator<std::any>(
       unaryExpression->getOperator(), operand_any);
 }
@@ -450,6 +457,7 @@ T Evaluator::evaluateAssignmentExpression(BoundExpression *node) {
 
   std::any evaluatedRight =
       this->evaluate<std::any>(assignmentExpression->getRight());
+
   bool isConst = this->getVariable(variable_name).isConst;
   switch (assignmentExpression->getOperator()) {
   case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
@@ -487,9 +495,11 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
+
     return this->evaluateLiteralExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::UnaryExpression: {
+
     return this->evaluateUnaryExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::VariableExpression: {
@@ -663,7 +673,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
     }
 
     BoundFunctionDeclaration *functionDefination =
-        this->getFunction(function.name);
+        this->_getFunction(function.name);
     if (functionDefination != nullptr) {
 
       if (functionDefination->functionSymbol.parameters.size() !=
@@ -718,6 +728,7 @@ template <typename T> T Evaluator::evaluate(BoundExpression *node) {
 template <typename T>
 T Evaluator::unaryExpressionEvaluator(
     BinderKindUtils::BoundUnaryOperatorKind op, T operand) {
+
   if (operand.type() == typeid(int)) {
     return Evaluator::unaryExpressionEvaluatorHandler<int, std::any>(
         op, std::any_cast<int>(operand));

@@ -6,7 +6,9 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/tests",
                 "/usr/include/gtest/internal",
-                "/usr/include/gtest"
+                "/usr/include/gtest",
+                "/usr/include/llvm-14",
+                "/usr/include/llvm-c-14"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

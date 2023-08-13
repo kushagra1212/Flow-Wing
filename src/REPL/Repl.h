@@ -3,6 +3,7 @@
 #define REPL_H
 #include "../Common.h"
 #include "../evaluator/Evaluator.h"
+#include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 class Repl {
@@ -10,6 +11,7 @@ public:
   Repl();
   ~Repl();
 
+  IRGenerator *ir_generator;
   // Run the REPL with default input/output streams
   void run();
 
@@ -29,7 +31,7 @@ public:
   void toggleExit();
   // Data members
 private:
-  Evaluator *previousEvaluator;
+  IRGenerator *previousEvaluator = nullptr;
   bool showSyntaxTree, showBoundTree, exit;
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();

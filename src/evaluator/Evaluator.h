@@ -15,7 +15,9 @@
 #include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../utils/Utils.h"
+#include "llvm/IRGenerator.h"
 #include <any>
+
 #include <map>
 #include <string>
 
@@ -25,7 +27,9 @@ public:
   BoundScopeGlobal *root = nullptr;
   std::any last_value = nullptr;
   CompilationUnitSyntax *compilation_unit = nullptr;
+
   Evaluator *previous = nullptr;
+
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
   std::stack<int> return_count_stack;
@@ -57,14 +61,17 @@ public:
 
   void defineFunction(std::string name,
                       BoundFunctionDeclaration *functionDeclaration);
-  BoundFunctionDeclaration *getFunction(std::string name);
+  BoundFunctionDeclaration *_getFunction(std::string name);
 
   Utils::Variable getVariable(std::string name);
 
   void assignVariable(std::string name, Utils::Variable variable);
 
+private:
   void evaluateStatement(BoundStatement *node);
 
+public:
+  void evaluator(BoundStatement *node);
   void evaluateExpressionStatement(BoundExpressionStatement *node);
   void evaluateBlockStatement(BoundBlockStatement *node);
 

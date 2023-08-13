@@ -499,6 +499,10 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
 BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
                                           CompilationUnitSyntax *syntax) {
+  if (!syntax) {
+    std::cout << "null\n";
+    return nullptr;
+  }
 
   Binder *binder = new Binder(nullptr);
 

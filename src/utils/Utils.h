@@ -26,6 +26,7 @@ std::string convertAnyToString(const std::any value);
 std::string getTypeString(const std::any &value);
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
+const std::string NULLPTR = "-2al_NuLlPtR-2al";
 enum class SymbolKind {
   Variable,
   Function,

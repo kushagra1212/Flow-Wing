@@ -74,8 +74,9 @@ void Repl::runWithStream(std::istream &inputStream,
 
 void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
                               std::ostream &outputStream) {
-  Evaluator *currentEvaluator =
-      new Evaluator(previousEvaluator, compilationUnit);
+
+  IRGenerator *currentEvaluator =
+      new IRGenerator(previousEvaluator, compilationUnit);
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
 
@@ -84,30 +85,24 @@ void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
   }
 
   try {
-    currentEvaluator->evaluateStatement(globalScope->statement);
-    std::any result = currentEvaluator->last_value;
+
+    llvm::Value *generatedIR =
+        currentEvaluator->generateEvaluateStatement(globalScope->statement);
+    // std::any result = currentEvaluator->last_value;
+    currentEvaluator->printIR();
+    currentEvaluator->executeGeneratedCode();
 
     if (globalScope->logs.size()) {
       Utils::printErrors(globalScope->logs, outputStream);
     } else {
-      if (result.type() == typeid(int)) {
-        int intValue = std::any_cast<int>(result);
-        outputStream << intValue << "\n";
-      } else if (result.type() == typeid(bool)) {
-        bool boolValue = std::any_cast<bool>(result);
-        outputStream << (boolValue ? "true" : "false") << "\n";
-      } else if (result.type() == typeid(std::string)) {
-        std::string stringValue = std::any_cast<std::string>(result);
-        outputStream << stringValue << "\n";
-      } else if (result.type() == typeid(double)) {
-        double doubleValue = std::any_cast<double>(result);
-        outputStream << doubleValue << "\n";
-      } else if (result.type() == typeid(std::nullptr_t)) {
-        // outputStream << "null\n";
+      // std::string outputString = Utils::convertAnyToString(result);
+      // if (outputString != Utils::NULLPTR) {
+      //   outputStream << outputString << "\n";
+      // } else if (outputString == Utils::NULLPTR) {
 
-      } else {
-        throw std::runtime_error("Unexpected result type");
-      }
+      // } else {
+      //   throw std::runtime_error("Unexpected result type");
+      // }
       previousEvaluator = currentEvaluator;
     }
 

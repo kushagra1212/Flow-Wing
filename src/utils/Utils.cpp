@@ -87,7 +87,6 @@ std::string Utils::getLineNumberAndPosition(SyntaxToken<std::any> *token) {
   return "line " + std::to_string(token->getLineNumber() + 1) + ":" +
          std::to_string(token->getPosition() + 1) + " ";
 }
-
 std::string Utils::convertAnyToString(std::any value) {
   if (value.type() == typeid(std::string)) {
     return std::any_cast<std::string>(value);
@@ -98,9 +97,9 @@ std::string Utils::convertAnyToString(std::any value) {
   } else if (value.type() == typeid(float)) {
     return std::to_string(std::any_cast<float>(value));
   } else if (value.type() == typeid(bool)) {
-    return std::to_string(std::any_cast<bool>(value));
+    return std::any_cast<bool>(value) ? "true" : "false";
   } else if (value.type() == typeid(std::nullptr_t)) {
-    return "nullptr"; // Handle nullptr case explicitly
+    return Utils::NULLPTR; // Handle nullptr case explicitly
   } else {
     throw std::runtime_error("Unknown type");
   }
