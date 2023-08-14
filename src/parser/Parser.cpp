@@ -2,42 +2,38 @@
 Parser::Parser(const std::vector<std::string> &text) {
 
   Lexer *lexer = new Lexer(text);
-  SyntaxToken<std::any> *token;
+  std::unique_ptr<SyntaxToken<std::any>> token;
+  SyntaxKindUtils::SyntaxKind _kind =
+      SyntaxKindUtils::SyntaxKind::EndOfFileToken;
   do {
 
-    token = lexer->nextToken();
-    if (token->getKind() != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
-        token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
-      this->tokens.push_back(token);
-    }
-    if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
-      this->logs.push_back(Utils::getLineNumberAndPosition(token) +
+    token = std::move(lexer->nextToken());
+    _kind = token->getKind();
+
+    if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
+      this->logs.push_back(Utils::getLineNumberAndPosition(token.get()) +
                            "ERROR: unexpected character <" + token->getText() +
                            ">");
+    } else if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
+               _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
+      this->tokens.push_back(std::move(token));
     }
-  } while (token->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
+  } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 
   for (auto log : lexer->logs) {
     this->logs.push_back(log);
   }
 }
 
-Parser::~Parser() {
-  for (auto token : this->tokens) {
-    if (token != nullptr) {
-      delete token;
-      token = nullptr;
-    }
-  }
-}
+Parser::~Parser() {}
 
 SyntaxToken<std::any> *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
 
-    return this->tokens[this->tokens.size() - 1];
+    return this->tokens[this->tokens.size() - 1].get();
   }
-  return this->tokens[index];
+  return this->tokens[index].get();
 }
 
 SyntaxToken<std::any> *Parser::getCurrent() { return this->peek(0); }

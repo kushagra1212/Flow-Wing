@@ -27,7 +27,7 @@
 #include <typeindex>
 class Parser {
 private:
-  std::vector<SyntaxToken<std::any> *> tokens;
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
   int position;
 
 public:

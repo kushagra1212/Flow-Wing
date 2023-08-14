@@ -31,9 +31,9 @@ private:
   void updatePosition();
 
 public:
-  SyntaxToken<std::any> *nextToken();
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
 
 public:
-  SyntaxToken<std::any> *readString();
+  std::unique_ptr<SyntaxToken<std::any>> readString();
 };
 #endif // LEXER_H
