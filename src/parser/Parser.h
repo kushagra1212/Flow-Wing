@@ -27,7 +27,7 @@
 #include <typeindex>
 class Parser {
 private:
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
+  std::vector<std::shared_ptr<SyntaxToken<std::any>>> tokens;
   int position;
 
 public:
@@ -39,20 +39,21 @@ public:
   ~Parser();
 
 private:
-  SyntaxToken<std::any> *peek(int offset);
+  std::shared_ptr<SyntaxToken<std::any>> peek(int offset);
 
 private:
-  SyntaxToken<std::any> *getCurrent();
+  std::shared_ptr<SyntaxToken<std::any>> getCurrent();
 
 private:
-  SyntaxToken<std::any> *nextToken();
+  std::shared_ptr<SyntaxToken<std::any>> nextToken();
 
 private:
-  SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
+  std::shared_ptr<SyntaxToken<std::any>>
+  match(SyntaxKindUtils::SyntaxKind kind);
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
 
 public:
-  CompilationUnitSyntax *parseCompilationUnit();
+  std::shared_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
 private:
   StatementSyntax *parseStatement();

@@ -25,8 +25,9 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
-                          std::ostream &outputStream);
+  void
+  compileAndEvaluate(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
+                     std::ostream &outputStream);
 
   void toggleExit();
   // Data members

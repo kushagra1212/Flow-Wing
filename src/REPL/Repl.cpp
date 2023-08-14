@@ -20,6 +20,8 @@ void Repl::runWithStream(std::istream &inputStream,
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
+
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
     while (true) {
       std::getline(inputStream, line);
       if (handleSpecialCommands(line)) {
@@ -42,13 +44,17 @@ void Repl::runWithStream(std::istream &inputStream,
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
+
         break;
       }
-      CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+      compilationUnit = std::move(parser->parseCompilationUnit());
 
       if (parser->logs.size()) {
         emptyLines++;
-        outputStream << YELLOW << "... " << RESET;
+        if (emptyLines == 3) {
+          Utils::printErrors(parser->logs, outputStream);
+        } else
+          outputStream << YELLOW << "... " << RESET;
         continue;
       }
 
@@ -59,24 +65,21 @@ void Repl::runWithStream(std::istream &inputStream,
       continue;
     }
 
-    Parser *parser = new Parser(text);
-    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
-    if (parser->logs.size()) {
-      Utils::printErrors(parser->logs, outputStream);
-    } else if (!exit) {
+    if (!exit) {
       if (showSyntaxTree) {
-        Utils::prettyPrint(compilationUnit);
+        Utils::prettyPrint(compilationUnit.get());
       }
       compileAndEvaluate(compilationUnit, outputStream);
     }
   }
 }
 
-void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
-                              std::ostream &outputStream) {
+void Repl::compileAndEvaluate(
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit,
+    std::ostream &outputStream) {
 
   IRGenerator *currentEvaluator =
-      new IRGenerator(previousEvaluator, compilationUnit);
+      new IRGenerator(previousEvaluator, compilationUnit.get());
 
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
 
@@ -141,7 +144,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
       text = std::vector<std::string>();
       break;
     }
-    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit =
+        (parser->parseCompilationUnit());
 
     if (parser->logs.size()) {
       emptyLines++;
@@ -152,7 +156,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   Parser *parser = new Parser(text);
-  CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+  std::shared_ptr<CompilationUnitSyntax> compilationUnit =
+      (parser->parseCompilationUnit());
   if (parser->logs.size()) {
     Utils::printErrors(parser->logs, outputStream);
   } else if (!exit)
