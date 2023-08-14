@@ -21,7 +21,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
   if (this->lineNumber >= this->text.size()) {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber++, SyntaxKindUtils::SyntaxKind::EndOfFileToken,
-        this->position, "\0", 0);
+        this->position, "\0", "\0");
   }
 
   if (this->position >= this->text[lineNumber].length()) {
@@ -30,7 +30,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
     this->updatePosition();
     return std::make_unique<SyntaxToken<std::any>>(
         prevLineNumber, SyntaxKindUtils::SyntaxKind::EndOfLineToken,
-        prevPosition, "\r\n", 0);
+        prevPosition, "\r\n", "\r\n");
   }
 
   // check for int

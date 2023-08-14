@@ -10,7 +10,7 @@ class IRGenerator {
 
 public:
   IRGenerator(IRGenerator *previousEvaluator,
-              CompilationUnitSyntax *compilationUnit);
+              std::shared_ptr<CompilationUnitSyntax> compilationUnit);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -37,7 +37,7 @@ public:
   llvm::Function *generateEvaluateStatement(BoundStatement *node);
 
   void executeGeneratedCode();
-  CompilationUnitSyntax *compilation_unit;
+  std::shared_ptr<CompilationUnitSyntax> _compilationUnit;
   BoundScopeGlobal *getRoot();
   IRGenerator *previous = nullptr;
   BoundScopeGlobal *root = nullptr;

@@ -1,7 +1,7 @@
 #include "Parser.h"
 Parser::Parser(const std::vector<std::string> &text) {
 
-  Lexer *lexer = new Lexer(text);
+  std::unique_ptr<Lexer> lexer = std::make_unique<Lexer>(text);
   std::unique_ptr<SyntaxToken<std::any>> token;
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
@@ -19,7 +19,7 @@ Parser::Parser(const std::vector<std::string> &text) {
         _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
       this->tokens.push_back(std::move(token));
     } else {
-      delete token.release();
+      token.reset();
     }
 
   } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);

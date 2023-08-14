@@ -1,10 +1,12 @@
 #include "IRGenerator.h"
 
-IRGenerator::IRGenerator(IRGenerator *previous,
-                         CompilationUnitSyntax *_compilationUnit) {
+IRGenerator::IRGenerator(
+    IRGenerator *previous,
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  this->compilation_unit = _compilationUnit;
+  this->_compilationUnit = std::move(compilationUnit);
 
+  std::cout << _compilationUnit->getMembers().size();
   this->previous = previous;
   TheContext = std::make_unique<llvm::LLVMContext>();
   std::vector<std::string> irFilePaths = {
@@ -19,10 +21,10 @@ IRGenerator::IRGenerator(IRGenerator *previous,
 BoundScopeGlobal *IRGenerator::getRoot() {
   if (root == nullptr) {
     if (previous != nullptr) {
-      root = Binder::bindGlobalScope(previous->root, compilation_unit);
+      root = Binder::bindGlobalScope(previous->root, (_compilationUnit));
     } else {
 
-      root = Binder::bindGlobalScope(nullptr, compilation_unit);
+      root = Binder::bindGlobalScope(nullptr, (_compilationUnit));
     }
 
     // this->variable_stack.push(this->root->variables);

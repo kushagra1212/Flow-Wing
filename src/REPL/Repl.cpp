@@ -13,17 +13,16 @@ void Repl::run() {
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
-  std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   while (!exit) {
-
     outputStream << GREEN << ">>> " << RESET;
 
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
 
-    while (true) {
-      std::getline(inputStream, line);
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
+    while (std::getline(inputStream, line)) {
+
       if (handleSpecialCommands(line)) {
         break;
       }
@@ -39,12 +38,14 @@ void Repl::runWithStream(std::istream &inputStream,
       emptyLines = 0;
 
       text.push_back(line);
+      compilationUnit.reset();
       Parser *parser = new Parser(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
         delete parser;
+        compilationUnit.reset();
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
@@ -54,6 +55,7 @@ void Repl::runWithStream(std::istream &inputStream,
         if (emptyLines == 3) {
           Utils::printErrors(parser->logs, outputStream);
           delete parser;
+          compilationUnit.reset();
         } else
           outputStream << YELLOW << "... " << RESET;
 
@@ -64,12 +66,19 @@ void Repl::runWithStream(std::istream &inputStream,
     }
 
     if (text.size() == 0) {
+      compilationUnit.reset();
       continue;
+    }
+
+    if (compilationUnit->getMembers().size() == 0) {
+
+      Parser *parser = new Parser(text);
+      compilationUnit = std::move(parser->parseCompilationUnit());
     }
 
     if (!exit) {
 
-      compileAndEvaluate(compilationUnit, outputStream);
+      compileAndEvaluate(std::move(compilationUnit), outputStream);
     }
   }
 }
@@ -83,8 +92,7 @@ void Repl::compileAndEvaluate(
   }
 
   IRGenerator *currentEvaluator =
-      new IRGenerator(previousEvaluator, compilationUnit.get());
-
+      new IRGenerator(nullptr, std::move(compilationUnit));
   BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
 
   if (showBoundTree) {

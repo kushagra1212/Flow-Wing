@@ -497,8 +497,9 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
   }
 }
 
-BoundScopeGlobal *Binder::bindGlobalScope(BoundScopeGlobal *previous,
-                                          CompilationUnitSyntax *syntax) {
+BoundScopeGlobal *
+Binder::bindGlobalScope(BoundScopeGlobal *previous,
+                        std::shared_ptr<CompilationUnitSyntax> syntax) {
   if (!syntax) {
     std::cout << "null\n";
     return nullptr;

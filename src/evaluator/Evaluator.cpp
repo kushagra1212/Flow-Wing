@@ -35,9 +35,9 @@ Evaluator::~Evaluator() {
 BoundScopeGlobal *Evaluator::getRoot() {
   if (root == nullptr) {
     if (previous != nullptr)
-      root = Binder::bindGlobalScope(previous->root, compilation_unit);
+      root = Binder::bindGlobalScope(previous->root, nullptr);
     else
-      root = Binder::bindGlobalScope(nullptr, compilation_unit);
+      root = Binder::bindGlobalScope(nullptr, nullptr);
 
     this->variable_stack.push(this->root->variables);
     this->function_stack.push(this->root->functions);
