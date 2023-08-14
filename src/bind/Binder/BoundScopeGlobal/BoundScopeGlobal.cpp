@@ -3,24 +3,13 @@
 BoundScopeGlobal::BoundScopeGlobal(
     std::unique_ptr<BoundScopeGlobal> previous,
     std::map<std::string, struct Utils::Variable> variables,
-    std::map<std::string, BoundFunctionDeclaration *> functions,
-    std::vector<std::string> logs, std::unique_ptr<BoundStatement> statement)
+    std::map<std::string, std::shared_ptr<BoundFunctionDeclaration>> functions,
+    std::vector<std::string> logs, std::shared_ptr<BoundStatement> statement)
     : variables(variables), logs(logs), functions(functions) {
 
   this->statement = std::move(statement);
 
   this->previous = std::move(previous);
-}
-
-BoundScopeGlobal::~BoundScopeGlobal() {
-
-  for (auto &function : this->functions) {
-    if (function.second != nullptr) {
-      delete function.second;
-      function.second = nullptr;
-    }
-  }
-  this->functions.clear();
 }
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {

@@ -1,42 +1,45 @@
 
 #include "Binder.h"
 
-BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
+std::shared_ptr<BoundStatement>
+Binder::bindStatement(std::shared_ptr<StatementSyntax> syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::ExpressionStatement: {
-    ExpressionStatementSyntax *expressionStatement =
-        (ExpressionStatementSyntax *)syntax;
-    BoundExpression *expression =
-        bindExpression(expressionStatement->getExpression().get());
-    return new BoundExpressionStatement(
+    std::shared_ptr<ExpressionStatementSyntax> expressionStatement =
+        std::static_pointer_cast<ExpressionStatementSyntax>(syntax);
+    std::shared_ptr<BoundExpression> expression =
+        bindExpression(expressionStatement->getExpression());
+    return std::make_shared<BoundExpressionStatement>(
         expressionStatement->getExpression()->getLineNumberAndColumn(),
         expression);
   }
   case SyntaxKindUtils::SyntaxKind::BlockStatement: {
-    BlockStatementSyntax *blockStatement = (BlockStatementSyntax *)syntax;
+    std::shared_ptr<BlockStatementSyntax> blockStatement =
+        std::static_pointer_cast<BlockStatementSyntax>(syntax);
 
-    this->root = new BoundScope(this->root);
+    this->root = std::make_shared<BoundScope>(this->root);
 
-    std::vector<BoundStatement *> statements;
+    std::vector<std::shared_ptr<BoundStatement>> statements;
     for (int i = 0; i < blockStatement->getStatements().size(); i++) {
 
-      BoundStatement *statement =
-          bindStatement(blockStatement->getStatements()[i].get());
+      std::shared_ptr<BoundStatement> statement =
+          bindStatement(blockStatement->getStatements()[i]);
       statements.push_back(statement);
     }
 
-    BoundStatement *statement = new BoundBlockStatement(
-        blockStatement->getLineNumberAndColumn(), statements, false);
+    std::shared_ptr<BoundStatement> statement =
+        std::make_shared<BoundBlockStatement>(
+            blockStatement->getLineNumberAndColumn(), statements, false);
 
     this->root = this->root->parent;
 
     return statement;
   }
   case SyntaxKindUtils::SyntaxKind::VariableDeclaration: {
-    VariableDeclarationSyntax *variableDeclaration =
-        (VariableDeclarationSyntax *)syntax;
-    BoundExpression *initializer =
-        bindExpression(variableDeclaration->getInitializer().get());
+    std::shared_ptr<VariableDeclarationSyntax> variableDeclaration =
+        std::static_pointer_cast<VariableDeclarationSyntax>(syntax);
+    std::shared_ptr<BoundExpression> initializer =
+        bindExpression(variableDeclaration->getInitializer());
 
     std::string variable_str = std::any_cast<std::string>(
         variableDeclaration->getIdentifier()->getValue());
@@ -51,120 +54,128 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
                            " already exists");
     }
 
-    return new BoundVariableDeclaration(
+    return std::make_shared<BoundVariableDeclaration>(
         variableDeclaration->getLineNumberAndColumn(), variable_str, isConst,
         initializer);
   }
   case SyntaxKindUtils::SyntaxKind::IfStatement: {
-    IfStatementSyntax *ifStatement = (IfStatementSyntax *)syntax;
-    BoundExpression *condition =
-        bindExpression(ifStatement->getCondition().get());
-    BoundStatement *thenStatement =
-        bindStatement((StatementSyntax *)(ifStatement->getStatement().get()));
-    BoundStatement *elseStatement = nullptr;
+    std::shared_ptr<IfStatementSyntax> ifStatement =
+        std::static_pointer_cast<IfStatementSyntax>(syntax);
+    std::shared_ptr<BoundExpression> condition =
+        bindExpression(ifStatement->getCondition());
+    std::shared_ptr<BoundStatement> thenStatement = bindStatement(
+        (std::shared_ptr<StatementSyntax>)(ifStatement->getStatement()));
+    std::shared_ptr<BoundStatement> elseStatement = nullptr;
     if (ifStatement->getElseClause() != nullptr) {
       elseStatement =
-          bindStatement((StatementSyntax *)ifStatement->getElseClause()
-                            ->getStatement()
-                            .get());
+          bindStatement(ifStatement->getElseClause()->getStatement());
     }
-    return new BoundIfStatement(ifStatement->getLineNumberAndColumn(),
-                                condition, thenStatement, elseStatement);
+    return std::make_shared<BoundIfStatement>(
+        ifStatement->getLineNumberAndColumn(), condition, thenStatement,
+        elseStatement);
   }
   case SyntaxKindUtils::SyntaxKind::WhileStatement: {
-    this->root = new BoundScope(this->root);
+    this->root = std::make_shared<BoundScope>(this->root);
     this->root->makeBreakableAndContinuable();
 
-    WhileStatementSyntax *whileStatement = (WhileStatementSyntax *)syntax;
+    std::shared_ptr<WhileStatementSyntax> whileStatement =
+        std::static_pointer_cast<WhileStatementSyntax>(syntax);
 
-    BoundExpression *condition =
-        bindExpression(whileStatement->getCondition().get());
-    BoundStatement *body =
-        bindStatement((StatementSyntax *)whileStatement->getBody().get());
+    std::shared_ptr<BoundExpression> condition =
+        bindExpression(whileStatement->getCondition());
+    std::shared_ptr<BoundStatement> body = bindStatement(
+        (std::shared_ptr<StatementSyntax>)whileStatement->getBody());
 
     this->root = this->root->parent;
-    return new BoundWhileStatement(whileStatement->getLineNumberAndColumn(),
-                                   condition, body);
+    return std::make_shared<BoundWhileStatement>(
+        whileStatement->getLineNumberAndColumn(), condition, body);
   }
 
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
-    ForStatementSyntax *forStatement = (ForStatementSyntax *)syntax;
-    this->root = new BoundScope(this->root);
+    std::shared_ptr<ForStatementSyntax> forStatement =
+        std::static_pointer_cast<ForStatementSyntax>(syntax);
+    this->root = std::make_shared<BoundScope>(this->root);
     this->root->makeBreakableAndContinuable();
-    BoundStatement *intializer = (BoundStatement *)bindStatement(
-        (StatementSyntax *)forStatement->getInitialization().get());
+    std::shared_ptr<BoundStatement> intializer =
+        (std::shared_ptr<BoundStatement>)bindStatement(
+            (std::shared_ptr<StatementSyntax>)forStatement->getInitialization()
+                .get());
 
-    BoundExpression *upperBound =
-        (BoundLiteralExpression<std::any> *)bindExpression(
-            forStatement->getUpperBound().get());
+    std::shared_ptr<BoundExpression> upperBound =
+        bindExpression(forStatement->getUpperBound());
 
-    BoundStatement *body =
-        bindStatement((StatementSyntax *)forStatement->getStatement().get());
+    std::shared_ptr<BoundStatement> body = bindStatement(
+        (std::shared_ptr<StatementSyntax>)forStatement->getStatement());
 
     this->root = this->root->parent;
-    return new BoundForStatement(forStatement->getLineNumberAndColumn(),
-                                 intializer, upperBound, body);
+    return std::make_shared<BoundForStatement>(
+        forStatement->getLineNumberAndColumn(), intializer, upperBound, body);
   }
   case SyntaxKindUtils::SyntaxKind::BreakKeyword: {
-    BreakStatementSyntax *breakStatement = (BreakStatementSyntax *)syntax;
+    std::shared_ptr<BreakStatementSyntax> breakStatement =
+        std::static_pointer_cast<BreakStatementSyntax>(syntax);
     if (!this->root->isBreakable()) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
                                breakStatement->getBreakKeyword().get()) +
                            "Error: Break statement outside of loop");
     }
-    return new BoundBreakStatement(breakStatement->getLineNumberAndColumn());
+    return std::make_shared<BoundBreakStatement>(
+        breakStatement->getLineNumberAndColumn());
   }
   case SyntaxKindUtils::SyntaxKind::ContinueKeyword: {
-    ContinueStatementSyntax *continueStatement =
-        (ContinueStatementSyntax *)syntax;
+    std::shared_ptr<ContinueStatementSyntax> continueStatement =
+        std::static_pointer_cast<ContinueStatementSyntax>(syntax);
     if (!this->root->isContinuable()) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
                                continueStatement->getContinueKeyword().get()) +
                            "Error: Continue statement outside of loop");
     }
-    return new BoundContinueStatement(
+    return std::make_shared<BoundContinueStatement>(
         continueStatement->getLineNumberAndColumn());
   }
 
   case SyntaxKindUtils::SyntaxKind::ReturnStatement: {
 
-    ReturnStatementSyntax *returnStatement = (ReturnStatementSyntax *)syntax;
+    std::shared_ptr<ReturnStatementSyntax> returnStatement =
+        std::static_pointer_cast<ReturnStatementSyntax>(syntax);
 
-    BoundExpression *expression = nullptr;
+    std::shared_ptr<BoundExpression> expression = nullptr;
     if (!this->root->isInFunction()) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
                                returnStatement->getReturnKeyword().get()) +
                            "Error: Return statement outside of function");
     } else {
-      ExpressionSyntax *returnExpression =
-          returnStatement->getExpression().get();
+      std::shared_ptr<ExpressionSyntax> returnExpression =
+          returnStatement->getExpression();
 
       if (returnExpression) {
-        expression = bindExpression(returnStatement->getExpression().get());
+        expression = bindExpression(returnStatement->getExpression());
       }
     }
 
-    return new BoundReturnStatement(returnStatement->getLineNumberAndColumn(),
-                                    expression);
+    return std::make_shared<BoundReturnStatement>(
+        returnStatement->getLineNumberAndColumn(), expression);
   }
   default:
     throw "Unexpected syntax";
   }
 }
 
-BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
+std::shared_ptr<BoundExpression>
+Binder::bindExpression(std::shared_ptr<ExpressionSyntax> syntax) {
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
-    LiteralExpressionSyntax<std::any> *literalSyntax =
-        (LiteralExpressionSyntax<std::any> *)syntax;
+    std::shared_ptr<LiteralExpressionSyntax<std::any>> literalSyntax =
+        std::static_pointer_cast<LiteralExpressionSyntax<std::any>>(syntax);
     std::any value = literalSyntax->getValue();
-    return new BoundLiteralExpression<std::any>(
+    return std::make_shared<BoundLiteralExpression<std::any>>(
         literalSyntax->getLineNumberAndColumn(), value);
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
-    UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;
-    BoundExpression *operand =
-        bindExpression(unaryExpression->getOperand().get());
+    std::shared_ptr<UnaryExpressionSyntax> unaryExpression =
+        std::static_pointer_cast<UnaryExpressionSyntax>(syntax);
+    std::shared_ptr<BoundExpression> operand =
+        bindExpression(unaryExpression->getOperand());
     BinderKindUtils::BoundUnaryOperatorKind op;
 
     switch (unaryExpression->getOperatorToken()->getKind()) {
@@ -183,13 +194,16 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected unary operator";
     }
-    return new BoundUnaryExpression(unaryExpression->getLineNumberAndColumn(),
-                                    op, operand);
+    return std::make_shared<BoundUnaryExpression>(
+        unaryExpression->getLineNumberAndColumn(), op, operand);
   }
   case SyntaxKindUtils::SyntaxKind::BinaryExpression: {
-    BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)syntax;
-    BoundExpression *left = bindExpression(binaryExpression->getLeft().get());
-    BoundExpression *right = bindExpression(binaryExpression->getRight().get());
+    std::shared_ptr<BinaryExpressionSyntax> binaryExpression =
+        std::static_pointer_cast<BinaryExpressionSyntax>(syntax);
+    std::shared_ptr<BoundExpression> left =
+        bindExpression(binaryExpression->getLeft());
+    std::shared_ptr<BoundExpression> right =
+        bindExpression(binaryExpression->getRight());
     BinderKindUtils::BoundBinaryOperatorKind op;
 
     // if (left->getType() != typeid(int) || right->getType() != typeid(int)) {
@@ -252,18 +266,18 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected binary operator";
     }
-    return new BoundBinaryExpression(binaryExpression->getLineNumberAndColumn(),
-                                     left, op, right);
+    return std::make_shared<BoundBinaryExpression>(
+        binaryExpression->getLineNumberAndColumn(), left, op, right);
   }
 
     // Assignment Expression
 
   case SyntaxKindUtils::SyntaxKind::AssignmentExpression: {
-    AssignmentExpressionSyntax *assignmentExpression =
-        (AssignmentExpressionSyntax *)syntax;
-    BoundLiteralExpression<std::any> *identifierExpression =
-        (BoundLiteralExpression<std::any> *)bindExpression(
-            assignmentExpression->getLeft().get());
+    std::shared_ptr<AssignmentExpressionSyntax> assignmentExpression =
+        std::static_pointer_cast<AssignmentExpressionSyntax>(syntax);
+    std::shared_ptr<BoundLiteralExpression<std::any>> identifierExpression =
+        std::static_pointer_cast<BoundLiteralExpression<std::any>>(
+            bindExpression(assignmentExpression->getLeft()));
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
@@ -289,20 +303,20 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected assignment operator";
     }
-    BoundExpression *right =
-        bindExpression(assignmentExpression->getRight().get());
-    return new BoundAssignmentExpression(
+    std::shared_ptr<BoundExpression> right =
+        bindExpression(assignmentExpression->getRight());
+    return std::make_shared<BoundAssignmentExpression>(
         assignmentExpression->getLineNumberAndColumn(), identifierExpression,
         op, right);
   }
 
   case SyntaxKindUtils::SyntaxKind::VariableExpression: {
-    VariableExpressionSyntax *variableExpressionSyntax =
-        (VariableExpressionSyntax *)syntax;
+    std::shared_ptr<VariableExpressionSyntax> variableExpressionSyntax =
+        std::static_pointer_cast<VariableExpressionSyntax>(syntax);
 
-    BoundLiteralExpression<std::any> *identifierExpression =
-        (BoundLiteralExpression<std::any> *)bindExpression(
-            variableExpressionSyntax->getIdentifier().get());
+    std::shared_ptr<BoundLiteralExpression<std::any>> identifierExpression =
+        std::static_pointer_cast<BoundLiteralExpression<std::any>>(
+            bindExpression(variableExpressionSyntax->getIdentifier()));
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     if (!root->tryLookupVariable(variable_str)) {
@@ -312,20 +326,21 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
           "Error: Variable " + variable_str + " does not exist");
       return identifierExpression;
     }
-    return new BoundVariableExpression(
+    return std::make_shared<BoundVariableExpression>(
         variableExpressionSyntax->getLineNumberAndColumn(),
         identifierExpression);
   }
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
-    ParenthesizedExpressionSyntax *parenthesizedExpression =
-        (ParenthesizedExpressionSyntax *)syntax;
-    return bindExpression(parenthesizedExpression->getExpression().get());
+    std::shared_ptr<ParenthesizedExpressionSyntax> parenthesizedExpression =
+        std::static_pointer_cast<ParenthesizedExpressionSyntax>(syntax);
+    return bindExpression(parenthesizedExpression->getExpression());
   }
   case SyntaxKindUtils::SyntaxKind::CallExpression: {
-    CallExpressionSyntax *callExpression = (CallExpressionSyntax *)syntax;
-    BoundLiteralExpression<std::any> *identifier =
-        (BoundLiteralExpression<std::any> *)bindExpression(
-            callExpression->getIdentifier().get());
+    std::shared_ptr<CallExpressionSyntax> callExpression =
+        std::static_pointer_cast<CallExpressionSyntax>(syntax);
+    std::shared_ptr<BoundLiteralExpression<std::any>> identifier =
+        std::static_pointer_cast<BoundLiteralExpression<std::any>>(
+            bindExpression(callExpression->getIdentifier()));
 
     Utils::FunctionSymbol functionSymbol =
         Utils::BuiltInFunctions::getFunctionSymbol(
@@ -371,15 +386,15 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     //   return identifier;
     // }
 
-    std::vector<BoundExpression *> arguments;
+    std::vector<std::shared_ptr<BoundExpression>> arguments;
     for (int i = 0; i < callExpression->getArguments().size(); i++) {
-      arguments.push_back(
-          bindExpression(callExpression->getArguments()[i].get()));
+      arguments.push_back(bindExpression(callExpression->getArguments()[i]));
     }
 
-    BoundCallExpression *boundCallExpression =
-        new BoundCallExpression(callExpression->getLineNumberAndColumn(),
-                                identifier, functionSymbol, arguments);
+    std::shared_ptr<BoundCallExpression> boundCallExpression =
+        std::make_shared<BoundCallExpression>(
+            callExpression->getLineNumberAndColumn(), identifier,
+            functionSymbol, arguments);
     this->_callExpressions.push_back(boundCallExpression);
     return boundCallExpression;
   }
@@ -387,20 +402,22 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     throw "Unexpected syntax";
   }
 }
-BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
-  // std::stack<BoundScopeGlobal *> stack = std::stack<BoundScopeGlobal *>();
+std::shared_ptr<BoundScope>
+Binder::CreateParentScope(std::shared_ptr<BoundScopeGlobal> parent) {
+  // std::stack<std::shared_ptr<BoundScopeGlobal>> stack =
+  // std::stack<std::shared_ptr<BoundScopeGlobal>>();
 
   // while (parent != nullptr) {
   //   stack.push(parent);
   //   parent = parent->previous;
   // }
 
-  // BoundScope *current = nullptr;
+  // std::shared_ptr<BoundScope >current = nullptr;
 
   // while (!stack.empty()) {
   //   parent = stack.top();
   //   stack.pop();
-  //   BoundScope *scope = new BoundScope(current);
+  //   std::shared_ptr<BoundScope >scope = new BoundScope(current);
 
   //   for (auto &pair : parent->variables) {
   //     scope->variables[pair.first] = pair.second;
@@ -413,11 +430,11 @@ BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
   return nullptr;
 }
 
-BoundStatement *
-Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
+std::shared_ptr<BoundStatement> Binder::bindFunctionDeclaration(
+    std::shared_ptr<FunctionDeclarationSyntax> syntax) {
   std::vector<Utils::FunctionParameterSymbol> parameters;
 
-  this->root = new BoundScope(this->root);
+  this->root = std::make_shared<BoundScope>(this->root);
 
   std::string function_name = syntax->getIdentifierToken()->getText();
 
@@ -439,10 +456,12 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   Utils::FunctionSymbol functionSymbol =
       Utils::FunctionSymbol(function_name, parameters, Utils::type::VOID);
   this->root->incrementFunctionCount();
-  BoundBlockStatement *body =
-      (BoundBlockStatement *)bindStatement(syntax->getBody().get());
-  BoundFunctionDeclaration *fd = new BoundFunctionDeclaration(
-      syntax->getLineNumberAndColumn(), functionSymbol, body);
+  std::shared_ptr<BoundBlockStatement> body =
+      std::static_pointer_cast<BoundBlockStatement>(
+          bindStatement(syntax->getBody()));
+  std::shared_ptr<BoundFunctionDeclaration> fd =
+      std::make_shared<BoundFunctionDeclaration>(
+          syntax->getLineNumberAndColumn(), functionSymbol, body);
 
   this->root->decrementFunctionCount();
 
@@ -455,15 +474,18 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   return fd;
 }
 
-BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
-  return bindStatement(syntax->getStatement().get());
+std::shared_ptr<BoundStatement>
+Binder::bindGlobalStatement(std::shared_ptr<GlobalStatementSyntax> syntax) {
+  return bindStatement(syntax->getStatement());
 }
 
-Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
+Binder::Binder(std::shared_ptr<BoundScope> parent) {
+  this->root = std::make_shared<BoundScope>(parent);
+}
 
-void Binder::verifyAllCallsAreValid(Binder *binder) {
+void Binder::verifyAllCallsAreValid(std::shared_ptr<Binder> binder) {
 
-  std::vector<BoundFunctionDeclaration *> functions =
+  std::vector<std::shared_ptr<BoundFunctionDeclaration>> functions =
       binder->root->getAllFunctions();
 
   std::unordered_map<std::string, Utils::FunctionSymbol> functionDefinitionMap;
@@ -506,31 +528,33 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
   }
 }
 
-BoundScopeGlobal *
+std::shared_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         std::shared_ptr<CompilationUnitSyntax> syntax) {
 
-  Binder *binder = new Binder(nullptr);
+  std::shared_ptr<Binder> binder = std::make_shared<Binder>(nullptr);
 
   if (previousGlobalScope) {
     binder->root->variables = previousGlobalScope->variables;
     binder->root->functions = previousGlobalScope->functions;
   }
 
-  std::vector<BoundStatement *> statements;
+  std::vector<std::shared_ptr<BoundStatement>> statements;
 
   for (int i = 0; i < syntax->getMembers().size(); i++) {
     if (syntax->getMembers()[i]->getKind() ==
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
-      FunctionDeclarationSyntax *functionDeclarationSyntax =
-          (FunctionDeclarationSyntax *)syntax->getMembers()[i].get();
+      std::shared_ptr<FunctionDeclarationSyntax> functionDeclarationSyntax =
+          std::static_pointer_cast<FunctionDeclarationSyntax>(
+              syntax->getMembers()[i]);
       statements.push_back(
           binder->bindFunctionDeclaration(functionDeclarationSyntax));
     } else if (syntax->getMembers()[i]->getKind() ==
                SyntaxKindUtils::SyntaxKind::GlobalStatement) {
-      GlobalStatementSyntax *globalStatementSyntax =
-          (GlobalStatementSyntax *)syntax->getMembers()[i].get();
-      BoundStatement *statement =
+      std::shared_ptr<GlobalStatementSyntax> globalStatementSyntax =
+          std::static_pointer_cast<GlobalStatementSyntax>(
+              syntax->getMembers()[i]);
+      std::shared_ptr<BoundStatement> statement =
           binder->bindGlobalStatement(globalStatementSyntax);
       statements.push_back(statement);
     } else {
@@ -540,8 +564,8 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
 
   verifyAllCallsAreValid(binder);
 
-  std::unique_ptr<BoundStatement> statement =
-      std::make_unique<BoundBlockStatement>("", statements, true);
+  std::shared_ptr<BoundStatement> statement =
+      std::make_shared<BoundBlockStatement>("", statements, true);
 
   std::vector<std::string> _logs;
 
@@ -556,16 +580,10 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   }
 
   std::map<std::string, Utils::Variable> variables = binder->root->variables;
-  std::map<std::string, BoundFunctionDeclaration *> functions =
+  std::map<std::string, std::shared_ptr<BoundFunctionDeclaration>> functions =
       binder->root->functions;
 
-  return new BoundScopeGlobal(std::move(previousGlobalScope), variables,
-                              functions, _logs, std::move(statement));
-}
-
-Binder::~Binder() {
-  if (this->root != nullptr) {
-    delete this->root;
-    this->root = nullptr;
-  }
+  return std::make_shared<BoundScopeGlobal>(std::move(previousGlobalScope),
+                                            variables, functions, _logs,
+                                            std::move(statement));
 }

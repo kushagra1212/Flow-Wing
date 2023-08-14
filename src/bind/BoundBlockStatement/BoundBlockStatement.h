@@ -4,26 +4,26 @@
 #include "../BoundStatement/BoundStatement.h"
 class BoundBlockStatement : public BoundStatement {
 private:
-  std::vector<BoundStatement *> statements;
-  bool global;
+  std::vector<std::shared_ptr<BoundStatement>> _statements;
+  bool _global;
 
 public:
   BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<BoundStatement *> statements, bool global);
+                      std::vector<std::shared_ptr<BoundStatement>> statements,
+                      bool global);
   BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<BoundStatement *> statements);
-  ~BoundBlockStatement();
+                      std::vector<std::shared_ptr<BoundStatement>> statements);
 
 public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
 public:
-  std::vector<BoundStatement *> getStatements();
+  std::vector<std::shared_ptr<BoundStatement>> getStatements();
 
   bool getGlobal() const;
 
   std::string getLineNumberAndColumn() const override;
 
 public:
-  std::vector<BoundNode *> getChildren() override;
+  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
 };

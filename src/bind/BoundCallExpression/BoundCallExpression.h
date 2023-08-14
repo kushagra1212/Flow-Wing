@@ -8,16 +8,20 @@
 #include "../BoundNode.h"
 
 class BoundCallExpression : public BoundExpression {
-public:
-  BoundCallExpression(const std::string &lineAndColumn,
-                      BoundLiteralExpression<std::any> *callerIdentifier,
-                      Utils::FunctionSymbol functionalSymbol,
-                      const std::vector<BoundExpression *> &arguments);
+private:
+  Utils::FunctionSymbol _functionalSymbol;
+  std::shared_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
+  std::vector<std::shared_ptr<BoundExpression>> _arguments;
 
-  ~BoundCallExpression();
+public:
+  BoundCallExpression(
+      const std::string &lineAndColumn,
+      std::shared_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
+      Utils::FunctionSymbol functionalSymbol,
+      const std::vector<std::shared_ptr<BoundExpression>> &arguments);
 
   const std::string &getName() const;
-  const std::vector<BoundExpression *> &getArguments() const;
+  const std::vector<std::shared_ptr<BoundExpression>> &getArguments() const;
 
   BinderKindUtils::BoundNodeKind getKind() override;
 
@@ -25,16 +29,11 @@ public:
 
   Utils::FunctionSymbol getFunctionSymbol() const;
 
-  BoundLiteralExpression<std::any> *getCallerIdentifier() const;
+  std::shared_ptr<BoundLiteralExpression<std::any>> getCallerIdentifier() const;
 
-  std::vector<BoundNode *> getChildren() override;
+  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
 
   std::string getLineNumberAndColumn() const override;
-
-private:
-  Utils::FunctionSymbol functionalSymbol;
-  BoundLiteralExpression<std::any> *_callerIdentifier;
-  std::vector<BoundExpression *> arguments;
 };
 
 #endif // __BOUND_CALL_EXPRESSION_H__

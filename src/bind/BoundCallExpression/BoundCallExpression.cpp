@@ -2,26 +2,26 @@
 
 BoundCallExpression::BoundCallExpression(
     const std::string &lineAndColumn,
-    BoundLiteralExpression<std::any> *callerIdentifier,
+    std::shared_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
     Utils::FunctionSymbol functionalSymbol,
-    const std::vector<BoundExpression *> &arguments) {
-  this->functionalSymbol = functionalSymbol;
-  this->arguments = arguments;
+    const std::vector<std::shared_ptr<BoundExpression>> &arguments) {
+  this->_functionalSymbol = functionalSymbol;
+  this->_arguments = arguments;
   this->_callerIdentifier = callerIdentifier;
   this->_lineAndColumn = lineAndColumn;
 }
 
 const std::string &BoundCallExpression::getName() const {
-  return functionalSymbol.name;
+  return _functionalSymbol.name;
 }
 
 Utils::FunctionSymbol BoundCallExpression::getFunctionSymbol() const {
-  return functionalSymbol;
+  return _functionalSymbol;
 }
 
-const std::vector<BoundExpression *> &
+const std::vector<std::shared_ptr<BoundExpression>> &
 BoundCallExpression::getArguments() const {
-  return arguments;
+  return _arguments;
 }
 
 BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
@@ -29,13 +29,13 @@ BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
 }
 
 const std::type_info &BoundCallExpression::getType() {
-  return functionalSymbol.getReturnType();
+  return _functionalSymbol.getReturnType();
 }
 
-std::vector<BoundNode *> BoundCallExpression::getChildren() {
-  std::vector<BoundNode *> children;
+std::vector<std::shared_ptr<BoundNode>> BoundCallExpression::getChildren() {
+  std::vector<std::shared_ptr<BoundNode>> children;
   children.push_back(_callerIdentifier);
-  for (auto &argument : arguments) {
+  for (auto &argument : _arguments) {
     children.push_back(argument);
   }
   return children;
@@ -45,17 +45,7 @@ std::string BoundCallExpression::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
 }
 
-BoundLiteralExpression<std::any> *
+std::shared_ptr<BoundLiteralExpression<std::any>>
 BoundCallExpression::getCallerIdentifier() const {
   return _callerIdentifier;
-}
-
-BoundCallExpression::~BoundCallExpression() {
-  for (auto &argument : arguments) {
-    if (argument != nullptr) {
-      delete argument;
-      argument = nullptr;
-    }
-  }
-  arguments.clear();
 }

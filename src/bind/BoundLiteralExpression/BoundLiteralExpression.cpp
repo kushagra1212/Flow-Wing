@@ -28,13 +28,11 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
 template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
 
 template <typename T>
-std::vector<BoundNode *> BoundLiteralExpression<T>::getChildren() {
-  return std::vector<BoundNode *>{};
+std::vector<std::shared_ptr<BoundNode>>
+BoundLiteralExpression<T>::getChildren() {
+  return std::vector<std::shared_ptr<BoundNode>>{};
 }
 template <typename T>
 std::string BoundLiteralExpression<T>::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
 }
-
-template <typename T>
-BoundLiteralExpression<T>::~BoundLiteralExpression() = default;

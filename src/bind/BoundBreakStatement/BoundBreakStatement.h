@@ -8,12 +8,10 @@ class BoundBreakStatement : public BoundStatement {
 public:
   BoundBreakStatement(const std::string &lineAndColumn);
 
-  ~BoundBreakStatement();
-
 public:
   BinderKindUtils::BoundNodeKind getKind() override;
 
-  std::vector<BoundNode *> getChildren() override;
+  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
 
   std::string getLineNumberAndColumn() const override;
 };

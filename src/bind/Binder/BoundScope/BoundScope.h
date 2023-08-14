@@ -5,16 +5,14 @@
 class BoundScope {
 public:
   std::map<std::string, struct Utils::Variable> variables;
-  std::map<std::string, BoundFunctionDeclaration *> functions;
+  std::map<std::string, std::shared_ptr<BoundFunctionDeclaration>> functions;
 
   bool breakable, continuable;
   int functionCounted;
 
-  BoundScope *parent;
+  std::shared_ptr<BoundScope> parent;
 
-  BoundScope(BoundScope *parent);
-
-  ~BoundScope();
+  BoundScope(std::shared_ptr<BoundScope> parent);
 
 public:
   void makeBreakableAndContinuable();
@@ -27,7 +25,7 @@ public:
   void incrementFunctionCount();
   void decrementFunctionCount();
 
-  std::vector<BoundFunctionDeclaration *> getAllFunctions();
+  std::vector<std::shared_ptr<BoundFunctionDeclaration>> getAllFunctions();
 
   bool tryDeclareVariable(std::string name,
                           const struct Utils::Variable &initialValue);
@@ -36,7 +34,8 @@ public:
 
   bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
 
-  bool tryDeclareFunction(std::string name, BoundFunctionDeclaration *function);
+  bool tryDeclareFunction(std::string name,
+                          std::shared_ptr<BoundFunctionDeclaration> function);
 
   bool tryLookupFunction(std::string name);
 };

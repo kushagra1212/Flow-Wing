@@ -60,7 +60,8 @@ void Utils::prettyPrint(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
   }
 }
 
-void Utils::prettyPrint(BoundNode *statement, std::string indent, bool isLast) {
+void Utils::prettyPrint(std::shared_ptr<BoundNode> statement,
+                        std::string indent, bool isLast) {
 
   if (!statement) {
     // std::cout << "null\n";

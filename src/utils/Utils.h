@@ -16,7 +16,7 @@ void prettyPrint(std::shared_ptr<SyntaxNode> node, std::string indent = "",
 void prettyPrint(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
                  std::string indent = "", bool isLast = true);
 
-void prettyPrint(BoundNode *statement, std::string indent = "",
+void prettyPrint(std::shared_ptr<BoundNode> statement, std::string indent = "",
                  bool isLast = true);
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);

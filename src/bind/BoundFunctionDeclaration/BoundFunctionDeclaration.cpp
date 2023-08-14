@@ -3,8 +3,9 @@
 BoundFunctionDeclaration::BoundFunctionDeclaration(
     const std::string &lineAndColumn,
 
-    Utils::FunctionSymbol functionSymbol, BoundBlockStatement *body)
-    : functionSymbol(functionSymbol), body(body) {
+    Utils::FunctionSymbol functionSymbol,
+    std::shared_ptr<BoundBlockStatement> body)
+    : _functionSymbol(functionSymbol), _body(body) {
   this->_lineAndColumn = lineAndColumn;
 }
 
@@ -12,23 +13,19 @@ BinderKindUtils::BoundNodeKind BoundFunctionDeclaration::getKind() {
   return BinderKindUtils::BoundNodeKind::FunctionDeclaration;
 }
 
-std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
-  return std::vector<BoundNode *>({body});
+std::vector<std::shared_ptr<BoundNode>>
+BoundFunctionDeclaration::getChildren() {
+  return std::vector<std::shared_ptr<BoundNode>>({_body});
 }
 
-BoundBlockStatement *BoundFunctionDeclaration::getBody() const { return body; }
+std::shared_ptr<BoundBlockStatement> BoundFunctionDeclaration::getBody() const {
+  return _body;
+}
 
 Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
-  return functionSymbol;
+  return _functionSymbol;
 }
 
 std::string BoundFunctionDeclaration::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
-}
-
-BoundFunctionDeclaration::~BoundFunctionDeclaration() {
-  if (body != nullptr) {
-    delete body;
-    body = nullptr;
-  }
 }

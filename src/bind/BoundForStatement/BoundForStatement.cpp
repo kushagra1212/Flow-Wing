@@ -1,23 +1,24 @@
 #include "BoundForStatement.h"
 
-BoundForStatement::BoundForStatement(const std::string &lineAndColumn,
-                                     BoundStatement *initialization,
+BoundForStatement::BoundForStatement(
+    const std::string &lineAndColumn,
+    std::shared_ptr<BoundStatement> initialization,
 
-                                     BoundExpression *upperBound,
-                                     BoundStatement *statement)
-    : initialization((initialization)), upperBound(upperBound),
-      statement((statement)) {
+    std::shared_ptr<BoundExpression> upperBound,
+    std::shared_ptr<BoundStatement> statement)
+    : _initialization((initialization)), _upperBound(upperBound),
+      _statement((statement)) {
   this->_lineAndColumn = lineAndColumn;
 }
 
-BoundStatement *BoundForStatement::getInitialization() const {
+std::shared_ptr<BoundStatement> BoundForStatement::getInitialization() const {
 
-  return this->initialization;
+  return this->_initialization;
 }
 
-BoundStatement *BoundForStatement::getStatement() const {
+std::shared_ptr<BoundStatement> BoundForStatement::getStatement() const {
 
-  return this->statement;
+  return this->_statement;
 }
 
 BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
@@ -25,36 +26,18 @@ BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
   return BinderKindUtils::BoundNodeKind::ForStatement;
 }
 
-BoundExpression *BoundForStatement::getUpperBound() const {
+std::shared_ptr<BoundExpression> BoundForStatement::getUpperBound() const {
 
-  return this->upperBound;
+  return this->_upperBound;
 }
 
 std::string BoundForStatement::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
 }
 
-std::vector<BoundNode *> BoundForStatement::getChildren() {
-  std::vector<BoundNode *> children;
-  children.push_back(initialization);
-  children.push_back(statement);
-  children.push_back(upperBound);
+std::vector<std::shared_ptr<BoundNode>> BoundForStatement::getChildren() {
+  std::vector<std::shared_ptr<BoundNode>> children = {_initialization,
+                                                      _statement, _upperBound};
+
   return children;
-}
-
-BoundForStatement::~BoundForStatement() {
-  if (initialization != nullptr) {
-    delete initialization;
-    initialization = nullptr;
-  }
-
-  if (statement != nullptr) {
-    delete statement;
-    statement = nullptr;
-  }
-
-  if (upperBound != nullptr) {
-    delete upperBound;
-    upperBound = nullptr;
-  }
 }

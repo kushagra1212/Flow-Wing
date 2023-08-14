@@ -1,6 +1,6 @@
 #include "BoundScope.h"
 
-BoundScope::BoundScope(BoundScope *parent)
+BoundScope::BoundScope(std::shared_ptr<BoundScope> parent)
     : parent(parent), breakable(false), continuable(false), functionCounted(0) {
 }
 
@@ -86,8 +86,8 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-bool BoundScope::tryDeclareFunction(std::string name,
-                                    BoundFunctionDeclaration *function) {
+bool BoundScope::tryDeclareFunction(
+    std::string name, std::shared_ptr<BoundFunctionDeclaration> function) {
   if (this->functions.find(name) != this->functions.end()) {
 
     return false;
@@ -111,8 +111,9 @@ bool BoundScope::tryLookupFunction(std::string name) {
   return this->parent->tryLookupFunction(name);
 }
 
-std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
-  std::vector<BoundFunctionDeclaration *> result;
+std::vector<std::shared_ptr<BoundFunctionDeclaration>>
+BoundScope::getAllFunctions() {
+  std::vector<std::shared_ptr<BoundFunctionDeclaration>> result;
   if (this->parent != nullptr) {
     result = this->parent->getAllFunctions();
   }
@@ -120,11 +121,4 @@ std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
     result.push_back(function.second);
   }
   return result;
-}
-
-BoundScope::~BoundScope() {
-  if (this->parent != nullptr) {
-    delete this->parent;
-    this->parent = nullptr;
-  }
 }

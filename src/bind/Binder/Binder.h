@@ -49,32 +49,36 @@
 class Binder {
 private:
 private:
-  BoundScope *root;
-  std::vector<BoundCallExpression *> _callExpressions;
+  std::shared_ptr<BoundScope> root;
+  std::vector<std::shared_ptr<BoundCallExpression>> _callExpressions;
 
 public:
-  Binder(BoundScope *root);
+  Binder(std::shared_ptr<BoundScope> root);
 
   std::vector<std::string> logs;
-  ~Binder();
 
 public:
-  BoundExpression *bindExpression(ExpressionSyntax *syntax);
+  std::shared_ptr<BoundExpression>
+  bindExpression(std::shared_ptr<ExpressionSyntax> syntax);
 
-  BoundStatement *bindGlobalStatement(GlobalStatementSyntax *syntax);
+  std::shared_ptr<BoundStatement>
+  bindGlobalStatement(std::shared_ptr<GlobalStatementSyntax> syntax);
 
-  BoundStatement *bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
+  std::shared_ptr<BoundStatement>
+  bindFunctionDeclaration(std::shared_ptr<FunctionDeclarationSyntax> syntax);
 
 public:
-  static void verifyAllCallsAreValid(Binder *binder);
+  static void verifyAllCallsAreValid(std::shared_ptr<Binder> binder);
 
-  static BoundScopeGlobal *
+  static std::shared_ptr<BoundScopeGlobal>
   bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previous,
                   std::shared_ptr<CompilationUnitSyntax> syntax);
 
 public:
-  static BoundScope *CreateParentScope(BoundScopeGlobal *parent);
+  static std::shared_ptr<BoundScope>
+  CreateParentScope(std::shared_ptr<BoundScopeGlobal> parent);
 
 public:
-  BoundStatement *bindStatement(StatementSyntax *syntax);
+  std::shared_ptr<BoundStatement>
+  bindStatement(std::shared_ptr<StatementSyntax> syntax);
 };

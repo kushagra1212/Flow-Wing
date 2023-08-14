@@ -1,4 +1,5 @@
 #include "Repl.h"
+
 Repl::Repl()
     : showSyntaxTree(false), showBoundTree(false), braceCount(0),
       previousEvaluator(nullptr), exit(false) {}
@@ -39,13 +40,12 @@ void Repl::runWithStream(std::istream &inputStream,
 
       text.push_back(line);
       compilationUnit.reset();
-      Parser *parser = new Parser(text);
+      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
-        delete parser;
-        compilationUnit.reset();
+
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
@@ -54,8 +54,6 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 3) {
           Utils::printErrors(parser->logs, outputStream);
-          delete parser;
-          compilationUnit.reset();
         } else
           outputStream << YELLOW << "... " << RESET;
 
@@ -92,19 +90,19 @@ void Repl::compileAndEvaluate(
     return;
   }
 
-  BoundScopeGlobal *globalScope =
+  std::shared_ptr<BoundScopeGlobal> globalScope =
       Binder::bindGlobalScope(nullptr, std::move(compilationUnit));
 
   if (showBoundTree) {
-    Utils::prettyPrint(globalScope->statement.get());
+    Utils::prettyPrint(globalScope->statement);
     return;
   }
 
   IRGenerator *currentEvaluator = new IRGenerator();
   try {
 
-    llvm::Value *generatedIR = currentEvaluator->generateEvaluateStatement(
-        globalScope->statement.get());
+    llvm::Value *generatedIR =
+        currentEvaluator->generateEvaluateStatement(globalScope->statement);
     // std::any result = currentEvaluator->last_value;
     currentEvaluator->printIR();
     currentEvaluator->executeGeneratedCode();

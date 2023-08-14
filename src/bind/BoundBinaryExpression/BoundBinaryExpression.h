@@ -5,16 +5,15 @@
 
 class BoundBinaryExpression : public BoundExpression {
 private:
-  BinderKindUtils::BoundBinaryOperatorKind op;
-  BoundExpression *left;
-  BoundExpression *right;
+  BinderKindUtils::BoundBinaryOperatorKind _op;
+  std::shared_ptr<BoundExpression> _left;
+  std::shared_ptr<BoundExpression> _right;
 
 public:
-  BoundBinaryExpression(const std::string &lineAndColumn, BoundExpression *left,
+  BoundBinaryExpression(const std::string &lineAndColumn,
+                        std::shared_ptr<BoundExpression> left,
                         BinderKindUtils::BoundBinaryOperatorKind op,
-                        BoundExpression *right);
-
-  ~BoundBinaryExpression();
+                        std::shared_ptr<BoundExpression> right);
 
 public:
   BinderKindUtils::BoundNodeKind getKind() override;
@@ -26,13 +25,13 @@ public:
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
 public:
-  BoundExpression *getLeft();
+  std::shared_ptr<BoundExpression> getLeft();
 
 public:
-  BoundExpression *getRight();
+  std::shared_ptr<BoundExpression> getRight();
 
 public:
-  std::vector<BoundNode *> getChildren() override;
+  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
 
 public:
   std::string getLineNumberAndColumn() const override;

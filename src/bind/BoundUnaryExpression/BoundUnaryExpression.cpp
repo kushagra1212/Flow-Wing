@@ -3,7 +3,8 @@
 BoundUnaryExpression::BoundUnaryExpression(
 
     const std::string &lineAndColumn,
-    BinderKindUtils::BoundUnaryOperatorKind op, BoundExpression *operand) {
+    BinderKindUtils::BoundUnaryOperatorKind op,
+    std::shared_ptr<BoundExpression> operand) {
   this->op = op;
   this->operand = operand;
   this->_lineAndColumn = lineAndColumn;
@@ -21,19 +22,14 @@ BinderKindUtils::BoundUnaryOperatorKind BoundUnaryExpression::getOperator() {
   return op;
 }
 
-BoundExpression *BoundUnaryExpression::getOperand() { return operand; }
+std::shared_ptr<BoundExpression> BoundUnaryExpression::getOperand() {
+  return operand;
+}
 
-std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
-  return std::vector<BoundNode *>{operand};
+std::vector<std::shared_ptr<BoundNode>> BoundUnaryExpression::getChildren() {
+  return std::vector<std::shared_ptr<BoundNode>>{operand};
 }
 
 std::string BoundUnaryExpression::getLineNumberAndColumn() const {
   return this->_lineAndColumn;
-}
-
-BoundUnaryExpression::~BoundUnaryExpression() {
-  if (operand != nullptr) {
-    delete operand;
-    operand = nullptr;
-  }
 }

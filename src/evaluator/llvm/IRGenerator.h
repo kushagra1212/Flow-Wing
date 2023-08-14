@@ -20,25 +20,28 @@ public:
 
   void define_StringLength();
 
-  llvm::Function *generateEvaluateExpressionStatement(BoundExpression *node);
   llvm::Function *
-  generateEvaluateLiteralExpressionFunction(BoundExpression *node);
-  llvm::Function *
-  generateEvaluateUnaryExpressionFunction(BoundExpression *node);
+  generateEvaluateExpressionStatement(std::shared_ptr<BoundExpression> node);
+  llvm::Function *generateEvaluateLiteralExpressionFunction(
+      std::shared_ptr<BoundExpression> node);
+  llvm::Function *generateEvaluateUnaryExpressionFunction(
+      std::shared_ptr<BoundExpression> node);
 
+  llvm::Function *generateEvaluateVariableExpressionFunction(
+      std::shared_ptr<BoundExpression> node);
+  llvm::Function *generateEvaluateAssignmentExpressionFunction(
+      std::shared_ptr<BoundExpression> node);
+  llvm::Function *generateEvaluateBinaryExpressionFunction(
+      std::shared_ptr<BoundBinaryExpression> node);
   llvm::Function *
-  generateEvaluateVariableExpressionFunction(BoundExpression *node);
+  generateEvaluateBlockStatement(std::shared_ptr<BoundBlockStatement> node);
   llvm::Function *
-  generateEvaluateAssignmentExpressionFunction(BoundExpression *node);
-  llvm::Function *
-  generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
-  llvm::Function *generateEvaluateBlockStatement(BoundBlockStatement *node);
-  llvm::Function *generateEvaluateStatement(BoundStatement *node);
+  generateEvaluateStatement(std::shared_ptr<BoundStatement> node);
 
   void executeGeneratedCode();
-  BoundScopeGlobal *getRoot();
+  std::shared_ptr<BoundScopeGlobal> getRoot();
 
-  BoundScopeGlobal *_previousGlobalScope = nullptr;
+  std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
 
   llvm::Function *getFunction(llvm::Type *Result, std::string name,
                               bool isVarArg);

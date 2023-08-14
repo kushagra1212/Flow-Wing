@@ -13,10 +13,12 @@ IRGenerator::IRGenerator() {
   this->defineStandardFunctions();
 }
 
-llvm::Function *
-IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
+llvm::Function *IRGenerator::generateEvaluateLiteralExpressionFunction(
+    std::shared_ptr<BoundExpression> node) {
 
-  std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+  std::any value =
+      std::static_pointer_cast<BoundLiteralExpression<std::any>>(node)
+          ->getValue();
 
   llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
                                            TheContext.get(), Builder.get());
@@ -38,9 +40,10 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
   return F;
 }
 
-llvm::Function *
-IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
-  BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
+llvm::Function *IRGenerator::generateEvaluateUnaryExpressionFunction(
+    std::shared_ptr<BoundExpression> node) {
+  std::shared_ptr<BoundUnaryExpression> unaryExpression =
+      std::static_pointer_cast<BoundUnaryExpression>(node);
   llvm::Value *val =
       this->generateEvaluateExpressionStatement(unaryExpression->getOperand());
   if (val == nullptr) {
@@ -206,9 +209,10 @@ IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
 }
 
 void IRGenerator::defineStandardFunctions() { this->define_StringLength(); }
-llvm::Function *
-IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
-  BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
+llvm::Function *IRGenerator::generateEvaluateVariableExpressionFunction(
+    std::shared_ptr<BoundExpression> node) {
+  std::shared_ptr<BoundVariableExpression> variableExpression =
+      std::static_pointer_cast<BoundVariableExpression>(node);
 
   std::string variableName =
       IRUtils::getString(variableExpression->getIdentifierExpression());
@@ -237,10 +241,10 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   return variableFunction;
 }
 llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
-    BoundExpression *node) {
+    std::shared_ptr<BoundExpression> node) {
 
-  BoundAssignmentExpression *assignmentExpression =
-      (BoundAssignmentExpression *)node;
+  std::shared_ptr<BoundAssignmentExpression> assignmentExpression =
+      std::static_pointer_cast<BoundAssignmentExpression>(node);
 
   std::string variableName =
       IRUtils::getString(assignmentExpression->getLeft());
@@ -293,8 +297,9 @@ llvm::Function *IRGenerator::getFunction(llvm::Type *Result, std::string name,
 }
 
 llvm::Function *IRGenerator::generateEvaluateBinaryExpressionFunction(
-    BoundBinaryExpression *node) {
-  BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
+    std::shared_ptr<BoundBinaryExpression> node) {
+  std::shared_ptr<BoundBinaryExpression> binaryExpression =
+      (std::shared_ptr<BoundBinaryExpression>)node;
 
   llvm::Function *lhsFun = generateEvaluateExpressionStatement(node->getLeft());
   llvm::Function *rhsFun =
@@ -363,8 +368,8 @@ llvm::Function *IRGenerator::generateEvaluateBinaryExpressionFunction(
   llvm::verifyFunction(*binaryFunction);
   return binaryFunction;
 }
-llvm::Function *
-IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
+llvm::Function *IRGenerator::generateEvaluateExpressionStatement(
+    std::shared_ptr<BoundExpression> node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::LiteralExpression: {
@@ -383,12 +388,13 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
     return this->generateEvaluateAssignmentExpressionFunction(node);
   }
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
-    BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
+    std::shared_ptr<BoundBinaryExpression> binaryExpression =
+        std::static_pointer_cast<BoundBinaryExpression>(node);
     return this->generateEvaluateBinaryExpressionFunction(binaryExpression);
   }
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
-    BoundParenthesizedExpression *parenthesizedExpression =
-        (BoundParenthesizedExpression *)node;
+    std::shared_ptr<BoundParenthesizedExpression> parenthesizedExpression =
+        std::static_pointer_cast<BoundParenthesizedExpression>(node);
     return this->generateEvaluateExpressionStatement(
         parenthesizedExpression->getExpression());
   }
@@ -403,8 +409,8 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
   }
 }
 
-llvm::Function *
-IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
+llvm::Function *IRGenerator::generateEvaluateBlockStatement(
+    std::shared_ptr<BoundBlockStatement> node) {
 
   std::map<std::string, llvm::Value *> originalNamedValues = NamedValues;
   std::vector<llvm::Function *> functions;
@@ -435,18 +441,21 @@ IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
   return F;
 }
 
-llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
+llvm::Function *
+IRGenerator::generateEvaluateStatement(std::shared_ptr<BoundStatement> node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
 
     return this->generateEvaluateExpressionStatement(
-        ((BoundExpressionStatement *)node)->getExpression());
+        std::static_pointer_cast<BoundExpressionStatement>(node)
+            ->getExpression());
     break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
 
-    return this->generateEvaluateBlockStatement((BoundBlockStatement *)node);
+    return this->generateEvaluateBlockStatement(
+        std::static_pointer_cast<BoundBlockStatement>(node));
     break;
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {

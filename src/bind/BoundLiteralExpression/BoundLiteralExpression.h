@@ -11,8 +11,6 @@ private:
 public:
   BoundLiteralExpression(const std::string &lineAndColumn, T value);
 
-  ~BoundLiteralExpression();
-
 public:
   BinderKindUtils::BoundNodeKind getKind();
 
@@ -25,5 +23,5 @@ public:
   std::string getLineNumberAndColumn() const override;
 
 public:
-  std::vector<BoundNode *> getChildren() override;
+  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
 };
