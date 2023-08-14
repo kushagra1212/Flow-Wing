@@ -11,33 +11,32 @@
 class FunctionDeclarationSyntax : public MemberSyntax {
 
 private:
-  SyntaxToken<std::any> *_functionKeyword;
-  SyntaxToken<std::any> *_identifierToken;
-  SyntaxToken<std::any> *_openParenthesisToken;
-  std::vector<ParameterSyntax *> _parameters;
-  SyntaxToken<std::any> *_closeParenthesisToken;
-  BlockStatementSyntax *_body;
+  std::shared_ptr<SyntaxToken<std::any>> _functionKeyword;
+  std::shared_ptr<SyntaxToken<std::any>> _identifierToken;
+  std::shared_ptr<SyntaxToken<std::any>> _openParenthesisToken;
+  std::vector<std::shared_ptr<ParameterSyntax>> _parameters;
+  std::shared_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
+  std::shared_ptr<BlockStatementSyntax> _body;
 
 public:
-  FunctionDeclarationSyntax(SyntaxToken<std::any> *functionKeyword,
-                            SyntaxToken<std::any> *identifierToken,
-                            SyntaxToken<std::any> *openParenthesisToken,
-                            std::vector<ParameterSyntax *> parameters,
-                            SyntaxToken<std::any> *closeParenthesisToken,
-                            BlockStatementSyntax *body);
+  FunctionDeclarationSyntax(
+      std::shared_ptr<SyntaxToken<std::any>> functionKeyword,
+      std::shared_ptr<SyntaxToken<std::any>> identifierToken,
+      std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken,
+      std::vector<std::shared_ptr<ParameterSyntax>> parameters,
+      std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken,
+      std::shared_ptr<BlockStatementSyntax> body);
 
-  ~FunctionDeclarationSyntax();
-
-  SyntaxToken<std::any> *getFunctionKeyword() const;
-  SyntaxToken<std::any> *getIdentifierToken() const;
-  SyntaxToken<std::any> *getOpenParenthesisToken() const;
-  std::vector<ParameterSyntax *> getParameters() const;
-  SyntaxToken<std::any> *getCloseParenthesisToken() const;
-  BlockStatementSyntax *getBody() const;
+  std::shared_ptr<SyntaxToken<std::any>> getFunctionKeyword() const;
+  std::shared_ptr<SyntaxToken<std::any>> getIdentifierToken() const;
+  std::shared_ptr<SyntaxToken<std::any>> getOpenParenthesisToken() const;
+  std::vector<std::shared_ptr<ParameterSyntax>> getParameters() const;
+  std::shared_ptr<SyntaxToken<std::any>> getCloseParenthesisToken() const;
+  std::shared_ptr<BlockStatementSyntax> getBody() const;
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
 
   std::string getLineNumberAndColumn() const override;
 };

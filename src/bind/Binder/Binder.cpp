@@ -7,7 +7,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     ExpressionStatementSyntax *expressionStatement =
         (ExpressionStatementSyntax *)syntax;
     BoundExpression *expression =
-        bindExpression(expressionStatement->getExpression());
+        bindExpression(expressionStatement->getExpression().get());
     return new BoundExpressionStatement(
         expressionStatement->getExpression()->getLineNumberAndColumn(),
         expression);
@@ -21,7 +21,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     for (int i = 0; i < blockStatement->getStatements().size(); i++) {
 
       BoundStatement *statement =
-          bindStatement(blockStatement->getStatements()[i]);
+          bindStatement(blockStatement->getStatements()[i].get());
       statements.push_back(statement);
     }
 
@@ -36,7 +36,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     VariableDeclarationSyntax *variableDeclaration =
         (VariableDeclarationSyntax *)syntax;
     BoundExpression *initializer =
-        bindExpression(variableDeclaration->getInitializer());
+        bindExpression(variableDeclaration->getInitializer().get());
 
     std::string variable_str = std::any_cast<std::string>(
         variableDeclaration->getIdentifier()->getValue());
@@ -46,7 +46,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     if (!root->tryDeclareVariable(variable_str,
                                   Utils::Variable(nullptr, isConst))) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
-                               variableDeclaration->getIdentifier()) +
+                               variableDeclaration->getIdentifier().get()) +
                            "Error: Variable " + variable_str +
                            " already exists");
     }
@@ -57,13 +57,16 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
   }
   case SyntaxKindUtils::SyntaxKind::IfStatement: {
     IfStatementSyntax *ifStatement = (IfStatementSyntax *)syntax;
-    BoundExpression *condition = bindExpression(ifStatement->getCondition());
+    BoundExpression *condition =
+        bindExpression(ifStatement->getCondition().get());
     BoundStatement *thenStatement =
-        bindStatement((StatementSyntax *)(ifStatement->getStatement()));
+        bindStatement((StatementSyntax *)(ifStatement->getStatement().get()));
     BoundStatement *elseStatement = nullptr;
     if (ifStatement->getElseClause() != nullptr) {
-      elseStatement = bindStatement(
-          (StatementSyntax *)ifStatement->getElseClause()->getStatement());
+      elseStatement =
+          bindStatement((StatementSyntax *)ifStatement->getElseClause()
+                            ->getStatement()
+                            .get());
     }
     return new BoundIfStatement(ifStatement->getLineNumberAndColumn(),
                                 condition, thenStatement, elseStatement);
@@ -74,9 +77,10 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     WhileStatementSyntax *whileStatement = (WhileStatementSyntax *)syntax;
 
-    BoundExpression *condition = bindExpression(whileStatement->getCondition());
+    BoundExpression *condition =
+        bindExpression(whileStatement->getCondition().get());
     BoundStatement *body =
-        bindStatement((StatementSyntax *)whileStatement->getBody());
+        bindStatement((StatementSyntax *)whileStatement->getBody().get());
 
     this->root = this->root->parent;
     return new BoundWhileStatement(whileStatement->getLineNumberAndColumn(),
@@ -88,14 +92,14 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
     this->root = new BoundScope(this->root);
     this->root->makeBreakableAndContinuable();
     BoundStatement *intializer = (BoundStatement *)bindStatement(
-        (StatementSyntax *)forStatement->getInitialization());
+        (StatementSyntax *)forStatement->getInitialization().get());
 
     BoundExpression *upperBound =
         (BoundLiteralExpression<std::any> *)bindExpression(
-            forStatement->getUpperBound());
+            forStatement->getUpperBound().get());
 
     BoundStatement *body =
-        bindStatement((StatementSyntax *)forStatement->getStatement());
+        bindStatement((StatementSyntax *)forStatement->getStatement().get());
 
     this->root = this->root->parent;
     return new BoundForStatement(forStatement->getLineNumberAndColumn(),
@@ -104,9 +108,9 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::BreakKeyword: {
     BreakStatementSyntax *breakStatement = (BreakStatementSyntax *)syntax;
     if (!this->root->isBreakable()) {
-      this->logs.push_back(
-          Utils::getLineNumberAndPosition(breakStatement->getBreakKeyword()) +
-          "Error: Break statement outside of loop");
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               breakStatement->getBreakKeyword().get()) +
+                           "Error: Break statement outside of loop");
     }
     return new BoundBreakStatement(breakStatement->getLineNumberAndColumn());
   }
@@ -115,7 +119,7 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
         (ContinueStatementSyntax *)syntax;
     if (!this->root->isContinuable()) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
-                               continueStatement->getContinueKeyword()) +
+                               continueStatement->getContinueKeyword().get()) +
                            "Error: Continue statement outside of loop");
     }
     return new BoundContinueStatement(
@@ -128,14 +132,15 @@ BoundStatement *Binder::bindStatement(StatementSyntax *syntax) {
 
     BoundExpression *expression = nullptr;
     if (!this->root->isInFunction()) {
-      this->logs.push_back(
-          Utils::getLineNumberAndPosition(returnStatement->getReturnKeyword()) +
-          "Error: Return statement outside of function");
+      this->logs.push_back(Utils::getLineNumberAndPosition(
+                               returnStatement->getReturnKeyword().get()) +
+                           "Error: Return statement outside of function");
     } else {
-      ExpressionSyntax *returnExpression = returnStatement->getExpression();
+      ExpressionSyntax *returnExpression =
+          returnStatement->getExpression().get();
 
       if (returnExpression) {
-        expression = bindExpression(returnStatement->getExpression());
+        expression = bindExpression(returnStatement->getExpression().get());
       }
     }
 
@@ -158,7 +163,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   }
   case SyntaxKindUtils::SyntaxKind::UnaryExpression: {
     UnaryExpressionSyntax *unaryExpression = (UnaryExpressionSyntax *)syntax;
-    BoundExpression *operand = bindExpression(unaryExpression->getOperand());
+    BoundExpression *operand =
+        bindExpression(unaryExpression->getOperand().get());
     BinderKindUtils::BoundUnaryOperatorKind op;
 
     switch (unaryExpression->getOperatorToken()->getKind()) {
@@ -182,8 +188,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   }
   case SyntaxKindUtils::SyntaxKind::BinaryExpression: {
     BinaryExpressionSyntax *binaryExpression = (BinaryExpressionSyntax *)syntax;
-    BoundExpression *left = bindExpression(binaryExpression->getLeft());
-    BoundExpression *right = bindExpression(binaryExpression->getRight());
+    BoundExpression *left = bindExpression(binaryExpression->getLeft().get());
+    BoundExpression *right = bindExpression(binaryExpression->getRight().get());
     BinderKindUtils::BoundBinaryOperatorKind op;
 
     // if (left->getType() != typeid(int) || right->getType() != typeid(int)) {
@@ -257,20 +263,20 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
         (AssignmentExpressionSyntax *)syntax;
     BoundLiteralExpression<std::any> *identifierExpression =
         (BoundLiteralExpression<std::any> *)bindExpression(
-            assignmentExpression->getLeft());
+            assignmentExpression->getLeft().get());
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     BinderKindUtils::BoundBinaryOperatorKind op;
     if (!root->tryLookupVariable(variable_str)) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
-                               assignmentExpression->getOperatorToken()) +
+                               assignmentExpression->getOperatorToken().get()) +
                            "Error: Can not assign to undeclared variable " +
                            variable_str);
       return identifierExpression;
     }
     if (root->variables[variable_str].isConst) {
       this->logs.push_back(Utils::getLineNumberAndPosition(
-                               assignmentExpression->getOperatorToken()) +
+                               assignmentExpression->getOperatorToken().get()) +
                            "Error: Can not assign to const variable " +
                            variable_str);
       return identifierExpression;
@@ -283,7 +289,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
     default:
       throw "Unexpected assignment operator";
     }
-    BoundExpression *right = bindExpression(assignmentExpression->getRight());
+    BoundExpression *right =
+        bindExpression(assignmentExpression->getRight().get());
     return new BoundAssignmentExpression(
         assignmentExpression->getLineNumberAndColumn(), identifierExpression,
         op, right);
@@ -295,13 +302,13 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
 
     BoundLiteralExpression<std::any> *identifierExpression =
         (BoundLiteralExpression<std::any> *)bindExpression(
-            variableExpressionSyntax->getIdentifier());
+            variableExpressionSyntax->getIdentifier().get());
     std::string variable_str =
         std::any_cast<std::string>(identifierExpression->getValue());
     if (!root->tryLookupVariable(variable_str)) {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(
-              variableExpressionSyntax->getIdentifier()->getToken()) +
+              variableExpressionSyntax->getIdentifier()->getToken().get()) +
           "Error: Variable " + variable_str + " does not exist");
       return identifierExpression;
     }
@@ -312,13 +319,13 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
     ParenthesizedExpressionSyntax *parenthesizedExpression =
         (ParenthesizedExpressionSyntax *)syntax;
-    return bindExpression(parenthesizedExpression->getExpression());
+    return bindExpression(parenthesizedExpression->getExpression().get());
   }
   case SyntaxKindUtils::SyntaxKind::CallExpression: {
     CallExpressionSyntax *callExpression = (CallExpressionSyntax *)syntax;
     BoundLiteralExpression<std::any> *identifier =
         (BoundLiteralExpression<std::any> *)bindExpression(
-            callExpression->getIdentifier());
+            callExpression->getIdentifier().get());
 
     Utils::FunctionSymbol functionSymbol =
         Utils::BuiltInFunctions::getFunctionSymbol(
@@ -366,7 +373,8 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
 
     std::vector<BoundExpression *> arguments;
     for (int i = 0; i < callExpression->getArguments().size(); i++) {
-      arguments.push_back(bindExpression(callExpression->getArguments()[i]));
+      arguments.push_back(
+          bindExpression(callExpression->getArguments()[i].get()));
     }
 
     BoundCallExpression *boundCallExpression =
@@ -420,7 +428,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
                                         Utils::Variable(nullptr, false))) {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(
-              syntax->getParameters()[i]->getIdentifierToken()) +
+              syntax->getParameters()[i]->getIdentifierToken().get()) +
           "Error: Parameter " + variable_str + " already declared");
     }
 
@@ -432,7 +440,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
       Utils::FunctionSymbol(function_name, parameters, Utils::type::VOID);
   this->root->incrementFunctionCount();
   BoundBlockStatement *body =
-      (BoundBlockStatement *)bindStatement(syntax->getBody());
+      (BoundBlockStatement *)bindStatement(syntax->getBody().get());
   BoundFunctionDeclaration *fd = new BoundFunctionDeclaration(
       syntax->getLineNumberAndColumn(), functionSymbol, body);
 
@@ -440,7 +448,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   if (!this->root->tryDeclareFunction(functionSymbol.name, fd)) {
     this->logs.push_back(
-        Utils::getLineNumberAndPosition(syntax->getFunctionKeyword()) +
+        Utils::getLineNumberAndPosition(syntax->getFunctionKeyword().get()) +
         "Error: Function " + functionSymbol.name + " already declared");
   }
   this->root = this->root->parent;
@@ -448,7 +456,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 }
 
 BoundStatement *Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
-  return bindStatement(syntax->getStatement());
+  return bindStatement(syntax->getStatement().get());
 }
 
 Binder::Binder(BoundScope *parent) { this->root = new BoundScope(parent); }
@@ -515,13 +523,13 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
     if (syntax->getMembers()[i]->getKind() ==
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
       FunctionDeclarationSyntax *functionDeclarationSyntax =
-          (FunctionDeclarationSyntax *)syntax->getMembers()[i];
+          (FunctionDeclarationSyntax *)syntax->getMembers()[i].get();
       statements.push_back(
           binder->bindFunctionDeclaration(functionDeclarationSyntax));
     } else if (syntax->getMembers()[i]->getKind() ==
                SyntaxKindUtils::SyntaxKind::GlobalStatement) {
       GlobalStatementSyntax *globalStatementSyntax =
-          (GlobalStatementSyntax *)syntax->getMembers()[i];
+          (GlobalStatementSyntax *)syntax->getMembers()[i].get();
       BoundStatement *statement =
           binder->bindGlobalStatement(globalStatementSyntax);
       statements.push_back(statement);

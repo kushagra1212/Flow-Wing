@@ -5,25 +5,24 @@
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 class WhileStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_whileKeyword;
-  ExpressionSyntax *_condition;
-  BlockStatementSyntax *_body;
+  std::shared_ptr<SyntaxToken<std::any>> _whileKeyword;
+  std::shared_ptr<ExpressionSyntax> _condition;
+  std::shared_ptr<BlockStatementSyntax> _body;
 
 public:
-  WhileStatementSyntax(SyntaxToken<std::any> *whileKeyword,
-                       ExpressionSyntax *condition, BlockStatementSyntax *body);
-
-  ~WhileStatementSyntax();
+  WhileStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> whileKeyword,
+                       std::shared_ptr<ExpressionSyntax> condition,
+                       std::shared_ptr<BlockStatementSyntax> body);
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
 
-  SyntaxToken<std::any> *getWhileKeyword() const;
+  std::shared_ptr<SyntaxToken<std::any>> getWhileKeyword() const;
 
-  ExpressionSyntax *getCondition() const;
+  std::shared_ptr<ExpressionSyntax> getCondition() const;
 
-  BlockStatementSyntax *getBody() const;
+  std::shared_ptr<BlockStatementSyntax> getBody() const;
 
   std::string getLineNumberAndColumn() const override;
 };

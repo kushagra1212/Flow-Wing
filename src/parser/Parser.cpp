@@ -29,8 +29,6 @@ Parser::Parser(const std::vector<std::string> &text) {
   }
 }
 
-Parser::~Parser() {}
-
 std::shared_ptr<SyntaxToken<std::any>> Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
@@ -70,38 +68,38 @@ bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
   return this->getCurrent()->getKind() == kind;
 }
 std::shared_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
-  std::vector<MemberSyntax *> members = this->parseMemberList();
+  std::vector<std::shared_ptr<MemberSyntax>> members = this->parseMemberList();
   std::shared_ptr<SyntaxToken<std::any>> endOfFileToken =
       this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-  return std::make_shared<CompilationUnitSyntax>(members, endOfFileToken.get());
+  return std::make_shared<CompilationUnitSyntax>(members, endOfFileToken);
 }
 
-std::vector<MemberSyntax *> Parser::parseMemberList() {
-  std::vector<MemberSyntax *> members;
+std::vector<std::shared_ptr<MemberSyntax>> Parser::parseMemberList() {
+  std::vector<std::shared_ptr<MemberSyntax>> members;
   while (this->getCurrent()->getKind() !=
          SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    MemberSyntax *member = this->parseMember();
+    std::shared_ptr<MemberSyntax> member = this->parseMember();
     members.push_back(member);
   }
   return members;
 }
 
-MemberSyntax *Parser::parseMember() {
+std::shared_ptr<MemberSyntax> Parser::parseMember() {
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
-    return (MemberSyntax *)this->parseFunctionDeclaration();
+    return (std::shared_ptr<MemberSyntax>)this->parseFunctionDeclaration();
   }
   return this->parseGlobalStatement();
 }
 
-FunctionDeclarationSyntax *Parser::parseFunctionDeclaration() {
+std::shared_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
   std::shared_ptr<SyntaxToken<std::any>> functionKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword);
   std::shared_ptr<SyntaxToken<std::any>> identifier =
       this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
   std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken =
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-  std::vector<ParameterSyntax *> parameters;
+  std::vector<std::shared_ptr<ParameterSyntax>> parameters;
 
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
@@ -113,29 +111,29 @@ FunctionDeclarationSyntax *Parser::parseFunctionDeclaration() {
       this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
     }
 
-    parameters.push_back(new ParameterSyntax(
-        this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken).get()));
+    parameters.push_back(std::make_shared<ParameterSyntax>(
+        this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
   }
   std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken =
       this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-  BlockStatementSyntax *body = this->parseBlockStatement();
+  std::shared_ptr<BlockStatementSyntax> body = this->parseBlockStatement();
 
-  return new FunctionDeclarationSyntax(functionKeyword.get(), identifier.get(),
-                                       openParenthesisToken.get(), parameters,
-                                       closeParenthesisToken.get(), body);
+  return std::make_shared<FunctionDeclarationSyntax>(
+      functionKeyword, identifier, openParenthesisToken, parameters,
+      closeParenthesisToken, body);
 }
 
-GlobalStatementSyntax *Parser::parseGlobalStatement() {
-  StatementSyntax *statement = this->parseStatement();
-  return new GlobalStatementSyntax(statement);
+std::shared_ptr<GlobalStatementSyntax> Parser::parseGlobalStatement() {
+  std::shared_ptr<StatementSyntax> statement = this->parseStatement();
+  return std::make_shared<GlobalStatementSyntax>(statement);
 }
 
-BlockStatementSyntax *Parser::parseBlockStatement() {
+std::shared_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
 
   std::shared_ptr<SyntaxToken<std::any>> openBraceToken =
       this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
 
-  std::vector<StatementSyntax *> statements;
+  std::vector<std::shared_ptr<StatementSyntax>> statements;
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
 
@@ -145,50 +143,50 @@ BlockStatementSyntax *Parser::parseBlockStatement() {
              SyntaxKindUtils::SyntaxKind::EndOfFileToken
 
   ) {
-    StatementSyntax *statement = this->parseStatement();
+    std::shared_ptr<StatementSyntax> statement = this->parseStatement();
     statements.push_back(statement);
   }
 
   std::shared_ptr<SyntaxToken<std::any>> closeBraceToken =
       this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
 
-  return new BlockStatementSyntax(openBraceToken.get(), statements,
-                                  closeBraceToken.get());
+  return std::make_shared<BlockStatementSyntax>(openBraceToken, statements,
+                                                closeBraceToken);
 }
 
-ExpressionStatementSyntax *Parser::parseExpressionStatement() {
-  ExpressionSyntax *expression = this->parseExpression();
-  return new ExpressionStatementSyntax(expression);
+std::shared_ptr<ExpressionStatementSyntax> Parser::parseExpressionStatement() {
+  std::shared_ptr<ExpressionSyntax> expression = this->parseExpression();
+  return std::make_shared<ExpressionStatementSyntax>(expression);
 }
-StatementSyntax *Parser::parseStatement() {
+std::shared_ptr<StatementSyntax> Parser::parseStatement() {
   switch (this->getCurrent()->getKind()) {
   case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
-    return (StatementSyntax *)this->parseBlockStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseBlockStatement();
   case SyntaxKindUtils::SyntaxKind::VarKeyword:
   case SyntaxKindUtils::SyntaxKind::ConstKeyword:
-    return (StatementSyntax *)this->parseVariableDeclaration();
+    return (std::shared_ptr<StatementSyntax>)this->parseVariableDeclaration();
   case SyntaxKindUtils::SyntaxKind::IfKeyword:
-    return (StatementSyntax *)this->parseIfStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseIfStatement();
   case SyntaxKindUtils::SyntaxKind::WhileKeyword:
-    return (StatementSyntax *)this->parseWhileStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseWhileStatement();
 
   case SyntaxKindUtils::SyntaxKind::ForKeyword:
-    return (StatementSyntax *)this->parseForStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseForStatement();
   case SyntaxKindUtils::SyntaxKind::BreakKeyword:
-    return (StatementSyntax *)this->parseBreakStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseBreakStatement();
   case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
-    return (StatementSyntax *)this->parseContinueStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseContinueStatement();
   case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
-    return (StatementSyntax *)this->parseReturnStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseReturnStatement();
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
   case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
-    return (StatementSyntax *)this->nextToken().get();
+    return std::dynamic_pointer_cast<StatementSyntax>(this->nextToken());
   default:
-    return (StatementSyntax *)this->parseExpressionStatement();
+    return (std::shared_ptr<StatementSyntax>)this->parseExpressionStatement();
   }
 }
 
-ReturnStatementSyntax *Parser::parseReturnStatement() {
+std::shared_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {
   std::shared_ptr<SyntaxToken<std::any>> returnKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
 
@@ -196,27 +194,27 @@ ReturnStatementSyntax *Parser::parseReturnStatement() {
       SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
 
-    ExpressionSyntax *expression = this->parseExpression();
+    std::shared_ptr<ExpressionSyntax> expression = this->parseExpression();
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-    return new ReturnStatementSyntax(returnKeyword.get(), expression);
+    return std::make_shared<ReturnStatementSyntax>(returnKeyword, expression);
   }
 
-  return new ReturnStatementSyntax(returnKeyword.get(), nullptr);
+  return std::make_shared<ReturnStatementSyntax>(returnKeyword, nullptr);
 }
 
-BreakStatementSyntax *Parser::parseBreakStatement() {
+std::shared_ptr<BreakStatementSyntax> Parser::parseBreakStatement() {
   std::shared_ptr<SyntaxToken<std::any>> breakKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::BreakKeyword);
-  return new BreakStatementSyntax(breakKeyword.get());
+  return std::make_shared<BreakStatementSyntax>(breakKeyword);
 }
 
-ContinueStatementSyntax *Parser::parseContinueStatement() {
+std::shared_ptr<ContinueStatementSyntax> Parser::parseContinueStatement() {
   std::shared_ptr<SyntaxToken<std::any>> continueKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::ContinueKeyword);
-  return new ContinueStatementSyntax(continueKeyword.get());
+  return std::make_shared<ContinueStatementSyntax>(continueKeyword);
 }
 
-ForStatementSyntax *Parser::parseForStatement() {
+std::shared_ptr<ForStatementSyntax> Parser::parseForStatement() {
   std::shared_ptr<SyntaxToken<std::any>> keyword =
       this->match(SyntaxKindUtils::SyntaxKind::ForKeyword);
   bool hadOpenParenthesis = false;
@@ -226,7 +224,7 @@ ForStatementSyntax *Parser::parseForStatement() {
     hadOpenParenthesis = true;
   }
 
-  StatementSyntax *statementSyntax = nullptr;
+  std::shared_ptr<StatementSyntax> statementSyntax = nullptr;
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::VarKeyword) {
@@ -238,42 +236,45 @@ ForStatementSyntax *Parser::parseForStatement() {
   std::shared_ptr<SyntaxToken<std::any>> toKeyword =
       this->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
 
-  ExpressionSyntax *upperBound = this->parseExpression();
+  std::shared_ptr<ExpressionSyntax> upperBound = this->parseExpression();
 
   if (hadOpenParenthesis) {
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
   }
 
-  BlockStatementSyntax *statement = this->parseBlockStatement();
-  return new ForStatementSyntax(statementSyntax, upperBound, statement);
+  std::shared_ptr<BlockStatementSyntax> statement = this->parseBlockStatement();
+  return std::make_shared<ForStatementSyntax>(statementSyntax, upperBound,
+                                              statement);
 }
 
-IfStatementSyntax *Parser::parseIfStatement() {
+std::shared_ptr<IfStatementSyntax> Parser::parseIfStatement() {
   std::shared_ptr<SyntaxToken<std::any>> keyword =
       this->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
-  ExpressionSyntax *condition = this->parseExpression();
+  std::shared_ptr<ExpressionSyntax> condition = this->parseExpression();
 
-  BlockStatementSyntax *statement = this->parseBlockStatement();
-  ElseClauseSyntax *elseClause = nullptr;
+  std::shared_ptr<BlockStatementSyntax> statement = this->parseBlockStatement();
+  std::shared_ptr<ElseClauseSyntax> elseClause = nullptr;
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ElseKeyword) {
     std::shared_ptr<SyntaxToken<std::any>> elseKeyword =
         this->match(SyntaxKindUtils::SyntaxKind::ElseKeyword);
-    BlockStatementSyntax *elseStatement = this->parseBlockStatement();
-    elseClause = new ElseClauseSyntax(elseKeyword.get(), elseStatement);
+    std::shared_ptr<BlockStatementSyntax> elseStatement =
+        this->parseBlockStatement();
+    elseClause = std::make_shared<ElseClauseSyntax>(elseKeyword, elseStatement);
   }
-  return new IfStatementSyntax(keyword.get(), condition, statement, elseClause);
+  return std::make_shared<IfStatementSyntax>(keyword, condition, statement,
+                                             elseClause);
 }
 
-WhileStatementSyntax *Parser::parseWhileStatement() {
+std::shared_ptr<WhileStatementSyntax> Parser::parseWhileStatement() {
   std::shared_ptr<SyntaxToken<std::any>> keyword =
       this->match(SyntaxKindUtils::SyntaxKind::WhileKeyword);
-  ExpressionSyntax *condition = this->parseExpression();
-  BlockStatementSyntax *statement = this->parseBlockStatement();
-  return new WhileStatementSyntax(keyword.get(), condition, statement);
+  std::shared_ptr<ExpressionSyntax> condition = this->parseExpression();
+  std::shared_ptr<BlockStatementSyntax> statement = this->parseBlockStatement();
+  return std::make_shared<WhileStatementSyntax>(keyword, condition, statement);
 }
 
-StatementSyntax *Parser::parseVariableDeclaration() {
+std::shared_ptr<StatementSyntax> Parser::parseVariableDeclaration() {
 
   std::shared_ptr<SyntaxToken<std::any>> keyword = this->match(
       SyntaxKindUtils::SyntaxKind::VarKeyword == this->getCurrent()->getKind()
@@ -283,22 +284,24 @@ StatementSyntax *Parser::parseVariableDeclaration() {
       this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
   std::shared_ptr<SyntaxToken<std::any>> equalsToken =
       this->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
-  ExpressionSyntax *initializer = this->parseExpression();
-  return new VariableDeclarationSyntax(keyword.get(), identifier.get(),
-                                       equalsToken.get(), initializer);
+  std::shared_ptr<ExpressionSyntax> initializer = this->parseExpression();
+  return std::make_shared<VariableDeclarationSyntax>(keyword, identifier,
+                                                     equalsToken, initializer);
 }
 
-ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
+std::shared_ptr<ExpressionSyntax>
+Parser::parseExpression(int parentPrecedence) {
 
-  ExpressionSyntax *left;
+  std::shared_ptr<ExpressionSyntax> left;
   int unaryOperatorPrecedence =
       this->getCurrent()->getUnaryOperatorPrecedence();
 
   if (unaryOperatorPrecedence != 0 &&
       unaryOperatorPrecedence >= parentPrecedence) {
     std::shared_ptr<SyntaxToken<std::any>> operatorToken = this->nextToken();
-    ExpressionSyntax *operand = this->parseExpression(unaryOperatorPrecedence);
-    left = new UnaryExpressionSyntax(operatorToken.get(), operand);
+    std::shared_ptr<ExpressionSyntax> operand =
+        this->parseExpression(unaryOperatorPrecedence);
+    left = std::make_shared<UnaryExpressionSyntax>(operatorToken, operand);
   } else {
     left = this->parsePrimaryExpression();
   }
@@ -311,35 +314,35 @@ ExpressionSyntax *Parser::parseExpression(int parentPrecedence) {
 
     std::shared_ptr<SyntaxToken<std::any>> operatorToken = this->nextToken();
 
-    ExpressionSyntax *right = this->parseExpression(precedence);
+    std::shared_ptr<ExpressionSyntax> right = this->parseExpression(precedence);
 
-    left = new BinaryExpressionSyntax(left, operatorToken.get(), right);
+    left = std::make_shared<BinaryExpressionSyntax>(left, operatorToken, right);
   }
 
   return left;
 }
 
-ExpressionSyntax *Parser::parsePrimaryExpression() {
+std::shared_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
   switch (this->getCurrent()->getKind()) {
   case SyntaxKindUtils::OpenParenthesisToken: {
     std::shared_ptr<SyntaxToken<std::any>> left = this->nextToken();
-    ExpressionSyntax *expression = this->parseExpression();
+    std::shared_ptr<ExpressionSyntax> expression = this->parseExpression();
     std::shared_ptr<SyntaxToken<std::any>> right =
         this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-    return new ParenthesizedExpressionSyntax(left.get(), expression,
-                                             right.get());
+    return std::make_shared<ParenthesizedExpressionSyntax>(left, expression,
+                                                           right);
   }
   case SyntaxKindUtils::NumberToken: {
     std::shared_ptr<SyntaxToken<std::any>> numberToken = this->nextToken();
 
-    return new LiteralExpressionSyntax<std::any>(numberToken.get(),
-                                                 (numberToken->getValue()));
+    return std::make_shared<LiteralExpressionSyntax<std::any>>(
+        numberToken, (numberToken->getValue()));
   }
 
   case SyntaxKindUtils::StringToken: {
     std::shared_ptr<SyntaxToken<std::any>> stringToken = this->nextToken();
-    return new LiteralExpressionSyntax<std::any>(stringToken.get(),
-                                                 stringToken->getValue());
+    return std::make_shared<LiteralExpressionSyntax<std::any>>(
+        stringToken, stringToken->getValue());
   }
   case SyntaxKindUtils::TrueKeyword:
   case SyntaxKindUtils::FalseKeyword: {
@@ -348,10 +351,12 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
         keywordToken->getKind() == SyntaxKindUtils::SyntaxKind::TrueKeyword
             ? true
             : false;
-    return new LiteralExpressionSyntax<std::any>(keywordToken.get(), value);
+    return std::make_shared<LiteralExpressionSyntax<std::any>>(keywordToken,
+                                                               value);
   }
   case SyntaxKindUtils::SyntaxKind::CommaToken: {
-    return new LiteralExpressionSyntax<std::any>(this->nextToken().get(), ",");
+    return std::make_shared<LiteralExpressionSyntax<std::any>>(
+        this->nextToken(), ",");
   }
   case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
     return this->parseNameorCallExpression();
@@ -361,32 +366,32 @@ ExpressionSyntax *Parser::parsePrimaryExpression() {
         Utils::getLineNumberAndPosition(this->getCurrent().get()) +
         "ERROR: unexpected token <" +
         SyntaxKindUtils::to_string(this->getCurrent()->getKind()) + ">");
-    return new LiteralExpressionSyntax<std::any>(this->getCurrent().get(),
-                                                 (int)0);
+    return std::make_shared<LiteralExpressionSyntax<std::any>>(
+        this->getCurrent(), (int)0);
   }
 }
 
-ExpressionSyntax *Parser::parseNameorCallExpression() {
+std::shared_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
   if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     std::shared_ptr<SyntaxToken<std::any>> identifierToken = this->nextToken();
     std::shared_ptr<SyntaxToken<std::any>> operatorToken = this->nextToken();
-    ExpressionSyntax *right = this->parseExpression();
-    return new AssignmentExpressionSyntax(
-        new LiteralExpressionSyntax<std::any>(identifierToken.get(),
-                                              identifierToken->getValue()),
-        operatorToken.get(), right);
+    std::shared_ptr<ExpressionSyntax> right = this->parseExpression();
+    return std::make_shared<AssignmentExpressionSyntax>(
+        std::make_shared<LiteralExpressionSyntax<std::any>>(
+            identifierToken, identifierToken->getValue()),
+        operatorToken, right);
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     std::shared_ptr<SyntaxToken<std::any>> identifierToken =
         this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
     std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken =
         this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-    std::vector<ExpressionSyntax *> arguments;
+    std::vector<std::shared_ptr<ExpressionSyntax>> arguments;
     while (this->getCurrent()->getKind() !=
                SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
            this->getCurrent()->getKind() !=
                SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-      ExpressionSyntax *expression = this->parseExpression();
+      std::shared_ptr<ExpressionSyntax> expression = this->parseExpression();
       arguments.push_back(expression);
       if (this->getCurrent()->getKind() !=
           SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {
@@ -396,13 +401,14 @@ ExpressionSyntax *Parser::parseNameorCallExpression() {
 
     std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken =
         this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-    return new CallExpressionSyntax(
-        new LiteralExpressionSyntax<std::any>(identifierToken.get(),
-                                              identifierToken->getValue()),
-        openParenthesisToken.get(), arguments, closeParenthesisToken.get());
+    return std::make_shared<CallExpressionSyntax>(
+        std::make_shared<LiteralExpressionSyntax<std::any>>(
+            identifierToken, identifierToken->getValue()),
+        openParenthesisToken, arguments, closeParenthesisToken);
   } else {
     std::shared_ptr<SyntaxToken<std::any>> identifierToken = this->nextToken();
-    return new VariableExpressionSyntax(new LiteralExpressionSyntax<std::any>(
-        identifierToken.get(), identifierToken->getValue()));
+    return std::make_shared<VariableExpressionSyntax>(
+        std::make_shared<LiteralExpressionSyntax<std::any>>(
+            identifierToken, identifierToken->getValue()));
   }
 }

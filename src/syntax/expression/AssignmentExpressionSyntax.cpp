@@ -1,8 +1,9 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    LiteralExpressionSyntax<std::any> *left,
-    SyntaxToken<std::any> *operatorToken, ExpressionSyntax *right)
+    std::shared_ptr<LiteralExpressionSyntax<std::any>> left,
+    std::shared_ptr<SyntaxToken<std::any>> operatorToken,
+    std::shared_ptr<ExpressionSyntax> right)
     : left(left), operatorToken(operatorToken), right(right) {}
 
 SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
@@ -10,40 +11,29 @@ SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
 }
 
-std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
+std::vector<std::shared_ptr<SyntaxNode>>
+AssignmentExpressionSyntax::getChildren() {
 
-  std::vector<SyntaxNode *> children = {left, operatorToken, right};
+  std::vector<std::shared_ptr<SyntaxNode>> children = {left, operatorToken,
+                                                       right};
 
   return children;
 }
 
-SyntaxToken<std::any> *AssignmentExpressionSyntax::getOperatorToken() {
+std::shared_ptr<SyntaxToken<std::any>>
+AssignmentExpressionSyntax::getOperatorToken() {
   return operatorToken;
 }
 
-ExpressionSyntax *AssignmentExpressionSyntax::getRight() { return right; }
+std::shared_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
+  return right;
+}
 
-LiteralExpressionSyntax<std::any> *AssignmentExpressionSyntax::getLeft() {
+std::shared_ptr<LiteralExpressionSyntax<std::any>>
+AssignmentExpressionSyntax::getLeft() {
   return left;
 }
 
 std::string AssignmentExpressionSyntax::getLineNumberAndColumn() const {
   return left->getLineNumberAndColumn();
-}
-
-AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
-  if (left != nullptr) {
-    delete left;
-    left = nullptr;
-  }
-
-  if (operatorToken != nullptr) {
-    delete operatorToken;
-    operatorToken = nullptr;
-  }
-
-  if (right != nullptr) {
-    delete right;
-    right = nullptr;
-  }
 }

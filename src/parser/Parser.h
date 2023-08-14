@@ -30,64 +30,46 @@ private:
   std::vector<std::shared_ptr<SyntaxToken<std::any>>> tokens;
   int position;
 
-public:
-  std::vector<std::string> logs;
-
-public:
-  Parser(const std::vector<std::string> &text);
-
-  ~Parser();
-
-private:
   std::shared_ptr<SyntaxToken<std::any>> peek(int offset);
 
-private:
   std::shared_ptr<SyntaxToken<std::any>> getCurrent();
 
-private:
   std::shared_ptr<SyntaxToken<std::any>> nextToken();
 
-private:
   std::shared_ptr<SyntaxToken<std::any>>
   match(SyntaxKindUtils::SyntaxKind kind);
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
 
+  std::shared_ptr<StatementSyntax> parseStatement();
+  std::shared_ptr<BlockStatementSyntax> parseBlockStatement();
+  std::shared_ptr<BreakStatementSyntax> parseBreakStatement();
+  std::shared_ptr<ReturnStatementSyntax> parseReturnStatement();
+  std::shared_ptr<ContinueStatementSyntax> parseContinueStatement();
+  std::shared_ptr<ExpressionStatementSyntax> parseExpressionStatement();
+  std::shared_ptr<StatementSyntax> parseVariableDeclaration();
+  std::shared_ptr<IfStatementSyntax> parseIfStatement();
+  std::shared_ptr<WhileStatementSyntax> parseWhileStatement();
+
+  std::shared_ptr<ForStatementSyntax> parseForStatement();
+
+  std::shared_ptr<ExpressionSyntax> parseNameorCallExpression();
+
+  std::vector<std::shared_ptr<MemberSyntax>> parseMemberList();
+
+  std::shared_ptr<MemberSyntax> parseMember();
+
+  std::shared_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
+
+  std::shared_ptr<GlobalStatementSyntax> parseGlobalStatement();
+
+  std::shared_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
+
+  std::shared_ptr<ExpressionSyntax> parsePrimaryExpression();
+
 public:
+  std::vector<std::string> logs;
+
   std::shared_ptr<CompilationUnitSyntax> parseCompilationUnit();
-
-private:
-  StatementSyntax *parseStatement();
-  BlockStatementSyntax *parseBlockStatement();
-
-  BreakStatementSyntax *parseBreakStatement();
-  ReturnStatementSyntax *parseReturnStatement();
-
-  ContinueStatementSyntax *parseContinueStatement();
-
-  ExpressionStatementSyntax *parseExpressionStatement();
-
-  StatementSyntax *parseVariableDeclaration();
-
-  IfStatementSyntax *parseIfStatement();
-
-  WhileStatementSyntax *parseWhileStatement();
-
-  ForStatementSyntax *parseForStatement();
-
-  ExpressionSyntax *parseNameorCallExpression();
-
-  std::vector<MemberSyntax *> parseMemberList();
-
-  MemberSyntax *parseMember();
-
-  FunctionDeclarationSyntax *parseFunctionDeclaration();
-
-  GlobalStatementSyntax *parseGlobalStatement();
-
-private:
-  ExpressionSyntax *parseExpression(int parentPrecedence = 0);
-
-private:
-  ExpressionSyntax *parsePrimaryExpression();
+  Parser(const std::vector<std::string> &text);
 };
 #endif

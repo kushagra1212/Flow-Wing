@@ -1,6 +1,7 @@
 #include "Utils.h"
 
-void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
+void Utils::prettyPrint(std::shared_ptr<SyntaxNode> node, std::string indent,
+                        bool isLast) {
   if (!node) {
     // std::cout << "null\n";
     return;
@@ -17,7 +18,9 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   std::cout << SyntaxKindUtils::to_string(node->getKind());
   if (node->getKind() == SyntaxKindUtils::LiteralExpression) {
 
-    std::any value = ((LiteralExpressionSyntax<std::any> *)node)->getValue();
+    std::any value =
+        (std::static_pointer_cast<LiteralExpressionSyntax<std::any>>(node))
+            ->getValue();
     if (value.type() == typeid(int)) {
       std::cout << " " << std::any_cast<int>(value);
     } else if (value.type() == typeid(bool)) {
@@ -29,13 +32,13 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
     }
   }
   std::cout << "\n";
-  std::vector<SyntaxNode *> children = node->getChildren();
+  std::vector<std::shared_ptr<SyntaxNode>> children = node->getChildren();
   for (int i = 0; i < children.size(); i++) {
     Utils::prettyPrint(children[i], indent, i == children.size() - 1);
   }
 }
 
-void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
+void Utils::prettyPrint(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
                         std::string indent, bool isLast) {
   if (!compilationUnit) {
     // std::cout << "null\n";
@@ -53,9 +56,7 @@ void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
   std::cout << SyntaxKindUtils::to_string(compilationUnit->getKind()) << '\n';
   for (int i = 0; i < compilationUnit->getMembers().size(); i++) {
 
-    Utils::prettyPrint(
-        dynamic_cast<SyntaxNode *>(compilationUnit->getMembers()[i]), indent,
-        true);
+    Utils::prettyPrint(compilationUnit->getMembers()[i], indent, true);
   }
 }
 

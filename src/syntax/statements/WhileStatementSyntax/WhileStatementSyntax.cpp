@@ -1,47 +1,34 @@
 #include "WhileStatementSyntax.h"
 
-WhileStatementSyntax::WhileStatementSyntax(SyntaxToken<std::any> *whileKeyword,
-                                           ExpressionSyntax *condition,
-                                           BlockStatementSyntax *body)
+WhileStatementSyntax::WhileStatementSyntax(
+    std::shared_ptr<SyntaxToken<std::any>> whileKeyword,
+    std::shared_ptr<ExpressionSyntax> condition,
+    std::shared_ptr<BlockStatementSyntax> body)
     : _whileKeyword(whileKeyword), _condition(condition), _body(body) {}
 
 SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::WhileStatement;
 }
 
-std::vector<SyntaxNode *> WhileStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {_whileKeyword, _condition,
-                                        (SyntaxNode *)_body};
+std::vector<std::shared_ptr<SyntaxNode>> WhileStatementSyntax::getChildren() {
+  std::vector<std::shared_ptr<SyntaxNode>> children = {
+      _whileKeyword, _condition, (std::shared_ptr<SyntaxNode>)_body};
   return children;
 }
 
-SyntaxToken<std::any> *WhileStatementSyntax::getWhileKeyword() const {
+std::shared_ptr<SyntaxToken<std::any>>
+WhileStatementSyntax::getWhileKeyword() const {
   return _whileKeyword;
 }
 
-ExpressionSyntax *WhileStatementSyntax::getCondition() const {
+std::shared_ptr<ExpressionSyntax> WhileStatementSyntax::getCondition() const {
   return _condition;
 }
 
-BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
+std::shared_ptr<BlockStatementSyntax> WhileStatementSyntax::getBody() const {
+  return _body;
+}
 
 std::string WhileStatementSyntax::getLineNumberAndColumn() const {
   return _whileKeyword->getLineNumberAndColumn();
-}
-
-WhileStatementSyntax::~WhileStatementSyntax() {
-  if (_whileKeyword != nullptr) {
-    delete _whileKeyword;
-    _whileKeyword = nullptr;
-  }
-
-  if (_condition != nullptr) {
-    delete _condition;
-    _condition = nullptr;
-  }
-
-  if (_body != nullptr) {
-    delete _body;
-    _body = nullptr;
-  }
 }

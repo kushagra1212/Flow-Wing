@@ -1,40 +1,33 @@
 #include "UnaryExpressionSyntax.h"
 
 UnaryExpressionSyntax::UnaryExpressionSyntax(
-    SyntaxToken<std::any> *operatorToken, ExpressionSyntax *operand) {
+    std::shared_ptr<SyntaxToken<std::any>> operatorToken,
+    std::shared_ptr<ExpressionSyntax> operand) {
 
-  this->operatorToken = operatorToken;
-  this->operand = operand;
-  children.push_back(this->operatorToken);
-  children.push_back(this->operand);
+  this->_operatorToken = operatorToken;
+  this->_operand = operand;
 }
 
 SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::UnaryExpression;
 }
 
-SyntaxToken<std::any> *UnaryExpressionSyntax::getOperatorToken() {
-  return this->operatorToken;
+std::shared_ptr<SyntaxToken<std::any>>
+UnaryExpressionSyntax::getOperatorToken() {
+  return this->_operatorToken;
 }
 
-ExpressionSyntax *UnaryExpressionSyntax::getOperand() { return this->operand; }
+std::shared_ptr<ExpressionSyntax> UnaryExpressionSyntax::getOperand() {
+  return this->_operand;
+}
 
-std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
+std::vector<std::shared_ptr<SyntaxNode>> UnaryExpressionSyntax::getChildren() {
+
+  std::vector<std::shared_ptr<SyntaxNode>> children = {this->_operatorToken,
+                                                       this->_operand};
   return children;
 }
 
 std::string UnaryExpressionSyntax::getLineNumberAndColumn() const {
-  return this->operatorToken->getLineNumberAndColumn();
-}
-
-UnaryExpressionSyntax::~UnaryExpressionSyntax() {
-  if (this->operatorToken != nullptr) {
-    delete this->operatorToken;
-    this->operatorToken = nullptr;
-  }
-
-  if (this->operand != nullptr) {
-    delete this->operand;
-    this->operand = nullptr;
-  }
+  return this->_operatorToken->getLineNumberAndColumn();
 }

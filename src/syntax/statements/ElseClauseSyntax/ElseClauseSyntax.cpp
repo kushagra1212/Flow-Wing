@@ -1,38 +1,28 @@
 #include "ElseClauseSyntax.h"
 
-ElseClauseSyntax::ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
-                                   BlockStatementSyntax *statement)
-    : elseKeyword(elseKeyword), statement(statement) {}
+ElseClauseSyntax::ElseClauseSyntax(
+    std::shared_ptr<SyntaxToken<std::any>> elseKeyword,
+    std::shared_ptr<BlockStatementSyntax> statement)
+    : _elseKeyword(elseKeyword), _statement(statement) {}
 
-SyntaxToken<std::any> *ElseClauseSyntax::getElseKeyword() const {
+std::shared_ptr<SyntaxToken<std::any>>
+ElseClauseSyntax::getElseKeyword() const {
 
-  return elseKeyword;
+  return _elseKeyword;
 }
 
-BlockStatementSyntax *ElseClauseSyntax::getStatement() const {
-  return statement;
+std::shared_ptr<BlockStatementSyntax> ElseClauseSyntax::getStatement() const {
+  return _statement;
 }
 
 SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ElseClause;
 }
 
-std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
-  return {elseKeyword, (SyntaxNode *)statement};
+std::vector<std::shared_ptr<SyntaxNode>> ElseClauseSyntax::getChildren() {
+  return {_elseKeyword, _statement};
 }
 
 std::string ElseClauseSyntax::getLineNumberAndColumn() const {
-  return elseKeyword->getLineNumberAndColumn();
-}
-
-ElseClauseSyntax::~ElseClauseSyntax() {
-  if (elseKeyword != nullptr) {
-    delete elseKeyword;
-    elseKeyword = nullptr;
-  }
-
-  if (statement != nullptr) {
-    delete statement;
-    statement = nullptr;
-  }
+  return _elseKeyword->getLineNumberAndColumn();
 }

@@ -1,23 +1,26 @@
 #include "IfStatementSyntax.h"
 
-IfStatementSyntax::IfStatementSyntax(SyntaxToken<std::any> *ifKeyword,
-                                     ExpressionSyntax *condition,
-                                     BlockStatementSyntax *statement,
-                                     ElseClauseSyntax *elseClause)
+IfStatementSyntax::IfStatementSyntax(
+    std::shared_ptr<SyntaxToken<std::any>> ifKeyword,
+    std::shared_ptr<ExpressionSyntax> condition,
+    std::shared_ptr<BlockStatementSyntax> statement,
+    std::shared_ptr<ElseClauseSyntax> elseClause)
     : ifKeyword(ifKeyword), condition(condition), statement(statement),
       elseClause(elseClause) {}
 
-SyntaxToken<std::any> *IfStatementSyntax::getIfKeyword() const {
+std::shared_ptr<SyntaxToken<std::any>> IfStatementSyntax::getIfKeyword() const {
   return ifKeyword;
 }
 
-ExpressionSyntax *IfStatementSyntax::getCondition() const { return condition; }
+std::shared_ptr<ExpressionSyntax> IfStatementSyntax::getCondition() const {
+  return condition;
+}
 
-BlockStatementSyntax *IfStatementSyntax::getStatement() const {
+std::shared_ptr<BlockStatementSyntax> IfStatementSyntax::getStatement() const {
   return statement;
 }
 
-ElseClauseSyntax *IfStatementSyntax::getElseClause() const {
+std::shared_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() const {
   return elseClause;
 }
 
@@ -29,33 +32,11 @@ std::string IfStatementSyntax::getLineNumberAndColumn() const {
   return ifKeyword->getLineNumberAndColumn();
 }
 
-std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {ifKeyword, condition,
-                                        (SyntaxNode *)statement};
+std::vector<std::shared_ptr<SyntaxNode>> IfStatementSyntax::getChildren() {
+  std::vector<std::shared_ptr<SyntaxNode>> children = {
+      ifKeyword, condition, (std::shared_ptr<SyntaxNode>)statement};
   if (elseClause != nullptr) {
     children.push_back(elseClause);
   }
   return children;
-}
-
-IfStatementSyntax::~IfStatementSyntax() {
-  if (ifKeyword != nullptr) {
-    delete ifKeyword;
-    ifKeyword = nullptr;
-  }
-
-  if (condition != nullptr) {
-    delete condition;
-    condition = nullptr;
-  }
-
-  if (statement != nullptr) {
-    delete statement;
-    statement = nullptr;
-  }
-
-  if (elseClause != nullptr) {
-    delete elseClause;
-    elseClause = nullptr;
-  }
 }

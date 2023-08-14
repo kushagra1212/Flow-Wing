@@ -80,7 +80,8 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
     return 0;
   }
 }
-template <typename T> std::vector<SyntaxNode *> SyntaxToken<T>::getChildren() {
+template <typename T>
+std::vector<std::shared_ptr<SyntaxNode>> SyntaxToken<T>::getChildren() {
   return children;
 }
 template <typename T>

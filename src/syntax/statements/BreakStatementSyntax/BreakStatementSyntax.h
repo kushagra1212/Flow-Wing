@@ -7,16 +7,14 @@
 
 class BreakStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_breakKeyword;
+  std::shared_ptr<SyntaxToken<std::any>> _breakKeyword;
 
 public:
-  BreakStatementSyntax(SyntaxToken<std::any> *breakKeyword);
+  BreakStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> breakKeyword);
 
-  ~BreakStatementSyntax();
+  std::shared_ptr<SyntaxToken<std::any>> getBreakKeyword() const;
 
-  SyntaxToken<std::any> *getBreakKeyword() const;
-
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
   SyntaxKindUtils::SyntaxKind getKind() override;
 
   std::string getLineNumberAndColumn() const override;

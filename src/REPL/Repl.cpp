@@ -88,7 +88,7 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream) {
 
   if (showSyntaxTree) {
-    Utils::prettyPrint(compilationUnit.get());
+    Utils::prettyPrint(compilationUnit);
     return;
   }
 

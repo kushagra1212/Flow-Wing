@@ -1,29 +1,23 @@
 #include "ExpressionStatementSyntax.h"
 
 ExpressionStatementSyntax::ExpressionStatementSyntax(
-    ExpressionSyntax *expression) {
-  this->expression = expression;
+    std::shared_ptr<ExpressionSyntax> expression) {
+  this->_expression = expression;
 }
 
 SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
 }
 
-std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
-  return std::vector<SyntaxNode *>{this->expression};
+std::vector<std::shared_ptr<SyntaxNode>>
+ExpressionStatementSyntax::getChildren() {
+  return std::vector<std::shared_ptr<SyntaxNode>>{this->_expression};
 }
 
-ExpressionSyntax *ExpressionStatementSyntax::getExpression() {
-  return this->expression;
+std::shared_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
+  return this->_expression;
 }
 
 std::string ExpressionStatementSyntax::getLineNumberAndColumn() const {
-  return this->expression->getLineNumberAndColumn();
-}
-
-ExpressionStatementSyntax::~ExpressionStatementSyntax() {
-  if (this->expression != nullptr) {
-    delete this->expression;
-    this->expression = nullptr;
-  }
+  return this->_expression->getLineNumberAndColumn();
 }

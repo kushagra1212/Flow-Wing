@@ -1,55 +1,43 @@
 #include "ParenthesizedExpressionSyntax.h"
 
 ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
-    SyntaxToken<std::any> *openParenthesisToken, ExpressionSyntax *expression,
-    SyntaxToken<std::any> *closeParenthesisToken) {
-  this->openParenthesisToken = openParenthesisToken;
-  this->expression = expression;
-  this->closeParenthesisToken = closeParenthesisToken;
-  children.push_back(this->openParenthesisToken);
-  children.push_back(this->expression);
-  children.push_back(this->closeParenthesisToken);
+    std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken,
+    std::shared_ptr<ExpressionSyntax> expression,
+    std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken) {
+  this->_openParenthesisToken = openParenthesisToken;
+  this->_expression = expression;
+  this->_closeParenthesisToken = closeParenthesisToken;
 }
 
 SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
 
-SyntaxToken<std::any> *
+std::shared_ptr<SyntaxToken<std::any>>
 ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
-  return this->openParenthesisToken;
+  return this->_openParenthesisToken;
 }
 
-ExpressionSyntax *ParenthesizedExpressionSyntax::getExpression() {
-  return this->expression;
+std::shared_ptr<ExpressionSyntax>
+ParenthesizedExpressionSyntax::getExpression() {
+  return this->_expression;
 }
 
-SyntaxToken<std::any> *
+std::shared_ptr<SyntaxToken<std::any>>
 ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
-  return this->closeParenthesisToken;
+  return this->_closeParenthesisToken;
 }
 
-std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
+std::vector<std::shared_ptr<SyntaxNode>>
+ParenthesizedExpressionSyntax::getChildren() {
+
+  std::vector<std::shared_ptr<SyntaxNode>> children = {
+      this->_openParenthesisToken, this->_expression,
+      this->_closeParenthesisToken};
+
   return children;
 }
 
 std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() const {
-  return this->openParenthesisToken->getLineNumberAndColumn();
-}
-
-ParenthesizedExpressionSyntax::~ParenthesizedExpressionSyntax() {
-  if (this->openParenthesisToken != nullptr) {
-    delete this->openParenthesisToken;
-    this->openParenthesisToken = nullptr;
-  }
-
-  if (this->expression != nullptr) {
-    delete this->expression;
-    this->expression = nullptr;
-  }
-
-  if (this->closeParenthesisToken != nullptr) {
-    delete this->closeParenthesisToken;
-    this->closeParenthesisToken = nullptr;
-  }
+  return this->_openParenthesisToken->getLineNumberAndColumn();
 }

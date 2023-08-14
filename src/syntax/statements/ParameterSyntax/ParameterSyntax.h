@@ -10,18 +10,16 @@
 class ParameterSyntax : public SyntaxNode {
 
 private:
-  SyntaxToken<std::any> *_identifierToken;
+  std::shared_ptr<SyntaxToken<std::any>> _identifierToken;
 
 public:
-  ParameterSyntax(SyntaxToken<std::any> *identifierToken);
+  ParameterSyntax(std::shared_ptr<SyntaxToken<std::any>> identifierToken);
 
-  ~ParameterSyntax();
-
-  SyntaxToken<std::any> *getIdentifierToken() const;
+  std::shared_ptr<SyntaxToken<std::any>> getIdentifierToken() const;
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
 
   std::string getLineNumberAndColumn() const override;
 };

@@ -3,22 +3,20 @@
 #include "LiteralExpressionSyntax.h"
 class VariableExpressionSyntax : public ExpressionSyntax {
 private:
-  LiteralExpressionSyntax<std::any> *identifierExpression;
+  std::shared_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
 
 public:
   VariableExpressionSyntax(
-      LiteralExpressionSyntax<std::any> *identifierExpression);
-
-  ~VariableExpressionSyntax();
+      std::shared_ptr<LiteralExpressionSyntax<std::any>> identifierExpression);
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 
 public:
-  LiteralExpressionSyntax<std::any> *getIdentifier();
+  std::shared_ptr<LiteralExpressionSyntax<std::any>> getIdentifier();
 
 public:
-  std::vector<SyntaxNode *> getChildren();
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren();
 
 public:
   std::string getLineNumberAndColumn() const override;

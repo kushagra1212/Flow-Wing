@@ -1,48 +1,32 @@
 #include "ForStatementSyntax.h"
 
-ForStatementSyntax::ForStatementSyntax(StatementSyntax *initialization,
-                                       ExpressionSyntax *upperBound,
-                                       BlockStatementSyntax *statement)
-    : initialization(initialization), upperBound(upperBound),
-      statement(statement) {}
+ForStatementSyntax::ForStatementSyntax(
+    std::shared_ptr<StatementSyntax> initialization,
+    std::shared_ptr<ExpressionSyntax> upperBound,
+    std::shared_ptr<BlockStatementSyntax> statement)
+    : _initialization(initialization), _upperBound(upperBound),
+      _statement(statement) {}
 
-BlockStatementSyntax *ForStatementSyntax::getStatement() const {
-  return this->statement;
+std::shared_ptr<BlockStatementSyntax> ForStatementSyntax::getStatement() const {
+  return this->_statement;
 }
 
 SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::ForStatement;
 }
 
-std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
-  return {this->initialization, (SyntaxNode *)this->statement};
+std::vector<std::shared_ptr<SyntaxNode>> ForStatementSyntax::getChildren() {
+  return {this->_initialization, this->_statement};
 }
 
-ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
-  return this->upperBound;
+std::shared_ptr<ExpressionSyntax> ForStatementSyntax::getUpperBound() const {
+  return this->_upperBound;
 }
 
-StatementSyntax *ForStatementSyntax::getInitialization() const {
-  return this->initialization;
+std::shared_ptr<StatementSyntax> ForStatementSyntax::getInitialization() const {
+  return this->_initialization;
 }
 
 std::string ForStatementSyntax::getLineNumberAndColumn() const {
-  return this->initialization->getLineNumberAndColumn();
-}
-
-ForStatementSyntax::~ForStatementSyntax() {
-  if (this->initialization != nullptr) {
-    delete this->initialization;
-    this->initialization = nullptr;
-  }
-
-  if (this->upperBound != nullptr) {
-    delete this->upperBound;
-    this->upperBound = nullptr;
-  }
-
-  if (this->statement != nullptr) {
-    delete this->statement;
-    this->statement = nullptr;
-  }
+  return this->_initialization->getLineNumberAndColumn();
 }

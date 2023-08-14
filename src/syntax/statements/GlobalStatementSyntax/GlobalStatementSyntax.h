@@ -7,18 +7,16 @@
 #include "../StatementSyntax.h"
 class GlobalStatementSyntax : public MemberSyntax {
 private:
-  StatementSyntax *_statement;
+  std::shared_ptr<StatementSyntax> _statement;
 
 public:
-  GlobalStatementSyntax(StatementSyntax *statement);
+  GlobalStatementSyntax(std::shared_ptr<StatementSyntax> statement);
 
-  ~GlobalStatementSyntax();
-
-  StatementSyntax *getStatement() const;
+  std::shared_ptr<StatementSyntax> getStatement() const;
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
 
   std::string getLineNumberAndColumn() const override;
 };

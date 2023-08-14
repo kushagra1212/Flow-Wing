@@ -8,10 +8,10 @@ template class LiteralExpressionSyntax<std::string>;
 template class LiteralExpressionSyntax<char>;
 template <typename T>
 LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
-    SyntaxToken<std::any> *token, T value) {
+    std::shared_ptr<SyntaxToken<std::any>> token, T value) {
 
-  this->token = token;
-  this->value = value;
+  this->_token = token;
+  this->_value = value;
 }
 template <typename T>
 SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() {
@@ -21,27 +21,21 @@ template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->getKind());
 }
 template <typename T>
-SyntaxToken<std::any> *LiteralExpressionSyntax<T>::getToken() {
-  return this->token;
+std::shared_ptr<SyntaxToken<std::any>> LiteralExpressionSyntax<T>::getToken() {
+  return this->_token;
 }
 template <typename T>
-std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
+std::vector<std::shared_ptr<SyntaxNode>>
+LiteralExpressionSyntax<T>::getChildren() {
 
-  std::vector<SyntaxNode *> children = {this->token};
+  std::vector<std::shared_ptr<SyntaxNode>> children = {this->_token};
   return children;
 }
 template <typename T> T LiteralExpressionSyntax<T>::getValue() {
-  return this->value;
+  return this->_value;
 }
 
 template <typename T>
 std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() const {
-  return this->token->getLineNumberAndColumn();
-}
-
-template <typename T> LiteralExpressionSyntax<T>::~LiteralExpressionSyntax() {
-  if (this->token != nullptr) {
-    delete this->token;
-    this->token = nullptr;
-  }
+  return this->_token->getLineNumberAndColumn();
 }

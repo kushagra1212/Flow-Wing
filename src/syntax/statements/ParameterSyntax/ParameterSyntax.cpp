@@ -2,11 +2,13 @@
 
 #include "ParameterSyntax.h"
 
-ParameterSyntax::ParameterSyntax(SyntaxToken<std::any> *identifierToken) {
+ParameterSyntax::ParameterSyntax(
+    std::shared_ptr<SyntaxToken<std::any>> identifierToken) {
   _identifierToken = identifierToken;
 }
 
-SyntaxToken<std::any> *ParameterSyntax::getIdentifierToken() const {
+std::shared_ptr<SyntaxToken<std::any>>
+ParameterSyntax::getIdentifierToken() const {
   return _identifierToken;
 }
 
@@ -18,15 +20,8 @@ std::string ParameterSyntax::getLineNumberAndColumn() const {
   return _identifierToken->getLineNumberAndColumn();
 }
 
-std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {};
+std::vector<std::shared_ptr<SyntaxNode>> ParameterSyntax::getChildren() {
+  std::vector<std::shared_ptr<SyntaxNode>> children = {};
   children.push_back(_identifierToken);
   return children;
-}
-
-ParameterSyntax::~ParameterSyntax() {
-  if (_identifierToken != nullptr) {
-    delete _identifierToken;
-    _identifierToken = nullptr;
-  }
 }

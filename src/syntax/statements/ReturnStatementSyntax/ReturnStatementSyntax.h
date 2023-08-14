@@ -10,19 +10,17 @@
 
 class ReturnStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_returnKeyword;
-  ExpressionSyntax *_expression;
+  std::shared_ptr<SyntaxToken<std::any>> _returnKeyword;
+  std::shared_ptr<ExpressionSyntax> _expression;
 
 public:
-  ReturnStatementSyntax(SyntaxToken<std::any> *returnKeyword,
-                        ExpressionSyntax *expression);
+  ReturnStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> returnKeyword,
+                        std::shared_ptr<ExpressionSyntax> expression);
 
-  ~ReturnStatementSyntax();
+  std::shared_ptr<SyntaxToken<std::any>> getReturnKeyword() const;
+  std::shared_ptr<ExpressionSyntax> getExpression() const;
 
-  SyntaxToken<std::any> *getReturnKeyword() const;
-  ExpressionSyntax *getExpression() const;
-
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
   SyntaxKindUtils::SyntaxKind getKind() override;
 
   std::string getLineNumberAndColumn() const override;

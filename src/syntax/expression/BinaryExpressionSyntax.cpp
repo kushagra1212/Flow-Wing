@@ -1,49 +1,38 @@
 #include "BinaryExpressionSyntax.h"
 
 BinaryExpressionSyntax::BinaryExpressionSyntax(
-    ExpressionSyntax *left, SyntaxToken<std::any> *operatorToken,
-    ExpressionSyntax *right) {
-  this->left = left;
-  this->operatorToken = operatorToken;
-  this->right = right;
-  children.push_back(this->left);
-  children.push_back(this->operatorToken);
-  children.push_back(this->right);
+    std::shared_ptr<ExpressionSyntax> left,
+    std::shared_ptr<SyntaxToken<std::any>> operatorToken,
+    std::shared_ptr<ExpressionSyntax> right) {
+  this->_left = left;
+  this->_operatorToken = operatorToken;
+  this->_right = right;
 }
 
 SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::BinaryExpression;
 }
 
-ExpressionSyntax *BinaryExpressionSyntax::getLeft() { return this->left; }
-
-SyntaxToken<std::any> *BinaryExpressionSyntax::getOperatorToken() {
-  return this->operatorToken;
+std::shared_ptr<ExpressionSyntax> BinaryExpressionSyntax::getLeft() {
+  return this->_left;
 }
 
-ExpressionSyntax *BinaryExpressionSyntax::getRight() { return this->right; }
+std::shared_ptr<SyntaxToken<std::any>>
+BinaryExpressionSyntax::getOperatorToken() {
+  return this->_operatorToken;
+}
 
-std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
+std::shared_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
+  return this->_right;
+}
+
+std::vector<std::shared_ptr<SyntaxNode>> BinaryExpressionSyntax::getChildren() {
+
+  std::vector<std::shared_ptr<SyntaxNode>> children = {
+      this->_left, this->_operatorToken, this->_right};
   return children;
 }
 
 std::string BinaryExpressionSyntax::getLineNumberAndColumn() const {
-  return this->left->getLineNumberAndColumn();
-}
-
-BinaryExpressionSyntax::~BinaryExpressionSyntax() {
-  if (this->left != nullptr) {
-    delete this->left;
-    this->left = nullptr;
-  }
-
-  if (this->operatorToken != nullptr) {
-    delete this->operatorToken;
-    this->operatorToken = nullptr;
-  }
-
-  if (this->right != nullptr) {
-    delete this->right;
-    this->right = nullptr;
-  }
+  return this->_left->getLineNumberAndColumn();
 }

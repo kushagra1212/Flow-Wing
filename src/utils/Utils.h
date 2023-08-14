@@ -10,9 +10,10 @@
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include <typeinfo>
 namespace Utils {
-void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
+void prettyPrint(std::shared_ptr<SyntaxNode> node, std::string indent = "",
+                 bool isLast = true);
 
-void prettyPrint(CompilationUnitSyntax *compilationUnit,
+void prettyPrint(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
                  std::string indent = "", bool isLast = true);
 
 void prettyPrint(BoundNode *statement, std::string indent = "",

@@ -9,29 +9,27 @@
 
 class ForStatementSyntax : public StatementSyntax {
 
+private:
+  std::shared_ptr<StatementSyntax> _initialization;
+  std::shared_ptr<BlockStatementSyntax> _statement;
+  std::shared_ptr<ExpressionSyntax> _upperBound;
+
 public:
-  ForStatementSyntax(StatementSyntax *initialization,
-                     ExpressionSyntax *upperBound,
-                     BlockStatementSyntax *statement);
+  ForStatementSyntax(std::shared_ptr<StatementSyntax> initialization,
+                     std::shared_ptr<ExpressionSyntax> upperBound,
+                     std::shared_ptr<BlockStatementSyntax> statement);
 
-  ~ForStatementSyntax();
+  std::shared_ptr<BlockStatementSyntax> getStatement() const;
 
-  BlockStatementSyntax *getStatement() const;
+  std::shared_ptr<StatementSyntax> getInitialization() const;
 
-  StatementSyntax *getInitialization() const;
-
-  std::vector<SyntaxNode *> getChildren() override;
+  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
 
   SyntaxKindUtils::SyntaxKind getKind() override;
 
-  ExpressionSyntax *getUpperBound() const;
+  std::shared_ptr<ExpressionSyntax> getUpperBound() const;
 
   std::string getLineNumberAndColumn() const override;
-
-private:
-  StatementSyntax *initialization;
-  BlockStatementSyntax *statement;
-  ExpressionSyntax *upperBound;
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

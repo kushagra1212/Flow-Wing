@@ -1,21 +1,16 @@
 #include "ContinueStatementSyntax.h"
 
 ContinueStatementSyntax::ContinueStatementSyntax(
-    SyntaxToken<std::any> *continueKeyword)
+    std::shared_ptr<SyntaxToken<std::any>> continueKeyword)
     : _continueKeyword(continueKeyword) {}
 
-ContinueStatementSyntax::~ContinueStatementSyntax() {
-  if (_continueKeyword != nullptr) {
-    delete _continueKeyword;
-    _continueKeyword = nullptr;
-  }
-}
-
-SyntaxToken<std::any> *ContinueStatementSyntax::getContinueKeyword() const {
+std::shared_ptr<SyntaxToken<std::any>>
+ContinueStatementSyntax::getContinueKeyword() const {
   return _continueKeyword;
 }
 
-std::vector<SyntaxNode *> ContinueStatementSyntax::getChildren() {
+std::vector<std::shared_ptr<SyntaxNode>>
+ContinueStatementSyntax::getChildren() {
   return {_continueKeyword};
 }
 
