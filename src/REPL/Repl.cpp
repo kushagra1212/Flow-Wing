@@ -44,7 +44,7 @@ void Repl::runWithStream(std::istream &inputStream,
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
-
+        delete parser;
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
@@ -53,6 +53,7 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 3) {
           Utils::printErrors(parser->logs, outputStream);
+          delete parser;
         } else
           outputStream << YELLOW << "... " << RESET;
 
@@ -67,9 +68,7 @@ void Repl::runWithStream(std::istream &inputStream,
     }
 
     if (!exit) {
-      if (showSyntaxTree) {
-        Utils::prettyPrint(compilationUnit.get());
-      }
+
       compileAndEvaluate(compilationUnit, outputStream);
     }
   }
@@ -78,6 +77,10 @@ void Repl::runWithStream(std::istream &inputStream,
 void Repl::compileAndEvaluate(
     std::shared_ptr<CompilationUnitSyntax> compilationUnit,
     std::ostream &outputStream) {
+
+  if (showSyntaxTree) {
+    Utils::prettyPrint(compilationUnit.get());
+  }
 
   IRGenerator *currentEvaluator =
       new IRGenerator(previousEvaluator, compilationUnit.get());
