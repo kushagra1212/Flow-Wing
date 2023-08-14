@@ -380,28 +380,29 @@ BoundExpression *Binder::bindExpression(ExpressionSyntax *syntax) {
   }
 }
 BoundScope *Binder::CreateParentScope(BoundScopeGlobal *parent) {
-  std::stack<BoundScopeGlobal *> stack = std::stack<BoundScopeGlobal *>();
+  // std::stack<BoundScopeGlobal *> stack = std::stack<BoundScopeGlobal *>();
 
-  while (parent != nullptr) {
-    stack.push(parent);
-    parent = parent->previous;
-  }
+  // while (parent != nullptr) {
+  //   stack.push(parent);
+  //   parent = parent->previous;
+  // }
 
-  BoundScope *current = nullptr;
+  // BoundScope *current = nullptr;
 
-  while (!stack.empty()) {
-    parent = stack.top();
-    stack.pop();
-    BoundScope *scope = new BoundScope(current);
+  // while (!stack.empty()) {
+  //   parent = stack.top();
+  //   stack.pop();
+  //   BoundScope *scope = new BoundScope(current);
 
-    for (auto &pair : parent->variables) {
-      scope->variables[pair.first] = pair.second;
-    }
+  //   for (auto &pair : parent->variables) {
+  //     scope->variables[pair.first] = pair.second;
+  //   }
 
-    current = scope;
-  }
+  //   current = scope;
+  // }
 
-  return current;
+  // return current;
+  return nullptr;
 }
 
 BoundStatement *
@@ -498,18 +499,14 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 }
 
 BoundScopeGlobal *
-Binder::bindGlobalScope(BoundScopeGlobal *previous,
+Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         std::shared_ptr<CompilationUnitSyntax> syntax) {
-  if (!syntax) {
-    std::cout << "null\n";
-    return nullptr;
-  }
 
   Binder *binder = new Binder(nullptr);
 
-  if (previous) {
-    binder->root->variables = previous->variables;
-    binder->root->functions = previous->functions;
+  if (previousGlobalScope) {
+    binder->root->variables = previousGlobalScope->variables;
+    binder->root->functions = previousGlobalScope->functions;
   }
 
   std::vector<BoundStatement *> statements;
@@ -535,7 +532,8 @@ Binder::bindGlobalScope(BoundScopeGlobal *previous,
 
   verifyAllCallsAreValid(binder);
 
-  BoundStatement *statement = new BoundBlockStatement("", statements, true);
+  std::unique_ptr<BoundStatement> statement =
+      std::make_unique<BoundBlockStatement>("", statements, true);
 
   std::vector<std::string> _logs;
 
@@ -543,8 +541,8 @@ Binder::bindGlobalScope(BoundScopeGlobal *previous,
     _logs.push_back(log);
   }
 
-  if (previous != nullptr) {
-    for (const std::string &log : previous->logs) {
+  if (previousGlobalScope != nullptr) {
+    for (const std::string &log : previousGlobalScope->logs) {
       _logs.push_back(log);
     }
   }
@@ -553,7 +551,8 @@ Binder::bindGlobalScope(BoundScopeGlobal *previous,
   std::map<std::string, BoundFunctionDeclaration *> functions =
       binder->root->functions;
 
-  return new BoundScopeGlobal(previous, variables, functions, _logs, statement);
+  return new BoundScopeGlobal(std::move(previousGlobalScope), variables,
+                              functions, _logs, std::move(statement));
 }
 
 Binder::~Binder() {

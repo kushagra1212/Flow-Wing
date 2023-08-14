@@ -9,8 +9,7 @@ class IRGenerator {
   _getModule(const std::vector<std::string> &irFilePaths);
 
 public:
-  IRGenerator(IRGenerator *previousEvaluator,
-              std::shared_ptr<CompilationUnitSyntax> compilationUnit);
+  IRGenerator();
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -37,10 +36,9 @@ public:
   llvm::Function *generateEvaluateStatement(BoundStatement *node);
 
   void executeGeneratedCode();
-  std::shared_ptr<CompilationUnitSyntax> _compilationUnit;
   BoundScopeGlobal *getRoot();
-  IRGenerator *previous = nullptr;
-  BoundScopeGlobal *root = nullptr;
+
+  BoundScopeGlobal *_previousGlobalScope = nullptr;
 
   llvm::Function *getFunction(llvm::Type *Result, std::string name,
                               bool isVarArg);

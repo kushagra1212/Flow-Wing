@@ -69,7 +69,7 @@ public:
   static void verifyAllCallsAreValid(Binder *binder);
 
   static BoundScopeGlobal *
-  bindGlobalScope(BoundScopeGlobal *previous,
+  bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previous,
                   std::shared_ptr<CompilationUnitSyntax> syntax);
 
 public:

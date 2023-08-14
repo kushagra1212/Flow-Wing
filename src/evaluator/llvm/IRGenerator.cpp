@@ -1,13 +1,7 @@
 #include "IRGenerator.h"
 
-IRGenerator::IRGenerator(
-    IRGenerator *previous,
-    std::shared_ptr<CompilationUnitSyntax> compilationUnit) {
+IRGenerator::IRGenerator() {
 
-  this->_compilationUnit = std::move(compilationUnit);
-
-  std::cout << _compilationUnit->getMembers().size();
-  this->previous = previous;
   TheContext = std::make_unique<llvm::LLVMContext>();
   std::vector<std::string> irFilePaths = {
       "../../../src/evaluator/IRFiles/functions.ll"};
@@ -17,20 +11,6 @@ IRGenerator::IRGenerator(
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
   this->defineStandardFunctions();
-}
-BoundScopeGlobal *IRGenerator::getRoot() {
-  if (root == nullptr) {
-    if (previous != nullptr) {
-      root = Binder::bindGlobalScope(previous->root, (_compilationUnit));
-    } else {
-
-      root = Binder::bindGlobalScope(nullptr, (_compilationUnit));
-    }
-
-    // this->variable_stack.push(this->root->variables);
-    // this->function_stack.push(this->root->functions);
-  }
-  return root;
 }
 
 llvm::Function *

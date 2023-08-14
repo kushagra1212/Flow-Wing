@@ -89,20 +89,22 @@ void Repl::compileAndEvaluate(
 
   if (showSyntaxTree) {
     Utils::prettyPrint(compilationUnit.get());
+    return;
   }
 
-  IRGenerator *currentEvaluator =
-      new IRGenerator(nullptr, std::move(compilationUnit));
-  BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
+  BoundScopeGlobal *globalScope =
+      Binder::bindGlobalScope(nullptr, std::move(compilationUnit));
 
   if (showBoundTree) {
-    Utils::prettyPrint(globalScope->statement);
+    Utils::prettyPrint(globalScope->statement.get());
+    return;
   }
 
+  IRGenerator *currentEvaluator = new IRGenerator();
   try {
 
-    llvm::Value *generatedIR =
-        currentEvaluator->generateEvaluateStatement(globalScope->statement);
+    llvm::Value *generatedIR = currentEvaluator->generateEvaluateStatement(
+        globalScope->statement.get());
     // std::any result = currentEvaluator->last_value;
     currentEvaluator->printIR();
     currentEvaluator->executeGeneratedCode();

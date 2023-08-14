@@ -6,10 +6,11 @@
 #include "../../BoundStatement/BoundStatement.h"
 class BoundScopeGlobal {
 public:
-  BoundScopeGlobal(BoundScopeGlobal *previous,
+  BoundScopeGlobal(std::unique_ptr<BoundScopeGlobal> previous,
                    std::map<std::string, Utils::Variable> variables,
                    std::map<std::string, BoundFunctionDeclaration *> functions,
-                   std::vector<std::string> logs, BoundStatement *statement);
+                   std::vector<std::string> logs,
+                   std::unique_ptr<BoundStatement> statement);
 
   ~BoundScopeGlobal();
   bool tryLookupVariable(std::string name);
@@ -17,9 +18,9 @@ public:
   Utils::Variable getVariable(std::string name);
 
 public:
-  BoundScopeGlobal *previous;
+  std::unique_ptr<BoundScopeGlobal> previous;
   std::map<std::string, Utils::Variable> variables;
   std::map<std::string, BoundFunctionDeclaration *> functions;
   std::vector<std::string> logs;
-  BoundStatement *statement;
+  std::unique_ptr<BoundStatement> statement;
 };
