@@ -18,7 +18,10 @@ Parser::Parser(const std::vector<std::string> &text) {
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
         _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
       this->tokens.push_back(std::move(token));
+    } else {
+      delete token.release();
     }
+
   } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
 
   for (auto log : lexer->logs) {

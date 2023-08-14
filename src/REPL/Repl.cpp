@@ -13,6 +13,7 @@ void Repl::run() {
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
+  std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   while (!exit) {
 
     outputStream << GREEN << ">>> " << RESET;
@@ -21,7 +22,6 @@ void Repl::runWithStream(std::istream &inputStream,
     std::string line;
     int emptyLines = 0;
 
-    std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
     while (true) {
       std::getline(inputStream, line);
       if (handleSpecialCommands(line)) {
@@ -55,6 +55,7 @@ void Repl::runWithStream(std::istream &inputStream,
           Utils::printErrors(parser->logs, outputStream);
         } else
           outputStream << YELLOW << "... " << RESET;
+
         continue;
       }
 

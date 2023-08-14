@@ -58,11 +58,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
         std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
             std::make_unique<SyntaxToken<std::any>>(
                 this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
-                text, 0);
+                text, text);
         this->logs.push_back(
             Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
             "ERROR: bad number input not double: " + text);
-        return newSyntaxToken;
+        return std::move(newSyntaxToken);
       }
       double res = stod(text);
 
@@ -340,18 +340,19 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
     return this->readString();
 
   default:
+    int _pos = this->position;
+    int _len = this->text[lineNumber].length() - this->position;
 
     std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
         std::make_unique<SyntaxToken<std::any>>(
             this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken,
-            this->position++,
-            this->text[lineNumber].substr(this->position - 1, 1),
-            this->text[lineNumber].substr(this->position - 1, 1));
+            this->position++, this->text[lineNumber].substr(_pos, _len),
+            this->text[lineNumber].substr(_pos, _len));
     this->logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
                          "ERROR: bad character input: " +
-                         this->text[lineNumber].substr(this->position, 1));
+                         this->text[lineNumber].substr(_pos, _len));
 
-    return newSyntaxToken;
+    return std::move(newSyntaxToken);
   }
 
   return std::make_unique<SyntaxToken<std::any>>(
@@ -403,7 +404,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString() {
             Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
             "ERROR: bad character escape sequence: \\" +
             this->text[lineNumber].substr(this->position, 1));
-        return newSyntaxToken;
+        return std::move(newSyntaxToken);
       }
     } else {
       text += this->getCurrent();
