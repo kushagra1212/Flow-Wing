@@ -516,22 +516,7 @@ llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 }
 
 void IRGenerator::executeGeneratedCode() {
-  // Initialize LLVM
-  // std::vector<std::string> functionNames = {"malloc", "concat_strings",
-  //                                           "strlen", "memcpy"};
 
-  // for (const std::string &funcName : functionNames) {
-  //   llvm::Function *function = TheModule->getFunction(funcName);
-
-  //   if (function) {
-  //     std::cout << "Function " << funcName << " is defined in the
-  //     module.\n"; std::cout << "Function IR:\n";
-  //     function->print(llvm::errs());
-  //   } else {
-  //     std::cout << "Function " << funcName
-  //               << " is not defined in the module.\n";
-  //   }
-  // }
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction("evaluateBlockStatement");
   std::string errorMessage;

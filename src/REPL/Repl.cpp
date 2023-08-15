@@ -4,6 +4,7 @@ Repl::Repl()
     : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {}
 
 Repl::~Repl() {}
+std::mutex textMutex;
 
 void Repl::run() {
   printWelcomeMessage(std::cout);
@@ -37,6 +38,7 @@ void Repl::runWithStream(std::istream &inputStream,
       }
       emptyLines = 0;
 
+      std::lock_guard<std::mutex> lock(textMutex);
       text.push_back(line);
 
       parser = std::make_unique<Parser>(text);
@@ -44,7 +46,7 @@ void Repl::runWithStream(std::istream &inputStream,
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
-
+        parser.release();
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
@@ -53,7 +55,9 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 3) {
           Utils::printErrors(parser->logs, outputStream);
-
+          text = std::vector<std::string>();
+          parser.reset();
+          compilationUnit.reset();
         } else
           outputStream << YELLOW << "... " << RESET;
 
@@ -61,7 +65,6 @@ void Repl::runWithStream(std::istream &inputStream,
       }
       break;
     }
-
     if (text.size() == 0) {
       continue;
     }
@@ -87,21 +90,22 @@ void Repl::compileAndEvaluate(
     Utils::prettyPrint(globalScope->statement.get());
     return;
   }
+  if (globalScope->logs.size()) {
+    Utils::printErrors(globalScope->logs, outputStream);
+    return;
+  }
 
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
     llvm::Value *generatedIR =
         _evaluator->generateEvaluateStatement(globalScope->statement.get());
-    _evaluator->printIR();
+    //  _evaluator->printIR();
     _evaluator->executeGeneratedCode();
-
-    if (globalScope->logs.size()) {
-      Utils::printErrors(globalScope->logs, outputStream);
-    }
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 void Repl::toggleExit() { exit = !exit; }

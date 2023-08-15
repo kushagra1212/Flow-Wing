@@ -56,6 +56,9 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 
+// JIT
+#include <llvm-14/llvm/ExecutionEngine/Orc/LLJIT.h>
+
 #include "../llvm/IRGenerator.h"
 
 namespace IRUtils {
