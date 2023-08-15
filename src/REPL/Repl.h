@@ -24,15 +24,13 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void compileAndEvaluate(std::ostream &outputStream);
+  void
+  compileAndEvaluate(std::ostream &outputStream,
+                     std::unique_ptr<CompilationUnitSyntax> compilationUnit);
 
   void toggleExit();
   // Data members
 private:
-  std::shared_ptr<BoundScopeGlobal> globalScope = nullptr;
-
-  std::shared_ptr<Parser> parser = nullptr;
-  std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   bool showSyntaxTree, showBoundTree, exit;
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();

@@ -13,31 +13,14 @@ void Repl::run() {
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
-  // std::vector<std::string> text = {"2+5"};
-  // std::unique_ptr<Parser> p = std::make_unique<Parser>(text);
-
-  // std::unique_ptr<CompilationUnitSyntax> cu =
-  //     std::move(p->parseCompilationUnit());
-
-  // Utils::prettyPrint(cu.get());
-  // std::unique_ptr<BoundScopeGlobal> gs =
-  //     std::move(Binder::bindGlobalScope(nullptr, cu.get()));
-
-  // Utils::prettyPrint(gs->statement.get());
-
-  // llvm::Value *generatedIR =
-  //     _evaluator->generateEvaluateStatement(gs->statement.get());
-  // // std::any result = currentEvaluator->last_value;
-  // _evaluator->printIR();
-  // _evaluator->executeGeneratedCode();
-
   while (!exit) {
     outputStream << GREEN << ">>> " << RESET;
 
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
-
+    std::unique_ptr<Parser> parser = nullptr;
+    std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
     while (std::getline(inputStream, line)) {
 
       if (handleSpecialCommands(line)) {
@@ -56,7 +39,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
       text.push_back(line);
 
-      parser = std::make_shared<Parser>(text);
+      parser = std::make_unique<Parser>(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
@@ -64,7 +47,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
         break;
       }
-      compilationUnit = (parser->parseCompilationUnit());
+      compilationUnit = std::move(parser->parseCompilationUnit());
 
       if (parser->logs.size()) {
         emptyLines++;
@@ -86,16 +69,19 @@ void Repl::runWithStream(std::istream &inputStream,
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
       }
-      compileAndEvaluate(outputStream);
+      compileAndEvaluate(outputStream, std::move(compilationUnit));
 
       text = std::vector<std::string>();
     }
   }
 }
 
-void Repl::compileAndEvaluate(std::ostream &outputStream) {
+void Repl::compileAndEvaluate(
+    std::ostream &outputStream,
+    std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  globalScope = Binder::bindGlobalScope(nullptr, compilationUnit.get());
+  std::unique_ptr<BoundScopeGlobal> globalScope =
+      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
 
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement.get());
@@ -165,7 +151,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   if (parser->logs.size()) {
     Utils::printErrors(parser->logs, outputStream);
   } else if (!exit)
-    compileAndEvaluate(outputStream);
+    compileAndEvaluate(outputStream, nullptr);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
