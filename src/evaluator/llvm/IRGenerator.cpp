@@ -427,11 +427,38 @@ IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
 
   Builder->SetInsertPoint(BB);
   for (int i = 0; i < functions.size(); i++) {
-    result = Builder->CreateCall(functions[i]);
+    llvm::Value *res = Builder->CreateCall(functions[i]);
+    result = res;
   }
   llvm::Value *returnValue = Builder->CreateRet(result);
 
   NamedValues = originalNamedValues;
+  llvm::verifyFunction(*F);
+  return F;
+}
+
+llvm::Function *IRGenerator::generateEvaluateVariableDeclaration(
+    BoundVariableDeclaration *node) {
+
+  std::string variable_name = node->getVariable();
+  llvm::Function *initilizerFunction =
+      this->generateEvaluateExpressionStatement(
+          node->getInitializerPtr().get());
+
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(initilizerFunction->getReturnType(), false);
+
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                             "evaluateVariableDeclaration", *TheModule);
+
+  llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
+
+  Builder->SetInsertPoint(BB);
+  llvm::Value *result = Builder->CreateCall(initilizerFunction);
+  NamedValues[variable_name] = result;
+  llvm::Value *returnValue = Builder->CreateRet(result);
+
   llvm::verifyFunction(*F);
   return F;
 }
@@ -452,9 +479,10 @@ llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
 
-    // this->evaluateVariableDeclaration((BoundVariableDeclaration *)node);
+    return this->generateEvaluateVariableDeclaration(
+        (BoundVariableDeclaration *)node);
 
-    // break;
+    break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
 

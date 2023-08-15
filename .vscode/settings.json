@@ -89,7 +89,8 @@
     "xutility": "cpp",
     "bitset": "cpp",
     "shared_mutex": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "future": "cpp"
   },
   "C_Cpp.errorSquiggles": "enabled"
 }

@@ -35,6 +35,9 @@ public:
   llvm::Function *generateEvaluateBlockStatement(BoundBlockStatement *node);
   llvm::Function *generateEvaluateStatement(BoundStatement *node);
 
+  llvm::Function *
+  generateEvaluateVariableDeclaration(BoundVariableDeclaration *node);
+
   void executeGeneratedCode();
   std::shared_ptr<BoundScopeGlobal> getRoot();
 

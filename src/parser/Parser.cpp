@@ -147,7 +147,7 @@ std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
   std::unique_ptr<SyntaxToken<std::any>> openBraceToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
 
-  blockStatement->setCloseBraceToken(std::move(openBraceToken));
+  blockStatement->setOpenBraceToken(std::move(openBraceToken));
 
   std::vector<std::unique_ptr<StatementSyntax>> statements;
   while (this->getCurrent()->getKind() !=
