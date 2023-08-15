@@ -3,25 +3,26 @@
 #include "ParameterSyntax.h"
 
 ParameterSyntax::ParameterSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> identifierToken) {
-  _identifierToken = identifierToken;
+    std::unique_ptr<SyntaxToken<std::any>> identifierToken) {
+  this->_identifierToken = std::move(identifierToken);
+
+  // Add children
+
+  _children.push_back(_identifierToken.get());
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-ParameterSyntax::getIdentifierToken() const {
-  return _identifierToken;
+std::unique_ptr<SyntaxToken<std::any>> ParameterSyntax::getIdentifierToken() {
+  return std::move(_identifierToken);
 }
 
-SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
-std::string ParameterSyntax::getLineNumberAndColumn() const {
+std::string ParameterSyntax::getLineNumberAndColumn() {
   return _identifierToken->getLineNumberAndColumn();
 }
 
-std::vector<std::shared_ptr<SyntaxNode>> ParameterSyntax::getChildren() {
-  std::vector<std::shared_ptr<SyntaxNode>> children = {};
-  children.push_back(_identifierToken);
-  return children;
+std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
+  return this->_children;
 }

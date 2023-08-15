@@ -1,29 +1,24 @@
 #pragma once
 #include "../../Common.h"
 #include "../BinderKindUtils.h"
+#include "../BoundNode.h"
 #include "../BoundStatement/BoundStatement.h"
 class BoundBlockStatement : public BoundStatement {
 private:
-  std::vector<std::shared_ptr<BoundStatement>> _statements;
+  std::vector<std::unique_ptr<BoundStatement>> _statements;
   bool _global;
 
 public:
-  BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<std::shared_ptr<BoundStatement>> statements,
-                      bool global);
-  BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<std::shared_ptr<BoundStatement>> statements);
+  BoundBlockStatement(std::string lineAndColumn, bool global);
+  BoundBlockStatement(std::string lineAndColumn);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
-
-public:
-  std::vector<std::shared_ptr<BoundStatement>> getStatements();
-
+  std::vector<std::unique_ptr<BoundStatement>> &getStatements();
+  void addStatement(std::unique_ptr<BoundStatement> statement);
   bool getGlobal() const;
 
-  std::string getLineNumberAndColumn() const override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  std::string getLineNumberAndColumn() override;
+
+  std::vector<BoundNode *> getChildren();
 };

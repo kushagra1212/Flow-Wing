@@ -1,40 +1,39 @@
 #include "BoundIfStatement.h"
 
 BoundIfStatement::BoundIfStatement(
-    const std::string &lineAndColumn,
-    std::shared_ptr<BoundExpression> condition,
-    std::shared_ptr<BoundStatement> thenStatement,
-    std::shared_ptr<BoundStatement> elseStatement)
-    : _condition(condition), _thenStatement(thenStatement),
-      _elseStatement(elseStatement) {
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> condition,
+    std::unique_ptr<BoundStatement> thenStatement,
+    std::unique_ptr<BoundStatement> elseStatement) {
   this->_lineAndColumn = lineAndColumn;
+  this->_condition = std::move(condition);
+  this->_thenStatement = std::move(thenStatement);
+  this->_elseStatement = std::move(elseStatement);
+
+  this->_children.push_back(this->_condition.get());
+  this->_children.push_back(this->_thenStatement.get());
+  this->_children.push_back(this->_elseStatement.get());
 }
 
-BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundIfStatement::getCondition() {
+  return std::move(_condition);
+}
+
+std::unique_ptr<BoundStatement> BoundIfStatement::getThenStatement() {
+  return std::move(_thenStatement);
+}
+
+std::unique_ptr<BoundStatement> BoundIfStatement::getElseStatement() {
+  return std::move(_elseStatement);
+}
+BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::IfStatement;
 }
 
-std::shared_ptr<BoundExpression> BoundIfStatement::getCondition() const {
-  return _condition;
-}
-
-std::shared_ptr<BoundStatement> BoundIfStatement::getThenStatement() const {
-  return _thenStatement;
-}
-
-std::shared_ptr<BoundStatement> BoundIfStatement::getElseStatement() const {
-  return _elseStatement;
-}
-
-std::string BoundIfStatement::getLineNumberAndColumn() const {
+std::string BoundIfStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-std::vector<std::shared_ptr<BoundNode>> BoundIfStatement::getChildren() {
-  std::vector<std::shared_ptr<BoundNode>> children;
-  children.push_back(_condition);
-  children.push_back(_thenStatement);
-  children.push_back(_elseStatement);
-  return children;
+std::vector<BoundNode *> BoundIfStatement::getChildren() {
+  return this->_children;
 }

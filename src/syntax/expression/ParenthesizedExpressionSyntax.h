@@ -4,32 +4,26 @@
 #include "ExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
 private:
-  std::shared_ptr<SyntaxToken<std::any>> _openParenthesisToken;
-  std::shared_ptr<ExpressionSyntax> _expression;
-  std::shared_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
+  std::unique_ptr<ExpressionSyntax> _expression;
+  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
 public:
   ParenthesizedExpressionSyntax(
-      std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken,
-      std::shared_ptr<ExpressionSyntax> expression,
-      std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken);
+      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+      std::unique_ptr<ExpressionSyntax> expression,
+      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
 
-public:
-  std::shared_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
+  std::unique_ptr<ExpressionSyntax> getExpression();
 
-public:
-  std::shared_ptr<ExpressionSyntax> getExpression();
+  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
-public:
-  std::shared_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };
 #endif

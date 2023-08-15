@@ -5,24 +5,19 @@
 
 class BoundParenthesizedExpression : public BoundExpression {
 private:
-  std::shared_ptr<BoundExpression> expression;
+  std::unique_ptr<BoundExpression> _expression;
 
 public:
-  BoundParenthesizedExpression(const std::string &lineAndColumn,
-                               std::shared_ptr<BoundExpression> expression);
+  BoundParenthesizedExpression(std::string lineAndColumn,
+                               std::unique_ptr<BoundExpression> expression);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
-
-public:
   const std::type_info &getType() override;
 
-public:
-  std::shared_ptr<BoundExpression> getExpression();
+  std::unique_ptr<BoundExpression> getExpression();
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::vector<BoundNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
 };

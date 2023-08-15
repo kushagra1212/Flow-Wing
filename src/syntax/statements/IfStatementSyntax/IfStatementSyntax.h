@@ -6,25 +6,26 @@
 #include "../ElseClauseSyntax/ElseClauseSyntax.h"
 #include "../StatementSyntax.h"
 class IfStatementSyntax : public StatementSyntax {
-public:
-  IfStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> ifKeyword,
-                    std::shared_ptr<ExpressionSyntax> condition,
-                    std::shared_ptr<BlockStatementSyntax> statement,
-                    std::shared_ptr<ElseClauseSyntax> elseClause);
-
-  std::shared_ptr<SyntaxToken<std::any>> getIfKeyword() const;
-  std::shared_ptr<ExpressionSyntax> getCondition() const;
-  std::shared_ptr<BlockStatementSyntax> getStatement() const;
-  std::shared_ptr<ElseClauseSyntax> getElseClause() const;
-
-  SyntaxKindUtils::SyntaxKind getKind() override;
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
-
-  std::string getLineNumberAndColumn() const override;
-
 private:
-  std::shared_ptr<SyntaxToken<std::any>> ifKeyword;
-  std::shared_ptr<ExpressionSyntax> condition;
-  std::shared_ptr<BlockStatementSyntax> statement;
-  std::shared_ptr<ElseClauseSyntax> elseClause;
+  std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
+  std::unique_ptr<ExpressionSyntax> condition;
+  std::unique_ptr<BlockStatementSyntax> statement;
+  std::unique_ptr<ElseClauseSyntax> elseClause;
+
+public:
+  IfStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
+                    std::unique_ptr<ExpressionSyntax> condition,
+                    std::unique_ptr<BlockStatementSyntax> statement,
+                    std::unique_ptr<ElseClauseSyntax> elseClause);
+
+  std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();
+  std::unique_ptr<ExpressionSyntax> getCondition();
+  std::unique_ptr<BlockStatementSyntax> getStatement();
+  std::unique_ptr<ElseClauseSyntax> getElseClause();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::vector<SyntaxNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
 };

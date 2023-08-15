@@ -7,22 +7,22 @@
 
 class BoundFunctionDeclaration : public BoundStatement {
 public:
-  std::shared_ptr<BoundBlockStatement> _body;
+  std::unique_ptr<BoundBlockStatement> _body;
   Utils::FunctionSymbol _functionSymbol;
 
-  BoundFunctionDeclaration(const std::string &lineAndColumn,
+  BoundFunctionDeclaration(std::string lineAndColumn,
                            Utils::FunctionSymbol functionSymbol,
-                           std::shared_ptr<BoundBlockStatement> body);
+                           std::unique_ptr<BoundBlockStatement> body);
 
-  BinderKindUtils::BoundNodeKind getKind() override;
+  std::unique_ptr<BoundBlockStatement> getBody();
 
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-  std::shared_ptr<BoundBlockStatement> getBody() const;
+  std::vector<BoundNode *> getChildren() override;
 
   Utils::FunctionSymbol getFunctionSymbol() const;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif

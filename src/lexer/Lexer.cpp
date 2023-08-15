@@ -2,8 +2,6 @@
 
 Lexer::Lexer(const std::vector<std::string> &text) { this->text = text; }
 
-Lexer::~Lexer() = default;
-
 char Lexer::getCurrent() {
   if (this->position >= this->text[lineNumber].length()) {
     return '\0';
@@ -68,7 +66,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
 
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start,
-          text, (res));
+          text, res);
     }
 
     int length = this->position - start;
@@ -87,13 +85,13 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
           "ERROR: bad number input not Int64: " + text);
-      return newSyntaxToken;
+      return std::move(newSyntaxToken);
     }
-    int res = stoi(text);
+    int resInt = stoi(text);
 
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
-        res);
+        int(resInt));
   }
 
   // Check true or false

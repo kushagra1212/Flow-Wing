@@ -1,42 +1,49 @@
 #include "IfStatementSyntax.h"
 
 IfStatementSyntax::IfStatementSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> ifKeyword,
-    std::shared_ptr<ExpressionSyntax> condition,
-    std::shared_ptr<BlockStatementSyntax> statement,
-    std::shared_ptr<ElseClauseSyntax> elseClause)
-    : ifKeyword(ifKeyword), condition(condition), statement(statement),
-      elseClause(elseClause) {}
+    std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
+    std::unique_ptr<ExpressionSyntax> condition,
+    std::unique_ptr<BlockStatementSyntax> statement,
+    std::unique_ptr<ElseClauseSyntax> elseClause) {
+  this->ifKeyword = std::move(ifKeyword);
+  this->condition = std::move(condition);
+  this->statement = std::move(statement);
+  this->elseClause = std::move(elseClause);
 
-std::shared_ptr<SyntaxToken<std::any>> IfStatementSyntax::getIfKeyword() const {
-  return ifKeyword;
+  // Add children
+
+  _children.push_back(this->ifKeyword.get());
+  _children.push_back(this->condition.get());
+  _children.push_back(this->statement.get());
+  if (this->elseClause != nullptr) {
+    _children.push_back(this->elseClause.get());
+  }
 }
 
-std::shared_ptr<ExpressionSyntax> IfStatementSyntax::getCondition() const {
-  return condition;
+std::unique_ptr<SyntaxToken<std::any>> IfStatementSyntax::getIfKeyword() {
+  return std::move(ifKeyword);
 }
 
-std::shared_ptr<BlockStatementSyntax> IfStatementSyntax::getStatement() const {
-  return statement;
+std::unique_ptr<ExpressionSyntax> IfStatementSyntax::getCondition() {
+  return std::move(condition);
 }
 
-std::shared_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() const {
-  return elseClause;
+std::unique_ptr<BlockStatementSyntax> IfStatementSyntax::getStatement() {
+  return std::move(statement);
 }
 
-SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() {
+std::unique_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() {
+  return std::move(elseClause);
+}
+
+SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 
-std::string IfStatementSyntax::getLineNumberAndColumn() const {
+std::string IfStatementSyntax::getLineNumberAndColumn() {
   return ifKeyword->getLineNumberAndColumn();
 }
 
-std::vector<std::shared_ptr<SyntaxNode>> IfStatementSyntax::getChildren() {
-  std::vector<std::shared_ptr<SyntaxNode>> children = {
-      ifKeyword, condition, (std::shared_ptr<SyntaxNode>)statement};
-  if (elseClause != nullptr) {
-    children.push_back(elseClause);
-  }
-  return children;
+std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
+  return this->_children;
 }

@@ -1,23 +1,26 @@
 #include "ContinueStatementSyntax.h"
 
 ContinueStatementSyntax::ContinueStatementSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> continueKeyword)
-    : _continueKeyword(continueKeyword) {}
+    std::unique_ptr<SyntaxToken<std::any>> continueKeyword) {
+  this->_continueKeyword = std::move(continueKeyword);
 
-std::shared_ptr<SyntaxToken<std::any>>
-ContinueStatementSyntax::getContinueKeyword() const {
-  return _continueKeyword;
+  // Add children
+  _children.push_back(_continueKeyword.get());
 }
 
-std::vector<std::shared_ptr<SyntaxNode>>
-ContinueStatementSyntax::getChildren() {
-  return {_continueKeyword};
+std::unique_ptr<SyntaxToken<std::any>>
+ContinueStatementSyntax::getContinueKeyword() {
+  return std::move(_continueKeyword);
 }
 
-SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() {
+std::vector<SyntaxNode *> ContinueStatementSyntax::getChildren() {
+  return this->_children;
+}
+
+SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContinueKeyword;
 }
 
-std::string ContinueStatementSyntax::getLineNumberAndColumn() const {
+std::string ContinueStatementSyntax::getLineNumberAndColumn() {
   return _continueKeyword->getLineNumberAndColumn();
 }

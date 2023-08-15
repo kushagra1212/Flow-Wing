@@ -1,38 +1,42 @@
 #include "BinaryExpressionSyntax.h"
 
 BinaryExpressionSyntax::BinaryExpressionSyntax(
-    std::shared_ptr<ExpressionSyntax> left,
-    std::shared_ptr<SyntaxToken<std::any>> operatorToken,
-    std::shared_ptr<ExpressionSyntax> right) {
-  this->_left = left;
-  this->_operatorToken = operatorToken;
-  this->_right = right;
+    std::unique_ptr<ExpressionSyntax> left,
+    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+    std::unique_ptr<ExpressionSyntax> right) {
+  this->_left = std::move(left);
+  this->_operatorToken = std::move(operatorToken);
+  this->_right = std::move(right);
+
+  // Add children
+
+  this->_children.push_back(_left.get());
+  this->_children.push_back(_operatorToken.get());
+  this->_children.push_back(_right.get());
 }
 
-SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() {
+std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getLeft() {
+  return std::move(this->_left);
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+BinaryExpressionSyntax::getOperatorToken() {
+  return std::move(this->_operatorToken);
+}
+
+std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
+  return std::move(this->_right);
+}
+
+SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BinaryExpression;
 }
 
-std::shared_ptr<ExpressionSyntax> BinaryExpressionSyntax::getLeft() {
-  return this->_left;
+std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
+
+  return this->_children;
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-BinaryExpressionSyntax::getOperatorToken() {
-  return this->_operatorToken;
-}
-
-std::shared_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
-  return this->_right;
-}
-
-std::vector<std::shared_ptr<SyntaxNode>> BinaryExpressionSyntax::getChildren() {
-
-  std::vector<std::shared_ptr<SyntaxNode>> children = {
-      this->_left, this->_operatorToken, this->_right};
-  return children;
-}
-
-std::string BinaryExpressionSyntax::getLineNumberAndColumn() const {
+std::string BinaryExpressionSyntax::getLineNumberAndColumn() {
   return this->_left->getLineNumberAndColumn();
 }

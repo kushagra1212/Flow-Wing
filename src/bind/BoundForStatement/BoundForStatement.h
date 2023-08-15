@@ -10,30 +10,30 @@
 class BoundForStatement : public BoundStatement {
 
 private:
-  std::shared_ptr<BoundStatement> _initialization;
+  std::unique_ptr<BoundStatement> _initialization;
 
-  std::shared_ptr<BoundStatement> _statement;
+  std::unique_ptr<BoundStatement> _statement;
 
-  std::shared_ptr<BoundExpression> _upperBound;
+  std::unique_ptr<BoundExpression> _upperBound;
 
 public:
-  BoundForStatement(const std::string &lineAndColumn,
-                    std::shared_ptr<BoundStatement> initialization,
-                    std::shared_ptr<BoundExpression> upperBound,
+  BoundForStatement(std::string lineAndColumn,
+                    std::unique_ptr<BoundStatement> initialization,
+                    std::unique_ptr<BoundExpression> upperBound,
 
-                    std::shared_ptr<BoundStatement> statement);
+                    std::unique_ptr<BoundStatement> statement);
 
-  std::shared_ptr<BoundStatement> getInitialization() const;
+  std::unique_ptr<BoundStatement> getInitialization();
 
-  std::shared_ptr<BoundStatement> getStatement() const;
+  std::unique_ptr<BoundStatement> getStatement();
 
-  std::shared_ptr<BoundExpression> getUpperBound() const;
+  std::unique_ptr<BoundExpression> getUpperBound();
 
-  BinderKindUtils::BoundNodeKind getKind() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  std::vector<BoundNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif // BOUND_FOR_STATEMENT_H

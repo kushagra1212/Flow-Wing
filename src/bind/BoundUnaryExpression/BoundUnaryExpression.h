@@ -4,29 +4,23 @@
 
 class BoundUnaryExpression : public BoundExpression {
 private:
-  BinderKindUtils::BoundUnaryOperatorKind op;
-  std::shared_ptr<BoundExpression> operand;
+  BinderKindUtils::BoundUnaryOperatorKind _op;
+  std::unique_ptr<BoundExpression> _operand;
 
 public:
-  BoundUnaryExpression(const std::string &lineAndColumn,
+  BoundUnaryExpression(std::string lineAndColumn,
                        BinderKindUtils::BoundUnaryOperatorKind op,
-                       std::shared_ptr<BoundExpression> operand);
+                       std::unique_ptr<BoundExpression> operand);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
-
-public:
   const std::type_info &getType() override;
 
-public:
+  std::unique_ptr<BoundExpression> getOperand();
+
   BinderKindUtils::BoundUnaryOperatorKind getOperator();
 
-public:
-  std::shared_ptr<BoundExpression> getOperand();
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  std::vector<BoundNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

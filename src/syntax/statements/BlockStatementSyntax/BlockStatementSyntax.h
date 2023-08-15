@@ -3,24 +3,29 @@
 #include "../StatementSyntax.h"
 class BlockStatementSyntax : public StatementSyntax {
 private:
-  std::shared_ptr<SyntaxToken<std::any>> _openBraceToken;
-  std::vector<std::shared_ptr<StatementSyntax>> _statements;
-  std::shared_ptr<SyntaxToken<std::any>> _closeBraceToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
+  std::vector<std::unique_ptr<StatementSyntax>> _statements;
+  std::unique_ptr<SyntaxToken<std::any>> _closeBraceToken;
 
 public:
-  BlockStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> openBraceToken,
-                       std::vector<std::shared_ptr<StatementSyntax>> statements,
-                       std::shared_ptr<SyntaxToken<std::any>> closeBraceToken);
+  BlockStatementSyntax();
 
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<SyntaxToken<std::any>> getOpenBraceToken();
 
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren();
+  std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
 
-  std::shared_ptr<SyntaxToken<std::any>> getOpenBraceToken();
+  void addStatement(std::unique_ptr<StatementSyntax> statement);
 
-  std::vector<std::shared_ptr<StatementSyntax>> getStatements();
+  void setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken);
 
-  std::shared_ptr<SyntaxToken<std::any>> getCloseBraceToken();
+  void
+  setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken);
 
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<SyntaxToken<std::any>> getCloseBraceToken();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::vector<SyntaxNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
 };

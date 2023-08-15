@@ -5,24 +5,24 @@
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 class WhileStatementSyntax : public StatementSyntax {
 private:
-  std::shared_ptr<SyntaxToken<std::any>> _whileKeyword;
-  std::shared_ptr<ExpressionSyntax> _condition;
-  std::shared_ptr<BlockStatementSyntax> _body;
+  std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;
+  std::unique_ptr<ExpressionSyntax> _condition;
+  std::unique_ptr<BlockStatementSyntax> _body;
 
 public:
-  WhileStatementSyntax(std::shared_ptr<SyntaxToken<std::any>> whileKeyword,
-                       std::shared_ptr<ExpressionSyntax> condition,
-                       std::shared_ptr<BlockStatementSyntax> body);
+  WhileStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
+                       std::unique_ptr<ExpressionSyntax> condition,
+                       std::unique_ptr<BlockStatementSyntax> body);
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  std::unique_ptr<SyntaxToken<std::any>> getWhileKeyword();
 
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
+  std::unique_ptr<ExpressionSyntax> getCondition();
 
-  std::shared_ptr<SyntaxToken<std::any>> getWhileKeyword() const;
+  std::unique_ptr<BlockStatementSyntax> getBody();
 
-  std::shared_ptr<ExpressionSyntax> getCondition() const;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  std::shared_ptr<BlockStatementSyntax> getBody() const;
+  std::vector<SyntaxNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

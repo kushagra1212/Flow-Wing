@@ -6,12 +6,11 @@
 #include "../../BoundStatement/BoundStatement.h"
 class BoundScopeGlobal {
 public:
-  BoundScopeGlobal(
-      std::unique_ptr<BoundScopeGlobal> previous,
-      std::map<std::string, Utils::Variable> variables,
-      std::map<std::string, std::shared_ptr<BoundFunctionDeclaration>>
-          functions,
-      std::vector<std::string> logs, std::shared_ptr<BoundStatement> statement);
+  BoundScopeGlobal(std::unique_ptr<BoundScopeGlobal> previous,
+                   std::map<std::string, Utils::Variable> variables,
+                   std::map<std::string, BoundFunctionDeclaration *> functions,
+                   std::vector<std::string> logs,
+                   std::unique_ptr<BoundStatement> statement);
 
   bool tryLookupVariable(std::string name);
   bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
@@ -20,7 +19,7 @@ public:
 public:
   std::unique_ptr<BoundScopeGlobal> previous;
   std::map<std::string, Utils::Variable> variables;
-  std::map<std::string, std::shared_ptr<BoundFunctionDeclaration>> functions;
+  std::map<std::string, BoundFunctionDeclaration *> functions;
   std::vector<std::string> logs;
-  std::shared_ptr<BoundStatement> statement;
+  std::unique_ptr<BoundStatement> statement;
 };

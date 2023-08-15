@@ -19,8 +19,6 @@ public:
 public:
   Lexer(const std::vector<std::string> &text);
 
-  ~Lexer();
-
 private:
   char getCurrent();
 

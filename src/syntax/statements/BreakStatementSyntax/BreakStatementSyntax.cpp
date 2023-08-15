@@ -1,22 +1,24 @@
 #include "BreakStatementSyntax.h"
 
 BreakStatementSyntax::BreakStatementSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> breakKeyword)
-    : _breakKeyword(breakKeyword) {}
+    std::unique_ptr<SyntaxToken<std::any>> breakKeyword) {
+  this->_breakKeyword = std::move(breakKeyword);
 
-std::shared_ptr<SyntaxToken<std::any>>
-BreakStatementSyntax::getBreakKeyword() const {
-  return _breakKeyword;
+  // Add children
+  _children.push_back(_breakKeyword.get());
 }
 
-std::vector<std::shared_ptr<SyntaxNode>> BreakStatementSyntax::getChildren() {
-  return {_breakKeyword};
+std::unique_ptr<SyntaxToken<std::any>> BreakStatementSyntax::getBreakKeyword() {
+  return std::move(_breakKeyword);
 }
-
-SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BreakKeyword;
 }
 
-std::string BreakStatementSyntax::getLineNumberAndColumn() const {
+std::vector<SyntaxNode *> BreakStatementSyntax::getChildren() {
+  return this->_children;
+}
+
+std::string BreakStatementSyntax::getLineNumberAndColumn() {
   return _breakKeyword->getLineNumberAndColumn();
 }

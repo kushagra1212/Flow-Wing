@@ -5,31 +5,25 @@
 #include "LiteralExpressionSyntax.h"
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
-  std::shared_ptr<LiteralExpressionSyntax<std::any>> left;
-  std::shared_ptr<SyntaxToken<std::any>> operatorToken;
-  std::shared_ptr<ExpressionSyntax> right;
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> _left;
+  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
+  std::unique_ptr<ExpressionSyntax> _right;
 
 public:
   AssignmentExpressionSyntax(
-      std::shared_ptr<LiteralExpressionSyntax<std::any>> left,
-      std::shared_ptr<SyntaxToken<std::any>> operatorToken,
-      std::shared_ptr<ExpressionSyntax> right);
+      std::unique_ptr<LiteralExpressionSyntax<std::any>> left,
+      std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+      std::unique_ptr<ExpressionSyntax> right);
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
 
-public:
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren();
+  std::unique_ptr<ExpressionSyntax> getRight();
 
-public:
-  std::shared_ptr<SyntaxToken<std::any>> getOperatorToken();
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> getLeft();
 
-public:
-  std::shared_ptr<ExpressionSyntax> getRight();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  std::shared_ptr<LiteralExpressionSyntax<std::any>> getLeft();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

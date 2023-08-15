@@ -1,39 +1,44 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    std::shared_ptr<LiteralExpressionSyntax<std::any>> left,
-    std::shared_ptr<SyntaxToken<std::any>> operatorToken,
-    std::shared_ptr<ExpressionSyntax> right)
-    : left(left), operatorToken(operatorToken), right(right) {}
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> left,
+    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+    std::unique_ptr<ExpressionSyntax> right) {
+  this->_left = std::move(left);
+  this->_operatorToken = std::move(operatorToken);
+  this->_right = std::move(right);
 
-SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
+  // Add children
+
+  this->_children.push_back(_left.get());
+  this->_children.push_back(_operatorToken.get());
+  this->_children.push_back(_right.get());
+}
+
+SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
 
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
 }
 
-std::vector<std::shared_ptr<SyntaxNode>>
-AssignmentExpressionSyntax::getChildren() {
+std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
 
-  std::vector<std::shared_ptr<SyntaxNode>> children = {left, operatorToken,
-                                                       right};
-
-  return children;
+  return this->_children;
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
+std::unique_ptr<SyntaxToken<std::any>>
 AssignmentExpressionSyntax::getOperatorToken() {
-  return operatorToken;
+  return std::move(this->_operatorToken);
 }
 
-std::shared_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
-  return right;
+std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
+  return std::move(this->_right);
 }
 
-std::shared_ptr<LiteralExpressionSyntax<std::any>>
+std::unique_ptr<LiteralExpressionSyntax<std::any>>
 AssignmentExpressionSyntax::getLeft() {
-  return left;
+  return std::move(this->_left);
 }
 
-std::string AssignmentExpressionSyntax::getLineNumberAndColumn() const {
-  return left->getLineNumberAndColumn();
+std::string AssignmentExpressionSyntax::getLineNumberAndColumn() {
+  return this->_left->getLineNumberAndColumn();
 }

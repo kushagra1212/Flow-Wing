@@ -67,7 +67,7 @@ llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
 size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
                              llvm::IRBuilder<> *Builder);
 
-std::string getString(std::shared_ptr<BoundExpression> node);
+std::string getString(BoundExpression *node);
 
 std::string valueToString(llvm::Value *val);
 
@@ -95,18 +95,15 @@ llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder);
 
 llvm::Value *getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression);
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
 
 llvm::Value *getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression);
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
 
 llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression);
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
 
 } // namespace IRUtils
 

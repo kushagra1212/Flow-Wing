@@ -1,23 +1,25 @@
 #include "ExpressionStatementSyntax.h"
 
 ExpressionStatementSyntax::ExpressionStatementSyntax(
-    std::shared_ptr<ExpressionSyntax> expression) {
-  this->_expression = expression;
+    std::unique_ptr<ExpressionSyntax> expression) {
+  this->_expression = std::move(expression);
+
+  // Add children
+
+  _children.push_back(_expression.get());
 }
 
-SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() {
+std::unique_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
+  return std::move(this->_expression);
+}
+SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
 }
 
-std::vector<std::shared_ptr<SyntaxNode>>
-ExpressionStatementSyntax::getChildren() {
-  return std::vector<std::shared_ptr<SyntaxNode>>{this->_expression};
+std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
+  return this->_children;
 }
 
-std::shared_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
-  return this->_expression;
-}
-
-std::string ExpressionStatementSyntax::getLineNumberAndColumn() const {
+std::string ExpressionStatementSyntax::getLineNumberAndColumn() {
   return this->_expression->getLineNumberAndColumn();
 }

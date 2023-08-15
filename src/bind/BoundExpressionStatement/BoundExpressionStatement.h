@@ -7,21 +7,17 @@
 class BoundExpressionStatement : public BoundStatement {
 
 private:
-  std::shared_ptr<BoundExpression> _expression;
+  std::unique_ptr<BoundExpression> _expression;
 
 public:
-  BoundExpressionStatement(const std::string &lineAndColumn,
-                           std::shared_ptr<BoundExpression> expression);
+  BoundExpressionStatement(std::string lineAndColumn,
+                           std::unique_ptr<BoundExpression> expression);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
+  std::unique_ptr<BoundExpression> getExpression();
 
-public:
-  std::shared_ptr<BoundExpression> getExpression();
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  std::vector<BoundNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

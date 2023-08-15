@@ -1,8 +1,10 @@
 #include "Repl.h"
 
 Repl::Repl()
-    : showSyntaxTree(false), showBoundTree(false), braceCount(0),
-      previousEvaluator(nullptr), exit(false) {}
+    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {
+
+  _evaluator = std::make_unique<IRGenerator>();
+}
 
 Repl::~Repl() {}
 
@@ -13,117 +15,118 @@ void Repl::run() {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
+  std::vector<std::string> text = {"2"};
+  std::unique_ptr<Parser> p = std::make_unique<Parser>(text);
 
-  while (!exit) {
-    outputStream << GREEN << ">>> " << RESET;
+  // for (const auto &token : p->tokens) {
+  //   std::cout << SyntaxKindUtils::to_string(token->getKind()) << std::endl;
+  // }
 
-    std::vector<std::string> text = std::vector<std::string>();
-    std::string line;
-    int emptyLines = 0;
+  std::unique_ptr<CompilationUnitSyntax> cu =
+      std::move(p->parseCompilationUnit());
 
-    std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
-    while (std::getline(inputStream, line)) {
+  Utils::prettyPrint(cu.get());
+  std::unique_ptr<BoundScopeGlobal> gs =
+      std::move(Binder::bindGlobalScope(nullptr, cu.get()));
 
-      if (handleSpecialCommands(line)) {
-        break;
-      }
+  // Utils::prettyPrint(gs->statement.get());
+  return;
 
-      if (line.empty()) {
-        emptyLines++;
-        if (emptyLines == 2)
-          break;
+  // while (!exit) {
+  //   outputStream << GREEN << ">>> " << RESET;
 
-        outputStream << YELLOW << "... " << RESET;
-        continue;
-      }
-      emptyLines = 0;
+  //   std::vector<std::string> text = std::vector<std::string>();
+  //   std::string line;
+  //   int emptyLines = 0;
 
-      text.push_back(line);
-      compilationUnit.reset();
-      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
+  //   while (std::getline(inputStream, line)) {
 
-      if (parser->logs.size()) {
-        Utils::printErrors(parser->logs, outputStream);
-        text = std::vector<std::string>();
+  //     if (handleSpecialCommands(line)) {
+  //       break;
+  //     }
 
-        break;
-      }
-      compilationUnit = std::move(parser->parseCompilationUnit());
+  //     if (line.empty()) {
+  //       emptyLines++;
+  //       if (emptyLines == 2)
+  //         break;
 
-      if (parser->logs.size()) {
-        emptyLines++;
-        if (emptyLines == 3) {
-          Utils::printErrors(parser->logs, outputStream);
-        } else
-          outputStream << YELLOW << "... " << RESET;
+  //       outputStream << YELLOW << "... " << RESET;
+  //       continue;
+  //     }
+  //     emptyLines = 0;
 
-        continue;
-      }
+  //     text.push_back(line);
 
-      break;
-    }
+  //     parser = std::make_shared<Parser>(text);
 
-    if (text.size() == 0) {
-      compilationUnit.reset();
-      continue;
-    }
+  //     if (parser->logs.size()) {
+  //       Utils::printErrors(parser->logs, outputStream);
+  //       text = std::vector<std::string>();
 
-    if (compilationUnit->getMembers().size() == 0) {
+  //       break;
+  //     }
+  //     compilationUnit = (parser->parseCompilationUnit());
 
-      Parser *parser = new Parser(text);
-      compilationUnit = std::move(parser->parseCompilationUnit());
-    }
+  //     if (parser->logs.size()) {
+  //       emptyLines++;
+  //       if (emptyLines == 3) {
+  //         Utils::printErrors(parser->logs, outputStream);
 
-    if (!exit) {
+  //       } else
+  //         outputStream << YELLOW << "... " << RESET;
 
-      compileAndEvaluate(std::move(compilationUnit), outputStream);
-    }
-  }
+  //       continue;
+  //     }
+  //     break;
+  //   }
+  //   if (text.size() == 0) {
+  //     continue;
+  //   }
+  //   if (!exit) {
+  //     if (showSyntaxTree) {
+  //       Utils::prettyPrint((compilationUnit));
+  //     }
+
+  //     text = std::vector<std::string>();
+  //     // compileAndEvaluate(outputStream);
+  //   }
+  // }
 }
 
-void Repl::compileAndEvaluate(
-    std::shared_ptr<CompilationUnitSyntax> compilationUnit,
-    std::ostream &outputStream) {
+void Repl::compileAndEvaluate(std::ostream &outputStream) {
 
-  if (showSyntaxTree) {
-    Utils::prettyPrint(compilationUnit);
-    return;
-  }
+  // globalScope = Binder::bindGlobalScope(nullptr, std::move(compilationUnit));
 
-  std::shared_ptr<BoundScopeGlobal> globalScope =
-      Binder::bindGlobalScope(nullptr, std::move(compilationUnit));
+  // if (showBoundTree) {
+  //   Utils::prettyPrint(globalScope->statement);
+  //   return;
+  // }
 
-  if (showBoundTree) {
-    Utils::prettyPrint(globalScope->statement);
-    return;
-  }
+  // try {
 
-  IRGenerator *currentEvaluator = new IRGenerator();
-  try {
+  //   llvm::Value *generatedIR = _evaluator->generateEvaluateStatement(
+  //       std::move(globalScope->statement));
+  //   // std::any result = currentEvaluator->last_value;
+  //   _evaluator->printIR();
+  //   _evaluator->executeGeneratedCode();
 
-    llvm::Value *generatedIR =
-        currentEvaluator->generateEvaluateStatement(globalScope->statement);
-    // std::any result = currentEvaluator->last_value;
-    currentEvaluator->printIR();
-    currentEvaluator->executeGeneratedCode();
+  //   if (globalScope->logs.size()) {
+  //     Utils::printErrors(globalScope->logs, outputStream);
+  //   } else {
+  //     // std::string outputString = Utils::convertAnyToString(result);
+  //     // if (outputString != Utils::NULLPTR) {
+  //     //   outputStream << outputString << "\n";
+  //     // } else if (outputString == Utils::NULLPTR) {
 
-    if (globalScope->logs.size()) {
-      Utils::printErrors(globalScope->logs, outputStream);
-    } else {
-      // std::string outputString = Utils::convertAnyToString(result);
-      // if (outputString != Utils::NULLPTR) {
-      //   outputStream << outputString << "\n";
-      // } else if (outputString == Utils::NULLPTR) {
+  //     // } else {
+  //     //   throw std::runtime_error("Unexpected result type");
+  //     // }
+  //     // previousEvaluator = std::move(currentEvaluator);
+  //   }
 
-      // } else {
-      //   throw std::runtime_error("Unexpected result type");
-      // }
-      previousEvaluator = currentEvaluator;
-    }
-
-  } catch (const std::exception &e) {
-    outputStream << RED << e.what() << RESET << "\n";
-  }
+  // } catch (const std::exception &e) {
+  //   outputStream << RED << e.what() << RESET << "\n";
+  // }
 }
 
 void Repl::toggleExit() { exit = !exit; }
@@ -173,7 +176,7 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   if (parser->logs.size()) {
     Utils::printErrors(parser->logs, outputStream);
   } else if (!exit)
-    compileAndEvaluate(compilationUnit, outputStream);
+    compileAndEvaluate(outputStream);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {

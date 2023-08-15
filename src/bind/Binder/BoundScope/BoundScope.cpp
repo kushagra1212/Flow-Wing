@@ -1,8 +1,8 @@
 #include "BoundScope.h"
 
-BoundScope::BoundScope(std::shared_ptr<BoundScope> parent)
-    : parent(parent), breakable(false), continuable(false), functionCounted(0) {
-}
+BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
+    : parent(std::move(parent)), breakable(false), continuable(false),
+      functionCounted(0) {}
 
 bool BoundScope::isInFunction() {
   if (this->functionCounted) {
@@ -86,8 +86,8 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-bool BoundScope::tryDeclareFunction(
-    std::string name, std::shared_ptr<BoundFunctionDeclaration> function) {
+bool BoundScope::tryDeclareFunction(std::string name,
+                                    BoundFunctionDeclaration *function) {
   if (this->functions.find(name) != this->functions.end()) {
 
     return false;
@@ -111,9 +111,8 @@ bool BoundScope::tryLookupFunction(std::string name) {
   return this->parent->tryLookupFunction(name);
 }
 
-std::vector<std::shared_ptr<BoundFunctionDeclaration>>
-BoundScope::getAllFunctions() {
-  std::vector<std::shared_ptr<BoundFunctionDeclaration>> result;
+std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
+  std::vector<BoundFunctionDeclaration *> result;
   if (this->parent != nullptr) {
     result = this->parent->getAllFunctions();
   }

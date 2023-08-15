@@ -1,35 +1,38 @@
 #include "BoundBlockStatement.h"
-BoundBlockStatement::BoundBlockStatement(
-    const std::string &lineAndColumn,
-    std::vector<std::shared_ptr<BoundStatement>> statements, bool global) {
-  this->_statements = statements;
+BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn,
+                                         bool global) {
   this->_global = global;
   this->_lineAndColumn = lineAndColumn;
 }
-BoundBlockStatement::BoundBlockStatement(
-    const std::string &lineAndColumn,
-    std::vector<std::shared_ptr<BoundStatement>> statements) {
-  BoundBlockStatement(lineAndColumn, statements, false);
-}
-BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() {
-  return BinderKindUtils::BoundNodeKind::BlockStatement;
+BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn) {
+  BoundBlockStatement(lineAndColumn, false);
 }
 
-std::vector<std::shared_ptr<BoundStatement>>
+std::vector<std::unique_ptr<BoundStatement>> &
 BoundBlockStatement::getStatements() {
   return _statements;
 }
 
-bool BoundBlockStatement::getGlobal() const { return this->_global; }
-
-std::vector<std::shared_ptr<BoundNode>> BoundBlockStatement::getChildren() {
-  std::vector<std::shared_ptr<BoundNode>> children;
-  for (std::shared_ptr<BoundNode> statement : _statements) {
-    children.push_back(statement);
-  }
-  return children;
+void BoundBlockStatement::addStatement(
+    std::unique_ptr<BoundStatement> statement) {
+  this->_statements.push_back(std::move(statement));
 }
 
-std::string BoundBlockStatement::getLineNumberAndColumn() const {
+bool BoundBlockStatement::getGlobal() const { return this->_global; }
+
+BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() const {
+  return BinderKindUtils::BoundNodeKind::BlockStatement;
+}
+
+std::vector<BoundNode *> BoundBlockStatement::getChildren() {
+  if (this->_children.size() == 0) {
+    for (const auto &st : this->_statements) {
+      this->_children.push_back((BoundNode *)(st.get()));
+    }
+  }
+  return this->_children;
+}
+
+std::string BoundBlockStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

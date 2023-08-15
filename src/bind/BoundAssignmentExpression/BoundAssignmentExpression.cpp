@@ -1,17 +1,15 @@
 #include "BoundAssignmentExpression.h"
 
 BoundAssignmentExpression::BoundAssignmentExpression(
-    const std::string &lineAndColumn, std::shared_ptr<BoundExpression> left,
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
-    std::shared_ptr<BoundExpression> right) {
-  this->op = op;
-  this->_left = left;
-  this->_right = right;
+    std::unique_ptr<BoundExpression> right) {
+  this->_op = op;
+  this->_left = std::move(left);
+  this->_right = std::move(right);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::AssignmentExpression;
+  _children.push_back(_left.get());
 }
 
 const std::type_info &BoundAssignmentExpression::getType() {
@@ -20,21 +18,23 @@ const std::type_info &BoundAssignmentExpression::getType() {
 
 BinderKindUtils::BoundBinaryOperatorKind
 BoundAssignmentExpression::getOperator() {
-  return op;
+  return _op;
 }
 
-std::shared_ptr<BoundExpression> BoundAssignmentExpression::getLeft() {
-  return _left;
+std::unique_ptr<BoundExpression> BoundAssignmentExpression::getLeft() {
+  return std::move(_left);
 }
 
-std::shared_ptr<BoundExpression> BoundAssignmentExpression::getRight() {
-  return _right;
+std::unique_ptr<BoundExpression> BoundAssignmentExpression::getRight() {
+  return std::move(_right);
+}
+BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::AssignmentExpression;
 }
 
-std::vector<std::shared_ptr<BoundNode>>
-BoundAssignmentExpression::getChildren() {
-  return std::vector<std::shared_ptr<BoundNode>>{_left, _right};
+std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
+  return this->_children;
 }
-std::string BoundAssignmentExpression::getLineNumberAndColumn() const {
+std::string BoundAssignmentExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

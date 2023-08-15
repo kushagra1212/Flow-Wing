@@ -99,3 +99,85 @@ std::string BinderKindUtils::to_string(BoundBinaryOperatorKind kind) {
     return "NotDefined";
   }
 }
+
+BinderKindUtils::BoundUnaryOperatorKind
+BinderKindUtils::getUnaryOperatorKind(SyntaxKindUtils::SyntaxKind kind) {
+  switch (kind) {
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+    return BinderKindUtils::BoundUnaryOperatorKind::Identity;
+
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+    return BinderKindUtils::BoundUnaryOperatorKind::Negation;
+
+  case SyntaxKindUtils::SyntaxKind::BangToken:
+    return BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation;
+
+  case SyntaxKindUtils::SyntaxKind::TildeToken:
+    return BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation;
+
+  default:
+    throw "Unexpected unary operator";
+  }
+  return BinderKindUtils::BoundUnaryOperatorKind::Identity;
+}
+
+BinderKindUtils::BoundBinaryOperatorKind
+BinderKindUtils::getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind) {
+  switch (kind) {
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Addition;
+
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Subtraction;
+
+  case SyntaxKindUtils::SyntaxKind::StarToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Multiplication;
+
+  case SyntaxKindUtils::SyntaxKind::SlashToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Division;
+
+  case SyntaxKindUtils::SyntaxKind::PercentToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Modulus;
+
+  case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Equals;
+
+  case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::NotEquals;
+
+  case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd;
+
+  case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::LogicalOr;
+
+  case SyntaxKindUtils::SyntaxKind::LessToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Less;
+
+  case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals;
+
+  case SyntaxKindUtils::SyntaxKind::GreaterToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Greater;
+
+  case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals;
+
+  case SyntaxKindUtils::SyntaxKind::EqualsToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::Assignment;
+
+  case SyntaxKindUtils::SyntaxKind::AmpersandToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd;
+
+  case SyntaxKindUtils::SyntaxKind::PipeToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr;
+
+  case SyntaxKindUtils::SyntaxKind::CaretToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor;
+
+  default:
+    throw "Unexpected binary operator";
+  }
+
+  return BinderKindUtils::BoundBinaryOperatorKind::Addition;
+}

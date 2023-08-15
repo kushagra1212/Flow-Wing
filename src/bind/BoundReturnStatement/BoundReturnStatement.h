@@ -7,19 +7,19 @@
 class BoundReturnStatement : public BoundStatement {
 
 private:
-  std::shared_ptr<BoundExpression> _expression;
+  std::unique_ptr<BoundExpression> _expression;
 
 public:
-  BoundReturnStatement(const std::string &lineAndColumn,
-                       std::shared_ptr<BoundExpression> expression);
+  BoundReturnStatement(std::string lineAndColumn,
+                       std::unique_ptr<BoundExpression> expression);
 
-  BinderKindUtils::BoundNodeKind getKind() override;
+  std::unique_ptr<BoundExpression> getReturnExpression();
 
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::vector<BoundNode *> getChildren() override;
 
-  std::shared_ptr<BoundExpression> getReturnExpression() const;
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif // BOUNDRETURNSTATEMENT_H

@@ -1,15 +1,20 @@
 #include "BoundBinaryExpression.h"
 
 BoundBinaryExpression::BoundBinaryExpression(
-    const std::string &lineAndColumn, std::shared_ptr<BoundExpression> left,
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
-    std::shared_ptr<BoundExpression> right)
-    : _op(op), _left(left), _right(right) {
-  this->_lineAndColumn = lineAndColumn;
-}
+    std::unique_ptr<BoundExpression> right) {
+  this->_op = op;
 
-BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::BinaryExpression;
+  this->_left = std::move(left);
+  this->_right = std::move(right);
+
+  this->_lineAndColumn = lineAndColumn;
+
+  // TODO:
+
+  _children.push_back(_left.get());
+  _children.push_back(_right.get());
 }
 
 const std::type_info &BoundBinaryExpression::getType() {
@@ -20,18 +25,20 @@ BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {
   return _op;
 }
 
-std::shared_ptr<BoundExpression> BoundBinaryExpression::getLeft() {
-  return _left;
+std::unique_ptr<BoundExpression> BoundBinaryExpression::getLeft() {
+  return std::move(_left);
 }
 
-std::shared_ptr<BoundExpression> BoundBinaryExpression::getRight() {
-  return _right;
+std::unique_ptr<BoundExpression> BoundBinaryExpression::getRight() {
+  return std::move(_right);
+}
+BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::BinaryExpression;
+}
+std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
+  return _children;
 }
 
-std::vector<std::shared_ptr<BoundNode>> BoundBinaryExpression::getChildren() {
-  return std::vector<std::shared_ptr<BoundNode>>{_left, _right};
-}
-
-std::string BoundBinaryExpression::getLineNumberAndColumn() const {
+std::string BoundBinaryExpression::getLineNumberAndColumn() {
   return _lineAndColumn;
 }

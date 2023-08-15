@@ -1,68 +1,68 @@
 #include "FunctionDeclarationSyntax.h"
 
 FunctionDeclarationSyntax::FunctionDeclarationSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> functionKeyword,
-    std::shared_ptr<SyntaxToken<std::any>> identifierToken,
-    std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken,
-    std::vector<std::shared_ptr<ParameterSyntax>> parameters,
-    std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken,
-    std::shared_ptr<BlockStatementSyntax> body) {
-  _functionKeyword = functionKeyword;
-  _identifierToken = identifierToken;
-  _openParenthesisToken = openParenthesisToken;
-  _parameters = parameters;
-  _closeParenthesisToken = closeParenthesisToken;
-  _body = body;
+    std::unique_ptr<SyntaxToken<std::any>> functionKeyword,
+    std::unique_ptr<SyntaxToken<std::any>> identifierToken,
+    std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+    std::vector<std::unique_ptr<ParameterSyntax>> parameters,
+    std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken,
+    std::unique_ptr<BlockStatementSyntax> body) {
+  this->_functionKeyword = std::move(functionKeyword);
+  this->_identifierToken = std::move(identifierToken);
+  this->_openParenthesisToken = std::move(openParenthesisToken);
+  this->_parameters = std::move(parameters);
+  this->_closeParenthesisToken = std::move(closeParenthesisToken);
+  this->_body = std::move(body);
+
+  // Add children
+
+  _children.push_back(_functionKeyword.get());
+  _children.push_back(_identifierToken.get());
+  _children.push_back(_openParenthesisToken.get());
+  for (const std::unique_ptr<ParameterSyntax> &parameter : _parameters) {
+    _children.push_back(parameter.get());
+  }
+  _children.push_back(_closeParenthesisToken.get());
+  _children.push_back(_body.get());
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-FunctionDeclarationSyntax::getFunctionKeyword() const {
-  return _functionKeyword;
+std::unique_ptr<SyntaxToken<std::any>>
+FunctionDeclarationSyntax::getFunctionKeyword() {
+  return std::move(_functionKeyword);
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-FunctionDeclarationSyntax::getIdentifierToken() const {
-  return _identifierToken;
+std::unique_ptr<SyntaxToken<std::any>>
+FunctionDeclarationSyntax::getIdentifierToken() {
+  return std::move(_identifierToken);
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-FunctionDeclarationSyntax::getOpenParenthesisToken() const {
-  return _openParenthesisToken;
+std::unique_ptr<SyntaxToken<std::any>>
+FunctionDeclarationSyntax::getOpenParenthesisToken() {
+  return std::move(_openParenthesisToken);
 }
 
-std::vector<std::shared_ptr<ParameterSyntax>>
-FunctionDeclarationSyntax::getParameters() const {
-  return _parameters;
+std::vector<std::unique_ptr<ParameterSyntax>>
+FunctionDeclarationSyntax::getParameters() {
+  return std::move(_parameters);
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
-FunctionDeclarationSyntax::getCloseParenthesisToken() const {
-  return _closeParenthesisToken;
+std::unique_ptr<SyntaxToken<std::any>>
+FunctionDeclarationSyntax::getCloseParenthesisToken() {
+  return std::move(_closeParenthesisToken);
 }
 
-std::shared_ptr<BlockStatementSyntax>
-FunctionDeclarationSyntax::getBody() const {
-  return _body;
+std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
+  return std::move(_body);
 }
 
-SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
-std::string FunctionDeclarationSyntax::getLineNumberAndColumn() const {
+std::string FunctionDeclarationSyntax::getLineNumberAndColumn() {
   return _functionKeyword->getLineNumberAndColumn();
 }
 
-std::vector<std::shared_ptr<SyntaxNode>>
-FunctionDeclarationSyntax::getChildren() {
-  std::vector<std::shared_ptr<SyntaxNode>> children = {};
-  children.push_back(_functionKeyword);
-  children.push_back(_identifierToken);
-  children.push_back(_openParenthesisToken);
-  for (std::shared_ptr<ParameterSyntax> parameter : _parameters) {
-    children.push_back(parameter);
-  }
-  children.push_back(_closeParenthesisToken);
-  children.push_back((_body));
-  return children;
+std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
+  return this->_children;
 }

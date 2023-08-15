@@ -2,33 +2,32 @@
 
 BoundWhileStatement::BoundWhileStatement(
 
-    const std::string &lineAndColumn,
-    std::shared_ptr<BoundExpression> condition,
-    std::shared_ptr<BoundStatement> body)
-    : _condition(condition), _body(body) {
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> condition,
+    std::unique_ptr<BoundStatement> body)
+    : _condition(std::move(condition)), _body(std::move(body)) {
   this->_lineAndColumn = lineAndColumn;
+
+  this->_children.push_back(this->_condition.get());
+  this->_children.push_back(this->_body.get());
 }
 
-BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundWhileStatement::getCondition() {
+  return std::move(_condition);
+}
+
+std::unique_ptr<BoundStatement> BoundWhileStatement::getBody() {
+  return std::move(_body);
+}
+
+BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::WhileStatement;
 }
 
-std::shared_ptr<BoundExpression> BoundWhileStatement::getCondition() const {
-  return _condition;
+std::vector<BoundNode *> BoundWhileStatement::getChildren() {
+  return this->_children;
 }
 
-std::shared_ptr<BoundStatement> BoundWhileStatement::getBody() const {
-  return _body;
-}
-
-std::vector<std::shared_ptr<BoundNode>> BoundWhileStatement::getChildren() {
-  std::vector<std::shared_ptr<BoundNode>> children;
-  children.push_back(_condition);
-  children.push_back(_body);
-  return children;
-}
-
-std::string BoundWhileStatement::getLineNumberAndColumn() const {
+std::string BoundWhileStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

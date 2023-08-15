@@ -10,26 +10,26 @@
 class ForStatementSyntax : public StatementSyntax {
 
 private:
-  std::shared_ptr<StatementSyntax> _initialization;
-  std::shared_ptr<BlockStatementSyntax> _statement;
-  std::shared_ptr<ExpressionSyntax> _upperBound;
+  std::unique_ptr<StatementSyntax> _initialization;
+  std::unique_ptr<BlockStatementSyntax> _statement;
+  std::unique_ptr<ExpressionSyntax> _upperBound;
 
 public:
-  ForStatementSyntax(std::shared_ptr<StatementSyntax> initialization,
-                     std::shared_ptr<ExpressionSyntax> upperBound,
-                     std::shared_ptr<BlockStatementSyntax> statement);
+  ForStatementSyntax(std::unique_ptr<StatementSyntax> initialization,
+                     std::unique_ptr<ExpressionSyntax> upperBound,
+                     std::unique_ptr<BlockStatementSyntax> statement);
 
-  std::shared_ptr<BlockStatementSyntax> getStatement() const;
+  std::unique_ptr<BlockStatementSyntax> getStatement();
 
-  std::shared_ptr<StatementSyntax> getInitialization() const;
+  std::unique_ptr<StatementSyntax> getInitialization();
 
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
+  std::unique_ptr<ExpressionSyntax> getUpperBound();
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  std::vector<SyntaxNode *> getChildren() override;
 
-  std::shared_ptr<ExpressionSyntax> getUpperBound() const;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

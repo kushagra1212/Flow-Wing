@@ -11,7 +11,6 @@ public:
   Repl();
   ~Repl();
 
-  IRGenerator *ir_generator;
   // Run the REPL with default input/output streams
   void run();
 
@@ -25,14 +24,15 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void
-  compileAndEvaluate(std::shared_ptr<CompilationUnitSyntax> compilationUnit,
-                     std::ostream &outputStream);
+  void compileAndEvaluate(std::ostream &outputStream);
 
   void toggleExit();
   // Data members
 private:
-  IRGenerator *previousEvaluator = nullptr;
+  std::unique_ptr<IRGenerator> _evaluator = nullptr;
+  std::shared_ptr<BoundScopeGlobal> globalScope = nullptr;
+  std::shared_ptr<Parser> parser = nullptr;
+  std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   bool showSyntaxTree, showBoundTree, exit;
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();

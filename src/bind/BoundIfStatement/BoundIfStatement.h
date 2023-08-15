@@ -4,23 +4,23 @@
 #include "../BoundStatement/BoundStatement.h"
 class BoundIfStatement : public BoundStatement {
 private:
-  std::shared_ptr<BoundExpression> _condition;
-  std::shared_ptr<BoundStatement> _thenStatement;
-  std::shared_ptr<BoundStatement> _elseStatement;
+  std::unique_ptr<BoundExpression> _condition;
+  std::unique_ptr<BoundStatement> _thenStatement;
+  std::unique_ptr<BoundStatement> _elseStatement;
 
 public:
-  BoundIfStatement(std::string const &lineAndColumn,
-                   std::shared_ptr<BoundExpression> condition,
-                   std::shared_ptr<BoundStatement> thenStatement,
-                   std::shared_ptr<BoundStatement> elseStatement);
+  BoundIfStatement(std::string lineAndColumn,
+                   std::unique_ptr<BoundExpression> condition,
+                   std::unique_ptr<BoundStatement> thenStatement,
+                   std::unique_ptr<BoundStatement> elseStatement);
 
-  BinderKindUtils::BoundNodeKind getKind() override;
-  std::shared_ptr<BoundExpression> getCondition() const;
-  std::shared_ptr<BoundStatement> getThenStatement() const;
-  std::shared_ptr<BoundStatement> getElseStatement() const;
+  std::unique_ptr<BoundExpression> getCondition();
+  std::unique_ptr<BoundStatement> getThenStatement();
+  std::unique_ptr<BoundStatement> getElseStatement();
 
-  std::string getLineNumberAndColumn() const override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  std::string getLineNumberAndColumn() override;
+
+  std::vector<BoundNode *> getChildren() override;
 };

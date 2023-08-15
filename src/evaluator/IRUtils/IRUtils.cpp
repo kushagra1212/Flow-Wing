@@ -61,10 +61,8 @@ llvm::Value *itos(llvm::Value *num, llvm::Module *TheModule,
   return strValue;
 }
 
-std::string getString(std::shared_ptr<BoundExpression> node) {
-  std::any value =
-      std::static_pointer_cast<BoundLiteralExpression<std::any>>(node)
-          ->getValue();
+std::string getString(BoundExpression *node) {
+  std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
   if (value.type() == typeid(std::string)) {
     return std::any_cast<std::string>(value);
   }
@@ -285,8 +283,7 @@ llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder) {
 
 llvm::Value *getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression) {
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
@@ -362,8 +359,7 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
 
 llvm::Value *getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression) {
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
@@ -442,8 +438,7 @@ llvm::Value *getResultFromBinaryOperationOnInt(
 
 llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule,
-    std::shared_ptr<BoundBinaryExpression> binaryExpression) {
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 

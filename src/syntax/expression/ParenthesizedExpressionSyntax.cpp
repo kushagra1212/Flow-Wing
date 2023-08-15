@@ -1,43 +1,42 @@
 #include "ParenthesizedExpressionSyntax.h"
 
 ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
-    std::shared_ptr<SyntaxToken<std::any>> openParenthesisToken,
-    std::shared_ptr<ExpressionSyntax> expression,
-    std::shared_ptr<SyntaxToken<std::any>> closeParenthesisToken) {
-  this->_openParenthesisToken = openParenthesisToken;
-  this->_expression = expression;
-  this->_closeParenthesisToken = closeParenthesisToken;
+    std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+    std::unique_ptr<ExpressionSyntax> expression,
+    std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken) {
+  this->_openParenthesisToken = std::move(openParenthesisToken);
+  this->_expression = std::move(expression);
+  this->_closeParenthesisToken = std::move(closeParenthesisToken);
+
+  // Add children
+  this->_children.push_back(_openParenthesisToken.get());
+  this->_children.push_back(_expression.get());
+  this->_children.push_back(_closeParenthesisToken.get());
 }
 
-SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() {
+std::unique_ptr<SyntaxToken<std::any>>
+ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
+  return std::move(this->_openParenthesisToken);
+}
+
+std::unique_ptr<ExpressionSyntax>
+ParenthesizedExpressionSyntax::getExpression() {
+  return std::move(this->_expression);
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
+  return std::move(this->_closeParenthesisToken);
+}
+
+SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
+std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
 
-std::shared_ptr<SyntaxToken<std::any>>
-ParenthesizedExpressionSyntax::getOpenParenthesisToken() {
-  return this->_openParenthesisToken;
+  return this->_children;
 }
 
-std::shared_ptr<ExpressionSyntax>
-ParenthesizedExpressionSyntax::getExpression() {
-  return this->_expression;
-}
-
-std::shared_ptr<SyntaxToken<std::any>>
-ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
-  return this->_closeParenthesisToken;
-}
-
-std::vector<std::shared_ptr<SyntaxNode>>
-ParenthesizedExpressionSyntax::getChildren() {
-
-  std::vector<std::shared_ptr<SyntaxNode>> children = {
-      this->_openParenthesisToken, this->_expression,
-      this->_closeParenthesisToken};
-
-  return children;
-}
-
-std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() const {
+std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() {
   return this->_openParenthesisToken->getLineNumberAndColumn();
 }

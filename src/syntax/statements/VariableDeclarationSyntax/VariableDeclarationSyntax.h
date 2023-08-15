@@ -7,23 +7,23 @@
 
 class VariableDeclarationSyntax : public StatementSyntax {
 private:
-  std::shared_ptr<SyntaxToken<std::any>> _keyword;
-  std::shared_ptr<SyntaxToken<std::any>> _identifier;
-  std::shared_ptr<SyntaxToken<std::any>> _equalsToken;
-  std::shared_ptr<ExpressionSyntax> _initializer;
+  std::unique_ptr<SyntaxToken<std::any>> _keyword;
+  std::unique_ptr<SyntaxToken<std::any>> _identifier;
+  std::unique_ptr<SyntaxToken<std::any>> _equalsToken;
+  std::unique_ptr<ExpressionSyntax> _initializer;
 
 public:
-  VariableDeclarationSyntax(std::shared_ptr<SyntaxToken<std::any>> keyword,
-                            std::shared_ptr<SyntaxToken<std::any>> identifier,
-                            std::shared_ptr<SyntaxToken<std::any>> equalsToken,
-                            std::shared_ptr<ExpressionSyntax> initializer);
+  VariableDeclarationSyntax(std::unique_ptr<SyntaxToken<std::any>> keyword,
+                            std::unique_ptr<SyntaxToken<std::any>> identifier,
+                            std::unique_ptr<SyntaxToken<std::any>> equalsToken,
+                            std::unique_ptr<ExpressionSyntax> initializer);
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren() override;
-  std::shared_ptr<SyntaxToken<std::any>> getIdentifier() const;
-  std::shared_ptr<SyntaxToken<std::any>> getEqualsToken() const;
-  std::shared_ptr<ExpressionSyntax> getInitializer() const;
-  std::shared_ptr<SyntaxToken<std::any>> getKeyword() const;
+  std::unique_ptr<SyntaxToken<std::any>> getIdentifier();
+  std::unique_ptr<SyntaxToken<std::any>> getEqualsToken();
+  std::unique_ptr<ExpressionSyntax> getInitializer();
+  std::unique_ptr<SyntaxToken<std::any>> getKeyword();
 
-  std::string getLineNumberAndColumn() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  std::vector<SyntaxNode *> getChildren() override;
+  std::string getLineNumberAndColumn() override;
 };

@@ -27,49 +27,48 @@
 #include <typeindex>
 class Parser {
 private:
-  std::vector<std::shared_ptr<SyntaxToken<std::any>>> tokens;
-  int position;
+  int position = 0;
 
-  std::shared_ptr<SyntaxToken<std::any>> peek(int offset);
+  SyntaxToken<std::any> *peek(int offset);
 
-  std::shared_ptr<SyntaxToken<std::any>> getCurrent();
+  SyntaxToken<std::any> *getCurrent();
 
-  std::shared_ptr<SyntaxToken<std::any>> nextToken();
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
 
-  std::shared_ptr<SyntaxToken<std::any>>
+  std::unique_ptr<SyntaxToken<std::any>>
   match(SyntaxKindUtils::SyntaxKind kind);
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
 
-  std::shared_ptr<StatementSyntax> parseStatement();
-  std::shared_ptr<BlockStatementSyntax> parseBlockStatement();
-  std::shared_ptr<BreakStatementSyntax> parseBreakStatement();
-  std::shared_ptr<ReturnStatementSyntax> parseReturnStatement();
-  std::shared_ptr<ContinueStatementSyntax> parseContinueStatement();
-  std::shared_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::shared_ptr<StatementSyntax> parseVariableDeclaration();
-  std::shared_ptr<IfStatementSyntax> parseIfStatement();
-  std::shared_ptr<WhileStatementSyntax> parseWhileStatement();
+  std::unique_ptr<StatementSyntax> parseStatement();
+  std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
+  std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
+  std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
+  std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
+  std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
+  std::unique_ptr<StatementSyntax> parseVariableDeclaration();
+  std::unique_ptr<IfStatementSyntax> parseIfStatement();
+  std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
 
-  std::shared_ptr<ForStatementSyntax> parseForStatement();
+  std::unique_ptr<ForStatementSyntax> parseForStatement();
 
-  std::shared_ptr<ExpressionSyntax> parseNameorCallExpression();
+  std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
 
-  std::vector<std::shared_ptr<MemberSyntax>> parseMemberList();
+  void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
+  std::unique_ptr<MemberSyntax> parseMember();
 
-  std::shared_ptr<MemberSyntax> parseMember();
+  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
 
-  std::shared_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
+  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
 
-  std::shared_ptr<GlobalStatementSyntax> parseGlobalStatement();
+  std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
 
-  std::shared_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
-
-  std::shared_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
 
 public:
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
   std::vector<std::string> logs;
 
-  std::shared_ptr<CompilationUnitSyntax> parseCompilationUnit();
+  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
   Parser(const std::vector<std::string> &text);
 };
 #endif

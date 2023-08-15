@@ -1,13 +1,11 @@
 #include "BoundCallExpression.h"
 
 BoundCallExpression::BoundCallExpression(
-    const std::string &lineAndColumn,
-    std::shared_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
-    Utils::FunctionSymbol functionalSymbol,
-    const std::vector<std::shared_ptr<BoundExpression>> &arguments) {
+    std::string lineAndColumn,
+    std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
+    Utils::FunctionSymbol functionalSymbol) {
   this->_functionalSymbol = functionalSymbol;
-  this->_arguments = arguments;
-  this->_callerIdentifier = callerIdentifier;
+  this->_callerIdentifier = std::move(callerIdentifier);
   this->_lineAndColumn = lineAndColumn;
 }
 
@@ -19,33 +17,42 @@ Utils::FunctionSymbol BoundCallExpression::getFunctionSymbol() const {
   return _functionalSymbol;
 }
 
-const std::vector<std::shared_ptr<BoundExpression>> &
-BoundCallExpression::getArguments() const {
+void BoundCallExpression::addArgument(
+    std::unique_ptr<BoundExpression> argument) {
+  _arguments.push_back(std::move(argument));
+}
+
+std::vector<std::unique_ptr<BoundExpression>> &
+BoundCallExpression::getArguments() {
   return _arguments;
 }
 
-BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::CallExpression;
+std::unique_ptr<BoundLiteralExpression<std::any>>
+BoundCallExpression::getCallerIdentifier() {
+  return std::move(_callerIdentifier);
 }
 
 const std::type_info &BoundCallExpression::getType() {
   return _functionalSymbol.getReturnType();
 }
 
-std::vector<std::shared_ptr<BoundNode>> BoundCallExpression::getChildren() {
-  std::vector<std::shared_ptr<BoundNode>> children;
-  children.push_back(_callerIdentifier);
-  for (auto &argument : _arguments) {
-    children.push_back(argument);
+BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::CallExpression;
+}
+
+std::vector<BoundNode *> BoundCallExpression::getChildren() {
+
+  if (_callerIdentifier != nullptr) {
+    this->_children.push_back(_callerIdentifier.get());
+    for (auto &argument : _arguments) {
+      this->_children.push_back(argument.get());
+    }
+    return _children;
   }
-  return children;
+
+  return _children;
 }
 
-std::string BoundCallExpression::getLineNumberAndColumn() const {
+std::string BoundCallExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
-}
-
-std::shared_ptr<BoundLiteralExpression<std::any>>
-BoundCallExpression::getCallerIdentifier() const {
-  return _callerIdentifier;
 }

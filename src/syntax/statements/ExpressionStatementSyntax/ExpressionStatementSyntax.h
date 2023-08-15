@@ -4,16 +4,16 @@
 
 class ExpressionStatementSyntax : public StatementSyntax {
 private:
-  std::shared_ptr<ExpressionSyntax> _expression;
+  std::unique_ptr<ExpressionSyntax> _expression;
 
 public:
-  ExpressionStatementSyntax(std::shared_ptr<ExpressionSyntax> expression);
+  ExpressionStatementSyntax(std::unique_ptr<ExpressionSyntax> expression);
 
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<ExpressionSyntax> getExpression();
 
-  std::vector<std::shared_ptr<SyntaxNode>> getChildren();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  std::shared_ptr<ExpressionSyntax> getExpression();
+  std::vector<SyntaxNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

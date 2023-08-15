@@ -1,43 +1,43 @@
 #include "BoundForStatement.h"
 
 BoundForStatement::BoundForStatement(
-    const std::string &lineAndColumn,
-    std::shared_ptr<BoundStatement> initialization,
-
-    std::shared_ptr<BoundExpression> upperBound,
-    std::shared_ptr<BoundStatement> statement)
-    : _initialization((initialization)), _upperBound(upperBound),
-      _statement((statement)) {
+    std::string lineAndColumn, std::unique_ptr<BoundStatement> initialization,
+    std::unique_ptr<BoundExpression> upperBound,
+    std::unique_ptr<BoundStatement> statement) {
   this->_lineAndColumn = lineAndColumn;
+  this->_initialization = std::move(initialization);
+  this->_upperBound = std::move(upperBound);
+  this->_statement = std::move(statement);
+
+  this->_children.push_back(this->_initialization.get());
+  this->_children.push_back(this->_upperBound.get());
+  this->_children.push_back(this->_statement.get());
 }
 
-std::shared_ptr<BoundStatement> BoundForStatement::getInitialization() const {
+std::unique_ptr<BoundStatement> BoundForStatement::getInitialization() {
 
-  return this->_initialization;
+  return std::move(this->_initialization);
 }
 
-std::shared_ptr<BoundStatement> BoundForStatement::getStatement() const {
+std::unique_ptr<BoundStatement> BoundForStatement::getStatement() {
 
-  return this->_statement;
+  return std::move(this->_statement);
 }
 
-BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundForStatement::getUpperBound() {
+
+  return std::move(this->_upperBound);
+}
+BinderKindUtils::BoundNodeKind BoundForStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::ForStatement;
 }
 
-std::shared_ptr<BoundExpression> BoundForStatement::getUpperBound() const {
-
-  return this->_upperBound;
-}
-
-std::string BoundForStatement::getLineNumberAndColumn() const {
+std::string BoundForStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-std::vector<std::shared_ptr<BoundNode>> BoundForStatement::getChildren() {
-  std::vector<std::shared_ptr<BoundNode>> children = {_initialization,
-                                                      _statement, _upperBound};
+std::vector<BoundNode *> BoundForStatement::getChildren() {
 
-  return children;
+  return this->_children;
 }

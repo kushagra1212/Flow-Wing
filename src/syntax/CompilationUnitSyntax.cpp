@@ -1,30 +1,35 @@
 #include "CompilationUnitSyntax.h"
 
-CompilationUnitSyntax::CompilationUnitSyntax(
-    std::vector<std::shared_ptr<MemberSyntax>> members,
-    std::shared_ptr<SyntaxToken<std::any>> endOfFileToken) {
-  this->members = members;
-  this->endOfFileToken = endOfFileToken;
-}
-
 SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::CompilationUnit;
 }
 
-std::vector<std::shared_ptr<MemberSyntax>> CompilationUnitSyntax::getMembers() {
-  return this->members;
+std::vector<std::unique_ptr<MemberSyntax>> &
+CompilationUnitSyntax::getMembers() {
+  return this->_members;
 }
 
-std::shared_ptr<SyntaxToken<std::any>>
+std::unique_ptr<SyntaxToken<std::any>>
 CompilationUnitSyntax::getEndOfFileToken() {
-  return this->endOfFileToken;
+  return std::move(this->_endOfFileToken);
 }
 
-std::vector<std::shared_ptr<SyntaxNode>> CompilationUnitSyntax::getChildren() {
-  std::vector<std::shared_ptr<SyntaxNode>> children = {};
-  for (auto member : this->members) {
-    children.push_back(member);
+void CompilationUnitSyntax::addMember(std::unique_ptr<MemberSyntax> member) {
+  this->_members.push_back(std::move(member));
+}
+
+void CompilationUnitSyntax::setEndOfFileToken(
+    std::unique_ptr<SyntaxToken<std::any>> endOfFileToken) {
+  this->_endOfFileToken = std::move(endOfFileToken);
+}
+
+std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
+  if (this->_children.empty()) {
+    // Add Children
+    for (const auto &member : this->_members) {
+      _children.push_back((member.get()));
+    }
+    _children.push_back(this->_endOfFileToken.get());
   }
-  children.push_back(this->endOfFileToken);
-  return children;
+  return this->_children;
 }

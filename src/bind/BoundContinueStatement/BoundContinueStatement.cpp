@@ -1,18 +1,17 @@
 #include "BoundContinueStatement.h"
 
-BoundContinueStatement::BoundContinueStatement(
-    const std::string &lineAndColumn) {
+BoundContinueStatement::BoundContinueStatement(std::string lineAndColumn) {
   this->_lineAndColumn = lineAndColumn;
 }
 
-BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() {
+BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::ContinueStatement;
 }
 
-std::vector<std::shared_ptr<BoundNode>> BoundContinueStatement::getChildren() {
-  return std::vector<std::shared_ptr<BoundNode>>{};
+std::vector<BoundNode *> BoundContinueStatement::getChildren() {
+  return this->_children;
 }
 
-std::string BoundContinueStatement::getLineNumberAndColumn() const {
+std::string BoundContinueStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

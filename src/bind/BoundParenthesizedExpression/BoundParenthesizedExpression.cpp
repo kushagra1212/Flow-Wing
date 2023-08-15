@@ -1,29 +1,29 @@
 #include "BoundParenthesizedExpression.h"
 
 BoundParenthesizedExpression::BoundParenthesizedExpression(
-    const std::string &lineAndColumn,
-    std::shared_ptr<BoundExpression> expression) {
-  this->expression = expression;
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
+  this->_expression = std::move(expression);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::ParenthesizedExpression;
+  this->_children.push_back(this->_expression.get());
 }
 
 const std::type_info &BoundParenthesizedExpression::getType() {
-  return expression->getType();
+  return _expression->getType();
 }
 
-std::shared_ptr<BoundExpression> BoundParenthesizedExpression::getExpression() {
-  return expression;
+std::unique_ptr<BoundExpression> BoundParenthesizedExpression::getExpression() {
+  return std::move(_expression);
 }
 
-std::vector<std::shared_ptr<BoundNode>>
-BoundParenthesizedExpression::getChildren() {
-  return std::vector<std::shared_ptr<BoundNode>>{expression};
+BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::ParenthesizedExpression;
 }
 
-std::string BoundParenthesizedExpression::getLineNumberAndColumn() const {
+std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
+  return this->_children;
+}
+
+std::string BoundParenthesizedExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

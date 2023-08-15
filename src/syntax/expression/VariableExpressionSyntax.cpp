@@ -2,26 +2,27 @@
 #include "VariableExpressionSyntax.h"
 
 VariableExpressionSyntax::VariableExpressionSyntax(
-    std::shared_ptr<LiteralExpressionSyntax<std::any>> identifierExpression) {
-  this->_identifierExpression = identifierExpression;
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression) {
+  this->_identifierExpression = std::move(identifierExpression);
+
+  // Add children
+  this->_children.push_back(this->_identifierExpression.get());
 }
 
-SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() {
+std::unique_ptr<LiteralExpressionSyntax<std::any>>
+VariableExpressionSyntax::getIdentifier() {
+  return std::move(this->_identifierExpression);
+}
+
+SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableExpression;
 }
 
-std::shared_ptr<LiteralExpressionSyntax<std::any>>
-VariableExpressionSyntax::getIdentifier() {
-  return this->_identifierExpression;
+std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
+
+  return this->_children;
 }
 
-std::vector<std::shared_ptr<SyntaxNode>>
-VariableExpressionSyntax::getChildren() {
-
-  std::vector<std::shared_ptr<SyntaxNode>> children = {_identifierExpression};
-  return children;
-}
-
-std::string VariableExpressionSyntax::getLineNumberAndColumn() const {
+std::string VariableExpressionSyntax::getLineNumberAndColumn() {
   return this->_identifierExpression->getLineNumberAndColumn();
 }

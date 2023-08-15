@@ -49,36 +49,74 @@
 class Binder {
 private:
 private:
-  std::shared_ptr<BoundScope> root;
-  std::vector<std::shared_ptr<BoundCallExpression>> _callExpressions;
+  std::unique_ptr<BoundScope> root;
+  std::vector<BoundCallExpression *> _callExpressions;
 
 public:
-  Binder(std::shared_ptr<BoundScope> root);
+  Binder(std::unique_ptr<BoundScope> root);
 
   std::vector<std::string> logs;
 
-public:
-  std::shared_ptr<BoundExpression>
-  bindExpression(std::shared_ptr<ExpressionSyntax> syntax);
+  static void verifyAllCallsAreValid(Binder *binder);
 
-  std::shared_ptr<BoundStatement>
-  bindGlobalStatement(std::shared_ptr<GlobalStatementSyntax> syntax);
-
-  std::shared_ptr<BoundStatement>
-  bindFunctionDeclaration(std::shared_ptr<FunctionDeclarationSyntax> syntax);
-
-public:
-  static void verifyAllCallsAreValid(std::shared_ptr<Binder> binder);
-
-  static std::shared_ptr<BoundScopeGlobal>
+  static std::unique_ptr<BoundScopeGlobal>
   bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previous,
-                  std::shared_ptr<CompilationUnitSyntax> syntax);
+                  CompilationUnitSyntax *syntax);
 
-public:
-  static std::shared_ptr<BoundScope>
-  CreateParentScope(std::shared_ptr<BoundScopeGlobal> parent);
+  // BoundStatements
 
-public:
-  std::shared_ptr<BoundStatement>
-  bindStatement(std::shared_ptr<StatementSyntax> syntax);
+  std::unique_ptr<BoundStatement>
+  bindGlobalStatement(GlobalStatementSyntax *syntax);
+
+  std::unique_ptr<BoundStatement>
+  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
+
+  std::unique_ptr<BoundStatement> bindStatement(StatementSyntax *syntax);
+
+  std::unique_ptr<BoundStatement>
+  bindExpressionStatement(ExpressionStatementSyntax *syntax);
+
+  std::unique_ptr<BoundStatement>
+  bindBlockStatement(BlockStatementSyntax *blockStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration);
+  std::unique_ptr<BoundStatement>
+  bindIfStatement(IfStatementSyntax *ifStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindWhileStatement(WhileStatementSyntax *whileStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindForStatement(ForStatementSyntax *forStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindBreakStatement(BreakStatementSyntax *breakStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindContinueStatement(ContinueStatementSyntax *continueStatement);
+  std::unique_ptr<BoundStatement>
+  bindReturnStatement(ReturnStatementSyntax *returnStatement);
+
+  // BoundExpressions
+
+  std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
+
+  std::unique_ptr<BoundExpression>
+  bindLiteralExpression(LiteralExpressionSyntax<std::any> *literalSyntax);
+
+  std::unique_ptr<BoundExpression>
+  bindunaryExpression(UnaryExpressionSyntax *unaryExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindBinaryExpression(BinaryExpressionSyntax *binaryExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindAssignmentExpression(AssignmentExpressionSyntax *assignmentExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindVariableExpression(VariableExpressionSyntax *variableExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindCallExpression(CallExpressionSyntax *callExpression);
 };

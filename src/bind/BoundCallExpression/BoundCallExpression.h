@@ -10,30 +10,32 @@
 class BoundCallExpression : public BoundExpression {
 private:
   Utils::FunctionSymbol _functionalSymbol;
-  std::shared_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
-  std::vector<std::shared_ptr<BoundExpression>> _arguments;
+  std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
+  std::vector<std::unique_ptr<BoundExpression>> _arguments;
 
 public:
   BoundCallExpression(
-      const std::string &lineAndColumn,
-      std::shared_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
-      Utils::FunctionSymbol functionalSymbol,
-      const std::vector<std::shared_ptr<BoundExpression>> &arguments);
+      std::string lineAndColumn,
+      std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
+      Utils::FunctionSymbol functionalSymbol);
 
   const std::string &getName() const;
-  const std::vector<std::shared_ptr<BoundExpression>> &getArguments() const;
 
-  BinderKindUtils::BoundNodeKind getKind() override;
+  void addArgument(std::unique_ptr<BoundExpression> argument);
+
+  std::vector<std::unique_ptr<BoundExpression>> &getArguments();
 
   const std::type_info &getType() override;
 
   Utils::FunctionSymbol getFunctionSymbol() const;
 
-  std::shared_ptr<BoundLiteralExpression<std::any>> getCallerIdentifier() const;
+  std::unique_ptr<BoundLiteralExpression<std::any>> getCallerIdentifier();
 
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::vector<BoundNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif // __BOUND_CALL_EXPRESSION_H__

@@ -2,30 +2,31 @@
 
 BoundVariableDeclaration::BoundVariableDeclaration(
 
-    const std::string &lineAndColumn, std::string variable, bool isConst,
-    std::shared_ptr<BoundExpression> initializer)
-    : _variable(variable), _initializer(initializer), _isConst(isConst) {
+    std::string lineAndColumn, std::string variable, bool isConst,
+    std::unique_ptr<BoundExpression> initializer) {
   this->_lineAndColumn = lineAndColumn;
-}
+  this->_variable = variable;
+  this->_isConst = isConst;
+  this->_initializer = std::move(initializer);
 
-BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() {
-  return BinderKindUtils::BoundNodeKind::VariableDeclaration;
+  this->_children.push_back(this->_initializer.get());
 }
 
 std::string BoundVariableDeclaration::getVariable() const { return _variable; }
 
-std::shared_ptr<BoundExpression>
-BoundVariableDeclaration::getInitializer() const {
-  return _initializer;
+std::unique_ptr<BoundExpression> BoundVariableDeclaration::getInitializer() {
+  return std::move(_initializer);
+}
+BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
+  return BinderKindUtils::BoundNodeKind::VariableDeclaration;
 }
 
 bool BoundVariableDeclaration::isConst() const { return _isConst; }
 
-std::vector<std::shared_ptr<BoundNode>>
-BoundVariableDeclaration::getChildren() {
-  return std::vector<std::shared_ptr<BoundNode>>{_initializer};
+std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
+  return this->_children;
 }
 
-std::string BoundVariableDeclaration::getLineNumberAndColumn() const {
+std::string BoundVariableDeclaration::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

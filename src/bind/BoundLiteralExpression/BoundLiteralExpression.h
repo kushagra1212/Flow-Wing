@@ -9,19 +9,15 @@ private:
   T value;
 
 public:
-  BoundLiteralExpression(const std::string &lineAndColumn, T value);
+  BoundLiteralExpression(std::string lineAndColumn, T value);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind();
-
-public:
   const std::type_info &getType();
 
-public:
   T getValue();
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 
-public:
-  std::vector<std::shared_ptr<BoundNode>> getChildren() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
+
+  std::vector<BoundNode *> getChildren() override;
 };
