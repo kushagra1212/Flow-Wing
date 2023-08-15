@@ -22,3 +22,8 @@ BinderKindUtils::BoundNodeKind BoundReturnStatement::getKind() const {
 std::vector<BoundNode *> BoundReturnStatement::getChildren() {
   return this->_children;
 }
+
+std::unique_ptr<BoundExpression> &
+BoundReturnStatement::getReturnExpressionPtr() {
+  return this->_expression;
+}

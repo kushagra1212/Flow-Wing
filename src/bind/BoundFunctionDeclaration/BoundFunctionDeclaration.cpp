@@ -31,3 +31,7 @@ Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
 std::string BoundFunctionDeclaration::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundBlockStatement> &BoundFunctionDeclaration::getBodyPtr() {
+  return this->_body;
+}

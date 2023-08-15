@@ -25,11 +25,11 @@ public:
 
   std::vector<std::unique_ptr<BoundExpression>> &getArguments();
 
+  std::unique_ptr<BoundLiteralExpression<std::any>> getCallerIdentifier();
+
   const std::type_info &getType() override;
 
   Utils::FunctionSymbol getFunctionSymbol() const;
-
-  std::unique_ptr<BoundLiteralExpression<std::any>> getCallerIdentifier();
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 

@@ -34,3 +34,12 @@ std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
 std::string BoundUnaryExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &BoundUnaryExpression::getOperandPtr() {
+  return this->_operand;
+}
+
+BinderKindUtils::BoundUnaryOperatorKind &
+BoundUnaryExpression::getOperatorPtr() {
+  return this->_op;
+}

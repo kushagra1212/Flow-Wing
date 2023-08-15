@@ -38,3 +38,16 @@ std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
 std::string BoundAssignmentExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+BinderKindUtils::BoundBinaryOperatorKind &
+BoundAssignmentExpression::getOperatorPtr() {
+  return this->_op;
+}
+
+std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getLeftPtr() {
+  return this->_left;
+}
+
+std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getRightPtr() {
+  return this->_right;
+}

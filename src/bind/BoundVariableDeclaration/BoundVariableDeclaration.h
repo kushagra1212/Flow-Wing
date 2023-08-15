@@ -27,4 +27,6 @@ public:
   std::string getLineNumberAndColumn() override;
 
   bool isConst() const;
+
+  std::unique_ptr<BoundExpression> &getInitializerPtr();
 };

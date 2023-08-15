@@ -23,4 +23,8 @@ public:
   std::string getLineNumberAndColumn() override;
 
   std::vector<BoundNode *> getChildren() override;
+
+  std::unique_ptr<BoundExpression> &getConditionPtr();
+  std::unique_ptr<BoundStatement> &getThenStatementPtr();
+  std::unique_ptr<BoundStatement> &getElseStatementPtr();
 };

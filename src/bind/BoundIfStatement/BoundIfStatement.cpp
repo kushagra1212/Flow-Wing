@@ -37,3 +37,13 @@ std::string BoundIfStatement::getLineNumberAndColumn() {
 std::vector<BoundNode *> BoundIfStatement::getChildren() {
   return this->_children;
 }
+
+std::unique_ptr<BoundExpression> &BoundIfStatement::getConditionPtr() {
+  return this->_condition;
+}
+std::unique_ptr<BoundStatement> &BoundIfStatement::getThenStatementPtr() {
+  return this->_thenStatement;
+}
+std::unique_ptr<BoundStatement> &BoundIfStatement::getElseStatementPtr() {
+  return this->_elseStatement;
+}

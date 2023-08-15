@@ -42,3 +42,16 @@ std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
 std::string BoundBinaryExpression::getLineNumberAndColumn() {
   return _lineAndColumn;
 }
+
+BinderKindUtils::BoundBinaryOperatorKind &
+BoundBinaryExpression::getOperatorPtr() {
+  return _op;
+}
+
+std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeftPtr() {
+  return _left;
+}
+
+std::unique_ptr<BoundExpression> &BoundBinaryExpression::getRightPtr() {
+  return _right;
+}

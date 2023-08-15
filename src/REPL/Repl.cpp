@@ -1,10 +1,7 @@
 #include "Repl.h"
 
 Repl::Repl()
-    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {
-
-  _evaluator = std::make_unique<IRGenerator>();
-}
+    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {}
 
 Repl::~Repl() {}
 
@@ -15,118 +12,110 @@ void Repl::run() {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  std::vector<std::string> text = {"2+5"};
-  std::unique_ptr<Parser> p = std::make_unique<Parser>(text);
 
-  // for (const auto &token : p->tokens) {
-  //   std::cout << SyntaxKindUtils::to_string(token->getKind()) << std::endl;
-  // }
+  // std::vector<std::string> text = {"2+5"};
+  // std::unique_ptr<Parser> p = std::make_unique<Parser>(text);
 
-  std::unique_ptr<CompilationUnitSyntax> cu =
-      std::move(p->parseCompilationUnit());
+  // std::unique_ptr<CompilationUnitSyntax> cu =
+  //     std::move(p->parseCompilationUnit());
 
-  Utils::prettyPrint(cu.get());
-  std::unique_ptr<BoundScopeGlobal> gs =
-      std::move(Binder::bindGlobalScope(nullptr, cu.get()));
+  // Utils::prettyPrint(cu.get());
+  // std::unique_ptr<BoundScopeGlobal> gs =
+  //     std::move(Binder::bindGlobalScope(nullptr, cu.get()));
 
-  Utils::prettyPrint(gs->statement.get());
-  return;
+  // Utils::prettyPrint(gs->statement.get());
 
-  // while (!exit) {
-  //   outputStream << GREEN << ">>> " << RESET;
+  // llvm::Value *generatedIR =
+  //     _evaluator->generateEvaluateStatement(gs->statement.get());
+  // // std::any result = currentEvaluator->last_value;
+  // _evaluator->printIR();
+  // _evaluator->executeGeneratedCode();
 
-  //   std::vector<std::string> text = std::vector<std::string>();
-  //   std::string line;
-  //   int emptyLines = 0;
+  while (!exit) {
+    outputStream << GREEN << ">>> " << RESET;
 
-  //   while (std::getline(inputStream, line)) {
+    std::vector<std::string> text = std::vector<std::string>();
+    std::string line;
+    int emptyLines = 0;
 
-  //     if (handleSpecialCommands(line)) {
-  //       break;
-  //     }
+    while (std::getline(inputStream, line)) {
 
-  //     if (line.empty()) {
-  //       emptyLines++;
-  //       if (emptyLines == 2)
-  //         break;
+      if (handleSpecialCommands(line)) {
+        break;
+      }
 
-  //       outputStream << YELLOW << "... " << RESET;
-  //       continue;
-  //     }
-  //     emptyLines = 0;
+      if (line.empty()) {
+        emptyLines++;
+        if (emptyLines == 2)
+          break;
 
-  //     text.push_back(line);
+        outputStream << YELLOW << "... " << RESET;
+        continue;
+      }
+      emptyLines = 0;
 
-  //     parser = std::make_shared<Parser>(text);
+      text.push_back(line);
 
-  //     if (parser->logs.size()) {
-  //       Utils::printErrors(parser->logs, outputStream);
-  //       text = std::vector<std::string>();
+      parser = std::make_shared<Parser>(text);
 
-  //       break;
-  //     }
-  //     compilationUnit = (parser->parseCompilationUnit());
+      if (parser->logs.size()) {
+        Utils::printErrors(parser->logs, outputStream);
+        text = std::vector<std::string>();
 
-  //     if (parser->logs.size()) {
-  //       emptyLines++;
-  //       if (emptyLines == 3) {
-  //         Utils::printErrors(parser->logs, outputStream);
+        break;
+      }
+      compilationUnit = (parser->parseCompilationUnit());
 
-  //       } else
-  //         outputStream << YELLOW << "... " << RESET;
+      if (parser->logs.size()) {
+        emptyLines++;
+        if (emptyLines == 3) {
+          Utils::printErrors(parser->logs, outputStream);
 
-  //       continue;
-  //     }
-  //     break;
-  //   }
-  //   if (text.size() == 0) {
-  //     continue;
-  //   }
-  //   if (!exit) {
-  //     if (showSyntaxTree) {
-  //       Utils::prettyPrint((compilationUnit));
-  //     }
+        } else
+          outputStream << YELLOW << "... " << RESET;
 
-  //     text = std::vector<std::string>();
-  //     // compileAndEvaluate(outputStream);
-  //   }
-  // }
+        continue;
+      }
+      break;
+    }
+
+    if (text.size() == 0) {
+      continue;
+    }
+    if (!exit) {
+      if (showSyntaxTree) {
+        Utils::prettyPrint(compilationUnit.get());
+      }
+      compileAndEvaluate(outputStream);
+
+      text = std::vector<std::string>();
+    }
+  }
 }
 
 void Repl::compileAndEvaluate(std::ostream &outputStream) {
 
-  // globalScope = Binder::bindGlobalScope(nullptr, std::move(compilationUnit));
+  globalScope = Binder::bindGlobalScope(nullptr, compilationUnit.get());
 
-  // if (showBoundTree) {
-  //   Utils::prettyPrint(globalScope->statement);
-  //   return;
-  // }
+  if (showBoundTree) {
+    Utils::prettyPrint(globalScope->statement.get());
+    return;
+  }
 
-  // try {
+  try {
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
+    llvm::Value *generatedIR =
+        _evaluator->generateEvaluateStatement(globalScope->statement.get());
+    _evaluator->printIR();
+    _evaluator->executeGeneratedCode();
 
-  //   llvm::Value *generatedIR = _evaluator->generateEvaluateStatement(
-  //       std::move(globalScope->statement));
-  //   // std::any result = currentEvaluator->last_value;
-  //   _evaluator->printIR();
-  //   _evaluator->executeGeneratedCode();
+    if (globalScope->logs.size()) {
+      Utils::printErrors(globalScope->logs, outputStream);
+    }
 
-  //   if (globalScope->logs.size()) {
-  //     Utils::printErrors(globalScope->logs, outputStream);
-  //   } else {
-  //     // std::string outputString = Utils::convertAnyToString(result);
-  //     // if (outputString != Utils::NULLPTR) {
-  //     //   outputStream << outputString << "\n";
-  //     // } else if (outputString == Utils::NULLPTR) {
-
-  //     // } else {
-  //     //   throw std::runtime_error("Unexpected result type");
-  //     // }
-  //     // previousEvaluator = std::move(currentEvaluator);
-  //   }
-
-  // } catch (const std::exception &e) {
-  //   outputStream << RED << e.what() << RESET << "\n";
-  // }
+  } catch (const std::exception &e) {
+    outputStream << RED << e.what() << RESET << "\n";
+  }
 }
 
 void Repl::toggleExit() { exit = !exit; }

@@ -23,6 +23,8 @@ public:
   Utils::FunctionSymbol getFunctionSymbol() const;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<BoundBlockStatement> &getBodyPtr();
 };
 
 #endif

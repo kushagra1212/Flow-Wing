@@ -31,3 +31,10 @@ std::vector<BoundNode *> BoundWhileStatement::getChildren() {
 std::string BoundWhileStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &BoundWhileStatement::getConditionPtr() {
+  return this->_condition;
+}
+std::unique_ptr<BoundStatement> &BoundWhileStatement::getBodyPtr() {
+  return this->_body;
+}

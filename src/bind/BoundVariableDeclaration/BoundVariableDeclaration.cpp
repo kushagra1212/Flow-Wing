@@ -30,3 +30,8 @@ std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
 std::string BoundVariableDeclaration::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &
+BoundVariableDeclaration::getInitializerPtr() {
+  return this->_initializer;
+}

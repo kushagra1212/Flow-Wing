@@ -28,3 +28,8 @@ std::vector<BoundNode *> BoundVariableExpression::getChildren() {
 std::string BoundVariableExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &
+BoundVariableExpression::getIdentifierExpressionPtr() {
+  return this->_identiferExpression;
+}

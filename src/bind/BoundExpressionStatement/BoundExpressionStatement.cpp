@@ -26,3 +26,7 @@ std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
 std::string BoundExpressionStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &BoundExpressionStatement::getExpressionPtr() {
+  return this->_expression;
+}

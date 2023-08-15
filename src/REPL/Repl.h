@@ -29,8 +29,8 @@ public:
   void toggleExit();
   // Data members
 private:
-  std::unique_ptr<IRGenerator> _evaluator = nullptr;
   std::shared_ptr<BoundScopeGlobal> globalScope = nullptr;
+
   std::shared_ptr<Parser> parser = nullptr;
   std::shared_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   bool showSyntaxTree, showBoundTree, exit;

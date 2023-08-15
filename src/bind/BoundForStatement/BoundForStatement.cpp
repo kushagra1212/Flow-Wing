@@ -41,3 +41,15 @@ std::vector<BoundNode *> BoundForStatement::getChildren() {
 
   return this->_children;
 }
+
+std::unique_ptr<BoundStatement> &BoundForStatement::getInitializationPtr() {
+  return this->_initialization;
+}
+
+std::unique_ptr<BoundStatement> &BoundForStatement::getStatementPtr() {
+  return this->_statement;
+}
+
+std::unique_ptr<BoundExpression> &BoundForStatement::getUpperBoundPtr() {
+  return this->_upperBound;
+}

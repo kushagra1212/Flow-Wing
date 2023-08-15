@@ -23,4 +23,8 @@ public:
   std::vector<BoundNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<BoundExpression> &getOperandPtr();
+
+  BinderKindUtils::BoundUnaryOperatorKind &getOperatorPtr();
 };

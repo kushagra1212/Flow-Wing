@@ -42,7 +42,7 @@ llvm::Function *
 IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
   BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
   llvm::Value *val = this->generateEvaluateExpressionStatement(
-      unaryExpression->getOperand().get());
+      unaryExpression->getOperandPtr().get());
   if (val == nullptr) {
     return nullptr;
   }
@@ -72,7 +72,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
 
   llvm::Value *result = nullptr;
 
-  switch (unaryExpression->getOperator()) {
+  switch (unaryExpression->getOperatorPtr()) {
   case BinderKindUtils::BoundUnaryOperatorKind::Identity:
     result = Builder->CreateAdd(
         val, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)));
@@ -210,8 +210,8 @@ llvm::Function *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
-  std::string variableName =
-      IRUtils::getString(variableExpression->getIdentifierExpression().get());
+  std::string variableName = IRUtils::getString(
+      variableExpression->getIdentifierExpressionPtr().get());
 
   llvm::Value *variableValue = NamedValues[variableName];
   if (!variableValue) {
@@ -243,7 +243,7 @@ llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
       (BoundAssignmentExpression *)node;
 
   std::string variableName =
-      IRUtils::getString(assignmentExpression->getLeft().get());
+      IRUtils::getString(assignmentExpression->getLeftPtr().get());
 
   llvm::Value *variableValue = NamedValues[variableName];
   if (!variableValue) {
@@ -252,7 +252,7 @@ llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
   }
 
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
-      assignmentExpression->getRight().get());
+      assignmentExpression->getRightPtr().get());
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
     return nullptr;
@@ -297,9 +297,9 @@ llvm::Function *IRGenerator::generateEvaluateBinaryExpressionFunction(
   BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)node;
 
   llvm::Function *lhsFun =
-      generateEvaluateExpressionStatement(binaryExpression->getLeft().get());
-  llvm::Function *rhsFun =
-      generateEvaluateExpressionStatement(binaryExpression->getRight().get());
+      generateEvaluateExpressionStatement(binaryExpression->getLeftPtr().get());
+  llvm::Function *rhsFun = generateEvaluateExpressionStatement(
+      binaryExpression->getRightPtr().get());
 
   if (!lhsFun || !rhsFun) {
     llvm::errs() << "Error in generating IR for operands\n";
@@ -391,7 +391,7 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
     BoundParenthesizedExpression *parenthesizedExpression =
         (BoundParenthesizedExpression *)node;
     return this->generateEvaluateExpressionStatement(
-        parenthesizedExpression->getExpression().get());
+        parenthesizedExpression->getExpressionPtr().get());
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
     return nullptr;
@@ -442,7 +442,7 @@ llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
 
     return this->generateEvaluateExpressionStatement(
-        ((BoundExpressionStatement *)node)->getExpression().get());
+        ((BoundExpressionStatement *)node)->getExpressionPtr().get());
     break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {

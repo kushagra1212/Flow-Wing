@@ -27,3 +27,8 @@ std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
 std::string BoundParenthesizedExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundExpression> &
+BoundParenthesizedExpression::getExpressionPtr() {
+  return this->_expression;
+}
