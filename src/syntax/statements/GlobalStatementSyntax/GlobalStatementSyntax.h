@@ -19,6 +19,8 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<StatementSyntax> &getStatementPtr();
 };
 
 #endif // GlobalStatementSyntax_H

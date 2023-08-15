@@ -12,6 +12,10 @@ ExpressionStatementSyntax::ExpressionStatementSyntax(
 std::unique_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
   return std::move(this->_expression);
 }
+std::unique_ptr<ExpressionSyntax> &
+ExpressionStatementSyntax::getExpressionPtr() {
+  return this->_expression;
+}
 SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
 }

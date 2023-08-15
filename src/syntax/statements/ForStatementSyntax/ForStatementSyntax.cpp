@@ -39,3 +39,15 @@ std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
 std::string ForStatementSyntax::getLineNumberAndColumn() {
   return this->_initialization->getLineNumberAndColumn();
 }
+
+std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementPtr() {
+  return this->_statement;
+}
+
+std::unique_ptr<StatementSyntax> &ForStatementSyntax::getInitializationPtr() {
+  return this->_initialization;
+}
+
+std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getUpperBoundPtr() {
+  return this->_upperBound;
+}

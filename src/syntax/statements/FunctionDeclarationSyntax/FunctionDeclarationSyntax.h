@@ -39,6 +39,13 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getFunctionKeywordPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
+  std::vector<std::unique_ptr<ParameterSyntax>> &getParametersPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
+  std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

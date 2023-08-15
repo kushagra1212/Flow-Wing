@@ -375,8 +375,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
 
     std::any value = numberToken->getValue();
 
-    std::cout << "eds" << std::endl;
-
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
         std::move(numberToken), value);
   }

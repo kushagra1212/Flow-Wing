@@ -32,3 +32,10 @@ std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
 std::string ElseClauseSyntax::getLineNumberAndColumn() {
   return _elseKeyword->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordPtr() {
+  return this->_elseKeyword;
+}
+std::unique_ptr<BlockStatementSyntax> &ElseClauseSyntax::getStatementPtr() {
+  return this->_statement;
+}

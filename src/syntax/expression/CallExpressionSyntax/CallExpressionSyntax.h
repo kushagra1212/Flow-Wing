@@ -20,7 +20,7 @@ public:
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> getIdentifier();
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
-  std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
+  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
   void addArgument(std::unique_ptr<ExpressionSyntax> argument);
 
@@ -30,13 +30,17 @@ public:
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
-  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
-
   SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
+
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIdentifierPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
 
 #endif // CALL_EXPRESSION_SYNTAX_H

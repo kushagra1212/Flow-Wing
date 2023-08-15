@@ -66,3 +66,27 @@ std::string FunctionDeclarationSyntax::getLineNumberAndColumn() {
 std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
   return this->_children;
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+FunctionDeclarationSyntax::getFunctionKeywordPtr() {
+  return _functionKeyword;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+FunctionDeclarationSyntax::getIdentifierTokenPtr() {
+  return _identifierToken;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+FunctionDeclarationSyntax::getOpenParenthesisTokenPtr() {
+  return _openParenthesisToken;
+}
+std::vector<std::unique_ptr<ParameterSyntax>> &
+FunctionDeclarationSyntax::getParametersPtr() {
+  return _parameters;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+FunctionDeclarationSyntax::getCloseParenthesisTokenPtr() {
+  return _closeParenthesisToken;
+}
+std::unique_ptr<BlockStatementSyntax> &FunctionDeclarationSyntax::getBodyPtr() {
+  return _body;
+}

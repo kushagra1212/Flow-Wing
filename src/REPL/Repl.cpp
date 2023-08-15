@@ -15,7 +15,7 @@ void Repl::run() {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  std::vector<std::string> text = {"2"};
+  std::vector<std::string> text = {"2+5"};
   std::unique_ptr<Parser> p = std::make_unique<Parser>(text);
 
   // for (const auto &token : p->tokens) {
@@ -29,7 +29,7 @@ void Repl::runWithStream(std::istream &inputStream,
   std::unique_ptr<BoundScopeGlobal> gs =
       std::move(Binder::bindGlobalScope(nullptr, cu.get()));
 
-  // Utils::prettyPrint(gs->statement.get());
+  Utils::prettyPrint(gs->statement.get());
   return;
 
   // while (!exit) {

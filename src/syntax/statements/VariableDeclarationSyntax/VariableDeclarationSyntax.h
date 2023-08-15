@@ -19,11 +19,17 @@ public:
                             std::unique_ptr<ExpressionSyntax> initializer);
 
   std::unique_ptr<SyntaxToken<std::any>> getIdentifier();
-  std::unique_ptr<SyntaxToken<std::any>> getEqualsToken();
   std::unique_ptr<ExpressionSyntax> getInitializer();
+  std::unique_ptr<SyntaxToken<std::any>> getEqualsToken();
   std::unique_ptr<SyntaxToken<std::any>> getKeyword();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<ExpressionSyntax> &getInitializerPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getEqualsTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getKeywordPtr();
 };

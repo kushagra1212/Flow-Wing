@@ -22,6 +22,10 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getOperandPtr();
 };
 
 #endif // UnaryExpressionSyntax_h__

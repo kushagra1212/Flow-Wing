@@ -21,4 +21,7 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getElseKeywordPtr();
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
 };

@@ -31,3 +31,12 @@ std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
 std::string UnaryExpressionSyntax::getLineNumberAndColumn() {
   return this->_operatorToken->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+UnaryExpressionSyntax::getOperatorTokenPtr() {
+  return this->_operatorToken;
+}
+
+std::unique_ptr<ExpressionSyntax> &UnaryExpressionSyntax::getOperandPtr() {
+  return this->_operand;
+}

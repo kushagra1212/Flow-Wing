@@ -30,6 +30,12 @@ public:
   SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
+
+  std::unique_ptr<StatementSyntax> &getInitializationPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getUpperBoundPtr();
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

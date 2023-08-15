@@ -40,3 +40,18 @@ std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
 std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() {
   return this->_openParenthesisToken->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ParenthesizedExpressionSyntax::getOpenParenthesisTokenPtr() {
+  return this->_openParenthesisToken;
+}
+
+std::unique_ptr<ExpressionSyntax> &
+ParenthesizedExpressionSyntax::getExpressionPtr() {
+  return this->_expression;
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ParenthesizedExpressionSyntax::getCloseParenthesisTokenPtr() {
+  return this->_closeParenthesisToken;
+}

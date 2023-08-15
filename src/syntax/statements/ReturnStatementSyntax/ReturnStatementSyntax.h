@@ -25,6 +25,9 @@ public:
   SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getReturnKeywordPtr();
+  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
 };
 
 #endif // RETURNSTATEMENTSYNTAX_H

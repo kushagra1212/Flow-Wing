@@ -20,5 +20,7 @@ public:
   void setEndOfFileToken(std::unique_ptr<SyntaxToken<std::any>> endOfFileToken);
 
   std::vector<SyntaxNode *> getChildren();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenPtr();
 };
 #endif

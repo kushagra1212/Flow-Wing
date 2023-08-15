@@ -33,3 +33,11 @@ SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
 std::string ReturnStatementSyntax::getLineNumberAndColumn() {
   return _returnKeyword->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ReturnStatementSyntax::getReturnKeywordPtr() {
+  return _returnKeyword;
+}
+std::unique_ptr<ExpressionSyntax> &ReturnStatementSyntax::getExpressionPtr() {
+  return _expression;
+}

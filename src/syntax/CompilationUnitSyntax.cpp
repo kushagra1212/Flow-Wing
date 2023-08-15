@@ -33,3 +33,8 @@ std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
   }
   return this->_children;
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+CompilationUnitSyntax::getEndOfFileTokenPtr() {
+  return this->_endOfFileToken;
+}

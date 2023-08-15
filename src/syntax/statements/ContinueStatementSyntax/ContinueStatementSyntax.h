@@ -20,6 +20,8 @@ public:
   SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };
 
 #endif // CONTINUESTATEMENTSYNTAX_H

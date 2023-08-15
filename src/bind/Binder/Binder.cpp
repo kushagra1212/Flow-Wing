@@ -3,7 +3,7 @@
 
 std::unique_ptr<BoundStatement> Binder::bindExpressionStatement(
     ExpressionStatementSyntax *expressionStatement) {
-  ExpressionSyntax *exps = expressionStatement->getExpression().get();
+  ExpressionSyntax *exps = expressionStatement->getExpressionPtr().get();
 
   std::string lineAndColumn = exps->getLineNumberAndColumn();
   std::unique_ptr<BoundExpression> boundExpression =
@@ -39,18 +39,18 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
     VariableDeclarationSyntax *variableDeclaration) {
 
   std::unique_ptr<BoundExpression> boundInitializerExpression =
-      std::move(bindExpression(variableDeclaration->getInitializer().get()));
+      std::move(bindExpression(variableDeclaration->getInitializerPtr().get()));
 
   std::string variable_str = std::any_cast<std::string>(
-      variableDeclaration->getIdentifier()->getValue());
+      variableDeclaration->getIdentifierPtr()->getValue());
 
-  bool isConst = variableDeclaration->getKeyword()->getKind() ==
+  bool isConst = variableDeclaration->getKeywordPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
   if (!root->tryDeclareVariable(variable_str,
                                 Utils::Variable(nullptr, isConst))) {
     this->logs.push_back(Utils::getLineNumberAndPosition(
-                             variableDeclaration->getIdentifier().get()) +
+                             variableDeclaration->getIdentifierPtr().get()) +
                          "Error: Variable " + variable_str + " already exists");
   }
 
@@ -62,16 +62,16 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
 std::unique_ptr<BoundStatement>
 Binder::bindIfStatement(IfStatementSyntax *ifStatement) {
   std::unique_ptr<BoundExpression> boundCondition =
-      std::move(bindExpression(ifStatement->getCondition().get()));
+      std::move(bindExpression(ifStatement->getConditionPtr().get()));
 
   std::unique_ptr<BoundStatement> boundThenStatement =
-      std::move(bindStatement(ifStatement->getStatement().get()));
+      std::move(bindStatement(ifStatement->getStatementPtr().get()));
 
   std::unique_ptr<BoundStatement> boundElseStatement = nullptr;
 
-  if (ifStatement->getElseClause() != nullptr) {
-    boundElseStatement = std::move(
-        bindStatement(ifStatement->getElseClause()->getStatement().get()));
+  if (ifStatement->getElseClausePtr() != nullptr) {
+    boundElseStatement = std::move(bindStatement(
+        ifStatement->getElseClausePtr()->getStatementPtr().get()));
   }
 
   return std::make_unique<BoundIfStatement>(
@@ -86,10 +86,10 @@ Binder::bindWhileStatement(WhileStatementSyntax *whileStatement) {
   this->root->makeBreakableAndContinuable();
 
   std::unique_ptr<BoundExpression> boundCondition =
-      std::move(bindExpression(whileStatement->getCondition().get()));
+      std::move(bindExpression(whileStatement->getConditionPtr().get()));
 
   std::unique_ptr<BoundStatement> boundBody =
-      bindStatement(whileStatement->getBody().get());
+      bindStatement(whileStatement->getBodyPtr().get());
 
   this->root = std::move(this->root->parent);
 
@@ -103,13 +103,13 @@ Binder::bindForStatement(ForStatementSyntax *forStatement) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
   this->root->makeBreakableAndContinuable();
   std::unique_ptr<BoundStatement> boundIntializer =
-      std::move(bindStatement(forStatement->getInitialization().get()));
+      std::move(bindStatement(forStatement->getInitializationPtr().get()));
 
   std::unique_ptr<BoundExpression> boundUpperBound =
-      std::move(bindExpression(forStatement->getUpperBound().get()));
+      std::move(bindExpression(forStatement->getUpperBoundPtr().get()));
 
   std::unique_ptr<BoundStatement> boundBody =
-      std::move(bindStatement(forStatement->getStatement().get()));
+      std::move(bindStatement(forStatement->getStatementPtr().get()));
 
   this->root = std::move(this->root->parent);
   return std::make_unique<BoundForStatement>(
@@ -121,7 +121,7 @@ std::unique_ptr<BoundStatement>
 Binder::bindBreakStatement(BreakStatementSyntax *breakStatement) {
   if (!this->root->isBreakable()) {
     this->logs.push_back(Utils::getLineNumberAndPosition(
-                             breakStatement->getBreakKeyword().get()) +
+                             breakStatement->getBreakKeywordPtr().get()) +
                          "Error: Break statement outside of loop");
   }
   return std::make_unique<BoundBreakStatement>(
@@ -132,7 +132,7 @@ std::unique_ptr<BoundStatement>
 Binder::bindContinueStatement(ContinueStatementSyntax *continueStatement) {
   if (!this->root->isContinuable()) {
     this->logs.push_back(Utils::getLineNumberAndPosition(
-                             continueStatement->getContinueKeyword().get()) +
+                             continueStatement->getContinueKeywordPtr().get()) +
                          "Error: Continue statement outside of loop");
   }
   return std::make_unique<BoundContinueStatement>(
@@ -144,10 +144,11 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
   std::unique_ptr<BoundExpression> boundExpression = nullptr;
   if (!this->root->isInFunction()) {
     this->logs.push_back(Utils::getLineNumberAndPosition(
-                             returnStatement->getReturnKeyword().get()) +
+                             returnStatement->getReturnKeywordPtr().get()) +
                          "Error: Return statement outside of function");
   } else {
-    ExpressionSyntax *returnExpression = returnStatement->getExpression().get();
+    ExpressionSyntax *returnExpression =
+        returnStatement->getExpressionPtr().get();
 
     if (returnExpression) {
       boundExpression = std::move(bindExpression(returnExpression));
@@ -209,10 +210,10 @@ std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
 std::unique_ptr<BoundExpression>
 Binder::bindunaryExpression(UnaryExpressionSyntax *unaryExpression) {
   std::unique_ptr<BoundExpression> boundOperand =
-      std::move(bindExpression(unaryExpression->getOperand().get()));
+      std::move(bindExpression(unaryExpression->getOperandPtr().get()));
   BinderKindUtils::BoundUnaryOperatorKind op =
       BinderKindUtils::getUnaryOperatorKind(
-          unaryExpression->getOperatorToken()->getKind());
+          unaryExpression->getOperatorTokenPtr()->getKind());
 
   return std::make_unique<BoundUnaryExpression>(
       unaryExpression->getLineNumberAndColumn(), op, std::move(boundOperand));
@@ -221,12 +222,12 @@ Binder::bindunaryExpression(UnaryExpressionSyntax *unaryExpression) {
 std::unique_ptr<BoundExpression>
 Binder::bindBinaryExpression(BinaryExpressionSyntax *binaryExpression) {
   std::unique_ptr<BoundExpression> boundLeft =
-      std::move(bindExpression(binaryExpression->getLeft().get()));
+      std::move(bindExpression(binaryExpression->getLeftPtr().get()));
   std::unique_ptr<BoundExpression> boundRight =
-      std::move(bindExpression(binaryExpression->getRight().get()));
+      std::move(bindExpression(binaryExpression->getRightPtr().get()));
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
-          binaryExpression->getOperatorToken()->getKind());
+          binaryExpression->getOperatorTokenPtr()->getKind());
 
   return std::make_unique<BoundBinaryExpression>(
       binaryExpression->getLineNumberAndColumn(), std::move(boundLeft), op,
@@ -237,7 +238,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     AssignmentExpressionSyntax *assignmentExpression) {
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
       (BoundLiteralExpression<std::any> *)bindExpression(
-          assignmentExpression->getLeft().get())
+          assignmentExpression->getLeftPtr().get())
           .release());
 
   std::string variable_str =
@@ -245,26 +246,26 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
-          assignmentExpression->getOperatorToken()->getKind());
+          assignmentExpression->getOperatorTokenPtr()->getKind());
 
   if (!root->tryLookupVariable(variable_str)) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             assignmentExpression->getOperatorToken().get()) +
-                         "Error: Can not assign to undeclared variable " +
-                         variable_str);
+    this->logs.push_back(
+        Utils::getLineNumberAndPosition(
+            assignmentExpression->getOperatorTokenPtr().get()) +
+        "Error: Can not assign to undeclared variable " + variable_str);
     return std::move(boundIdentifierExpression);
   }
 
   if (root->variables[variable_str].isConst) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             assignmentExpression->getOperatorToken().get()) +
-                         "Error: Can not assign to const variable " +
-                         variable_str);
+    this->logs.push_back(
+        Utils::getLineNumberAndPosition(
+            assignmentExpression->getOperatorTokenPtr().get()) +
+        "Error: Can not assign to const variable " + variable_str);
     return std::move(boundIdentifierExpression);
   }
 
   std::unique_ptr<BoundExpression> boundRight =
-      bindExpression(assignmentExpression->getRight().get());
+      bindExpression(assignmentExpression->getRightPtr().get());
   return std::make_unique<BoundAssignmentExpression>(
       assignmentExpression->getLineNumberAndColumn(),
       std::move(boundIdentifierExpression), op, std::move(boundRight));
@@ -275,7 +276,7 @@ Binder::bindVariableExpression(VariableExpressionSyntax *variableExpression) {
 
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
       (BoundLiteralExpression<std::any>
-           *)(bindExpression(variableExpression->getIdentifier().get())
+           *)(bindExpression(variableExpression->getIdentifierPtr().get())
                   .release()));
 
   std::string variable_str =
@@ -284,7 +285,7 @@ Binder::bindVariableExpression(VariableExpressionSyntax *variableExpression) {
   if (!root->tryLookupVariable(variable_str)) {
     this->logs.push_back(
         Utils::getLineNumberAndPosition(
-            variableExpression->getIdentifier()->getToken().get()) +
+            variableExpression->getIdentifierPtr()->getTokenPtr().get()) +
         "Error: Variable " + variable_str + " does not exist");
     return std::move(boundIdentifierExpression);
   }
@@ -297,7 +298,7 @@ std::unique_ptr<BoundExpression>
 Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifier(
       (BoundLiteralExpression<std::any> *)bindExpression(
-          (callExpression->getIdentifier().get()))
+          (callExpression->getIdentifierPtr().get()))
           .release());
 
   Utils::FunctionSymbol functionSymbol =
@@ -373,21 +374,21 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   this->root = std::make_unique<BoundScope>(std::move(this->root));
 
-  std::string function_name = syntax->getIdentifierToken()->getText();
+  std::string function_name = syntax->getIdentifierTokenPtr()->getText();
 
   for (int i = 0; i < syntax->getParameters().size(); i++) {
     std::string variable_str =
-        syntax->getParameters()[i]->getIdentifierToken()->getText();
+        syntax->getParameters()[i]->getIdentifierTokenPtr()->getText();
     if (!this->root->tryDeclareVariable(variable_str,
                                         Utils::Variable(nullptr, false))) {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(
-              syntax->getParameters()[i]->getIdentifierToken().get()) +
+              syntax->getParameters()[i]->getIdentifierTokenPtr().get()) +
           "Error: Parameter " + variable_str + " already declared");
     }
 
     parameters.push_back(Utils::FunctionParameterSymbol(
-        syntax->getParameters()[i]->getIdentifierToken()->getText(), false));
+        syntax->getParameters()[i]->getIdentifierTokenPtr()->getText(), false));
   }
 
   Utils::FunctionSymbol functionSymbol =
@@ -396,7 +397,8 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   this->root->incrementFunctionCount();
 
   std::unique_ptr<BoundBlockStatement> boundBody(
-      (BoundBlockStatement *)bindStatement(syntax->getBody().get()).release());
+      (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
+          .release());
   std::unique_ptr<BoundFunctionDeclaration> fd =
       std::make_unique<BoundFunctionDeclaration>(
           syntax->getLineNumberAndColumn(), functionSymbol,
@@ -406,7 +408,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   if (!this->root->tryDeclareFunction(functionSymbol.name, fd.get())) {
     this->logs.push_back(
-        Utils::getLineNumberAndPosition(syntax->getFunctionKeyword().get()) +
+        Utils::getLineNumberAndPosition(syntax->getFunctionKeywordPtr().get()) +
         "Error: Function " + functionSymbol.name + " already declared");
   }
   this->root = std::move(this->root->parent);
@@ -416,7 +418,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 std::unique_ptr<BoundStatement>
 Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 
-  return bindStatement(syntax->getStatement().get());
+  return bindStatement(syntax->getStatementPtr().get());
 }
 
 Binder::Binder(std::unique_ptr<BoundScope> parent) {
@@ -449,7 +451,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
     if (functionDefinitionMap.find(functionSymbol.name) ==
         functionDefinitionMap.end()) {
       binder->logs.push_back(
-          callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+          callExpression->getCallerIdentifierPtr()->getLineNumberAndColumn() +
           "Error: Function " + functionSymbol.name + " does not exist");
       continue;
     }
@@ -460,7 +462,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
     if (functionSymbol.parameters.size() !=
         functionDefinition.parameters.size()) {
       binder->logs.push_back(
-          callExpression->getCallerIdentifier()->getLineNumberAndColumn() +
+          callExpression->getCallerIdentifierPtr()->getLineNumberAndColumn() +
           "Error: Function " + functionSymbol.name + " requires " +
           std::to_string(functionDefinition.parameters.size()) + " arguments");
       continue;

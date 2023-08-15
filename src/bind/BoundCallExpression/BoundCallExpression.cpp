@@ -56,3 +56,8 @@ std::vector<BoundNode *> BoundCallExpression::getChildren() {
 std::string BoundCallExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
+
+std::unique_ptr<BoundLiteralExpression<std::any>> &
+BoundCallExpression::getCallerIdentifierPtr() {
+  return _callerIdentifier;
+}

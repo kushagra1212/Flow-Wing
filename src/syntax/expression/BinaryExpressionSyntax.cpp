@@ -40,3 +40,16 @@ std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
 std::string BinaryExpressionSyntax::getLineNumberAndColumn() {
   return this->_left->getLineNumberAndColumn();
 }
+
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getLeftPtr() {
+  return this->_left;
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BinaryExpressionSyntax::getOperatorTokenPtr() {
+  return this->_operatorToken;
+}
+
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getRightPtr() {
+  return this->_right;
+}

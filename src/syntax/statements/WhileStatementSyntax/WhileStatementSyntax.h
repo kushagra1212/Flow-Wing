@@ -25,4 +25,10 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
+
+  std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };

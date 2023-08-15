@@ -35,8 +35,17 @@ std::unique_ptr<ExpressionSyntax> VariableDeclarationSyntax::getInitializer() {
   return std::move(_initializer);
 }
 
+std::unique_ptr<ExpressionSyntax> &
+VariableDeclarationSyntax::getInitializerPtr() {
+  return (_initializer);
+}
+
 std::unique_ptr<SyntaxToken<std::any>> VariableDeclarationSyntax::getKeyword() {
   return std::move(_keyword);
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getIdentifierPtr() {
+  return (_identifier);
 }
 
 SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
@@ -49,6 +58,15 @@ std::vector<SyntaxNode *> VariableDeclarationSyntax::getChildren() {
 
 std::string VariableDeclarationSyntax::getLineNumberAndColumn() {
   return _keyword->getLineNumberAndColumn();
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getEqualsTokenPtr() {
+  return this->_equalsToken;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getKeywordPtr() {
+  return this->_keyword;
 }
 
 // Path:

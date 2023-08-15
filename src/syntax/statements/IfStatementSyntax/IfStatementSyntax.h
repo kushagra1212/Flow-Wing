@@ -28,4 +28,9 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
+  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
+  std::unique_ptr<ElseClauseSyntax> &getElseClausePtr();
 };

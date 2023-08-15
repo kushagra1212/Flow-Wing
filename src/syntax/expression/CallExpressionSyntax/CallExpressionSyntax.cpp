@@ -60,3 +60,16 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
 std::string CallExpressionSyntax::getLineNumberAndColumn() {
   return _identifier->getLineNumberAndColumn();
 }
+
+std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+CallExpressionSyntax::getIdentifierPtr() {
+  return _identifier;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+CallExpressionSyntax::getOpenParenthesisTokenPtr() {
+  return _openParenthesisToken;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+CallExpressionSyntax::getCloseParenthesisTokenPtr() {
+  return _closeParenthesisToken;
+}

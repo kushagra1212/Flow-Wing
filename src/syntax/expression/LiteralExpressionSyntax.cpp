@@ -41,3 +41,9 @@ template <typename T>
 std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() {
   return this->_token->getLineNumberAndColumn();
 }
+
+template <typename T>
+std::unique_ptr<SyntaxToken<std::any>> &
+LiteralExpressionSyntax<T>::getTokenPtr() {
+  return this->_token;
+}

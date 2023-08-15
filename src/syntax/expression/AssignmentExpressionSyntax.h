@@ -26,4 +26,10 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getRightPtr();
+
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getLeftPtr();
 };

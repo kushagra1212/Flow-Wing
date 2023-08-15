@@ -25,5 +25,11 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
 #endif

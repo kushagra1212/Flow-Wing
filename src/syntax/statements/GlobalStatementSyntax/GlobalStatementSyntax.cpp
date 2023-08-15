@@ -22,3 +22,7 @@ std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
 std::string GlobalStatementSyntax::getLineNumberAndColumn() {
   return _statement->getLineNumberAndColumn();
 }
+
+std::unique_ptr<StatementSyntax> &GlobalStatementSyntax::getStatementPtr() {
+  return _statement;
+}

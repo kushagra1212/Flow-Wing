@@ -42,3 +42,17 @@ AssignmentExpressionSyntax::getLeft() {
 std::string AssignmentExpressionSyntax::getLineNumberAndColumn() {
   return this->_left->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+AssignmentExpressionSyntax::getOperatorTokenPtr() {
+  return this->_operatorToken;
+}
+
+std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightPtr() {
+  return this->_right;
+}
+
+std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+AssignmentExpressionSyntax::getLeftPtr() {
+  return this->_left;
+}

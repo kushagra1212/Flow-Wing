@@ -39,3 +39,16 @@ std::vector<SyntaxNode *> WhileStatementSyntax::getChildren() {
 std::string WhileStatementSyntax::getLineNumberAndColumn() {
   return _whileKeyword->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+WhileStatementSyntax::getWhileKeywordPtr() {
+  return this->_whileKeyword;
+}
+
+std::unique_ptr<ExpressionSyntax> &WhileStatementSyntax::getConditionPtr() {
+  return this->_condition;
+}
+
+std::unique_ptr<BlockStatementSyntax> &WhileStatementSyntax::getBodyPtr() {
+  return this->_body;
+}

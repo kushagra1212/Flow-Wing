@@ -24,3 +24,8 @@ SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
 std::string ContinueStatementSyntax::getLineNumberAndColumn() {
   return _continueKeyword->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ContinueStatementSyntax::getContinueKeywordPtr() {
+  return _continueKeyword;
+}

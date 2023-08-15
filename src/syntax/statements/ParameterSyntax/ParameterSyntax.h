@@ -22,6 +22,8 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };
 
 #endif // PARAMETER_SYNTAX_H

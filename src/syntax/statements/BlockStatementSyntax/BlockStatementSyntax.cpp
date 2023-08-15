@@ -51,3 +51,13 @@ std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
 std::string BlockStatementSyntax::getLineNumberAndColumn() {
   return this->_openBraceToken->getLineNumberAndColumn();
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BlockStatementSyntax::getOpenBraceTokenPtr() {
+  return this->_openBraceToken;
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BlockStatementSyntax::getCloseBraceTokenPtr() {
+  return this->_closeBraceToken;
+}

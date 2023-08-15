@@ -26,3 +26,8 @@ std::string ParameterSyntax::getLineNumberAndColumn() {
 std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
   return this->_children;
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ParameterSyntax::getIdentifierTokenPtr() {
+  return this->_identifierToken;
+}

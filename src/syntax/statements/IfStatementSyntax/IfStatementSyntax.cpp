@@ -47,3 +47,16 @@ std::string IfStatementSyntax::getLineNumberAndColumn() {
 std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
   return this->_children;
 }
+
+std::unique_ptr<SyntaxToken<std::any>> &IfStatementSyntax::getIfKeywordPtr() {
+  return this->ifKeyword;
+}
+std::unique_ptr<ExpressionSyntax> &IfStatementSyntax::getConditionPtr() {
+  return this->condition;
+}
+std::unique_ptr<BlockStatementSyntax> &IfStatementSyntax::getStatementPtr() {
+  return this->statement;
+}
+std::unique_ptr<ElseClauseSyntax> &IfStatementSyntax::getElseClausePtr() {
+  return this->elseClause;
+}

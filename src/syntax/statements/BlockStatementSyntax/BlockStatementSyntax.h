@@ -10,16 +10,16 @@ private:
 public:
   BlockStatementSyntax();
 
-  std::unique_ptr<SyntaxToken<std::any>> getOpenBraceToken();
-
-  std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
-
   void addStatement(std::unique_ptr<StatementSyntax> statement);
 
   void setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken);
 
   void
   setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken);
+
+  std::unique_ptr<SyntaxToken<std::any>> getOpenBraceToken();
+
+  std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
 
   std::unique_ptr<SyntaxToken<std::any>> getCloseBraceToken();
 
@@ -28,4 +28,8 @@ public:
   std::vector<SyntaxNode *> getChildren() override;
 
   std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenBraceTokenPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseBraceTokenPtr();
 };
