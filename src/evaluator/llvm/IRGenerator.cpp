@@ -217,6 +217,8 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   llvm::Value *variableValue = _NamedValues[variableName];
   if (!variableValue) {
     // Variable not found, handle error
+
+    llvm::errs() << "Variable not found\n";
     return nullptr;
   }
 
@@ -232,9 +234,9 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
 
   Builder->SetInsertPoint(entryBlock);
 
-  llvm::Value *loadedValue =
-      Builder->CreateLoad(variableValue->getType(),
-                          TheModule->getGlobalVariable(variableName), "temp");
+  llvm::Value *loadedValue = Builder->CreateLoad(
+      variableValue->getType(), TheModule->getGlobalVariable(variableName),
+      variableName.c_str());
   Builder->CreateRet(loadedValue);
 
   llvm::verifyFunction(*variableFunction);
@@ -441,8 +443,8 @@ IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
   }
 
   Builder->CreateRet(returnValue);
-
-  _NamedValues = originalNamedValues;
+  if (!node->getGlobal())
+    _NamedValues = originalNamedValues;
   llvm::verifyFunction(*F);
   return F;
 }
@@ -469,15 +471,12 @@ llvm::Function *IRGenerator::generateEvaluateVariableDeclaration(
 
   _NamedValues[variable_name] = result;
 
-  llvm::GlobalVariable *sharedVar = new llvm::GlobalVariable(
-      *TheModule,
-      result->getType(),                // Type of the shared variable (i32)
-      false,                            // Not constant
-      llvm::GlobalValue::CommonLinkage, // External linkage
-      llvm::Constant::getNullValue(result->getType()), // Initial value
-      variable_name                                    // Variable name
-  );
-  Builder->CreateStore(result, sharedVar);
+  // create and load variable
+
+  llvm::Value *variable =
+      Builder->CreateAlloca(result->getType(), nullptr, variable_name.c_str());
+
+  Builder->CreateStore(result, variable);
 
   llvm::Value *returnValue = Builder->CreateRet(result);
 

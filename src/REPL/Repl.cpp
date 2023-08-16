@@ -2,7 +2,9 @@
 
 Repl::Repl()
     : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false),
-      globalScope(nullptr) {}
+      globalScope(nullptr) {
+  previous_lines = std::vector<std::string>();
+}
 
 Repl::~Repl() {}
 std::mutex textMutex;
@@ -18,7 +20,7 @@ void Repl::runWithStream(std::istream &inputStream,
   while (!exit) {
     outputStream << GREEN << ">>> " << RESET;
 
-    std::vector<std::string> text = std::vector<std::string>();
+    std::vector<std::string> text = previous_lines;
     std::string line;
     int emptyLines = 0;
     while (std::getline(inputStream, line)) {
@@ -72,6 +74,8 @@ void Repl::runWithStream(std::istream &inputStream,
           Utils::prettyPrint(compilationUnit.get());
         }
         compileAndEvaluate(outputStream, std::move(compilationUnit));
+
+        previous_lines = text;
       }
 
       text = std::vector<std::string>();
@@ -83,8 +87,8 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  globalScope = std::move(
-      Binder::bindGlobalScope(std::move(globalScope), compilationUnit.get()));
+  globalScope =
+      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
 
   if (globalScope->logs.size()) {
     Utils::printErrors(globalScope->logs, outputStream);

@@ -33,6 +33,7 @@ public:
 private:
   bool showSyntaxTree, showBoundTree, exit;
   std::unique_ptr<BoundScopeGlobal> globalScope;
+  std::vector<std::string> previous_lines;
 
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();
