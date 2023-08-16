@@ -7,6 +7,7 @@ IRGenerator::IRGenerator() {
       "../../../src/evaluator/IRFiles/functions.ll"};
   TheModule = std::move(this->_getModule(irFilePaths));
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
+
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
@@ -213,7 +214,7 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   std::string variableName = IRUtils::getString(
       variableExpression->getIdentifierExpressionPtr().get());
 
-  llvm::Value *variableValue = NamedValues[variableName];
+  llvm::Value *variableValue = _NamedValues[variableName];
   if (!variableValue) {
     // Variable not found, handle error
     return nullptr;
@@ -226,11 +227,15 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
       variableFunctionType, llvm::Function::ExternalLinkage,
       "evaluateVariableExpression", *TheModule);
 
-  llvm::BasicBlock *entryBB =
+  llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", variableFunction);
-  Builder->SetInsertPoint(entryBB);
 
-  llvm::Value *returnValue = Builder->CreateRet(variableValue);
+  Builder->SetInsertPoint(entryBlock);
+
+  llvm::Value *loadedValue =
+      Builder->CreateLoad(variableValue->getType(),
+                          TheModule->getGlobalVariable(variableName), "temp");
+  Builder->CreateRet(loadedValue);
 
   llvm::verifyFunction(*variableFunction);
 
@@ -245,7 +250,7 @@ llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
   std::string variableName =
       IRUtils::getString(assignmentExpression->getLeftPtr().get());
 
-  llvm::Value *variableValue = NamedValues[variableName];
+  llvm::Value *variableValue = _NamedValues[variableName];
   if (!variableValue) {
     // Variable not found, handle error
     return nullptr;
@@ -258,7 +263,7 @@ llvm::Function *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     return nullptr;
   }
 
-  NamedValues[variableName] = rhsValue;
+  _NamedValues[variableName] = rhsValue;
 
   llvm::FunctionType *assignmentFunctionType =
       llvm::FunctionType::get(rhsValue->getType(), false);
@@ -407,13 +412,17 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
 llvm::Function *
 IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
 
-  std::map<std::string, llvm::Value *> originalNamedValues = NamedValues;
+  std::map<std::string, llvm::Value *> originalNamedValues = _NamedValues;
   std::vector<llvm::Function *> functions;
-  llvm::Value *result = nullptr;
+
+  llvm::Value *returnValue = nullptr;
 
   for (int i = 0; i < node->getStatements().size(); i++) {
-    functions.push_back(
-        this->generateEvaluateStatement(node->getStatements()[i].get()));
+
+    llvm::Function *f =
+        this->generateEvaluateStatement(node->getStatements()[i].get());
+
+    functions.push_back(f);
   }
 
   llvm::FunctionType *FT = llvm::FunctionType::get(
@@ -428,11 +437,12 @@ IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
   Builder->SetInsertPoint(BB);
   for (int i = 0; i < functions.size(); i++) {
     llvm::Value *res = Builder->CreateCall(functions[i]);
-    result = res;
+    returnValue = res;
   }
-  llvm::Value *returnValue = Builder->CreateRet(result);
 
-  NamedValues = originalNamedValues;
+  Builder->CreateRet(returnValue);
+
+  _NamedValues = originalNamedValues;
   llvm::verifyFunction(*F);
   return F;
 }
@@ -456,7 +466,19 @@ llvm::Function *IRGenerator::generateEvaluateVariableDeclaration(
 
   Builder->SetInsertPoint(BB);
   llvm::Value *result = Builder->CreateCall(initilizerFunction);
-  NamedValues[variable_name] = result;
+
+  _NamedValues[variable_name] = result;
+
+  llvm::GlobalVariable *sharedVar = new llvm::GlobalVariable(
+      *TheModule,
+      result->getType(),                // Type of the shared variable (i32)
+      false,                            // Not constant
+      llvm::GlobalValue::CommonLinkage, // External linkage
+      llvm::Constant::getNullValue(result->getType()), // Initial value
+      variable_name                                    // Variable name
+  );
+  Builder->CreateStore(result, sharedVar);
+
   llvm::Value *returnValue = Builder->CreateRet(result);
 
   llvm::verifyFunction(*F);
@@ -470,19 +492,15 @@ llvm::Function *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
     return this->generateEvaluateExpressionStatement(
         ((BoundExpressionStatement *)node)->getExpressionPtr().get());
-    break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
 
     return this->generateEvaluateBlockStatement(((BoundBlockStatement *)node));
-    break;
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
 
     return this->generateEvaluateVariableDeclaration(
         (BoundVariableDeclaration *)node);
-
-    break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
 
@@ -604,6 +622,5 @@ void IRGenerator::executeGeneratedCode() {
   } else {
     llvm::outs() << "Unknown Value Type\n";
   }
-
   delete executionEngine;
 }

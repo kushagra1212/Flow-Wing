@@ -32,6 +32,8 @@ public:
   // Data members
 private:
   bool showSyntaxTree, showBoundTree, exit;
+  std::unique_ptr<BoundScopeGlobal> globalScope;
+
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();
 };

@@ -91,6 +91,5 @@
     "shared_mutex": "cpp",
     "*.inc": "cpp",
     "future": "cpp"
-  },
-  "C_Cpp.errorSquiggles": "enabled"
+  }
 }

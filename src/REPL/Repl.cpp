@@ -1,7 +1,8 @@
 #include "Repl.h"
 
 Repl::Repl()
-    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {}
+    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false),
+      globalScope(nullptr) {}
 
 Repl::~Repl() {}
 std::mutex textMutex;
@@ -82,8 +83,8 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  std::unique_ptr<BoundScopeGlobal> globalScope =
-      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
+  globalScope = std::move(
+      Binder::bindGlobalScope(std::move(globalScope), compilationUnit.get()));
 
   if (globalScope->logs.size()) {
     Utils::printErrors(globalScope->logs, outputStream);
