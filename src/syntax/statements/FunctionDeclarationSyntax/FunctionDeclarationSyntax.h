@@ -11,35 +11,41 @@
 class FunctionDeclarationSyntax : public MemberSyntax {
 
 private:
-  SyntaxToken<std::any> *_functionKeyword;
-  SyntaxToken<std::any> *_identifierToken;
-  SyntaxToken<std::any> *_openParenthesisToken;
-  std::vector<ParameterSyntax *> _parameters;
-  SyntaxToken<std::any> *_closeParenthesisToken;
-  BlockStatementSyntax *_body;
+  std::unique_ptr<SyntaxToken<std::any>> _functionKeyword;
+  std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
+  std::vector<std::unique_ptr<ParameterSyntax>> _parameters;
+  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
+  std::unique_ptr<BlockStatementSyntax> _body;
 
 public:
-  FunctionDeclarationSyntax(SyntaxToken<std::any> *functionKeyword,
-                            SyntaxToken<std::any> *identifierToken,
-                            SyntaxToken<std::any> *openParenthesisToken,
-                            std::vector<ParameterSyntax *> parameters,
-                            SyntaxToken<std::any> *closeParenthesisToken,
-                            BlockStatementSyntax *body);
+  FunctionDeclarationSyntax(
+      std::unique_ptr<SyntaxToken<std::any>> functionKeyword,
+      std::unique_ptr<SyntaxToken<std::any>> identifierToken,
+      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+      std::vector<std::unique_ptr<ParameterSyntax>> parameters,
+      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken,
+      std::unique_ptr<BlockStatementSyntax> body);
 
-  ~FunctionDeclarationSyntax();
+  std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
+  std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();
+  std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
+  std::vector<std::unique_ptr<ParameterSyntax>> getParameters();
+  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
+  std::unique_ptr<BlockStatementSyntax> getBody();
 
-  SyntaxToken<std::any> *getFunctionKeyword() const;
-  SyntaxToken<std::any> *getIdentifierToken() const;
-  SyntaxToken<std::any> *getOpenParenthesisToken() const;
-  std::vector<ParameterSyntax *> getParameters() const;
-  SyntaxToken<std::any> *getCloseParenthesisToken() const;
-  BlockStatementSyntax *getBody() const;
-
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::vector<SyntaxNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getFunctionKeywordPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
+  std::vector<std::unique_ptr<ParameterSyntax>> &getParametersPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
+  std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

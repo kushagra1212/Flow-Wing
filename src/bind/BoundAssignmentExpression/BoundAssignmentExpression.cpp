@@ -1,46 +1,53 @@
 #include "BoundAssignmentExpression.h"
 
 BoundAssignmentExpression::BoundAssignmentExpression(
-    const std::string &lineAndColumn, BoundExpression *left,
-    BinderKindUtils::BoundBinaryOperatorKind op, BoundExpression *right) {
-  this->op = op;
-  this->left = left;
-  this->right = right;
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
+    BinderKindUtils::BoundBinaryOperatorKind op,
+    std::unique_ptr<BoundExpression> right) {
+  this->_op = op;
+  this->_left = std::move(left);
+  this->_right = std::move(right);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::AssignmentExpression;
+  _children.push_back(_left.get());
 }
 
 const std::type_info &BoundAssignmentExpression::getType() {
-  return right->getType();
+  return _right->getType();
 }
 
 BinderKindUtils::BoundBinaryOperatorKind
 BoundAssignmentExpression::getOperator() {
-  return op;
+  return _op;
 }
 
-BoundExpression *BoundAssignmentExpression::getLeft() { return left; }
+std::unique_ptr<BoundExpression> BoundAssignmentExpression::getLeft() {
+  return std::move(_left);
+}
 
-BoundExpression *BoundAssignmentExpression::getRight() { return right; }
+std::unique_ptr<BoundExpression> BoundAssignmentExpression::getRight() {
+  return std::move(_right);
+}
+BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::AssignmentExpression;
+}
 
 std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
-  return std::vector<BoundNode *>{left, right};
+  return this->_children;
 }
-std::string BoundAssignmentExpression::getLineNumberAndColumn() const {
+std::string BoundAssignmentExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundAssignmentExpression::~BoundAssignmentExpression() {
-  if (left != nullptr) {
-    delete left;
-    left = nullptr;
-  }
+BinderKindUtils::BoundBinaryOperatorKind &
+BoundAssignmentExpression::getOperatorPtr() {
+  return this->_op;
+}
 
-  if (right != nullptr) {
-    delete right;
-    right = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getLeftPtr() {
+  return this->_left;
+}
+
+std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getRightPtr() {
+  return this->_right;
 }

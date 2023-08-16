@@ -1,34 +1,37 @@
 #include "BoundFunctionDeclaration.h"
 
 BoundFunctionDeclaration::BoundFunctionDeclaration(
-    const std::string &lineAndColumn,
+    std::string lineAndColumn,
 
-    Utils::FunctionSymbol functionSymbol, BoundBlockStatement *body)
-    : functionSymbol(functionSymbol), body(body) {
+    Utils::FunctionSymbol functionSymbol,
+    std::unique_ptr<BoundBlockStatement> body) {
   this->_lineAndColumn = lineAndColumn;
+  this->_functionSymbol = functionSymbol;
+  this->_body = std::move(body);
+
+  this->_children.push_back(this->_body.get());
 }
 
-BinderKindUtils::BoundNodeKind BoundFunctionDeclaration::getKind() {
+BinderKindUtils::BoundNodeKind BoundFunctionDeclaration::getKind() const {
   return BinderKindUtils::BoundNodeKind::FunctionDeclaration;
 }
 
-std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
-  return std::vector<BoundNode *>({body});
+std::unique_ptr<BoundBlockStatement> BoundFunctionDeclaration::getBody() {
+  return std::move(_body);
 }
 
-BoundBlockStatement *BoundFunctionDeclaration::getBody() const { return body; }
+std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
+  return this->_children;
+}
 
 Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
-  return functionSymbol;
+  return _functionSymbol;
 }
 
-std::string BoundFunctionDeclaration::getLineNumberAndColumn() const {
+std::string BoundFunctionDeclaration::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundFunctionDeclaration::~BoundFunctionDeclaration() {
-  if (body != nullptr) {
-    delete body;
-    body = nullptr;
-  }
+std::unique_ptr<BoundBlockStatement> &BoundFunctionDeclaration::getBodyPtr() {
+  return this->_body;
 }

@@ -4,23 +4,27 @@
 #include "../BoundStatement/BoundStatement.h"
 class BoundIfStatement : public BoundStatement {
 private:
-  BoundExpression *_condition;
-  BoundStatement *_thenStatement;
-  BoundStatement *_elseStatement;
+  std::unique_ptr<BoundExpression> _condition;
+  std::unique_ptr<BoundStatement> _thenStatement;
+  std::unique_ptr<BoundStatement> _elseStatement;
 
 public:
-  BoundIfStatement(std::string const &lineAndColumn, BoundExpression *condition,
-                   BoundStatement *thenStatement,
-                   BoundStatement *elseStatement);
+  BoundIfStatement(std::string lineAndColumn,
+                   std::unique_ptr<BoundExpression> condition,
+                   std::unique_ptr<BoundStatement> thenStatement,
+                   std::unique_ptr<BoundStatement> elseStatement);
 
-  ~BoundIfStatement();
-  BinderKindUtils::BoundNodeKind getKind() override;
-  BoundExpression *getCondition() const;
-  BoundStatement *getThenStatement() const;
-  BoundStatement *getElseStatement() const;
+  std::unique_ptr<BoundExpression> getCondition();
+  std::unique_ptr<BoundStatement> getThenStatement();
+  std::unique_ptr<BoundStatement> getElseStatement();
 
-  std::string getLineNumberAndColumn() const override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
+  std::string getLineNumberAndColumn() override;
+
   std::vector<BoundNode *> getChildren() override;
+
+  std::unique_ptr<BoundExpression> &getConditionPtr();
+  std::unique_ptr<BoundStatement> &getThenStatementPtr();
+  std::unique_ptr<BoundStatement> &getElseStatementPtr();
 };

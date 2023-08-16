@@ -1,60 +1,72 @@
 #include "VariableDeclarationSyntax.h"
 
 VariableDeclarationSyntax::VariableDeclarationSyntax(
-    SyntaxToken<std::any> *keyword, SyntaxToken<std::any> *identifier,
-    SyntaxToken<std::any> *equalsToken, ExpressionSyntax *initializer)
-    : _keyword(keyword), _identifier(identifier), _equalsToken(equalsToken),
-      _initializer(initializer) {}
+    std::unique_ptr<SyntaxToken<std::any>> keyword,
+    std::unique_ptr<SyntaxToken<std::any>> identifier,
+    std::unique_ptr<SyntaxToken<std::any>> equalsToken,
+    std::unique_ptr<ExpressionSyntax> initializer) {
+  this->_keyword = std::move(keyword);
+  this->_identifier = std::move(identifier);
+  this->_equalsToken = std::move(equalsToken);
+  this->_initializer = std::move(initializer);
 
-SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() {
+  // Add children
+
+  _children.push_back(_keyword.get());
+  _children.push_back(_identifier.get());
+  _children.push_back(_equalsToken.get());
+
+  if (_initializer != nullptr) {
+    _children.push_back(_initializer.get());
+  }
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+VariableDeclarationSyntax::getIdentifier() {
+  return std::move(_identifier);
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+VariableDeclarationSyntax::getEqualsToken() {
+  return std::move(_equalsToken);
+}
+
+std::unique_ptr<ExpressionSyntax> VariableDeclarationSyntax::getInitializer() {
+  return std::move(_initializer);
+}
+
+std::unique_ptr<ExpressionSyntax> &
+VariableDeclarationSyntax::getInitializerPtr() {
+  return (_initializer);
+}
+
+std::unique_ptr<SyntaxToken<std::any>> VariableDeclarationSyntax::getKeyword() {
+  return std::move(_keyword);
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getIdentifierPtr() {
+  return (_identifier);
+}
+
+SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableDeclaration;
 }
 
 std::vector<SyntaxNode *> VariableDeclarationSyntax::getChildren() {
-  return std::vector<SyntaxNode *>{_keyword, _identifier, _equalsToken,
-                                   _initializer};
+  return this->_children;
 }
 
-SyntaxToken<std::any> *VariableDeclarationSyntax::getIdentifier() const {
-  return _identifier;
-}
-
-SyntaxToken<std::any> *VariableDeclarationSyntax::getEqualsToken() const {
-  return _equalsToken;
-}
-
-ExpressionSyntax *VariableDeclarationSyntax::getInitializer() const {
-  return _initializer;
-}
-
-SyntaxToken<std::any> *VariableDeclarationSyntax::getKeyword() const {
-  return _keyword;
-}
-
-std::string VariableDeclarationSyntax::getLineNumberAndColumn() const {
+std::string VariableDeclarationSyntax::getLineNumberAndColumn() {
   return _keyword->getLineNumberAndColumn();
 }
 
-VariableDeclarationSyntax::~VariableDeclarationSyntax() {
-  if (_keyword != nullptr) {
-    delete _keyword;
-    _keyword = nullptr;
-  }
-
-  if (_identifier != nullptr) {
-    delete _identifier;
-    _identifier = nullptr;
-  }
-
-  if (_equalsToken != nullptr) {
-    delete _equalsToken;
-    _equalsToken = nullptr;
-  }
-
-  if (_initializer != nullptr) {
-    delete _initializer;
-    _initializer = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getEqualsTokenPtr() {
+  return this->_equalsToken;
+}
+std::unique_ptr<SyntaxToken<std::any>> &
+VariableDeclarationSyntax::getKeywordPtr() {
+  return this->_keyword;
 }
 
 // Path:

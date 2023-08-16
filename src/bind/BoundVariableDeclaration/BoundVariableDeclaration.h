@@ -8,25 +8,25 @@
 class BoundVariableDeclaration : public BoundStatement {
 private:
   std::string _variable;
-  BoundExpression *_initializer;
+  std::unique_ptr<BoundExpression> _initializer;
   bool _isConst;
 
 public:
-  BoundVariableDeclaration(
+  BoundVariableDeclaration(std::string lineAndColumn, std::string variable,
+                           bool isConst,
+                           std::unique_ptr<BoundExpression> initializer);
 
-      const std::string &lineAndColumn, std::string variable, bool isConst,
-      BoundExpression *initializer);
-
-  ~BoundVariableDeclaration();
-  BinderKindUtils::BoundNodeKind getKind() override;
   std::string getVariable() const;
-  BoundExpression *getInitializer() const;
 
-public:
+  std::unique_ptr<BoundExpression> getInitializer();
+
   std::vector<BoundNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
+
+  std::string getLineNumberAndColumn() override;
 
   bool isConst() const;
+
+  std::unique_ptr<BoundExpression> &getInitializerPtr();
 };

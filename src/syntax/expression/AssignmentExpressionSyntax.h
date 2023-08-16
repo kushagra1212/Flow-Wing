@@ -5,32 +5,31 @@
 #include "LiteralExpressionSyntax.h"
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
-  LiteralExpressionSyntax<std::any> *left;
-  SyntaxToken<std::any> *operatorToken;
-  ExpressionSyntax *right;
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> _left;
+  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
+  std::unique_ptr<ExpressionSyntax> _right;
 
 public:
-  AssignmentExpressionSyntax(LiteralExpressionSyntax<std::any> *left,
-                             SyntaxToken<std::any> *operatorToken,
-                             ExpressionSyntax *right);
+  AssignmentExpressionSyntax(
+      std::unique_ptr<LiteralExpressionSyntax<std::any>> left,
+      std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+      std::unique_ptr<ExpressionSyntax> right);
 
-  ~AssignmentExpressionSyntax();
+  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<ExpressionSyntax> getRight();
 
-public:
-  std::vector<SyntaxNode *> getChildren();
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> getLeft();
 
-public:
-  SyntaxToken<std::any> *getOperatorToken();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  ExpressionSyntax *getRight();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  LiteralExpressionSyntax<std::any> *getLeft();
+  std::string getLineNumberAndColumn() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getRightPtr();
+
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getLeftPtr();
 };

@@ -5,34 +5,31 @@
 class BinaryExpressionSyntax : public ExpressionSyntax {
 
 private:
-  ExpressionSyntax *left;
-  SyntaxToken<std::any> *operatorToken;
-  ExpressionSyntax *right;
+  std::unique_ptr<ExpressionSyntax> _left;
+  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
+  std::unique_ptr<ExpressionSyntax> _right;
 
 public:
-  std::vector<SyntaxNode *> children;
-  BinaryExpressionSyntax(ExpressionSyntax *left,
-                         SyntaxToken<std::any> *operatorToken,
-                         ExpressionSyntax *right);
+  BinaryExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
+                         std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+                         std::unique_ptr<ExpressionSyntax> right);
 
-  ~BinaryExpressionSyntax();
+  std::unique_ptr<ExpressionSyntax> getLeft();
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
 
-public:
-  ExpressionSyntax *getLeft();
+  std::unique_ptr<ExpressionSyntax> getRight();
 
-public:
-  SyntaxToken<std::any> *getOperatorToken();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  ExpressionSyntax *getRight();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  std::vector<SyntaxNode *> getChildren();
+  std::string getLineNumberAndColumn() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<ExpressionSyntax> &getLeftPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getRightPtr();
 };
 #endif

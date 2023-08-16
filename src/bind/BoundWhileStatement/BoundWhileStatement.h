@@ -5,17 +5,21 @@
 
 class BoundWhileStatement : public BoundStatement {
 private:
-  BoundExpression *_condition;
-  BoundStatement *_body;
+  std::unique_ptr<BoundExpression> _condition;
+  std::unique_ptr<BoundStatement> _body;
 
 public:
-  BoundWhileStatement(const std::string &lineAndColumn,
-                      BoundExpression *condition, BoundStatement *body);
+  BoundWhileStatement(std::string lineAndColumn,
+                      std::unique_ptr<BoundExpression> condition,
+                      std::unique_ptr<BoundStatement> body);
 
-  ~BoundWhileStatement();
-  BinderKindUtils::BoundNodeKind getKind() override;
-  BoundExpression *getCondition() const;
-  BoundStatement *getBody() const;
+  std::unique_ptr<BoundExpression> getCondition();
+  std::unique_ptr<BoundStatement> getBody();
+
+  BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<BoundExpression> &getConditionPtr();
+  std::unique_ptr<BoundStatement> &getBodyPtr();
 };

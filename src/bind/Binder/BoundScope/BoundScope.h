@@ -10,11 +10,9 @@ public:
   bool breakable, continuable;
   int functionCounted;
 
-  BoundScope *parent;
+  std::unique_ptr<BoundScope> parent;
 
-  BoundScope(BoundScope *parent);
-
-  ~BoundScope();
+  BoundScope(std::unique_ptr<BoundScope> parent);
 
 public:
   void makeBreakableAndContinuable();

@@ -1,38 +1,41 @@
 #include "ElseClauseSyntax.h"
 
-ElseClauseSyntax::ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
-                                   BlockStatementSyntax *statement)
-    : elseKeyword(elseKeyword), statement(statement) {}
+ElseClauseSyntax::ElseClauseSyntax(
+    std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
+    std::unique_ptr<BlockStatementSyntax> statement) {
+  this->_elseKeyword = std::move(elseKeyword);
+  this->_statement = std::move(statement);
 
-SyntaxToken<std::any> *ElseClauseSyntax::getElseKeyword() const {
+  // Add children
 
-  return elseKeyword;
+  _children.push_back(_elseKeyword.get());
+  _children.push_back(_statement.get());
 }
 
-BlockStatementSyntax *ElseClauseSyntax::getStatement() const {
-  return statement;
+std::unique_ptr<SyntaxToken<std::any>> ElseClauseSyntax::getElseKeyword() {
+
+  return std::move(_elseKeyword);
 }
 
-SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() {
+std::unique_ptr<BlockStatementSyntax> ElseClauseSyntax::getStatement() {
+  return std::move(_statement);
+}
+
+SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ElseClause;
 }
 
 std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
-  return {elseKeyword, (SyntaxNode *)statement};
+  return this->_children;
 }
 
-std::string ElseClauseSyntax::getLineNumberAndColumn() const {
-  return elseKeyword->getLineNumberAndColumn();
+std::string ElseClauseSyntax::getLineNumberAndColumn() {
+  return _elseKeyword->getLineNumberAndColumn();
 }
 
-ElseClauseSyntax::~ElseClauseSyntax() {
-  if (elseKeyword != nullptr) {
-    delete elseKeyword;
-    elseKeyword = nullptr;
-  }
-
-  if (statement != nullptr) {
-    delete statement;
-    statement = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordPtr() {
+  return this->_elseKeyword;
+}
+std::unique_ptr<BlockStatementSyntax> &ElseClauseSyntax::getStatementPtr() {
+  return this->_statement;
 }

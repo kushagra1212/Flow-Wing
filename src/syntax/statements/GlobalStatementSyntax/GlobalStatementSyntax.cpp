@@ -1,30 +1,28 @@
 #include "GlobalStatementSyntax.h"
 
-GlobalStatementSyntax::GlobalStatementSyntax(StatementSyntax *statement) {
-  _statement = statement;
+GlobalStatementSyntax::GlobalStatementSyntax(
+    std::unique_ptr<StatementSyntax> statement) {
+  this->_statement = std::move(statement);
+
+  _children.push_back(_statement.get());
 }
 
-StatementSyntax *GlobalStatementSyntax::getStatement() const {
-  return _statement;
+std::unique_ptr<StatementSyntax> GlobalStatementSyntax::getStatement() {
+  return std::move(_statement);
 }
 
-SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::GlobalStatement;
 }
 
 std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {};
-  children.push_back(_statement);
-  return children;
+  return this->_children;
 }
 
-std::string GlobalStatementSyntax::getLineNumberAndColumn() const {
+std::string GlobalStatementSyntax::getLineNumberAndColumn() {
   return _statement->getLineNumberAndColumn();
 }
 
-GlobalStatementSyntax::~GlobalStatementSyntax() {
-  if (_statement != nullptr) {
-    delete _statement;
-    _statement = nullptr;
-  }
+std::unique_ptr<StatementSyntax> &GlobalStatementSyntax::getStatementPtr() {
+  return _statement;
 }

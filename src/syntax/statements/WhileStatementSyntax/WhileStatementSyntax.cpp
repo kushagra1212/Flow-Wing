@@ -1,47 +1,54 @@
 #include "WhileStatementSyntax.h"
 
-WhileStatementSyntax::WhileStatementSyntax(SyntaxToken<std::any> *whileKeyword,
-                                           ExpressionSyntax *condition,
-                                           BlockStatementSyntax *body)
-    : _whileKeyword(whileKeyword), _condition(condition), _body(body) {}
+WhileStatementSyntax::WhileStatementSyntax(
+    std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
+    std::unique_ptr<ExpressionSyntax> condition,
+    std::unique_ptr<BlockStatementSyntax> body) {
 
-SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() {
+  this->_whileKeyword = std::move(whileKeyword);
+  this->_condition = std::move(condition);
+  this->_body = std::move(body);
+
+  // Add children
+
+  _children.push_back(_whileKeyword.get());
+  _children.push_back(_condition.get());
+  _children.push_back(_body.get());
+}
+
+std::unique_ptr<SyntaxToken<std::any>> WhileStatementSyntax::getWhileKeyword() {
+  return std::move(_whileKeyword);
+}
+
+std::unique_ptr<ExpressionSyntax> WhileStatementSyntax::getCondition() {
+  return std::move(_condition);
+}
+
+std::unique_ptr<BlockStatementSyntax> WhileStatementSyntax::getBody() {
+  return std::move(_body);
+}
+
+SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::WhileStatement;
 }
 
 std::vector<SyntaxNode *> WhileStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {_whileKeyword, _condition,
-                                        (SyntaxNode *)_body};
-  return children;
+  return this->_children;
 }
 
-SyntaxToken<std::any> *WhileStatementSyntax::getWhileKeyword() const {
-  return _whileKeyword;
-}
-
-ExpressionSyntax *WhileStatementSyntax::getCondition() const {
-  return _condition;
-}
-
-BlockStatementSyntax *WhileStatementSyntax::getBody() const { return _body; }
-
-std::string WhileStatementSyntax::getLineNumberAndColumn() const {
+std::string WhileStatementSyntax::getLineNumberAndColumn() {
   return _whileKeyword->getLineNumberAndColumn();
 }
 
-WhileStatementSyntax::~WhileStatementSyntax() {
-  if (_whileKeyword != nullptr) {
-    delete _whileKeyword;
-    _whileKeyword = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+WhileStatementSyntax::getWhileKeywordPtr() {
+  return this->_whileKeyword;
+}
 
-  if (_condition != nullptr) {
-    delete _condition;
-    _condition = nullptr;
-  }
+std::unique_ptr<ExpressionSyntax> &WhileStatementSyntax::getConditionPtr() {
+  return this->_condition;
+}
 
-  if (_body != nullptr) {
-    delete _body;
-    _body = nullptr;
-  }
+std::unique_ptr<BlockStatementSyntax> &WhileStatementSyntax::getBodyPtr() {
+  return this->_body;
 }

@@ -19,8 +19,6 @@ public:
 public:
   Lexer(const std::vector<std::string> &text);
 
-  ~Lexer();
-
 private:
   char getCurrent();
 
@@ -31,9 +29,9 @@ private:
   void updatePosition();
 
 public:
-  SyntaxToken<std::any> *nextToken();
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
 
 public:
-  SyntaxToken<std::any> *readString();
+  std::unique_ptr<SyntaxToken<std::any>> readString();
 };
 #endif // LEXER_H

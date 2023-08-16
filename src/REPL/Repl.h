@@ -3,6 +3,7 @@
 #define REPL_H
 #include "../Common.h"
 #include "../evaluator/Evaluator.h"
+#include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 class Repl {
@@ -23,14 +24,16 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
-                          std::ostream &outputStream);
+  void
+  compileAndEvaluate(std::ostream &outputStream,
+                     std::unique_ptr<CompilationUnitSyntax> compilationUnit);
 
   void toggleExit();
   // Data members
 private:
-  Evaluator *previousEvaluator;
   bool showSyntaxTree, showBoundTree, exit;
+  std::unique_ptr<BoundScopeGlobal> globalScope;
+
   int braceCount;
   std::vector<std::string> text = std::vector<std::string>();
 };

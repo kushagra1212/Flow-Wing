@@ -7,24 +7,29 @@
 
 class VariableDeclarationSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_keyword;
-  SyntaxToken<std::any> *_identifier;
-  SyntaxToken<std::any> *_equalsToken;
-  ExpressionSyntax *_initializer;
+  std::unique_ptr<SyntaxToken<std::any>> _keyword;
+  std::unique_ptr<SyntaxToken<std::any>> _identifier;
+  std::unique_ptr<SyntaxToken<std::any>> _equalsToken;
+  std::unique_ptr<ExpressionSyntax> _initializer;
 
 public:
-  VariableDeclarationSyntax(SyntaxToken<std::any> *keyword,
-                            SyntaxToken<std::any> *identifier,
-                            SyntaxToken<std::any> *equalsToken,
-                            ExpressionSyntax *initializer);
+  VariableDeclarationSyntax(std::unique_ptr<SyntaxToken<std::any>> keyword,
+                            std::unique_ptr<SyntaxToken<std::any>> identifier,
+                            std::unique_ptr<SyntaxToken<std::any>> equalsToken,
+                            std::unique_ptr<ExpressionSyntax> initializer);
 
-  ~VariableDeclarationSyntax();
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  std::unique_ptr<SyntaxToken<std::any>> getIdentifier();
+  std::unique_ptr<ExpressionSyntax> getInitializer();
+  std::unique_ptr<SyntaxToken<std::any>> getEqualsToken();
+  std::unique_ptr<SyntaxToken<std::any>> getKeyword();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;
-  SyntaxToken<std::any> *getIdentifier() const;
-  SyntaxToken<std::any> *getEqualsToken() const;
-  ExpressionSyntax *getInitializer() const;
-  SyntaxToken<std::any> *getKeyword() const;
+  std::string getLineNumberAndColumn() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<ExpressionSyntax> &getInitializerPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getEqualsTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getKeywordPtr();
 };

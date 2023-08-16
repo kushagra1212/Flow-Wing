@@ -1,49 +1,55 @@
 #include "BinaryExpressionSyntax.h"
 
 BinaryExpressionSyntax::BinaryExpressionSyntax(
-    ExpressionSyntax *left, SyntaxToken<std::any> *operatorToken,
-    ExpressionSyntax *right) {
-  this->left = left;
-  this->operatorToken = operatorToken;
-  this->right = right;
-  children.push_back(this->left);
-  children.push_back(this->operatorToken);
-  children.push_back(this->right);
+    std::unique_ptr<ExpressionSyntax> left,
+    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+    std::unique_ptr<ExpressionSyntax> right) {
+  this->_left = std::move(left);
+  this->_operatorToken = std::move(operatorToken);
+  this->_right = std::move(right);
+
+  // Add children
+
+  this->_children.push_back(_left.get());
+  this->_children.push_back(_operatorToken.get());
+  this->_children.push_back(_right.get());
 }
 
-SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() {
+std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getLeft() {
+  return std::move(this->_left);
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+BinaryExpressionSyntax::getOperatorToken() {
+  return std::move(this->_operatorToken);
+}
+
+std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
+  return std::move(this->_right);
+}
+
+SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BinaryExpression;
 }
 
-ExpressionSyntax *BinaryExpressionSyntax::getLeft() { return this->left; }
-
-SyntaxToken<std::any> *BinaryExpressionSyntax::getOperatorToken() {
-  return this->operatorToken;
-}
-
-ExpressionSyntax *BinaryExpressionSyntax::getRight() { return this->right; }
-
 std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
-  return children;
+
+  return this->_children;
 }
 
-std::string BinaryExpressionSyntax::getLineNumberAndColumn() const {
-  return this->left->getLineNumberAndColumn();
+std::string BinaryExpressionSyntax::getLineNumberAndColumn() {
+  return this->_left->getLineNumberAndColumn();
 }
 
-BinaryExpressionSyntax::~BinaryExpressionSyntax() {
-  if (this->left != nullptr) {
-    delete this->left;
-    this->left = nullptr;
-  }
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getLeftPtr() {
+  return this->_left;
+}
 
-  if (this->operatorToken != nullptr) {
-    delete this->operatorToken;
-    this->operatorToken = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+BinaryExpressionSyntax::getOperatorTokenPtr() {
+  return this->_operatorToken;
+}
 
-  if (this->right != nullptr) {
-    delete this->right;
-    this->right = nullptr;
-  }
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getRightPtr() {
+  return this->_right;
 }

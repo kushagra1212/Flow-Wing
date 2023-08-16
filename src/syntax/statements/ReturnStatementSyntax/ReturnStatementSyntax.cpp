@@ -1,38 +1,43 @@
 #include "ReturnStatementSyntax.h"
 
 ReturnStatementSyntax::ReturnStatementSyntax(
-    SyntaxToken<std::any> *returnKeyword, ExpressionSyntax *expression)
-    : _returnKeyword(returnKeyword), _expression(expression) {}
+    std::unique_ptr<SyntaxToken<std::any>> returnKeyword,
+    std::unique_ptr<ExpressionSyntax> expression) {
+  this->_returnKeyword = std::move(returnKeyword);
+  this->_expression = std::move(expression);
 
-SyntaxToken<std::any> *ReturnStatementSyntax::getReturnKeyword() const {
+  // Add children
 
-  return _returnKeyword;
+  _children.push_back(_returnKeyword.get());
+  _children.push_back(_expression.get());
 }
 
-ExpressionSyntax *ReturnStatementSyntax::getExpression() const {
-  return _expression;
+std::unique_ptr<SyntaxToken<std::any>>
+ReturnStatementSyntax::getReturnKeyword() {
+
+  return std::move(_returnKeyword);
+}
+
+std::unique_ptr<ExpressionSyntax> ReturnStatementSyntax::getExpression() {
+  return std::move(_expression);
 }
 
 std::vector<SyntaxNode *> ReturnStatementSyntax::getChildren() {
-  return {_returnKeyword, (SyntaxNode *)_expression};
+  return this->_children;
 }
 
-SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ReturnStatement;
 }
 
-std::string ReturnStatementSyntax::getLineNumberAndColumn() const {
+std::string ReturnStatementSyntax::getLineNumberAndColumn() {
   return _returnKeyword->getLineNumberAndColumn();
 }
 
-ReturnStatementSyntax::~ReturnStatementSyntax() {
-  if (_returnKeyword != nullptr) {
-    delete _returnKeyword;
-    _returnKeyword = nullptr;
-  }
-
-  if (_expression != nullptr) {
-    delete _expression;
-    _expression = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+ReturnStatementSyntax::getReturnKeywordPtr() {
+  return _returnKeyword;
+}
+std::unique_ptr<ExpressionSyntax> &ReturnStatementSyntax::getExpressionPtr() {
+  return _expression;
 }

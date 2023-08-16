@@ -1,49 +1,58 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    LiteralExpressionSyntax<std::any> *left,
-    SyntaxToken<std::any> *operatorToken, ExpressionSyntax *right)
-    : left(left), operatorToken(operatorToken), right(right) {}
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> left,
+    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+    std::unique_ptr<ExpressionSyntax> right) {
+  this->_left = std::move(left);
+  this->_operatorToken = std::move(operatorToken);
+  this->_right = std::move(right);
 
-SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() {
+  // Add children
+
+  this->_children.push_back(_left.get());
+  this->_children.push_back(_operatorToken.get());
+  this->_children.push_back(_right.get());
+}
+
+SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
 
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
 }
 
 std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
 
-  std::vector<SyntaxNode *> children = {left, operatorToken, right};
-
-  return children;
+  return this->_children;
 }
 
-SyntaxToken<std::any> *AssignmentExpressionSyntax::getOperatorToken() {
-  return operatorToken;
+std::unique_ptr<SyntaxToken<std::any>>
+AssignmentExpressionSyntax::getOperatorToken() {
+  return std::move(this->_operatorToken);
 }
 
-ExpressionSyntax *AssignmentExpressionSyntax::getRight() { return right; }
-
-LiteralExpressionSyntax<std::any> *AssignmentExpressionSyntax::getLeft() {
-  return left;
+std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
+  return std::move(this->_right);
 }
 
-std::string AssignmentExpressionSyntax::getLineNumberAndColumn() const {
-  return left->getLineNumberAndColumn();
+std::unique_ptr<LiteralExpressionSyntax<std::any>>
+AssignmentExpressionSyntax::getLeft() {
+  return std::move(this->_left);
 }
 
-AssignmentExpressionSyntax::~AssignmentExpressionSyntax() {
-  if (left != nullptr) {
-    delete left;
-    left = nullptr;
-  }
+std::string AssignmentExpressionSyntax::getLineNumberAndColumn() {
+  return this->_left->getLineNumberAndColumn();
+}
 
-  if (operatorToken != nullptr) {
-    delete operatorToken;
-    operatorToken = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+AssignmentExpressionSyntax::getOperatorTokenPtr() {
+  return this->_operatorToken;
+}
 
-  if (right != nullptr) {
-    delete right;
-    right = nullptr;
-  }
+std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightPtr() {
+  return this->_right;
+}
+
+std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+AssignmentExpressionSyntax::getLeftPtr() {
+  return this->_left;
 }

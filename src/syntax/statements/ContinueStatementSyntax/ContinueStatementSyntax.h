@@ -7,19 +7,21 @@
 
 class ContinueStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_continueKeyword;
+  std::unique_ptr<SyntaxToken<std::any>> _continueKeyword;
 
 public:
-  ContinueStatementSyntax(SyntaxToken<std::any> *continueKeyword);
+  ContinueStatementSyntax(
+      std::unique_ptr<SyntaxToken<std::any>> continueKeyword);
 
-  ~ContinueStatementSyntax();
-
-  SyntaxToken<std::any> *getContinueKeyword() const;
+  std::unique_ptr<SyntaxToken<std::any>> getContinueKeyword();
 
   std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::string getLineNumberAndColumn() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };
 
 #endif // CONTINUESTATEMENTSYNTAX_H

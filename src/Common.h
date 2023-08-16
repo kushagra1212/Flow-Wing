@@ -2,15 +2,20 @@
 #define COMMON_H
 #include <algorithm>
 #include <any>
+#include <chrono>
+#include <cstdlib> // For malloc
+#include <cstring> // For strlen and memcpy
 #include <exception>
 #include <iostream>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <stack>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 // ANSI color codes

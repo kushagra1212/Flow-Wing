@@ -1,27 +1,29 @@
 #include "BreakStatementSyntax.h"
 
-BreakStatementSyntax::BreakStatementSyntax(SyntaxToken<std::any> *breakKeyword)
-    : _breakKeyword(breakKeyword) {}
+BreakStatementSyntax::BreakStatementSyntax(
+    std::unique_ptr<SyntaxToken<std::any>> breakKeyword) {
+  this->_breakKeyword = std::move(breakKeyword);
 
-BreakStatementSyntax::~BreakStatementSyntax() {
-  if (_breakKeyword != nullptr) {
-    delete _breakKeyword;
-    _breakKeyword = nullptr;
-  }
+  // Add children
+  _children.push_back(_breakKeyword.get());
 }
 
-SyntaxToken<std::any> *BreakStatementSyntax::getBreakKeyword() const {
-  return _breakKeyword;
+std::unique_ptr<SyntaxToken<std::any>> BreakStatementSyntax::getBreakKeyword() {
+  return std::move(_breakKeyword);
 }
-
-std::vector<SyntaxNode *> BreakStatementSyntax::getChildren() {
-  return {_breakKeyword};
-}
-
-SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BreakKeyword;
 }
 
-std::string BreakStatementSyntax::getLineNumberAndColumn() const {
+std::vector<SyntaxNode *> BreakStatementSyntax::getChildren() {
+  return this->_children;
+}
+
+std::string BreakStatementSyntax::getLineNumberAndColumn() {
   return _breakKeyword->getLineNumberAndColumn();
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BreakStatementSyntax::getBreakKeywordPtr() {
+  return _breakKeyword;
 }

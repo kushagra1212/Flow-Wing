@@ -1,48 +1,53 @@
 #include "ForStatementSyntax.h"
 
-ForStatementSyntax::ForStatementSyntax(StatementSyntax *initialization,
-                                       ExpressionSyntax *upperBound,
-                                       BlockStatementSyntax *statement)
-    : initialization(initialization), upperBound(upperBound),
-      statement(statement) {}
+ForStatementSyntax::ForStatementSyntax(
+    std::unique_ptr<StatementSyntax> initialization,
+    std::unique_ptr<ExpressionSyntax> upperBound,
+    std::unique_ptr<BlockStatementSyntax> statement) {
+  this->_initialization = std::move(initialization);
+  this->_upperBound = std::move(upperBound);
+  this->_statement = std::move(statement);
 
-BlockStatementSyntax *ForStatementSyntax::getStatement() const {
-  return this->statement;
+  // Add children
+
+  _children.push_back(_initialization.get());
+  _children.push_back(_upperBound.get());
+  _children.push_back(_statement.get());
 }
 
-SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() {
+std::unique_ptr<BlockStatementSyntax> ForStatementSyntax::getStatement() {
+  return std::move(this->_statement);
+}
+
+std::unique_ptr<ExpressionSyntax> ForStatementSyntax::getUpperBound() {
+  return std::move(this->_upperBound);
+}
+
+std::unique_ptr<StatementSyntax> ForStatementSyntax::getInitialization() {
+  return std::move(this->_initialization);
+}
+
+SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ForStatement;
 }
 
 std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
-  return {this->initialization, (SyntaxNode *)this->statement};
+
+  return this->_children;
 }
 
-ExpressionSyntax *ForStatementSyntax::getUpperBound() const {
-  return this->upperBound;
+std::string ForStatementSyntax::getLineNumberAndColumn() {
+  return this->_initialization->getLineNumberAndColumn();
 }
 
-StatementSyntax *ForStatementSyntax::getInitialization() const {
-  return this->initialization;
+std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementPtr() {
+  return this->_statement;
 }
 
-std::string ForStatementSyntax::getLineNumberAndColumn() const {
-  return this->initialization->getLineNumberAndColumn();
+std::unique_ptr<StatementSyntax> &ForStatementSyntax::getInitializationPtr() {
+  return this->_initialization;
 }
 
-ForStatementSyntax::~ForStatementSyntax() {
-  if (this->initialization != nullptr) {
-    delete this->initialization;
-    this->initialization = nullptr;
-  }
-
-  if (this->upperBound != nullptr) {
-    delete this->upperBound;
-    this->upperBound = nullptr;
-  }
-
-  if (this->statement != nullptr) {
-    delete this->statement;
-    this->statement = nullptr;
-  }
+std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getUpperBoundPtr() {
+  return this->_upperBound;
 }

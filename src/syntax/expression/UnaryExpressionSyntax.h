@@ -6,30 +6,26 @@
 class UnaryExpressionSyntax : public ExpressionSyntax {
 
 private:
-  SyntaxToken<std::any> *operatorToken;
-  ExpressionSyntax *operand;
+  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
+  std::unique_ptr<ExpressionSyntax> _operand;
 
 public:
-  std::vector<SyntaxNode *> children;
-  UnaryExpressionSyntax(SyntaxToken<std::any> *operatorToken,
-                        ExpressionSyntax *operand);
+  UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+                        std::unique_ptr<ExpressionSyntax> operand);
 
-  ~UnaryExpressionSyntax();
+  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<ExpressionSyntax> getOperand();
 
-public:
-  SyntaxToken<std::any> *getOperatorToken();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  ExpressionSyntax *getOperand();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  std::vector<SyntaxNode *> getChildren();
+  std::string getLineNumberAndColumn() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getOperandPtr();
 };
 
 #endif // UnaryExpressionSyntax_h__

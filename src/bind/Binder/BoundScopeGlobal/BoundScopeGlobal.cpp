@@ -1,31 +1,15 @@
 #include "BoundScopeGlobal.h"
 
 BoundScopeGlobal::BoundScopeGlobal(
-    BoundScopeGlobal *previous,
+    std::unique_ptr<BoundScopeGlobal> previous,
     std::map<std::string, struct Utils::Variable> variables,
     std::map<std::string, BoundFunctionDeclaration *> functions,
-    std::vector<std::string> logs, BoundStatement *statement)
-    : previous(previous), variables(variables), logs(logs),
-      statement(statement), functions(functions) {}
+    std::vector<std::string> logs, std::unique_ptr<BoundStatement> statement)
+    : variables(variables), logs(logs), functions(functions) {
 
-BoundScopeGlobal::~BoundScopeGlobal() {
-  if (this->statement != nullptr) {
-    delete this->statement;
-    this->statement = nullptr;
-  }
+  this->statement = std::move(statement);
 
-  if (this->previous != nullptr) {
-    delete this->previous;
-    this->previous = nullptr;
-  }
-
-  for (auto &function : this->functions) {
-    if (function.second != nullptr) {
-      delete function.second;
-      function.second = nullptr;
-    }
-  }
-  this->functions.clear();
+  this->previous = std::move(previous);
 }
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {

@@ -3,36 +3,33 @@
 #include "../BoundExpression.h"
 class BoundAssignmentExpression : public BoundExpression {
 private:
-  BinderKindUtils::BoundBinaryOperatorKind op;
-  BoundExpression *left;
-  BoundExpression *right;
+  BinderKindUtils::BoundBinaryOperatorKind _op;
+  std::unique_ptr<BoundExpression> _left;
+  std::unique_ptr<BoundExpression> _right;
 
 public:
-  BoundAssignmentExpression(const std::string &lineAndColumn,
-                            BoundExpression *left,
+  BoundAssignmentExpression(std::string lineAndColumn,
+                            std::unique_ptr<BoundExpression> left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
-                            BoundExpression *right);
+                            std::unique_ptr<BoundExpression> right);
 
-  ~BoundAssignmentExpression();
-
-public:
-  BinderKindUtils::BoundNodeKind getKind();
-
-public:
-  const std::type_info &getType();
-
-public:
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
-public:
-  BoundExpression *getLeft();
+  std::unique_ptr<BoundExpression> getLeft();
 
-public:
-  BoundExpression *getRight();
+  std::unique_ptr<BoundExpression> getRight();
 
-public:
-  std::string getLineNumberAndColumn() const;
+  const std::type_info &getType();
 
-public:
-  std::vector<BoundNode *> getChildren();
+  BinderKindUtils::BoundNodeKind getKind() const override;
+
+  std::string getLineNumberAndColumn() override;
+
+  std::vector<BoundNode *> getChildren() override;
+
+  BinderKindUtils::BoundBinaryOperatorKind &getOperatorPtr();
+
+  std::unique_ptr<BoundExpression> &getLeftPtr();
+
+  std::unique_ptr<BoundExpression> &getRightPtr();
 };

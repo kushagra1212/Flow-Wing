@@ -1,9 +1,11 @@
 #include "Repl.h"
+
 Repl::Repl()
-    : showSyntaxTree(false), showBoundTree(false), braceCount(0),
-      previousEvaluator(nullptr), exit(false) {}
+    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false),
+      globalScope(nullptr) {}
 
 Repl::~Repl() {}
+std::mutex textMutex;
 
 void Repl::run() {
   printWelcomeMessage(std::cout);
@@ -14,21 +16,20 @@ void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
   while (!exit) {
-
     outputStream << GREEN << ">>> " << RESET;
 
     std::vector<std::string> text = std::vector<std::string>();
     std::string line;
     int emptyLines = 0;
-    while (true) {
-      std::getline(inputStream, line);
+    while (std::getline(inputStream, line)) {
+
       if (handleSpecialCommands(line)) {
         break;
       }
 
       if (line.empty()) {
         emptyLines++;
-        if (emptyLines == 2)
+        if (emptyLines == 1)
           break;
 
         outputStream << YELLOW << "... " << RESET;
@@ -36,80 +37,71 @@ void Repl::runWithStream(std::istream &inputStream,
       }
       emptyLines = 0;
 
+      std::lock_guard<std::mutex> lock(textMutex);
       text.push_back(line);
-      Parser *parser = new Parser(text);
+
+      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
+
         break;
       }
-      CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+      std::unique_ptr<CompilationUnitSyntax> compilationUnit =
+          std::move(parser->parseCompilationUnit());
 
       if (parser->logs.size()) {
-        emptyLines++;
         outputStream << YELLOW << "... " << RESET;
         continue;
       }
-
       break;
     }
-
     if (text.size() == 0) {
       continue;
     }
+    if (!exit) {
+      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
+      std::unique_ptr<CompilationUnitSyntax> compilationUnit =
+          std::move(parser->parseCompilationUnit());
 
-    Parser *parser = new Parser(text);
-    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
-    if (parser->logs.size()) {
-      Utils::printErrors(parser->logs, outputStream);
-    } else if (!exit) {
-      if (showSyntaxTree) {
-        Utils::prettyPrint(compilationUnit);
+      if (parser->logs.size()) {
+        Utils::printErrors(parser->logs, outputStream);
+      } else {
+        if (showSyntaxTree) {
+          Utils::prettyPrint(compilationUnit.get());
+        }
+        compileAndEvaluate(outputStream, std::move(compilationUnit));
       }
-      compileAndEvaluate(compilationUnit, outputStream);
+
+      text = std::vector<std::string>();
     }
   }
 }
 
-void Repl::compileAndEvaluate(CompilationUnitSyntax *compilationUnit,
-                              std::ostream &outputStream) {
-  Evaluator *currentEvaluator =
-      new Evaluator(previousEvaluator, compilationUnit);
+void Repl::compileAndEvaluate(
+    std::ostream &outputStream,
+    std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  BoundScopeGlobal *globalScope = currentEvaluator->getRoot();
+  globalScope = std::move(
+      Binder::bindGlobalScope(std::move(globalScope), compilationUnit.get()));
 
+  if (globalScope->logs.size()) {
+    Utils::printErrors(globalScope->logs, outputStream);
+  }
   if (showBoundTree) {
-    Utils::prettyPrint(globalScope->statement);
+    Utils::prettyPrint(globalScope->statement.get());
   }
 
+  if (globalScope->logs.size())
+    return;
   try {
-    currentEvaluator->evaluateStatement(globalScope->statement);
-    std::any result = currentEvaluator->last_value;
-
-    if (globalScope->logs.size()) {
-      Utils::printErrors(globalScope->logs, outputStream);
-    } else {
-      if (result.type() == typeid(int)) {
-        int intValue = std::any_cast<int>(result);
-        outputStream << intValue << "\n";
-      } else if (result.type() == typeid(bool)) {
-        bool boolValue = std::any_cast<bool>(result);
-        outputStream << (boolValue ? "true" : "false") << "\n";
-      } else if (result.type() == typeid(std::string)) {
-        std::string stringValue = std::any_cast<std::string>(result);
-        outputStream << stringValue << "\n";
-      } else if (result.type() == typeid(double)) {
-        double doubleValue = std::any_cast<double>(result);
-        outputStream << doubleValue << "\n";
-      } else if (result.type() == typeid(std::nullptr_t)) {
-        // outputStream << "null\n";
-
-      } else {
-        throw std::runtime_error("Unexpected result type");
-      }
-      previousEvaluator = currentEvaluator;
-    }
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    llvm::Value *generatedIR =
+        _evaluator->generateEvaluateStatement(globalScope->statement.get());
+    _evaluator->printIR();
+    _evaluator->executeGeneratedCode();
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -146,7 +138,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
       text = std::vector<std::string>();
       break;
     }
-    CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+    std::shared_ptr<CompilationUnitSyntax> compilationUnit =
+        (parser->parseCompilationUnit());
 
     if (parser->logs.size()) {
       emptyLines++;
@@ -157,11 +150,12 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   Parser *parser = new Parser(text);
-  CompilationUnitSyntax *compilationUnit = (parser->parseCompilationUnit());
+  std::shared_ptr<CompilationUnitSyntax> compilationUnit =
+      (parser->parseCompilationUnit());
   if (parser->logs.size()) {
     Utils::printErrors(parser->logs, outputStream);
   } else if (!exit)
-    compileAndEvaluate(compilationUnit, outputStream);
+    compileAndEvaluate(outputStream, nullptr);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {

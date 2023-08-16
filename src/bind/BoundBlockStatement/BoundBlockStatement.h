@@ -1,29 +1,24 @@
 #pragma once
 #include "../../Common.h"
 #include "../BinderKindUtils.h"
+#include "../BoundNode.h"
 #include "../BoundStatement/BoundStatement.h"
 class BoundBlockStatement : public BoundStatement {
 private:
-  std::vector<BoundStatement *> statements;
-  bool global;
+  std::vector<std::unique_ptr<BoundStatement>> _statements;
+  bool _global;
 
 public:
-  BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<BoundStatement *> statements, bool global);
-  BoundBlockStatement(const std::string &lineAndColumn,
-                      std::vector<BoundStatement *> statements);
-  ~BoundBlockStatement();
+  BoundBlockStatement(std::string lineAndColumn, bool global);
+  BoundBlockStatement(std::string lineAndColumn);
 
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
-
-public:
-  std::vector<BoundStatement *> getStatements();
-
+  std::vector<std::unique_ptr<BoundStatement>> &getStatements();
+  void addStatement(std::unique_ptr<BoundStatement> statement);
   bool getGlobal() const;
 
-  std::string getLineNumberAndColumn() const override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
-public:
-  std::vector<BoundNode *> getChildren() override;
+  std::string getLineNumberAndColumn() override;
+
+  std::vector<BoundNode *> getChildren();
 };

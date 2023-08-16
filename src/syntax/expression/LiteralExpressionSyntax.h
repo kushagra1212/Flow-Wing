@@ -7,29 +7,23 @@
 template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
 
 private:
-  SyntaxToken<std::any> *token;
-  T value;
+  std::unique_ptr<SyntaxToken<std::any>> _token;
+  T _value;
 
 public:
-  LiteralExpressionSyntax(SyntaxToken<std::any> *token, T value);
+  LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
+                          T value);
 
-  ~LiteralExpressionSyntax();
-
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
-
-public:
   std::string getKindText();
-
-public:
-  SyntaxToken<std::any> *getToken();
-
-public:
-  std::vector<SyntaxNode *> getChildren();
-
-public:
   T getValue();
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<SyntaxToken<std::any>> getToken();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::vector<SyntaxNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getTokenPtr();
 };

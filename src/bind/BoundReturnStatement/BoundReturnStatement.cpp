@@ -1,30 +1,29 @@
 #include "BoundReturnStatement.h"
 
-BoundReturnStatement::BoundReturnStatement(const std::string &lineAndColumn,
-                                           BoundExpression *expression)
-    : _expression(expression) {
+BoundReturnStatement::BoundReturnStatement(
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
   this->_lineAndColumn = lineAndColumn;
+  this->_expression = std::move(expression);
+
+  this->_children.push_back(this->_expression.get());
 }
 
-BoundReturnStatement::~BoundReturnStatement() {
-  if (_expression != nullptr) {
-    delete _expression;
-    _expression = nullptr;
-  }
+std::unique_ptr<BoundExpression> BoundReturnStatement::getReturnExpression() {
+  return std::move(_expression);
 }
 
-BinderKindUtils::BoundNodeKind BoundReturnStatement::getKind() {
-  return BinderKindUtils::BoundNodeKind::ReturnStatement;
-}
-
-std::vector<BoundNode *> BoundReturnStatement::getChildren() {
-  return std::vector<BoundNode *>{(BoundNode *)_expression};
-}
-
-std::string BoundReturnStatement::getLineNumberAndColumn() const {
+std::string BoundReturnStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundExpression *BoundReturnStatement::getReturnExpression() const {
-  return _expression;
+BinderKindUtils::BoundNodeKind BoundReturnStatement::getKind() const {
+  return BinderKindUtils::BoundNodeKind::ReturnStatement;
+}
+std::vector<BoundNode *> BoundReturnStatement::getChildren() {
+  return this->_children;
+}
+
+std::unique_ptr<BoundExpression> &
+BoundReturnStatement::getReturnExpressionPtr() {
+  return this->_expression;
 }

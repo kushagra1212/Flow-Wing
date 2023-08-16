@@ -1,60 +1,63 @@
 #include "BlockStatementSyntax.h"
 
-BlockStatementSyntax::BlockStatementSyntax(
-    SyntaxToken<std::any> *openBraceToken,
-    std::vector<StatementSyntax *> statements,
-    SyntaxToken<std::any> *closeBraceToken) {
-  this->openBraceToken = openBraceToken;
-  this->statements = statements;
-  this->closeBraceToken = closeBraceToken;
+BlockStatementSyntax::BlockStatementSyntax() {}
+
+std::unique_ptr<SyntaxToken<std::any>>
+BlockStatementSyntax::getOpenBraceToken() {
+  return std::move(this->_openBraceToken);
 }
 
-SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() {
+std::vector<std::unique_ptr<StatementSyntax>> &
+BlockStatementSyntax::getStatements() {
+  return this->_statements;
+}
+
+std::unique_ptr<SyntaxToken<std::any>>
+BlockStatementSyntax::getCloseBraceToken() {
+  return std::move(this->_closeBraceToken);
+}
+
+void BlockStatementSyntax::addStatement(
+    std::unique_ptr<StatementSyntax> statement) {
+  this->_statements.push_back(std::move(statement));
+}
+
+void BlockStatementSyntax::setOpenBraceToken(
+    std::unique_ptr<SyntaxToken<std::any>> openBraceToken) {
+  this->_openBraceToken = std::move(openBraceToken);
+}
+
+void BlockStatementSyntax::setCloseBraceToken(
+    std::unique_ptr<SyntaxToken<std::any>> closeBraceToken) {
+  this->_closeBraceToken = std::move(closeBraceToken);
+}
+
+SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BlockStatement;
 }
 
 std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children;
-  children.push_back(this->openBraceToken);
-  for (int i = 0; i < this->statements.size(); i++) {
-    children.push_back(this->statements[i]);
-  }
-  children.push_back(this->closeBraceToken);
-  return children;
-}
-
-SyntaxToken<std::any> *BlockStatementSyntax::getOpenBraceToken() {
-  return this->openBraceToken;
-}
-
-std::vector<StatementSyntax *> BlockStatementSyntax::getStatements() {
-  return this->statements;
-}
-
-SyntaxToken<std::any> *BlockStatementSyntax::getCloseBraceToken() {
-  return this->closeBraceToken;
-}
-
-std::string BlockStatementSyntax::getLineNumberAndColumn() const {
-  return this->openBraceToken->getLineNumberAndColumn();
-}
-
-BlockStatementSyntax::~BlockStatementSyntax() {
-  if (this->openBraceToken != nullptr) {
-    delete this->openBraceToken;
-    this->openBraceToken = nullptr;
-  }
-
-  for (int i = 0; i < this->statements.size(); i++) {
-    if (this->statements[i] != nullptr) {
-      delete this->statements[i];
-      this->statements[i] = nullptr;
+  if (this->_children.size() == 0) {
+    // Add children
+    this->_children.push_back(this->_openBraceToken.get());
+    for (const auto &statement : this->_statements) {
+      this->_children.push_back(statement.get());
     }
+    this->_children.push_back(this->_closeBraceToken.get());
   }
-  this->statements.clear();
+  return this->_children;
+}
 
-  if (this->closeBraceToken != nullptr) {
-    delete this->closeBraceToken;
-    this->closeBraceToken = nullptr;
-  }
+std::string BlockStatementSyntax::getLineNumberAndColumn() {
+  return this->_openBraceToken->getLineNumberAndColumn();
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BlockStatementSyntax::getOpenBraceTokenPtr() {
+  return this->_openBraceToken;
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+BlockStatementSyntax::getCloseBraceTokenPtr() {
+  return this->_closeBraceToken;
 }

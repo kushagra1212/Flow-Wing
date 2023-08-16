@@ -6,27 +6,31 @@
 #include "../ElseClauseSyntax/ElseClauseSyntax.h"
 #include "../StatementSyntax.h"
 class IfStatementSyntax : public StatementSyntax {
+private:
+  std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
+  std::unique_ptr<ExpressionSyntax> condition;
+  std::unique_ptr<BlockStatementSyntax> statement;
+  std::unique_ptr<ElseClauseSyntax> elseClause;
+
 public:
-  IfStatementSyntax(SyntaxToken<std::any> *ifKeyword,
-                    ExpressionSyntax *condition,
-                    BlockStatementSyntax *statement,
-                    ElseClauseSyntax *elseClause);
+  IfStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
+                    std::unique_ptr<ExpressionSyntax> condition,
+                    std::unique_ptr<BlockStatementSyntax> statement,
+                    std::unique_ptr<ElseClauseSyntax> elseClause);
 
-  ~IfStatementSyntax();
+  std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();
+  std::unique_ptr<ExpressionSyntax> getCondition();
+  std::unique_ptr<BlockStatementSyntax> getStatement();
+  std::unique_ptr<ElseClauseSyntax> getElseClause();
 
-  SyntaxToken<std::any> *getIfKeyword() const;
-  ExpressionSyntax *getCondition() const;
-  BlockStatementSyntax *getStatement() const;
-  ElseClauseSyntax *getElseClause() const;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
   std::vector<SyntaxNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 
-private:
-  SyntaxToken<std::any> *ifKeyword;
-  ExpressionSyntax *condition;
-  BlockStatementSyntax *statement;
-  ElseClauseSyntax *elseClause;
+  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
+  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
+  std::unique_ptr<ElseClauseSyntax> &getElseClausePtr();
 };

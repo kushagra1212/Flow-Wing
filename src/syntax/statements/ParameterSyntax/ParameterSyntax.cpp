@@ -2,31 +2,32 @@
 
 #include "ParameterSyntax.h"
 
-ParameterSyntax::ParameterSyntax(SyntaxToken<std::any> *identifierToken) {
-  _identifierToken = identifierToken;
+ParameterSyntax::ParameterSyntax(
+    std::unique_ptr<SyntaxToken<std::any>> identifierToken) {
+  this->_identifierToken = std::move(identifierToken);
+
+  // Add children
+
+  _children.push_back(_identifierToken.get());
 }
 
-SyntaxToken<std::any> *ParameterSyntax::getIdentifierToken() const {
-  return _identifierToken;
+std::unique_ptr<SyntaxToken<std::any>> ParameterSyntax::getIdentifierToken() {
+  return std::move(_identifierToken);
 }
 
-SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
-std::string ParameterSyntax::getLineNumberAndColumn() const {
+std::string ParameterSyntax::getLineNumberAndColumn() {
   return _identifierToken->getLineNumberAndColumn();
 }
 
 std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
-  std::vector<SyntaxNode *> children = {};
-  children.push_back(_identifierToken);
-  return children;
+  return this->_children;
 }
 
-ParameterSyntax::~ParameterSyntax() {
-  if (_identifierToken != nullptr) {
-    delete _identifierToken;
-    _identifierToken = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+ParameterSyntax::getIdentifierTokenPtr() {
+  return this->_identifierToken;
 }

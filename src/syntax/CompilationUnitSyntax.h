@@ -6,24 +6,21 @@
 #include "statements/StatementSyntax.h"
 class CompilationUnitSyntax {
 private:
-  std::vector<MemberSyntax *> members;
-  SyntaxToken<std::any> *endOfFileToken;
-
-public:
-  CompilationUnitSyntax(std::vector<MemberSyntax *> members,
-                        SyntaxToken<std::any> *endOfFileToken);
-  ~CompilationUnitSyntax();
+  std::vector<std::unique_ptr<MemberSyntax>> _members;
+  std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
+  std::vector<SyntaxNode *> _children;
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
 
-public:
-  std::vector<MemberSyntax *> getMembers();
+  std::vector<std::unique_ptr<MemberSyntax>> &getMembers();
 
-public:
-  SyntaxToken<std::any> *getEndOfFileToken();
+  std::unique_ptr<SyntaxToken<std::any>> getEndOfFileToken();
+  void addMember(std::unique_ptr<MemberSyntax> member);
+  void setEndOfFileToken(std::unique_ptr<SyntaxToken<std::any>> endOfFileToken);
 
-public:
   std::vector<SyntaxNode *> getChildren();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenPtr();
 };
 #endif

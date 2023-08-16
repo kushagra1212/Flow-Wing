@@ -6,16 +6,14 @@
 class BoundContinueStatement : public BoundStatement {
 
 public:
-  BoundContinueStatement(const std::string &lineAndColumn);
-
-  ~BoundContinueStatement();
+  BoundContinueStatement(std::string lineAndColumn);
 
 public:
-  BinderKindUtils::BoundNodeKind getKind() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };
 
 #endif // BOUNDCONTINUESTATEMENT_H

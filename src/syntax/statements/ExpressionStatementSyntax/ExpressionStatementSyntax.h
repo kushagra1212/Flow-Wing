@@ -3,19 +3,17 @@
 #include "../StatementSyntax.h"
 
 class ExpressionStatementSyntax : public StatementSyntax {
-private:
-  ExpressionSyntax *expression;
 
 public:
-  ExpressionStatementSyntax(ExpressionSyntax *expression);
+  std::unique_ptr<ExpressionSyntax> _expression;
+  ExpressionStatementSyntax(std::unique_ptr<ExpressionSyntax> expression);
 
-  ~ExpressionStatementSyntax();
+  std::unique_ptr<ExpressionSyntax> getExpression();
 
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  std::vector<SyntaxNode *> getChildren();
+  std::vector<SyntaxNode *> getChildren() override;
 
-  ExpressionSyntax *getExpression();
-
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 };

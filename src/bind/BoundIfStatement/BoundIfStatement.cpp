@@ -1,53 +1,49 @@
 #include "BoundIfStatement.h"
 
-BoundIfStatement::BoundIfStatement(const std::string &lineAndColumn,
-                                   BoundExpression *condition,
-                                   BoundStatement *thenStatement,
-                                   BoundStatement *elseStatement)
-    : _condition(condition), _thenStatement(thenStatement),
-      _elseStatement(elseStatement) {
+BoundIfStatement::BoundIfStatement(
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> condition,
+    std::unique_ptr<BoundStatement> thenStatement,
+    std::unique_ptr<BoundStatement> elseStatement) {
   this->_lineAndColumn = lineAndColumn;
+  this->_condition = std::move(condition);
+  this->_thenStatement = std::move(thenStatement);
+  this->_elseStatement = std::move(elseStatement);
+
+  this->_children.push_back(this->_condition.get());
+  this->_children.push_back(this->_thenStatement.get());
+  this->_children.push_back(this->_elseStatement.get());
 }
 
-BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundIfStatement::getCondition() {
+  return std::move(_condition);
+}
+
+std::unique_ptr<BoundStatement> BoundIfStatement::getThenStatement() {
+  return std::move(_thenStatement);
+}
+
+std::unique_ptr<BoundStatement> BoundIfStatement::getElseStatement() {
+  return std::move(_elseStatement);
+}
+BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::IfStatement;
 }
 
-BoundExpression *BoundIfStatement::getCondition() const { return _condition; }
-
-BoundStatement *BoundIfStatement::getThenStatement() const {
-  return _thenStatement;
-}
-
-BoundStatement *BoundIfStatement::getElseStatement() const {
-  return _elseStatement;
-}
-
-std::string BoundIfStatement::getLineNumberAndColumn() const {
+std::string BoundIfStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundIfStatement::getChildren() {
-  std::vector<BoundNode *> children;
-  children.push_back(_condition);
-  children.push_back(_thenStatement);
-  children.push_back(_elseStatement);
-  return children;
+  return this->_children;
 }
-BoundIfStatement::~BoundIfStatement() {
-  if (_condition != nullptr) {
-    delete _condition;
-    _condition = nullptr;
-  }
 
-  if (_thenStatement != nullptr) {
-    delete _thenStatement;
-    _thenStatement = nullptr;
-  }
-
-  if (_elseStatement != nullptr) {
-    delete _elseStatement;
-    _elseStatement = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundIfStatement::getConditionPtr() {
+  return this->_condition;
+}
+std::unique_ptr<BoundStatement> &BoundIfStatement::getThenStatementPtr() {
+  return this->_thenStatement;
+}
+std::unique_ptr<BoundStatement> &BoundIfStatement::getElseStatementPtr() {
+  return this->_elseStatement;
 }

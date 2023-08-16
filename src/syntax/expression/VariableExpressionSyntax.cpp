@@ -2,31 +2,32 @@
 #include "VariableExpressionSyntax.h"
 
 VariableExpressionSyntax::VariableExpressionSyntax(
-    LiteralExpressionSyntax<std::any> *identifierExpression) {
-  this->identifierExpression = identifierExpression;
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression) {
+  this->_identifierExpression = std::move(identifierExpression);
+
+  // Add children
+  this->_children.push_back(this->_identifierExpression.get());
 }
 
-SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() {
+std::unique_ptr<LiteralExpressionSyntax<std::any>>
+VariableExpressionSyntax::getIdentifier() {
+  return std::move(this->_identifierExpression);
+}
+
+SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableExpression;
-}
-
-LiteralExpressionSyntax<std::any> *VariableExpressionSyntax::getIdentifier() {
-  return this->identifierExpression;
 }
 
 std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
 
-  std::vector<SyntaxNode *> children = {identifierExpression};
-  return children;
+  return this->_children;
 }
 
-std::string VariableExpressionSyntax::getLineNumberAndColumn() const {
-  return this->identifierExpression->getLineNumberAndColumn();
+std::string VariableExpressionSyntax::getLineNumberAndColumn() {
+  return this->_identifierExpression->getLineNumberAndColumn();
 }
 
-VariableExpressionSyntax::~VariableExpressionSyntax() {
-  if (this->identifierExpression != nullptr) {
-    delete this->identifierExpression;
-    this->identifierExpression = nullptr;
-  }
+std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+VariableExpressionSyntax::getIdentifierPtr() {
+  return this->_identifierExpression;
 }

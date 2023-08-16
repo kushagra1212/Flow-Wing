@@ -10,22 +10,24 @@
 
 class ReturnStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_returnKeyword;
-  ExpressionSyntax *_expression;
+  std::unique_ptr<SyntaxToken<std::any>> _returnKeyword;
+  std::unique_ptr<ExpressionSyntax> _expression;
 
 public:
-  ReturnStatementSyntax(SyntaxToken<std::any> *returnKeyword,
-                        ExpressionSyntax *expression);
+  ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword,
+                        std::unique_ptr<ExpressionSyntax> expression);
 
-  ~ReturnStatementSyntax();
-
-  SyntaxToken<std::any> *getReturnKeyword() const;
-  ExpressionSyntax *getExpression() const;
+  std::unique_ptr<SyntaxToken<std::any>> getReturnKeyword();
+  std::unique_ptr<ExpressionSyntax> getExpression();
 
   std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() override;
 
-  std::string getLineNumberAndColumn() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getReturnKeywordPtr();
+  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
 };
 
 #endif // RETURNSTATEMENTSYNTAX_H

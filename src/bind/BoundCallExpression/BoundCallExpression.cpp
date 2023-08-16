@@ -1,61 +1,63 @@
 #include "BoundCallExpression.h"
 
 BoundCallExpression::BoundCallExpression(
-    const std::string &lineAndColumn,
-    BoundLiteralExpression<std::any> *callerIdentifier,
-    Utils::FunctionSymbol functionalSymbol,
-    const std::vector<BoundExpression *> &arguments) {
-  this->functionalSymbol = functionalSymbol;
-  this->arguments = arguments;
-  this->_callerIdentifier = callerIdentifier;
+    std::string lineAndColumn,
+    std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
+    Utils::FunctionSymbol functionalSymbol) {
+  this->_functionalSymbol = functionalSymbol;
+  this->_callerIdentifier = std::move(callerIdentifier);
   this->_lineAndColumn = lineAndColumn;
 }
 
 const std::string &BoundCallExpression::getName() const {
-  return functionalSymbol.name;
+  return _functionalSymbol.name;
 }
 
 Utils::FunctionSymbol BoundCallExpression::getFunctionSymbol() const {
-  return functionalSymbol;
+  return _functionalSymbol;
 }
 
-const std::vector<BoundExpression *> &
-BoundCallExpression::getArguments() const {
-  return arguments;
+void BoundCallExpression::addArgument(
+    std::unique_ptr<BoundExpression> argument) {
+  _arguments.push_back(std::move(argument));
 }
 
-BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::CallExpression;
+std::vector<std::unique_ptr<BoundExpression>> &
+BoundCallExpression::getArguments() {
+  return _arguments;
+}
+
+std::unique_ptr<BoundLiteralExpression<std::any>>
+BoundCallExpression::getCallerIdentifier() {
+  return std::move(_callerIdentifier);
 }
 
 const std::type_info &BoundCallExpression::getType() {
-  return functionalSymbol.getReturnType();
+  return _functionalSymbol.getReturnType();
+}
+
+BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::CallExpression;
 }
 
 std::vector<BoundNode *> BoundCallExpression::getChildren() {
-  std::vector<BoundNode *> children;
-  children.push_back(_callerIdentifier);
-  for (auto &argument : arguments) {
-    children.push_back(argument);
+
+  if (_callerIdentifier != nullptr) {
+    this->_children.push_back(_callerIdentifier.get());
+    for (auto &argument : _arguments) {
+      this->_children.push_back(argument.get());
+    }
+    return _children;
   }
-  return children;
+
+  return _children;
 }
 
-std::string BoundCallExpression::getLineNumberAndColumn() const {
+std::string BoundCallExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundLiteralExpression<std::any> *
-BoundCallExpression::getCallerIdentifier() const {
+std::unique_ptr<BoundLiteralExpression<std::any>> &
+BoundCallExpression::getCallerIdentifierPtr() {
   return _callerIdentifier;
-}
-
-BoundCallExpression::~BoundCallExpression() {
-  for (auto &argument : arguments) {
-    if (argument != nullptr) {
-      delete argument;
-      argument = nullptr;
-    }
-  }
-  arguments.clear();
 }

@@ -1,28 +1,31 @@
 #include "ContinueStatementSyntax.h"
 
 ContinueStatementSyntax::ContinueStatementSyntax(
-    SyntaxToken<std::any> *continueKeyword)
-    : _continueKeyword(continueKeyword) {}
+    std::unique_ptr<SyntaxToken<std::any>> continueKeyword) {
+  this->_continueKeyword = std::move(continueKeyword);
 
-ContinueStatementSyntax::~ContinueStatementSyntax() {
-  if (_continueKeyword != nullptr) {
-    delete _continueKeyword;
-    _continueKeyword = nullptr;
-  }
+  // Add children
+  _children.push_back(_continueKeyword.get());
 }
 
-SyntaxToken<std::any> *ContinueStatementSyntax::getContinueKeyword() const {
-  return _continueKeyword;
+std::unique_ptr<SyntaxToken<std::any>>
+ContinueStatementSyntax::getContinueKeyword() {
+  return std::move(_continueKeyword);
 }
 
 std::vector<SyntaxNode *> ContinueStatementSyntax::getChildren() {
-  return {_continueKeyword};
+  return this->_children;
 }
 
-SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContinueKeyword;
 }
 
-std::string ContinueStatementSyntax::getLineNumberAndColumn() const {
+std::string ContinueStatementSyntax::getLineNumberAndColumn() {
   return _continueKeyword->getLineNumberAndColumn();
+}
+
+std::unique_ptr<SyntaxToken<std::any>> &
+ContinueStatementSyntax::getContinueKeywordPtr() {
+  return _continueKeyword;
 }

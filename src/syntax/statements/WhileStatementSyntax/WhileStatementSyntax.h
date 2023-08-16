@@ -5,25 +5,30 @@
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 class WhileStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *_whileKeyword;
-  ExpressionSyntax *_condition;
-  BlockStatementSyntax *_body;
+  std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;
+  std::unique_ptr<ExpressionSyntax> _condition;
+  std::unique_ptr<BlockStatementSyntax> _body;
 
 public:
-  WhileStatementSyntax(SyntaxToken<std::any> *whileKeyword,
-                       ExpressionSyntax *condition, BlockStatementSyntax *body);
+  WhileStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
+                       std::unique_ptr<ExpressionSyntax> condition,
+                       std::unique_ptr<BlockStatementSyntax> body);
 
-  ~WhileStatementSyntax();
+  std::unique_ptr<SyntaxToken<std::any>> getWhileKeyword();
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  std::unique_ptr<ExpressionSyntax> getCondition();
+
+  std::unique_ptr<BlockStatementSyntax> getBody();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
   std::vector<SyntaxNode *> getChildren() override;
 
-  SyntaxToken<std::any> *getWhileKeyword() const;
+  std::string getLineNumberAndColumn() override;
 
-  ExpressionSyntax *getCondition() const;
+  std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordPtr();
 
-  BlockStatementSyntax *getBody() const;
+  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
 
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };

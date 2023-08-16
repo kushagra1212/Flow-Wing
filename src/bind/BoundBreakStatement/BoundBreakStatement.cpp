@@ -1,19 +1,17 @@
 #include "BoundBreakStatement.h"
 
-BoundBreakStatement::BoundBreakStatement(const std::string &lineAndColumn) {
+BoundBreakStatement::BoundBreakStatement(std::string lineAndColumn) {
   this->_lineAndColumn = lineAndColumn;
 }
 
-BoundBreakStatement::~BoundBreakStatement() = default;
-
-BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() {
+BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::BreakStatement;
 }
 
 std::vector<BoundNode *> BoundBreakStatement::getChildren() {
-  return std::vector<BoundNode *>{};
+  return this->_children;
 }
 
-std::string BoundBreakStatement::getLineNumberAndColumn() const {
+std::string BoundBreakStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }

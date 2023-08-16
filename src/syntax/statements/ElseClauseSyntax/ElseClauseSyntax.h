@@ -6,17 +6,22 @@
 #include "../StatementSyntax.h"
 class ElseClauseSyntax : public SyntaxNode {
 private:
-  SyntaxToken<std::any> *elseKeyword;
-  BlockStatementSyntax *statement;
+  std::unique_ptr<SyntaxToken<std::any>> _elseKeyword;
+  std::unique_ptr<BlockStatementSyntax> _statement;
 
 public:
-  ElseClauseSyntax(SyntaxToken<std::any> *elseKeyword,
-                   BlockStatementSyntax *statement);
-  ~ElseClauseSyntax();
-  SyntaxToken<std::any> *getElseKeyword() const;
-  BlockStatementSyntax *getStatement() const;
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  ElseClauseSyntax(std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
+                   std::unique_ptr<BlockStatementSyntax> statement);
+
+  std::unique_ptr<SyntaxToken<std::any>> getElseKeyword();
+  std::unique_ptr<BlockStatementSyntax> getStatement();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
   std::vector<SyntaxNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getElseKeywordPtr();
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
 };

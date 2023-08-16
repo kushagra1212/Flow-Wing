@@ -2,38 +2,44 @@
 
 BoundUnaryExpression::BoundUnaryExpression(
 
-    const std::string &lineAndColumn,
-    BinderKindUtils::BoundUnaryOperatorKind op, BoundExpression *operand) {
-  this->op = op;
-  this->operand = operand;
+    std::string lineAndColumn, BinderKindUtils::BoundUnaryOperatorKind op,
+    std::unique_ptr<BoundExpression> operand) {
+  this->_op = op;
+  this->_operand = std::move(operand);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundUnaryExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::UnaryExpression;
+  this->_children.push_back(this->_operand.get());
 }
 
 const std::type_info &BoundUnaryExpression::getType() {
-  return operand->getType();
+  return this->_operand->getType();
 }
 
 BinderKindUtils::BoundUnaryOperatorKind BoundUnaryExpression::getOperator() {
-  return op;
+  return this->_op;
 }
 
-BoundExpression *BoundUnaryExpression::getOperand() { return operand; }
+std::unique_ptr<BoundExpression> BoundUnaryExpression::getOperand() {
+  return std::move(this->_operand);
+}
+
+BinderKindUtils::BoundNodeKind BoundUnaryExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::UnaryExpression;
+}
 
 std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
-  return std::vector<BoundNode *>{operand};
+  return this->_children;
 }
 
-std::string BoundUnaryExpression::getLineNumberAndColumn() const {
+std::string BoundUnaryExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundUnaryExpression::~BoundUnaryExpression() {
-  if (operand != nullptr) {
-    delete operand;
-    operand = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundUnaryExpression::getOperandPtr() {
+  return this->_operand;
+}
+
+BinderKindUtils::BoundUnaryOperatorKind &
+BoundUnaryExpression::getOperatorPtr() {
+  return this->_op;
 }

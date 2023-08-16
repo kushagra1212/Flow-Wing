@@ -1,60 +1,55 @@
 #include "BoundForStatement.h"
 
-BoundForStatement::BoundForStatement(const std::string &lineAndColumn,
-                                     BoundStatement *initialization,
-
-                                     BoundExpression *upperBound,
-                                     BoundStatement *statement)
-    : initialization((initialization)), upperBound(upperBound),
-      statement((statement)) {
+BoundForStatement::BoundForStatement(
+    std::string lineAndColumn, std::unique_ptr<BoundStatement> initialization,
+    std::unique_ptr<BoundExpression> upperBound,
+    std::unique_ptr<BoundStatement> statement) {
   this->_lineAndColumn = lineAndColumn;
+  this->_initialization = std::move(initialization);
+  this->_upperBound = std::move(upperBound);
+  this->_statement = std::move(statement);
+
+  this->_children.push_back(this->_initialization.get());
+  this->_children.push_back(this->_upperBound.get());
+  this->_children.push_back(this->_statement.get());
 }
 
-BoundStatement *BoundForStatement::getInitialization() const {
+std::unique_ptr<BoundStatement> BoundForStatement::getInitialization() {
 
-  return this->initialization;
+  return std::move(this->_initialization);
 }
 
-BoundStatement *BoundForStatement::getStatement() const {
+std::unique_ptr<BoundStatement> BoundForStatement::getStatement() {
 
-  return this->statement;
+  return std::move(this->_statement);
 }
 
-BinderKindUtils::BoundNodeKind BoundForStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundForStatement::getUpperBound() {
+
+  return std::move(this->_upperBound);
+}
+BinderKindUtils::BoundNodeKind BoundForStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::ForStatement;
 }
 
-BoundExpression *BoundForStatement::getUpperBound() const {
-
-  return this->upperBound;
-}
-
-std::string BoundForStatement::getLineNumberAndColumn() const {
+std::string BoundForStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundForStatement::getChildren() {
-  std::vector<BoundNode *> children;
-  children.push_back(initialization);
-  children.push_back(statement);
-  children.push_back(upperBound);
-  return children;
+
+  return this->_children;
 }
 
-BoundForStatement::~BoundForStatement() {
-  if (initialization != nullptr) {
-    delete initialization;
-    initialization = nullptr;
-  }
+std::unique_ptr<BoundStatement> &BoundForStatement::getInitializationPtr() {
+  return this->_initialization;
+}
 
-  if (statement != nullptr) {
-    delete statement;
-    statement = nullptr;
-  }
+std::unique_ptr<BoundStatement> &BoundForStatement::getStatementPtr() {
+  return this->_statement;
+}
 
-  if (upperBound != nullptr) {
-    delete upperBound;
-    upperBound = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundForStatement::getUpperBoundPtr() {
+  return this->_upperBound;
 }

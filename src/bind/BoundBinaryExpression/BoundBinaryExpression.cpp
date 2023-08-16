@@ -1,44 +1,57 @@
 #include "BoundBinaryExpression.h"
 
 BoundBinaryExpression::BoundBinaryExpression(
-    const std::string &lineAndColumn, BoundExpression *left,
-    BinderKindUtils::BoundBinaryOperatorKind op, BoundExpression *right)
-    : op(op), left(left), right(right) {
-  this->_lineAndColumn = lineAndColumn;
-}
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
+    BinderKindUtils::BoundBinaryOperatorKind op,
+    std::unique_ptr<BoundExpression> right) {
+  this->_op = op;
 
-BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::BinaryExpression;
+  this->_left = std::move(left);
+  this->_right = std::move(right);
+
+  this->_lineAndColumn = lineAndColumn;
+
+  // TODO:
+
+  _children.push_back(_left.get());
+  _children.push_back(_right.get());
 }
 
 const std::type_info &BoundBinaryExpression::getType() {
-  return left->getType();
+  return _left->getType();
 }
 
 BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {
-  return op;
+  return _op;
 }
 
-BoundExpression *BoundBinaryExpression::getLeft() { return left; }
+std::unique_ptr<BoundExpression> BoundBinaryExpression::getLeft() {
+  return std::move(_left);
+}
 
-BoundExpression *BoundBinaryExpression::getRight() { return right; }
-
+std::unique_ptr<BoundExpression> BoundBinaryExpression::getRight() {
+  return std::move(_right);
+}
+BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::BinaryExpression;
+}
 std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
-  return std::vector<BoundNode *>{left, right};
+  return _children;
 }
 
-std::string BoundBinaryExpression::getLineNumberAndColumn() const {
+std::string BoundBinaryExpression::getLineNumberAndColumn() {
   return _lineAndColumn;
 }
 
-BoundBinaryExpression::~BoundBinaryExpression() {
-  if (left != nullptr) {
-    delete left;
-    left = nullptr;
-  }
+BinderKindUtils::BoundBinaryOperatorKind &
+BoundBinaryExpression::getOperatorPtr() {
+  return _op;
+}
 
-  if (right != nullptr) {
-    delete right;
-    right = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeftPtr() {
+  return _left;
+}
+
+std::unique_ptr<BoundExpression> &BoundBinaryExpression::getRightPtr() {
+  return _right;
 }

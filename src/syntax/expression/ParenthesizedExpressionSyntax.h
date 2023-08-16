@@ -4,35 +4,32 @@
 #include "ExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
 private:
-  SyntaxToken<std::any> *openParenthesisToken;
-  ExpressionSyntax *expression;
-  SyntaxToken<std::any> *closeParenthesisToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
+  std::unique_ptr<ExpressionSyntax> _expression;
+  std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
 public:
-  std::vector<SyntaxNode *> children;
+  ParenthesizedExpressionSyntax(
+      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
+      std::unique_ptr<ExpressionSyntax> expression,
+      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
-  ParenthesizedExpressionSyntax(SyntaxToken<std::any> *openParenthesisToken,
-                                ExpressionSyntax *expression,
-                                SyntaxToken<std::any> *closeParenthesisToken);
+  std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
 
-  ~ParenthesizedExpressionSyntax();
+  std::unique_ptr<ExpressionSyntax> getExpression();
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+  std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
-public:
-  SyntaxToken<std::any> *getOpenParenthesisToken();
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-  ExpressionSyntax *getExpression();
+  std::vector<SyntaxNode *> getChildren() override;
 
-public:
-  SyntaxToken<std::any> *getCloseParenthesisToken();
+  std::string getLineNumberAndColumn() override;
 
-public:
-  std::vector<SyntaxNode *> getChildren();
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
 #endif

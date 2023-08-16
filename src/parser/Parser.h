@@ -27,66 +27,48 @@
 #include <typeindex>
 class Parser {
 private:
-  std::vector<SyntaxToken<std::any> *> tokens;
-  int position;
+  int position = 0;
 
-public:
-  std::vector<std::string> logs;
-
-public:
-  Parser(const std::vector<std::string> &text);
-
-  ~Parser();
-
-private:
   SyntaxToken<std::any> *peek(int offset);
 
-private:
   SyntaxToken<std::any> *getCurrent();
 
-private:
-  SyntaxToken<std::any> *nextToken();
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
 
-private:
-  SyntaxToken<std::any> *match(SyntaxKindUtils::SyntaxKind kind);
+  std::unique_ptr<SyntaxToken<std::any>>
+  match(SyntaxKindUtils::SyntaxKind kind);
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
 
+  std::unique_ptr<StatementSyntax> parseStatement();
+  std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
+  std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
+  std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
+  std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
+  std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
+  std::unique_ptr<StatementSyntax> parseVariableDeclaration();
+  std::unique_ptr<IfStatementSyntax> parseIfStatement();
+  std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
+
+  std::unique_ptr<ForStatementSyntax> parseForStatement();
+
+  std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
+
+  void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
+  std::unique_ptr<MemberSyntax> parseMember();
+
+  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
+
+  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
+
+  std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
+
+  std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+
 public:
-  CompilationUnitSyntax *parseCompilationUnit();
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
+  std::vector<std::string> logs;
 
-private:
-  StatementSyntax *parseStatement();
-  BlockStatementSyntax *parseBlockStatement();
-
-  BreakStatementSyntax *parseBreakStatement();
-  ReturnStatementSyntax *parseReturnStatement();
-
-  ContinueStatementSyntax *parseContinueStatement();
-
-  ExpressionStatementSyntax *parseExpressionStatement();
-
-  StatementSyntax *parseVariableDeclaration();
-
-  IfStatementSyntax *parseIfStatement();
-
-  WhileStatementSyntax *parseWhileStatement();
-
-  ForStatementSyntax *parseForStatement();
-
-  ExpressionSyntax *parseNameorCallExpression();
-
-  std::vector<MemberSyntax *> parseMemberList();
-
-  MemberSyntax *parseMember();
-
-  FunctionDeclarationSyntax *parseFunctionDeclaration();
-
-  GlobalStatementSyntax *parseGlobalStatement();
-
-private:
-  ExpressionSyntax *parseExpression(int parentPrecedence = 0);
-
-private:
-  ExpressionSyntax *parsePrimaryExpression();
+  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
+  Parser(const std::vector<std::string> &text);
 };
 #endif

@@ -1,44 +1,38 @@
 #include "BoundBlockStatement.h"
-BoundBlockStatement::BoundBlockStatement(
-    const std::string &lineAndColumn, std::vector<BoundStatement *> statements,
-    bool global) {
-  this->statements = statements;
-  this->global = global;
+BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn,
+                                         bool global) {
+  this->_global = global;
   this->_lineAndColumn = lineAndColumn;
 }
-BoundBlockStatement::BoundBlockStatement(
-    const std::string &lineAndColumn,
-    std::vector<BoundStatement *> statements) {
-  BoundBlockStatement(lineAndColumn, statements, false);
+BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn) {
+  BoundBlockStatement(lineAndColumn, false);
 }
-BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() {
+
+std::vector<std::unique_ptr<BoundStatement>> &
+BoundBlockStatement::getStatements() {
+  return _statements;
+}
+
+void BoundBlockStatement::addStatement(
+    std::unique_ptr<BoundStatement> statement) {
+  this->_statements.push_back(std::move(statement));
+}
+
+bool BoundBlockStatement::getGlobal() const { return this->_global; }
+
+BinderKindUtils::BoundNodeKind BoundBlockStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::BlockStatement;
 }
 
-std::vector<BoundStatement *> BoundBlockStatement::getStatements() {
-  return statements;
-}
-
-bool BoundBlockStatement::getGlobal() const { return this->global; }
-
 std::vector<BoundNode *> BoundBlockStatement::getChildren() {
-  std::vector<BoundNode *> children;
-  for (BoundNode *statement : statements) {
-    children.push_back(statement);
-  }
-  return children;
-}
-
-std::string BoundBlockStatement::getLineNumberAndColumn() const {
-  return this->_lineAndColumn;
-}
-
-BoundBlockStatement::~BoundBlockStatement() {
-  for (auto statement : statements) {
-    if (statement != nullptr) {
-      delete statement;
-      statement = nullptr;
+  if (this->_children.size() == 0) {
+    for (const auto &st : this->_statements) {
+      this->_children.push_back((BoundNode *)(st.get()));
     }
   }
-  statements.clear();
+  return this->_children;
+}
+
+std::string BoundBlockStatement::getLineNumberAndColumn() {
+  return this->_lineAndColumn;
 }

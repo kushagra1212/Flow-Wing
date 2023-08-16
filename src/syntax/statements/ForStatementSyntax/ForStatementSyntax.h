@@ -9,29 +9,33 @@
 
 class ForStatementSyntax : public StatementSyntax {
 
+private:
+  std::unique_ptr<StatementSyntax> _initialization;
+  std::unique_ptr<BlockStatementSyntax> _statement;
+  std::unique_ptr<ExpressionSyntax> _upperBound;
+
 public:
-  ForStatementSyntax(StatementSyntax *initialization,
-                     ExpressionSyntax *upperBound,
-                     BlockStatementSyntax *statement);
+  ForStatementSyntax(std::unique_ptr<StatementSyntax> initialization,
+                     std::unique_ptr<ExpressionSyntax> upperBound,
+                     std::unique_ptr<BlockStatementSyntax> statement);
 
-  ~ForStatementSyntax();
+  std::unique_ptr<BlockStatementSyntax> getStatement();
 
-  BlockStatementSyntax *getStatement() const;
+  std::unique_ptr<StatementSyntax> getInitialization();
 
-  StatementSyntax *getInitialization() const;
+  std::unique_ptr<ExpressionSyntax> getUpperBound();
 
   std::vector<SyntaxNode *> getChildren() override;
 
-  SyntaxKindUtils::SyntaxKind getKind() override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  ExpressionSyntax *getUpperBound() const;
+  std::string getLineNumberAndColumn() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
 
-private:
-  StatementSyntax *initialization;
-  BlockStatementSyntax *statement;
-  ExpressionSyntax *upperBound;
+  std::unique_ptr<StatementSyntax> &getInitializationPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getUpperBoundPtr();
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

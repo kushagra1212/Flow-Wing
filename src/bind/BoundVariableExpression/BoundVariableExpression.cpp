@@ -1,34 +1,35 @@
 #include "BoundVariableExpression.h"
 
 BoundVariableExpression::BoundVariableExpression(
-    const std::string &lineAndColumn, BoundExpression *identiferExpression) {
-  this->identiferExpression = identiferExpression;
+    std::string lineAndColumn,
+    std::unique_ptr<BoundExpression> identiferExpression) {
+  this->_identiferExpression = std::move(identiferExpression);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundVariableExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::VariableExpression;
+  this->_children.push_back(this->_identiferExpression.get());
 }
 
 const std::type_info &BoundVariableExpression::getType() {
-  return identiferExpression->getType();
+  return this->_identiferExpression->getType();
 }
 
-BoundExpression *BoundVariableExpression::getIdentifierExpression() {
-  return this->identiferExpression;
+std::unique_ptr<BoundExpression>
+BoundVariableExpression::getIdentifierExpression() {
+  return std::move(this->_identiferExpression);
+}
+BinderKindUtils::BoundNodeKind BoundVariableExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::VariableExpression;
 }
 
 std::vector<BoundNode *> BoundVariableExpression::getChildren() {
-  return std::vector<BoundNode *>{this->identiferExpression};
+  return this->_children;
 }
 
-std::string BoundVariableExpression::getLineNumberAndColumn() const {
+std::string BoundVariableExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundVariableExpression::~BoundVariableExpression() {
-  if (this->identiferExpression != nullptr) {
-    delete this->identiferExpression;
-    this->identiferExpression = nullptr;
-  }
+std::unique_ptr<BoundExpression> &
+BoundVariableExpression::getIdentifierExpressionPtr() {
+  return this->_identiferExpression;
 }

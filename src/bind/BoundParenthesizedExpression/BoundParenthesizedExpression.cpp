@@ -1,34 +1,34 @@
 #include "BoundParenthesizedExpression.h"
 
 BoundParenthesizedExpression::BoundParenthesizedExpression(
-    const std::string &lineAndColumn, BoundExpression *expression) {
-  this->expression = expression;
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
+  this->_expression = std::move(expression);
   this->_lineAndColumn = lineAndColumn;
-}
 
-BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() {
-  return BinderKindUtils::BoundNodeKind::ParenthesizedExpression;
+  this->_children.push_back(this->_expression.get());
 }
 
 const std::type_info &BoundParenthesizedExpression::getType() {
-  return expression->getType();
+  return _expression->getType();
 }
 
-BoundExpression *BoundParenthesizedExpression::getExpression() {
-  return expression;
+std::unique_ptr<BoundExpression> BoundParenthesizedExpression::getExpression() {
+  return std::move(_expression);
+}
+
+BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() const {
+  return BinderKindUtils::BoundNodeKind::ParenthesizedExpression;
 }
 
 std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
-  return std::vector<BoundNode *>{expression};
+  return this->_children;
 }
 
-std::string BoundParenthesizedExpression::getLineNumberAndColumn() const {
+std::string BoundParenthesizedExpression::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundParenthesizedExpression::~BoundParenthesizedExpression() {
-  if (expression != nullptr) {
-    delete expression;
-    expression = nullptr;
-  }
+std::unique_ptr<BoundExpression> &
+BoundParenthesizedExpression::getExpressionPtr() {
+  return this->_expression;
 }

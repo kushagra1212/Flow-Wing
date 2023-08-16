@@ -6,46 +6,31 @@
 template <typename T> class SyntaxToken : public SyntaxNode {
 private:
   SyntaxKindUtils::SyntaxKind kind;
-
-private:
   std::string text;
-
-private:
   T value;
 
 public:
   SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind, int position,
               std::string text, T value);
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
-
-public:
   int getPosition();
 
-public:
   int getLineNumber();
 
-public:
   std::string getText();
 
-public:
   T getValue();
 
-public:
   std::string getKindText();
 
-public:
   int getUnaryOperatorPrecedence();
 
-public:
   int getBinaryOperatorPrecedence();
 
-  std::string getLineNumberAndColumn() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
-public:
-public:
-  std::vector<SyntaxNode *> children;
-  std::vector<SyntaxNode *> getChildren();
+  std::string getLineNumberAndColumn() override;
+
+  std::vector<SyntaxNode *> getChildren() override;
 };
 #endif

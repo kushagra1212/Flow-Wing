@@ -3,25 +3,33 @@
 #include "../StatementSyntax.h"
 class BlockStatementSyntax : public StatementSyntax {
 private:
-  SyntaxToken<std::any> *openBraceToken;
-  std::vector<StatementSyntax *> statements;
-  SyntaxToken<std::any> *closeBraceToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
+  std::vector<std::unique_ptr<StatementSyntax>> _statements;
+  std::unique_ptr<SyntaxToken<std::any>> _closeBraceToken;
 
 public:
-  BlockStatementSyntax(SyntaxToken<std::any> *openBraceToken,
-                       std::vector<StatementSyntax *> statements,
-                       SyntaxToken<std::any> *closeBraceToken);
+  BlockStatementSyntax();
 
-  ~BlockStatementSyntax();
-  SyntaxKindUtils::SyntaxKind getKind();
+  void addStatement(std::unique_ptr<StatementSyntax> statement);
 
-  std::vector<SyntaxNode *> getChildren();
+  void setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken);
 
-  SyntaxToken<std::any> *getOpenBraceToken();
+  void
+  setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken);
 
-  std::vector<StatementSyntax *> getStatements();
+  std::unique_ptr<SyntaxToken<std::any>> getOpenBraceToken();
 
-  SyntaxToken<std::any> *getCloseBraceToken();
+  std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
 
-  std::string getLineNumberAndColumn() const override;
+  std::unique_ptr<SyntaxToken<std::any>> getCloseBraceToken();
+
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+
+  std::vector<SyntaxNode *> getChildren() override;
+
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenBraceTokenPtr();
+
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseBraceTokenPtr();
 };

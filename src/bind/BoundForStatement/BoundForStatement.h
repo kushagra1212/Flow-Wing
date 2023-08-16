@@ -9,32 +9,37 @@
 
 class BoundForStatement : public BoundStatement {
 
+private:
+  std::unique_ptr<BoundStatement> _initialization;
+
+  std::unique_ptr<BoundStatement> _statement;
+
+  std::unique_ptr<BoundExpression> _upperBound;
+
 public:
-  BoundForStatement(const std::string &lineAndColumn,
-                    BoundStatement *initialization, BoundExpression *upperBound,
+  BoundForStatement(std::string lineAndColumn,
+                    std::unique_ptr<BoundStatement> initialization,
+                    std::unique_ptr<BoundExpression> upperBound,
 
-                    BoundStatement *statement);
+                    std::unique_ptr<BoundStatement> statement);
 
-  ~BoundForStatement();
+  std::unique_ptr<BoundStatement> getInitialization();
 
-  BoundStatement *getInitialization() const;
+  std::unique_ptr<BoundStatement> getStatement();
 
-  BoundStatement *getStatement() const;
+  std::unique_ptr<BoundExpression> getUpperBound();
 
-  BoundExpression *getUpperBound() const;
-
-  BinderKindUtils::BoundNodeKind getKind() override;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
 
-private:
-  BoundStatement *initialization;
+  std::unique_ptr<BoundStatement> &getInitializationPtr();
 
-  BoundStatement *statement;
+  std::unique_ptr<BoundStatement> &getStatementPtr();
 
-  BoundExpression *upperBound;
+  std::unique_ptr<BoundExpression> &getUpperBoundPtr();
 };
 
 #endif // BOUND_FOR_STATEMENT_H

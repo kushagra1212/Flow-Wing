@@ -1,31 +1,32 @@
 #include "BoundExpressionStatement.h"
 
 BoundExpressionStatement::BoundExpressionStatement(
-    const std::string &lineAndColumn, BoundExpression *expression) {
+    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
 
-  this->expression = expression;
+  this->_expression = std::move(expression);
   this->_lineAndColumn = lineAndColumn;
+
+  // Add children
+
+  this->_children.push_back(this->_expression.get());
 }
 
-BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() {
+std::unique_ptr<BoundExpression> BoundExpressionStatement::getExpression() {
+  return std::move(_expression);
+}
+
+BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::ExpressionStatement;
 }
 
-BoundExpression *BoundExpressionStatement::getExpression() {
-  return expression;
-}
-
 std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
-  return std::vector<BoundNode *>{expression};
+  return this->_children;
 }
 
-std::string BoundExpressionStatement::getLineNumberAndColumn() const {
+std::string BoundExpressionStatement::getLineNumberAndColumn() {
   return this->_lineAndColumn;
 }
 
-BoundExpressionStatement::~BoundExpressionStatement() {
-  if (expression != nullptr) {
-    delete expression;
-    expression = nullptr;
-  }
+std::unique_ptr<BoundExpression> &BoundExpressionStatement::getExpressionPtr() {
+  return this->_expression;
 }

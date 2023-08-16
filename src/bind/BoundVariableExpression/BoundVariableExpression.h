@@ -3,26 +3,21 @@
 #include "../BoundExpression.h"
 class BoundVariableExpression : public BoundExpression {
 private:
-  BoundExpression *identiferExpression;
+  std::unique_ptr<BoundExpression> _identiferExpression;
 
 public:
-  BoundVariableExpression(const std::string &lineAndColumn,
-                          BoundExpression *identiferExpression);
+  BoundVariableExpression(std::string lineAndColumn,
+                          std::unique_ptr<BoundExpression> identiferExpression);
 
-  ~BoundVariableExpression();
-
-public:
-  BinderKindUtils::BoundNodeKind getKind() override;
-
-public:
   const std::type_info &getType() override;
 
-public:
-  BoundExpression *getIdentifierExpression();
+  std::unique_ptr<BoundExpression> getIdentifierExpression();
 
-public:
+  BinderKindUtils::BoundNodeKind getKind() const override;
+
   std::vector<BoundNode *> getChildren() override;
 
-public:
-  std::string getLineNumberAndColumn() const override;
+  std::string getLineNumberAndColumn() override;
+
+  std::unique_ptr<BoundExpression> &getIdentifierExpressionPtr();
 };

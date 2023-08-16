@@ -1,8 +1,8 @@
 #include "BoundScope.h"
 
-BoundScope::BoundScope(BoundScope *parent)
-    : parent(parent), breakable(false), continuable(false), functionCounted(0) {
-}
+BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
+    : parent(std::move(parent)), breakable(false), continuable(false),
+      functionCounted(0) {}
 
 bool BoundScope::isInFunction() {
   if (this->functionCounted) {
@@ -120,11 +120,4 @@ std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
     result.push_back(function.second);
   }
   return result;
-}
-
-BoundScope::~BoundScope() {
-  if (this->parent != nullptr) {
-    delete this->parent;
-    this->parent = nullptr;
-  }
 }

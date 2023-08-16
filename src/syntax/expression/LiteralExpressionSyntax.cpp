@@ -8,40 +8,42 @@ template class LiteralExpressionSyntax<std::string>;
 template class LiteralExpressionSyntax<char>;
 template <typename T>
 LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
-    SyntaxToken<std::any> *token, T value) {
+    std::unique_ptr<SyntaxToken<std::any>> token, T value) {
+  this->_token = std::move(token);
+  this->_value = value;
 
-  this->token = token;
-  this->value = value;
+  // Add children
+
+  this->_children.push_back(_token.get());
 }
-template <typename T>
-SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() {
-  return SyntaxKindUtils::SyntaxKind::LiteralExpression;
-}
+
 template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->getKind());
 }
 template <typename T>
-SyntaxToken<std::any> *LiteralExpressionSyntax<T>::getToken() {
-  return this->token;
+std::unique_ptr<SyntaxToken<std::any>> LiteralExpressionSyntax<T>::getToken() {
+  return std::move(this->_token);
+}
+
+template <typename T> T LiteralExpressionSyntax<T>::getValue() {
+  return this->_value;
+}
+
+template <typename T>
+SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
+  return SyntaxKindUtils::SyntaxKind::LiteralExpression;
 }
 template <typename T>
 std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
-
-  std::vector<SyntaxNode *> children = {this->token};
-  return children;
+  return this->_children;
 }
-template <typename T> T LiteralExpressionSyntax<T>::getValue() {
-  return this->value;
+template <typename T>
+std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() {
+  return this->_token->getLineNumberAndColumn();
 }
 
 template <typename T>
-std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() const {
-  return this->token->getLineNumberAndColumn();
-}
-
-template <typename T> LiteralExpressionSyntax<T>::~LiteralExpressionSyntax() {
-  if (this->token != nullptr) {
-    delete this->token;
-    this->token = nullptr;
-  }
+std::unique_ptr<SyntaxToken<std::any>> &
+LiteralExpressionSyntax<T>::getTokenPtr() {
+  return this->_token;
 }
