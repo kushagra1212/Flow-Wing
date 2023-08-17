@@ -4,6 +4,7 @@ source_filename = "ElangModule"
 declare i8* @malloc(i64)
 declare i64 @strlen(i8*)
 declare void @memcpy(i8*, i8*, i64, i1)
+declare i32 @strcmp(i8*, i8*)
 
 declare i32 @snprintf(i8*, i64, i8*, i32)
 @intFormat = constant [3 x i8] c"%d\00"
@@ -58,3 +59,38 @@ define i8* @itos(i32 %num) {
 }
 
 
+
+define i32 @compare_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    ret i32 %result
+}
+
+define i1 @less_than_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    %less_than = icmp slt i32 %result, 0
+    ret i1 %less_than
+}
+
+define i1 @less_than_or_equal_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    %less_than_or_equal = icmp sle i32 %result, 0
+    ret i1 %less_than_or_equal
+}
+
+define i1 @greater_than_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    %greater_than = icmp sgt i32 %result, 0
+    ret i1 %greater_than
+}
+
+define i1 @greater_than_or_equal_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    %greater_than_or_equal = icmp sge i32 %result, 0
+    ret i1 %greater_than_or_equal
+}
+
+define i1 @equal_strings(i8* %str1, i8* %str2) {
+    %result = call i32 @strcmp(i8* %str1, i8* %str2)
+    %equal = icmp eq i32 %result, 0
+    ret i1 %equal
+}

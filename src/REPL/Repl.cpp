@@ -114,8 +114,43 @@ void Repl::compileAndEvaluate(
 
 void Repl::toggleExit() { exit = !exit; }
 
-void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
-  this->runWithStream(inputStream, outputStream);
+std::string Repl::runForTest(std::istream &inputStream,
+                             std::ostream &outputStream) {
+
+  std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
+
+  if (parser->logs.size()) {
+    Utils::printErrors(parser->logs, outputStream);
+    return "";
+  }
+
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
+      std::move(parser->parseCompilationUnit());
+
+  if (compilationUnit->getLogs().size()) {
+    Utils::printErrors(compilationUnit->getLogs(), outputStream);
+    return "";
+  }
+
+  std::unique_ptr<BoundScopeGlobal> globalScope =
+      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
+
+  if (globalScope->logs.size()) {
+    Utils::printErrors(globalScope->logs, outputStream);
+    return "";
+  }
+
+  try {
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
+
+    _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
+    runIfNotInTest([&]() { _evaluator->printIR(); });
+    return _evaluator->executeGeneratedCode();
+
+  } catch (const std::exception &e) {
+    outputStream << RED << e.what() << RESET << "\n";
+  }
+  return "";
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
@@ -123,6 +158,10 @@ void Repl::printWelcomeMessage(std::ostream &outputStream) {
                << " REPL!" << RESET << std::endl;
   outputStream << YELLOW
                << "Type `:exit` to exit, `:cls` to clear the screen.\n";
+}
+
+void Repl::addTextString(std::string textString) {
+  this->text.push_back(textString);
 }
 
 bool Repl::handleSpecialCommands(const std::string &line) {

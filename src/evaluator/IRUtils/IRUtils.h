@@ -117,6 +117,10 @@ llvm::Value *getResultFromBinaryOperationOnInt(
 llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+llvm::Value *getResultFromBinaryOperationOnString(
+    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
+    llvm::Module *TheModule, llvm::LLVMContext *TheContext,
+    BoundBinaryExpression *binaryExpression);
 
 // SET VALUES
 
@@ -155,6 +159,15 @@ bool updateNamedValueAlloca(
     const std::string &name, llvm::AllocaInst *value,
     std::stack<std::map<std::string, llvm::AllocaInst *>>
         &NamedValuesAllocaStack);
+
+llvm::Value *
+createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                       llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext, std::string functionName,
+                       std::string operand = "");
+
+llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition,
+                         llvm::IRBuilder<> *Builder);
 
 } // namespace IRUtils
 

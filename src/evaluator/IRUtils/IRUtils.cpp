@@ -226,6 +226,30 @@ std::string valueToString(llvm::Value *val) {
     }
   }
 
+  llvm::Instruction *instr = llvm::dyn_cast<llvm::Instruction>(val);
+
+  if (instr && instr->getOpcode() == llvm::Instruction::Call) {
+    llvm::CallInst *callInst = llvm::cast<llvm::CallInst>(instr);
+    llvm::Function *calledFunc = callInst->getCalledFunction();
+    if (calledFunc) {
+      llvm::Type *i1Type = llvm::Type::getInt1Ty(val->getContext());
+      llvm::IRBuilder<> builder(val->getContext());
+
+      // Compare the result of the function call with 0 using an ICmpInst
+      llvm::Value *cmpResult =
+          builder.CreateICmpNE(val, llvm::ConstantInt::get(i1Type, 1));
+
+      // Convert the i1 comparison result to "true" or "false" string
+      if (cmpResult->getType() == i1Type) {
+        return cmpResult == llvm::ConstantInt::get(i1Type, 1) ? "true"
+                                                              : "false";
+      } else {
+        llvm::errs() << "Unexpected comparison result type\n";
+        return "";
+      }
+    }
+  }
+
   llvm::IRBuilder<> builder(val->getContext());
   llvm::Type *i8PtrType = llvm::Type::getInt8PtrTy(builder.getContext());
   llvm::Constant *constVal = llvm::dyn_cast<llvm::Constant>(val);
@@ -408,6 +432,106 @@ llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   }
   return nullptr;
 }
+llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition,
+                         llvm::IRBuilder<> *Builder) {
+  llvm::Value *bitMask = Builder->getInt32(1 << bitPosition);
+  llvm::Value *bitIsSet = Builder->CreateAnd(result, bitMask);
+  llvm::Value *bitIsNonZero =
+      Builder->CreateICmpNE(bitIsSet, Builder->getInt32(0));
+  return bitIsNonZero;
+}
+llvm::Value *
+createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                       llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext,
+                       const std::string functionName, std::string operand) {
+
+  llvm::Function *stringComparison = TheModule->getFunction(functionName);
+
+  if (!stringComparison) {
+    llvm::errs() << functionName + "function not found";
+    return nullptr;
+  }
+
+  // / Get the Global Variable using the name
+
+  llvm::GlobalVariable *globalTrueStr =
+      TheModule->getGlobalVariable("true_string");
+
+  if (!globalTrueStr) {
+    llvm::errs() << "true_string global variable not found";
+    return nullptr;
+  }
+
+  llvm::GlobalVariable *globalFalseStr =
+      TheModule->getGlobalVariable("false_string");
+
+  if (!globalFalseStr) {
+    llvm::errs() << "false_string global variable not found";
+    return nullptr;
+  }
+
+  llvm::Value *args[] = {lhsValue, rhsValue};
+  llvm::CallInst *stringsCall = Builder->CreateCall(stringComparison, args);
+  llvm::Value *resultStr =
+      operand == "!="
+          ? Builder->CreateSelect(stringsCall, globalFalseStr, globalTrueStr)
+          : Builder->CreateSelect(stringsCall, globalTrueStr, globalFalseStr);
+
+  return Builder->CreateBitCast(resultStr,
+                                llvm::Type::getInt8PtrTy(*TheContext));
+}
+
+llvm::Value *getResultFromBinaryOperationOnString(
+    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
+    llvm::Module *TheModule, llvm::LLVMContext *TheContext,
+    BoundBinaryExpression *binaryExpression) {
+  llvm::Value *result = nullptr;
+  switch (binaryExpression->getOperator()) {
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    result = concatenateStrings(lhsValue, rhsValue, TheModule, Builder);
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                                    TheContext, "equal_strings");
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                                    TheContext, "equal_strings", "!=");
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                                    TheContext, "less_than_strings");
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+
+    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                                    TheContext, "less_than_or_equal_strings");
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                                    TheContext, "greater_than_strings");
+    break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    result =
+        createStringComparison(lhsValue, rhsValue, TheModule, Builder,
+                               TheContext, "greater_than_or_equal_strings");
+    break;
+
+  // Add more cases for other binary operators
+  default:
+    llvm::errs() << "Unsupported binary operator for string type";
+    return nullptr;
+  }
+  return result;
+}
 
 llvm::Value *getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
@@ -479,7 +603,7 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
 
   // Add more cases for other binary operators
   default:
-    // Handle unsupported binary operator
+    llvm::errs() << "Unsupported binary operator for double type";
     return nullptr;
   }
   return result;
@@ -558,7 +682,8 @@ llvm::Value *getResultFromBinaryOperationOnInt(
     // Add more cases for other binary operators
 
   default:
-    // Handle unsupported binary operator
+
+    llvm::errs() << "Unsupported binary operator for int type";
     return nullptr;
   }
   return result;
@@ -621,7 +746,8 @@ llvm::Value *getResultFromBinaryOperationOnBool(
 
   // Add more cases for other binary operators
   default:
-    // Handle unsupported binary operator
+
+    llvm::errs() << "Unsupported binary operator for bool type";
     return nullptr;
   }
   return result;

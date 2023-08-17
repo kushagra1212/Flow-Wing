@@ -17,7 +17,7 @@ public:
 
   // Run the REPL with custom input/output streams for testing
   void runWithStream(std::istream &inputStream, std::ostream &outputStream);
-  void runForTest(std::istream &inputStream, std::ostream &outputStream);
+  std::string runForTest(std::istream &inputStream, std::ostream &outputStream);
   bool isSyntaxTreeVisible() const;
   bool isBoundTreeVisible() const;
   // Helper functions
@@ -31,6 +31,9 @@ public:
   void runIfNotInTest(std::function<void()> f);
   void toggleExit();
   // Data members
+
+  void addTextString(std::string textString);
+
 private:
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> previous_lines;

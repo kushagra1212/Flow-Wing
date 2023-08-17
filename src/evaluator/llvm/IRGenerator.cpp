@@ -129,7 +129,20 @@ IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
   return std::move(parsedModulePtr);
 }
 
-void IRGenerator::defineStandardFunctions() {}
+void IRGenerator::defineStandardFunctions() {
+  // Create global constant strings
+  llvm::Constant *trueStr =
+      llvm::ConstantDataArray::getString(*TheContext, "true");
+  llvm::GlobalVariable *globalTrueStr = new llvm::GlobalVariable(
+      *TheModule, trueStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
+      trueStr, "true_string");
+
+  llvm::Constant *falseStr =
+      llvm::ConstantDataArray::getString(*TheContext, "false");
+  llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
+      *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
+      falseStr, "false_string");
+}
 
 llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
@@ -221,10 +234,10 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   llvm::Value *result = nullptr;
   if (IRUtils::isStringType(lhsType) || IRUtils::isStringType(rhsType)) {
 
-    result = IRUtils::concatenateStrings(
+    result = IRUtils::getResultFromBinaryOperationOnString(
         IRUtils::convertToString(lhsValue, Builder.get()),
-        IRUtils::convertToString(rhsValue, Builder.get()), TheModule.get(),
-        Builder.get());
+        IRUtils::convertToString(rhsValue, Builder.get()), Builder.get(),
+        TheModule.get(), TheContext.get(), binaryExpression);
   } else if (IRUtils::isDoubleType(lhsType) || IRUtils::isDoubleType(rhsType)) {
 
     result = IRUtils::getResultFromBinaryOperationOnDouble(
@@ -474,47 +487,37 @@ std::string IRGenerator::executeGeneratedCode() {
 
   std::string output = "";
 
-  if (returnType->isPointerTy()) {
+  if (returnType->isIntegerTy()) {
+    if (returnType->getIntegerBitWidth() == 1) {
+      //  llvm::outs() << "Boolean Value: "
+      //   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
+
+      output += (resultValue.IntVal != 0 ? "true" : "false");
+    } else {
+      llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+    }
+
+  } else if (returnType->isFloatingPointTy()) {
+    if (returnType->isFloatTy()) {
+      llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
+
+    } else {
+      llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
+    }
+  } else if (returnType->isPointerTy()) {
     if (resultValue.PointerVal) {
       const char *stringValue =
           static_cast<const char *>(resultValue.PointerVal);
       output += stringValue;
     } else {
+      // llvm::outs() << "Null Pointer Value\n";
       output += "Null Pointer Value\n";
     }
+  } else {
+    //   llvm::outs() << "Unknown Value Type\n";
+    output += "Unknown Value Type\n";
   }
+  delete executionEngine;
 
   return output;
-
-  // Result Can be of Any Data Type
-
-  // Print the result based on its data type
-
-  // if (returnType->isIntegerTy()) {
-  //   if (returnType->getIntegerBitWidth() == 1) {
-  //     llvm::outs() << "Boolean Value: "
-  //                  << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
-  //   } else {
-  //     llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
-  //   }
-
-  // } else if (returnType->isFloatingPointTy()) {
-  //   if (returnType->isFloatTy()) {
-  //     llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
-  //   } else {
-  //     llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
-  //   }
-  // } else if (returnType->isPointerTy()) {
-  //   if (resultValue.PointerVal) {
-  //     const char *stringValue =
-  //         static_cast<const char *>(resultValue.PointerVal);
-  //     llvm::outs() << stringValue << "\n";
-  //   } else {
-  //     llvm::outs() << "Null Pointer Value\n";
-  //   }
-  // } else {
-  //   llvm::outs() << "Unknown Value Type\n";
-  // }
-  delete executionEngine;
-  return "";
 }
