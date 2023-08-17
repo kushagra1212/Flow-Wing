@@ -1,6 +1,6 @@
 #include "Lexer.h"
 
-Lexer::Lexer(const std::vector<std::string> &text) { this->text = text; }
+Lexer::Lexer(std::vector<std::string> text) { this->text = text; }
 
 char Lexer::getCurrent() {
   if (this->position >= this->text[lineNumber].length()) {
@@ -372,7 +372,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString() {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
           "ERROR: unterminated string literal");
-      return newSyntaxToken;
+      return std::move(newSyntaxToken);
     }
     if (this->getCurrent() == '\\') {
       this->next();

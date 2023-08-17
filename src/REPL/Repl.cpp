@@ -107,7 +107,7 @@ void Repl::compileAndEvaluate(
     llvm::Value *generatedIR =
         _evaluator->generateEvaluateStatement(globalScope->statement.get());
     _evaluator->printIR();
-    // _evaluator->executeGeneratedCode();
+    _evaluator->executeGeneratedCode();
 
     previous_lines = text;
 
