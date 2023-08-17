@@ -36,6 +36,15 @@ define void @print_string(i8* %str) {
     ret void
 }
 
+define i32 @stringLength(i8* %str) {
+entry:
+  %0 = alloca i32, align 4
+  store i32 0, i32* %0, align 4
+  %1 = load i32, i32* %0, align 4
+  ret i32 %1
+}
+
+
 define i8* @itos(i32 %num) {
     ; Allocate memory for the string buffer
     %buffer = call i8* @malloc(i64 12)
@@ -49,24 +58,3 @@ define i8* @itos(i32 %num) {
 }
 
 
-@str1_constant = constant [8 x i8] c"Hello, \00"
-@str2_constant = constant [7 x i8] c"world!\00"
-define i32 @main() {
-    ; Call concat_strings function
-        %str1 = getelementptr [8 x i8], [8 x i8]* @str1_constant, i32 0, i32 0
-    %str2 = getelementptr [7 x i8], [7 x i8]* @str2_constant, i32 0, i32 0
-    
-   %concatenated = call i8* @concat_strings(i8* %str1, i8* %str2)
-    
-    ; Print the concatenated string
-    call void @print_string(i8* %concatenated)
-    
-    ; Convert an integer to a string using itos function
-    %num = add i32 42, 8
-    %num_str = call i8* @itos(i32 %num)
-    
-    ; Print the integer string
-    call void @print_string(i8* %num_str)
-    
-    ret i32 0
-}

@@ -1,6 +1,134 @@
 #include "IRUtils.h"
 
 namespace IRUtils {
+
+// GET VALUES
+
+llvm::Value *getNamedValue(
+    const std::string &name,
+    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
+  llvm::Value *value = nullptr;
+  while (!NamedValuesStack.empty()) {
+    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
+    if (NamedValues.find(name) != NamedValues.end()) {
+      value = NamedValues[name];
+      break;
+    }
+    NamedValuesStack.pop();
+  }
+  return value;
+}
+
+llvm::AllocaInst *
+getNamedValueAlloca(const std::string &name,
+                    std::stack<std::map<std::string, llvm::AllocaInst *>>
+                        NamedValuesAllocaStack) {
+  llvm::AllocaInst *value = nullptr;
+  while (!NamedValuesAllocaStack.empty()) {
+    std::map<std::string, llvm::AllocaInst *> &NamedValues =
+        NamedValuesAllocaStack.top();
+    if (NamedValues.find(name) != NamedValues.end()) {
+      value = NamedValues[name];
+      break;
+    }
+    NamedValuesAllocaStack.pop();
+  }
+  return value;
+}
+
+// CHECK VALUES
+
+bool isVariableDeclared(
+    const std::string &name,
+    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
+  bool isDeclared = false;
+  while (!NamedValuesStack.empty()) {
+    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
+    if (NamedValues.find(name) != NamedValues.end()) {
+      isDeclared = true;
+      break;
+    }
+    NamedValuesStack.pop();
+  }
+  return isDeclared;
+}
+
+// UPDATE VALUES
+
+bool updateNamedValue(
+    const std::string &name, llvm::Value *value,
+    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
+
+  std::stack<std::map<std::string, llvm::Value *>> tempStack;
+
+  bool isSet = false;
+  while (!NamedValuesStack.empty()) {
+    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
+    if (NamedValues.find(name) != NamedValues.end()) {
+      NamedValues[name] = value;
+      isSet = true;
+      break;
+    }
+    tempStack.push(NamedValues);
+    NamedValuesStack.pop();
+  }
+
+  while (!tempStack.empty()) {
+    NamedValuesStack.push(tempStack.top());
+    tempStack.pop();
+  }
+
+  return isSet;
+}
+
+bool updateNamedValueAlloca(
+    const std::string &name, llvm::AllocaInst *value,
+    std::stack<std::map<std::string, llvm::AllocaInst *>>
+        &NamedValuesAllocaStack) {
+
+  std::stack<std::map<std::string, llvm::AllocaInst *>> tempStack;
+
+  bool isSet = false;
+  while (!NamedValuesAllocaStack.empty()) {
+    std::map<std::string, llvm::AllocaInst *> &NamedValues =
+        NamedValuesAllocaStack.top();
+    if (NamedValues.find(name) != NamedValues.end()) {
+      NamedValues[name] = value;
+      isSet = true;
+      break;
+    }
+    tempStack.push(NamedValues);
+    NamedValuesAllocaStack.pop();
+  }
+
+  while (!tempStack.empty()) {
+    NamedValuesAllocaStack.push(tempStack.top());
+    tempStack.pop();
+  }
+
+  return isSet;
+}
+
+// SET VALUES
+
+void setNamedValue(
+    const std::string &name, llvm::Value *value,
+    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
+  std::stack<std::map<std::string, llvm::Value *>> tempStack;
+
+  std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
+  NamedValues[name] = value;
+}
+
+void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
+                         std::stack<std::map<std::string, llvm::AllocaInst *>>
+                             &NamedValuesAllocaStack) {
+
+  std::map<std::string, llvm::AllocaInst *> &NamedValues =
+      NamedValuesAllocaStack.top();
+  NamedValues[name] = value;
+}
+
 llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
                           llvm::LLVMContext *TheContext,
                           llvm::IRBuilder<> *Builder) {

@@ -118,6 +118,44 @@ llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
 
+// SET VALUES
+
+void setNamedValue(
+    const std::string &name, llvm::Value *value,
+    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
+
+void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
+                         std::stack<std::map<std::string, llvm::AllocaInst *>>
+                             &NamedValuesAllocaStack);
+
+// GET
+
+llvm::Value *getNamedValue(
+    const std::string &name,
+    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
+
+llvm::AllocaInst *
+getNamedValueAlloca(const std::string &name,
+                    std::stack<std::map<std::string, llvm::AllocaInst *>>
+                        NamedValuesAllocaStack);
+
+// CHECK
+
+bool isVariableDeclared(
+    const std::string &name,
+    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
+
+// UPDATE
+
+bool updateNamedValue(
+    const std::string &name, llvm::Value *value,
+    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
+
+bool updateNamedValueAlloca(
+    const std::string &name, llvm::AllocaInst *value,
+    std::stack<std::map<std::string, llvm::AllocaInst *>>
+        &NamedValuesAllocaStack);
+
 } // namespace IRUtils
 
 #endif

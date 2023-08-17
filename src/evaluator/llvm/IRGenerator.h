@@ -17,25 +17,22 @@ public:
   //   void runIR();
 
   void defineStandardFunctions();
+  void updateModule();
 
-  void define_StringLength();
+  llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
+  llvm::Value *generateEvaluateLiteralExpressionFunction(BoundExpression *node);
+  llvm::Value *generateEvaluateUnaryExpressionFunction(BoundExpression *node);
 
-  llvm::Function *generateEvaluateExpressionStatement(BoundExpression *node);
-  llvm::Function *
-  generateEvaluateLiteralExpressionFunction(BoundExpression *node);
-  llvm::Function *
-  generateEvaluateUnaryExpressionFunction(BoundExpression *node);
-
-  llvm::Function *
+  llvm::Value *
   generateEvaluateVariableExpressionFunction(BoundExpression *node);
-  llvm::Function *
+  llvm::Value *
   generateEvaluateAssignmentExpressionFunction(BoundExpression *node);
-  llvm::Function *
+  llvm::Value *
   generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
-  llvm::Function *generateEvaluateBlockStatement(BoundBlockStatement *node);
-  llvm::Function *generateEvaluateStatement(BoundStatement *node);
+  llvm::Value *generateEvaluateBlockStatement(BoundBlockStatement *node);
+  llvm::Value *generateEvaluateStatement(BoundStatement *node);
 
-  llvm::Function *
+  llvm::Value *
   generateEvaluateVariableDeclaration(BoundVariableDeclaration *node);
 
   void executeGeneratedCode();
@@ -50,7 +47,9 @@ private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
   std::unique_ptr<llvm::Module> TheModule;
   std::unique_ptr<llvm::IRBuilder<>> Builder;
-  std::map<std::string, llvm::Value *> _NamedValues;
+
+  std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
+  std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
 };
 
 #endif // IRGENERATOR_H
