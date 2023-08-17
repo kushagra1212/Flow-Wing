@@ -478,7 +478,6 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   std::unique_ptr<Binder> binder = std::make_unique<Binder>(nullptr);
 
   if (previousGlobalScope) {
-
     binder->root->variables = previousGlobalScope->variables;
     binder->root->functions = previousGlobalScope->functions;
   }

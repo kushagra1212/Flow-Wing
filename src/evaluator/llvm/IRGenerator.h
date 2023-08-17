@@ -37,7 +37,7 @@ public:
   llvm::Value *
   generateEvaluateVariableDeclaration(BoundVariableDeclaration *node);
 
-  void executeGeneratedCode();
+  std::string executeGeneratedCode();
   std::shared_ptr<BoundScopeGlobal> getRoot();
 
   std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;

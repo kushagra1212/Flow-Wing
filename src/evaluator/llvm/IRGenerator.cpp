@@ -440,7 +440,7 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   return nullptr;
 }
 
-void IRGenerator::executeGeneratedCode() {
+std::string IRGenerator::executeGeneratedCode() {
 
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction("evaluateBlockStatement");
@@ -452,13 +452,13 @@ void IRGenerator::executeGeneratedCode() {
   if (!executionEngine) {
     llvm::errs() << "Failed to create Execution Engine: " << errorMessage
                  << "\n";
-    return;
+    return "Failed to create Execution Engine: " + errorMessage + "\n";
   }
 
   // Step 2: Look up the function pointer
   if (!evaluateBlockStatement) {
     llvm::errs() << "Function not found in module.\n";
-    return;
+    return "Function not found in module.\n";
   }
   llvm::GenericValue resultValue = llvm::GenericValue();
 
@@ -472,34 +472,49 @@ void IRGenerator::executeGeneratedCode() {
 
   llvm::Type *returnType = evaluateBlockStatement->getReturnType();
 
+  std::string output = "";
+
+  if (returnType->isPointerTy()) {
+    if (resultValue.PointerVal) {
+      const char *stringValue =
+          static_cast<const char *>(resultValue.PointerVal);
+      output += stringValue;
+    } else {
+      output += "Null Pointer Value\n";
+    }
+  }
+
+  return output;
+
   // Result Can be of Any Data Type
 
   // Print the result based on its data type
 
-  if (returnType->isIntegerTy()) {
-    if (returnType->getIntegerBitWidth() == 1) {
-      llvm::outs() << "Boolean Value: "
-                   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
-    } else {
-      llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
-    }
+  // if (returnType->isIntegerTy()) {
+  //   if (returnType->getIntegerBitWidth() == 1) {
+  //     llvm::outs() << "Boolean Value: "
+  //                  << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
+  //   } else {
+  //     llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+  //   }
 
-  } else if (returnType->isFloatingPointTy()) {
-    if (returnType->isFloatTy()) {
-      llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
-    } else {
-      llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
-    }
-  } else if (returnType->isPointerTy()) {
-    if (resultValue.PointerVal) {
-      const char *stringValue =
-          static_cast<const char *>(resultValue.PointerVal);
-      llvm::outs() << stringValue << "\n";
-    } else {
-      llvm::outs() << "Null Pointer Value\n";
-    }
-  } else {
-    llvm::outs() << "Unknown Value Type\n";
-  }
+  // } else if (returnType->isFloatingPointTy()) {
+  //   if (returnType->isFloatTy()) {
+  //     llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
+  //   } else {
+  //     llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
+  //   }
+  // } else if (returnType->isPointerTy()) {
+  //   if (resultValue.PointerVal) {
+  //     const char *stringValue =
+  //         static_cast<const char *>(resultValue.PointerVal);
+  //     llvm::outs() << stringValue << "\n";
+  //   } else {
+  //     llvm::outs() << "Null Pointer Value\n";
+  //   }
+  // } else {
+  //   llvm::outs() << "Unknown Value Type\n";
+  // }
   delete executionEngine;
+  return "";
 }

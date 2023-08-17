@@ -1,16 +1,24 @@
 #include "Repl.h"
 
-Repl::Repl()
-    : showSyntaxTree(false), showBoundTree(false), braceCount(0), exit(false) {
+Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   previous_lines = std::vector<std::string>();
 }
-
+Repl::Repl(const bool &test) {
+  Repl();
+  this->isTest = test;
+}
 Repl::~Repl() {}
 std::mutex textMutex;
 
 void Repl::run() {
   printWelcomeMessage(std::cout);
   runWithStream(std::cin, std::cout);
+}
+
+void Repl::runIfNotInTest(std::function<void()> f) {
+  if (!isTest) {
+    f();
+  }
 }
 
 void Repl::runWithStream(std::istream &inputStream,
@@ -20,7 +28,7 @@ void Repl::runWithStream(std::istream &inputStream,
   std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   while (!exit) {
 
-    outputStream << GREEN << ">>> " << RESET;
+    runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
     text = previous_lines;
     std::string line;
     int emptyLines = 0;
@@ -35,7 +43,7 @@ void Repl::runWithStream(std::istream &inputStream,
         if (emptyLines == 2)
           break;
 
-        outputStream << YELLOW << "... " << RESET;
+        runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
         continue;
       }
       emptyLines = 0;
@@ -52,20 +60,20 @@ void Repl::runWithStream(std::istream &inputStream,
       compilationUnit = std::move(parser->parseCompilationUnit());
 
       if (compilationUnit->getLogs().size()) {
-        outputStream << YELLOW << "... " << RESET;
+        runIfNotInTest(
+            [&]() { outputStream << YELLOW << "... " << RESET << "\n"; });
 
         continue;
       }
       break;
     }
-    if (text == previous_lines) {
+    if (!this->isTest && text == previous_lines) {
       continue;
     }
     if (!exit) {
 
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
-        continue;
       }
       compileAndEvaluate(outputStream, std::move(compilationUnit));
     }
@@ -85,7 +93,6 @@ void Repl::compileAndEvaluate(
   }
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement.get());
-    return;
   }
 
   if (globalScope->logs.size()) {
@@ -95,8 +102,8 @@ void Repl::compileAndEvaluate(
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    _evaluator->printIR();
-    _evaluator->executeGeneratedCode();
+    runIfNotInTest([&]() { _evaluator->printIR(); });
+    outputStream << _evaluator->executeGeneratedCode() << "\n";
 
     previous_lines = text;
 
@@ -108,51 +115,7 @@ void Repl::compileAndEvaluate(
 void Repl::toggleExit() { exit = !exit; }
 
 void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
-
-  std::vector<std::string> text = std::vector<std::string>();
-  std::string line;
-  int emptyLines = 0;
-  while (true) {
-    std::getline(inputStream, line);
-    if (handleSpecialCommands(line)) {
-      break;
-    }
-
-    if (line.empty()) {
-      emptyLines++;
-      if (emptyLines == 200)
-        break;
-
-      continue;
-    }
-    emptyLines = 0;
-
-    text.push_back(line);
-    Parser *parser = new Parser(text);
-
-    if (parser->logs.size()) {
-      Utils::printErrors(parser->logs, outputStream);
-      text = std::vector<std::string>();
-      break;
-    }
-    std::shared_ptr<CompilationUnitSyntax> compilationUnit =
-        (parser->parseCompilationUnit());
-
-    if (parser->logs.size()) {
-      emptyLines++;
-      continue;
-    }
-
-    break;
-  }
-
-  Parser *parser = new Parser(text);
-  std::shared_ptr<CompilationUnitSyntax> compilationUnit =
-      (parser->parseCompilationUnit());
-  if (parser->logs.size()) {
-    Utils::printErrors(parser->logs, outputStream);
-  } else if (!exit)
-    compileAndEvaluate(outputStream, nullptr);
+  this->runWithStream(inputStream, outputStream);
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {

@@ -9,6 +9,7 @@
 class Repl {
 public:
   Repl();
+  Repl(const bool &isTest);
   ~Repl();
 
   // Run the REPL with default input/output streams
@@ -27,15 +28,16 @@ public:
   void
   compileAndEvaluate(std::ostream &outputStream,
                      std::unique_ptr<CompilationUnitSyntax> compilationUnit);
-
+  void runIfNotInTest(std::function<void()> f);
   void toggleExit();
   // Data members
 private:
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> previous_lines;
-
-  int braceCount;
   std::vector<std::string> text = std::vector<std::string>();
+
+  // For testing
+  bool isTest;
 };
 
 #endif // REPL_H
