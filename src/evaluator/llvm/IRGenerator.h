@@ -29,8 +29,10 @@ public:
   generateEvaluateAssignmentExpressionFunction(BoundExpression *node);
   llvm::Value *
   generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
-  llvm::Value *generateEvaluateBlockStatement(BoundBlockStatement *node);
-  llvm::Value *generateEvaluateStatement(BoundStatement *node);
+  llvm::Value *generateEvaluateBlockStatement(llvm::BasicBlock *basicBlock,
+                                              BoundBlockStatement *node);
+  llvm::Value *generateEvaluateStatement(llvm::BasicBlock *basicBlock,
+                                         BoundStatement *node);
 
   llvm::Value *
   generateEvaluateVariableDeclaration(BoundVariableDeclaration *node);
@@ -42,6 +44,8 @@ public:
 
   llvm::Function *getFunction(llvm::Type *Result, std::string name,
                               bool isVarArg);
+
+  void generateEvaluateGlobalStatement(BoundStatement *node);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;

@@ -100,6 +100,8 @@ std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
 
   compilationUnit->setEndOfFileToken(std::move(endOfFileToken));
 
+  compilationUnit->addLogs(this->logs);
+
   return std::move(compilationUnit);
 }
 

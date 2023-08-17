@@ -38,3 +38,11 @@ std::unique_ptr<SyntaxToken<std::any>> &
 CompilationUnitSyntax::getEndOfFileTokenPtr() {
   return this->_endOfFileToken;
 }
+
+const std::vector<std::string> &CompilationUnitSyntax::getLogs() {
+  return this->_logs;
+}
+
+void CompilationUnitSyntax::addLogs(const std::vector<std::string> &logs) {
+  this->_logs.insert(this->_logs.end(), logs.begin(), logs.end());
+}

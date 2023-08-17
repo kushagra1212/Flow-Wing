@@ -15,15 +15,11 @@ void Repl::run() {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  bool compiling = false;
+
   std::unique_ptr<Parser> parser = nullptr;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   while (!exit) {
-    if (compiling) {
-      outputStream << "Compiling... Please wait.\n";
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      continue;
-    }
+
     outputStream << GREEN << ">>> " << RESET;
     text = previous_lines;
     std::string line;
@@ -46,37 +42,32 @@ void Repl::runWithStream(std::istream &inputStream,
 
       text.push_back(line);
 
-      for (std::string s : text) {
-        outputStream << s << "\n";
-      }
-
       parser = std::make_unique<Parser>(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
-        text = std::vector<std::string>();
+        text = previous_lines;
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
 
-      if (parser->logs.size()) {
+      if (compilationUnit->getLogs().size()) {
         outputStream << YELLOW << "... " << RESET;
-        text.pop_back();
+
         continue;
       }
       break;
     }
-    if (text.size() == previous_lines.size()) {
+    if (text == previous_lines) {
       continue;
     }
     if (!exit) {
-      compiling = true;
 
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
+        continue;
       }
       compileAndEvaluate(outputStream, std::move(compilationUnit));
-      compiling = false;
     }
     text = std::vector<std::string>();
   }
@@ -94,6 +85,7 @@ void Repl::compileAndEvaluate(
   }
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement.get());
+    return;
   }
 
   if (globalScope->logs.size()) {
@@ -102,10 +94,9 @@ void Repl::compileAndEvaluate(
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
 
-    llvm::Value *generatedIR =
-        _evaluator->generateEvaluateStatement(globalScope->statement.get());
-    // _evaluator->printIR();
-    _evaluator->executeGeneratedCode();
+    _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
+    _evaluator->printIR();
+    //_evaluator->executeGeneratedCode();
 
     previous_lines = text;
 

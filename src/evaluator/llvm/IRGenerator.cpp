@@ -9,6 +9,10 @@ IRGenerator::IRGenerator() {
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
   this->defineStandardFunctions();
+
+  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  this->_NamedValuesAllocaStack.push(
+      std::map<std::string, llvm::AllocaInst *>());
 }
 
 void IRGenerator::updateModule() {
@@ -280,40 +284,36 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
   }
 }
 
-llvm::Value *
-IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
-
+llvm::Value *IRGenerator::generateEvaluateBlockStatement(
+    llvm::BasicBlock *currentBlock, BoundBlockStatement *blockStatement) {
+  llvm::Value *returnValue = nullptr;
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
       std::map<std::string, llvm::AllocaInst *>());
 
-  llvm::Value *returnValue = nullptr;
-
-  llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
-
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             "evaluateBlockStatement", *TheModule);
-
-  llvm::BasicBlock *BB = llvm::BasicBlock::Create(*TheContext, "entry", F);
-
-  Builder->SetInsertPoint(BB);
-
-  for (int i = 0; i < node->getStatements().size(); i++) {
-    llvm::Value *res =
-        this->generateEvaluateStatement(node->getStatements()[i].get());
-    returnValue = res;
-  }
+  llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
+      *TheContext, "nestedBlock", currentBlock->getParent());
 
   // create and load variable
+  Builder->SetInsertPoint(currentBlock);
+  Builder->CreateBr(nestedBlock);
+  Builder->SetInsertPoint(nestedBlock);
+  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+    llvm::Value *res = this->generateEvaluateStatement(
+        nestedBlock, blockStatement->getStatements()[i].get());
 
-  Builder->CreateRet(returnValue);
-  if (!node->getGlobal()) {
-    this->_NamedValuesStack.pop();
-    this->_NamedValuesAllocaStack.pop();
+    if (blockStatement->getStatements()[i].get()->getKind() !=
+        BinderKindUtils::BoundNodeKind::BlockStatement) {
+      llvm::AllocaInst *allocaInst =
+          Builder->CreateAlloca(res->getType(), nullptr, "toReturn");
+      Builder->CreateStore(res, allocaInst);
+    }
+    returnValue = res;
   }
-  llvm::verifyFunction(*F);
+  Builder->SetInsertPoint(currentBlock);
+  this->_NamedValuesStack.pop();
+  this->_NamedValuesAllocaStack.pop();
+
   return returnValue;
 }
 
@@ -339,7 +339,32 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   return result;
 }
 
-llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
+void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
+
+  BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
+  llvm::Value *returnValue = nullptr;
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
+
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                             "evaluateBlockStatement", *TheModule);
+
+  llvm::BasicBlock *entryBlock =
+      llvm::BasicBlock::Create(*TheContext, "entry", F);
+
+  // Builder->SetInsertPoint(entryBlock);
+  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+    llvm::Value *res = this->generateEvaluateStatement(
+        entryBlock, blockStatement->getStatements()[i].get());
+    returnValue = res;
+  }
+  Builder->CreateRet(returnValue);
+}
+
+llvm::Value *
+IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
+                                       BoundStatement *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
@@ -349,7 +374,8 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
 
-    return this->generateEvaluateBlockStatement(((BoundBlockStatement *)node));
+    return this->generateEvaluateBlockStatement(basicBlock,
+                                                (BoundBlockStatement *)node);
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
 
