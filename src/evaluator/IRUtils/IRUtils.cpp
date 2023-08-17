@@ -569,11 +569,11 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result = Builder->CreateAnd(lhsValue, rhsValue);
+    llvm::errs() << "Logical And is not supported for double type";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result = Builder->CreateOr(lhsValue, rhsValue);
+    llvm::errs() << "Logical Or is not supported for double type";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
@@ -646,37 +646,47 @@ llvm::Value *getResultFromBinaryOperationOnInt(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result = Builder->CreateAnd(lhsValue, rhsValue);
+    result =
+        Builder->CreateLogicalAnd(IRUtils::convertToBool(lhsValue, Builder),
+                                  IRUtils::convertToBool(rhsValue, Builder));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result = Builder->CreateOr(lhsValue, rhsValue);
+    result =
+        Builder->CreateLogicalOr(IRUtils::convertToBool(lhsValue, Builder),
+                                 IRUtils::convertToBool(rhsValue, Builder));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = Builder->CreateICmpEQ(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpEQ(lhsValue, rhsValue),
+                                    Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = Builder->CreateICmpNE(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpNE(lhsValue, rhsValue),
+                                    Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    result = Builder->CreateICmpSLT(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpSLT(lhsValue, rhsValue),
+                                    Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
 
-    result = Builder->CreateICmpSLE(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpSLE(lhsValue, rhsValue),
+                                    Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = Builder->CreateICmpSGT(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpSGT(lhsValue, rhsValue),
+                                    Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
 
-    result = Builder->CreateICmpSGE(lhsValue, rhsValue);
+    result = IRUtils::convertToBool(Builder->CreateICmpSGE(lhsValue, rhsValue),
+                                    Builder);
     break;
 
     // Add more cases for other binary operators
@@ -711,11 +721,11 @@ llvm::Value *getResultFromBinaryOperationOnBool(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result = Builder->CreateAnd(lhsValue, rhsValue);
+    result = Builder->CreateLogicalAnd(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result = Builder->CreateOr(lhsValue, rhsValue);
+    result = Builder->CreateLogicalOr(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:

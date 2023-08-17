@@ -2,7 +2,6 @@
 #ifndef REPL_H
 #define REPL_H
 #include "../Common.h"
-#include "../evaluator/Evaluator.h"
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
