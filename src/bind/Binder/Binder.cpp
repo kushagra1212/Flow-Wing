@@ -376,19 +376,20 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   std::string function_name = syntax->getIdentifierTokenPtr()->getText();
 
-  for (int i = 0; i < syntax->getParameters().size(); i++) {
+  for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     std::string variable_str =
-        syntax->getParameters()[i]->getIdentifierTokenPtr()->getText();
+        syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText();
     if (!this->root->tryDeclareVariable(variable_str,
                                         Utils::Variable(nullptr, false))) {
       this->logs.push_back(
           Utils::getLineNumberAndPosition(
-              syntax->getParameters()[i]->getIdentifierTokenPtr().get()) +
+              syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get()) +
           "Error: Parameter " + variable_str + " already declared");
     }
 
     parameters.push_back(Utils::FunctionParameterSymbol(
-        syntax->getParameters()[i]->getIdentifierTokenPtr()->getText(), false));
+        syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText(),
+        false));
   }
 
   Utils::FunctionSymbol functionSymbol =

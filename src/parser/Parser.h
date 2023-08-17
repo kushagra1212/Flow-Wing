@@ -70,5 +70,7 @@ public:
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
   Parser(const std::vector<std::string> &text);
+  std::unique_ptr<Lexer> lexer;
+  ~Parser();
 };
 #endif

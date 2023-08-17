@@ -1,7 +1,9 @@
 #include "Parser.h"
 Parser::Parser(const std::vector<std::string> &text) {
 
-  std::unique_ptr<Lexer> lexer = std::make_unique<Lexer>(text);
+  this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
+
+  lexer = std::make_unique<Lexer>(text);
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
@@ -30,6 +32,16 @@ Parser::Parser(const std::vector<std::string> &text) {
   }
 }
 
+Parser::~Parser() {
+  for (auto &token : this->tokens) {
+    token.reset();
+  }
+
+  this->lexer.reset();
+  this->tokens.clear();
+  this->logs.clear();
+}
+
 SyntaxToken<std::any> *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
@@ -46,9 +58,10 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
   this->position++;
   if (pos >= this->tokens.size()) {
 
-    return std::move(this->tokens[this->tokens.size() - 1]);
+    return std::unique_ptr<SyntaxToken<std::any>>(
+        this->tokens[this->tokens.size() - 1].release());
   }
-  return std::move(this->tokens[pos]);
+  return std::unique_ptr<SyntaxToken<std::any>>(this->tokens[pos].release());
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
@@ -102,35 +115,35 @@ std::unique_ptr<MemberSyntax> Parser::parseMember() {
 }
 
 std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
-  std::unique_ptr<SyntaxToken<std::any>> functionKeyword =
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword));
-  std::unique_ptr<SyntaxToken<std::any>> identifier =
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-  std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken =
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
-  std::vector<std::unique_ptr<ParameterSyntax>> parameters;
+
+  std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
+      std::make_unique<FunctionDeclarationSyntax>();
+
+  functionDeclaration->setFunctionKeyword(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+
+  functionDeclaration->setIdentifierToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+
+  functionDeclaration->setOpenParenthesisToken(std::move(
+      this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken)));
 
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
-    if (parameters.size() > 0) {
-
+    if (functionDeclaration->getParametersPtr().size() > 0) {
       this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
     }
-    parameters.push_back(std::make_unique<ParameterSyntax>(
+    functionDeclaration->addParameter(std::make_unique<ParameterSyntax>(
         std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken))));
   }
-  std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken = std::move(
-      this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
-  std::unique_ptr<BlockStatementSyntax> body =
-      std::move(this->parseBlockStatement());
+  functionDeclaration->setCloseParenthesisToken(std::move(
+      this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken)));
 
-  return std::make_unique<FunctionDeclarationSyntax>(
-      std::move(functionKeyword), std::move(identifier),
-      std::move(openParenthesisToken), std::move(parameters),
-      std::move(closeParenthesisToken), std::move(body));
+  functionDeclaration->setBody(std::move(this->parseBlockStatement()));
+
+  return std::move(functionDeclaration);
 }
 
 std::unique_ptr<GlobalStatementSyntax> Parser::parseGlobalStatement() {
@@ -158,9 +171,7 @@ std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
              SyntaxKindUtils::SyntaxKind::EndOfFileToken
 
   ) {
-    std::unique_ptr<StatementSyntax> statement =
-        std::move(this->parseStatement());
-    blockStatement->addStatement(std::move(statement));
+    blockStatement->addStatement(std::move(this->parseStatement()));
   }
 
   std::unique_ptr<SyntaxToken<std::any>> closeBraceToken =

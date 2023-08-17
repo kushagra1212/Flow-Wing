@@ -16,6 +16,8 @@ void Repl::run() {
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
   bool compiling = false;
+  std::unique_ptr<Parser> parser = nullptr;
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
   while (!exit) {
     if (compiling) {
       outputStream << "Compiling... Please wait.\n";
@@ -34,7 +36,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
       if (line.empty()) {
         emptyLines++;
-        if (emptyLines == 1)
+        if (emptyLines == 2)
           break;
 
         outputStream << YELLOW << "... " << RESET;
@@ -44,18 +46,22 @@ void Repl::runWithStream(std::istream &inputStream,
 
       text.push_back(line);
 
-      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
+      for (std::string s : text) {
+        outputStream << s << "\n";
+      }
+
+      parser = std::make_unique<Parser>(text);
 
       if (parser->logs.size()) {
         Utils::printErrors(parser->logs, outputStream);
         text = std::vector<std::string>();
         break;
       }
-      std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-          std::move(parser->parseCompilationUnit());
+      compilationUnit = std::move(parser->parseCompilationUnit());
 
       if (parser->logs.size()) {
         outputStream << YELLOW << "... " << RESET;
+        text.pop_back();
         continue;
       }
       break;
@@ -65,19 +71,12 @@ void Repl::runWithStream(std::istream &inputStream,
     }
     if (!exit) {
       compiling = true;
-      std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
-      std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-          std::move(parser->parseCompilationUnit());
-      if (parser->logs.size()) {
-        Utils::printErrors(parser->logs, outputStream);
-        parser->logs.clear();
-      } else {
-        if (showSyntaxTree) {
-          Utils::prettyPrint(compilationUnit.get());
-        }
-        compileAndEvaluate(outputStream, std::move(compilationUnit));
-        compiling = false;
+
+      if (showSyntaxTree) {
+        Utils::prettyPrint(compilationUnit.get());
       }
+      compileAndEvaluate(outputStream, std::move(compilationUnit));
+      compiling = false;
     }
     text = std::vector<std::string>();
   }
@@ -103,10 +102,9 @@ void Repl::compileAndEvaluate(
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     llvm::Value *generatedIR =
         _evaluator->generateEvaluateStatement(globalScope->statement.get());
-    _evaluator->printIR();
+    // _evaluator->printIR();
     _evaluator->executeGeneratedCode();
 
     previous_lines = text;

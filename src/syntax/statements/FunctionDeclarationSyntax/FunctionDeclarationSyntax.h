@@ -19,20 +19,24 @@ private:
   std::unique_ptr<BlockStatementSyntax> _body;
 
 public:
-  FunctionDeclarationSyntax(
-      std::unique_ptr<SyntaxToken<std::any>> functionKeyword,
-      std::unique_ptr<SyntaxToken<std::any>> identifierToken,
-      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
-      std::vector<std::unique_ptr<ParameterSyntax>> parameters,
-      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken,
-      std::unique_ptr<BlockStatementSyntax> body);
+  FunctionDeclarationSyntax();
 
   std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
   std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
-  std::vector<std::unique_ptr<ParameterSyntax>> getParameters();
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
   std::unique_ptr<BlockStatementSyntax> getBody();
+
+  void
+  setFunctionKeyword(std::unique_ptr<SyntaxToken<std::any>> functionKeyword);
+  void
+  setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
+  void setOpenParenthesisToken(
+      std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
+  void addParameter(std::unique_ptr<ParameterSyntax> parameter);
+  void setCloseParenthesisToken(
+      std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
+  void setBody(std::unique_ptr<BlockStatementSyntax> body);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
 

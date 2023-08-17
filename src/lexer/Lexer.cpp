@@ -1,6 +1,10 @@
 #include "Lexer.h"
 
-Lexer::Lexer(std::vector<std::string> text) { this->text = text; }
+Lexer::Lexer(std::vector<std::string> text) {
+  this->text = text;
+  this->lineNumber = 0;
+  this->position = 0;
+}
 
 char Lexer::getCurrent() {
   if (this->position >= this->text[lineNumber].length()) {
@@ -73,7 +77,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
     std::string text = this->text[lineNumber].substr(start, length);
     try {
       if (SyntaxKindUtils::isInt64(text) == false) {
-        throw std::exception();
+        throw std::runtime_error("bad number input not Int64: " + text);
       }
     } catch (std::exception e) {
 
@@ -335,7 +339,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
         this->lineNumber, SyntaxKindUtils::SyntaxKind::CloseBraceToken,
         this->position++, "}", 0);
   case '"':
-    return this->readString();
+    return std::move(this->readString());
 
   default:
     int _pos = this->position;
@@ -412,7 +416,5 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString() {
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::StringToken, start, text,
-      (text));
-
-  //&(text)
+      text);
 }

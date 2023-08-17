@@ -304,7 +304,6 @@ IRGenerator::generateEvaluateBlockStatement(BoundBlockStatement *node) {
     llvm::Value *res =
         this->generateEvaluateStatement(node->getStatements()[i].get());
     returnValue = res;
-    std::cout << "r\n";
   }
 
   // create and load variable
