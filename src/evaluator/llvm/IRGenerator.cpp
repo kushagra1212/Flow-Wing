@@ -310,7 +310,6 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     }
     returnValue = res;
   }
-  Builder->SetInsertPoint(currentBlock);
   this->_NamedValuesStack.pop();
   this->_NamedValuesAllocaStack.pop();
 
@@ -344,7 +343,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
   llvm::Value *returnValue = nullptr;
   llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), false);
 
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
@@ -353,13 +352,13 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
-  // Builder->SetInsertPoint(entryBlock);
+  Builder->SetInsertPoint(entryBlock);
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     llvm::Value *res = this->generateEvaluateStatement(
         entryBlock, blockStatement->getStatements()[i].get());
     returnValue = res;
   }
-  Builder->CreateRet(returnValue);
+  Builder->CreateRet(IRUtils::convertToString(returnValue, Builder.get()));
 }
 
 llvm::Value *
@@ -495,7 +494,7 @@ void IRGenerator::executeGeneratedCode() {
     if (resultValue.PointerVal) {
       const char *stringValue =
           static_cast<const char *>(resultValue.PointerVal);
-      llvm::outs() << "String Value: " << stringValue << "\n";
+      llvm::outs() << stringValue << "\n";
     } else {
       llvm::outs() << "Null Pointer Value\n";
     }

@@ -54,7 +54,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
       std::string text = this->text[lineNumber].substr(start, length);
       try {
         if (SyntaxKindUtils::isDouble(text) == false) {
-          throw std::exception();
+          throw std::runtime_error("bad number input not double: " + text);
         }
       } catch (std::exception e) {
         std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
