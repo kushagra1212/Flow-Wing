@@ -124,21 +124,21 @@ std::string Repl::runForTest(std::istream &inputStream,
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
 
   if (parser->logs.size()) {
-    return Utils::concatErrors(parser->logs, outputStream);
+    std::cout << Utils::concatErrors(parser->logs, outputStream);
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::move(parser->parseCompilationUnit());
 
   if (compilationUnit->getLogs().size()) {
-    return Utils::concatErrors(compilationUnit->getLogs(), outputStream);
+    std::cout << Utils::concatErrors(compilationUnit->getLogs(), outputStream);
   }
 
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
 
   if (globalScope->logs.size()) {
-    return Utils::concatErrors(globalScope->logs, outputStream);
+    std::cout << Utils::concatErrors(globalScope->logs, outputStream);
   }
 
   try {
@@ -146,7 +146,7 @@ std::string Repl::runForTest(std::istream &inputStream,
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
-    return _evaluator->executeGeneratedCode();
+    std::cout << _evaluator->executeGeneratedCode();
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";

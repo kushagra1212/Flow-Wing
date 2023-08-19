@@ -1,31 +1,49 @@
 #include "If-Or-If-Else.h"
 
+std::string capturePrintfOutput(std::function<void()> function) {
+  // Backup the original stdout buffer
+  std::streambuf *originalBuf = std::cout.rdbuf();
+
+  // Create a stringstream to capture the output
+  std::stringstream capturedOutput;
+  std::cout.rdbuf(capturedOutput.rdbuf());
+
+  // Call the function that contains printf calls
+  function();
+
+  // Restore the original stdout buffer
+  std::cout.rdbuf(originalBuf);
+
+  return capturedOutput.str();
+}
+
 TEST_F(ReplTest, BasicIfRRepl) {
   std::string input = R"(
        if(true) {
-            5
+           print(5)
        }
    )";
 
-  std::string expected_output = "5";
+  std::string expected_output = "5\n";
 
-  std::string output = runReplWithInput(input);
-  EXPECT_EQ(output, expected_output);
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
 }
 
 TEST_F(ReplTest, BasicIfElseRepl) {
   std::string input = R"(
        if(false) {
-            5
+           print( 5)
        } else {
-            6
+           print( 6)
        }
    )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
 
-  std::string output = runReplWithInput(input);
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(capturedOutput, expected_output);
 }
 
 // If-Else with Different Condition
@@ -33,15 +51,15 @@ TEST_F(ReplTest, BasicIfElseRepl) {
 TEST_F(ReplTest, BasicIfElseWithDifferentConditionRepl) {
   std::string input = R"(
        if(2 > 3) {
-            5
+           print( 5)
        } else {
-            6
+           print( 6)
        }
    )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
@@ -50,13 +68,13 @@ TEST_F(ReplTest, BasicIfElseWithDifferentConditionRepl) {
 TEST_F(ReplTest, BasicIfFalseRepl) {
   std::string input = R"(
        if(false) {
-            5
+           print(5)
        }
    )";
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
@@ -66,18 +84,18 @@ TEST_F(ReplTest, BasicNestedIfElseRepl) {
   std::string input = R"(
        if(true) {
             if(false) {
-                5
+               print( 5)
             } else {
-                6
+               print( 6)
             }
        } else {
-            7
+           print( 7)
        }
    )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
@@ -87,64 +105,64 @@ TEST_F(ReplTest, BasicNestedIfElseWithDifferentConditionRepl) {
   std::string input = R"(
        if(true) {
             if(2 > 3) {
-                5
+               print( 5)
             } else {
-                6
+               print( 6)
             }
        } else {
-            7
+           print( 7)
        }
    )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 TEST_F(ReplTest, BasicIfElseRepl2) {
   std::string input = R"(
         if(true) {
-            5
+           print( 5)
         } else {
-            6
+           print( 6)
         }
     )";
 
-  std::string expected_output = "5";
+  std::string expected_output = "5\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, BasicOrIfRepl) {
   std::string input = R"(
         if(false) {
-            4
+           print( 4)
         } or if(true) {
-            5
+           print( 5)
         } else {
-            6
+           print( 6)
         }
     )";
 
-  std::string expected_output = "5";
+  std::string expected_output = "5\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, BasicElseRepl) {
   std::string input = R"(
         if(false) {
-            4
+           print( 4)
         } else {
-            6
+           print( 6)
         }
     )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
@@ -152,131 +170,131 @@ TEST_F(ReplTest, NestedIfElseOrIfRepl) {
   std::string input = R"(
         if(true) {
             if(2 > 3) {
-                5
+               print( 5)
             } or if(4 > 3) {
-                7
+               print( 7)
             } else {
-                8
+               print( 8)
             }
         } else {
-            9
+           print( 9)
         }
     )";
 
-  std::string expected_output = "7";
+  std::string expected_output = "7\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, MultipleOrIfRepl) {
   std::string input = R"(
         if(false) {
-            4
+           print( 4)
         } or if(false) {
-            5
+           print( 5)
         } or if(true) {
-            6
+           print( 6)
         } else {
-            7
+           print( 7)
         }
     )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, NestedOrIfElseRepl) {
   std::string input = R"(
         if(false) {
-            4
+           print( 4)
         } or if(true) {
             if(2 > 3) {
-                5
+               print( 5)
             } else {
-                6
+               print( 6)
             }
         } else {
-            7
+           print( 7)
         }
     )";
 
-  std::string expected_output = "6";
+  std::string expected_output = "6\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 TEST_F(ReplTest, ComplexNestedIfOrIfElseRepl) {
   std::string input = R"(
         if(true) {
             if(false) {
-                10
+                print(10)
             } or if(true) {
                 if(5 > 3) {
-                    15
+                    print(15)
                 } else {
-                    20
+                    print(20)
                 }
             } else {
-                25
+                print(25)
             }
         } else {
-            30
+            print(30)
         }
     )";
 
-  std::string expected_output = "15";
+  std::string expected_output = "15\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, ComplexOrIfElseRepl) {
   std::string input = R"(
         if(false) {
-            10
+            print(10)
         } or if(false) {
-            20
+            print(20)
         } or if(true) {
             if(7 > 5) {
-                30
+                print(30)
             } else {
-                40
+                print(40)
             }
         } else {
-            50
+            print(50)
         }
     )";
 
-  std::string expected_output = "30";
+  std::string expected_output = "30\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }
 
 TEST_F(ReplTest, ComplexNestedOrIfElseRepl) {
   std::string input = R"(
         if(false) {
-            10
+            print(10)
         } or if(true) {
             if(false) {
-                20
+                print(20)
             } else {
                 if(8 > 5) {
-                    35
+                    print(35)
                 } else {
-                    45
+                    print(45)
                 }
             }
         } else {
-            50
+            print(50)
         }
     )";
 
-  std::string expected_output = "35";
+  std::string expected_output = "35\n";
 
-  std::string output = runReplWithInput(input);
+  std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
 }

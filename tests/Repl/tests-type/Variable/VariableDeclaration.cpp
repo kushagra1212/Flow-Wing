@@ -6,7 +6,7 @@
 
 TEST_F(ReplTest, BasicVariableDeclaration) {
   std::string input = R"(var a = 2)";
-  std::string expected_output = "2";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
 
@@ -39,7 +39,7 @@ TEST_F(ReplTest, BasicVariableReDeclarationInDifferentScope) {
         }
    )";
 
-  std::string expected_output = "3";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -53,7 +53,7 @@ TEST_F(ReplTest, BasicVariableDeclarationWithDifferentIdentifier) {
         var b = 3 
    )";
 
-  std::string expected_output = "3";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -66,7 +66,7 @@ TEST_F(ReplTest, BasicVariableDeclarationWithDifferentInitializer) {
         var a = 2 + 3
    )";
 
-  std::string expected_output = "5";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -79,7 +79,7 @@ TEST_F(ReplTest, BasicConstantVariableDeclaration) {
         const a = 2 
    )";
 
-  std::string expected_output = "2";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -109,7 +109,7 @@ TEST_F(ReplTest, BasicConstantVariableReDeclarationInDifferentScope) {
         }
    )";
 
-  std::string expected_output = "3";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -123,7 +123,7 @@ TEST_F(ReplTest, BasicConstantVariableDeclarationWithDifferentIdentifier) {
         const b = 3
    )";
 
-  std::string expected_output = "3";
+  std::string expected_output = "";
 
   std::string output = runReplWithInput(input);
   EXPECT_EQ(output, expected_output);
@@ -179,6 +179,7 @@ TEST_F(
 
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
+
   EXPECT_TRUE(output.find("Can not assign") != std::string::npos &&
               output.find("const variable") != std::string::npos);
 }

@@ -15,6 +15,8 @@ protected:
   // Common methods
   std::string runReplWithInput(const std::string &input);
 
+  std::string runReplWithInputPrint(const std::string &input);
+
   std::unique_ptr<Repl> repl;
   std::stringstream captured_output;
   std::streambuf *cout_backup;
