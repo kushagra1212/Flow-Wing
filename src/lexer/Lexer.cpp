@@ -1,6 +1,6 @@
 #include "Lexer.h"
 
-Lexer::Lexer(std::vector<std::string> text) {
+Lexer::Lexer(const std::vector<std::string> &text) {
   this->text = text;
   this->lineNumber = 0;
   this->position = 0;
