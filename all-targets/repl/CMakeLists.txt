@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE SOURCES ../../src/**.cpp)
 
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/compiler/Compiler.cpp")
+list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
+
 add_executable(Elang ${SOURCES})
 target_include_directories(Elang PRIVATE src)
 find_package(LLVM REQUIRED CONFIG)

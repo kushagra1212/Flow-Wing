@@ -4,6 +4,8 @@ IRGenerator::IRGenerator() {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
+  TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
+
   this->updateModule();
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -17,8 +19,17 @@ IRGenerator::IRGenerator() {
 
 void IRGenerator::updateModule() {
   std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/IRFiles/functions.ll"};
-  TheModule = std::move(this->_getModule(irFilePaths));
+      "../../../src/evaluator/BuiltinIRs/built_in_module.ll",
+      "../../../src/evaluator/BuiltinIRs/functions.ll"};
+
+  for (const std::string &path : irFilePaths) {
+    llvm::SMDiagnostic err;
+    bool LinkResult = llvm::Linker::linkModules(
+        *TheModule, llvm::parseIRFile(path, err, *TheContext));
+    if (LinkResult) {
+      llvm::errs() << "Error linking " + path + ":" << err.getMessage() << "\n";
+    }
+  }
 }
 
 llvm::Value *
@@ -150,7 +161,6 @@ void IRGenerator::defineStandardFunctions() {
       *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
       falseStr, "false_string");
 
-  // Cretae NULL Value
   llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
   llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
       *TheModule, int8PtrType, false, llvm::GlobalValue::ExternalLinkage,
@@ -211,20 +221,6 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
                                              this->_NamedValuesAllocaStack));
 
   return rhsValue;
-}
-
-llvm::Function *IRGenerator::getFunction(llvm::Type *Result, std::string name,
-                                         bool isVarArg = false) {
-  llvm::FunctionType *functionType = llvm::FunctionType::get(Result, isVarArg);
-
-  llvm::Function *function = llvm::Function::Create(
-      functionType, llvm::Function::ExternalLinkage, name, *TheModule);
-
-  llvm::BasicBlock *entryBB =
-      llvm::BasicBlock::Create(*TheContext, "entry", function);
-  Builder->SetInsertPoint(entryBB);
-
-  return function;
 }
 
 llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
@@ -330,9 +326,16 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
 
   return result;
 }
+llvm::Constant *IRGenerator::getNull() {
+  llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+  return llvm::ConstantExpr::getBitCast(
+      IRUtils::getNullValue(TheModule.get(), TheContext.get(), Builder.get()),
+      int8PtrType);
+}
+
 llvm::Value *IRGenerator::generateEvaluateBlockStatement(
-    llvm::BasicBlock *currentBlock, BoundBlockStatement *blockStatement) {
-  llvm::Value *returnValue = nullptr;
+    llvm::BasicBlock *currentBlock, llvm::BasicBlock *returnBlock,
+    BoundBlockStatement *blockStatement) {
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
       std::map<std::string, llvm::AllocaInst *>());
@@ -341,30 +344,27 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
   llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
       *TheContext, "nestedBlock", currentBlock->getParent());
 
+  llvm::BasicBlock *exitBlock = llvm::BasicBlock::Create(
+      *TheContext, "exitBlock", nestedBlock->getParent());
   Builder->CreateBr(nestedBlock);
   Builder->SetInsertPoint(nestedBlock);
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-
     llvm::Value *res = this->generateEvaluateStatement(
-        nestedBlock, blockStatement->getStatements()[i].get());
-
-    returnValue = res;
+        nestedBlock, exitBlock, blockStatement->getStatements()[i].get());
   }
-
+  Builder->CreateBr(exitBlock);
   this->_NamedValuesStack.pop();
   this->_NamedValuesAllocaStack.pop();
-  if (returnValue == nullptr) {
-    returnValue =
-        IRUtils::getNullValue(TheModule.get(), TheContext.get(), Builder.get());
-  }
 
-  return returnValue;
+  Builder->SetInsertPoint(exitBlock);
+
+  return getNull();
 }
 
 void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
-  llvm::Value *returnValue = nullptr;
+  llvm::Value *returnValue = getNull();
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), false);
 
@@ -375,16 +375,28 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
+  llvm::BasicBlock *returnBlock =
+      llvm::BasicBlock::Create(*TheContext, "returnBlock", F);
   Builder->SetInsertPoint(entryBlock);
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     llvm::Value *res = this->generateEvaluateStatement(
-        entryBlock, blockStatement->getStatements()[i].get());
-    returnValue = res;
+        entryBlock, returnBlock, blockStatement->getStatements()[i].get());
+
+    if (i == blockStatement->getStatements().size() - 1 &&
+        blockStatement->getStatements()[i].get()->getKind() ==
+            BinderKindUtils::BoundNodeKind::ExpressionStatement) {
+      returnValue = res;
+    }
   }
+
+  Builder->CreateBr(returnBlock);
+
+  Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(IRUtils::convertToString(returnValue, Builder.get()));
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
+                                              llvm::BasicBlock *returnBlock,
                                               BoundStatement *node) {
   BoundIfStatement *ifStatement = (BoundIfStatement *)node;
 
@@ -392,7 +404,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
       ifStatement->getConditionPtr().get());
 
   if (conditionValue == nullptr) {
-    llvm::errs() << "Error in generating IR for condition\n";
+    llvm::errs() << "Error in Compiling for if condition\n";
     return nullptr;
   }
 
@@ -433,7 +445,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
         ifStatement->getOrIfStatementsPtr()[i]->getConditionPtr().get());
 
     if (orIfConditionValue == nullptr) {
-      llvm::errs() << "Error in generating IR for condition\n";
+      llvm::errs() << "Error in Compiling for or if condition\n";
       return nullptr;
     }
 
@@ -450,22 +462,23 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   Builder->SetInsertPoint(thenBlock);
 
   llvm::Value *thenValue = this->generateEvaluateStatement(
-      thenBlock, ifStatement->getThenStatementPtr().get());
+      thenBlock, returnBlock, ifStatement->getThenStatementPtr().get());
 
   Builder->CreateBr(endBlock);
 
-  // Off If Then Block
+  // Or If Then Block
 
   std::vector<llvm::Value *> orIfThenValues;
 
   for (int i = 0; i < orIfThenBlocks.size(); i++) {
     Builder->SetInsertPoint(orIfThenBlocks[i]);
 
-    llvm::Value *orIfThenValue = this->generateEvaluateStatement(
-        orIfThenBlocks[i], ifStatement->getOrIfStatementsPtr()[i]
-                               .get()
-                               ->getThenStatementPtr()
-                               .get());
+    llvm::Value *orIfThenValue =
+        this->generateEvaluateStatement(orIfThenBlocks[i], returnBlock,
+                                        ifStatement->getOrIfStatementsPtr()[i]
+                                            .get()
+                                            ->getThenStatementPtr()
+                                            .get());
 
     orIfThenValues.push_back(orIfThenValue);
 
@@ -479,7 +492,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   llvm::Value *elseValue = nullptr;
   if (ifStatement->getElseStatementPtr().get()) {
     elseValue = this->generateEvaluateStatement(
-        elseBlock, ifStatement->getElseStatementPtr().get());
+        elseBlock, returnBlock, ifStatement->getElseStatementPtr().get());
   } else {
     llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
     elseValue = llvm::ConstantExpr::getBitCast(
@@ -491,25 +504,71 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   // END BLOCK
 
   Builder->SetInsertPoint(endBlock);
-  llvm::PHINode *phiNode = Builder->CreatePHI(
-      llvm::Type::getInt8PtrTy(*TheContext), 2 + orIfBlock.size());
+  // llvm::PHINode *phiNode = Builder->CreatePHI(
+  //     llvm::Type::getInt8PtrTy(*TheContext), 2 + orIfBlock.size());
 
-  phiNode->addIncoming(IRUtils::convertToString(thenValue, Builder.get()),
-                       thenBlock);
+  // phiNode->addIncoming(IRUtils::convertToString(thenValue, Builder.get()),
+  //                      thenBlock);
 
-  for (int i = 0; i < orIfThenBlocks.size(); i++) {
-    phiNode->addIncoming(
-        IRUtils::convertToString(orIfThenValues[i], Builder.get()),
-        orIfThenBlocks[i]);
+  // for (int i = 0; i < orIfThenBlocks.size(); i++) {
+  //   phiNode->addIncoming(
+  //       IRUtils::convertToString(orIfThenValues[i], Builder.get()),
+  //       orIfThenBlocks[i]);
+  // }
+
+  // phiNode->addIncoming(IRUtils::convertToString(elseValue, Builder.get()),
+  //                      elseBlock);
+  return getNull();
+}
+
+llvm::Value *IRGenerator::evaluateWhileStatement(llvm::BasicBlock *basicBlock,
+                                                 llvm::BasicBlock *returnBlock,
+                                                 BoundWhileStatement *node) {
+  BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
+
+  llvm::Function *function = basicBlock->getParent();
+
+  llvm::BasicBlock *loopCondition =
+      llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
+  llvm::BasicBlock *loopBody =
+      llvm::BasicBlock::Create(*TheContext, "loopBody", function);
+  llvm::BasicBlock *afterLoop =
+      llvm::BasicBlock::Create(*TheContext, "afterLoop", function);
+
+  Builder->CreateBr(loopCondition);
+
+  // Loop Condition
+
+  Builder->SetInsertPoint(loopCondition);
+  llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
+      whileStatement->getConditionPtr().get());
+
+  if (conditionValue == nullptr) {
+    llvm::errs() << "Error in Compiling for While condition\n";
+    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
+                                 Builder.get());
   }
 
-  phiNode->addIncoming(IRUtils::convertToString(elseValue, Builder.get()),
-                       elseBlock);
-  return phiNode;
+  Builder->CreateCondBr(conditionValue, loopBody, afterLoop);
+
+  // Loop Body
+
+  Builder->SetInsertPoint(loopBody);
+  llvm::Value *result = this->generateEvaluateStatement(
+      basicBlock, returnBlock, whileStatement->getBodyPtr().get());
+
+  Builder->CreateBr(loopCondition);
+
+  // After Loop
+
+  Builder->SetInsertPoint(afterLoop);
+
+  return result;
 }
 
 llvm::Value *
 IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
+                                       llvm::BasicBlock *returnBlock,
                                        BoundStatement *node) {
 
   switch (node->getKind()) {
@@ -520,7 +579,7 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
 
-    return this->generateEvaluateBlockStatement(basicBlock,
+    return this->generateEvaluateBlockStatement(basicBlock, returnBlock,
                                                 (BoundBlockStatement *)node);
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
@@ -530,14 +589,14 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
 
-    return this->evaluateIfStatement(basicBlock, (BoundIfStatement *)node);
-    break;
+    return this->evaluateIfStatement(basicBlock, returnBlock,
+                                     (BoundIfStatement *)node);
   }
 
   case BinderKindUtils::BoundNodeKind::WhileStatement: {
 
-    // this->evaluateWhileStatement((BoundWhileStatement *)node);
-    // break;
+    return this->evaluateWhileStatement(basicBlock, returnBlock,
+                                        (BoundWhileStatement *)node);
   }
 
   case BinderKindUtils::BoundNodeKind::ForStatement: {
@@ -557,12 +616,16 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
-    // break_count++;
-    // break;
+
+    Builder->CreateBr(returnBlock);
+
+    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
+                                 Builder.get());
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
-    // continue_count++;
-    // break;
+
+    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
+                                 Builder.get());
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
     // BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
@@ -588,9 +651,11 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
 }
 
 std::string IRGenerator::executeGeneratedCode() {
+  std::string output = "";
 
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction("evaluateBlockStatement");
+
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
@@ -618,8 +683,6 @@ std::string IRGenerator::executeGeneratedCode() {
   }
 
   llvm::Type *returnType = evaluateBlockStatement->getReturnType();
-
-  std::string output = "";
 
   if (returnType->isIntegerTy()) {
     if (returnType->getIntegerBitWidth() == 1) {

@@ -30,8 +30,10 @@ public:
   llvm::Value *
   generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
   llvm::Value *generateEvaluateBlockStatement(llvm::BasicBlock *basicBlock,
+                                              llvm::BasicBlock *returnBlock,
                                               BoundBlockStatement *node);
   llvm::Value *generateEvaluateStatement(llvm::BasicBlock *basicBlock,
+                                         llvm::BasicBlock *returnBlock,
                                          BoundStatement *node);
 
   llvm::Value *
@@ -42,13 +44,17 @@ public:
 
   std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
 
-  llvm::Function *getFunction(llvm::Type *Result, std::string name,
-                              bool isVarArg);
-
   void generateEvaluateGlobalStatement(BoundStatement *node);
 
   llvm::Value *evaluateIfStatement(llvm::BasicBlock *basicBlock,
+                                   llvm::BasicBlock *returnBlock,
                                    BoundStatement *node);
+
+  llvm::Value *evaluateWhileStatement(llvm::BasicBlock *basicBlock,
+                                      llvm::BasicBlock *returnBlock,
+                                      BoundWhileStatement *node);
+
+  llvm::Constant *getNull();
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;

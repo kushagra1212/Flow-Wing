@@ -67,6 +67,8 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 
+#include <llvm/Linker/Linker.h>
+#include <llvm/Support/FileSystem.h>
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 
