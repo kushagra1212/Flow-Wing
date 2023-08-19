@@ -482,6 +482,13 @@ createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
                                 llvm::Type::getInt8PtrTy(*TheContext));
 }
 
+llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
+                                   llvm::LLVMContext *TheContext,
+                                   llvm::IRBuilder<> *Builder) {
+
+  return TheModule->getGlobalVariable("null_ptr");
+}
+
 llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,

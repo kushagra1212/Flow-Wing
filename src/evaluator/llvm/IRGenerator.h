@@ -47,6 +47,9 @@ public:
 
   void generateEvaluateGlobalStatement(BoundStatement *node);
 
+  llvm::Value *evaluateIfStatement(llvm::BasicBlock *basicBlock,
+                                   BoundStatement *node);
+
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
   std::unique_ptr<llvm::Module> TheModule;

@@ -169,6 +169,10 @@ createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
 llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition,
                          llvm::IRBuilder<> *Builder);
 
+llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
+                                   llvm::LLVMContext *TheContext,
+                                   llvm::IRBuilder<> *Builder);
+
 } // namespace IRUtils
 
 #endif

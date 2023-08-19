@@ -60,8 +60,7 @@ void Repl::runWithStream(std::istream &inputStream,
       compilationUnit = std::move(parser->parseCompilationUnit());
 
       if (compilationUnit->getLogs().size()) {
-        runIfNotInTest(
-            [&]() { outputStream << YELLOW << "... " << RESET << "\n"; });
+        runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
 
         continue;
       }
@@ -93,6 +92,7 @@ void Repl::compileAndEvaluate(
   }
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement.get());
+    return;
   }
 
   if (globalScope->logs.size()) {
@@ -103,7 +103,10 @@ void Repl::compileAndEvaluate(
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
-    outputStream << _evaluator->executeGeneratedCode() << "\n";
+
+    const std::string &output_str = _evaluator->executeGeneratedCode();
+    if (output_str != "")
+      outputStream << output_str << "\n";
 
     previous_lines = text;
 

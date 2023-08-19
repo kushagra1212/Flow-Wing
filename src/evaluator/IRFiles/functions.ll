@@ -94,3 +94,4 @@ define i1 @equal_strings(i8* %str1, i8* %str2) {
     %equal = icmp eq i32 %result, 0
     ret i1 %equal
 }
+

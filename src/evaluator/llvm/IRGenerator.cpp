@@ -28,6 +28,13 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
                                            TheContext.get(), Builder.get());
+
+  // create and Store
+
+  llvm::AllocaInst *variable =
+      Builder->CreateAlloca(val->getType(), nullptr, "literal");
+
+  Builder->CreateStore(val, variable);
   if (val == nullptr) {
     return nullptr;
   }
@@ -142,6 +149,12 @@ void IRGenerator::defineStandardFunctions() {
   llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
       *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
       falseStr, "false_string");
+
+  // Cretae NULL Value
+  llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+  llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
+      *TheModule, int8PtrType, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantPointerNull::get(int8PtrType), "null_ptr");
 }
 
 llvm::Value *
@@ -296,39 +309,6 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
   }
   }
 }
-
-llvm::Value *IRGenerator::generateEvaluateBlockStatement(
-    llvm::BasicBlock *currentBlock, BoundBlockStatement *blockStatement) {
-  llvm::Value *returnValue = nullptr;
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
-
-  llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
-      *TheContext, "nestedBlock", currentBlock->getParent());
-
-  // create and load variable
-  Builder->SetInsertPoint(currentBlock);
-  Builder->CreateBr(nestedBlock);
-  Builder->SetInsertPoint(nestedBlock);
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-    llvm::Value *res = this->generateEvaluateStatement(
-        nestedBlock, blockStatement->getStatements()[i].get());
-
-    if (blockStatement->getStatements()[i].get()->getKind() !=
-        BinderKindUtils::BoundNodeKind::BlockStatement) {
-      llvm::AllocaInst *allocaInst =
-          Builder->CreateAlloca(res->getType(), nullptr, "toReturn");
-      Builder->CreateStore(res, allocaInst);
-    }
-    returnValue = res;
-  }
-  this->_NamedValuesStack.pop();
-  this->_NamedValuesAllocaStack.pop();
-
-  return returnValue;
-}
-
 llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
     BoundVariableDeclaration *node) {
 
@@ -349,6 +329,36 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   Builder->CreateStore(result, variable);
 
   return result;
+}
+llvm::Value *IRGenerator::generateEvaluateBlockStatement(
+    llvm::BasicBlock *currentBlock, BoundBlockStatement *blockStatement) {
+  llvm::Value *returnValue = nullptr;
+  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  this->_NamedValuesAllocaStack.push(
+      std::map<std::string, llvm::AllocaInst *>());
+
+  // create and load variable
+  llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
+      *TheContext, "nestedBlock", currentBlock->getParent());
+
+  Builder->CreateBr(nestedBlock);
+  Builder->SetInsertPoint(nestedBlock);
+  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+
+    llvm::Value *res = this->generateEvaluateStatement(
+        nestedBlock, blockStatement->getStatements()[i].get());
+
+    returnValue = res;
+  }
+
+  this->_NamedValuesStack.pop();
+  this->_NamedValuesAllocaStack.pop();
+  if (returnValue == nullptr) {
+    returnValue =
+        IRUtils::getNullValue(TheModule.get(), TheContext.get(), Builder.get());
+  }
+
+  return returnValue;
 }
 
 void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
@@ -374,6 +384,58 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->CreateRet(IRUtils::convertToString(returnValue, Builder.get()));
 }
 
+llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
+                                              BoundStatement *node) {
+  BoundIfStatement *ifStatement = (BoundIfStatement *)node;
+
+  llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
+      ifStatement->getConditionPtr().get());
+
+  if (conditionValue == nullptr) {
+    llvm::errs() << "Error in generating IR for condition\n";
+    return nullptr;
+  }
+
+  llvm::Function *function = basicBlock->getParent();
+
+  llvm::BasicBlock *thenBlock =
+      llvm::BasicBlock::Create(*TheContext, "then", function);
+
+  llvm::BasicBlock *elseBlock =
+      llvm::BasicBlock::Create(*TheContext, "else", function);
+  Builder->CreateCondBr(conditionValue, thenBlock, elseBlock);
+
+  llvm::BasicBlock *endBlock =
+      llvm::BasicBlock::Create(*TheContext, "end", function);
+
+  Builder->SetInsertPoint(thenBlock);
+
+  llvm::Value *thenValue = this->generateEvaluateStatement(
+      thenBlock, ifStatement->getThenStatementPtr().get());
+  Builder->CreateBr(endBlock);
+  Builder->SetInsertPoint(elseBlock);
+
+  llvm::Value *elseValue = nullptr;
+  if (ifStatement->getElseStatementPtr().get()) {
+    elseValue = this->generateEvaluateStatement(
+        elseBlock, ifStatement->getElseStatementPtr().get());
+  } else {
+    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    elseValue = llvm::ConstantExpr::getBitCast(
+        IRUtils::getNullValue(TheModule.get(), TheContext.get(), Builder.get()),
+        int8PtrType);
+  }
+  Builder->CreateBr(endBlock);
+  Builder->SetInsertPoint(endBlock);
+  llvm::PHINode *phiNode =
+      Builder->CreatePHI(llvm::Type::getInt8PtrTy(*TheContext), 2);
+  phiNode->addIncoming(IRUtils::convertToString(thenValue, Builder.get()),
+                       thenBlock);
+  phiNode->addIncoming(IRUtils::convertToString(elseValue, Builder.get()),
+                       elseBlock);
+  return phiNode;
+}
+
 llvm::Value *
 IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
                                        BoundStatement *node) {
@@ -396,8 +458,8 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
 
-    // this->evaluateIfStatement((BoundIfStatement *)node);
-    // break;
+    return this->evaluateIfStatement(basicBlock, (BoundIfStatement *)node);
+    break;
   }
 
   case BinderKindUtils::BoundNodeKind::WhileStatement: {
