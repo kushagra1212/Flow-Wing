@@ -6,6 +6,8 @@
 
 class ReplTest : public ::testing::Test {
 protected:
+  ReplTest();
+
   void SetUp() override;
 
   void TearDown() override;
@@ -14,6 +16,8 @@ protected:
   std::string runReplWithInput(const std::string &input);
 
   std::unique_ptr<Repl> repl;
+  std::stringstream captured_output;
+  std::streambuf *cout_backup;
 };
 
 #endif // REPL_TEST_H
