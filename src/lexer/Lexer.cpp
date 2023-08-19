@@ -129,6 +129,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
           "if");
     }
 
+    if (text == "or") {
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->lineNumber, SyntaxKindUtils::SyntaxKind::OrKeyword, start, text,
+          "or");
+    }
+
     if (text == "else") {
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::ElseKeyword, start,

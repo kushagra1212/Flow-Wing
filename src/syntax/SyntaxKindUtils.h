@@ -65,6 +65,7 @@ enum SyntaxKind {
   ContinueKeyword,
   BreakKeyword,
   ReturnKeyword,
+  OrKeyword,
 
   ElseClause,
 
@@ -88,6 +89,7 @@ enum SyntaxKind {
   BlockStatement,
   VariableDeclaration,
   IfStatement,
+  OrIfStatement,
   WhileStatement,
   ForStatement,
   ReturnStatement,

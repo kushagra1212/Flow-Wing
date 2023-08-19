@@ -169,6 +169,12 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ReturnStatement:
     return "ReturnStatement";
 
+  case SyntaxKind::OrKeyword:
+    return "OrKeyword";
+
+  case SyntaxKind::OrIfStatement:
+    return "OrIfStatement";
+
   default:
     return "NotDefined";
   }

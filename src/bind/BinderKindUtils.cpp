@@ -36,9 +36,10 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "BreakStatement";
   case ContinueStatement:
     return "ContinueStatement";
-
   case ReturnStatement:
     return "ReturnStatement";
+  case OrIfStatement:
+    return "OrIfStatement";
   default:
     return "NotDefined";
   }

@@ -50,7 +50,36 @@ void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
   }
 }
 
-void Utils::prettyPrint(BoundNode *statement, std::string indent, bool isLast) {
+void Utils::prettyPrint(BoundNode *node, std::string indent, bool isLast) {
+  if (!node) {
+    // std::cout << "null\n";
+    return;
+  }
+  std::cout << indent;
+  if (isLast) {
+    std::cout << RED_TEXT << "\\-" << RESET;
+    indent += "  ";
+  } else {
+    std::cout << GREEN_TEXT << "|-" << RESET;
+    indent += "| ";
+  }
+
+  std::cout << BinderKindUtils::to_string(node->getKind());
+  if (node->getKind() == BinderKindUtils::LiteralExpression) {
+
+    std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+
+    std::cout << " " << convertAnyToString(value);
+  }
+  std::cout << "\n";
+  std::vector<BoundNode *> children = node->getChildren();
+  for (int i = 0; i < children.size(); i++) {
+    Utils::prettyPrint(children[i], indent, i == children.size() - 1);
+  }
+}
+
+void Utils::prettyPrint(BoundStatement *statement, std::string indent,
+                        bool isLast) {
 
   if (!statement) {
     std::cout << "null\n";

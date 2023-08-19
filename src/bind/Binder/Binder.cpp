@@ -59,26 +59,51 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
       std::move(boundInitializerExpression));
 }
 
+std::unique_ptr<BoundOrIfStatement>
+Binder::bindOrIfStatement(OrIfStatementSyntax *orIfStatement) {
+
+  std::unique_ptr<BoundExpression> boundCondition =
+      std::move(bindExpression(orIfStatement->getConditionPtr().get()));
+
+  std::unique_ptr<BoundStatement> boundThenStatement =
+      std::move(bindStatement(orIfStatement->getStatementPtr().get()));
+
+  return std::make_unique<BoundOrIfStatement>(
+      orIfStatement->getLineNumberAndColumn(), std::move(boundCondition),
+      std::move(boundThenStatement));
+}
+
 std::unique_ptr<BoundStatement>
 Binder::bindIfStatement(IfStatementSyntax *ifStatement) {
+
+  std::unique_ptr<BoundIfStatement> boundIfStatement =
+      std::make_unique<BoundIfStatement>(ifStatement->getLineNumberAndColumn());
+
   std::unique_ptr<BoundExpression> boundCondition =
       std::move(bindExpression(ifStatement->getConditionPtr().get()));
 
   std::unique_ptr<BoundStatement> boundThenStatement =
       std::move(bindStatement(ifStatement->getStatementPtr().get()));
 
+  boundIfStatement->addCondition(std::move(boundCondition));
+  boundIfStatement->addThenStatement(std::move(boundThenStatement));
+
+  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+    std::unique_ptr<BoundOrIfStatement> boundOrIfStatement = std::move(
+        bindOrIfStatement(ifStatement->getOrIfStatementsPtr()[i].get()));
+    boundIfStatement->addOrIfStatement(std::move(boundOrIfStatement));
+  }
+
   std::unique_ptr<BoundStatement> boundElseStatement = nullptr;
 
   if (ifStatement->getElseClausePtr() != nullptr) {
     boundElseStatement = std::move(bindStatement(
         ifStatement->getElseClausePtr()->getStatementPtr().get()));
+    boundIfStatement->addElseStatement(std::move(boundElseStatement));
   }
 
-  return std::make_unique<BoundIfStatement>(
-      ifStatement->getLineNumberAndColumn(), std::move(boundCondition),
-      std::move(boundThenStatement), std::move(boundElseStatement));
+  return std::move(boundIfStatement);
 }
-
 std::unique_ptr<BoundStatement>
 Binder::bindWhileStatement(WhileStatementSyntax *whileStatement) {
 

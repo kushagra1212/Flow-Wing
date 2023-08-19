@@ -18,6 +18,7 @@
 #include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "../syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
 #include "../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
@@ -47,6 +48,7 @@ private:
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
   std::unique_ptr<StatementSyntax> parseVariableDeclaration();
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
+  std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
 
   std::unique_ptr<ForStatementSyntax> parseForStatement();

@@ -2,7 +2,9 @@
 #define UTILS_H
 #include "../Common.h"
 #include "../bind/BinderKindUtils.h"
+#include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundNode.h"
+#include "../bind/BoundStatement/BoundStatement.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/SyntaxNode.h"
@@ -15,6 +17,8 @@ void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 void prettyPrint(CompilationUnitSyntax *compilationUnit,
                  std::string indent = "", bool isLast = true);
 
+void prettyPrint(BoundStatement *statement, std::string indent = "",
+                 bool isLast = true);
 void prettyPrint(BoundNode *statement, std::string indent = "",
                  bool isLast = true);
 void printErrors(const std::vector<std::string> &errors,

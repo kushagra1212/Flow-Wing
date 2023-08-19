@@ -401,18 +401,79 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   llvm::BasicBlock *thenBlock =
       llvm::BasicBlock::Create(*TheContext, "then", function);
 
+  std::vector<llvm::BasicBlock *> orIfBlock;
+
+  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+    orIfBlock.push_back(
+        llvm::BasicBlock::Create(*TheContext, "orIf" + i, function));
+  }
+
+  std::vector<llvm::BasicBlock *> orIfThenBlocks;
+
+  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+    orIfThenBlocks.push_back(
+        llvm::BasicBlock::Create(*TheContext, "orIfThen" + i, function));
+  }
+
   llvm::BasicBlock *elseBlock =
       llvm::BasicBlock::Create(*TheContext, "else", function);
-  Builder->CreateCondBr(conditionValue, thenBlock, elseBlock);
 
   llvm::BasicBlock *endBlock =
       llvm::BasicBlock::Create(*TheContext, "end", function);
+
+  if (ifStatement->getOrIfStatementsPtr().size()) {
+    Builder->CreateCondBr(conditionValue, thenBlock, orIfBlock[0]);
+  } else {
+    Builder->CreateCondBr(conditionValue, thenBlock, elseBlock);
+  }
+
+  for (int i = 0; i < orIfBlock.size(); i++) {
+    Builder->SetInsertPoint(orIfBlock[i]);
+    llvm::Value *orIfConditionValue = this->generateEvaluateExpressionStatement(
+        ifStatement->getOrIfStatementsPtr()[i]->getConditionPtr().get());
+
+    if (orIfConditionValue == nullptr) {
+      llvm::errs() << "Error in generating IR for condition\n";
+      return nullptr;
+    }
+
+    if (i == orIfBlock.size() - 1) {
+      Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i], elseBlock);
+    } else {
+      Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i],
+                            orIfBlock[i + 1]);
+    }
+  }
+
+  // Then Block
 
   Builder->SetInsertPoint(thenBlock);
 
   llvm::Value *thenValue = this->generateEvaluateStatement(
       thenBlock, ifStatement->getThenStatementPtr().get());
+
   Builder->CreateBr(endBlock);
+
+  // Off If Then Block
+
+  std::vector<llvm::Value *> orIfThenValues;
+
+  for (int i = 0; i < orIfThenBlocks.size(); i++) {
+    Builder->SetInsertPoint(orIfThenBlocks[i]);
+
+    llvm::Value *orIfThenValue = this->generateEvaluateStatement(
+        orIfThenBlocks[i], ifStatement->getOrIfStatementsPtr()[i]
+                               .get()
+                               ->getThenStatementPtr()
+                               .get());
+
+    orIfThenValues.push_back(orIfThenValue);
+
+    Builder->CreateBr(endBlock);
+  }
+
+  // ELSE BLOCK
+
   Builder->SetInsertPoint(elseBlock);
 
   llvm::Value *elseValue = nullptr;
@@ -426,11 +487,22 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
         int8PtrType);
   }
   Builder->CreateBr(endBlock);
+
+  // END BLOCK
+
   Builder->SetInsertPoint(endBlock);
-  llvm::PHINode *phiNode =
-      Builder->CreatePHI(llvm::Type::getInt8PtrTy(*TheContext), 2);
+  llvm::PHINode *phiNode = Builder->CreatePHI(
+      llvm::Type::getInt8PtrTy(*TheContext), 2 + orIfBlock.size());
+
   phiNode->addIncoming(IRUtils::convertToString(thenValue, Builder.get()),
                        thenBlock);
+
+  for (int i = 0; i < orIfThenBlocks.size(); i++) {
+    phiNode->addIncoming(
+        IRUtils::convertToString(orIfThenValues[i], Builder.get()),
+        orIfThenBlocks[i]);
+  }
+
   phiNode->addIncoming(IRUtils::convertToString(elseValue, Builder.get()),
                        elseBlock);
   return phiNode;

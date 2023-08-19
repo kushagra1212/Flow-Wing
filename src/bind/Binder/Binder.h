@@ -37,6 +37,7 @@
 #include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../BoundIfStatement/BoundIfStatement.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
@@ -83,6 +84,9 @@ public:
   bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration);
   std::unique_ptr<BoundStatement>
   bindIfStatement(IfStatementSyntax *ifStatement);
+
+  std::unique_ptr<BoundOrIfStatement>
+  bindOrIfStatement(OrIfStatementSyntax *orIfStatement);
 
   std::unique_ptr<BoundStatement>
   bindWhileStatement(WhileStatementSyntax *whileStatement);

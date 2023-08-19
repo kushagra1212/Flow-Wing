@@ -282,27 +282,58 @@ std::unique_ptr<ForStatementSyntax> Parser::parseForStatement() {
       std::move(statementSyntax), std::move(upperBound), std::move(statement));
 }
 
+std::unique_ptr<ElseClauseSyntax> Parser::parseElseStatement() {
+  std::unique_ptr<SyntaxToken<std::any>> elseKeyword =
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::ElseKeyword));
+  std::unique_ptr<BlockStatementSyntax> elseStatement =
+      std::move(this->parseBlockStatement());
+  return std::make_unique<ElseClauseSyntax>(std::move(elseKeyword),
+                                            std::move(elseStatement));
+}
+
 std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
+
+  std::unique_ptr<IfStatementSyntax> ifStatement =
+      std::make_unique<IfStatementSyntax>();
+
   std::unique_ptr<SyntaxToken<std::any>> keyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IfKeyword));
+
   std::unique_ptr<ExpressionSyntax> condition =
       std::move(this->parseExpression());
 
   std::unique_ptr<BlockStatementSyntax> statement =
       std::move(this->parseBlockStatement());
+
+  ifStatement->addIfKeyword(std::move(keyword));
+  ifStatement->addCondition(std::move(condition));
+  ifStatement->addStatement(std::move(statement));
+
+  while (this->getCurrent()->getKind() ==
+         SyntaxKindUtils::SyntaxKind::OrKeyword) {
+    std::unique_ptr<SyntaxToken<std::any>> orKeyword =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::OrKeyword));
+    std::unique_ptr<SyntaxToken<std::any>> ifKeyword =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IfKeyword));
+    std::unique_ptr<ExpressionSyntax> condition =
+        std::move(this->parseExpression());
+    std::unique_ptr<BlockStatementSyntax> statement =
+        std::move(this->parseBlockStatement());
+
+    ifStatement->addOrIfStatement(std::make_unique<OrIfStatementSyntax>(
+        std::move(orKeyword), std::move(ifKeyword), std::move(condition),
+        std::move(statement)));
+  }
   std::unique_ptr<ElseClauseSyntax> elseClause = nullptr;
+
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ElseKeyword) {
-    std::unique_ptr<SyntaxToken<std::any>> elseKeyword =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::ElseKeyword));
-    std::unique_ptr<BlockStatementSyntax> elseStatement =
-        std::move(this->parseBlockStatement());
-    elseClause = std::make_unique<ElseClauseSyntax>(std::move(elseKeyword),
-                                                    std::move(elseStatement));
+    elseClause = std::move(this->parseElseStatement());
   }
-  return std::make_unique<IfStatementSyntax>(
-      std::move(keyword), std::move(condition), std::move(statement),
-      std::move(elseClause));
+
+  ifStatement->addElseClause(std::move(elseClause));
+
+  return std::move(ifStatement);
 }
 
 std::unique_ptr<WhileStatementSyntax> Parser::parseWhileStatement() {

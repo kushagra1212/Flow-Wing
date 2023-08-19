@@ -17,6 +17,7 @@ enum BoundNodeKind {
   ExpressionStatement,
   BlockStatement,
   IfStatement,
+  OrIfStatement,
   WhileStatement,
   ForStatement,
   BreakStatement,

@@ -73,6 +73,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
+        return;
       }
       compileAndEvaluate(outputStream, std::move(compilationUnit));
     }
