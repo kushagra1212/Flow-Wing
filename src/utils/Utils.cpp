@@ -118,3 +118,14 @@ void Utils::printErrors(const std::vector<std::string> &errors,
       outputStream << RED << error << RESET << "\n";
   }
 }
+
+const std::string Utils::concatErrors(const std::vector<std::string> &errors,
+                                      std::ostream &outputStream,
+                                      bool isWarning) {
+  std::string res = "";
+
+  for (const std::string &error : errors) {
+    res += error + "\n";
+  }
+  return res;
+}

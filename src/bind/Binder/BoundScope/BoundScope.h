@@ -37,4 +37,6 @@ public:
   bool tryDeclareFunction(std::string name, BoundFunctionDeclaration *function);
 
   bool tryLookupFunction(std::string name);
+
+  Utils::Variable tryGetVariable(std::string name);
 };

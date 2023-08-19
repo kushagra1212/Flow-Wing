@@ -256,7 +256,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     return std::move(boundIdentifierExpression);
   }
 
-  if (root->variables[variable_str].isConst) {
+  if (root->tryGetVariable(variable_str).isConst) {
     this->logs.push_back(
         Utils::getLineNumberAndPosition(
             assignmentExpression->getOperatorTokenPtr().get()) +

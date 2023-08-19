@@ -74,6 +74,13 @@ bool BoundScope::tryLookupVariable(std::string name) {
   return this->parent->tryLookupVariable(name);
 }
 
+Utils::Variable BoundScope::tryGetVariable(std::string name) {
+  if (this->variables.find(name) != this->variables.end()) {
+    return this->variables[name];
+  }
+  return this->parent->tryGetVariable(name);
+}
+
 bool BoundScope::tryAssignVariable(std::string name,
                                    const struct Utils::Variable &value) {
   if (this->variables.find(name) != this->variables.end()) {

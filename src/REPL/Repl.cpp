@@ -123,24 +123,21 @@ std::string Repl::runForTest(std::istream &inputStream,
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
 
   if (parser->logs.size()) {
-    Utils::printErrors(parser->logs, outputStream);
-    return "";
+    return Utils::concatErrors(parser->logs, outputStream);
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::move(parser->parseCompilationUnit());
 
   if (compilationUnit->getLogs().size()) {
-    Utils::printErrors(compilationUnit->getLogs(), outputStream);
-    return "";
+    return Utils::concatErrors(compilationUnit->getLogs(), outputStream);
   }
 
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get()));
 
   if (globalScope->logs.size()) {
-    Utils::printErrors(globalScope->logs, outputStream);
-    return "";
+    return Utils::concatErrors(globalScope->logs, outputStream);
   }
 
   try {
