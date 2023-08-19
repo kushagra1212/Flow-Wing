@@ -10,8 +10,10 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/main.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../../builtins/**.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
+list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/main.cpp")
 
+
+list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
 # Link runTests with what we want to test and the GTest and pthread library
 add_executable(runTests "${CMAKE_CURRENT_SOURCE_DIR}/../../tests/test_main.cpp" ${SOURCES})
 target_link_libraries(runTests ${GTEST_LIBRARIES} pthread LLVM)

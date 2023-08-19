@@ -266,6 +266,46 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   }
   return result;
 }
+
+llvm::Value *
+IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
+
+  Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+
+  const std::string &functionName = function.name;
+  std::size_t arguments_size = callExpression->getArguments().size();
+  if (functionName == Utils::BuiltInFunctions::print.name) {
+    if (arguments_size == 1) {
+
+      llvm::Value *arg0 = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+      llvm::ArrayRef<llvm::Value *> Args = {
+          IRUtils::convertToString(arg0, Builder.get())};
+      Builder->CreateCall(TheModule->getFunction("print"), Args);
+      return this->getNull();
+    }
+
+    llvm::errs()
+        << (callExpression->getLineNumberAndColumn() +
+            "Error: Unexpected function cal: arguments does  not match");
+    return this->getNull();
+  }
+  llvm::errs() << "Error: Unexpected function call ";
+  return this->getNull();
+}
+
+llvm::Value *IRGenerator::generateEvaluateCallExpression(
+    BoundCallExpression *callExpression) {
+
+  Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+  if (Utils::BuiltInFunctions::getFunctionSymbol(function.name).name ==
+      function.name) {
+    return this->handleBuiltInfuntions(callExpression);
+  }
+
+  return this->getNull();
+}
+
 llvm::Value *
 IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
 
@@ -296,7 +336,7 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
         parenthesizedExpression->getExpressionPtr().get());
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
-    return nullptr;
+    return this->generateEvaluateCallExpression((BoundCallExpression *)node);
   }
 
   default: {

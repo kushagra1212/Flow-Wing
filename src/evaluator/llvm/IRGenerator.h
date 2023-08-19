@@ -53,8 +53,9 @@ public:
   llvm::Value *evaluateWhileStatement(llvm::BasicBlock *basicBlock,
                                       llvm::BasicBlock *returnBlock,
                                       BoundWhileStatement *node);
-
+  llvm::Value *generateEvaluateCallExpression(BoundCallExpression *node);
   llvm::Constant *getNull();
+  llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
