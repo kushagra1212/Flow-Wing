@@ -16,7 +16,7 @@ public:
 
   // Run the REPL with custom input/output streams for testing
   void runWithStream(std::istream &inputStream, std::ostream &outputStream);
-  std::string runForTest(std::istream &inputStream, std::ostream &outputStream);
+  void runForTest(std::istream &inputStream, std::ostream &outputStream);
   bool isSyntaxTreeVisible() const;
   bool isBoundTreeVisible() const;
   // Helper functions

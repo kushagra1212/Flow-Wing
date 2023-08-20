@@ -21,6 +21,8 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/raw_ostream.h"
 #include <llvm/Support/Error.h>
 #include <llvm/Support/SourceMgr.h>
 
@@ -125,7 +127,7 @@ llvm::Value *getResultFromBinaryOperationOnString(
     BoundBinaryExpression *binaryExpression);
 
 // SET VALUES
-
+llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
 void setNamedValue(
     const std::string &name, llvm::Value *value,
     std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);

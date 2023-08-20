@@ -177,6 +177,11 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   llvm::Value *variableValue =
       IRUtils::getNamedValue(variableName, this->_NamedValuesStack);
 
+  llvm::AllocaInst *v =
+      IRUtils::getNamedValueAlloca(variableName, this->_NamedValuesAllocaStack);
+
+  llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
+
   if (!variableValue) {
     // Variable not found, handle error
 
@@ -184,7 +189,7 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
     return nullptr;
   }
 
-  return variableValue;
+  return value;
 }
 llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     BoundExpression *node) {
@@ -229,6 +234,7 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
 
   llvm::Value *lhsValue =
       generateEvaluateExpressionStatement(binaryExpression->getLeftPtr().get());
+
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
       binaryExpression->getRightPtr().get());
 
@@ -406,7 +412,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
   llvm::Value *returnValue = getNull();
   llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), false);
+      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), false);
 
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
@@ -418,7 +424,9 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   llvm::BasicBlock *returnBlock =
       llvm::BasicBlock::Create(*TheContext, "returnBlock", F);
   Builder->SetInsertPoint(entryBlock);
+
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+
     llvm::Value *res = this->generateEvaluateStatement(
         entryBlock, returnBlock, blockStatement->getStatements()[i].get());
 
@@ -432,7 +440,31 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->CreateBr(returnBlock);
 
   Builder->SetInsertPoint(returnBlock);
-  Builder->CreateRet(IRUtils::convertToString(returnValue, Builder.get()));
+
+  if (returnValue) {
+    if (llvm::isa<llvm::Instruction>(returnValue)) {
+      // The value is an instruction or a derived class of Instruction
+      llvm::Instruction *instruction =
+          llvm::cast<llvm::Instruction>(returnValue);
+      if (instruction->getType()->isIntegerTy(1)) {
+        llvm::Value *resultStr = Builder->CreateSelect(
+            returnValue, TheModule->getGlobalVariable("true_string"),
+            TheModule->getGlobalVariable("false_string"));
+        Builder->CreateCall(TheModule->getFunction("print"), {resultStr});
+      } else {
+        Builder->CreateCall(
+            TheModule->getFunction("print"),
+            {IRUtils::convertToString(returnValue, Builder.get())});
+      }
+
+    } else {
+
+      Builder->CreateCall(
+          TheModule->getFunction("print"),
+          {IRUtils::convertToString(returnValue, Builder.get())});
+    }
+  }
+  Builder->CreateRetVoid();
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
@@ -544,10 +576,13 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   // END BLOCK
 
   Builder->SetInsertPoint(endBlock);
+
+  Builder->CreateBr(returnBlock);
   // llvm::PHINode *phiNode = Builder->CreatePHI(
   //     llvm::Type::getInt8PtrTy(*TheContext), 2 + orIfBlock.size());
 
-  // phiNode->addIncoming(IRUtils::convertToString(thenValue, Builder.get()),
+  // phiNode->addIncoming(IRUtils::convertToString(thenValue,
+  // Builder.get()),
   //                      thenBlock);
 
   // for (int i = 0; i < orIfThenBlocks.size(); i++) {
@@ -556,7 +591,8 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   //       orIfThenBlocks[i]);
   // }
 
-  // phiNode->addIncoming(IRUtils::convertToString(elseValue, Builder.get()),
+  // phiNode->addIncoming(IRUtils::convertToString(elseValue,
+  // Builder.get()),
   //                      elseBlock);
   return getNull();
 }
@@ -582,6 +618,8 @@ llvm::Value *IRGenerator::evaluateWhileStatement(llvm::BasicBlock *basicBlock,
   Builder->SetInsertPoint(loopCondition);
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
+
+  // Load the condition
 
   if (conditionValue == nullptr) {
     llvm::errs() << "Error in Compiling for While condition\n";
@@ -690,7 +728,7 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   return nullptr;
 }
 
-std::string IRGenerator::executeGeneratedCode() {
+void IRGenerator::executeGeneratedCode() {
   std::string output = "";
 
   llvm::Function *evaluateBlockStatement =
@@ -704,13 +742,11 @@ std::string IRGenerator::executeGeneratedCode() {
   if (!executionEngine) {
     llvm::errs() << "Failed to create Execution Engine: " << errorMessage
                  << "\n";
-    return "Failed to create Execution Engine: " + errorMessage + "\n";
   }
 
   // Step 2: Look up the function pointer
   if (!evaluateBlockStatement) {
     llvm::errs() << "Function not found in module.\n";
-    return "Function not found in module.\n";
   }
   llvm::GenericValue resultValue = llvm::GenericValue();
 
@@ -719,42 +755,40 @@ std::string IRGenerator::executeGeneratedCode() {
   try {
     resultValue = executionEngine->runFunction(evaluateBlockStatement, noArgs);
   } catch (const std::exception &e) {
-    std::cerr << e.what() << '\n';
+    std::cerr << e.what();
   }
 
   llvm::Type *returnType = evaluateBlockStatement->getReturnType();
 
-  if (returnType->isIntegerTy()) {
-    if (returnType->getIntegerBitWidth() == 1) {
-      //  llvm::outs() << "Boolean Value: "
-      //   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
+  // if (returnType->isIntegerTy()) {
+  //   if (returnType->getIntegerBitWidth() == 1) {
+  //     //  llvm::outs() << "Boolean Value: "
+  //     //   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
 
-      output += (resultValue.IntVal != 0 ? "true" : "false");
-    } else {
-      llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
-    }
+  //     output += (resultValue.IntVal != 0 ? "true" : "false");
+  //   } else {
+  //    // llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+  //   }
 
-  } else if (returnType->isFloatingPointTy()) {
-    if (returnType->isFloatTy()) {
-      llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
+  // } else if (returnType->isFloatingPointTy()) {
+  //   if (returnType->isFloatTy()) {
+  //     //llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
 
-    } else {
-      llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
-    }
-  } else if (returnType->isPointerTy()) {
-    if (resultValue.PointerVal) {
-      const char *stringValue =
-          static_cast<const char *>(resultValue.PointerVal);
-      output += stringValue;
-    } else {
-      // llvm::outs() << "Null Pointer Value\n";
-      output += "Null Pointer Value\n";
-    }
-  } else {
-    //   llvm::outs() << "Unknown Value Type\n";
-    output += "Unknown Value Type\n";
-  }
+  //   } else {
+  //     llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
+  //   }
+  // } else if (returnType->isPointerTy()) {
+  //   if (resultValue.PointerVal) {
+  //     const char *stringValue =
+  //         static_cast<const char *>(resultValue.PointerVal);
+  //     output += stringValue;
+  //   } else {
+  //     // llvm::outs() << "Null Pointer Value\n";
+  //     output += "Null Pointer Value\n";
+  //   }
+  // } else {
+  //   //   llvm::outs() << "Unknown Value Type\n";
+  //   output += "Unknown Value Type\n";
+  // }
   delete executionEngine;
-
-  return output;
 }

@@ -496,9 +496,11 @@ llvm::Value *getResultFromBinaryOperationOnString(
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
-  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
+
     result = concatenateStrings(lhsValue, rhsValue, TheModule, Builder);
     break;
+  }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
     result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
@@ -538,6 +540,12 @@ llvm::Value *getResultFromBinaryOperationOnString(
     return nullptr;
   }
   return result;
+}
+llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value) {
+  if (llvm::ConstantInt *constInt = llvm::dyn_cast<llvm::ConstantInt>(value)) {
+    return constInt;
+  }
+  return nullptr;
 }
 
 llvm::Value *getResultFromBinaryOperationOnDouble(
@@ -622,10 +630,11 @@ llvm::Value *getResultFromBinaryOperationOnInt(
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
-  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
     result = Builder->CreateAdd(lhsValue, rhsValue);
 
     break;
+  }
   case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
     result = Builder->CreateSub(lhsValue, rhsValue);
     break;
@@ -674,16 +683,22 @@ llvm::Value *getResultFromBinaryOperationOnInt(
                                     Builder);
     break;
 
-  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+  case BinderKindUtils::BoundBinaryOperatorKind::Less: {
+
     result = IRUtils::convertToBool(Builder->CreateICmpSLT(lhsValue, rhsValue),
                                     Builder);
-    break;
 
-  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return result;
+    break;
+  }
+
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals: {
 
     result = IRUtils::convertToBool(Builder->CreateICmpSLE(lhsValue, rhsValue),
                                     Builder);
+
     break;
+  }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
     result = IRUtils::convertToBool(Builder->CreateICmpSGT(lhsValue, rhsValue),

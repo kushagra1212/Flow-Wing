@@ -73,7 +73,6 @@ void Repl::runWithStream(std::istream &inputStream,
 
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
-        return;
       }
       compileAndEvaluate(outputStream, std::move(compilationUnit));
     }
@@ -93,7 +92,6 @@ void Repl::compileAndEvaluate(
   }
   if (showBoundTree) {
     Utils::prettyPrint(globalScope->statement.get());
-    return;
   }
 
   if (globalScope->logs.size()) {
@@ -105,9 +103,7 @@ void Repl::compileAndEvaluate(
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
 
-    const std::string &output_str = _evaluator->executeGeneratedCode();
-    if (output_str != "")
-      outputStream << output_str << "\n";
+    _evaluator->executeGeneratedCode();
 
     previous_lines = text;
 
@@ -118,8 +114,7 @@ void Repl::compileAndEvaluate(
 
 void Repl::toggleExit() { exit = !exit; }
 
-std::string Repl::runForTest(std::istream &inputStream,
-                             std::ostream &outputStream) {
+void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(text);
 
@@ -145,13 +140,12 @@ std::string Repl::runForTest(std::istream &inputStream,
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    runIfNotInTest([&]() { _evaluator->printIR(); });
-    std::cout << _evaluator->executeGeneratedCode();
+    // runIfNotInTest([&]() { _evaluator->printIR(); });
+    _evaluator->executeGeneratedCode();
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }
-  return "";
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {

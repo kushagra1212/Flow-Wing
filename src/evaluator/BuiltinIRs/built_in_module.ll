@@ -7,4 +7,9 @@ entry:
   ret void
 }
 
+define i1 @compareIntegers(i32 %left, i32 %right) {
+  %comparisonResult = icmp slt i32 %left, %right
+  ret i1 %comparisonResult
+}
+
 declare i32 @puts(i8*)
