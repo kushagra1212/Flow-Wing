@@ -40,12 +40,6 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
   llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
                                            TheContext.get(), Builder.get());
 
-  // create and Store
-
-  llvm::AllocaInst *variable =
-      Builder->CreateAlloca(val->getType(), nullptr, "literal");
-
-  Builder->CreateStore(val, variable);
   if (val == nullptr) {
     return nullptr;
   }
@@ -470,6 +464,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
                                               llvm::BasicBlock *returnBlock,
                                               BoundStatement *node) {
+
   BoundIfStatement *ifStatement = (BoundIfStatement *)node;
 
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
@@ -522,6 +517,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
     }
 
     if (i == orIfBlock.size() - 1) {
+
       Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i], elseBlock);
     } else {
       Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i],
@@ -534,7 +530,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
   Builder->SetInsertPoint(thenBlock);
 
   llvm::Value *thenValue = this->generateEvaluateStatement(
-      thenBlock, returnBlock, ifStatement->getThenStatementPtr().get());
+      thenBlock, endBlock, ifStatement->getThenStatementPtr().get());
 
   Builder->CreateBr(endBlock);
 
@@ -577,7 +573,6 @@ llvm::Value *IRGenerator::evaluateIfStatement(llvm::BasicBlock *basicBlock,
 
   Builder->SetInsertPoint(endBlock);
 
-  Builder->CreateBr(returnBlock);
   // llvm::PHINode *phiNode = Builder->CreatePHI(
   //     llvm::Type::getInt8PtrTy(*TheContext), 2 + orIfBlock.size());
 
@@ -633,7 +628,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(llvm::BasicBlock *basicBlock,
 
   Builder->SetInsertPoint(loopBody);
   llvm::Value *result = this->generateEvaluateStatement(
-      basicBlock, returnBlock, whileStatement->getBodyPtr().get());
+      loopBody, afterLoop, whileStatement->getBodyPtr().get());
 
   Builder->CreateBr(loopCondition);
 
@@ -694,6 +689,8 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
+
+    // Create Break Block
 
     Builder->CreateBr(returnBlock);
 
