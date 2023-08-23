@@ -125,7 +125,16 @@ llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,
     BoundBinaryExpression *binaryExpression);
-
+llvm::Value *getBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder);
+llvm::Value *isBreakCountZero(llvm::Module *TheModule,
+                              llvm::IRBuilder<> *Builder,
+                              llvm::LLVMContext *TheContext);
+llvm::Value *getGlobalZero(llvm::Module *TheModule, llvm::IRBuilder<> *Builder);
+void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                         llvm::LLVMContext *TheContext);
+void decrementBrekCountIfNotZero(llvm::Module *TheModule,
+                                 llvm::IRBuilder<> *Builder,
+                                 llvm::LLVMContext *TheContext);
 // SET VALUES
 llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
 void setNamedValue(

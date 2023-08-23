@@ -547,6 +547,64 @@ llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value) {
   }
   return nullptr;
 }
+llvm::Value *getBreakCount(llvm::Module *TheModule,
+                           llvm::IRBuilder<> *Builder) {
+  llvm::Value *breakCount = Builder->CreateLoad(
+      TheModule->getGlobalVariable("X_break_count_X")->getType(),
+      TheModule->getGlobalVariable("X_break_count_X"));
+  return breakCount;
+}
+llvm::Value *getGlobalZero(llvm::Module *TheModule,
+                           llvm::IRBuilder<> *Builder) {
+  llvm::Value *zero =
+      Builder->CreateLoad(TheModule->getGlobalVariable("X_zero_X")->getType(),
+                          TheModule->getGlobalVariable("X_zero_X"));
+  return zero;
+}
+llvm::Value *isBreakCountZero(llvm::Module *TheModule,
+                              llvm::IRBuilder<> *Builder,
+                              llvm::LLVMContext *TheContext) {
+  llvm::Value *breakCount = getBreakCount(TheModule, Builder);
+  llvm::Value *loadZero = getGlobalZero(TheModule, Builder);
+
+  llvm::Value *isZero = Builder->CreateICmpEQ(breakCount, loadZero);
+  return isZero;
+}
+
+void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                         llvm::LLVMContext *TheContext) {
+  llvm::Value *breakCount = getBreakCount(TheModule, Builder);
+  llvm::Value *newBreakCount = Builder->CreateAdd(
+      breakCount,
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
+  Builder->CreateStore(newBreakCount,
+                       TheModule->getGlobalVariable("X_break_count_X"));
+}
+
+void decrementBrekCountIfNotZero(llvm::Module *TheModule,
+                                 llvm::IRBuilder<> *Builder,
+                                 llvm::LLVMContext *TheContext) {
+
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  llvm::BasicBlock *decrementBlock = llvm::BasicBlock::Create(
+      Builder->getContext(), "decrement_block", currentBlock->getParent());
+  llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
+      Builder->getContext(), "end_block", currentBlock->getParent());
+
+  llvm::Value *isZero = isBreakCountZero(TheModule, Builder, TheContext);
+  Builder->CreateCondBr(isZero, endBlock, decrementBlock);
+
+  Builder->SetInsertPoint(decrementBlock);
+  llvm::Value *breakCount = getBreakCount(TheModule, Builder);
+  llvm::Value *newBreakCount = Builder->CreateSub(
+      breakCount,
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
+  Builder->CreateStore(newBreakCount,
+                       TheModule->getGlobalVariable("X_break_count_X"));
+  Builder->CreateBr(endBlock);
+
+  Builder->SetInsertPoint(endBlock);
+}
 
 llvm::Value *getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,

@@ -175,3 +175,165 @@ print("Constant value:"+ constantValue)
 
   ASSERT_EQ(capturedOutput, expected_output);
 }
+
+// test with Break
+
+TEST_F(ReplTest, BasicWhileLoopWithBreak) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            print(x)
+            break
+        }
+
+    )";
+
+  std::string expected_output = "1\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopWithBreakAndIf) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<10) {
+            x=x+1
+            if(x==5) {
+                print(x)
+                break
+            }
+        }
+
+    )";
+
+  std::string expected_output = "5\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopWithBreakAndIfElse) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<10) {
+            x=x+1
+            if(x==5) {
+                print(x)
+            }else{
+                if(x==2) {
+                    print(2)
+                }or if(x==7) {
+                    print(7)
+                    break
+                }
+            }
+        }
+
+    )";
+
+  std::string expected_output = "2\n5\n7\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopNumber1to5) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<10) {
+            x=x+1
+            if(x==6) {
+                break
+            }
+            print(x)
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n3\n4\n5\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopNested2) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<3) {
+            x=x+1
+            while(x<3) {
+                if(x==2) {
+                    break
+                }
+                print(x)
+                x=x+1
+            }
+            print(x)
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n3\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopNested3) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<3) {
+            x=x+1
+            while(x<3) {
+                print(x)
+                break
+                x=x+1
+                print(x)
+            }
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+TEST_F(ReplTest, BasicWhileLoopNested4) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<3) {
+            x=x+1
+            var y = 0
+            while(y<3) {
+                print(y)
+                break
+                x=x+1
+                print(x)
+            }
+        }
+
+    )";
+
+  std::string expected_output = "0\n0\n0\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
