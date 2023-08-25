@@ -135,6 +135,18 @@ void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
 void decrementBrekCountIfNotZero(llvm::Module *TheModule,
                                  llvm::IRBuilder<> *Builder,
                                  llvm::LLVMContext *TheContext);
+
+// Continue Keyword
+llvm::Value *getContinueCount(llvm::Module *TheModule,
+                              llvm::IRBuilder<> *Builder);
+llvm::Value *isContinueCountZero(llvm::Module *TheModule,
+                                 llvm::IRBuilder<> *Builder,
+                                 llvm::LLVMContext *TheContext);
+void incrementContinueCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                            llvm::LLVMContext *TheContext);
+void decrementContinueCountIfNotZero(llvm::Module *TheModule,
+                                     llvm::IRBuilder<> *Builder,
+                                     llvm::LLVMContext *TheContext);
 // SET VALUES
 llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
 void setNamedValue(
@@ -172,6 +184,9 @@ bool updateNamedValueAlloca(
     const std::string &name, llvm::AllocaInst *value,
     std::stack<std::map<std::string, llvm::AllocaInst *>>
         &NamedValuesAllocaStack);
+
+void printFunction(llvm::Value *value, llvm::Module *TheModule,
+                   llvm::IRBuilder<> *Builder);
 
 llvm::Value *
 createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,

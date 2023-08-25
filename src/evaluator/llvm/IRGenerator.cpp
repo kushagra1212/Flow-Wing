@@ -169,6 +169,12 @@ void IRGenerator::defineStandardFunctions() {
       *TheModule, breakCount->getType(), false,
       llvm::GlobalValue::ExternalLinkage, breakCount, "X_break_count_X");
 
+  llvm::GlobalVariable *globalContinueCount = new llvm::GlobalVariable(
+      *TheModule, breakCount->getType(), false,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)),
+      "X_continue_count_X");
+
   llvm::Constant *zero =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
@@ -295,9 +301,8 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
 
       llvm::Value *arg0 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
-      llvm::ArrayRef<llvm::Value *> Args = {
-          IRUtils::convertToString(arg0, Builder.get())};
-      Builder->CreateCall(TheModule->getFunction("print"), Args);
+
+      IRUtils::printFunction(arg0, TheModule.get(), Builder.get());
       return this->getNull();
     }
 
@@ -393,10 +398,6 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     llvm::BasicBlock *currentBlock, llvm::BasicBlock *returnBlock,
     BoundBlockStatement *blockStatement) {
 
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
-
   // create and load variable
   llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
       *TheContext, "nestedBlock", currentBlock->getParent());
@@ -406,19 +407,28 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
   Builder->CreateBr(nestedBlock);
   Builder->SetInsertPoint(nestedBlock);
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-    llvm::Value *res = this->generateEvaluateStatement(
-        nestedBlock, exitBlock, blockStatement->getStatements()[i].get());
-    llvm::BasicBlock *blockEndBlock = llvm::BasicBlock::Create(
-        *TheContext, "blockEndBlock", nestedBlock->getParent());
+
+    llvm::BasicBlock *breakEndBlock = llvm::BasicBlock::Create(
+        *TheContext, "breakEndBlock", nestedBlock->getParent());
+
+    llvm::BasicBlock *continueBlock = llvm::BasicBlock::Create(
+        *TheContext, "continueBlock", nestedBlock->getParent());
     Builder->CreateCondBr(IRUtils::isBreakCountZero(
                               TheModule.get(), Builder.get(), TheContext.get()),
-                          blockEndBlock, exitBlock);
+                          breakEndBlock, exitBlock);
 
-    Builder->SetInsertPoint(blockEndBlock);
+    Builder->SetInsertPoint(breakEndBlock);
+
+    Builder->CreateCondBr(IRUtils::isContinueCountZero(
+                              TheModule.get(), Builder.get(), TheContext.get()),
+                          continueBlock, exitBlock);
+
+    Builder->SetInsertPoint(continueBlock);
+
+    llvm::Value *res = this->generateEvaluateStatement(
+        nestedBlock, exitBlock, blockStatement->getStatements()[i].get());
   }
   Builder->CreateBr(exitBlock);
-  this->_NamedValuesStack.pop();
-  this->_NamedValuesAllocaStack.pop();
 
   Builder->SetInsertPoint(exitBlock);
 
@@ -460,27 +470,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->SetInsertPoint(returnBlock);
 
   if (returnValue) {
-    if (llvm::isa<llvm::Instruction>(returnValue)) {
-      // The value is an instruction or a derived class of Instruction
-      llvm::Instruction *instruction =
-          llvm::cast<llvm::Instruction>(returnValue);
-      if (instruction->getType()->isIntegerTy(1)) {
-        llvm::Value *resultStr = Builder->CreateSelect(
-            returnValue, TheModule->getGlobalVariable("true_string"),
-            TheModule->getGlobalVariable("false_string"));
-        Builder->CreateCall(TheModule->getFunction("print"), {resultStr});
-      } else {
-        Builder->CreateCall(
-            TheModule->getFunction("print"),
-            {IRUtils::convertToString(returnValue, Builder.get())});
-      }
-
-    } else {
-
-      Builder->CreateCall(
-          TheModule->getFunction("print"),
-          {IRUtils::convertToString(returnValue, Builder.get())});
-    }
+    IRUtils::printFunction(returnValue, TheModule.get(), Builder.get());
   }
   Builder->CreateRetVoid();
 }
@@ -619,6 +609,9 @@ llvm::Value *IRGenerator::evaluateWhileStatement(llvm::BasicBlock *basicBlock,
   // Loop Condition
 
   Builder->SetInsertPoint(loopCondition);
+
+  IRUtils::decrementContinueCountIfNotZero(TheModule.get(), Builder.get(),
+                                           TheContext.get());
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -710,8 +703,9 @@ IRGenerator::generateEvaluateStatement(llvm::BasicBlock *basicBlock,
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
-    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
-                                 Builder.get());
+    IRUtils::incrementContinueCount(TheModule.get(), Builder.get(),
+                                    TheContext.get());
+    return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
     // BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
