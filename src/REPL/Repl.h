@@ -37,7 +37,7 @@ private:
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> previous_lines;
   std::vector<std::string> text = std::vector<std::string>();
-
+  std::vector<std::string> removePrintStatements(std::vector<std::string> text);
   // For testing
   bool isTest;
 };

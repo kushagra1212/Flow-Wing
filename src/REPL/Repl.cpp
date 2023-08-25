@@ -20,7 +20,28 @@ void Repl::runIfNotInTest(std::function<void()> f) {
     f();
   }
 }
+std::vector<std::string>
+Repl::removePrintStatements(std::vector<std::string> text) {
+  std::vector<std::string> newText;
+  for (std::string line : text) {
 
+    std::string newLine = "";
+
+    for (int i = 0; i < line.length();) {
+      if (i + 4 < line.length() && line[i] == 'p' && line[i + 1] == 'r' &&
+          line[i + 2] == 'i' && line[i + 3] == 'n' && line[i + 4] == 't') {
+        while (i < line.length() && line[i] != ')') {
+          i++;
+        }
+      } else {
+        newLine += line[i];
+      }
+      i++;
+    }
+    newText.push_back(newLine);
+  }
+  return newText;
+}
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
 
@@ -29,7 +50,7 @@ void Repl::runWithStream(std::istream &inputStream,
   while (!exit) {
 
     runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
-    text = previous_lines;
+    text = removePrintStatements(previous_lines);
     std::string line;
     int emptyLines = 0;
     while (std::getline(inputStream, line)) {
