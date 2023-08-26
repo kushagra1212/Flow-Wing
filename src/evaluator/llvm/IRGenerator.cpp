@@ -450,6 +450,9 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     if (i == blockStatement->getStatements().size() - 1)
       Builder->CreateBr(afterNestedBlock);
   }
+  if (blockStatement->getStatements().size() == 0) {
+    Builder->CreateBr(afterNestedBlock);
+  }
 
   Builder->SetInsertPoint(afterNestedBlock);
 
@@ -475,6 +478,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   llvm::BasicBlock *returnBlock =
       llvm::BasicBlock::Create(*TheContext, "returnBlock", F);
 
+  Builder->CreateBr(entryBlock);
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
