@@ -175,6 +175,9 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::OrIfStatement:
     return "OrIfStatement";
 
+  case SyntaxKind::ColonToken:
+    return "ColonToken";
+
   default:
     return "NotDefined";
   }

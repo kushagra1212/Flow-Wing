@@ -45,6 +45,8 @@ public:
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 
   llvm::Value *evaluateWhileStatement(BoundWhileStatement *node);
+
+  llvm::Value *evaluateForStatement(BoundForStatement *node);
   llvm::Value *generateEvaluateCallExpression(BoundCallExpression *node);
   llvm::Constant *getNull();
   llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);

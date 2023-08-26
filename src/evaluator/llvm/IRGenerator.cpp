@@ -666,6 +666,126 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   return exitValue;
 }
 
+llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
+  BoundForStatement *forStatement = (BoundForStatement *)node;
+  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  this->_NamedValuesAllocaStack.push(
+      std::map<std::string, llvm::AllocaInst *>());
+
+  std::string variableName = "";
+
+  // Step Value
+
+  llvm::Value *stepValue = llvm::ConstantInt::get(
+      *TheContext, llvm::APInt(32, 1, true)); // default step value
+
+  if (forStatement->getStepExpressionPtr().get()) {
+    stepValue =
+        IRUtils::convertToInt(this->generateEvaluateExpressionStatement(
+                                  forStatement->getStepExpressionPtr().get()),
+                              Builder.get());
+  }
+
+  // Upper Bound
+
+  llvm::Value *upperBound = this->generateEvaluateExpressionStatement(
+      forStatement->getUpperBoundPtr().get());
+
+  // Declare Loop Variable
+
+  if (forStatement->getInitializationPtr()->getKind() ==
+      BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+    BoundVariableDeclaration *variableDeclaration =
+        (BoundVariableDeclaration *)forStatement->getInitializationPtr().get();
+
+    variableName = variableDeclaration->getVariable();
+
+    this->generateEvaluateStatement(variableDeclaration);
+  }
+
+  if (variableName == "") {
+    llvm::errs() << "Empty Variable Name: Error in for statement\n";
+    return getNull();
+  }
+
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  llvm::Function *function = currentBlock->getParent();
+  llvm::Value *exitValue = getNull();
+  llvm::BasicBlock *loopCondition =
+      llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
+  llvm::BasicBlock *loopBody =
+      llvm::BasicBlock::Create(*TheContext, "loopBody", function);
+  llvm::BasicBlock *afterLoop =
+      llvm::BasicBlock::Create(*TheContext, "afterLoop", function);
+
+  llvm::BasicBlock *breakLoop =
+      llvm::BasicBlock::Create(*TheContext, "breakLoop", function);
+
+  Builder->CreateBr(loopCondition);
+
+  // Loop Condition
+
+  Builder->SetInsertPoint(loopCondition);
+
+  IRUtils::decrementContinueCountIfNotZero(TheModule.get(), Builder.get(),
+                                           TheContext.get());
+
+  llvm::Value *variableValue =
+      IRUtils::getNamedValue(variableName, this->_NamedValuesStack);
+
+  llvm::AllocaInst *v =
+      IRUtils::getNamedValueAlloca(variableName, this->_NamedValuesAllocaStack);
+
+  llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
+
+  llvm::Value *conditionValue = Builder->CreateICmpSLE(value, upperBound);
+
+  // Load the condition
+
+  if (conditionValue == nullptr) {
+    llvm::errs() << "Error in Compiling for While condition\n";
+    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
+                                 Builder.get());
+  }
+
+  Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
+
+  Builder->SetInsertPoint(breakLoop);
+
+  Builder->CreateCondBr(IRUtils::isBreakCountZero(
+                            TheModule.get(), Builder.get(), TheContext.get()),
+                        loopBody, afterLoop);
+
+  // Loop Body
+
+  Builder->SetInsertPoint(loopBody);
+  llvm::Value *result =
+      this->generateEvaluateStatement(forStatement->getStatementPtr().get());
+
+  // Value incremented by Step
+
+  llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
+
+  IRUtils::updateNamedValue(variableName, incrementedValue,
+                            this->_NamedValuesStack);
+
+  Builder->CreateStore(incrementedValue, v);
+
+  Builder->CreateBr(loopCondition);
+
+  // After Loop
+
+  Builder->SetInsertPoint(afterLoop);
+
+  IRUtils::decrementBrekCountIfNotZero(TheModule.get(), Builder.get(),
+                                       TheContext.get());
+
+  this->_NamedValuesAllocaStack.pop();
+  this->_NamedValuesStack.pop();
+
+  return exitValue;
+}
+
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   switch (node->getKind()) {
@@ -695,8 +815,7 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::ForStatement: {
 
-    // this->evaluateForStatement((BoundForStatement *)node);
-    // break;
+    return this->evaluateForStatement((BoundForStatement *)node);
   }
 
   case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {

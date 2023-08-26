@@ -271,6 +271,13 @@ std::unique_ptr<ForStatementSyntax> Parser::parseForStatement() {
 
   std::unique_ptr<ExpressionSyntax> upperBound =
       std::move(this->parseExpression());
+  std::unique_ptr<ExpressionSyntax> step = nullptr;
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ColonToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+
+    step = std::move(this->parseExpression());
+  }
 
   if (hadOpenParenthesis) {
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
@@ -279,7 +286,8 @@ std::unique_ptr<ForStatementSyntax> Parser::parseForStatement() {
   std::unique_ptr<BlockStatementSyntax> statement =
       std::move(this->parseBlockStatement());
   return std::make_unique<ForStatementSyntax>(
-      std::move(statementSyntax), std::move(upperBound), std::move(statement));
+      std::move(statementSyntax), std::move(upperBound), std::move(statement),
+      std::move(step));
 }
 
 std::unique_ptr<ElseClauseSyntax> Parser::parseElseStatement() {

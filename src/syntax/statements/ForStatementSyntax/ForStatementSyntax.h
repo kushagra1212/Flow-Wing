@@ -13,17 +13,21 @@ private:
   std::unique_ptr<StatementSyntax> _initialization;
   std::unique_ptr<BlockStatementSyntax> _statement;
   std::unique_ptr<ExpressionSyntax> _upperBound;
+  std::unique_ptr<ExpressionSyntax> _stepExpression;
 
 public:
   ForStatementSyntax(std::unique_ptr<StatementSyntax> initialization,
                      std::unique_ptr<ExpressionSyntax> upperBound,
-                     std::unique_ptr<BlockStatementSyntax> statement);
+                     std::unique_ptr<BlockStatementSyntax> statement,
+                     std::unique_ptr<ExpressionSyntax> stepExpression);
 
   std::unique_ptr<BlockStatementSyntax> getStatement();
 
   std::unique_ptr<StatementSyntax> getInitialization();
 
   std::unique_ptr<ExpressionSyntax> getUpperBound();
+
+  std::unique_ptr<ExpressionSyntax> getStepExpression();
 
   std::vector<SyntaxNode *> getChildren() override;
 
@@ -36,6 +40,8 @@ public:
   std::unique_ptr<StatementSyntax> &getInitializationPtr();
 
   std::unique_ptr<ExpressionSyntax> &getUpperBoundPtr();
+
+  std::unique_ptr<ExpressionSyntax> &getStepExpressionPtr();
 };
 
 #endif // FOR_STATEMENT_SYNTAX_H

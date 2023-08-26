@@ -133,13 +133,20 @@ Binder::bindForStatement(ForStatementSyntax *forStatement) {
   std::unique_ptr<BoundExpression> boundUpperBound =
       std::move(bindExpression(forStatement->getUpperBoundPtr().get()));
 
+  std::unique_ptr<BoundExpression> boundStepExpression = nullptr;
+
+  if (forStatement->getStepExpressionPtr().get())
+    boundStepExpression =
+        std::move(bindExpression(forStatement->getStepExpressionPtr().get()));
+
   std::unique_ptr<BoundStatement> boundBody =
       std::move(bindStatement(forStatement->getStatementPtr().get()));
 
   this->root = std::move(this->root->parent);
   return std::make_unique<BoundForStatement>(
       forStatement->getLineNumberAndColumn(), std::move(boundIntializer),
-      std::move(boundUpperBound), std::move(boundBody));
+      std::move(boundUpperBound), std::move(boundStepExpression),
+      std::move(boundBody));
 }
 
 std::unique_ptr<BoundStatement>

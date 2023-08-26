@@ -28,6 +28,7 @@ enum SyntaxKind {
   GreaterOrEqualsToken,
   GreaterToken,
   SemiColonToken,
+  ColonToken,
   CommaToken,
   EndOfLineToken,
 

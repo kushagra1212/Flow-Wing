@@ -16,11 +16,13 @@ private:
 
   std::unique_ptr<BoundExpression> _upperBound;
 
+  std::unique_ptr<BoundExpression> _boundStepExpression;
+
 public:
   BoundForStatement(std::string lineAndColumn,
                     std::unique_ptr<BoundStatement> initialization,
                     std::unique_ptr<BoundExpression> upperBound,
-
+                    std::unique_ptr<BoundExpression> boundStepExpression,
                     std::unique_ptr<BoundStatement> statement);
 
   std::unique_ptr<BoundStatement> getInitialization();
@@ -28,6 +30,8 @@ public:
   std::unique_ptr<BoundStatement> getStatement();
 
   std::unique_ptr<BoundExpression> getUpperBound();
+
+  std::unique_ptr<BoundExpression> getStepExpression();
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 
@@ -40,6 +44,8 @@ public:
   std::unique_ptr<BoundStatement> &getStatementPtr();
 
   std::unique_ptr<BoundExpression> &getUpperBoundPtr();
+
+  std::unique_ptr<BoundExpression> &getStepExpressionPtr();
 };
 
 #endif // BOUND_FOR_STATEMENT_H

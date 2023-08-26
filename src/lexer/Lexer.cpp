@@ -347,6 +347,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
   case '"':
     return std::move(this->readString());
 
+  case ':': {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::ColonToken,
+        this->position++, ":", 0);
+  }
+
   default:
     int _pos = this->position;
     int _len = this->text[lineNumber].length() - this->position;
