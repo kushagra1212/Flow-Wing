@@ -29,12 +29,8 @@ public:
   generateEvaluateAssignmentExpressionFunction(BoundExpression *node);
   llvm::Value *
   generateEvaluateBinaryExpressionFunction(BoundBinaryExpression *node);
-  llvm::Value *generateEvaluateBlockStatement(llvm::BasicBlock *basicBlock,
-                                              llvm::BasicBlock *returnBlock,
-                                              BoundBlockStatement *node);
-  llvm::Value *generateEvaluateStatement(llvm::BasicBlock *basicBlock,
-                                         llvm::BasicBlock *returnBlock,
-                                         BoundStatement *node);
+  llvm::Value *generateEvaluateBlockStatement(BoundBlockStatement *node);
+  llvm::Value *generateEvaluateStatement(BoundStatement *node);
 
   llvm::Value *
   generateEvaluateVariableDeclaration(BoundVariableDeclaration *node);
@@ -46,13 +42,9 @@ public:
 
   void generateEvaluateGlobalStatement(BoundStatement *node);
 
-  llvm::Value *evaluateIfStatement(llvm::BasicBlock *basicBlock,
-                                   llvm::BasicBlock *returnBlock,
-                                   BoundStatement *node);
+  llvm::Value *evaluateIfStatement(BoundStatement *node);
 
-  llvm::Value *evaluateWhileStatement(llvm::BasicBlock *basicBlock,
-                                      llvm::BasicBlock *returnBlock,
-                                      BoundWhileStatement *node);
+  llvm::Value *evaluateWhileStatement(BoundWhileStatement *node);
   llvm::Value *generateEvaluateCallExpression(BoundCallExpression *node);
   llvm::Constant *getNull();
   llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);

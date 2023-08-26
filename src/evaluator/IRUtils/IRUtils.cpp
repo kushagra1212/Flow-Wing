@@ -662,9 +662,9 @@ void decrementContinueCountIfNotZero(llvm::Module *TheModule,
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::BasicBlock *decrementBlock = llvm::BasicBlock::Create(
-      Builder->getContext(), "decrement_block", currentBlock->getParent());
+      *TheContext, "decrement_block", currentBlock->getParent());
   llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
-      Builder->getContext(), "end_block", currentBlock->getParent());
+      *TheContext, "end_block", currentBlock->getParent());
 
   llvm::Value *isZero = isContinueCountZero(TheModule, Builder, TheContext);
   Builder->CreateCondBr(isZero, endBlock, decrementBlock);

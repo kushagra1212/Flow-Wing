@@ -245,7 +245,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreakAndIfElse) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-TEST_F(ReplTest, BasicWhileLoopNumber1to5) {
+TEST_F(ReplTest, BasicWhileLoopNumber1to5Break) {
   std::string input = R"(
         var x = 0
 
@@ -266,7 +266,7 @@ TEST_F(ReplTest, BasicWhileLoopNumber1to5) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-TEST_F(ReplTest, BasicWhileLoopNested2) {
+TEST_F(ReplTest, BasicWhileLoopNestedBreak) {
   std::string input = R"(
         var x = 0
 
@@ -291,7 +291,7 @@ TEST_F(ReplTest, BasicWhileLoopNested2) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-TEST_F(ReplTest, BasicWhileLoopNested3) {
+TEST_F(ReplTest, BasicWhileLoopNestedBreak2) {
   std::string input = R"(
         var x = 0
 
@@ -314,7 +314,7 @@ TEST_F(ReplTest, BasicWhileLoopNested3) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-TEST_F(ReplTest, BasicWhileLoopNested4) {
+TEST_F(ReplTest, BasicWhileLoopNestedBreak3) {
   std::string input = R"(
         var x = 0
 
@@ -332,6 +332,255 @@ TEST_F(ReplTest, BasicWhileLoopNested4) {
     )";
 
   std::string expected_output = "0\n0\n0\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue statement
+
+TEST_F(ReplTest, BasicWhileLoopContinue) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            if(x==3){
+                continue
+            }
+            print(x)
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n4\n5\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue statement
+
+TEST_F(ReplTest, BasicWhileLoopContinue2) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            print(x)
+            if(x==3){
+                continue
+            }
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n3\n4\n5\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue statement
+
+TEST_F(ReplTest, BasicWhileLoopContinueNested) {
+  std::string input = R"(
+        var x = 0
+        while(x<5) {
+            x=x+1
+            print(x)
+            var z = x
+            while(x<5) {
+                if(x==0) {
+                    print(0) 
+                }or if(x==1){
+                    x=x+1
+                    continue
+                }or if(x==2) {
+                    print(2)
+                }else{
+                    print(x);
+                }
+                x=x+1
+            }
+            x=z+5
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n3\n4\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue and break statement
+
+TEST_F(ReplTest, BasicWhileLoopContinueBreak) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            if(x==3){
+                continue
+            }
+            print(x)
+            if(x==4){
+                break
+            }
+        }
+
+    )";
+
+  std::string expected_output = "1\n2\n4\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue and break statement nested
+
+TEST_F(ReplTest, BasicWhileLoopContinueBreakNested) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            if(x==3){
+                continue
+            }
+            print(x)
+            if(x==4){
+                break
+            }
+            var y = 0
+            while(y<5) {
+                if(y==0) {
+                    print(0) 
+                }or if(y==1){
+                    y=y+1
+                    continue
+                }or if(y==2) {
+                    print(2)
+                }else{
+                    print(y);
+                }
+                y=y+1
+            }
+        }
+
+    )";
+
+  std::string expected_output = "1\n0\n2\n3\n4\n2\n0\n2\n3\n4\n4\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Basic while loop with continue and break statement nested Break and continue
+
+TEST_F(ReplTest, BasicWhileLoopContinueBreakNestedBreakContinue) {
+  std::string input = R"(
+        var x = 0
+
+        while(x<5) {
+            x=x+1
+            if(x==3){
+                continue
+            }
+            print(x)
+            if(x==4){
+                break
+            }
+            var y = 0
+            while(y<5) {
+                if(y==0) {
+                    print(0) 
+                }or if(y==1){
+                    y=y+1
+                    continue
+                }or if(y==2) {
+                    print(2)
+                }else{
+                    print(y);
+                }
+                y=y+1
+                if(y==4){
+                    break
+                }
+            }
+        }
+    )";
+
+  std::string expected_output = R"(1
+0
+2
+3
+2
+0
+2
+3
+4
+)";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Factorial
+
+TEST_F(ReplTest, BasicWhileLoopFactorial) {
+  std::string input = R"(
+        var x = 5
+        var factorial = 1
+        while(x>0) {
+            factorial = factorial * x
+            x = x - 1
+        }
+        print(factorial)
+    )";
+
+  std::string expected_output = "120\n";
+  expected_output += "\n";
+  std::string capturedOutput = runReplWithInputPrint(input);
+
+  ASSERT_EQ(capturedOutput, expected_output);
+}
+
+// Factorial 2
+
+TEST_F(ReplTest, BasicWhileLoopFactorial2) {
+  std::string input = R"(
+var x = 0
+
+const num = 5
+var factorial = 1
+var current = 1
+
+while (current <= num) {
+    factorial = factorial * current
+    current = current + 1
+
+    if (current == 3) {
+        continue
+    }
+
+    if (current > 7) {
+        break
+    }
+}
+print(factorial)
+    )";
+
+  std::string expected_output = "120\n";
   expected_output += "\n";
   std::string capturedOutput = runReplWithInputPrint(input);
 
