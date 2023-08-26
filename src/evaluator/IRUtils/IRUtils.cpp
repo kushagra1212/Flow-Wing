@@ -130,7 +130,7 @@ void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
 }
 
 void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder) {
+                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext) {
   if (llvm::isa<llvm::Instruction>(value)) {
     // The value is an instruction or a derived class of Instruction
     llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
@@ -145,9 +145,12 @@ void printFunction(llvm::Value *value, llvm::Module *TheModule,
     }
 
   } else {
+    llvm::ArrayRef<llvm::Value *> Args = {
 
-    Builder->CreateCall(TheModule->getFunction("print"),
-                        {IRUtils::convertToString(value, Builder)});
+        // bit cast the value to i8*
+
+        IRUtils::convertToString(value, Builder)};
+    Builder->CreateCall(TheModule->getFunction("print"), Args);
   }
 }
 
@@ -167,18 +170,15 @@ llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
 
     const std::string &strValue = std::any_cast<std::string>(value);
 
-    // Create a global constant data array for the string
     llvm::Constant *strConstant =
         llvm::ConstantDataArray::getString(*TheContext, strValue);
-
-    // Create a global variable to hold the string constant
-    llvm::GlobalVariable *strGlobal = new llvm::GlobalVariable(
+    llvm::GlobalVariable *globalStr = new llvm::GlobalVariable(
         *TheModule, strConstant->getType(), true,
-        llvm::GlobalValue::PrivateLinkage, strConstant, "string_constant");
-
+        llvm::GlobalValue::PrivateLinkage, strConstant, "globalStr");
+    llvm::Value *v = Builder->CreateBitCast(
+        globalStr, llvm::Type::getInt8PtrTy(*TheContext));
     // Get a pointer to the string global variable
-    return Builder->CreateBitCast(strGlobal,
-                                  llvm::Type::getInt8PtrTy(*TheContext));
+    return v;
 
   } else {
     return nullptr;

@@ -186,7 +186,7 @@ bool updateNamedValueAlloca(
         &NamedValuesAllocaStack);
 
 void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder);
+                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext);
 
 llvm::Value *
 createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,

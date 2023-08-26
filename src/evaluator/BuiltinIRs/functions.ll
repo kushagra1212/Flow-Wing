@@ -30,12 +30,6 @@ define i8* @concat_strings(i8* %str1, i8* %str2) {
     store i8 0, i8* %nullPtr
     ret i8* %concatStr
 }
-declare i32 @puts(i8*)
-
-define void @print_string(i8* %str) {
-    call i32 @puts(i8* %str)
-    ret void
-}
 
 define i32 @stringLength(i8* %str) {
 entry:

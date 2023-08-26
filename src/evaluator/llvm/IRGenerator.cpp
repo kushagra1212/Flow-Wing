@@ -299,10 +299,11 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   if (functionName == Utils::BuiltInFunctions::print.name) {
     if (arguments_size == 1) {
 
-      llvm::Value *arg0 = this->generateEvaluateExpressionStatement(
+      llvm::Value *globalStrPtr = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      IRUtils::printFunction(arg0, TheModule.get(), Builder.get());
+      IRUtils::printFunction(globalStrPtr, TheModule.get(), Builder.get(),
+                             TheContext.get());
       return this->getNull();
     }
 
@@ -426,7 +427,20 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
   // Nested Block
 
+  if (blockStatement->getStatements().size() == 0) {
+    Builder->CreateBr(afterNestedBlock);
+  } else {
+    Builder->CreateBr(nestedBlocks[0]);
+  }
+
   for (int i = 0; i < statementSize; i++) {
+
+    // i th nested block
+
+    Builder->SetInsertPoint(nestedBlocks[i]);
+
+    llvm::Value *res = this->generateEvaluateStatement(
+        blockStatement->getStatements()[i].get());
 
     Builder->CreateCondBr(IRUtils::isBreakCountZero(
                               TheModule.get(), Builder.get(), TheContext.get()),
@@ -436,22 +450,14 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
     Builder->SetInsertPoint(checkContinueBlocks[i]);
 
-    Builder->CreateCondBr(IRUtils::isContinueCountZero(
-                              TheModule.get(), Builder.get(), TheContext.get()),
-                          nestedBlocks[i], afterNestedBlock);
-
-    // i th nested Block
-
-    Builder->SetInsertPoint(nestedBlocks[i]);
-
-    llvm::Value *res = this->generateEvaluateStatement(
-        blockStatement->getStatements()[i].get());
-
     if (i == blockStatement->getStatements().size() - 1)
       Builder->CreateBr(afterNestedBlock);
-  }
-  if (blockStatement->getStatements().size() == 0) {
-    Builder->CreateBr(afterNestedBlock);
+    else {
+      Builder->CreateCondBr(IRUtils::isContinueCountZero(TheModule.get(),
+                                                         Builder.get(),
+                                                         TheContext.get()),
+                            nestedBlocks[i + 1], afterNestedBlock);
+    }
   }
 
   Builder->SetInsertPoint(afterNestedBlock);
@@ -502,7 +508,8 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->SetInsertPoint(returnBlock);
 
   if (returnValue) {
-    IRUtils::printFunction(returnValue, TheModule.get(), Builder.get());
+    IRUtils::printFunction(returnValue, TheModule.get(), Builder.get(),
+                           TheContext.get());
   }
   Builder->CreateRetVoid();
 }
@@ -680,8 +687,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   // Step Value
 
-  llvm::Value *stepValue = llvm::ConstantInt::get(
-      *TheContext, llvm::APInt(32, 1, true)); // default step value
+  llvm::Value *stepValue =
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)); // default
 
   if (forStatement->getStepExpressionPtr().get()) {
     stepValue =
@@ -705,6 +712,24 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
     variableName = variableDeclaration->getVariable();
 
     this->generateEvaluateStatement(variableDeclaration);
+  } else {
+
+    // Loop Variable
+
+    variableName = "loopVariable";
+
+    llvm::AllocaInst *variable = Builder->CreateAlloca(
+        llvm::Type::getInt32Ty(*TheContext), nullptr, variableName.c_str());
+
+    IRUtils::setNamedValueAlloca(variableName, variable,
+                                 this->_NamedValuesAllocaStack);
+
+    llvm::Value *result = this->generateEvaluateStatement(
+        forStatement->getInitializationPtr().get());
+
+    Builder->CreateStore(result, variable);
+
+    IRUtils::setNamedValue(variableName, result, this->_NamedValuesStack);
   }
 
   if (variableName == "") {
