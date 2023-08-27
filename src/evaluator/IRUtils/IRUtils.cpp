@@ -199,6 +199,45 @@ llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
   }
 }
 
+llvm::PHINode *
+handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
+                       llvm::Value *upperBound, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext, llvm::Module *TheModule) {
+  llvm::Value *isStepNegative =
+      Builder->CreateICmpSLT(stepValue, Builder->getInt32(0));
+
+  llvm::BasicBlock *trueBlock = llvm::BasicBlock::Create(
+      value->getContext(), "trueBlock", Builder->GetInsertBlock()->getParent());
+  llvm::BasicBlock *falseBlock =
+      llvm::BasicBlock::Create(value->getContext(), "falseBlock",
+                               Builder->GetInsertBlock()->getParent());
+  llvm::BasicBlock *mergeBlock =
+      llvm::BasicBlock::Create(value->getContext(), "mergeBlock",
+                               Builder->GetInsertBlock()->getParent());
+
+  Builder->CreateCondBr(isStepNegative, trueBlock, falseBlock);
+
+  Builder->SetInsertPoint(trueBlock);
+
+  llvm::Value *oppositeCondition = Builder->CreateICmpSGE(value, upperBound);
+
+  Builder->CreateBr(mergeBlock);
+
+  Builder->SetInsertPoint(falseBlock);
+
+  llvm::Value *normalCondition = Builder->CreateICmpSLE(value, upperBound);
+
+  Builder->CreateBr(mergeBlock);
+
+  Builder->SetInsertPoint(mergeBlock);
+
+  llvm::PHINode *conditionPHI = Builder->CreatePHI(Builder->getInt1Ty(), 2);
+  conditionPHI->addIncoming(oppositeCondition, trueBlock);
+  conditionPHI->addIncoming(normalCondition, falseBlock);
+
+  return conditionPHI;
+}
+
 size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
                              llvm::IRBuilder<> *Builder) {
   llvm::Function *stringLengthFunc = TheModule->getFunction("stringLength");

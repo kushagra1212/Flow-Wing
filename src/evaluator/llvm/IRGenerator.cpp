@@ -768,17 +768,17 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
 
-  llvm::Value *conditionValue = Builder->CreateICmpSLE(value, upperBound);
+  llvm::PHINode *conditionPHI = IRUtils::handleForLoopCondition(
+      stepValue, value, upperBound, Builder.get(), TheContext.get(),
+      TheModule.get());
 
-  // Load the condition
-
-  if (conditionValue == nullptr) {
+  if (conditionPHI == nullptr) {
     llvm::errs() << "Error in Compiling for While condition\n";
     return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
                                  Builder.get());
   }
 
-  Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
+  Builder->CreateCondBr(conditionPHI, breakLoop, afterLoop);
 
   Builder->SetInsertPoint(breakLoop);
 

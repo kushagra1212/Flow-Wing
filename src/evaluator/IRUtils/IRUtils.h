@@ -204,6 +204,13 @@ llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
                                    llvm::LLVMContext *TheContext,
                                    llvm::IRBuilder<> *Builder);
 
+llvm::PHINode *
+handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
+                       llvm::Value *upperBound, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext, llvm::Module *TheModule
+
+);
+
 } // namespace IRUtils
 
 #endif
