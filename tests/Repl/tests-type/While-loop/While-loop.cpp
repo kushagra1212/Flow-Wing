@@ -10,7 +10,7 @@ TEST_F(ReplTest, BasicWhileLoop) {
     )";
 
   std::string expected_output = "5\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -30,7 +30,7 @@ TEST_F(ReplTest, BasicWhileLoopWithIf) {
     )";
 
   std::string expected_output = "6\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -48,7 +48,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrint) {
     )";
 
   std::string expected_output = "0\n1\n2\n3\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -71,7 +71,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndIf) {
     )";
 
   std::string expected_output = "0\n2\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -99,7 +99,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndNestedIfElse) {
     )";
 
   std::string expected_output = "0\n3\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -123,7 +123,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndNestedWhileLoop) {
 
   std::string expected_output = "0\n0\n1\n2\n3\n4\n1\n0\n1\n2\n3\n4\n2\n0\n1\n2"
                                 "\n3\n4\n3\n0\n1\n2\n3\n4\n4\n0\n1\n2\n3\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -170,7 +170,7 @@ print("Constant value:"+ constantValue)
       "While Loop - Default:0\nWhile Loop - x is 3:3\nWhile Loop - "
       "Default:4\nIf-Else - Greater than 5 or less than 0\nIf-Else - Less than "
       "5 and greater than 0\n"
-      "Constant value:42\n\n";
+      "Constant value:42\n";
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -191,7 +191,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreak) {
     )";
 
   std::string expected_output = "1\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -212,7 +212,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreakAndIf) {
     )";
 
   std::string expected_output = "5\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -239,7 +239,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreakAndIfElse) {
     )";
 
   std::string expected_output = "2\n5\n7\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -260,7 +260,7 @@ TEST_F(ReplTest, BasicWhileLoopNumber1to5Break) {
     )";
 
   std::string expected_output = "1\n2\n3\n4\n5\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -285,7 +285,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak) {
     )";
 
   std::string expected_output = "1\n2\n3\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -308,7 +308,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak2) {
     )";
 
   std::string expected_output = "1\n2\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -332,7 +332,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak3) {
     )";
 
   std::string expected_output = "0\n0\n0\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -355,7 +355,7 @@ TEST_F(ReplTest, BasicWhileLoopContinue) {
     )";
 
   std::string expected_output = "1\n2\n4\n5\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -373,12 +373,13 @@ TEST_F(ReplTest, BasicWhileLoopContinue2) {
             if(x==3){
                 continue
             }
+            print(x)
         }
 
     )";
 
-  std::string expected_output = "1\n2\n3\n4\n5\n";
-  expected_output += "\n";
+  std::string expected_output = "1\n1\n2\n2\n3\n4\n4\n5\n5\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -412,7 +413,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueNested) {
     )";
 
   std::string expected_output = "1\n2\n3\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -438,7 +439,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreak) {
     )";
 
   std::string expected_output = "1\n2\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -478,7 +479,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreakNested) {
     )";
 
   std::string expected_output = "1\n0\n2\n3\n4\n2\n0\n2\n3\n4\n4\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -529,7 +530,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreakNestedBreakContinue) {
 3
 4
 )";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -549,7 +550,7 @@ TEST_F(ReplTest, BasicWhileLoopFactorial) {
     )";
 
   std::string expected_output = "120\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -581,7 +582,7 @@ print(factorial)
     )";
 
   std::string expected_output = "120\n";
-  expected_output += "\n";
+
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);

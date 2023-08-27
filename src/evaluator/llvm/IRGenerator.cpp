@@ -507,7 +507,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
   Builder->SetInsertPoint(returnBlock);
 
-  if (returnValue) {
+  if (returnValue != getNull()) {
     IRUtils::printFunction(returnValue, TheModule.get(), Builder.get(),
                            TheContext.get());
   }
