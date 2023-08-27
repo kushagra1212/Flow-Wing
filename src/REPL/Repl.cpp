@@ -126,6 +126,8 @@ void Repl::compileAndEvaluate(
 
     _evaluator->executeGeneratedCode();
 
+    std::cout << "\n";
+
     previous_lines = text;
 
   } catch (const std::exception &e) {
@@ -163,7 +165,6 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     // runIfNotInTest([&]() { _evaluator->printIR(); });
     _evaluator->executeGeneratedCode();
-
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }

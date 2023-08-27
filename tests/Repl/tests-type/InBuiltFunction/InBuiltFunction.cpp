@@ -6,7 +6,7 @@
 TEST_F(ReplTest, BasicPrintFunctionNumber) {
   std::string input = "print(2)";
 
-  std::string expected_output = "2\n";
+  std::string expected_output = "2";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -16,7 +16,7 @@ TEST_F(ReplTest, BasicPrintFunctionNumber) {
 TEST_F(ReplTest, BasicPrintFunctionNumberInsideScope) {
   std::string input = "{ print(2) }";
 
-  std::string expected_output = "2\n";
+  std::string expected_output = "2";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -26,7 +26,7 @@ TEST_F(ReplTest, BasicPrintFunctionNumberInsideScope) {
 TEST_F(ReplTest, BasicPrintFunctionString) {
   std::string input = "{ print(\"Hello\") }";
 
-  std::string expected_output = "Hello\n";
+  std::string expected_output = "Hello";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -36,7 +36,7 @@ TEST_F(ReplTest, BasicPrintFunctionString) {
 TEST_F(ReplTest, BasicPrintFunctionStringBasicOperation) {
   std::string input = R"({ print("Hello" + " " + "World") })";
 
-  std::string expected_output = "Hello World\n";
+  std::string expected_output = "Hello World";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -46,7 +46,7 @@ TEST_F(ReplTest, BasicPrintFunctionStringBasicOperation) {
 TEST_F(ReplTest, BasicPrintFunctionComparisionBasicOperation) {
   std::string input = R"({ print(2 < 3) })";
 
-  std::string expected_output = "true\n";
+  std::string expected_output = "true";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 

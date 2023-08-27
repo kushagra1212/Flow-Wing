@@ -25,15 +25,27 @@ llvm::Function *createPrintFunction(llvm::Module *module) {
   llvm::IRBuilder<> builder(context);
   builder.SetInsertPoint(entryBlock);
 
-  //  argument using puts
+  // argument using printf
   llvm::Value *arg = printFunc->arg_begin();
-  llvm::FunctionType *putsFuncType = llvm::FunctionType::get(
+  llvm::FunctionType *printfFuncType = llvm::FunctionType::get(
       llvm::Type::getInt32Ty(context),
-      {llvm::Type::getInt8PtrTy(context)}, // Argument type for puts
-      false);
-  llvm::Function *putsFunc = llvm::Function::Create(
-      putsFuncType, llvm::Function::ExternalLinkage, "puts", module);
-  builder.CreateCall(putsFunc, {arg});
+      {llvm::Type::getInt8PtrTy(context)}, // Argument type for printf
+      true);                               // Variadic function
+  llvm::Function *printfFunc = llvm::Function::Create(
+      printfFuncType, llvm::Function::ExternalLinkage, "printf", module);
+
+  // Create format string constant
+  llvm::Constant *formatStr = llvm::ConstantDataArray::getString(context, "%s");
+  llvm::GlobalVariable *formatStrGlobal = new llvm::GlobalVariable(
+      *module, formatStr->getType(), true, llvm::GlobalValue::PrivateLinkage,
+      formatStr, ".str");
+
+  llvm::Value *formatStrPtr =
+      builder.CreateBitCast(formatStrGlobal, llvm::Type::getInt8PtrTy(context));
+
+  // Call printf
+  llvm::Value *args[] = {formatStrPtr, arg};
+  builder.CreateCall(printfFunc, args);
   builder.CreateRetVoid();
 
   return printFunc;

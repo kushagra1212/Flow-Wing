@@ -9,7 +9,7 @@ TEST_F(ReplTest, BasicWhileLoop) {
         print(x)
     )";
 
-  std::string expected_output = "5\n";
+  std::string expected_output = "5";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -29,7 +29,7 @@ TEST_F(ReplTest, BasicWhileLoopWithIf) {
         print(x)
     )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -47,7 +47,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrint) {
         }
     )";
 
-  std::string expected_output = "0\n1\n2\n3\n4\n";
+  std::string expected_output = "01234";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -70,7 +70,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndIf) {
         }
     )";
 
-  std::string expected_output = "0\n2\n4\n";
+  std::string expected_output = "024";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -98,7 +98,7 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndNestedIfElse) {
         }
     )";
 
-  std::string expected_output = "0\n3\n4\n";
+  std::string expected_output = "034";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -121,8 +121,8 @@ TEST_F(ReplTest, BasicWhileLoopWithPrintAndNestedWhileLoop) {
         }
     )";
 
-  std::string expected_output = "0\n0\n1\n2\n3\n4\n1\n0\n1\n2\n3\n4\n2\n0\n1\n2"
-                                "\n3\n4\n3\n0\n1\n2\n3\n4\n4\n0\n1\n2\n3\n4\n";
+  std::string expected_output = "0012341012342012"
+                                "34301234401234";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -167,10 +167,10 @@ print("Constant value:"+ constantValue)
     )";
 
   std::string expected_output =
-      "While Loop - Default:0\nWhile Loop - x is 3:3\nWhile Loop - "
-      "Default:4\nIf-Else - Greater than 5 or less than 0\nIf-Else - Less than "
-      "5 and greater than 0\n"
-      "Constant value:42\n";
+      "While Loop - Default:0While Loop - x is 3:3While Loop - "
+      "Default:4If-Else - Greater than 5 or less than 0If-Else - Less than "
+      "5 and greater than 0"
+      "Constant value:42";
   std::string capturedOutput = runReplWithInputPrint(input);
 
   ASSERT_EQ(capturedOutput, expected_output);
@@ -190,7 +190,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreak) {
 
     )";
 
-  std::string expected_output = "1\n";
+  std::string expected_output = "1";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -211,7 +211,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreakAndIf) {
 
     )";
 
-  std::string expected_output = "5\n";
+  std::string expected_output = "5";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -238,7 +238,7 @@ TEST_F(ReplTest, BasicWhileLoopWithBreakAndIfElse) {
 
     )";
 
-  std::string expected_output = "2\n5\n7\n";
+  std::string expected_output = "257";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -259,7 +259,7 @@ TEST_F(ReplTest, BasicWhileLoopNumber1to5Break) {
 
     )";
 
-  std::string expected_output = "1\n2\n3\n4\n5\n";
+  std::string expected_output = "12345";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -284,7 +284,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak) {
 
     )";
 
-  std::string expected_output = "1\n2\n3\n";
+  std::string expected_output = "123";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -307,7 +307,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak2) {
 
     )";
 
-  std::string expected_output = "1\n2\n";
+  std::string expected_output = "12";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -331,7 +331,7 @@ TEST_F(ReplTest, BasicWhileLoopNestedBreak3) {
 
     )";
 
-  std::string expected_output = "0\n0\n0\n";
+  std::string expected_output = "000";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -354,7 +354,7 @@ TEST_F(ReplTest, BasicWhileLoopContinue) {
 
     )";
 
-  std::string expected_output = "1\n2\n4\n5\n";
+  std::string expected_output = "1245";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -378,7 +378,7 @@ TEST_F(ReplTest, BasicWhileLoopContinue2) {
 
     )";
 
-  std::string expected_output = "1\n1\n2\n2\n3\n4\n4\n5\n5\n";
+  std::string expected_output = "112234455";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -412,7 +412,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueNested) {
 
     )";
 
-  std::string expected_output = "1\n2\n3\n4\n";
+  std::string expected_output = "1234";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -438,7 +438,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreak) {
 
     )";
 
-  std::string expected_output = "1\n2\n4\n";
+  std::string expected_output = "124";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -478,7 +478,7 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreakNested) {
 
     )";
 
-  std::string expected_output = "1\n0\n2\n3\n4\n2\n0\n2\n3\n4\n4\n";
+  std::string expected_output = "10234202344";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -496,21 +496,21 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreakNestedBreakContinue) {
             if(x==3){
                 continue
             }
-            print(x)
+            print(x+"\n")
             if(x==4){
                 break
             }
             var y = 0
             while(y<5) {
                 if(y==0) {
-                    print(0) 
+                    print("ZERO"+"\n") 
                 }or if(y==1){
                     y=y+1
                     continue
                 }or if(y==2) {
-                    print(2)
+                    print(2+"\n")
                 }else{
-                    print(y);
+                    print(y+"\n");
                 }
                 y=y+1
                 if(y==4){
@@ -521,11 +521,11 @@ TEST_F(ReplTest, BasicWhileLoopContinueBreakNestedBreakContinue) {
     )";
 
   std::string expected_output = R"(1
-0
+ZERO
 2
 3
 2
-0
+ZERO
 2
 3
 4
@@ -549,7 +549,7 @@ TEST_F(ReplTest, BasicWhileLoopFactorial) {
         print(factorial)
     )";
 
-  std::string expected_output = "120\n";
+  std::string expected_output = "120";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -581,7 +581,7 @@ while (current <= num) {
 print(factorial)
     )";
 
-  std::string expected_output = "120\n";
+  std::string expected_output = "120";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 

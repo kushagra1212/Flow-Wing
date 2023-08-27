@@ -10,7 +10,7 @@
 
 TEST_F(ReplTest, BasicDoubleOperationAddition) {
   std::string input = "1.0+1.0";
-  std::string expected_output = "2.000000\n";
+  std::string expected_output = "2.000000";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -19,7 +19,7 @@ TEST_F(ReplTest, BasicDoubleOperationAddition) {
 
 TEST_F(ReplTest, BasicDoubleOperationSubtraction) {
   std::string input = "1.0-1.0";
-  std::string expected_output = "0.000000\n";
+  std::string expected_output = "0.000000";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -28,7 +28,7 @@ TEST_F(ReplTest, BasicDoubleOperationSubtraction) {
 
 TEST_F(ReplTest, BasicDoubleOperationMultiplication) {
   std::string input = "1.0*1.0";
-  std::string expected_output = "1.000000\n";
+  std::string expected_output = "1.000000";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -37,7 +37,7 @@ TEST_F(ReplTest, BasicDoubleOperationMultiplication) {
 
 TEST_F(ReplTest, BasicDoubleOperationDivision) {
   std::string input = "1.0/1.0";
-  std::string expected_output = "1.000000\n";
+  std::string expected_output = "1.000000";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -48,7 +48,7 @@ TEST_F(ReplTest, BasicDoubleOperationDivision) {
 
 TEST_F(ReplTest, BasicDoubleOperationLessThan) {
   std::string input = "1.0<1.0";
-  std::string expected_output = "false\n";
+  std::string expected_output = "false";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -57,7 +57,7 @@ TEST_F(ReplTest, BasicDoubleOperationLessThan) {
 
 TEST_F(ReplTest, BasicDoubleOperationLessThanOrEqual) {
   std::string input = "1.0<=1.0";
-  std::string expected_output = "true\n";
+  std::string expected_output = "true";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -68,7 +68,7 @@ TEST_F(ReplTest, BasicDoubleOperationLessThanOrEqual) {
 
 TEST_F(ReplTest, BasicDoubleOperationEqual) {
   std::string input = "1.0==1.0";
-  std::string expected_output = "true\n";
+  std::string expected_output = "true";
 
   std::string output = runReplWithInputPrint(input);
 
@@ -77,7 +77,7 @@ TEST_F(ReplTest, BasicDoubleOperationEqual) {
 
 TEST_F(ReplTest, BasicDoubleOperationNotEqual) {
   std::string input = "1.0!=1.0";
-  std::string expected_output = "false\n";
+  std::string expected_output = "false";
 
   std::string output = runReplWithInputPrint(input);
 

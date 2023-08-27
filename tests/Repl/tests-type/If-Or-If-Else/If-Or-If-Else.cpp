@@ -24,7 +24,7 @@ TEST_F(ReplTest, BasicIfRRepl) {
        }
    )";
 
-  std::string expected_output = "5\n";
+  std::string expected_output = "5";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -40,7 +40,7 @@ TEST_F(ReplTest, BasicIfElseRepl) {
        }
    )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string capturedOutput = runReplWithInputPrint(input);
 
@@ -58,7 +58,7 @@ TEST_F(ReplTest, BasicIfElseWithDifferentConditionRepl) {
        }
    )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -94,7 +94,7 @@ TEST_F(ReplTest, BasicNestedIfElseRepl) {
        }
    )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -115,7 +115,7 @@ TEST_F(ReplTest, BasicNestedIfElseWithDifferentConditionRepl) {
        }
    )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -129,7 +129,7 @@ TEST_F(ReplTest, BasicIfElseRepl2) {
         }
     )";
 
-  std::string expected_output = "5\n";
+  std::string expected_output = "5";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -146,7 +146,7 @@ TEST_F(ReplTest, BasicOrIfRepl) {
         }
     )";
 
-  std::string expected_output = "5\n";
+  std::string expected_output = "5";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -161,7 +161,7 @@ TEST_F(ReplTest, BasicElseRepl) {
         }
     )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -182,7 +182,7 @@ TEST_F(ReplTest, NestedIfElseOrIfRepl) {
         }
     )";
 
-  std::string expected_output = "7\n";
+  std::string expected_output = "7";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -201,7 +201,7 @@ TEST_F(ReplTest, MultipleOrIfRepl) {
         }
     )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -222,7 +222,7 @@ TEST_F(ReplTest, NestedOrIfElseRepl) {
         }
     )";
 
-  std::string expected_output = "6\n";
+  std::string expected_output = "6";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -246,7 +246,7 @@ TEST_F(ReplTest, ComplexNestedIfOrIfElseRepl) {
         }
     )";
 
-  std::string expected_output = "15\n";
+  std::string expected_output = "15";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -269,7 +269,7 @@ TEST_F(ReplTest, ComplexOrIfElseRepl) {
         }
     )";
 
-  std::string expected_output = "30\n";
+  std::string expected_output = "30";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
@@ -294,7 +294,7 @@ TEST_F(ReplTest, ComplexNestedOrIfElseRepl) {
         }
     )";
 
-  std::string expected_output = "35\n";
+  std::string expected_output = "35";
 
   std::string output = runReplWithInputPrint(input);
   EXPECT_EQ(output, expected_output);
