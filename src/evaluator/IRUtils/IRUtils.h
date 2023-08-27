@@ -125,11 +125,13 @@ llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,
     BoundBinaryExpression *binaryExpression);
-llvm::Value *getBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder);
+llvm::Value *getBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                           llvm::LLVMContext *TheContext);
 llvm::Value *isBreakCountZero(llvm::Module *TheModule,
                               llvm::IRBuilder<> *Builder,
                               llvm::LLVMContext *TheContext);
-llvm::Value *getGlobalZero(llvm::Module *TheModule, llvm::IRBuilder<> *Builder);
+llvm::Value *getGlobalZero(llvm::Module *TheModule, llvm::IRBuilder<> *Builders,
+                           llvm::LLVMContext *TheContext);
 void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                          llvm::LLVMContext *TheContext);
 void decrementBrekCountIfNotZero(llvm::Module *TheModule,
@@ -138,7 +140,8 @@ void decrementBrekCountIfNotZero(llvm::Module *TheModule,
 
 // Continue Keyword
 llvm::Value *getContinueCount(llvm::Module *TheModule,
-                              llvm::IRBuilder<> *Builder);
+                              llvm::IRBuilder<> *Builder,
+                              llvm::LLVMContext *TheContext);
 llvm::Value *isContinueCountZero(llvm::Module *TheModule,
                                  llvm::IRBuilder<> *Builder,
                                  llvm::LLVMContext *TheContext);

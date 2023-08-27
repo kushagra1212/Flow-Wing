@@ -299,11 +299,12 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   if (functionName == Utils::BuiltInFunctions::print.name) {
     if (arguments_size == 1) {
 
-      llvm::Value *globalStrPtr = this->generateEvaluateExpressionStatement(
+      llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      IRUtils::printFunction(globalStrPtr, TheModule.get(), Builder.get(),
+      IRUtils::printFunction(strPtri8, TheModule.get(), Builder.get(),
                              TheContext.get());
+
       return this->getNull();
     }
 
