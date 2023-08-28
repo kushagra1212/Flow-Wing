@@ -69,10 +69,11 @@ private:
 public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
   std::vector<std::string> logs;
+  std::unique_ptr<Lexer> lexer;
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
   Parser(const std::vector<std::string> &text);
-  std::unique_ptr<Lexer> lexer;
+
   ~Parser();
 };
 #endif

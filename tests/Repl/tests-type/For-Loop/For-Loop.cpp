@@ -1,94 +1,74 @@
 #include "For-Loop.h"
 
+ForLoopReplTest::ForLoopReplTest() { repl = std::make_unique<Repl>(true); }
+
+void ForLoopReplTest::SetUp() {}
+
+void ForLoopReplTest::TearDown() {}
+
+std::string ForLoopReplTest::runReplWithInput(const std::string &input) {
+
+  cout_backup = std::cout.rdbuf();
+  std::cout.rdbuf(captured_output.rdbuf());
+  repl->addTextString(input);
+  repl->runForTest(std::cin, std::cout);
+  std::cout.rdbuf(cout_backup);
+
+  return captured_output.str();
+}
+std::string ForLoopReplTest::runReplWithInputPrint(std::string input) {
+  testing::internal::CaptureStdout();
+
+  repl->addTextString(input);
+  repl->runForTest(std::cin, std::cout);
+  repl.reset();
+  return testing::internal::GetCapturedStdout();
+}
+
 // Basic for loop
-
-TEST_F(ReplTest, BasicForLoop) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, BasicForLoop) {
+  std::string input = R"(for var i = 0 to 5 { print(i) })";
   std::string expected_output = "012345";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // Basic for loop without declaration
-
-TEST_F(ReplTest, BasicForLoopWithoutDeclaration) {
-  std::string input = R"(
-       var i = 0
-       for i to 5 {
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, BasicForLoopWithoutDeclaration) {
+  std::string input = R"(var i = 0 for i to 5 { print(i) })";
   std::string expected_output = "000000";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // Basic for loop with Bracket
-
-TEST_F(ReplTest, BasicForLoopWithBracket) {
-  std::string input = R"(
-       for (var i = 0 to 5) {
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, BasicForLoopWithBracket) {
+  std::string input = R"(for (var i = 0 to 5) { print(i) })";
   std::string expected_output = "012345";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // For loop with step
-
-TEST_F(ReplTest, ForLoopWithStep) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithStep) {
+  std::string input = R"(for var i = 0 to 5 : 2 { print(i) })";
   std::string expected_output = "024";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // For loop with negative step
-
-TEST_F(ReplTest, ForLoopWithNegativeStep) {
-  std::string input = R"(
-       for var i = 5 to 0 : -2 {
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithNegativeStep) {
+  std::string input = R"(for var i = 5 to 0 : -2 { print(i) })";
   std::string expected_output = "531";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // For loop with  step and negative start value
 
-TEST_F(ReplTest, ForLoopWithNegativeStepAndNegativeStartValue) {
-  std::string input = R"(
-       for var i = -5 to 0 : 2 {
-            print(i)
-       }
-    )";
+TEST_F(ForLoopReplTest, ForLoopWithNegativeStepAndNegativeStartValue) {
+  std::string input = R"(for var i = -5 to 0 : 2 { print(i) })";
 
   std::string expected_output = "-5-3-1";
 
@@ -100,278 +80,125 @@ TEST_F(ReplTest, ForLoopWithNegativeStepAndNegativeStartValue) {
 // continue keyword (For Loop)
 
 // for loop without step with continue keyword
-
-TEST_F(ReplTest, ForLoopWithoutStepWithContinueKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                continue
-            }
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithoutStepWithContinueKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { continue } print(i) })";
   std::string expected_output = "01245";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // for with step with continue keyword
-
-TEST_F(ReplTest, ForLoopWithStepWithContinueKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                continue
-            }
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithStepWithContinueKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { continue } print(i) })";
   std::string expected_output = "04";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for without step,  with loop variable and continue keyword
-
-TEST_F(ReplTest, ForLoopWithoutStepWithLoopVariableAndContinueKeyword) {
-  std::string input = R"(
-    
-       for var i = 0 to 5 {
-            if i == 3 {
-                continue
-            }
-            print(i)
-       }
-    )";
-
+// for without step, with loop variable and continue keyword
+TEST_F(ForLoopReplTest, ForLoopWithoutStepWithLoopVariableAndContinueKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { continue } print(i) })";
   std::string expected_output = "01245";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for with step,  with loop variable and continue keyword
-
-TEST_F(ReplTest, ForLoopWithStepWithLoopVariableAndContinueKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                continue
-            }
-            print(i)
-       }
-    )";
-
+// for with step, with loop variable and continue keyword
+TEST_F(ForLoopReplTest, ForLoopWithStepWithLoopVariableAndContinueKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { continue } print(i) })";
   std::string expected_output = "04";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // break keyword (For Loop)
 
 // for without step with break keyword
-
-TEST_F(ReplTest, ForLoopWithoutStepWithBreakKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                break
-            }
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithoutStepWithBreakKeyword) {
+  std::string input = R"(for var i = 0 to 5 { if i == 3 { break } print(i) })";
   std::string expected_output = "012";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // for with step with break keyword
-
-TEST_F(ReplTest, ForLoopWithStepWithBreakKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                break
-            }
-            print(i)
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithStepWithBreakKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { break } print(i) })";
   std::string expected_output = "0";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for without step,  with loop variable and break keyword
-
-TEST_F(ReplTest, ForLoopWithoutStepWithLoopVariableAndBreakKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                break
-            }
-            print(i)
-       }
-    )";
-
+// for without step, with loop variable and break keyword
+TEST_F(ForLoopReplTest, ForLoopWithoutStepWithLoopVariableAndBreakKeyword) {
+  std::string input = R"(for var i = 0 to 5 { if i == 3 { break } print(i) })";
   std::string expected_output = "012";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for with step,  with loop variable and break keyword
-
-TEST_F(ReplTest, ForLoopWithStepWithLoopVariableAndBreakKeyword) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                break
-            }
-            print(i)
-       }
-    )";
-
+// for with step, with loop variable and break keyword
+TEST_F(ForLoopReplTest, ForLoopWithStepWithLoopVariableAndBreakKeyword) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { break } print(i) })";
   std::string expected_output = "0";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// if ,or if, else (For Loop)
-
-// for without step with break keyword and if , or if, else statement
-
-TEST_F(ReplTest, ForLoopWithoutStepWithBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                break
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
-
+// if, or if, else (For Loop)
+// for without step with break keyword and if, or if, else statement
+TEST_F(ForLoopReplTest,
+       ForLoopWithoutStepWithBreakKeywordAndIfOrIfElseStatement) {
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { break } or if i == 2 { print(i) } else { print(i) } })";
   std::string expected_output = "012";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for without step with break keyword and if , or if, else statement with
+// for without step with break keyword and if, or if, else statement with
 // bracket
-
-TEST_F(ReplTest,
+TEST_F(ForLoopReplTest,
        ForLoopWithoutStepWithBreakKeywordAndIfOrIfElseStatementWithBracket) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                break
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
-
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { break } or if i == 2 { print(i) } else { print(i) } })";
   std::string expected_output = "012";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // for with step with break keyword and if or if else
-
-TEST_F(ReplTest, ForLoopWithStepWithBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                break
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
-
+TEST_F(ForLoopReplTest, ForLoopWithStepWithBreakKeywordAndIfOrIfElseStatement) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { break } or if i == 2 { print(i) } else { print(i) } })";
   std::string expected_output = "0";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for without step,  with loop variable and break keyword and if or if else
-
+// for without step, with loop variable and break keyword and if or if else
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     ForLoopWithoutStepWithLoopVariableAndBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                break
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
-
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { break } or if i == 2 { print(i) } else { print(i) } })";
   std::string expected_output = "012";
-
   std::string capturedOutput = runReplWithInputPrint(input);
-
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
 // for without step with continue keyword and if or if else
 
-TEST_F(ReplTest, ForLoopWithoutStepWithContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                continue
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
+TEST_F(ForLoopReplTest,
+       ForLoopWithoutStepWithContinueKeywordAndIfOrIfElseStatement) {
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { continue } or if i == 2 { print(i) } else { print(i) } })";
 
   std::string expected_output = "01245";
 
@@ -382,20 +209,10 @@ TEST_F(ReplTest, ForLoopWithoutStepWithContinueKeywordAndIfOrIfElseStatement) {
 
 // for with step with continue keyword and if or if else
 
-TEST_F(ReplTest, ForLoopWithStepWithContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                continue
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
+TEST_F(ForLoopReplTest,
+       ForLoopWithStepWithContinueKeywordAndIfOrIfElseStatement) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { continue } or if i == 2 { print(i) } else { print(i) } })";
 
   std::string expected_output = "04";
 
@@ -404,24 +221,13 @@ TEST_F(ReplTest, ForLoopWithStepWithContinueKeywordAndIfOrIfElseStatement) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for without step,  with loop variable and continue keyword and if or if else
+// for without step, with loop variable and continue keyword and if or if else
 
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     ForLoopWithoutStepWithLoopVariableAndContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            if i == 3 {
-                continue
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 { if i == 3 { continue } or if i == 2 { print(i) } else { print(i) } })";
 
   std::string expected_output = "01245";
 
@@ -430,24 +236,13 @@ TEST_F(
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// for with step,  with loop variable and continue keyword and if or if else
+// for with step, with loop variable and continue keyword and if or if else
 
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     ForLoopWithStepWithLoopVariableAndContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            if i == 2 {
-                continue
-            }
-            or if i == 2 {
-                print(i)
-            }
-            else {
-                print(i)
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { if i == 2 { continue } or if i == 2 { print(i) } else { print(i) } })";
 
   std::string expected_output = "04";
 
@@ -460,23 +255,10 @@ TEST_F(
 
 // Nested for without step with break keyword and if or if else
 
-TEST_F(ReplTest,
+TEST_F(ForLoopReplTest,
        NestedForLoopWithoutStepWithBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            for var j = 0 to 5 {
-                if j == 3 {
-                    break
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 { for var j = 0 to 5 { if j == 3 { break } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "012012012012012012";
 
@@ -487,22 +269,10 @@ TEST_F(ReplTest,
 
 // Nested for with step with break keyword and if or if else
 
-TEST_F(ReplTest, NestedForLoopWithStepWithBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            for var j = 0 to 5 : 2 {
-                if j == 2 {
-                    break
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+TEST_F(ForLoopReplTest,
+       NestedForLoopWithStepWithBreakKeywordAndIfOrIfElseStatement) {
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { for var j = 0 to 5 : 2 { if j == 2 { break } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "000";
 
@@ -511,27 +281,14 @@ TEST_F(ReplTest, NestedForLoopWithStepWithBreakKeywordAndIfOrIfElseStatement) {
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// Nested for without step,  with loop variable and break keyword and if or if
+// Nested for without step, with loop variable and break keyword and if or if
 // else
 
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     NestedForLoopWithoutStepWithLoopVariableAndBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            for var j = 0 to 5 {
-                if j == 3 {
-                    break
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 { for var j = 0 to 5 { if j == 3 { break } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "012012012012012012";
 
@@ -540,26 +297,13 @@ TEST_F(
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// Nested for with step,  with loop variable and break keyword and if or if else
+// Nested for with step, with loop variable and break keyword and if or if else
 
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     NestedForLoopWithStepWithLoopVariableAndBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            for var j = 0 to 5 : 2 {
-                if j == 2 {
-                    break
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { for var j = 0 to 5 : 2 { if j == 2 { break } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "000";
 
@@ -570,23 +314,10 @@ TEST_F(
 
 // Nested for without step with continue keyword and if or if else
 
-TEST_F(ReplTest,
+TEST_F(ForLoopReplTest,
        NestedForLoopWithoutStepWithContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            for var j = 0 to 5 {
-                if j == 3 {
-                    continue
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 { for var j = 0 to 5 { if j == 3 { continue } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "012450124501245012450124501245";
 
@@ -597,23 +328,10 @@ TEST_F(ReplTest,
 
 // Nested for with step with continue keyword and if or if else
 
-TEST_F(ReplTest,
+TEST_F(ForLoopReplTest,
        NestedForLoopWithStepWithContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            for var j = 0 to 5 : 2 {
-                if j == 2 {
-                    continue
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { for var j = 0 to 5 : 2 { if j == 2 { continue } or if j == 2 { print(j) } else { print(j) } } })";
 
   std::string expected_output = "040404";
 
@@ -622,30 +340,14 @@ TEST_F(ReplTest,
   ASSERT_EQ(capturedOutput, expected_output);
 }
 
-// Nested for and while with step,  with loop variable and continue keyword
+// Nested for and while with step, with loop variable and continue keyword
 // and if or if else
 
 TEST_F(
-    ReplTest,
+    ForLoopReplTest,
     NestedForAndWhileLoopWithStepWithLoopVariableAndContinueKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 : 2 {
-            var j = 0 
-            while j <= 5 {
-                if j == 2 {
-                    j = j + 2
-                    continue
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-                j = j + 2
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 : 2 { var j = 0 while j <= 5 { if j == 2 { j = j + 2 continue } or if j == 2 { print(j) } else { print(j) } j = j + 2 } })";
 
   std::string expected_output = "040404";
 
@@ -656,25 +358,10 @@ TEST_F(
 
 // Nested for and while without step with break keyword and if or if else
 
-TEST_F(ReplTest,
+TEST_F(ForLoopReplTest,
        NestedForAndWhileLoopWithoutStepWithBreakKeywordAndIfOrIfElseStatement) {
-  std::string input = R"(
-       for var i = 0 to 5 {
-            var j = 0 
-            while j <= 5 {
-                if j == 3 {
-                    break
-                }
-                or if j == 2 {
-                    print(j)
-                }
-                else {
-                    print(j)
-                }
-                j = j + 1
-            }
-       }
-    )";
+  std::string input =
+      R"(for var i = 0 to 5 { var j = 0 while j <= 5 { if j == 3 { break } or if j == 2 { print(j) } else { print(j) } j = j + 1 } })";
 
   std::string expected_output = "012012012012012012";
 

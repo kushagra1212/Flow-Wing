@@ -31,6 +31,9 @@ enum SyntaxKind {
   ColonToken,
   CommaToken,
   EndOfLineToken,
+  SlashHashToken,
+  HashSlashToken,
+  HashToken,
 
   // Bitwise
 
@@ -94,6 +97,7 @@ enum SyntaxKind {
   WhileStatement,
   ForStatement,
   ReturnStatement,
+  CommentStatement,
 
   FunctionDeclarationSyntax,
 

@@ -31,7 +31,7 @@ public:
   void toggleExit();
   // Data members
 
-  void addTextString(std::string textString);
+  void addTextString(const std::string &textString);
 
 private:
   bool showSyntaxTree, showBoundTree, exit;

@@ -178,6 +178,18 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ColonToken:
     return "ColonToken";
 
+  case SyntaxKind::SlashHashToken:
+    return "SlashHashToken";
+
+  case SyntaxKind::HashToken:
+    return "HashToken";
+
+  case SyntaxKind::HashSlashToken:
+    return "HashSlashToken";
+
+  case SyntaxKind::CommentStatement:
+    return "CommentStatement";
+
   default:
     return "NotDefined";
   }

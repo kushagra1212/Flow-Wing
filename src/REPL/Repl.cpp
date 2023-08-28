@@ -63,11 +63,9 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 2)
           break;
-
-        runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
-        continue;
+      } else {
+        emptyLines = 0;
       }
-      emptyLines = 0;
 
       text.push_back(line);
 
@@ -82,7 +80,6 @@ void Repl::runWithStream(std::istream &inputStream,
 
       if (compilationUnit->getLogs().size()) {
         runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
-
         continue;
       }
       break;
@@ -90,10 +87,15 @@ void Repl::runWithStream(std::istream &inputStream,
     if (!this->isTest && text == previous_lines) {
       continue;
     }
+
     if (!exit) {
 
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
+      }
+      if (compilationUnit->getLogs().size()) {
+        Utils::printErrors(compilationUnit->getLogs(), outputStream);
+        continue;
       }
       compileAndEvaluate(outputStream, std::move(compilationUnit));
     }
@@ -163,8 +165,9 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    // runIfNotInTest([&]() { _evaluator->printIR(); });
+    runIfNotInTest([&]() { _evaluator->printIR(); });
     _evaluator->executeGeneratedCode();
+
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }
@@ -177,7 +180,8 @@ void Repl::printWelcomeMessage(std::ostream &outputStream) {
                << "Type `:exit` to exit, `:cls` to clear the screen.\n";
 }
 
-void Repl::addTextString(std::string textString) {
+void Repl::addTextString(const std::string &textString) {
+
   this->text.push_back(textString);
 }
 

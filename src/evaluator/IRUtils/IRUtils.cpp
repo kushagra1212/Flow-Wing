@@ -131,7 +131,7 @@ void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
 
 void printFunction(llvm::Value *value, llvm::Module *TheModule,
                    llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext) {
-  if (llvm::isa<llvm::Instruction>(value)) {
+  if (value && llvm::isa<llvm::Instruction>(value)) {
     // The value is an instruction or a derived class of Instruction
     llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
     if (instruction->getType()->isIntegerTy(1)) {
@@ -146,7 +146,7 @@ void printFunction(llvm::Value *value, llvm::Module *TheModule,
 
       Builder->CreateCall(TheModule->getFunction("print"), Args);
     }
-  } else {
+  } else if (value) {
     llvm::ArrayRef<llvm::Value *> Args = {
         IRUtils::convertToString(value, Builder)};
 

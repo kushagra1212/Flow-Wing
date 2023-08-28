@@ -7,6 +7,7 @@ Parser::Parser(const std::vector<std::string> &text) {
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
+
   do {
 
     std::unique_ptr<SyntaxToken<std::any>> token =
@@ -14,12 +15,17 @@ Parser::Parser(const std::vector<std::string> &text) {
     _kind = token->getKind();
 
     if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
+
       this->logs.push_back(Utils::getLineNumberAndPosition(token.get()) +
-                           "ERROR: unexpected character <" + token->getText() +
+                           "ERROR: Unexpected Character <" + token->getText() +
                            ">");
     }
+
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
-        _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
+        _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken &&
+        _kind != SyntaxKindUtils::SyntaxKind::CommentStatement
+
+    ) {
       this->tokens.push_back(std::move(token));
     } else {
       token.reset();
@@ -33,11 +39,12 @@ Parser::Parser(const std::vector<std::string> &text) {
 }
 
 Parser::~Parser() {
+
   for (auto &token : this->tokens) {
     token.reset();
   }
+  lexer.reset();
 
-  this->lexer.reset();
   this->tokens.clear();
   this->logs.clear();
 }
@@ -54,14 +61,14 @@ SyntaxToken<std::any> *Parser::peek(int offset) {
 SyntaxToken<std::any> *Parser::getCurrent() { return this->peek(0); }
 
 std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
-  int pos = this->position;
-  this->position++;
-  if (pos >= this->tokens.size()) {
 
+  if (this->position == this->tokens.size()) {
     return std::unique_ptr<SyntaxToken<std::any>>(
         this->tokens[this->tokens.size() - 1].release());
+  } else {
+    return std::unique_ptr<SyntaxToken<std::any>>(
+        this->tokens[this->position++].release());
   }
-  return std::unique_ptr<SyntaxToken<std::any>>(this->tokens[pos].release());
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
@@ -71,19 +78,27 @@ Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   }
   this->logs.push_back(
       Utils::getLineNumberAndPosition(this->getCurrent()) +
-      "ERROR: unexpected token <" +
+      "ERROR: Unexpected Token <" +
       SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
-      ">, expected <" + SyntaxKindUtils::to_string(kind) + ">");
+      ">, Expected <" + SyntaxKindUtils::to_string(kind) + ">");
 
-  return std::make_unique<SyntaxToken<std::any>>(
-      this->getCurrent()->getLineNumber(),
-      SyntaxKindUtils::SyntaxKind::EndOfLineToken,
-      this->getCurrent()->getPosition(), "\0", 0);
+  if (this->getCurrent()->getKind() !=
+      SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+
+    return std::move(this->nextToken());
+  } else {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->getCurrent()->getLineNumber(),
+        SyntaxKindUtils::SyntaxKind::BadToken,
+        this->getCurrent()->getPosition(), this->getCurrent()->getText(),
+        this->getCurrent()->getValue());
+  }
 }
 bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
   return this->getCurrent()->getKind() == kind;
 }
 std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
+  this->logs = std::vector<std::string>();
   this->position = 0;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::make_unique<CompilationUnitSyntax>();
@@ -168,8 +183,6 @@ std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
          this->getCurrent()->getKind() !=
-             SyntaxKindUtils::SyntaxKind::EndOfLineToken &&
-         this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken
 
   ) {
@@ -189,6 +202,7 @@ std::unique_ptr<ExpressionStatementSyntax> Parser::parseExpressionStatement() {
       std::move(this->parseExpression());
   return std::make_unique<ExpressionStatementSyntax>(std::move(expression));
 }
+
 std::unique_ptr<StatementSyntax> Parser::parseStatement() {
   switch (this->getCurrent()->getKind()) {
   case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
@@ -208,9 +222,6 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseContinueStatement());
   case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
     return std::move(this->parseReturnStatement());
-  case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
-  case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
-    return nullptr;
   default:
     return std::move(this->parseExpressionStatement());
   }
@@ -382,7 +393,7 @@ Parser::parseExpression(int parentPrecedence) {
   if (unaryOperatorPrecedence != 0 &&
       unaryOperatorPrecedence >= parentPrecedence) {
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(this->nextToken());
+        std::move(this->match(this->getCurrent()->getKind()));
     std::unique_ptr<ExpressionSyntax> operand =
         std::move(this->parseExpression(unaryOperatorPrecedence));
     left = std::make_unique<UnaryExpressionSyntax>(std::move(operatorToken),
@@ -398,7 +409,7 @@ Parser::parseExpression(int parentPrecedence) {
     }
 
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(this->nextToken());
+        std::move(this->match(this->getCurrent()->getKind()));
 
     std::unique_ptr<ExpressionSyntax> right =
         std::move(this->parseExpression(precedence));
@@ -412,18 +423,23 @@ Parser::parseExpression(int parentPrecedence) {
 
 std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
   switch (this->getCurrent()->getKind()) {
-  case SyntaxKindUtils::OpenParenthesisToken: {
-    std::unique_ptr<SyntaxToken<std::any>> left = std::move(this->nextToken());
+  case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken: {
+
+    std::unique_ptr<SyntaxToken<std::any>> left = std::move(
+        this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
+
     std::unique_ptr<ExpressionSyntax> expression =
         std::move(this->parseExpression());
+
     std::unique_ptr<SyntaxToken<std::any>> right = std::move(
         this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
+
     return std::make_unique<ParenthesizedExpressionSyntax>(
         std::move(left), std::move(expression), std::move(right));
   }
-  case SyntaxKindUtils::NumberToken: {
+  case SyntaxKindUtils::SyntaxKind::NumberToken: {
     std::unique_ptr<SyntaxToken<std::any>> numberToken =
-        std::move(this->nextToken());
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
 
     std::any value = numberToken->getValue();
 
@@ -431,48 +447,56 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
         std::move(numberToken), value);
   }
 
-  case SyntaxKindUtils::StringToken: {
+  case SyntaxKindUtils::SyntaxKind::StringToken: {
     std::unique_ptr<SyntaxToken<std::any>> stringToken =
-        std::move(this->nextToken());
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::StringToken));
 
     std::any value = stringToken->getValue();
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
         std::move(stringToken), value);
   }
-  case SyntaxKindUtils::TrueKeyword:
-  case SyntaxKindUtils::FalseKeyword: {
-    std::unique_ptr<SyntaxToken<std::any>> keywordToken =
-        std::move(this->nextToken());
-    bool value =
-        keywordToken->getKind() == SyntaxKindUtils::SyntaxKind::TrueKeyword
-            ? true
-            : false;
+  case SyntaxKindUtils::SyntaxKind::TrueKeyword: {
+    std::unique_ptr<SyntaxToken<std::any>> trueKeywordToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::TrueKeyword));
+
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(keywordToken), value);
+        std::move(trueKeywordToken), true);
+  }
+  case SyntaxKindUtils::SyntaxKind::FalseKeyword: {
+    std::unique_ptr<SyntaxToken<std::any>> falseKeywordToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::FalseKeyword));
+
+    return std::make_unique<LiteralExpressionSyntax<std::any>>(
+        std::move(falseKeywordToken), false);
   }
   case SyntaxKindUtils::SyntaxKind::CommaToken: {
+
+    std::unique_ptr<SyntaxToken<std::any>> commaToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken));
+
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(this->nextToken()), ",");
+        std::move(commaToken), ",");
   }
   case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
     return std::move(this->parseNameorCallExpression());
   }
   default:
-    this->logs.push_back(
-        Utils::getLineNumberAndPosition(this->getCurrent()) +
-        "ERROR: unexpected token <" +
-        SyntaxKindUtils::to_string(this->getCurrent()->getKind()) + ">");
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(this->nextToken()), (int)0);
+    break;
   }
+
+  std::unique_ptr<SyntaxToken<std::any>> expressionToken =
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::ExpressionStatement));
+
+  return std::make_unique<LiteralExpressionSyntax<std::any>>(
+      std::move(expressionToken), nullptr);
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
   if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-        std::move(this->nextToken());
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(this->nextToken());
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
     std::unique_ptr<ExpressionSyntax> right =
         std::move(this->parseExpression());
 
@@ -518,7 +542,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
   } else {
 
     std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-        std::move(this->nextToken());
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
     std::any value = identifierToken->getValue();
 
