@@ -89,11 +89,13 @@ std::string getString(BoundExpression *node);
 std::string valueToString(llvm::Value *val);
 
 llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder);
-
+llvm::Value *addNewLineCharacter(llvm::Value *value, llvm::IRBuilder<> *Builder,
+                                 bool isNewLine);
 llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs,
                                 llvm::Module *TheModule,
                                 llvm::IRBuilder<> *Builder);
-
+llvm::Value *convertStringToi8Ptr(std::string stringValue,
+                                  llvm::IRBuilder<> *Builder);
 llvm::Type *getTypeFromAny(std::any value, llvm::LLVMContext *TheContext);
 
 bool isStringType(llvm::Type *type);
@@ -189,7 +191,8 @@ bool updateNamedValueAlloca(
         &NamedValuesAllocaStack);
 
 void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext);
+                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext,
+                   bool printNewline);
 
 llvm::Value *
 createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
@@ -210,6 +213,8 @@ handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
                        llvm::LLVMContext *TheContext, llvm::Module *TheModule
 
 );
+
+enum ENVIRONMENT { REPL, FILE };
 
 } // namespace IRUtils
 

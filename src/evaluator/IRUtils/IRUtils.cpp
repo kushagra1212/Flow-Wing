@@ -129,8 +129,23 @@ void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
   NamedValues[name] = value;
 }
 
+llvm::Value *addNewLineCharacter(llvm::Value *value, llvm::IRBuilder<> *Builder,
+                                 bool isNewLine) {
+  llvm::Value *i8Value = IRUtils::convertToString(value, Builder);
+
+  if (!isNewLine)
+    return i8Value;
+
+  std::string strValue = IRUtils::valueToString(i8Value);
+  strValue += '\n';
+
+  return IRUtils::convertStringToi8Ptr(strValue, Builder);
+}
+
 void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext) {
+                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext,
+                   bool isNewLine) {
+
   if (value && llvm::isa<llvm::Instruction>(value)) {
     // The value is an instruction or a derived class of Instruction
     llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
@@ -138,17 +153,19 @@ void printFunction(llvm::Value *value, llvm::Module *TheModule,
       llvm::Value *resultStr = Builder->CreateSelect(
           value, TheModule->getGlobalVariable("true_string"),
           TheModule->getGlobalVariable("false_string"));
-      Builder->CreateCall(TheModule->getFunction("print"), {resultStr});
+      Builder->CreateCall(TheModule->getFunction("print"),
+                          {resultStr, Builder->getInt1(isNewLine)});
     } else {
 
       llvm::ArrayRef<llvm::Value *> Args = {
-          IRUtils::convertToString(value, Builder)};
+          IRUtils::convertToString(value, Builder),
+          Builder->getInt1(isNewLine)};
 
       Builder->CreateCall(TheModule->getFunction("print"), Args);
     }
   } else if (value) {
     llvm::ArrayRef<llvm::Value *> Args = {
-        IRUtils::convertToString(value, Builder)};
+        IRUtils::convertToString(value, Builder), Builder->getInt1(isNewLine)};
 
     Builder->CreateCall(TheModule->getFunction("print"), Args);
   }
@@ -370,6 +387,20 @@ std::string valueToString(llvm::Value *val) {
   return rso.str();
 }
 
+llvm::Value *convertStringToi8Ptr(std::string stringValue,
+                                  llvm::IRBuilder<> *Builder) {
+  llvm::Constant *stringConstant =
+      llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
+  llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
+      *Builder->GetInsertBlock()->getParent()->getParent(),
+      stringConstant->getType(), true, llvm::GlobalValue::PrivateLinkage,
+      stringConstant);
+
+  llvm::Value *i8Ptr = Builder->CreateBitCast(
+      globalVar, llvm::Type::getInt8PtrTy(Builder->getContext()));
+  return i8Ptr;
+}
+
 llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   llvm::Type *type = val->getType();
 
@@ -387,16 +418,7 @@ llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder) {
 
   // Create a global constant string and return its pointer
   if (!stringValue.empty()) {
-    llvm::Constant *stringConstant =
-        llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *Builder->GetInsertBlock()->getParent()->getParent(),
-        stringConstant->getType(), true, llvm::GlobalValue::PrivateLinkage,
-        stringConstant);
-
-    llvm::Value *i8Ptr = Builder->CreateBitCast(
-        globalVar, llvm::Type::getInt8PtrTy(Builder->getContext()));
-    return i8Ptr;
+    return convertStringToi8Ptr(stringValue, Builder);
   }
 
   return nullptr; // Return nullptr for other types or unrecognized cases

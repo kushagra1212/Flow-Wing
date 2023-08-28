@@ -1,10 +1,11 @@
 #include "IRGenerator.h"
 
-IRGenerator::IRGenerator() {
+IRGenerator::IRGenerator(int environment) {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
+  _environment = environment;
 
   this->updateModule();
   llvm::InitializeNativeTarget();
@@ -303,7 +304,8 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
           (BoundExpression *)callExpression->getArguments()[0].get());
 
       IRUtils::printFunction(strPtri8, TheModule.get(), Builder.get(),
-                             TheContext.get());
+                             TheContext.get(),
+                             _environment == IRUtils::ENVIRONMENT::REPL);
 
       return this->getNull();
     }
@@ -510,7 +512,8 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
   if (returnValue != getNull()) {
     IRUtils::printFunction(returnValue, TheModule.get(), Builder.get(),
-                           TheContext.get());
+                           TheContext.get(),
+                           _environment == IRUtils::ENVIRONMENT::REPL);
   }
   Builder->CreateRetVoid();
 }
@@ -920,11 +923,12 @@ void IRGenerator::executeGeneratedCode() {
   std::vector<llvm::GenericValue> noArgs;
   try {
     resultValue = executionEngine->runFunction(evaluateBlockStatement, noArgs);
+
   } catch (const std::exception &e) {
     std::cerr << e.what();
   }
 
-  llvm::Type *returnType = evaluateBlockStatement->getReturnType();
+  // llvm::Type *returnType = evaluateBlockStatement->getReturnType();
 
   // if (returnType->isIntegerTy()) {
   //   if (returnType->getIntegerBitWidth() == 1) {

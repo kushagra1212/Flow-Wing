@@ -121,14 +121,13 @@ void Repl::compileAndEvaluate(
     return;
   }
   try {
-    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
+    std::unique_ptr<IRGenerator> _evaluator =
+        std::make_unique<IRGenerator>(IRUtils::ENVIRONMENT::REPL);
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    runIfNotInTest([&]() { _evaluator->printIR(); });
+    // runIfNotInTest([&]() { _evaluator->printIR(); });
 
     _evaluator->executeGeneratedCode();
-
-    std::cout << "\n";
 
     previous_lines = text;
 
@@ -162,7 +161,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   try {
-    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>();
+    std::unique_ptr<IRGenerator> _evaluator =
+        std::make_unique<IRGenerator>(IRUtils::ENVIRONMENT::FILE);
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
