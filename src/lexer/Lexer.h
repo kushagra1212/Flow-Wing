@@ -9,8 +9,8 @@ class Lexer {
 
 private:
   std::vector<std::string> text;
-  char endOfFile = '\0';
-  char endOfLine = '\r';
+  const char endOfFile = '\0';
+  const char endOfLine = '\r';
   size_t lineNumber;
   size_t position;
   size_t textSize = 0;

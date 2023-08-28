@@ -42,7 +42,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
                          e.what());
     return std::move(newSyntaxToken);
   }
-  double res = stod(text);
+  const double &res = stod(text);
 
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
@@ -62,7 +62,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
     return std::move(this->readDecimal(start));
   }
 
-  int length = this->position - start;
+  const size_t &length = this->position - start;
   std::string text = this->text[lineNumber].substr(start, length);
   try {
     if (SyntaxKindUtils::isInt64(text) == false) {
@@ -79,7 +79,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
                          e.what());
     return std::move(newSyntaxToken);
   }
-  int resInt = stoi(text);
+  const int &resInt = stoi(text);
 
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
@@ -87,12 +87,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
-  int start = this->position;
+  const int start = this->position;
   while (isalnum(this->getCurrent())) {
     this->next();
   }
-  int length = this->position - start;
-  std::string text = this->text[lineNumber].substr(start, length);
+  const int length = this->position - start;
+  const std::string text = this->text[lineNumber].substr(start, length);
   if (text == "true") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::TrueKeyword, start, text,
