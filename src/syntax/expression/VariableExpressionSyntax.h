@@ -12,10 +12,8 @@ public:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> getIdentifier();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIdentifierPtr();
 };

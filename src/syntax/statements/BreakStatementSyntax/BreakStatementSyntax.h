@@ -15,10 +15,8 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getBreakKeyword();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getBreakKeywordPtr();
 };

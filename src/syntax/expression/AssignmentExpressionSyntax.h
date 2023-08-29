@@ -16,20 +16,14 @@ public:
       std::unique_ptr<ExpressionSyntax> right);
 
   std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
-
   std::unique_ptr<ExpressionSyntax> getRight();
-
   std::unique_ptr<LiteralExpressionSyntax<std::any>> getLeft();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
-
   std::unique_ptr<ExpressionSyntax> &getRightPtr();
-
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &getLeftPtr();
 };

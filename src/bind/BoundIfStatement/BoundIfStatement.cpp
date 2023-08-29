@@ -1,8 +1,8 @@
 #include "BoundIfStatement.h"
 
-BoundIfStatement::BoundIfStatement(std::string lineAndColumn) {
-  this->_lineAndColumn = lineAndColumn;
-}
+BoundIfStatement::BoundIfStatement(
+    const DiagnosticUtils::SourceLocation &location)
+    : BoundSourceLocation(location) {}
 
 std::unique_ptr<BoundExpression> BoundIfStatement::getCondition() {
   return std::move(_condition);
@@ -18,10 +18,6 @@ std::unique_ptr<BoundStatement> BoundIfStatement::getElseStatement() {
 BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::IfStatement;
-}
-
-std::string BoundIfStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundIfStatement::getChildren() {

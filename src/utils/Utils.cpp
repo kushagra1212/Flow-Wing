@@ -103,10 +103,6 @@ void Utils::prettyPrint(BoundStatement *statement, std::string indent,
   }
 }
 
-std::string Utils::getLineNumberAndPosition(SyntaxToken<std::any> *token) {
-  return "line " + std::to_string(token->getLineNumber() + 1) + ":" +
-         std::to_string(token->getPosition() + 1) + " ";
-}
 std::string Utils::convertAnyToString(std::any value) {
   if (value.type() == typeid(std::string)) {
     return std::any_cast<std::string>(value);
@@ -157,4 +153,10 @@ const std::string Utils::concatErrors(const std::vector<std::string> &errors,
     res += error + "\n";
   }
   return res;
+}
+
+DiagnosticUtils::SourceLocation
+Utils::getSourceLocation(SyntaxToken<std::any> *token) {
+  return DiagnosticUtils::SourceLocation(token->getLineNumber(),
+                                         token->getColumnNumber());
 }

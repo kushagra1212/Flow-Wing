@@ -2,9 +2,9 @@
 
 BoundVariableDeclaration::BoundVariableDeclaration(
 
-    std::string lineAndColumn, std::string variable, bool isConst,
-    std::unique_ptr<BoundExpression> initializer) {
-  this->_lineAndColumn = lineAndColumn;
+    const DiagnosticUtils::SourceLocation &location, std::string variable,
+    bool isConst, std::unique_ptr<BoundExpression> initializer)
+    : BoundSourceLocation(location) {
   this->_variable = variable;
   this->_isConst = isConst;
   this->_initializer = std::move(initializer);
@@ -25,10 +25,6 @@ bool BoundVariableDeclaration::isConst() const { return _isConst; }
 
 std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
   return this->_children;
-}
-
-std::string BoundVariableDeclaration::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &

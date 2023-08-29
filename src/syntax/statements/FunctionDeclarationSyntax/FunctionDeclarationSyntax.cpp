@@ -33,8 +33,9 @@ SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
-std::string FunctionDeclarationSyntax::getLineNumberAndColumn() {
-  return _functionKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+FunctionDeclarationSyntax::getSourceLocation() const {
+  return _functionKeyword->getSourceLocation();
 }
 
 std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {

@@ -37,9 +37,11 @@ template <typename T>
 std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
   return this->_children;
 }
+
 template <typename T>
-std::string LiteralExpressionSyntax<T>::getLineNumberAndColumn() {
-  return this->_token->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+LiteralExpressionSyntax<T>::getSourceLocation() const {
+  return this->_token->getSourceLocation();
 }
 
 template <typename T>

@@ -30,15 +30,12 @@ public:
   void addElseClause(std::unique_ptr<ElseClauseSyntax> elseClause);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
   std::unique_ptr<ExpressionSyntax> &getConditionPtr();
   std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
   std::unique_ptr<ElseClauseSyntax> &getElseClausePtr();
-
   std::vector<std::unique_ptr<OrIfStatementSyntax>> &getOrIfStatementsPtr();
 };

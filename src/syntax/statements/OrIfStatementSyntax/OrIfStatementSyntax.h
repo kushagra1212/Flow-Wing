@@ -24,10 +24,8 @@ public:
   std::unique_ptr<BlockStatementSyntax> getStatement();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOrKeywordPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();

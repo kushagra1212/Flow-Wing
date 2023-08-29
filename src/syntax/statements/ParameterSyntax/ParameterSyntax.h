@@ -8,7 +8,6 @@
 #include "../../SyntaxToken.h"
 
 class ParameterSyntax : public SyntaxNode {
-
 private:
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
 
@@ -18,10 +17,8 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };

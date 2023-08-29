@@ -37,8 +37,9 @@ std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-std::string ParenthesizedExpressionSyntax::getLineNumberAndColumn() {
-  return this->_openParenthesisToken->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+ParenthesizedExpressionSyntax::getSourceLocation() const {
+  return this->_openParenthesisToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

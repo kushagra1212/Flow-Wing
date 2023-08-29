@@ -19,8 +19,9 @@ std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string GlobalStatementSyntax::getLineNumberAndColumn() {
-  return _statement->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+GlobalStatementSyntax::getSourceLocation() const {
+  return _statement->getSourceLocation();
 }
 
 std::unique_ptr<StatementSyntax> &GlobalStatementSyntax::getStatementPtr() {

@@ -38,8 +38,8 @@ SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::OrIfStatement;
 }
 
-std::string OrIfStatementSyntax::getLineNumberAndColumn() {
-  return orKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation OrIfStatementSyntax::getSourceLocation() const {
+  return this->ifKeyword->getSourceLocation();
 }
 
 std::vector<SyntaxNode *> OrIfStatementSyntax::getChildren() {

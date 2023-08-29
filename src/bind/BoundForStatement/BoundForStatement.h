@@ -4,10 +4,11 @@
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
-class BoundForStatement : public BoundStatement {
+class BoundForStatement : public BoundStatement, public BoundSourceLocation {
 
 private:
   std::unique_ptr<BoundStatement> _initialization;
@@ -19,7 +20,7 @@ private:
   std::unique_ptr<BoundExpression> _boundStepExpression;
 
 public:
-  BoundForStatement(std::string lineAndColumn,
+  BoundForStatement(const DiagnosticUtils::SourceLocation &location,
                     std::unique_ptr<BoundStatement> initialization,
                     std::unique_ptr<BoundExpression> upperBound,
                     std::unique_ptr<BoundExpression> boundStepExpression,
@@ -33,11 +34,9 @@ public:
 
   std::unique_ptr<BoundExpression> getStepExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 
   std::unique_ptr<BoundStatement> &getInitializationPtr();
 

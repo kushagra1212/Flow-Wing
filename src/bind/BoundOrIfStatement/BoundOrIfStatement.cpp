@@ -1,9 +1,10 @@
 #include "BoundOrIfStatement.h"
 
 BoundOrIfStatement::BoundOrIfStatement(
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> condition,
-    std::unique_ptr<BoundStatement> thenStatement) {
-  this->_lineAndColumn = lineAndColumn;
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> condition,
+    std::unique_ptr<BoundStatement> thenStatement)
+    : BoundSourceLocation(location) {
   this->_condition = std::move(condition);
   this->_thenStatement = std::move(thenStatement);
 
@@ -23,11 +24,6 @@ BinderKindUtils::BoundNodeKind BoundOrIfStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::OrIfStatement;
 }
-
-std::string BoundOrIfStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
-}
-
 std::vector<BoundNode *> BoundOrIfStatement::getChildren() {
   return this->_children;
 }

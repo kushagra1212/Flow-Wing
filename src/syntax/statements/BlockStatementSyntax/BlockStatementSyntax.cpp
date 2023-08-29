@@ -48,8 +48,9 @@ std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string BlockStatementSyntax::getLineNumberAndColumn() {
-  return this->_openBraceToken->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+BlockStatementSyntax::getSourceLocation() const {
+  return this->_openBraceToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

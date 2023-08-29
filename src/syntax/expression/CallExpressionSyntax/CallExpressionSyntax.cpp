@@ -57,8 +57,9 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-std::string CallExpressionSyntax::getLineNumberAndColumn() {
-  return _identifier->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+CallExpressionSyntax::getSourceLocation() const {
+  return this->_identifier->getSourceLocation();
 }
 
 std::unique_ptr<LiteralExpressionSyntax<std::any>> &

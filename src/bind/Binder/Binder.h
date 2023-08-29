@@ -23,6 +23,7 @@
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 
+#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -49,20 +50,20 @@
 #include <stack>
 class Binder {
 private:
-private:
   std::unique_ptr<BoundScope> root;
   std::vector<BoundCallExpression *> _callExpressions;
+  DiagnosticHandler *_diagnosticHandler;
 
 public:
-  Binder(std::unique_ptr<BoundScope> root);
-
-  std::vector<std::string> logs;
+  Binder(std::unique_ptr<BoundScope> root,
+         DiagnosticHandler *diagnosticHandler);
 
   static void verifyAllCallsAreValid(Binder *binder);
 
   static std::unique_ptr<BoundScopeGlobal>
   bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previous,
-                  CompilationUnitSyntax *syntax);
+                  CompilationUnitSyntax *syntax,
+                  DiagnosticHandler *diagnosticHandler);
 
   // BoundStatements
 

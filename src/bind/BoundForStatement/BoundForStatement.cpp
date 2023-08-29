@@ -1,11 +1,12 @@
 #include "BoundForStatement.h"
 
 BoundForStatement::BoundForStatement(
-    std::string lineAndColumn, std::unique_ptr<BoundStatement> initialization,
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundStatement> initialization,
     std::unique_ptr<BoundExpression> upperBound,
     std::unique_ptr<BoundExpression> boundStepExpression,
-    std::unique_ptr<BoundStatement> statement) {
-  this->_lineAndColumn = lineAndColumn;
+    std::unique_ptr<BoundStatement> statement)
+    : BoundSourceLocation(location) {
   this->_initialization = std::move(initialization);
   this->_upperBound = std::move(upperBound);
   this->_boundStepExpression = std::move(boundStepExpression);
@@ -41,10 +42,6 @@ std::unique_ptr<BoundExpression> BoundForStatement::getStepExpression() {
 BinderKindUtils::BoundNodeKind BoundForStatement::getKind() const {
 
   return BinderKindUtils::BoundNodeKind::ForStatement;
-}
-
-std::string BoundForStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::vector<BoundNode *> BoundForStatement::getChildren() {

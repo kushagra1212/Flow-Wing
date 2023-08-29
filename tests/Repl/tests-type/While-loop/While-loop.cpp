@@ -207,7 +207,7 @@ TEST_F(WhileLoop, BasicWhileLoopContinue2) {
 // Basic while loop with continue statement nested
 TEST_F(WhileLoop, BasicWhileLoopContinueNested) {
   std::string input =
-      R"(var x = 0 while(x<5) { x=x+1 print(x) var z = x while(x<5) { if(x==0) { print(0) }or if(x==1){ x=x+1 continue }or if(x==2) { print(2) }else{ print(x); } x=x+1 } x=z+5 })";
+      R"(var x = 0 while(x<5) { x=x+1 print(x) var z = x while(x<5) { if(x==0) { print(0) }or if(x==1){ x=x+1 continue }or if(x==2) { print(2) }else{ print(x) } x=x+1 } x=z+5 })";
   std::string expected_output = "1234";
 
   std::string capturedOutput = runReplWithInputPrint(input);
@@ -229,7 +229,7 @@ TEST_F(WhileLoop, BasicWhileLoopContinueBreak) {
 // Basic while loop with continue and break statement nested
 TEST_F(WhileLoop, BasicWhileLoopContinueBreakNested) {
   std::string input =
-      R"(var x = 0 while(x<5) { x=x+1 if(x==3){ continue } print(x) if(x==4){ break } var y = 0 while(y<5) { if(y==0) { print(0) }or if(y==1){ y=y+1 continue }or if(y==2) { print(2) }else{ print(y); } y=y+1 } })";
+      R"(var x = 0 while(x<5) { x=x+1 if(x==3){ continue } print(x) if(x==4){ break } var y = 0 while(y<5) { if(y==0) { print(0) }or if(y==1){ y=y+1 continue }or if(y==2) { print(2) }else{ print(y) } y=y+1 } })";
   std::string expected_output = "10234202344";
 
   std::string capturedOutput = runReplWithInputPrint(input);
@@ -240,7 +240,7 @@ TEST_F(WhileLoop, BasicWhileLoopContinueBreakNested) {
 // Basic while loop with continue and break statement nested Break and continue
 TEST_F(WhileLoop, BasicWhileLoopContinueBreakNestedBreakContinue) {
   std::string input =
-      R"(var x = 0 while(x<5) { x=x+1 if(x==3){ continue } print(x+"\n") if(x==4){ break } var y = 0 while(y<5) { if(y==0) { print("ZERO"+"\n") }or if(y==1){ y=y+1 continue }or if(y==2) { print(2+"\n") }else{ print(y+"\n"); } y=y+1 if(y==4){ break } } })";
+      R"(var x = 0 while(x<5) { x=x+1 if(x==3){ continue } print(x+"\n") if(x==4){ break } var y = 0 while(y<5) { if(y==0) { print("ZERO"+"\n") }or if(y==1){ y=y+1 continue }or if(y==2) { print(2+"\n") }else{ print(y+"\n") } y=y+1 if(y==4){ break } } })";
   std::string expected_output = R"(1
 ZERO
 2

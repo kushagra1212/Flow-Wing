@@ -46,12 +46,12 @@ TEST_F(VariableDeclaration, BasicVariableDeclaration) {
 TEST_F(VariableDeclaration, BasicVariableReDeclarationInSameScope) {
   std::string input = "var a = 2 var a = 3";
 
-  std::string expected_error = "Variable x already exists";
+  std::string expected_error = "Variable x Already Exists";
 
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("already exists") != std::string::npos);
+              output.find("Already Exists") != std::string::npos);
 }
 
 // Variable Re-Declaration in the Different scope
@@ -100,7 +100,7 @@ TEST_F(VariableDeclaration, BasicConstantVariableReDeclaration) {
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("already exists") != std::string::npos);
+              output.find("Already Exists") != std::string::npos);
 }
 
 // Constant Variable Re-Declaration in Different Scope
@@ -132,8 +132,8 @@ TEST_F(VariableDeclaration,
 
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
-  EXPECT_TRUE(output.find("Can not assign") != std::string::npos &&
-              output.find("const variable") != std::string::npos);
+  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
+              output.find("Constant Variable") != std::string::npos);
 }
 
 // Constant Variable Declaration and again assign it to a different value in
@@ -145,8 +145,8 @@ TEST_F(
 
   // Expected output should be in the output
   std::string output = runReplWithInput(input);
-  EXPECT_TRUE(output.find("Can not assign") != std::string::npos &&
-              output.find("const variable") != std::string::npos);
+  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
+              output.find("Constant Variable") != std::string::npos);
 }
 
 // Constant Variable Declaration and again assign it to a different value in
@@ -159,8 +159,8 @@ TEST_F(
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
 
-  EXPECT_TRUE(output.find("Can not assign") != std::string::npos &&
-              output.find("const variable") != std::string::npos);
+  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
+              output.find("Constant Variable") != std::string::npos);
 }
 
 // Constant Variable Declaration and Re-Declaration using var
@@ -171,5 +171,5 @@ TEST_F(VariableDeclaration,
   // Expected output should be in the of the output
   std::string output = runReplWithInput(input);
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("already exists") != std::string::npos);
+              output.find("Already Exists") != std::string::npos);
 }

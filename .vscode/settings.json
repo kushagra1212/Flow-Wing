@@ -90,6 +90,7 @@
     "bitset": "cpp",
     "shared_mutex": "cpp",
     "*.inc": "cpp",
-    "future": "cpp"
+    "future": "cpp",
+    "*.def": "cpp"
   }
 }

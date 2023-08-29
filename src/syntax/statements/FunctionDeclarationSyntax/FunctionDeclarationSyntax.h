@@ -39,10 +39,8 @@ public:
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getFunctionKeywordPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();

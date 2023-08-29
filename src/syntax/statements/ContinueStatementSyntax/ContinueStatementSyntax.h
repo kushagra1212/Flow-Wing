@@ -16,10 +16,8 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getContinueKeyword();
 
   std::vector<SyntaxNode *> getChildren() override;
-
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };

@@ -1,8 +1,8 @@
 #include "BoundContinueStatement.h"
 
-BoundContinueStatement::BoundContinueStatement(std::string lineAndColumn) {
-  this->_lineAndColumn = lineAndColumn;
-}
+BoundContinueStatement::BoundContinueStatement(
+    const DiagnosticUtils::SourceLocation &location)
+    : BoundSourceLocation(location) {}
 
 BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::ContinueStatement;
@@ -10,8 +10,4 @@ BinderKindUtils::BoundNodeKind BoundContinueStatement::getKind() const {
 
 std::vector<BoundNode *> BoundContinueStatement::getChildren() {
   return this->_children;
-}
-
-std::string BoundContinueStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }

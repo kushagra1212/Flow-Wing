@@ -8,10 +8,10 @@ template class BoundLiteralExpression<std::string>;
 template class BoundLiteralExpression<char>;
 
 template <typename T>
-BoundLiteralExpression<T>::BoundLiteralExpression(std::string lineAndColumn,
-                                                  T value) {
+BoundLiteralExpression<T>::BoundLiteralExpression(
+    const DiagnosticUtils::SourceLocation &location, T value)
+    : BoundSourceLocation(location) {
   this->value = value;
-  this->_lineAndColumn = lineAndColumn;
 }
 
 template <typename T>
@@ -30,8 +30,4 @@ BinderKindUtils::BoundNodeKind BoundLiteralExpression<T>::getKind() const {
 template <typename T>
 std::vector<BoundNode *> BoundLiteralExpression<T>::getChildren() {
   return this->_children;
-}
-template <typename T>
-std::string BoundLiteralExpression<T>::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }

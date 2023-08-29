@@ -15,21 +15,15 @@ public:
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
-
   std::unique_ptr<ExpressionSyntax> getExpression();
-
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
-
   std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
-
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
 #endif

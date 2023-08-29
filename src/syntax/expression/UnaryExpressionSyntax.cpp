@@ -28,8 +28,9 @@ std::vector<SyntaxNode *> UnaryExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-std::string UnaryExpressionSyntax::getLineNumberAndColumn() {
-  return this->_operatorToken->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+UnaryExpressionSyntax::getSourceLocation() const {
+  return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

@@ -2,24 +2,23 @@
 #define BOUNDRETURNSTATEMENT_H
 
 #include "../BoundExpression.h"
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 
-class BoundReturnStatement : public BoundStatement {
+class BoundReturnStatement : public BoundStatement, public BoundSourceLocation {
 
 private:
   std::unique_ptr<BoundExpression> _expression;
 
 public:
-  BoundReturnStatement(std::string lineAndColumn,
+  BoundReturnStatement(const DiagnosticUtils::SourceLocation &location,
                        std::unique_ptr<BoundExpression> expression);
 
   std::unique_ptr<BoundExpression> getReturnExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 
   std::unique_ptr<BoundExpression> &getReturnExpressionPtr();
 };

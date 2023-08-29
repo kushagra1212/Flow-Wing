@@ -37,8 +37,9 @@ std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-std::string BinaryExpressionSyntax::getLineNumberAndColumn() {
-  return this->_left->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+BinaryExpressionSyntax::getSourceLocation() const {
+  return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getLeftPtr() {

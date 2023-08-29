@@ -1,10 +1,11 @@
 #include "BoundExpressionStatement.h"
 
 BoundExpressionStatement::BoundExpressionStatement(
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> expression)
+    : BoundSourceLocation(location) {
 
   this->_expression = std::move(expression);
-  this->_lineAndColumn = lineAndColumn;
 
   // Add children
 
@@ -21,10 +22,6 @@ BinderKindUtils::BoundNodeKind BoundExpressionStatement::getKind() const {
 
 std::vector<BoundNode *> BoundExpressionStatement::getChildren() {
   return this->_children;
-}
-
-std::string BoundExpressionStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &BoundExpressionStatement::getExpressionPtr() {

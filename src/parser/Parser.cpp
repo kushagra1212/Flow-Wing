@@ -1,9 +1,11 @@
 #include "Parser.h"
-Parser::Parser(const std::vector<std::string> &text) {
+Parser::Parser(const std::vector<std::string> &text,
+               DiagnosticHandler *diagnosticHandler) {
 
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
+  this->_diagnosticHandler = diagnosticHandler;
 
-  lexer = std::make_unique<Lexer>(text);
+  lexer = std::make_unique<Lexer>(text, diagnosticHandler);
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
@@ -16,9 +18,11 @@ Parser::Parser(const std::vector<std::string> &text) {
 
     if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
 
-      this->logs.push_back(Utils::getLineNumberAndPosition(token.get()) +
-                           "ERROR: Unexpected Character <" + token->getText() +
-                           ">");
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Unexpected Character <" + token->getText() + ">",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Syntactic,
+                     Utils::getSourceLocation(token.get())));
     }
 
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -32,10 +36,6 @@ Parser::Parser(const std::vector<std::string> &text) {
     }
 
   } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
-
-  for (auto log : lexer->logs) {
-    this->logs.push_back(log);
-  }
 }
 
 Parser::~Parser() {
@@ -46,7 +46,6 @@ Parser::~Parser() {
   lexer.reset();
 
   this->tokens.clear();
-  this->logs.clear();
 }
 
 SyntaxToken<std::any> *Parser::peek(int offset) {
@@ -76,11 +75,14 @@ Parser::match(SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return std::move(this->nextToken());
   }
-  this->logs.push_back(
-      Utils::getLineNumberAndPosition(this->getCurrent()) +
-      "ERROR: Unexpected Token <" +
-      SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
-      ">, Expected <" + SyntaxKindUtils::to_string(kind) + ">");
+
+  this->_diagnosticHandler->addDiagnostic(
+      Diagnostic("Unexpected Token <" +
+                     SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+                     ">, Expected <" + SyntaxKindUtils::to_string(kind) + ">",
+                 DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Syntactic,
+                 Utils::getSourceLocation(this->getCurrent())));
 
   if (this->getCurrent()->getKind() !=
       SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
@@ -90,7 +92,7 @@ Parser::match(SyntaxKindUtils::SyntaxKind kind) {
     return std::make_unique<SyntaxToken<std::any>>(
         this->getCurrent()->getLineNumber(),
         SyntaxKindUtils::SyntaxKind::BadToken,
-        this->getCurrent()->getPosition(), this->getCurrent()->getText(),
+        this->getCurrent()->getColumnNumber(), this->getCurrent()->getText(),
         this->getCurrent()->getValue());
   }
 }
@@ -98,12 +100,10 @@ bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
   return this->getCurrent()->getKind() == kind;
 }
 std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
-  this->logs = std::vector<std::string>();
+
   this->position = 0;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::make_unique<CompilationUnitSyntax>();
-
-  // this->parseMemberList(members);
 
   while (this->getCurrent()->getKind() !=
          SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
@@ -115,13 +115,8 @@ std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
 
   compilationUnit->setEndOfFileToken(std::move(endOfFileToken));
 
-  compilationUnit->addLogs(this->logs);
-
   return std::move(compilationUnit);
 }
-
-void Parser::parseMemberList(
-    std::vector<std::unique_ptr<MemberSyntax>> members) {}
 
 std::unique_ptr<MemberSyntax> Parser::parseMember() {
   if (this->getCurrent()->getKind() ==

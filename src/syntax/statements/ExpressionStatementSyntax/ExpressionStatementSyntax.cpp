@@ -24,6 +24,7 @@ std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string ExpressionStatementSyntax::getLineNumberAndColumn() {
-  return this->_expression->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+ExpressionStatementSyntax::getSourceLocation() const {
+  return this->_expression->getSourceLocation();
 }

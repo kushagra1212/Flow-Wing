@@ -1,18 +1,17 @@
 #ifndef BOUDBREAKSTATEMENT_H
 #define BOUDBREAKSTATEMENT_H
 
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 
-class BoundBreakStatement : public BoundStatement {
+class BoundBreakStatement : public BoundStatement, public BoundSourceLocation {
 
 public:
-  BoundBreakStatement(std::string lineAndColumn);
+  BoundBreakStatement(const DiagnosticUtils::SourceLocation &location);
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 };
 
 #endif // BOUDBREAKSTATEMENT_H

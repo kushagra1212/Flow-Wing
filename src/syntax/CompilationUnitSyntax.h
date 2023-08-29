@@ -9,7 +9,6 @@ private:
   std::vector<std::unique_ptr<MemberSyntax>> _members;
   std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
   std::vector<SyntaxNode *> _children;
-  std::vector<std::string> _logs;
 
 public:
   SyntaxKindUtils::SyntaxKind getKind();
@@ -23,9 +22,5 @@ public:
   std::vector<SyntaxNode *> getChildren();
 
   std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenPtr();
-
-  const std::vector<std::string> &getLogs();
-
-  void addLogs(const std::vector<std::string> &logs);
 };
 #endif

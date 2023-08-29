@@ -1,23 +1,24 @@
 #pragma once
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
-class BoundVariableExpression : public BoundExpression {
+#include "../BoundSourceLocation/BoundSourceLocation.h"
+
+class BoundVariableExpression : public BoundExpression,
+                                public BoundSourceLocation {
 private:
   std::unique_ptr<BoundExpression> _identiferExpression;
 
 public:
-  BoundVariableExpression(std::string lineAndColumn,
+  BoundVariableExpression(const DiagnosticUtils::SourceLocation &location,
                           std::unique_ptr<BoundExpression> identiferExpression);
 
   const std::type_info &getType() override;
 
   std::unique_ptr<BoundExpression> getIdentifierExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 
   std::unique_ptr<BoundExpression> &getIdentifierExpressionPtr();
 };

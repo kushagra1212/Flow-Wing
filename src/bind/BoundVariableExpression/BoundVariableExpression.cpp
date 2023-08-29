@@ -1,10 +1,10 @@
 #include "BoundVariableExpression.h"
 
 BoundVariableExpression::BoundVariableExpression(
-    std::string lineAndColumn,
-    std::unique_ptr<BoundExpression> identiferExpression) {
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> identiferExpression)
+    : BoundSourceLocation(location) {
   this->_identiferExpression = std::move(identiferExpression);
-  this->_lineAndColumn = lineAndColumn;
 
   this->_children.push_back(this->_identiferExpression.get());
 }
@@ -23,10 +23,6 @@ BinderKindUtils::BoundNodeKind BoundVariableExpression::getKind() const {
 
 std::vector<BoundNode *> BoundVariableExpression::getChildren() {
   return this->_children;
-}
-
-std::string BoundVariableExpression::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &

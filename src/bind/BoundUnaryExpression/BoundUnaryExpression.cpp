@@ -2,11 +2,12 @@
 
 BoundUnaryExpression::BoundUnaryExpression(
 
-    std::string lineAndColumn, BinderKindUtils::BoundUnaryOperatorKind op,
-    std::unique_ptr<BoundExpression> operand) {
+    const DiagnosticUtils::SourceLocation &location,
+    BinderKindUtils::BoundUnaryOperatorKind op,
+    std::unique_ptr<BoundExpression> operand)
+    : BoundSourceLocation(location) {
   this->_op = op;
   this->_operand = std::move(operand);
-  this->_lineAndColumn = lineAndColumn;
 
   this->_children.push_back(this->_operand.get());
 }
@@ -29,10 +30,6 @@ BinderKindUtils::BoundNodeKind BoundUnaryExpression::getKind() const {
 
 std::vector<BoundNode *> BoundUnaryExpression::getChildren() {
   return this->_children;
-}
-
-std::string BoundUnaryExpression::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &BoundUnaryExpression::getOperandPtr() {

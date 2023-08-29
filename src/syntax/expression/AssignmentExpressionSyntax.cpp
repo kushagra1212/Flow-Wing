@@ -39,8 +39,9 @@ AssignmentExpressionSyntax::getLeft() {
   return std::move(this->_left);
 }
 
-std::string AssignmentExpressionSyntax::getLineNumberAndColumn() {
-  return this->_left->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+AssignmentExpressionSyntax::getSourceLocation() const {
+  return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

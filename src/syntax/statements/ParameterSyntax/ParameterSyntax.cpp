@@ -19,8 +19,8 @@ SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
-std::string ParameterSyntax::getLineNumberAndColumn() {
-  return _identifierToken->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation ParameterSyntax::getSourceLocation() const {
+  return this->_identifierToken->getSourceLocation();
 }
 
 std::vector<SyntaxNode *> ParameterSyntax::getChildren() {

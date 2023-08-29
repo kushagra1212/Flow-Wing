@@ -4,12 +4,14 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::unique_ptr<BoundScopeGlobal> previous,
     std::map<std::string, struct Utils::Variable> variables,
     std::map<std::string, BoundFunctionDeclaration *> functions,
-    std::vector<std::string> logs, std::unique_ptr<BoundStatement> statement)
-    : variables(variables), logs(logs), functions(functions) {
+    DiagnosticHandler *diagnosticHandler,
+    std::unique_ptr<BoundStatement> statement)
+    : variables(variables), functions(functions) {
 
   this->statement = std::move(statement);
 
   this->previous = std::move(previous);
+  this->_diagnosticHandler = diagnosticHandler;
 }
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {

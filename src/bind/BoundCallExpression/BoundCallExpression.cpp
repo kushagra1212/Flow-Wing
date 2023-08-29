@@ -1,12 +1,12 @@
 #include "BoundCallExpression.h"
 
 BoundCallExpression::BoundCallExpression(
-    std::string lineAndColumn,
+    const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
-    Utils::FunctionSymbol functionalSymbol) {
+    Utils::FunctionSymbol functionalSymbol)
+    : BoundSourceLocation(location) {
   this->_functionalSymbol = functionalSymbol;
   this->_callerIdentifier = std::move(callerIdentifier);
-  this->_lineAndColumn = lineAndColumn;
 }
 
 const std::string &BoundCallExpression::getName() const {
@@ -51,10 +51,6 @@ std::vector<BoundNode *> BoundCallExpression::getChildren() {
   }
 
   return _children;
-}
-
-std::string BoundCallExpression::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundLiteralExpression<std::any>> &

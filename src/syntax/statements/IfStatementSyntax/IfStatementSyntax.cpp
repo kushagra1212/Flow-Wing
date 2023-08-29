@@ -22,8 +22,8 @@ SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 
-std::string IfStatementSyntax::getLineNumberAndColumn() {
-  return ifKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation IfStatementSyntax::getSourceLocation() const {
+  return this->ifKeyword->getSourceLocation();
 }
 
 std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {

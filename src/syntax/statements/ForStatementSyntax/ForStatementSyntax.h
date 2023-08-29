@@ -22,25 +22,17 @@ public:
                      std::unique_ptr<ExpressionSyntax> stepExpression);
 
   std::unique_ptr<BlockStatementSyntax> getStatement();
-
   std::unique_ptr<StatementSyntax> getInitialization();
-
   std::unique_ptr<ExpressionSyntax> getUpperBound();
-
   std::unique_ptr<ExpressionSyntax> getStepExpression();
 
   std::vector<SyntaxNode *> getChildren() override;
-
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
-
   std::unique_ptr<StatementSyntax> &getInitializationPtr();
-
   std::unique_ptr<ExpressionSyntax> &getUpperBoundPtr();
-
   std::unique_ptr<ExpressionSyntax> &getStepExpressionPtr();
 };
 

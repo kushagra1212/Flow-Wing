@@ -2,8 +2,10 @@
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
-class BoundIfStatement : public BoundStatement {
+
+class BoundIfStatement : public BoundStatement, public BoundSourceLocation {
 private:
   std::unique_ptr<BoundExpression> _condition;
   std::unique_ptr<BoundStatement> _thenStatement;
@@ -12,7 +14,7 @@ private:
   std::vector<std::unique_ptr<BoundOrIfStatement>> _orIfStatements;
 
 public:
-  BoundIfStatement(std::string lineAndColumn);
+  BoundIfStatement(const DiagnosticUtils::SourceLocation &location);
 
   std::unique_ptr<BoundExpression> getCondition();
   std::unique_ptr<BoundStatement> getThenStatement();
@@ -23,9 +25,7 @@ public:
   void addOrIfStatement(std::unique_ptr<BoundOrIfStatement> orIfStatement);
   void addElseStatement(std::unique_ptr<BoundStatement> elseStatement);
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
-
-  std::string getLineNumberAndColumn() override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
 

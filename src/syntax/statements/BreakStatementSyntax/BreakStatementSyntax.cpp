@@ -19,8 +19,9 @@ std::vector<SyntaxNode *> BreakStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string BreakStatementSyntax::getLineNumberAndColumn() {
-  return _breakKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+BreakStatementSyntax::getSourceLocation() const {
+  return _breakKeyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

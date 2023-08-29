@@ -22,7 +22,6 @@ public:
 
   void defineStandardFunctions();
   void updateModule();
-
   llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
   llvm::Value *generateEvaluateLiteralExpressionFunction(BoundExpression *node);
   llvm::Value *generateEvaluateUnaryExpressionFunction(BoundExpression *node);

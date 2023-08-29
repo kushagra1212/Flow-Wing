@@ -5,11 +5,10 @@ std::unique_ptr<BoundStatement> Binder::bindExpressionStatement(
     ExpressionStatementSyntax *expressionStatement) {
   ExpressionSyntax *exps = expressionStatement->getExpressionPtr().get();
 
-  std::string lineAndColumn = exps->getLineNumberAndColumn();
   std::unique_ptr<BoundExpression> boundExpression =
       std::move(bindExpression(exps));
 
-  return std::make_unique<BoundExpressionStatement>(lineAndColumn,
+  return std::make_unique<BoundExpressionStatement>(exps->getSourceLocation(),
                                                     std::move(boundExpression));
 }
 
@@ -19,8 +18,8 @@ Binder::bindBlockStatement(BlockStatementSyntax *blockStatement) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
 
   std::unique_ptr<BoundBlockStatement> boundBlockStatement =
-      std::make_unique<BoundBlockStatement>(
-          blockStatement->getLineNumberAndColumn(), false);
+      std::make_unique<BoundBlockStatement>(blockStatement->getSourceLocation(),
+                                            false);
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
 
@@ -49,13 +48,17 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
 
   if (!root->tryDeclareVariable(variable_str,
                                 Utils::Variable(nullptr, isConst))) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             variableDeclaration->getIdentifierPtr().get()) +
-                         "Error: Variable " + variable_str + " already exists");
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Variable " + variable_str + " Already Exists",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       variableDeclaration->getIdentifierPtr().get())));
   }
 
   return std::make_unique<BoundVariableDeclaration>(
-      variableDeclaration->getLineNumberAndColumn(), variable_str, isConst,
+      variableDeclaration->getSourceLocation(), variable_str, isConst,
       std::move(boundInitializerExpression));
 }
 
@@ -69,7 +72,7 @@ Binder::bindOrIfStatement(OrIfStatementSyntax *orIfStatement) {
       std::move(bindStatement(orIfStatement->getStatementPtr().get()));
 
   return std::make_unique<BoundOrIfStatement>(
-      orIfStatement->getLineNumberAndColumn(), std::move(boundCondition),
+      orIfStatement->getSourceLocation(), std::move(boundCondition),
       std::move(boundThenStatement));
 }
 
@@ -77,7 +80,7 @@ std::unique_ptr<BoundStatement>
 Binder::bindIfStatement(IfStatementSyntax *ifStatement) {
 
   std::unique_ptr<BoundIfStatement> boundIfStatement =
-      std::make_unique<BoundIfStatement>(ifStatement->getLineNumberAndColumn());
+      std::make_unique<BoundIfStatement>(ifStatement->getSourceLocation());
 
   std::unique_ptr<BoundExpression> boundCondition =
       std::move(bindExpression(ifStatement->getConditionPtr().get()));
@@ -119,7 +122,7 @@ Binder::bindWhileStatement(WhileStatementSyntax *whileStatement) {
   this->root = std::move(this->root->parent);
 
   return std::make_unique<BoundWhileStatement>(
-      whileStatement->getLineNumberAndColumn(), std::move(boundCondition),
+      whileStatement->getSourceLocation(), std::move(boundCondition),
       std::move(boundBody));
 }
 
@@ -144,7 +147,7 @@ Binder::bindForStatement(ForStatementSyntax *forStatement) {
 
   this->root = std::move(this->root->parent);
   return std::make_unique<BoundForStatement>(
-      forStatement->getLineNumberAndColumn(), std::move(boundIntializer),
+      forStatement->getSourceLocation(), std::move(boundIntializer),
       std::move(boundUpperBound), std::move(boundStepExpression),
       std::move(boundBody));
 }
@@ -152,32 +155,44 @@ Binder::bindForStatement(ForStatementSyntax *forStatement) {
 std::unique_ptr<BoundStatement>
 Binder::bindBreakStatement(BreakStatementSyntax *breakStatement) {
   if (!this->root->isBreakable()) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             breakStatement->getBreakKeywordPtr().get()) +
-                         "Error: Break statement outside of loop");
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Break Statement Outside of Loop",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(breakStatement->getBreakKeywordPtr().get())));
   }
   return std::make_unique<BoundBreakStatement>(
-      breakStatement->getLineNumberAndColumn());
+      breakStatement->getSourceLocation());
 }
 
 std::unique_ptr<BoundStatement>
 Binder::bindContinueStatement(ContinueStatementSyntax *continueStatement) {
   if (!this->root->isContinuable()) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             continueStatement->getContinueKeywordPtr().get()) +
-                         "Error: Continue statement outside of loop");
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Continue Statement Outside Of Loop",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       continueStatement->getContinueKeywordPtr().get())));
   }
   return std::make_unique<BoundContinueStatement>(
-      continueStatement->getLineNumberAndColumn());
+      continueStatement->getSourceLocation());
 }
 
 std::unique_ptr<BoundStatement>
 Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
   std::unique_ptr<BoundExpression> boundExpression = nullptr;
   if (!this->root->isInFunction()) {
-    this->logs.push_back(Utils::getLineNumberAndPosition(
-                             returnStatement->getReturnKeywordPtr().get()) +
-                         "Error: Return statement outside of function");
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Return Statement Outside Of Function",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       returnStatement->getReturnKeywordPtr().get())));
+
   } else {
     ExpressionSyntax *returnExpression =
         returnStatement->getExpressionPtr().get();
@@ -188,7 +203,7 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
   }
 
   return std::make_unique<BoundReturnStatement>(
-      returnStatement->getLineNumberAndColumn(), std::move(boundExpression));
+      returnStatement->getSourceLocation(), std::move(boundExpression));
 }
 
 std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
@@ -236,7 +251,7 @@ std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
     LiteralExpressionSyntax<std::any> *literalSyntax) {
   std::any value = literalSyntax->getValue();
   return std::make_unique<BoundLiteralExpression<std::any>>(
-      literalSyntax->getLineNumberAndColumn(), value);
+      literalSyntax->getSourceLocation(), value);
 }
 
 std::unique_ptr<BoundExpression>
@@ -248,7 +263,7 @@ Binder::bindunaryExpression(UnaryExpressionSyntax *unaryExpression) {
           unaryExpression->getOperatorTokenPtr()->getKind());
 
   return std::make_unique<BoundUnaryExpression>(
-      unaryExpression->getLineNumberAndColumn(), op, std::move(boundOperand));
+      unaryExpression->getSourceLocation(), op, std::move(boundOperand));
 }
 
 std::unique_ptr<BoundExpression>
@@ -262,7 +277,7 @@ Binder::bindBinaryExpression(BinaryExpressionSyntax *binaryExpression) {
           binaryExpression->getOperatorTokenPtr()->getKind());
 
   return std::make_unique<BoundBinaryExpression>(
-      binaryExpression->getLineNumberAndColumn(), std::move(boundLeft), op,
+      binaryExpression->getSourceLocation(), std::move(boundLeft), op,
       std::move(boundRight));
 }
 
@@ -281,25 +296,33 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
           assignmentExpression->getOperatorTokenPtr()->getKind());
 
   if (!root->tryLookupVariable(variable_str)) {
-    this->logs.push_back(
-        Utils::getLineNumberAndPosition(
-            assignmentExpression->getOperatorTokenPtr().get()) +
-        "Error: Can not assign to undeclared variable " + variable_str);
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Can Not Assign To Undeclared Variable " + variable_str,
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       assignmentExpression->getOperatorTokenPtr().get())));
+
     return std::move(boundIdentifierExpression);
   }
 
   if (root->tryGetVariable(variable_str).isConst) {
-    this->logs.push_back(
-        Utils::getLineNumberAndPosition(
-            assignmentExpression->getOperatorTokenPtr().get()) +
-        "Error: Can not assign to const variable " + variable_str);
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Can Not Assign To Constant Variable " + variable_str,
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       assignmentExpression->getOperatorTokenPtr().get())));
+
     return std::move(boundIdentifierExpression);
   }
 
   std::unique_ptr<BoundExpression> boundRight =
       bindExpression(assignmentExpression->getRightPtr().get());
   return std::make_unique<BoundAssignmentExpression>(
-      assignmentExpression->getLineNumberAndColumn(),
+      assignmentExpression->getSourceLocation(),
       std::move(boundIdentifierExpression), op, std::move(boundRight));
 }
 
@@ -315,14 +338,18 @@ Binder::bindVariableExpression(VariableExpressionSyntax *variableExpression) {
       Utils::convertAnyToString(boundIdentifierExpression->getValue());
 
   if (!root->tryLookupVariable(variable_str)) {
-    this->logs.push_back(
-        Utils::getLineNumberAndPosition(
-            variableExpression->getIdentifierPtr()->getTokenPtr().get()) +
-        "Error: Variable " + variable_str + " does not exist");
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Variable " + variable_str + " Does Not Exist",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(
+            variableExpression->getIdentifierPtr()->getTokenPtr().get())));
+
     return std::move(boundIdentifierExpression);
   }
   return std::make_unique<BoundVariableExpression>(
-      variableExpression->getLineNumberAndColumn(),
+      variableExpression->getSourceLocation(),
       std::move(boundIdentifierExpression));
 }
 
@@ -351,9 +378,9 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
-      std::make_unique<BoundCallExpression>(
-          callExpression->getLineNumberAndColumn(), std::move(boundIdentifier),
-          functionSymbol);
+      std::make_unique<BoundCallExpression>(callExpression->getSourceLocation(),
+                                            std::move(boundIdentifier),
+                                            functionSymbol);
 
   for (int i = 0; i < callExpression->getArguments().size(); i++) {
     boundCallExpression->addArgument(
@@ -413,10 +440,13 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
         syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText();
     if (!this->root->tryDeclareVariable(variable_str,
                                         Utils::Variable(nullptr, false))) {
-      this->logs.push_back(
-          Utils::getLineNumberAndPosition(
-              syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get()) +
-          "Error: Parameter " + variable_str + " already declared");
+
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Parameter " + variable_str + " Already Declared",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          Utils::getSourceLocation(
+              syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get())));
     }
 
     parameters.push_back(Utils::FunctionParameterSymbol(
@@ -434,15 +464,17 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
           .release());
   std::unique_ptr<BoundFunctionDeclaration> fd =
       std::make_unique<BoundFunctionDeclaration>(
-          syntax->getLineNumberAndColumn(), functionSymbol,
-          std::move(boundBody));
+          syntax->getSourceLocation(), functionSymbol, std::move(boundBody));
 
   this->root->decrementFunctionCount();
 
   if (!this->root->tryDeclareFunction(functionSymbol.name, fd.get())) {
-    this->logs.push_back(
-        Utils::getLineNumberAndPosition(syntax->getFunctionKeywordPtr().get()) +
-        "Error: Function " + functionSymbol.name + " already declared");
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Function " + functionSymbol.name + " Already Declared",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
   }
   this->root = std::move(this->root->parent);
   return std::move(fd);
@@ -450,12 +482,13 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
 std::unique_ptr<BoundStatement>
 Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
-
   return bindStatement(syntax->getStatementPtr().get());
 }
 
-Binder::Binder(std::unique_ptr<BoundScope> parent) {
+Binder::Binder(std::unique_ptr<BoundScope> parent,
+               DiagnosticHandler *diagnosticHandler) {
   this->root = std::make_unique<BoundScope>(std::move(parent));
+  this->_diagnosticHandler = diagnosticHandler;
 }
 
 void Binder::verifyAllCallsAreValid(Binder *binder) {
@@ -478,14 +511,18 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
     functionDefinitionMap[function.name] = function;
   }
 
-  for (const auto &callExpression : binder->_callExpressions) {
+  for (BoundCallExpression *callExpression : binder->_callExpressions) {
     Utils::FunctionSymbol functionSymbol = callExpression->getFunctionSymbol();
 
     if (functionDefinitionMap.find(functionSymbol.name) ==
         functionDefinitionMap.end()) {
-      binder->logs.push_back(
-          callExpression->getCallerIdentifierPtr()->getLineNumberAndColumn() +
-          "Error: Function " + functionSymbol.name + " does not exist");
+
+      binder->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Function " + functionSymbol.name + " does not exist",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     callExpression->getCallerIdentifierPtr()->getLocation()));
+
       continue;
     }
 
@@ -494,10 +531,15 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
     if (functionSymbol.parameters.size() !=
         functionDefinition.parameters.size()) {
-      binder->logs.push_back(
-          callExpression->getCallerIdentifierPtr()->getLineNumberAndColumn() +
-          "Error: Function " + functionSymbol.name + " requires " +
-          std::to_string(functionDefinition.parameters.size()) + " arguments");
+
+      binder->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Function " + functionSymbol.name + " requires " +
+                         std::to_string(functionDefinition.parameters.size()) +
+                         " arguments",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     callExpression->getCallerIdentifierPtr()->getLocation()));
+
       continue;
     }
   }
@@ -505,9 +547,11 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
 std::unique_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
-                        CompilationUnitSyntax *syntax) {
+                        CompilationUnitSyntax *syntax,
+                        DiagnosticHandler *diagnosticHandler) {
 
-  std::unique_ptr<Binder> binder = std::make_unique<Binder>(nullptr);
+  std::unique_ptr<Binder> binder =
+      std::make_unique<Binder>(nullptr, diagnosticHandler);
 
   if (previousGlobalScope) {
     binder->root->variables = previousGlobalScope->variables;
@@ -515,7 +559,8 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   }
 
   std::unique_ptr<BoundBlockStatement> _globalBoundBlockStatement =
-      std::make_unique<BoundBlockStatement>("", true);
+      std::make_unique<BoundBlockStatement>(DiagnosticUtils::SourceLocation(),
+                                            true);
 
   std::vector<std::unique_ptr<MemberSyntax>> &members = syntax->getMembers();
 
@@ -546,19 +591,13 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
 
   verifyAllCallsAreValid(binder.get());
 
-  std::vector<std::string> _logs;
-
-  for (std::string log : binder->logs) {
-    _logs.push_back(log);
-  }
-
   if (previousGlobalScope != nullptr) {
-    for (std::string log : previousGlobalScope->logs) {
-      _logs.push_back(log);
-    }
+    diagnosticHandler->addParentDiagnostics(
+        previousGlobalScope->_diagnosticHandler);
   }
 
   return std::make_unique<BoundScopeGlobal>(
       std::move(previousGlobalScope), binder->root->variables,
-      binder->root->functions, _logs, std::move(_globalBoundBlockStatement));
+      binder->root->functions, diagnosticHandler,
+      std::move(_globalBoundBlockStatement));
 }

@@ -846,8 +846,9 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
 
 llvm::Value *getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
-  llvm::Value *result = nullptr;
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
+    llvm::LLVMContext *TheContext) {
+  llvm::Value *result = Builder->getInt32(1);
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
@@ -861,9 +862,47 @@ llvm::Value *getResultFromBinaryOperationOnInt(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     result = Builder->CreateMul(lhsValue, rhsValue);
     break;
-  case BinderKindUtils::BoundBinaryOperatorKind::Division:
+  case BinderKindUtils::BoundBinaryOperatorKind::Division: {
+
+    // Check if rhsValue is zero
+    llvm::Value *zeroCheck = IRUtils::convertToBool(rhsValue, Builder);
+
+    // Basic block for the error case
+    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+        *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *continueBlock = llvm::BasicBlock::Create(
+        *TheContext, "continueBlock", Builder->GetInsertBlock()->getParent());
+
+    llvm::BasicBlock *opExitBlock = llvm::BasicBlock::Create(
+        *TheContext, "opExitBlock", Builder->GetInsertBlock()->getParent());
+
+    // Conditional branch based on zeroCheck
+    Builder->CreateCondBr(zeroCheck, continueBlock, errorBlock);
+
+    // Set insert point to the error block
+    Builder->SetInsertPoint(errorBlock);
+    // Emit error message or handling code here
+
+    // Create call to print function
+
+    std::string error = "\x1b[31mDivision by zero";
+
+    llvm::Value *errorStr = IRUtils::convertStringToi8Ptr(error, Builder);
+
+    IRUtils::printFunction(errorStr, TheModule, Builder, TheContext, false);
+
+    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    result = llvm::ConstantExpr::getBitCast(
+        getNullValue(TheModule, TheContext, Builder), int8PtrType);
+    Builder->CreateBr(opExitBlock);
+
+    Builder->SetInsertPoint(continueBlock);
     result = Builder->CreateSDiv(lhsValue, rhsValue);
+    Builder->CreateBr(opExitBlock);
+
+    Builder->SetInsertPoint(opExitBlock);
     break;
+  }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
     result = Builder->CreateSRem(lhsValue, rhsValue);
@@ -943,7 +982,8 @@ llvm::Value *getResultFromBinaryOperationOnInt(
 
 llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
+    llvm::LLVMContext *TheContext) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
@@ -955,11 +995,11 @@ llvm::Value *getResultFromBinaryOperationOnBool(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-    result = convertToBool(
-        getResultFromBinaryOperationOnInt(convertToInt(lhsValue, Builder),
-                                          convertToInt(rhsValue, Builder),
-                                          Builder, TheModule, binaryExpression),
-        Builder);
+    result = convertToBool(getResultFromBinaryOperationOnInt(
+                               convertToInt(lhsValue, Builder),
+                               convertToInt(rhsValue, Builder), Builder,
+                               TheModule, binaryExpression, TheContext),
+                           Builder);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:

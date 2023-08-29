@@ -1,11 +1,11 @@
 #include "BoundFunctionDeclaration.h"
 
 BoundFunctionDeclaration::BoundFunctionDeclaration(
-    std::string lineAndColumn,
+    const DiagnosticUtils::SourceLocation &location,
 
     Utils::FunctionSymbol functionSymbol,
-    std::unique_ptr<BoundBlockStatement> body) {
-  this->_lineAndColumn = lineAndColumn;
+    std::unique_ptr<BoundBlockStatement> body)
+    : BoundSourceLocation(location) {
   this->_functionSymbol = functionSymbol;
   this->_body = std::move(body);
 
@@ -26,10 +26,6 @@ std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
 
 Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
   return _functionSymbol;
-}
-
-std::string BoundFunctionDeclaration::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundBlockStatement> &BoundFunctionDeclaration::getBodyPtr() {

@@ -1,14 +1,16 @@
 #pragma once
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundUnaryExpression : public BoundExpression {
+class BoundUnaryExpression : public BoundExpression,
+                             public BoundSourceLocation {
 private:
   BinderKindUtils::BoundUnaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _operand;
 
 public:
-  BoundUnaryExpression(std::string lineAndColumn,
+  BoundUnaryExpression(const DiagnosticUtils::SourceLocation &location,
                        BinderKindUtils::BoundUnaryOperatorKind op,
                        std::unique_ptr<BoundExpression> operand);
 
@@ -18,11 +20,9 @@ public:
 
   BinderKindUtils::BoundUnaryOperatorKind getOperator();
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 
   std::unique_ptr<BoundExpression> &getOperandPtr();
 

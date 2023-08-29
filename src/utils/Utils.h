@@ -5,12 +5,14 @@
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundNode.h"
 #include "../bind/BoundStatement/BoundStatement.h"
+#include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/SyntaxNode.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include <typeinfo>
+
 namespace Utils {
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
@@ -27,7 +29,6 @@ void printErrors(const std::vector<std::string> &errors,
 const std::string concatErrors(const std::vector<std::string> &errors,
                                std::ostream &outputStream,
                                bool isWarning = false);
-std::string getLineNumberAndPosition(SyntaxToken<std::any> *token);
 
 std::string convertAnyToString(const std::any value);
 
@@ -44,6 +45,8 @@ enum class SymbolKind {
   Label,
   None
 };
+
+DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 
 struct Variable {
   std::any value;

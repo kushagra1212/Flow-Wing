@@ -2,9 +2,9 @@
 #ifndef REPL_H
 #define REPL_H
 #include "../Common.h"
+#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
-#include "../utils/Utils.h"
 class Repl {
 public:
   Repl();
@@ -38,6 +38,9 @@ private:
   std::vector<std::string> previous_lines;
   std::vector<std::string> text = std::vector<std::string>();
   std::vector<std::string> removePrintStatements(std::vector<std::string> text);
+
+  std::unique_ptr<DiagnosticHandler> _diagnosticHandler;
+
   // For testing
   bool isTest;
 };

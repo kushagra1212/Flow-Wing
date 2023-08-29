@@ -3,9 +3,15 @@
 // Include the header for standard algorithms
 
 #include "../Common.h"
+#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../syntax/SyntaxToken.h"
 #include "../utils/Utils.h"
 class Lexer {
+
+public:
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
+  Lexer(const std::vector<std::string> &text,
+        DiagnosticHandler *diagnosticHandler);
 
 private:
   std::vector<std::string> text;
@@ -14,6 +20,7 @@ private:
   size_t lineNumber;
   size_t position;
   size_t textSize = 0;
+  DiagnosticHandler *_diagnosticHandler;
 
   char getCurrent();
 
@@ -28,11 +35,5 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> readEndOfFile();
   std::unique_ptr<SyntaxToken<std::any>> readEndOfLine();
   std::unique_ptr<SyntaxToken<std::any>> readComment();
-
-public:
-  std::vector<std::string> logs;
-
-  std::unique_ptr<SyntaxToken<std::any>> nextToken();
-  Lexer(const std::vector<std::string> &text);
 };
 #endif // LEXER_H

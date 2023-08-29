@@ -1,14 +1,19 @@
-#pragma once
+#ifndef ASSIGNMENT_EXPRESSION_H
+#define ASSIGNMENT_EXPRESSION_H
+
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
-class BoundAssignmentExpression : public BoundExpression {
+#include "../BoundSourceLocation/BoundSourceLocation.h"
+
+class BoundAssignmentExpression : public BoundExpression,
+                                  public BoundSourceLocation {
 private:
   BinderKindUtils::BoundBinaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
 
 public:
-  BoundAssignmentExpression(std::string lineAndColumn,
+  BoundAssignmentExpression(const DiagnosticUtils::SourceLocation &location,
                             std::unique_ptr<BoundExpression> left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
                             std::unique_ptr<BoundExpression> right);
@@ -21,9 +26,7 @@ public:
 
   const std::type_info &getType();
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
-
-  std::string getLineNumberAndColumn() override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
 
@@ -33,3 +36,5 @@ public:
 
   std::unique_ptr<BoundExpression> &getRightPtr();
 };
+
+#endif // ASSIGNMENT_EXPRESSION_H

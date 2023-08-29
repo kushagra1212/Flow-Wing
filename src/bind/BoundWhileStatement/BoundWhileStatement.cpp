@@ -2,10 +2,11 @@
 
 BoundWhileStatement::BoundWhileStatement(
 
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> condition,
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> condition,
     std::unique_ptr<BoundStatement> body)
-    : _condition(std::move(condition)), _body(std::move(body)) {
-  this->_lineAndColumn = lineAndColumn;
+    : BoundSourceLocation(location), _condition(std::move(condition)),
+      _body(std::move(body)) {
 
   this->_children.push_back(this->_condition.get());
   this->_children.push_back(this->_body.get());
@@ -26,10 +27,6 @@ BinderKindUtils::BoundNodeKind BoundWhileStatement::getKind() const {
 
 std::vector<BoundNode *> BoundWhileStatement::getChildren() {
   return this->_children;
-}
-
-std::string BoundWhileStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &BoundWhileStatement::getConditionPtr() {

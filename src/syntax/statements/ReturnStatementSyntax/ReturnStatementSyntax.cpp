@@ -30,8 +30,9 @@ SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ReturnStatement;
 }
 
-std::string ReturnStatementSyntax::getLineNumberAndColumn() {
-  return _returnKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+ReturnStatementSyntax::getSourceLocation() const {
+  return _returnKeyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

@@ -1,8 +1,8 @@
 #include "BoundBreakStatement.h"
 
-BoundBreakStatement::BoundBreakStatement(std::string lineAndColumn) {
-  this->_lineAndColumn = lineAndColumn;
-}
+BoundBreakStatement::BoundBreakStatement(
+    const DiagnosticUtils::SourceLocation &location)
+    : BoundSourceLocation(location) {}
 
 BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::BreakStatement;
@@ -10,8 +10,4 @@ BinderKindUtils::BoundNodeKind BoundBreakStatement::getKind() const {
 
 std::vector<BoundNode *> BoundBreakStatement::getChildren() {
   return this->_children;
-}
-
-std::string BoundBreakStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }

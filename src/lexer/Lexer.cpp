@@ -1,12 +1,14 @@
 #include "Lexer.h"
 
-Lexer::Lexer(const std::vector<std::string> &text) {
-  this->text = text;
+Lexer::Lexer(const std::vector<std::string> &text,
+             DiagnosticHandler *diagnosticHandler) {
 
   textSize = text.size();
 
+  this->text = text;
   this->lineNumber = 0;
   this->position = 0;
+  this->_diagnosticHandler = diagnosticHandler;
 }
 
 char Lexer::getCurrent() {
@@ -38,8 +40,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
         std::make_unique<SyntaxToken<std::any>>(
             this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
             text, text);
-    this->logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-                         e.what());
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic(e.what(), DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Lexical,
+                   Utils::getSourceLocation(newSyntaxToken.get())));
+
     return std::move(newSyntaxToken);
   }
   const double &res = stod(text);
@@ -75,8 +81,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
             this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
             text, 0);
 
-    this->logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-                         e.what());
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic(e.what(), DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Lexical,
+                   Utils::getSourceLocation(newSyntaxToken.get())));
+
     return std::move(newSyntaxToken);
   }
   const int &resInt = stoi(text);
@@ -215,9 +224,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readComment() {
     if (this->getCurrent() == endOfFile) {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::move(readEndOfFile());
-      this->logs.push_back(
-          Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-          "ERROR: Unterminated Comment Block");
+
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Unterminated Comment Block", DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Lexical,
+          Utils::getSourceLocation(newSyntaxToken.get())));
 
       return std::move(newSyntaxToken);
     } else if (this->getCurrent() == endOfLine) {
@@ -409,8 +420,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
           this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken,
           this->position++, str, nullptr);
 
-  this->logs.push_back(Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-                       "ERROR: Bad Character Input <" + str + ">");
+  this->_diagnosticHandler->addDiagnostic(
+      Diagnostic("Bad Character Input <" + str + ">",
+                 DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Lexical,
+                 Utils::getSourceLocation(newSyntaxToken.get())));
 
   return std::move(newSyntaxToken);
 }
@@ -467,9 +481,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
               this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
               this->text[lineNumber].substr(start, this->position - start), 0);
 
-      this->logs.push_back(
-          Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-          "ERROR: unterminated string literal");
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Unterminated String Literal",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Lexical,
+                     Utils::getSourceLocation(newSyntaxToken.get())));
+
       return std::move(newSyntaxToken);
     }
     if (this->getCurrent() == '\\') {
@@ -496,10 +513,14 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
                 this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
                 this->text[lineNumber].substr(start, this->position - start),
                 0);
-        this->logs.push_back(
-            Utils::getLineNumberAndPosition(newSyntaxToken.get()) +
-            "ERROR: bad character escape sequence: \\" +
-            this->text[lineNumber].substr(this->position, 1));
+
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Bad Character Escape Sequence: \\" +
+                           this->text[lineNumber].substr(this->position, 1),
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Lexical,
+                       Utils::getSourceLocation(newSyntaxToken.get())));
+
         return std::move(newSyntaxToken);
       }
     } else {

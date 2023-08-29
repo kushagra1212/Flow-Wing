@@ -1,19 +1,19 @@
 #ifndef BOUNDCONTINUESTATEMENT_H
 #define BOUNDCONTINUESTATEMENT_H
 
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 
-class BoundContinueStatement : public BoundStatement {
+class BoundContinueStatement : public BoundStatement,
+                               public BoundSourceLocation {
 
 public:
-  BoundContinueStatement(std::string lineAndColumn);
+  BoundContinueStatement(const DiagnosticUtils::SourceLocation &location);
 
 public:
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 };
 
 #endif // BOUNDCONTINUESTATEMENT_H

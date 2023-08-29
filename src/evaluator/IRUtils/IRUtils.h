@@ -69,6 +69,7 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
 // JIT
@@ -76,6 +77,8 @@
 
 #include "../llvm/IRGenerator.h"
 
+#include <llvm/Support/raw_ostream.h>
+#include <sstream>
 namespace IRUtils {
 llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
                           llvm::LLVMContext *TheContext,
@@ -118,11 +121,13 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
 
 llvm::Value *getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
+    llvm::LLVMContext *TheContext);
 
 llvm::Value *getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
+    llvm::LLVMContext *TheContext);
 llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,

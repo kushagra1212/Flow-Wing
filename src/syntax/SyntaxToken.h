@@ -10,10 +10,10 @@ private:
   T value;
 
 public:
-  SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind, int position,
-              std::string text, T value);
+  SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind,
+              int columnNumber, std::string text, T value);
 
-  int getPosition();
+  int getColumnNumber();
 
   int getLineNumber();
 
@@ -29,7 +29,7 @@ public:
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::vector<SyntaxNode *> getChildren() override;
 };

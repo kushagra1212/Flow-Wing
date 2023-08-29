@@ -1,11 +1,13 @@
 #include "BoundBlockStatement.h"
-BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn,
-                                         bool global) {
+BoundBlockStatement::BoundBlockStatement(
+    const DiagnosticUtils::SourceLocation &location, bool global)
+    : BoundSourceLocation(location) {
   this->_global = global;
-  this->_lineAndColumn = lineAndColumn;
 }
-BoundBlockStatement::BoundBlockStatement(std::string lineAndColumn) {
-  BoundBlockStatement(lineAndColumn, false);
+BoundBlockStatement::BoundBlockStatement(
+    const DiagnosticUtils::SourceLocation &location)
+    : BoundSourceLocation(location) {
+  BoundBlockStatement(location, false);
 }
 
 std::vector<std::unique_ptr<BoundStatement>> &
@@ -31,8 +33,4 @@ std::vector<BoundNode *> BoundBlockStatement::getChildren() {
     }
   }
   return this->_children;
-}
-
-std::string BoundBlockStatement::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }

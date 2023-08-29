@@ -2,6 +2,7 @@
 
 #include "../Common.h"
 #include "../syntax/SyntaxKindUtils.h"
+
 namespace BinderKindUtils {
 enum BoundNodeKind {
   UnaryExpression,

@@ -44,8 +44,8 @@ std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string ForStatementSyntax::getLineNumberAndColumn() {
-  return this->_initialization->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation ForStatementSyntax::getSourceLocation() const {
+  return this->_initialization->getSourceLocation();
 }
 
 std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementPtr() {

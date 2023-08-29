@@ -36,8 +36,9 @@ std::vector<SyntaxNode *> WhileStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::string WhileStatementSyntax::getLineNumberAndColumn() {
-  return _whileKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+WhileStatementSyntax::getSourceLocation() const {
+  return this->_whileKeyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

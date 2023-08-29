@@ -1,15 +1,15 @@
 #include "BoundBinaryExpression.h"
 
 BoundBinaryExpression::BoundBinaryExpression(
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
-    std::unique_ptr<BoundExpression> right) {
+    std::unique_ptr<BoundExpression> right)
+    : BoundSourceLocation(location) {
   this->_op = op;
 
   this->_left = std::move(left);
   this->_right = std::move(right);
-
-  this->_lineAndColumn = lineAndColumn;
 
   // TODO:
 
@@ -37,10 +37,6 @@ BinderKindUtils::BoundNodeKind BoundBinaryExpression::getKind() const {
 }
 std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
   return _children;
-}
-
-std::string BoundBinaryExpression::getLineNumberAndColumn() {
-  return _lineAndColumn;
 }
 
 BinderKindUtils::BoundBinaryOperatorKind &

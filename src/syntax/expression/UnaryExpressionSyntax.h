@@ -14,17 +14,13 @@ public:
                         std::unique_ptr<ExpressionSyntax> operand);
 
   std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
-
   std::unique_ptr<ExpressionSyntax> getOperand();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
-
   std::unique_ptr<ExpressionSyntax> &getOperandPtr();
 };
 

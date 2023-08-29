@@ -1,9 +1,10 @@
 #include "BoundParenthesizedExpression.h"
 
 BoundParenthesizedExpression::BoundParenthesizedExpression(
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> expression) {
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> expression)
+    : BoundSourceLocation(location) {
   this->_expression = std::move(expression);
-  this->_lineAndColumn = lineAndColumn;
 
   this->_children.push_back(this->_expression.get());
 }
@@ -22,10 +23,6 @@ BinderKindUtils::BoundNodeKind BoundParenthesizedExpression::getKind() const {
 
 std::vector<BoundNode *> BoundParenthesizedExpression::getChildren() {
   return this->_children;
-}
-
-std::string BoundParenthesizedExpression::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 std::unique_ptr<BoundExpression> &

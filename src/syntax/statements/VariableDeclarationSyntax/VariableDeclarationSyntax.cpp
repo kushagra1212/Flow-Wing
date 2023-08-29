@@ -56,8 +56,9 @@ std::vector<SyntaxNode *> VariableDeclarationSyntax::getChildren() {
   return this->_children;
 }
 
-std::string VariableDeclarationSyntax::getLineNumberAndColumn() {
-  return _keyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation
+VariableDeclarationSyntax::getSourceLocation() const {
+  return this->_keyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

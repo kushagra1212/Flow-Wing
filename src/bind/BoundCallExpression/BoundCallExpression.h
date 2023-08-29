@@ -6,8 +6,9 @@
 #include "../BoundExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundNode.h"
+#include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundCallExpression : public BoundExpression {
+class BoundCallExpression : public BoundExpression, public BoundSourceLocation {
 private:
   Utils::FunctionSymbol _functionalSymbol;
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
@@ -15,7 +16,7 @@ private:
 
 public:
   BoundCallExpression(
-      std::string lineAndColumn,
+      const DiagnosticUtils::SourceLocation &location,
       std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
       Utils::FunctionSymbol functionalSymbol);
 
@@ -31,11 +32,9 @@ public:
 
   Utils::FunctionSymbol getFunctionSymbol() const;
 
-  BinderKindUtils::BoundNodeKind getKind() const override;
+  BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
 
   std::unique_ptr<BoundLiteralExpression<std::any>> &getCallerIdentifierPtr();
 };

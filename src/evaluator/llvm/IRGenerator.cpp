@@ -279,13 +279,14 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   } else if (IRUtils::isBoolType(lhsType) && IRUtils::isBoolType(rhsType)) {
 
     result = IRUtils::getResultFromBinaryOperationOnBool(
-        lhsValue, rhsValue, Builder.get(), TheModule.get(), binaryExpression);
+        lhsValue, rhsValue, Builder.get(), TheModule.get(), binaryExpression,
+        TheContext.get());
   } else {
 
     result = IRUtils::getResultFromBinaryOperationOnInt(
         IRUtils::convertToInt(lhsValue, Builder.get()),
         IRUtils::convertToInt(rhsValue, Builder.get()), Builder.get(),
-        TheModule.get(), binaryExpression);
+        TheModule.get(), binaryExpression, TheContext.get());
   }
   return result;
 }
@@ -304,15 +305,12 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
           (BoundExpression *)callExpression->getArguments()[0].get());
 
       IRUtils::printFunction(strPtri8, TheModule.get(), Builder.get(),
-                             TheContext.get(),
-                             _environment == IRUtils::ENVIRONMENT::REPL);
+                             TheContext.get(), false);
 
       return this->getNull();
     }
 
-    llvm::errs()
-        << (callExpression->getLineNumberAndColumn() +
-            "Error: Unexpected function cal: arguments does  not match");
+    llvm::errs() << "Error: Unexpected function cal: arguments does  not match";
     return this->getNull();
   }
   llvm::errs() << "Error: Unexpected function call ";
@@ -919,10 +917,13 @@ void IRGenerator::executeGeneratedCode() {
   }
   llvm::GenericValue resultValue = llvm::GenericValue();
 
-  // Step 3: Call the function
-  std::vector<llvm::GenericValue> noArgs;
+  std::vector<std::string> noArgs;
   try {
-    resultValue = executionEngine->runFunction(evaluateBlockStatement, noArgs);
+    executionEngine->runFunctionAsMain(evaluateBlockStatement, noArgs, nullptr);
+
+    if (_environment == IRUtils::ENVIRONMENT::REPL) {
+      std::cout << "\n";
+    }
 
   } catch (const std::exception &e) {
     std::cerr << e.what();

@@ -29,8 +29,8 @@ std::vector<SyntaxNode *> ElseClauseSyntax::getChildren() {
   return this->_children;
 }
 
-std::string ElseClauseSyntax::getLineNumberAndColumn() {
-  return _elseKeyword->getLineNumberAndColumn();
+DiagnosticUtils::SourceLocation ElseClauseSyntax::getSourceLocation() const {
+  return this->_elseKeyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordPtr() {

@@ -23,8 +23,9 @@ std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-std::string VariableExpressionSyntax::getLineNumberAndColumn() {
-  return this->_identifierExpression->getLineNumberAndColumn();
+ DiagnosticUtils::SourceLocation 
+VariableExpressionSyntax::getSourceLocation() const {
+  return this->_identifierExpression->getSourceLocation();
 }
 
 std::unique_ptr<LiteralExpressionSyntax<std::any>> &

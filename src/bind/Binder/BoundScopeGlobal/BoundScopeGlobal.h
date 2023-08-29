@@ -1,5 +1,6 @@
 #pragma once
 #include "../../../Common.h"
+#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../../utils/Utils.h"
 #include "../../BoundExpression.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
@@ -9,7 +10,7 @@ public:
   BoundScopeGlobal(std::unique_ptr<BoundScopeGlobal> previous,
                    std::map<std::string, Utils::Variable> variables,
                    std::map<std::string, BoundFunctionDeclaration *> functions,
-                   std::vector<std::string> logs,
+                   DiagnosticHandler *diagnosticHandler,
                    std::unique_ptr<BoundStatement> statement);
 
   bool tryLookupVariable(std::string name);
@@ -20,6 +21,6 @@ public:
   std::unique_ptr<BoundScopeGlobal> previous;
   std::map<std::string, Utils::Variable> variables;
   std::map<std::string, BoundFunctionDeclaration *> functions;
-  std::vector<std::string> logs;
+  DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundStatement> statement;
 };

@@ -1,13 +1,14 @@
 #include "BoundAssignmentExpression.h"
 
 BoundAssignmentExpression::BoundAssignmentExpression(
-    std::string lineAndColumn, std::unique_ptr<BoundExpression> left,
+    const DiagnosticUtils::SourceLocation &location,
+    std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
-    std::unique_ptr<BoundExpression> right) {
+    std::unique_ptr<BoundExpression> right)
+    : BoundSourceLocation(location) {
   this->_op = op;
   this->_left = std::move(left);
   this->_right = std::move(right);
-  this->_lineAndColumn = lineAndColumn;
 
   _children.push_back(_left.get());
 }
@@ -34,9 +35,6 @@ BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
 
 std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
   return this->_children;
-}
-std::string BoundAssignmentExpression::getLineNumberAndColumn() {
-  return this->_lineAndColumn;
 }
 
 BinderKindUtils::BoundBinaryOperatorKind &

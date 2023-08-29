@@ -23,21 +23,16 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
   void addArgument(std::unique_ptr<ExpressionSyntax> argument);
-
   void setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
-
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
-
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIdentifierPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();

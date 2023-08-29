@@ -8,21 +8,21 @@ template class SyntaxToken<std::string>;
 template class SyntaxToken<char>;
 
 template <typename T>
-SyntaxToken<T>::SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind k,
-                            int p, std::string t, T v) {
-  this->kind = k;
-  this->position = p;
-  this->text = t;
-  this->value = v;
+SyntaxToken<T>::SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind,
+                            int columnNumber, std::string text, T value) {
+  this->kind = kind;
+  this->text = text;
+  this->value = value;
   this->lineNumber = lineNumber;
+  this->columnNumber = columnNumber;
 }
 
 template <typename T>
 SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() const {
   return this->kind;
 }
-template <typename T> int SyntaxToken<T>::getPosition() {
-  return this->position;
+template <typename T> int SyntaxToken<T>::getColumnNumber() {
+  return this->columnNumber;
 }
 
 template <typename T> int SyntaxToken<T>::getLineNumber() {
@@ -84,7 +84,8 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
 template <typename T> std::vector<SyntaxNode *> SyntaxToken<T>::getChildren() {
   return _children;
 }
-template <typename T> std::string SyntaxToken<T>::getLineNumberAndColumn() {
-  return "line " + std::to_string(this->lineNumber + 1) + ":" +
-         std::to_string(this->position + 1) + " ";
+
+template <typename T>
+DiagnosticUtils::SourceLocation SyntaxToken<T>::getSourceLocation() const {
+  return DiagnosticUtils::SourceLocation(this->lineNumber, this->columnNumber);
 }

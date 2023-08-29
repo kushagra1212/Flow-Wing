@@ -1,5 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
@@ -27,19 +28,31 @@
 #include "../utils/Utils.h"
 #include <typeindex>
 class Parser {
+
+public:
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
+
+  std::unique_ptr<Lexer> lexer;
+
+  Parser(const std::vector<std::string> &text,
+         DiagnosticHandler *diagnosticHandler);
+  ~Parser();
+
+  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
+
 private:
+  DiagnosticHandler *_diagnosticHandler;
+
   int position = 0;
 
-  SyntaxToken<std::any> *peek(int offset);
-
-  SyntaxToken<std::any> *getCurrent();
-
-  std::unique_ptr<SyntaxToken<std::any>> nextToken();
+  bool matchKind(SyntaxKindUtils::SyntaxKind kind);
+  void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
 
   std::unique_ptr<SyntaxToken<std::any>>
   match(SyntaxKindUtils::SyntaxKind kind);
-  bool matchKind(SyntaxKindUtils::SyntaxKind kind);
-
+  SyntaxToken<std::any> *peek(int offset);
+  SyntaxToken<std::any> *getCurrent();
+  std::unique_ptr<SyntaxToken<std::any>> nextToken();
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
@@ -50,30 +63,12 @@ private:
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
-
   std::unique_ptr<ForStatementSyntax> parseForStatement();
-
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
-
-  void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
   std::unique_ptr<MemberSyntax> parseMember();
-
   std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
-
-  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
-
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
-
+  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
-
-public:
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
-  std::vector<std::string> logs;
-  std::unique_ptr<Lexer> lexer;
-
-  std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
-  Parser(const std::vector<std::string> &text);
-
-  ~Parser();
 };
 #endif

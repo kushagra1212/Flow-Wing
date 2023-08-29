@@ -15,20 +15,14 @@ public:
                        std::unique_ptr<BlockStatementSyntax> body);
 
   std::unique_ptr<SyntaxToken<std::any>> getWhileKeyword();
-
   std::unique_ptr<ExpressionSyntax> getCondition();
-
   std::unique_ptr<BlockStatementSyntax> getBody();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
-
   std::vector<SyntaxNode *> getChildren() override;
-
-  std::string getLineNumberAndColumn() override;
+  DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordPtr();
-
   std::unique_ptr<ExpressionSyntax> &getConditionPtr();
-
   std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };
