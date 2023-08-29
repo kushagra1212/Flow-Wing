@@ -53,7 +53,49 @@ bool isVariableDeclared(
   return isDeclared;
 }
 
-// UPDATE VALUES
+void handleReplLastExpression(
+    int _environment, llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+    llvm::LLVMContext *TheContext,
+    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext)>
+        printContent,
+    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext)>
+        errorContent) {
+
+  llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
+  llvm::Function *lastFunction = lastBlock->getParent();
+
+  llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
+      *TheContext, "printBlock", lastFunction, lastBlock);
+
+  llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+      *TheContext, "errorBlock", lastFunction, lastBlock);
+
+  llvm::BasicBlock *exitBlock = llvm::BasicBlock::Create(
+      *TheContext, "exitBlock", lastFunction, lastBlock);
+
+  llvm::Value *isErrorZero = IRUtils::isCountZero(
+      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext), TheModule,
+      Builder, TheContext);
+
+  Builder->CreateCondBr(isErrorZero, printBlock, errorBlock);
+
+  Builder->SetInsertPoint(printBlock);
+
+  printContent(TheModule, Builder, TheContext);
+
+  Builder->CreateBr(exitBlock);
+
+  Builder->SetInsertPoint(errorBlock);
+
+  errorContent(TheModule, Builder, TheContext);
+
+  Builder->CreateBr(exitBlock);
+
+  Builder->SetInsertPoint(exitBlock);
+
+} // UPDATE VALUES
 
 bool updateNamedValue(
     const std::string &name, llvm::Value *value,
@@ -825,6 +867,8 @@ llvm::Value *getResultFromBinaryOperationOnInt(
     std::string error = "\x1b[31mDivision by zero";
 
     llvm::Value *errorStr = IRUtils::convertStringToi8Ptr(error, Builder);
+
+    IRUtils::incrementCount(ELANG_GLOBAL_ERROR, TheModule, Builder, TheContext);
 
     IRUtils::printFunction(errorStr, TheModule, Builder, TheContext, false);
 

@@ -177,9 +177,13 @@ void Repl::compileAndEvaluate(
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
 
-    _evaluator->executeGeneratedCode();
+    int hasError = _evaluator->executeGeneratedCode();
 
-    previous_lines = text;
+    if (hasError) {
+      outputStream << RED << "Runtime Error: " << RESET << "\n";
+    } else {
+      previous_lines = text;
+    }
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";

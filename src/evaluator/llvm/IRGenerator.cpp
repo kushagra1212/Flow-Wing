@@ -183,6 +183,14 @@ void IRGenerator::defineStandardFunctions() {
   llvm::GlobalVariable *globalZero = new llvm::GlobalVariable(
       *TheModule, breakCount->getType(), true,
       llvm::GlobalValue::ExternalLinkage, zero, IRUtils::ELANG_GLOBAL_ZERO);
+
+  llvm::Constant *errorCount =
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
+
+  llvm::GlobalVariable *globalErrorCount =
+      new llvm::GlobalVariable(*TheModule, errorCount->getType(), false,
+                               llvm::GlobalValue::ExternalLinkage, errorCount,
+                               IRUtils::ELANG_GLOBAL_ERROR);
 }
 
 llvm::Value *
@@ -476,9 +484,9 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
-  llvm::Value *returnValue = getNull();
+  llvm::Value *returnValue = getNull(); // default return value
   llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), false);
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext), false);
 
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
@@ -512,13 +520,23 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   // Return Block
 
   Builder->SetInsertPoint(returnBlock);
-
   if (returnValue != getNull()) {
-    IRUtils::printFunction(returnValue, TheModule.get(), Builder.get(),
-                           TheContext.get(),
-                           _environment == IRUtils::ENVIRONMENT::REPL);
+
+    IRUtils::handleReplLastExpression(
+        _environment, TheModule.get(), Builder.get(), TheContext.get(),
+        [&](llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+            llvm::LLVMContext *TheContext) {
+          IRUtils::printFunction(returnValue, TheModule, Builder, TheContext,
+                                 false);
+        },
+        [&](llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+            llvm::LLVMContext *TheContext) {
+          Builder->CreateRet(
+              llvm::ConstantInt::get(*TheContext, llvm::APInt(1, 1, true)));
+        });
   }
-  Builder->CreateRetVoid();
+  Builder->CreateRet(
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(1, 0, true)));
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
@@ -906,8 +924,7 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   return getNull();
 }
 
-void IRGenerator::executeGeneratedCode() {
-  std::string output = "";
+int IRGenerator::executeGeneratedCode() {
 
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction("evaluateBlockStatement");
@@ -926,11 +943,22 @@ void IRGenerator::executeGeneratedCode() {
   if (!evaluateBlockStatement) {
     llvm::errs() << "Function not found in module.\n";
   }
+  int hasError = 1;
+  llvm::Type *returnType = evaluateBlockStatement->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
-
-  std::vector<std::string> noArgs;
+  llvm::ArrayRef<llvm::GenericValue> ArgValues;
   try {
-    executionEngine->runFunctionAsMain(evaluateBlockStatement, noArgs, nullptr);
+    resultValue =
+        executionEngine->runFunction(evaluateBlockStatement, ArgValues);
+
+    if (returnType->isIntegerTy()) {
+      if (returnType->getIntegerBitWidth() == 1) {
+        hasError = (resultValue.IntVal != 0) ? 1 : 0;
+
+      } else {
+        llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
+      }
+    }
 
     if (_environment == IRUtils::ENVIRONMENT::REPL) {
       std::cout << "\n";
@@ -973,4 +1001,5 @@ void IRGenerator::executeGeneratedCode() {
   //   output += "Unknown Value Type\n";
   // }
   delete executionEngine;
+  return hasError;
 }

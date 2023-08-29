@@ -86,10 +86,20 @@ namespace IRUtils {
 const std::string ELANG_CONTINUE_COUNT = "ELANG_CONTINUE_COUNT";
 const std::string ELANG_BREAK_COUNT = "ELANG_BREAK_COUNT";
 const std::string ELANG_GLOBAL_ZERO = "ELANG_GLOBAL_ZERO";
+
+// For Error
+
+const std::string ELANG_GLOBAL_ERROR = "ELANG_GLOBAL_ERROR_COUNT";
+
+// NULL
+
 const std::string ELANG_GLOBAL_NULL = "ELANG_GLOBAL_NULL";
+
+// TRUE AND FALSE KEYWORDS
 const std::string ELANG_GLOBAL_TRUE = "ELANG_GLOBAL_TRUE";
 const std::string ELANG_GLOBAL_FALSE = "ELANG_GLOBAL_FALSE";
 
+enum ENVIRONMENT { REPL, FILE };
 llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
                           llvm::LLVMContext *TheContext,
                           llvm::IRBuilder<> *Builder);
@@ -157,6 +167,16 @@ llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,
     BoundBinaryExpression *binaryExpression);
 
+void handleReplLastExpression(
+    int _environment, llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+    llvm::LLVMContext *TheContext,
+    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext)>
+        printContent,
+    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext)>
+        errorContent);
+
 // SET VALUES
 llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
 void setNamedValue(
@@ -218,8 +238,6 @@ handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
                        llvm::LLVMContext *TheContext, llvm::Module *TheModule
 
 );
-
-enum ENVIRONMENT { REPL, FILE };
 
 } // namespace IRUtils
 
