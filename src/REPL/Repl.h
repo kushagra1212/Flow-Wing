@@ -5,6 +5,8 @@
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
+
+using namespace ELANG::EVALUATOR::CONSTANTS;
 class Repl {
 public:
   Repl();

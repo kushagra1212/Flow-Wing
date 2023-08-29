@@ -149,51 +149,47 @@ void IRGenerator::defineStandardFunctions() {
       llvm::ConstantDataArray::getString(*TheContext, "true");
   llvm::GlobalVariable *globalTrueStr = new llvm::GlobalVariable(
       *TheModule, trueStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      trueStr, this->_irUtils->ELANG_GLOBAL_TRUE);
+      trueStr, ELANG_GLOBAL_TRUE);
 
   llvm::Constant *falseStr =
       llvm::ConstantDataArray::getString(*TheContext, "false");
   llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
       *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      falseStr, this->_irUtils->ELANG_GLOBAL_FALSE);
+      falseStr, ELANG_GLOBAL_FALSE);
 
   llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
   llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
       *TheModule, int8PtrType, true, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantPointerNull::get(int8PtrType),
-      this->_irUtils->ELANG_GLOBAL_NULL);
+      llvm::ConstantPointerNull::get(int8PtrType), ELANG_GLOBAL_NULL);
 
   // Break keyword count
 
   llvm::Constant *breakCount =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
-  llvm::GlobalVariable *globalBreakCount =
-      new llvm::GlobalVariable(*TheModule, breakCount->getType(), false,
-                               llvm::GlobalValue::ExternalLinkage, breakCount,
-                               this->_irUtils->ELANG_BREAK_COUNT);
+  llvm::GlobalVariable *globalBreakCount = new llvm::GlobalVariable(
+      *TheModule, breakCount->getType(), false,
+      llvm::GlobalValue::ExternalLinkage, breakCount, ELANG_BREAK_COUNT);
 
   llvm::GlobalVariable *globalContinueCount = new llvm::GlobalVariable(
       *TheModule, breakCount->getType(), false,
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)),
-      this->_irUtils->ELANG_CONTINUE_COUNT);
+      ELANG_CONTINUE_COUNT);
 
   llvm::Constant *zero =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
-  llvm::GlobalVariable *globalZero =
-      new llvm::GlobalVariable(*TheModule, breakCount->getType(), true,
-                               llvm::GlobalValue::ExternalLinkage, zero,
-                               this->_irUtils->ELANG_GLOBAL_ZERO);
+  llvm::GlobalVariable *globalZero = new llvm::GlobalVariable(
+      *TheModule, breakCount->getType(), true,
+      llvm::GlobalValue::ExternalLinkage, zero, ELANG_GLOBAL_ZERO);
 
   llvm::Constant *errorCount =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
-  llvm::GlobalVariable *globalErrorCount =
-      new llvm::GlobalVariable(*TheModule, errorCount->getType(), false,
-                               llvm::GlobalValue::ExternalLinkage, errorCount,
-                               this->_irUtils->ELANG_GLOBAL_ERROR);
+  llvm::GlobalVariable *globalErrorCount = new llvm::GlobalVariable(
+      *TheModule, errorCount->getType(), false,
+      llvm::GlobalValue::ExternalLinkage, errorCount, ELANG_GLOBAL_ERROR);
 }
 
 llvm::Value *
@@ -454,7 +450,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
         blockStatement->getStatements()[i].get());
 
     Builder->CreateCondBr(
-        this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+        this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
                                     llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
@@ -466,7 +462,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
       Builder->CreateBr(afterNestedBlock);
     else {
       Builder->CreateCondBr(
-          this->_irUtils->isCountZero(this->_irUtils->ELANG_CONTINUE_COUNT,
+          this->_irUtils->isCountZero(ELANG_CONTINUE_COUNT,
                                       llvm::Type::getInt32Ty(*TheContext)),
           nestedBlocks[i + 1], afterNestedBlock);
     }
@@ -520,8 +516,10 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->SetInsertPoint(returnBlock);
   if (returnValue != getNull()) {
 
-    this->_irUtils->handleReplLastExpression(
-        _environment,
+    this->_irUtils->handleConditionalBranch(
+        this->_irUtils->isCountZero(ELANG_GLOBAL_ERROR,
+                                    llvm::Type::getInt32Ty(*TheContext)),
+        "printBlock", "errorBlock",
         [&]() { this->_irUtils->printFunction(returnValue, false); },
         [&]() {
           Builder->CreateRet(
@@ -656,7 +654,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_CONTINUE_COUNT);
+  this->_irUtils->decrementCountIfNotZero(ELANG_CONTINUE_COUNT);
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -672,7 +670,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+      this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
                                   llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -688,7 +686,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_BREAK_COUNT);
+  this->_irUtils->decrementCountIfNotZero(ELANG_BREAK_COUNT);
 
   return exitValue;
 }
@@ -772,7 +770,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_CONTINUE_COUNT);
+  this->_irUtils->decrementCountIfNotZero(ELANG_CONTINUE_COUNT);
 
   llvm::Value *variableValue =
       this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
@@ -795,7 +793,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+      this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
                                   llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -820,7 +818,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_BREAK_COUNT);
+  this->_irUtils->decrementCountIfNotZero(ELANG_BREAK_COUNT);
 
   this->_NamedValuesAllocaStack.pop();
   this->_NamedValuesStack.pop();
@@ -872,13 +870,13 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
 
-    this->_irUtils->incrementCount(this->_irUtils->ELANG_BREAK_COUNT);
+    this->_irUtils->incrementCount(ELANG_BREAK_COUNT);
 
     return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
-    this->_irUtils->incrementCount(this->_irUtils->ELANG_CONTINUE_COUNT);
+    this->_irUtils->incrementCount(ELANG_CONTINUE_COUNT);
     return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
@@ -940,7 +938,7 @@ int IRGenerator::executeGeneratedCode() {
       }
     }
 
-    if (_environment == this->_irUtils->ENVIRONMENT::REPL) {
+    if (_environment == ENVIRONMENT::REPL) {
       std::cout << "\n";
     }
 

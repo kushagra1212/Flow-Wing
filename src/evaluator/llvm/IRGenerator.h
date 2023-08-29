@@ -2,6 +2,7 @@
 #define IRGENERATOR_H
 
 #include "../IRUtils/IRUtils.h"
+using namespace ELANG::EVALUATOR::CONSTANTS;
 
 class IRGenerator {
 

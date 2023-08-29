@@ -1,6 +1,26 @@
 #ifndef IR_UTILS_H
 #define IR_UTILS_H
 
+// Elang Files Import
+
+#include "../../Common.h"
+#include "../../bind/Binder/Binder.h"
+#include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
+#include "../../bind/BinderKindUtils.h"
+#include "../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../../bind/BoundBlockStatement/BoundBlockStatement.h"
+#include "../../bind/BoundExpression.h"
+#include "../../bind/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "../../bind/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "../../bind/BoundStatement/BoundStatement.h"
+#include "../../bind/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
+#include "../../syntax/CompilationUnitSyntax.h"
+#include "../constants/ElangIRConstants.h"
+
+using namespace ELANG::EVALUATOR::CONSTANTS;
 class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
@@ -52,24 +72,6 @@ class IRUtils;
 #include "llvm//IR/Value.h"
 #include "llvm/IR/Constants.h"
 
-// Elang Files Import
-
-#include "../../Common.h"
-#include "../../bind/Binder/Binder.h"
-#include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
-#include "../../bind/BinderKindUtils.h"
-#include "../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../../bind/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../bind/BoundExpression.h"
-#include "../../bind/BoundExpressionStatement/BoundExpressionStatement.h"
-#include "../../bind/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
-#include "../../bind/BoundStatement/BoundStatement.h"
-#include "../../bind/BoundUnaryExpression/BoundUnaryExpression.h"
-#include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
-#include "../../syntax/CompilationUnitSyntax.h"
-
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
@@ -84,25 +86,6 @@ class IRUtils;
 class IRUtils {
 
 public:
-  // Elang Global Strings
-
-  const std::string ELANG_CONTINUE_COUNT = "ELANG_CONTINUE_COUNT";
-  const std::string ELANG_BREAK_COUNT = "ELANG_BREAK_COUNT";
-  const std::string ELANG_GLOBAL_ZERO = "ELANG_GLOBAL_ZERO";
-
-  // For Error
-
-  const std::string ELANG_GLOBAL_ERROR = "ELANG_GLOBAL_ERROR_COUNT";
-
-  // NULL
-
-  const std::string ELANG_GLOBAL_NULL = "ELANG_GLOBAL_NULL";
-
-  // TRUE AND FALSE KEYWORDS
-  const std::string ELANG_GLOBAL_TRUE = "ELANG_GLOBAL_TRUE";
-  const std::string ELANG_GLOBAL_FALSE = "ELANG_GLOBAL_FALSE";
-
-  enum ENVIRONMENT { REPL, FILE };
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
   llvm::LLVMContext *TheContext;
@@ -165,10 +148,6 @@ public:
                                        llvm::Value *rhsValue,
                                        BoundBinaryExpression *binaryExpression);
 
-  void handleReplLastExpression(int _environment,
-                                std::function<void()> printContent,
-                                std::function<void()> errorContent);
-
   // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
   void setNamedValue(
@@ -221,6 +200,12 @@ public:
   llvm::PHINode *handleForLoopCondition(llvm::Value *stepValue,
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
+
+  void handleConditionalBranch(llvm::Value *conditionValue,
+                               const std::string &trueBlockName,
+                               const std::string &falseBlockName,
+                               std::function<void()> trueBlockCode,
+                               std::function<void()> falseBlockCode);
 };
 
 #endif

@@ -54,42 +54,42 @@ bool IRUtils::isVariableDeclared(
   return isDeclared;
 }
 
-void IRUtils::handleReplLastExpression(int _environment,
-                                       std::function<void()> printContent,
-                                       std::function<void()> errorContent) {
+void IRUtils::handleConditionalBranch(llvm::Value *conditionValue,
+                                      const std::string &trueBlockName,
+                                      const std::string &falseBlockName,
+                                      std::function<void()> trueBlockCode,
+                                      std::function<void()> falseBlockCode) {
 
-  llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
-  llvm::Function *lastFunction = lastBlock->getParent();
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  llvm::Function *currentFunction = currentBlock->getParent();
 
-  llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
-      *TheContext, "printBlock", lastFunction, lastBlock);
+  llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+      *TheContext, "mergeBlock", currentFunction, currentBlock);
 
-  llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-      *TheContext, "errorBlock", lastFunction, lastBlock);
+  llvm::BasicBlock *trueBlock = llvm::BasicBlock::Create(
+      *TheContext, trueBlockName, currentFunction, currentBlock);
 
-  llvm::BasicBlock *exitBlock = llvm::BasicBlock::Create(
-      *TheContext, "exitBlock", lastFunction, lastBlock);
+  llvm::BasicBlock *falseBlock = llvm::BasicBlock::Create(
+      *TheContext, falseBlockName, currentFunction, currentBlock);
 
-  llvm::Value *isErrorZero = this->isCountZero(
-      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
+  Builder->CreateCondBr(conditionValue, trueBlock, falseBlock);
 
-  Builder->CreateCondBr(isErrorZero, printBlock, errorBlock);
+  Builder->SetInsertPoint(trueBlock);
 
-  Builder->SetInsertPoint(printBlock);
+  trueBlockCode();
 
-  printContent();
+  Builder->CreateBr(mergeBlock);
 
-  Builder->CreateBr(exitBlock);
+  Builder->SetInsertPoint(falseBlock);
 
-  Builder->SetInsertPoint(errorBlock);
+  falseBlockCode();
 
-  errorContent();
+  Builder->CreateBr(mergeBlock);
 
-  Builder->CreateBr(exitBlock);
+  Builder->SetInsertPoint(mergeBlock);
+}
 
-  Builder->SetInsertPoint(exitBlock);
-
-} // UPDATE VALUES
+// UPDATE VALUES
 
 bool IRUtils::updateNamedValue(
     const std::string &name, llvm::Value *value,
