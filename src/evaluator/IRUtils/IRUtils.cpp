@@ -1,10 +1,11 @@
 #include "IRUtils.h"
 
-namespace IRUtils {
-
+IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                 llvm::LLVMContext *TheContext)
+    : TheModule(TheModule), Builder(Builder), TheContext(TheContext) {}
 // GET VALUES
 
-llvm::Value *getNamedValue(
+llvm::Value *IRUtils::getNamedValue(
     const std::string &name,
     std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
   llvm::Value *value = nullptr;
@@ -19,10 +20,10 @@ llvm::Value *getNamedValue(
   return value;
 }
 
-llvm::AllocaInst *
-getNamedValueAlloca(const std::string &name,
-                    std::stack<std::map<std::string, llvm::AllocaInst *>>
-                        NamedValuesAllocaStack) {
+llvm::AllocaInst *IRUtils::getNamedValueAlloca(
+    const std::string &name,
+    std::stack<std::map<std::string, llvm::AllocaInst *>>
+        NamedValuesAllocaStack) {
   llvm::AllocaInst *value = nullptr;
   while (!NamedValuesAllocaStack.empty()) {
     std::map<std::string, llvm::AllocaInst *> &NamedValues =
@@ -38,7 +39,7 @@ getNamedValueAlloca(const std::string &name,
 
 // CHECK VALUES
 
-bool isVariableDeclared(
+bool IRUtils::isVariableDeclared(
     const std::string &name,
     std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
   bool isDeclared = false;
@@ -53,15 +54,9 @@ bool isVariableDeclared(
   return isDeclared;
 }
 
-void handleReplLastExpression(
-    int _environment, llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-    llvm::LLVMContext *TheContext,
-    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext)>
-        printContent,
-    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext)>
-        errorContent) {
+void IRUtils::handleReplLastExpression(int _environment,
+                                       std::function<void()> printContent,
+                                       std::function<void()> errorContent) {
 
   llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
   llvm::Function *lastFunction = lastBlock->getParent();
@@ -75,21 +70,20 @@ void handleReplLastExpression(
   llvm::BasicBlock *exitBlock = llvm::BasicBlock::Create(
       *TheContext, "exitBlock", lastFunction, lastBlock);
 
-  llvm::Value *isErrorZero = IRUtils::isCountZero(
-      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext), TheModule,
-      Builder, TheContext);
+  llvm::Value *isErrorZero = this->isCountZero(
+      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
 
   Builder->CreateCondBr(isErrorZero, printBlock, errorBlock);
 
   Builder->SetInsertPoint(printBlock);
 
-  printContent(TheModule, Builder, TheContext);
+  printContent();
 
   Builder->CreateBr(exitBlock);
 
   Builder->SetInsertPoint(errorBlock);
 
-  errorContent(TheModule, Builder, TheContext);
+  errorContent();
 
   Builder->CreateBr(exitBlock);
 
@@ -97,7 +91,7 @@ void handleReplLastExpression(
 
 } // UPDATE VALUES
 
-bool updateNamedValue(
+bool IRUtils::updateNamedValue(
     const std::string &name, llvm::Value *value,
     std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
 
@@ -123,7 +117,7 @@ bool updateNamedValue(
   return isSet;
 }
 
-bool updateNamedValueAlloca(
+bool IRUtils::updateNamedValueAlloca(
     const std::string &name, llvm::AllocaInst *value,
     std::stack<std::map<std::string, llvm::AllocaInst *>>
         &NamedValuesAllocaStack) {
@@ -153,7 +147,7 @@ bool updateNamedValueAlloca(
 
 // SET VALUES
 
-void setNamedValue(
+void IRUtils::setNamedValue(
     const std::string &name, llvm::Value *value,
     std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
   std::stack<std::map<std::string, llvm::Value *>> tempStack;
@@ -162,31 +156,29 @@ void setNamedValue(
   NamedValues[name] = value;
 }
 
-void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
-                         std::stack<std::map<std::string, llvm::AllocaInst *>>
-                             &NamedValuesAllocaStack) {
+void IRUtils::setNamedValueAlloca(
+    const std::string &name, llvm::AllocaInst *value,
+    std::stack<std::map<std::string, llvm::AllocaInst *>>
+        &NamedValuesAllocaStack) {
 
   std::map<std::string, llvm::AllocaInst *> &NamedValues =
       NamedValuesAllocaStack.top();
   NamedValues[name] = value;
 }
 
-llvm::Value *addNewLineCharacter(llvm::Value *value, llvm::IRBuilder<> *Builder,
-                                 bool isNewLine) {
-  llvm::Value *i8Value = IRUtils::convertToString(value, Builder);
+llvm::Value *IRUtils::addNewLineCharacter(llvm::Value *value, bool isNewLine) {
+  llvm::Value *i8Value = this->convertToString(value);
 
   if (!isNewLine)
     return i8Value;
 
-  std::string strValue = IRUtils::valueToString(i8Value);
+  std::string strValue = this->valueToString(i8Value);
   strValue += '\n';
 
-  return IRUtils::convertStringToi8Ptr(strValue, Builder);
+  return this->convertStringToi8Ptr(strValue);
 }
 
-void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext,
-                   bool isNewLine) {
+void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
 
   if (value && llvm::isa<llvm::Instruction>(value)) {
     // The value is an instruction or a derived class of Instruction
@@ -199,23 +191,20 @@ void printFunction(llvm::Value *value, llvm::Module *TheModule,
                           {resultStr, Builder->getInt1(isNewLine)});
     } else {
 
-      llvm::ArrayRef<llvm::Value *> Args = {
-          IRUtils::convertToString(value, Builder),
-          Builder->getInt1(isNewLine)};
+      llvm::ArrayRef<llvm::Value *> Args = {this->convertToString(value),
+                                            Builder->getInt1(isNewLine)};
 
       Builder->CreateCall(TheModule->getFunction("print"), Args);
     }
   } else if (value) {
-    llvm::ArrayRef<llvm::Value *> Args = {
-        IRUtils::convertToString(value, Builder), Builder->getInt1(isNewLine)};
+    llvm::ArrayRef<llvm::Value *> Args = {this->convertToString(value),
+                                          Builder->getInt1(isNewLine)};
 
     Builder->CreateCall(TheModule->getFunction("print"), Args);
   }
 }
 
-llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
-                          llvm::LLVMContext *TheContext,
-                          llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::getLLVMValue(std::any value) {
   if (value.type() == typeid(int)) {
     return llvm::ConstantInt::get(
         *TheContext, llvm::APInt(32, std::any_cast<int>(value), true));
@@ -258,10 +247,9 @@ llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
   }
 }
 
-llvm::PHINode *
-handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
-                       llvm::Value *upperBound, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext, llvm::Module *TheModule) {
+llvm::PHINode *IRUtils::handleForLoopCondition(llvm::Value *stepValue,
+                                               llvm::Value *value,
+                                               llvm::Value *upperBound) {
   llvm::Value *isStepNegative =
       Builder->CreateICmpSLT(stepValue, Builder->getInt32(0));
 
@@ -297,8 +285,7 @@ handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
   return conditionPHI;
 }
 
-size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
-                             llvm::IRBuilder<> *Builder) {
+size_t IRUtils::calculateStringLength(llvm::Value *strPtr) {
   llvm::Function *stringLengthFunc = TheModule->getFunction("stringLength");
 
   if (!stringLengthFunc) {
@@ -310,8 +297,7 @@ size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
   return std::any_cast<size_t>(length);
 }
 
-llvm::Value *itos(llvm::Value *num, llvm::Module *TheModule,
-                  llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::itos(llvm::Value *num) {
   llvm::Function *itosFunc = TheModule->getFunction("itos");
 
   if (!itosFunc) {
@@ -323,7 +309,7 @@ llvm::Value *itos(llvm::Value *num, llvm::Module *TheModule,
   return strValue;
 }
 
-std::string getString(BoundExpression *node) {
+std::string IRUtils::getString(BoundExpression *node) {
   std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
   if (value.type() == typeid(std::string)) {
     return std::any_cast<std::string>(value);
@@ -331,7 +317,7 @@ std::string getString(BoundExpression *node) {
   return "";
 }
 
-std::string valueToString(llvm::Value *val) {
+std::string IRUtils::valueToString(llvm::Value *val) {
   if (!val)
     return "";
 
@@ -429,8 +415,7 @@ std::string valueToString(llvm::Value *val) {
   return rso.str();
 }
 
-llvm::Value *convertStringToi8Ptr(std::string stringValue,
-                                  llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
   llvm::Constant *stringConstant =
       llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
@@ -443,12 +428,11 @@ llvm::Value *convertStringToi8Ptr(std::string stringValue,
   return i8Ptr;
 }
 
-llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::convertToString(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
   if (isIntType(type)) {
-    return itos(val, Builder->GetInsertBlock()->getParent()->getParent(),
-                Builder);
+    return itos(val);
   }
 
   if (isStringType(type)) {
@@ -456,19 +440,17 @@ llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   }
 
   // Attempt to convert the value to string
-  std::string stringValue = IRUtils::valueToString(val);
+  std::string stringValue = this->valueToString(val);
 
   // Create a global constant string and return its pointer
   if (!stringValue.empty()) {
-    return convertStringToi8Ptr(stringValue, Builder);
+    return convertStringToi8Ptr(stringValue);
   }
 
   return nullptr; // Return nullptr for other types or unrecognized cases
 }
 
-llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs,
-                                llvm::Module *TheModule,
-                                llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::concatenateStrings(llvm::Value *lhs, llvm::Value *rhs) {
 
   llvm::Function *stringConcatenateFunc =
       TheModule->getFunction("concat_strings");
@@ -486,7 +468,7 @@ llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs,
   }
 }
 
-llvm::Type *getTypeFromAny(std::any value, llvm::LLVMContext *TheContext) {
+llvm::Type *IRUtils::getTypeFromAny(std::any value) {
   if (value.type() == typeid(int)) {
     return llvm::Type::getInt32Ty(*TheContext);
   } else if (value.type() == typeid(double)) {
@@ -500,16 +482,16 @@ llvm::Type *getTypeFromAny(std::any value, llvm::LLVMContext *TheContext) {
   }
 }
 
-bool isStringType(llvm::Type *type) {
+bool IRUtils::isStringType(llvm::Type *type) {
   return type->isPointerTy() && type->getPointerElementType()->isIntegerTy(8);
 }
-bool isDoubleType(llvm::Type *type) { return type->isDoubleTy(); }
+bool IRUtils::isDoubleType(llvm::Type *type) { return type->isDoubleTy(); }
 
-bool isIntType(llvm::Type *type) { return type->isIntegerTy(32); }
+bool IRUtils::isIntType(llvm::Type *type) { return type->isIntegerTy(32); }
 
-bool isBoolType(llvm::Type *type) { return type->isIntegerTy(1); }
+bool IRUtils::isBoolType(llvm::Type *type) { return type->isIntegerTy(1); }
 
-llvm::Value *convertToDouble(llvm::Value *val, llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::convertToDouble(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
   if (type->isDoubleTy()) {
@@ -531,7 +513,7 @@ llvm::Value *convertToDouble(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   return nullptr;
 }
 
-llvm::Value *convertToInt(llvm::Value *val, llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::convertToInt(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
   if (type->isIntegerTy(32)) {
@@ -552,7 +534,7 @@ llvm::Value *convertToInt(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   return nullptr;
 }
 
-llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::convertToBool(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
   if (type->isIntegerTy(1)) {
@@ -571,19 +553,18 @@ llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder) {
   }
   return nullptr;
 }
-llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition,
-                         llvm::IRBuilder<> *Builder) {
+llvm::Value *IRUtils::checkBitSet(llvm::Value *result,
+                                  unsigned int bitPosition) {
   llvm::Value *bitMask = Builder->getInt32(1 << bitPosition);
   llvm::Value *bitIsSet = Builder->CreateAnd(result, bitMask);
   llvm::Value *bitIsNonZero =
       Builder->CreateICmpNE(bitIsSet, Builder->getInt32(0));
   return bitIsNonZero;
 }
-llvm::Value *
-createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
-                       llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext,
-                       const std::string functionName, std::string operand) {
+llvm::Value *IRUtils::createStringComparison(llvm::Value *lhsValue,
+                                             llvm::Value *rhsValue,
+                                             const std::string functionName,
+                                             std::string operand) {
 
   llvm::Function *stringComparison = TheModule->getFunction(functionName);
 
@@ -621,56 +602,48 @@ createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
                                 llvm::Type::getInt8PtrTy(*TheContext));
 }
 
-llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
-                                   llvm::LLVMContext *TheContext,
-                                   llvm::IRBuilder<> *Builder) {
+llvm::GlobalVariable *IRUtils::getNullValue() {
 
   return TheModule->getGlobalVariable(ELANG_GLOBAL_NULL);
 }
 
-llvm::Value *getResultFromBinaryOperationOnString(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, llvm::LLVMContext *TheContext,
+llvm::Value *IRUtils::getResultFromBinaryOperationOnString(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
 
-    result = concatenateStrings(lhsValue, rhsValue, TheModule, Builder);
+    result = concatenateStrings(lhsValue, rhsValue);
     break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                                    TheContext, "equal_strings");
+    result = createStringComparison(lhsValue, rhsValue, "equal_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                                    TheContext, "equal_strings", "!=");
+    result = createStringComparison(lhsValue, rhsValue, "equal_strings", "!=");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                                    TheContext, "less_than_strings");
+    result = createStringComparison(lhsValue, rhsValue, "less_than_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
 
-    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                                    TheContext, "less_than_or_equal_strings");
+    result = createStringComparison(lhsValue, rhsValue,
+                                    "less_than_or_equal_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                                    TheContext, "greater_than_strings");
+    result = createStringComparison(lhsValue, rhsValue, "greater_than_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-    result =
-        createStringComparison(lhsValue, rhsValue, TheModule, Builder,
-                               TheContext, "greater_than_or_equal_strings");
+    result = createStringComparison(lhsValue, rhsValue,
+                                    "greater_than_or_equal_strings");
     break;
 
   // Add more cases for other binary operators
@@ -680,17 +653,15 @@ llvm::Value *getResultFromBinaryOperationOnString(
   }
   return result;
 }
-llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value) {
+llvm::ConstantInt *IRUtils::getConstantIntFromValue(llvm::Value *value) {
   if (llvm::ConstantInt *constInt = llvm::dyn_cast<llvm::ConstantInt>(value)) {
     return constInt;
   }
   return nullptr;
 }
 
-llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty,
-                                 llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext) {
+llvm::Value *IRUtils::getGlobalVarAndLoad(const std::string name,
+                                          llvm::Type *Ty) {
 
   llvm::Value *ptr = TheModule->getGlobalVariable(name);
 
@@ -699,31 +670,23 @@ llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty,
 
   return var;
 }
-llvm::Value *isCountZero(const std::string name, llvm::Type *ty,
-                         llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext) {
-  llvm::Value *count =
-      getGlobalVarAndLoad(name, ty, TheModule, Builder, TheContext);
-  llvm::Value *loadZero = getGlobalVarAndLoad(ELANG_GLOBAL_ZERO, ty, TheModule,
-                                              Builder, TheContext);
+llvm::Value *IRUtils::isCountZero(const std::string name, llvm::Type *ty) {
+  llvm::Value *count = getGlobalVarAndLoad(name, ty);
+  llvm::Value *loadZero = getGlobalVarAndLoad(ELANG_GLOBAL_ZERO, ty);
 
   llvm::Value *isZero = Builder->CreateICmpEQ(count, loadZero);
   return isZero;
 }
 
-void incrementCount(const std::string name, llvm::Module *TheModule,
-                    llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext) {
+void IRUtils::incrementCount(const std::string name) {
   llvm::Value *count =
-      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext), TheModule,
-                          Builder, TheContext);
+      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext));
   llvm::Value *newCount = Builder->CreateAdd(
       count, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
   Builder->CreateStore(newCount, TheModule->getGlobalVariable(name));
 }
 
-void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
-                             llvm::IRBuilder<> *Builder,
-                             llvm::LLVMContext *TheContext) {
+void IRUtils::decrementCountIfNotZero(const std::string name) {
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::BasicBlock *decrementBlock = llvm::BasicBlock::Create(
@@ -731,14 +694,12 @@ void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
   llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
       *TheContext, "end_block", currentBlock->getParent());
 
-  llvm::Value *isZero = isCountZero(name, llvm::Type::getInt32Ty(*TheContext),
-                                    TheModule, Builder, TheContext);
+  llvm::Value *isZero = isCountZero(name, llvm::Type::getInt32Ty(*TheContext));
   Builder->CreateCondBr(isZero, endBlock, decrementBlock);
 
   Builder->SetInsertPoint(decrementBlock);
   llvm::Value *count =
-      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext), TheModule,
-                          Builder, TheContext);
+      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext));
   llvm::Value *newCount = Builder->CreateSub(
       count, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
   Builder->CreateStore(newCount, TheModule->getGlobalVariable(name));
@@ -747,9 +708,9 @@ void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
   Builder->SetInsertPoint(endBlock);
 }
 
-llvm::Value *getResultFromBinaryOperationOnDouble(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression) {
+llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
@@ -823,10 +784,9 @@ llvm::Value *getResultFromBinaryOperationOnDouble(
   return result;
 }
 
-llvm::Value *getResultFromBinaryOperationOnInt(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
-    llvm::LLVMContext *TheContext) {
+llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = Builder->getInt32(1);
   switch (binaryExpression->getOperator()) {
 
@@ -844,7 +804,7 @@ llvm::Value *getResultFromBinaryOperationOnInt(
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
     // Check if rhsValue is zero
-    llvm::Value *zeroCheck = IRUtils::convertToBool(rhsValue, Builder);
+    llvm::Value *zeroCheck = this->convertToBool(rhsValue);
 
     // Basic block for the error case
     llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
@@ -866,15 +826,14 @@ llvm::Value *getResultFromBinaryOperationOnInt(
 
     std::string error = "\x1b[31mDivision by zero";
 
-    llvm::Value *errorStr = IRUtils::convertStringToi8Ptr(error, Builder);
+    llvm::Value *errorStr = this->convertStringToi8Ptr(error);
 
-    IRUtils::incrementCount(ELANG_GLOBAL_ERROR, TheModule, Builder, TheContext);
+    this->incrementCount(ELANG_GLOBAL_ERROR);
 
-    IRUtils::printFunction(errorStr, TheModule, Builder, TheContext, false);
+    this->printFunction(errorStr, false);
 
     llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    result = llvm::ConstantExpr::getBitCast(
-        getNullValue(TheModule, TheContext, Builder), int8PtrType);
+    result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
     Builder->CreateBr(opExitBlock);
 
     Builder->SetInsertPoint(continueBlock);
@@ -902,31 +861,26 @@ llvm::Value *getResultFromBinaryOperationOnInt(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result =
-        Builder->CreateLogicalAnd(IRUtils::convertToBool(lhsValue, Builder),
-                                  IRUtils::convertToBool(rhsValue, Builder));
+    result = Builder->CreateLogicalAnd(this->convertToBool(lhsValue),
+                                       this->convertToBool(rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result =
-        Builder->CreateLogicalOr(IRUtils::convertToBool(lhsValue, Builder),
-                                 IRUtils::convertToBool(rhsValue, Builder));
+    result = Builder->CreateLogicalOr(this->convertToBool(lhsValue),
+                                      this->convertToBool(rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = IRUtils::convertToBool(Builder->CreateICmpEQ(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpEQ(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = IRUtils::convertToBool(Builder->CreateICmpNE(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpNE(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less: {
 
-    result = IRUtils::convertToBool(Builder->CreateICmpSLT(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpSLT(lhsValue, rhsValue));
 
     return result;
     break;
@@ -934,21 +888,18 @@ llvm::Value *getResultFromBinaryOperationOnInt(
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals: {
 
-    result = IRUtils::convertToBool(Builder->CreateICmpSLE(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpSLE(lhsValue, rhsValue));
 
     break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = IRUtils::convertToBool(Builder->CreateICmpSGT(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpSGT(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
 
-    result = IRUtils::convertToBool(Builder->CreateICmpSGE(lhsValue, rhsValue),
-                                    Builder);
+    result = this->convertToBool(Builder->CreateICmpSGE(lhsValue, rhsValue));
     break;
 
     // Add more cases for other binary operators
@@ -961,10 +912,9 @@ llvm::Value *getResultFromBinaryOperationOnInt(
   return result;
 }
 
-llvm::Value *getResultFromBinaryOperationOnBool(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
-    llvm::LLVMContext *TheContext) {
+llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BoundBinaryExpression *binaryExpression) {
   llvm::Value *result = nullptr;
   switch (binaryExpression->getOperator()) {
 
@@ -977,10 +927,7 @@ llvm::Value *getResultFromBinaryOperationOnBool(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
     result = convertToBool(getResultFromBinaryOperationOnInt(
-                               convertToInt(lhsValue, Builder),
-                               convertToInt(rhsValue, Builder), Builder,
-                               TheModule, binaryExpression, TheContext),
-                           Builder);
+        convertToInt(lhsValue), convertToInt(rhsValue), binaryExpression));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
@@ -1025,5 +972,3 @@ llvm::Value *getResultFromBinaryOperationOnBool(
   }
   return result;
 }
-
-} // namespace IRUtils

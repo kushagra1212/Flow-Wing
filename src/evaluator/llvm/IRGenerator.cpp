@@ -6,6 +6,8 @@ IRGenerator::IRGenerator(int environment) {
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
   _environment = environment;
+  this->_irUtils = std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
+                                             TheContext.get());
 
   this->updateModule();
   llvm::InitializeNativeTarget();
@@ -38,8 +40,7 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
 
-  llvm::Value *val = IRUtils::getLLVMValue(value, TheModule.get(),
-                                           TheContext.get(), Builder.get());
+  llvm::Value *val = this->_irUtils->getLLVMValue(value);
 
   if (val == nullptr) {
     return nullptr;
@@ -148,18 +149,19 @@ void IRGenerator::defineStandardFunctions() {
       llvm::ConstantDataArray::getString(*TheContext, "true");
   llvm::GlobalVariable *globalTrueStr = new llvm::GlobalVariable(
       *TheModule, trueStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      trueStr, IRUtils::ELANG_GLOBAL_TRUE);
+      trueStr, this->_irUtils->ELANG_GLOBAL_TRUE);
 
   llvm::Constant *falseStr =
       llvm::ConstantDataArray::getString(*TheContext, "false");
   llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
       *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      falseStr, IRUtils::ELANG_GLOBAL_FALSE);
+      falseStr, this->_irUtils->ELANG_GLOBAL_FALSE);
 
   llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
   llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
       *TheModule, int8PtrType, true, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantPointerNull::get(int8PtrType), IRUtils::ELANG_GLOBAL_NULL);
+      llvm::ConstantPointerNull::get(int8PtrType),
+      this->_irUtils->ELANG_GLOBAL_NULL);
 
   // Break keyword count
 
@@ -169,20 +171,21 @@ void IRGenerator::defineStandardFunctions() {
   llvm::GlobalVariable *globalBreakCount =
       new llvm::GlobalVariable(*TheModule, breakCount->getType(), false,
                                llvm::GlobalValue::ExternalLinkage, breakCount,
-                               IRUtils::ELANG_BREAK_COUNT);
+                               this->_irUtils->ELANG_BREAK_COUNT);
 
   llvm::GlobalVariable *globalContinueCount = new llvm::GlobalVariable(
       *TheModule, breakCount->getType(), false,
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)),
-      IRUtils::ELANG_CONTINUE_COUNT);
+      this->_irUtils->ELANG_CONTINUE_COUNT);
 
   llvm::Constant *zero =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
-  llvm::GlobalVariable *globalZero = new llvm::GlobalVariable(
-      *TheModule, breakCount->getType(), true,
-      llvm::GlobalValue::ExternalLinkage, zero, IRUtils::ELANG_GLOBAL_ZERO);
+  llvm::GlobalVariable *globalZero =
+      new llvm::GlobalVariable(*TheModule, breakCount->getType(), true,
+                               llvm::GlobalValue::ExternalLinkage, zero,
+                               this->_irUtils->ELANG_GLOBAL_ZERO);
 
   llvm::Constant *errorCount =
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
@@ -190,21 +193,21 @@ void IRGenerator::defineStandardFunctions() {
   llvm::GlobalVariable *globalErrorCount =
       new llvm::GlobalVariable(*TheModule, errorCount->getType(), false,
                                llvm::GlobalValue::ExternalLinkage, errorCount,
-                               IRUtils::ELANG_GLOBAL_ERROR);
+                               this->_irUtils->ELANG_GLOBAL_ERROR);
 }
 
 llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
-  std::string variableName = IRUtils::getString(
+  std::string variableName = this->_irUtils->getString(
       variableExpression->getIdentifierExpressionPtr().get());
 
   llvm::Value *variableValue =
-      IRUtils::getNamedValue(variableName, this->_NamedValuesStack);
+      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
-  llvm::AllocaInst *v =
-      IRUtils::getNamedValueAlloca(variableName, this->_NamedValuesAllocaStack);
+  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
+      variableName, this->_NamedValuesAllocaStack);
 
   llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
 
@@ -224,9 +227,9 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
       (BoundAssignmentExpression *)node;
 
   std::string variableName =
-      IRUtils::getString(assignmentExpression->getLeftPtr().get());
+      this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
 
-  if (!IRUtils::getNamedValue(variableName, this->_NamedValuesStack)) {
+  if (!this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack)) {
     // Variable not found, handle error
     llvm::errs() << "Variable not found in assignment expression\n";
     return nullptr;
@@ -245,11 +248,12 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   // Update the variable value
 
-  IRUtils::updateNamedValue(variableName, rhsValue, this->_NamedValuesStack);
+  this->_irUtils->updateNamedValue(variableName, rhsValue,
+                                   this->_NamedValuesStack);
 
-  Builder->CreateStore(
-      rhsValue, IRUtils::getNamedValueAlloca(variableName,
-                                             this->_NamedValuesAllocaStack));
+  Builder->CreateStore(rhsValue,
+                       this->_irUtils->getNamedValueAlloca(
+                           variableName, this->_NamedValuesAllocaStack));
 
   return rhsValue;
 }
@@ -273,29 +277,28 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   llvm::Type *rhsType = rhsValue->getType();
 
   llvm::Value *result = nullptr;
-  if (IRUtils::isStringType(lhsType) || IRUtils::isStringType(rhsType)) {
+  if (this->_irUtils->isStringType(lhsType) ||
+      this->_irUtils->isStringType(rhsType)) {
 
-    result = IRUtils::getResultFromBinaryOperationOnString(
-        IRUtils::convertToString(lhsValue, Builder.get()),
-        IRUtils::convertToString(rhsValue, Builder.get()), Builder.get(),
-        TheModule.get(), TheContext.get(), binaryExpression);
-  } else if (IRUtils::isDoubleType(lhsType) || IRUtils::isDoubleType(rhsType)) {
+    result = this->_irUtils->getResultFromBinaryOperationOnString(
+        this->_irUtils->convertToString(lhsValue),
+        this->_irUtils->convertToString(rhsValue), binaryExpression);
+  } else if (this->_irUtils->isDoubleType(lhsType) ||
+             this->_irUtils->isDoubleType(rhsType)) {
 
-    result = IRUtils::getResultFromBinaryOperationOnDouble(
-        IRUtils::convertToDouble(lhsValue, Builder.get()),
-        IRUtils::convertToDouble(rhsValue, Builder.get()), Builder.get(),
-        TheModule.get(), binaryExpression);
-  } else if (IRUtils::isBoolType(lhsType) && IRUtils::isBoolType(rhsType)) {
+    result = this->_irUtils->getResultFromBinaryOperationOnDouble(
+        this->_irUtils->convertToDouble(lhsValue),
+        this->_irUtils->convertToDouble(rhsValue), binaryExpression);
+  } else if (this->_irUtils->isBoolType(lhsType) &&
+             this->_irUtils->isBoolType(rhsType)) {
 
-    result = IRUtils::getResultFromBinaryOperationOnBool(
-        lhsValue, rhsValue, Builder.get(), TheModule.get(), binaryExpression,
-        TheContext.get());
+    result = this->_irUtils->getResultFromBinaryOperationOnBool(
+        lhsValue, rhsValue, binaryExpression);
   } else {
 
-    result = IRUtils::getResultFromBinaryOperationOnInt(
-        IRUtils::convertToInt(lhsValue, Builder.get()),
-        IRUtils::convertToInt(rhsValue, Builder.get()), Builder.get(),
-        TheModule.get(), binaryExpression, TheContext.get());
+    result = this->_irUtils->getResultFromBinaryOperationOnInt(
+        this->_irUtils->convertToInt(lhsValue),
+        this->_irUtils->convertToInt(rhsValue), binaryExpression);
   }
   return result;
 }
@@ -313,8 +316,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      IRUtils::printFunction(strPtri8, TheModule.get(), Builder.get(),
-                             TheContext.get(), false);
+      this->_irUtils->printFunction(strPtri8, false);
 
       return this->getNull();
     }
@@ -384,15 +386,15 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   llvm::Value *result = this->generateEvaluateExpressionStatement(
       node->getInitializerPtr().get());
 
-  IRUtils::setNamedValue(variable_name, result, this->_NamedValuesStack);
+  this->_irUtils->setNamedValue(variable_name, result, this->_NamedValuesStack);
 
   // create and load variable
 
   llvm::AllocaInst *variable =
       Builder->CreateAlloca(result->getType(), nullptr, variable_name.c_str());
 
-  IRUtils::setNamedValueAlloca(variable_name, variable,
-                               this->_NamedValuesAllocaStack);
+  this->_irUtils->setNamedValueAlloca(variable_name, variable,
+                                      this->_NamedValuesAllocaStack);
 
   Builder->CreateStore(result, variable);
 
@@ -400,9 +402,8 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
 }
 llvm::Constant *IRGenerator::getNull() {
   llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-  return llvm::ConstantExpr::getBitCast(
-      IRUtils::getNullValue(TheModule.get(), TheContext.get(), Builder.get()),
-      int8PtrType);
+  return llvm::ConstantExpr::getBitCast(this->_irUtils->getNullValue(),
+                                        int8PtrType);
 }
 
 llvm::Value *IRGenerator::generateEvaluateBlockStatement(
@@ -453,9 +454,8 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
         blockStatement->getStatements()[i].get());
 
     Builder->CreateCondBr(
-        IRUtils::isCountZero(IRUtils::ELANG_BREAK_COUNT,
-                             llvm::Type::getInt32Ty(*TheContext),
-                             TheModule.get(), Builder.get(), TheContext.get()),
+        this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+                                    llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
     //  i th Check continue Block
@@ -466,10 +466,8 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
       Builder->CreateBr(afterNestedBlock);
     else {
       Builder->CreateCondBr(
-          IRUtils::isCountZero(IRUtils::ELANG_CONTINUE_COUNT,
-                               llvm::Type::getInt32Ty(*TheContext),
-                               TheModule.get(), Builder.get(),
-                               TheContext.get()),
+          this->_irUtils->isCountZero(this->_irUtils->ELANG_CONTINUE_COUNT,
+                                      llvm::Type::getInt32Ty(*TheContext)),
           nestedBlocks[i + 1], afterNestedBlock);
     }
   }
@@ -522,15 +520,10 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->SetInsertPoint(returnBlock);
   if (returnValue != getNull()) {
 
-    IRUtils::handleReplLastExpression(
-        _environment, TheModule.get(), Builder.get(), TheContext.get(),
-        [&](llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-            llvm::LLVMContext *TheContext) {
-          IRUtils::printFunction(returnValue, TheModule, Builder, TheContext,
-                                 false);
-        },
-        [&](llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-            llvm::LLVMContext *TheContext) {
+    this->_irUtils->handleReplLastExpression(
+        _environment,
+        [&]() { this->_irUtils->printFunction(returnValue, false); },
+        [&]() {
           Builder->CreateRet(
               llvm::ConstantInt::get(*TheContext, llvm::APInt(1, 1, true)));
         });
@@ -663,9 +656,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  IRUtils::decrementCountIfNotZero(IRUtils::ELANG_CONTINUE_COUNT,
-                                   TheModule.get(), Builder.get(),
-                                   TheContext.get());
+  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_CONTINUE_COUNT);
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -673,8 +664,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   if (conditionValue == nullptr) {
     llvm::errs() << "Error in Compiling for While condition\n";
-    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
-                                 Builder.get());
+    return this->_irUtils->getNullValue();
   }
 
   Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
@@ -682,9 +672,8 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      IRUtils::isCountZero(IRUtils::ELANG_BREAK_COUNT,
-                           llvm::Type::getInt32Ty(*TheContext), TheModule.get(),
-                           Builder.get(), TheContext.get()),
+      this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+                                  llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
   // Loop Body
@@ -699,8 +688,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  IRUtils::decrementCountIfNotZero(IRUtils::ELANG_BREAK_COUNT, TheModule.get(),
-                                   Builder.get(), TheContext.get());
+  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_BREAK_COUNT);
 
   return exitValue;
 }
@@ -720,9 +708,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   if (forStatement->getStepExpressionPtr().get()) {
     stepValue =
-        IRUtils::convertToInt(this->generateEvaluateExpressionStatement(
-                                  forStatement->getStepExpressionPtr().get()),
-                              Builder.get());
+        this->_irUtils->convertToInt(this->generateEvaluateExpressionStatement(
+            forStatement->getStepExpressionPtr().get()));
   }
 
   // Upper Bound
@@ -749,15 +736,16 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
     llvm::AllocaInst *variable = Builder->CreateAlloca(
         llvm::Type::getInt32Ty(*TheContext), nullptr, variableName.c_str());
 
-    IRUtils::setNamedValueAlloca(variableName, variable,
-                                 this->_NamedValuesAllocaStack);
+    this->_irUtils->setNamedValueAlloca(variableName, variable,
+                                        this->_NamedValuesAllocaStack);
 
     llvm::Value *result = this->generateEvaluateStatement(
         forStatement->getInitializationPtr().get());
 
     Builder->CreateStore(result, variable);
 
-    IRUtils::setNamedValue(variableName, result, this->_NamedValuesStack);
+    this->_irUtils->setNamedValue(variableName, result,
+                                  this->_NamedValuesStack);
   }
 
   if (variableName == "") {
@@ -784,26 +772,22 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  IRUtils::decrementCountIfNotZero(IRUtils::ELANG_CONTINUE_COUNT,
-                                   TheModule.get(), Builder.get(),
-                                   TheContext.get());
+  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_CONTINUE_COUNT);
 
   llvm::Value *variableValue =
-      IRUtils::getNamedValue(variableName, this->_NamedValuesStack);
+      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
-  llvm::AllocaInst *v =
-      IRUtils::getNamedValueAlloca(variableName, this->_NamedValuesAllocaStack);
+  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
+      variableName, this->_NamedValuesAllocaStack);
 
   llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
 
-  llvm::PHINode *conditionPHI = IRUtils::handleForLoopCondition(
-      stepValue, value, upperBound, Builder.get(), TheContext.get(),
-      TheModule.get());
+  llvm::PHINode *conditionPHI =
+      this->_irUtils->handleForLoopCondition(stepValue, value, upperBound);
 
   if (conditionPHI == nullptr) {
     llvm::errs() << "Error in Compiling for While condition\n";
-    return IRUtils::getNullValue(TheModule.get(), TheContext.get(),
-                                 Builder.get());
+    return this->_irUtils->getNullValue();
   }
 
   Builder->CreateCondBr(conditionPHI, breakLoop, afterLoop);
@@ -811,9 +795,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      IRUtils::isCountZero(IRUtils::ELANG_BREAK_COUNT,
-                           llvm::Type::getInt32Ty(*TheContext), TheModule.get(),
-                           Builder.get(), TheContext.get()),
+      this->_irUtils->isCountZero(this->_irUtils->ELANG_BREAK_COUNT,
+                                  llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
   // Loop Body
@@ -826,8 +809,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
-  IRUtils::updateNamedValue(variableName, incrementedValue,
-                            this->_NamedValuesStack);
+  this->_irUtils->updateNamedValue(variableName, incrementedValue,
+                                   this->_NamedValuesStack);
 
   Builder->CreateStore(incrementedValue, v);
 
@@ -837,8 +820,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  IRUtils::decrementCountIfNotZero(IRUtils::ELANG_BREAK_COUNT, TheModule.get(),
-                                   Builder.get(), TheContext.get());
+  this->_irUtils->decrementCountIfNotZero(this->_irUtils->ELANG_BREAK_COUNT);
 
   this->_NamedValuesAllocaStack.pop();
   this->_NamedValuesStack.pop();
@@ -890,15 +872,13 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
 
-    IRUtils::incrementCount(IRUtils::ELANG_BREAK_COUNT, TheModule.get(),
-                            Builder.get(), TheContext.get());
+    this->_irUtils->incrementCount(this->_irUtils->ELANG_BREAK_COUNT);
 
     return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
-    IRUtils::incrementCount(IRUtils::ELANG_CONTINUE_COUNT, TheModule.get(),
-                            Builder.get(), TheContext.get());
+    this->_irUtils->incrementCount(this->_irUtils->ELANG_CONTINUE_COUNT);
     return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
@@ -960,7 +940,7 @@ int IRGenerator::executeGeneratedCode() {
       }
     }
 
-    if (_environment == IRUtils::ENVIRONMENT::REPL) {
+    if (_environment == this->_irUtils->ENVIRONMENT::REPL) {
       std::cout << "\n";
     }
 

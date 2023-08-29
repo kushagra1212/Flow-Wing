@@ -60,6 +60,8 @@ private:
 
   std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
   std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
+
+  std::unique_ptr<IRUtils> _irUtils;
 };
 
 #endif // IRGENERATOR_H

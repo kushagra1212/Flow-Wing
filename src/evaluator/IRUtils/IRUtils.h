@@ -1,6 +1,7 @@
 #ifndef IR_UTILS_H
 #define IR_UTILS_H
 
+class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
 #include <llvm/ADT/APInt.h>
@@ -79,166 +80,147 @@
 
 #include <llvm/Support/raw_ostream.h>
 #include <sstream>
-namespace IRUtils {
 
-// Elang Global Strings
+class IRUtils {
 
-const std::string ELANG_CONTINUE_COUNT = "ELANG_CONTINUE_COUNT";
-const std::string ELANG_BREAK_COUNT = "ELANG_BREAK_COUNT";
-const std::string ELANG_GLOBAL_ZERO = "ELANG_GLOBAL_ZERO";
+public:
+  // Elang Global Strings
 
-// For Error
+  const std::string ELANG_CONTINUE_COUNT = "ELANG_CONTINUE_COUNT";
+  const std::string ELANG_BREAK_COUNT = "ELANG_BREAK_COUNT";
+  const std::string ELANG_GLOBAL_ZERO = "ELANG_GLOBAL_ZERO";
 
-const std::string ELANG_GLOBAL_ERROR = "ELANG_GLOBAL_ERROR_COUNT";
+  // For Error
 
-// NULL
+  const std::string ELANG_GLOBAL_ERROR = "ELANG_GLOBAL_ERROR_COUNT";
 
-const std::string ELANG_GLOBAL_NULL = "ELANG_GLOBAL_NULL";
+  // NULL
 
-// TRUE AND FALSE KEYWORDS
-const std::string ELANG_GLOBAL_TRUE = "ELANG_GLOBAL_TRUE";
-const std::string ELANG_GLOBAL_FALSE = "ELANG_GLOBAL_FALSE";
+  const std::string ELANG_GLOBAL_NULL = "ELANG_GLOBAL_NULL";
 
-enum ENVIRONMENT { REPL, FILE };
-llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
-                          llvm::LLVMContext *TheContext,
-                          llvm::IRBuilder<> *Builder);
+  // TRUE AND FALSE KEYWORDS
+  const std::string ELANG_GLOBAL_TRUE = "ELANG_GLOBAL_TRUE";
+  const std::string ELANG_GLOBAL_FALSE = "ELANG_GLOBAL_FALSE";
 
-size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
-                             llvm::IRBuilder<> *Builder);
-llvm::Value *isCountZero(const std::string name, llvm::Type *ty,
-                         llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext);
-llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty,
-                                 llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext);
+  enum ENVIRONMENT { REPL, FILE };
+  llvm::Module *TheModule;
+  llvm::IRBuilder<> *Builder;
+  llvm::LLVMContext *TheContext;
 
-void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
-                             llvm::IRBuilder<> *Builder,
-                             llvm::LLVMContext *TheContext);
+  IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+          llvm::LLVMContext *TheContext);
 
-void incrementCount(const std::string name, llvm::Module *TheModule,
-                    llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext);
+  llvm::Value *getLLVMValue(std::any value);
 
-std::string getString(BoundExpression *node);
+  size_t calculateStringLength(llvm::Value *strPtr);
+  llvm::Value *isCountZero(const std::string name, llvm::Type *ty);
+  llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty);
 
-std::string valueToString(llvm::Value *val);
+  void decrementCountIfNotZero(const std::string name);
 
-llvm::Value *convertToString(llvm::Value *val, llvm::IRBuilder<> *Builder);
-llvm::Value *addNewLineCharacter(llvm::Value *value, llvm::IRBuilder<> *Builder,
-                                 bool isNewLine);
-llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs,
-                                llvm::Module *TheModule,
-                                llvm::IRBuilder<> *Builder);
-llvm::Value *convertStringToi8Ptr(std::string stringValue,
-                                  llvm::IRBuilder<> *Builder);
-llvm::Type *getTypeFromAny(std::any value, llvm::LLVMContext *TheContext);
+  void incrementCount(const std::string name);
 
-bool isStringType(llvm::Type *type);
+  std::string getString(BoundExpression *node);
 
-bool isIntType(llvm::Type *type);
+  std::string valueToString(llvm::Value *val);
 
-bool isBoolType(llvm::Type *type);
+  llvm::Value *convertToString(llvm::Value *val);
+  llvm::Value *addNewLineCharacter(llvm::Value *value, bool isNewLine);
+  llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs);
+  llvm::Value *convertStringToi8Ptr(std::string stringValue);
+  llvm::Type *getTypeFromAny(std::any value);
 
-bool isDoubleType(llvm::Type *type);
+  bool isStringType(llvm::Type *type);
 
-llvm::Value *convertToDouble(llvm::Value *val, llvm::IRBuilder<> *Builder);
+  bool isIntType(llvm::Type *type);
 
-llvm::Value *convertToInt(llvm::Value *val, llvm::IRBuilder<> *Builder);
+  bool isBoolType(llvm::Type *type);
 
-llvm::Value *convertToBool(llvm::Value *val, llvm::IRBuilder<> *Builder);
+  bool isDoubleType(llvm::Type *type);
 
-llvm::Value *getResultFromBinaryOperationOnDouble(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression);
+  llvm::Value *convertToDouble(llvm::Value *val);
 
-llvm::Value *getResultFromBinaryOperationOnInt(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
-    llvm::LLVMContext *TheContext);
+  llvm::Value *convertToInt(llvm::Value *val);
 
-llvm::Value *getResultFromBinaryOperationOnBool(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, BoundBinaryExpression *binaryExpression,
-    llvm::LLVMContext *TheContext);
-llvm::Value *getResultFromBinaryOperationOnString(
-    llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
-    llvm::Module *TheModule, llvm::LLVMContext *TheContext,
-    BoundBinaryExpression *binaryExpression);
+  llvm::Value *convertToBool(llvm::Value *val);
 
-void handleReplLastExpression(
-    int _environment, llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-    llvm::LLVMContext *TheContext,
-    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext)>
-        printContent,
-    std::function<void(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext)>
-        errorContent);
+  llvm::Value *itos(llvm::Value *num);
 
-// SET VALUES
-llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
-void setNamedValue(
-    const std::string &name, llvm::Value *value,
-    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
+  llvm::Value *
+  getResultFromBinaryOperationOnDouble(llvm::Value *lhsValue,
+                                       llvm::Value *rhsValue,
+                                       BoundBinaryExpression *binaryExpression);
 
-void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
+  llvm::Value *
+  getResultFromBinaryOperationOnInt(llvm::Value *lhsValue,
+                                    llvm::Value *rhsValue,
+                                    BoundBinaryExpression *binaryExpression);
+
+  llvm::Value *
+  getResultFromBinaryOperationOnBool(llvm::Value *lhsValue,
+                                     llvm::Value *rhsValue,
+                                     BoundBinaryExpression *binaryExpression);
+  llvm::Value *
+  getResultFromBinaryOperationOnString(llvm::Value *lhsValue,
+                                       llvm::Value *rhsValue,
+                                       BoundBinaryExpression *binaryExpression);
+
+  void handleReplLastExpression(int _environment,
+                                std::function<void()> printContent,
+                                std::function<void()> errorContent);
+
+  // SET VALUES
+  llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
+  void setNamedValue(
+      const std::string &name, llvm::Value *value,
+      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
+
+  void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
+                           std::stack<std::map<std::string, llvm::AllocaInst *>>
+                               &NamedValuesAllocaStack);
+
+  // GET
+
+  llvm::Value *getNamedValue(
+      const std::string &name,
+      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
+
+  llvm::AllocaInst *
+  getNamedValueAlloca(const std::string &name,
+                      std::stack<std::map<std::string, llvm::AllocaInst *>>
+                          NamedValuesAllocaStack);
+
+  // CHECK
+
+  bool isVariableDeclared(
+      const std::string &name,
+      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
+
+  // UPDATE
+
+  bool updateNamedValue(
+      const std::string &name, llvm::Value *value,
+      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
+
+  bool
+  updateNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
                          std::stack<std::map<std::string, llvm::AllocaInst *>>
                              &NamedValuesAllocaStack);
 
-// GET
+  void printFunction(llvm::Value *value, bool printNewline);
 
-llvm::Value *getNamedValue(
-    const std::string &name,
-    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
+  llvm::Value *createStringComparison(llvm::Value *lhsValue,
+                                      llvm::Value *rhsValue,
+                                      std::string functionName,
+                                      std::string operand = "");
 
-llvm::AllocaInst *
-getNamedValueAlloca(const std::string &name,
-                    std::stack<std::map<std::string, llvm::AllocaInst *>>
-                        NamedValuesAllocaStack);
+  llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition);
 
-// CHECK
+  llvm::GlobalVariable *getNullValue();
 
-bool isVariableDeclared(
-    const std::string &name,
-    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-// UPDATE
-
-bool updateNamedValue(
-    const std::string &name, llvm::Value *value,
-    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
-
-bool updateNamedValueAlloca(
-    const std::string &name, llvm::AllocaInst *value,
-    std::stack<std::map<std::string, llvm::AllocaInst *>>
-        &NamedValuesAllocaStack);
-
-void printFunction(llvm::Value *value, llvm::Module *TheModule,
-                   llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext,
-                   bool printNewline);
-
-llvm::Value *
-createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
-                       llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext, std::string functionName,
-                       std::string operand = "");
-
-llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition,
-                         llvm::IRBuilder<> *Builder);
-
-llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
-                                   llvm::LLVMContext *TheContext,
-                                   llvm::IRBuilder<> *Builder);
-
-llvm::PHINode *
-handleForLoopCondition(llvm::Value *stepValue, llvm::Value *value,
-                       llvm::Value *upperBound, llvm::IRBuilder<> *Builder,
-                       llvm::LLVMContext *TheContext, llvm::Module *TheModule
-
-);
-
-} // namespace IRUtils
+  llvm::PHINode *handleForLoopCondition(llvm::Value *stepValue,
+                                        llvm::Value *value,
+                                        llvm::Value *upperBound);
+};
 
 #endif
