@@ -25,7 +25,16 @@ std::string WhileLoop::runReplWithInputPrint(std::string input) {
   return testing::internal::GetCapturedStdout();
 }
 TEST_F(WhileLoop, BasicWhileLoop) {
-  std::string input = R"(var x = 0 while(x < 5) { x = x + 1 } print(x))";
+  std::string input = R"(var x = 0 
+  
+  while(x < 5) {
+    
+     x = x + 1
+      }
+     
+      print(x)
+
+     )";
   std::string expected_output = "5";
 
   std::string capturedOutput = runReplWithInputPrint(input);

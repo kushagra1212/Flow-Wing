@@ -553,7 +553,7 @@ createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
   // / Get the Global Variable using the name
 
   llvm::GlobalVariable *globalTrueStr =
-      TheModule->getGlobalVariable("true_string");
+      TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE);
 
   if (!globalTrueStr) {
     llvm::errs() << "true_string global variable not found";
@@ -561,7 +561,7 @@ createStringComparison(llvm::Value *lhsValue, llvm::Value *rhsValue,
   }
 
   llvm::GlobalVariable *globalFalseStr =
-      TheModule->getGlobalVariable("false_string");
+      TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE);
 
   if (!globalFalseStr) {
     llvm::errs() << "false_string global variable not found";
@@ -583,7 +583,7 @@ llvm::GlobalVariable *getNullValue(llvm::Module *TheModule,
                                    llvm::LLVMContext *TheContext,
                                    llvm::IRBuilder<> *Builder) {
 
-  return TheModule->getGlobalVariable("null_ptr");
+  return TheModule->getGlobalVariable(ELANG_GLOBAL_NULL);
 }
 
 llvm::Value *getResultFromBinaryOperationOnString(
@@ -644,109 +644,44 @@ llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value) {
   }
   return nullptr;
 }
-llvm::Value *getBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                           llvm::LLVMContext *TheContext) {
 
-  llvm::Value *breakCountPtr = TheModule->getGlobalVariable("X_break_count_X");
+llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty,
+                                 llvm::Module *TheModule,
+                                 llvm::IRBuilder<> *Builder,
+                                 llvm::LLVMContext *TheContext) {
+
+  llvm::Value *ptr = TheModule->getGlobalVariable(name);
 
   // Assuming that zeroPtr is of type i32*
-  llvm::Value *breakCount =
-      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), breakCountPtr);
+  llvm::Value *var = Builder->CreateLoad(Ty, ptr);
 
-  return breakCount;
+  return var;
 }
-llvm::Value *getGlobalZero(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                           llvm::LLVMContext *TheContext) {
-
-  llvm::Value *zeroPtr = TheModule->getGlobalVariable("X_zero_X");
-
-  llvm::Value *zero =
-      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), zeroPtr);
-
-  return zero;
-}
-llvm::Value *isBreakCountZero(llvm::Module *TheModule,
-                              llvm::IRBuilder<> *Builder,
-                              llvm::LLVMContext *TheContext) {
-  llvm::Value *breakCount = getBreakCount(TheModule, Builder, TheContext);
-  llvm::Value *loadZero = getGlobalZero(TheModule, Builder, TheContext);
-
-  llvm::Value *isZero = Builder->CreateICmpEQ(breakCount, loadZero);
-  return isZero;
-}
-
-void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+llvm::Value *isCountZero(const std::string name, llvm::Type *ty,
+                         llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                          llvm::LLVMContext *TheContext) {
-  llvm::Value *breakCount = getBreakCount(TheModule, Builder, TheContext);
-  llvm::Value *newBreakCount = Builder->CreateAdd(
-      breakCount,
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
-  Builder->CreateStore(newBreakCount,
-                       TheModule->getGlobalVariable("X_break_count_X"));
-}
+  llvm::Value *count =
+      getGlobalVarAndLoad(name, ty, TheModule, Builder, TheContext);
+  llvm::Value *loadZero = getGlobalVarAndLoad(ELANG_GLOBAL_ZERO, ty, TheModule,
+                                              Builder, TheContext);
 
-void decrementBrekCountIfNotZero(llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext) {
-
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  llvm::BasicBlock *decrementBlock = llvm::BasicBlock::Create(
-      Builder->getContext(), "decrement_block", currentBlock->getParent());
-  llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
-      Builder->getContext(), "end_block", currentBlock->getParent());
-
-  llvm::Value *isZero = isBreakCountZero(TheModule, Builder, TheContext);
-  Builder->CreateCondBr(isZero, endBlock, decrementBlock);
-
-  Builder->SetInsertPoint(decrementBlock);
-  llvm::Value *breakCount = getBreakCount(TheModule, Builder, TheContext);
-  llvm::Value *newBreakCount = Builder->CreateSub(
-      breakCount,
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
-  Builder->CreateStore(newBreakCount,
-                       TheModule->getGlobalVariable("X_break_count_X"));
-  Builder->CreateBr(endBlock);
-
-  Builder->SetInsertPoint(endBlock);
-}
-
-// Continue Keyword methods
-
-llvm::Value *getContinueCount(llvm::Module *TheModule,
-                              llvm::IRBuilder<> *Builder,
-                              llvm::LLVMContext *TheContext) {
-
-  llvm::Value *contCountPtr =
-      TheModule->getGlobalVariable("X_continue_count_X");
-
-  // Assuming that zeroPtr is of type i32*
-  llvm::Value *contCount =
-      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), contCountPtr);
-
-  return contCount;
-}
-llvm::Value *isContinueCountZero(llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext) {
-  llvm::Value *contCount = getContinueCount(TheModule, Builder, TheContext);
-  llvm::Value *loadZero = getGlobalZero(TheModule, Builder, TheContext);
-
-  llvm::Value *isZero = Builder->CreateICmpEQ(contCount, loadZero);
+  llvm::Value *isZero = Builder->CreateICmpEQ(count, loadZero);
   return isZero;
 }
 
-void incrementContinueCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                            llvm::LLVMContext *TheContext) {
-  llvm::Value *contCount = getContinueCount(TheModule, Builder, TheContext);
-  llvm::Value *newContCount = Builder->CreateAdd(
-      contCount, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
-  Builder->CreateStore(newContCount,
-                       TheModule->getGlobalVariable("X_continue_count_X"));
+void incrementCount(const std::string name, llvm::Module *TheModule,
+                    llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext) {
+  llvm::Value *count =
+      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext), TheModule,
+                          Builder, TheContext);
+  llvm::Value *newCount = Builder->CreateAdd(
+      count, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
+  Builder->CreateStore(newCount, TheModule->getGlobalVariable(name));
 }
 
-void decrementContinueCountIfNotZero(llvm::Module *TheModule,
-                                     llvm::IRBuilder<> *Builder,
-                                     llvm::LLVMContext *TheContext) {
+void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
+                             llvm::IRBuilder<> *Builder,
+                             llvm::LLVMContext *TheContext) {
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::BasicBlock *decrementBlock = llvm::BasicBlock::Create(
@@ -754,15 +689,17 @@ void decrementContinueCountIfNotZero(llvm::Module *TheModule,
   llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
       *TheContext, "end_block", currentBlock->getParent());
 
-  llvm::Value *isZero = isContinueCountZero(TheModule, Builder, TheContext);
+  llvm::Value *isZero = isCountZero(name, llvm::Type::getInt32Ty(*TheContext),
+                                    TheModule, Builder, TheContext);
   Builder->CreateCondBr(isZero, endBlock, decrementBlock);
 
   Builder->SetInsertPoint(decrementBlock);
-  llvm::Value *contCount = getContinueCount(TheModule, Builder, TheContext);
-  llvm::Value *newContinueCount = Builder->CreateSub(
-      contCount, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
-  Builder->CreateStore(newContinueCount,
-                       TheModule->getGlobalVariable("X_continue_count_X"));
+  llvm::Value *count =
+      getGlobalVarAndLoad(name, llvm::Type::getInt32Ty(*TheContext), TheModule,
+                          Builder, TheContext);
+  llvm::Value *newCount = Builder->CreateSub(
+      count, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)));
+  Builder->CreateStore(newCount, TheModule->getGlobalVariable(name));
   Builder->CreateBr(endBlock);
 
   Builder->SetInsertPoint(endBlock);

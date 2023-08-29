@@ -80,12 +80,36 @@
 #include <llvm/Support/raw_ostream.h>
 #include <sstream>
 namespace IRUtils {
+
+// Elang Global Strings
+
+const std::string ELANG_CONTINUE_COUNT = "ELANG_CONTINUE_COUNT";
+const std::string ELANG_BREAK_COUNT = "ELANG_BREAK_COUNT";
+const std::string ELANG_GLOBAL_ZERO = "ELANG_GLOBAL_ZERO";
+const std::string ELANG_GLOBAL_NULL = "ELANG_GLOBAL_NULL";
+const std::string ELANG_GLOBAL_TRUE = "ELANG_GLOBAL_TRUE";
+const std::string ELANG_GLOBAL_FALSE = "ELANG_GLOBAL_FALSE";
+
 llvm::Value *getLLVMValue(std::any value, llvm::Module *TheModule,
                           llvm::LLVMContext *TheContext,
                           llvm::IRBuilder<> *Builder);
 
 size_t calculateStringLength(llvm::Value *strPtr, llvm::Module *TheModule,
                              llvm::IRBuilder<> *Builder);
+llvm::Value *isCountZero(const std::string name, llvm::Type *ty,
+                         llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
+                         llvm::LLVMContext *TheContext);
+llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty,
+                                 llvm::Module *TheModule,
+                                 llvm::IRBuilder<> *Builder,
+                                 llvm::LLVMContext *TheContext);
+
+void decrementCountIfNotZero(const std::string name, llvm::Module *TheModule,
+                             llvm::IRBuilder<> *Builder,
+                             llvm::LLVMContext *TheContext);
+
+void incrementCount(const std::string name, llvm::Module *TheModule,
+                    llvm::IRBuilder<> *Builder, llvm::LLVMContext *TheContext);
 
 std::string getString(BoundExpression *node);
 
@@ -132,31 +156,7 @@ llvm::Value *getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue, llvm::IRBuilder<> *Builder,
     llvm::Module *TheModule, llvm::LLVMContext *TheContext,
     BoundBinaryExpression *binaryExpression);
-llvm::Value *getBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                           llvm::LLVMContext *TheContext);
-llvm::Value *isBreakCountZero(llvm::Module *TheModule,
-                              llvm::IRBuilder<> *Builder,
-                              llvm::LLVMContext *TheContext);
-llvm::Value *getGlobalZero(llvm::Module *TheModule, llvm::IRBuilder<> *Builders,
-                           llvm::LLVMContext *TheContext);
-void incrementBreakCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext);
-void decrementBrekCountIfNotZero(llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext);
 
-// Continue Keyword
-llvm::Value *getContinueCount(llvm::Module *TheModule,
-                              llvm::IRBuilder<> *Builder,
-                              llvm::LLVMContext *TheContext);
-llvm::Value *isContinueCountZero(llvm::Module *TheModule,
-                                 llvm::IRBuilder<> *Builder,
-                                 llvm::LLVMContext *TheContext);
-void incrementContinueCount(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                            llvm::LLVMContext *TheContext);
-void decrementContinueCountIfNotZero(llvm::Module *TheModule,
-                                     llvm::IRBuilder<> *Builder,
-                                     llvm::LLVMContext *TheContext);
 // SET VALUES
 llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
 void setNamedValue(
