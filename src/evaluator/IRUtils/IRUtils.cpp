@@ -1,8 +1,10 @@
 #include "IRUtils.h"
 
 IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-                 llvm::LLVMContext *TheContext)
-    : TheModule(TheModule), Builder(Builder), TheContext(TheContext) {
+                 llvm::LLVMContext *TheContext,
+                 DiagnosticHandler *diagnosticHandler)
+    : TheModule(TheModule), Builder(Builder), TheContext(TheContext),
+      diagnosticHandler(diagnosticHandler) {
   _currentSourceLocation = DiagnosticUtils::SourceLocation();
 }
 // GET VALUES
@@ -159,18 +161,6 @@ void IRUtils::setNamedValueAlloca(
   NamedValues[name] = value;
 }
 
-llvm::Value *IRUtils::addNewLineCharacter(llvm::Value *value, bool isNewLine) {
-  llvm::Value *i8Value = this->convertToString(value);
-
-  if (!isNewLine)
-    return i8Value;
-
-  std::string strValue = this->valueToString(i8Value);
-  strValue += '\n';
-
-  return this->convertStringToi8Ptr(strValue);
-}
-
 void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
 
   if (value && llvm::isa<llvm::Instruction>(value)) {
@@ -302,7 +292,9 @@ size_t IRUtils::calculateStringLength(llvm::Value *strPtr) {
   llvm::Function *stringLengthFunc = TheModule->getFunction("stringLength");
 
   if (!stringLengthFunc) {
-    // Function not found, handle error
+
+    llvm::errs() << "Function stringLength not found\n";
+
     return 0;
   }
 
@@ -314,7 +306,8 @@ llvm::Value *IRUtils::itos(llvm::Value *num) {
   llvm::Function *itosFunc = TheModule->getFunction("itos");
 
   if (!itosFunc) {
-    // Function not found, handle error
+
+    llvm::errs() << "Function itos not found\n";
     return 0;
   }
 
@@ -342,7 +335,7 @@ std::string IRUtils::valueToString(llvm::Value *val) {
     } else if (constInt->getType()->isIntegerTy(1)) {
       return constInt->getSExtValue() ? "true" : "false";
     } else {
-      llvm::errs() << "Unsupported integer type for conversion to string";
+      this->logError("Unsupported integer type for conversion to string");
       return "";
     }
   }
@@ -353,8 +346,8 @@ std::string IRUtils::valueToString(llvm::Value *val) {
     if (constFP->getType()->isDoubleTy()) {
       return std::to_string(constFP->getValueAPF().convertToDouble());
     } else {
-      llvm::errs() << "Unsupported floating point type for conversion to "
-                      "string";
+      this->logError(
+          "Unsupported floating point type for conversion to string");
       return "";
     }
   }
@@ -377,7 +370,7 @@ std::string IRUtils::valueToString(llvm::Value *val) {
         return cmpResult == llvm::ConstantInt::get(i1Type, 1) ? "true"
                                                               : "false";
       } else {
-        llvm::errs() << "Unexpected comparison result type\n";
+        this->logError("Unsupported type for conversion to string");
         return "";
       }
     }
@@ -460,7 +453,9 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
     return convertStringToi8Ptr(stringValue);
   }
 
-  return nullptr; // Return nullptr for other types or unrecognized cases
+  this->logError("Unsupported type for conversion to string");
+
+  return getNull(); // Return nullptr for other types or unrecognized cases
 }
 
 llvm::Value *IRUtils::concatenateStrings(llvm::Value *lhs, llvm::Value *rhs) {
@@ -504,8 +499,10 @@ bool IRUtils::isIntType(llvm::Type *type) { return type->isIntegerTy(32); }
 
 bool IRUtils::isBoolType(llvm::Type *type) { return type->isIntegerTy(1); }
 
-llvm::Value *IRUtils::convertToDouble(llvm::Value *val) {
+llvm::Value *IRUtils::implicitConvertToDouble(llvm::Value *val) {
   llvm::Type *type = val->getType();
+
+  llvm::Value *res = getNull();
 
   if (type->isDoubleTy()) {
     return val;
@@ -516,55 +513,187 @@ llvm::Value *IRUtils::convertToDouble(llvm::Value *val) {
     return Builder->CreateUIToFP(
         val, llvm::Type::getDoubleTy(Builder->getContext()));
   } else if (isStringType(type)) {
-    llvm::errs()
-        << "Implicit conversion from string to double is not supported";
-    return nullptr;
+    this->logError(
+        "Implicit conversion from string to double is not supported");
   } else {
-    llvm::errs() << "Unsupported type for conversion to double";
-    return nullptr;
+    this->logError("Unsupported type for conversion to double");
   }
-  return nullptr;
+  return res;
 }
 
-llvm::Value *IRUtils::convertToInt(llvm::Value *val) {
+llvm::Value *IRUtils::explicitConvertToBool(llvm::Value *val) {
+
   llvm::Type *type = val->getType();
 
-  if (type->isIntegerTy(32)) {
-    return val;
-  } else if (type->isDoubleTy()) {
-    llvm::errs() << "Implicit conversion from double to int is not supported";
-    return nullptr;
-  } else if (type->isIntegerTy(1)) {
-    return Builder->CreateZExt(val,
-                               llvm::Type::getInt32Ty(Builder->getContext()));
-  } else if (isStringType(type)) {
-    llvm::errs() << "Implicit conversion from string to int is not supported";
-    return nullptr;
-  } else {
-    llvm::errs() << "Unsupported type for conversion to int";
-    return nullptr;
-  }
-  return nullptr;
-}
-
-llvm::Value *IRUtils::convertToBool(llvm::Value *val) {
-  llvm::Type *type = val->getType();
+  llvm::Value *res = getNull();
 
   if (type->isIntegerTy(1)) {
     return val;
   } else if (type->isDoubleTy()) {
-    llvm::errs() << "Implicit conversion from double to bool is not supported";
-    return nullptr;
+    // convert double to bool is val is not 0 return true else return false
+
+    return Builder->CreateFCmpONE(
+        val, llvm::ConstantFP::get(Builder->getDoubleTy(), 0.0));
+
   } else if (type->isIntegerTy(32)) {
+
     return Builder->CreateICmpNE(
         val, llvm::ConstantInt::get(Builder->getInt32Ty(), 0));
+
   } else if (isStringType(type)) {
-    llvm::errs() << "Implicit conversion from string to bool is not supported";
-    return nullptr;
+
+    std::string strValue = this->getConstantStringFromValue(val).str();
+
+    if (Utils::isInteger(strValue)) {
+      // larger integer type
+      llvm::APInt llvmLongIntValue(32, strValue, 10);
+      llvm::Constant *llvmValue =
+          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
+
+      return Builder->CreateICmpNE(
+          llvmValue, llvm::ConstantInt::get(Builder->getInt32Ty(), 0));
+    }
+
+    if (Utils::isDouble(strValue)) {
+      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
+                                    strValue.c_str());
+      llvm::Constant *llvmValue =
+          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
+
+      return Builder->CreateFCmpONE(
+          llvmValue, llvm::ConstantFP::get(Builder->getDoubleTy(), 0.0));
+    }
+
+    if (strValue != "") {
+      // return bool constant
+      return llvm::ConstantInt::get(Builder->getInt1Ty(), 1);
+    }
+
+    return llvm::ConstantInt::get(Builder->getInt1Ty(), 0);
   } else {
-    return nullptr;
+
+    this->logError("Unsupported type for conversion to bool");
   }
-  return nullptr;
+
+  return res;
+}
+
+llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
+  llvm::Type *type = val->getType();
+
+  llvm::Value *res = getNull();
+
+  if (type->isDoubleTy()) {
+    return val;
+  } else if (type->isIntegerTy(32)) {
+    return Builder->CreateSIToFP(
+        val, llvm::Type::getDoubleTy(Builder->getContext()));
+  } else if (type->isIntegerTy(1)) {
+    return Builder->CreateUIToFP(
+        val, llvm::Type::getDoubleTy(Builder->getContext()));
+  } else if (isStringType(type)) {
+    std::string strValue = this->getConstantStringFromValue(val).str();
+
+    if (Utils::isInteger(strValue)) {
+      // larger integer type
+      llvm::APInt llvmLongIntValue(32, strValue, 10);
+      llvm::Constant *llvmValue =
+          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
+
+      return llvmValue;
+    }
+
+    if (Utils::isDouble(strValue)) {
+      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
+                                    strValue.c_str());
+      llvm::Constant *llvmValue =
+          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
+
+      return llvmValue;
+    }
+
+    this->logError(
+        "Implicit conversion from string to double is not supported");
+  } else {
+    this->logError("Unsupported type for conversion to double");
+  }
+  return res;
+}
+llvm::Value *IRUtils::implicitConvertToInt(llvm::Value *val) {
+  llvm::Type *type = val->getType();
+
+  llvm::Value *res = getNull();
+
+  if (type->isIntegerTy(32)) {
+    return val;
+  } else if (type->isDoubleTy()) {
+    this->logError("Implicit conversion from double to int is not supported");
+  } else if (type->isIntegerTy(1)) {
+    return Builder->CreateZExt(val,
+                               llvm::Type::getInt32Ty(Builder->getContext()));
+  } else if (isStringType(type)) {
+    this->logError("Implicit conversion from string to int is not supported");
+  } else {
+    this->logError("Unsupported type for conversion to int");
+  }
+  return res;
+}
+
+llvm::Value *IRUtils::explicitConvertToInt(llvm::Value *val) {
+  llvm::Type *type = val->getType();
+
+  llvm::Value *res = getNull();
+
+  if (type->isIntegerTy(32)) {
+    return val;
+  } else if (type->isDoubleTy()) {
+
+    return Builder->CreateFPToSI(val,
+                                 llvm::Type::getInt32Ty(Builder->getContext()));
+
+  } else if (type->isIntegerTy(1)) {
+    return Builder->CreateZExt(val,
+                               llvm::Type::getInt32Ty(Builder->getContext()));
+  } else if (isStringType(type)) {
+    return convertToString(val);
+  } else {
+
+    this->logError("Unsupported type for conversion to int");
+  }
+  return res;
+}
+
+llvm::Constant *IRUtils::getNull() {
+  llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+  return llvm::ConstantExpr::getBitCast(this->getNullValue(), int8PtrType);
+}
+
+llvm::Value *IRUtils::implicitConvertToBool(llvm::Value *val) {
+  llvm::Type *type = val->getType();
+
+  llvm::Value *res = getNull();
+
+  if (type->isIntegerTy(1)) {
+    return val;
+  } else if (type->isDoubleTy()) {
+
+    this->logError("Implicit conversion from double to bool is not supported");
+
+  } else if (type->isIntegerTy(32)) {
+
+    return Builder->CreateICmpNE(
+        val, llvm::ConstantInt::get(Builder->getInt32Ty(), 0));
+
+  } else if (isStringType(type)) {
+
+    this->logError("Implicit conversion from string to bool is not supported");
+
+  } else {
+
+    this->logError("Unsupported type for conversion to bool");
+  }
+
+  return res;
 }
 llvm::Value *IRUtils::checkBitSet(llvm::Value *result,
                                   unsigned int bitPosition) {
@@ -582,8 +711,10 @@ llvm::Value *IRUtils::createStringComparison(llvm::Value *lhsValue,
   llvm::Function *stringComparison = TheModule->getFunction(functionName);
 
   if (!stringComparison) {
-    llvm::errs() << functionName + "function not found";
-    return nullptr;
+
+    this->logError("Function " + functionName + " not found");
+
+    return getNull();
   }
 
   // / Get the Global Variable using the name
@@ -592,16 +723,20 @@ llvm::Value *IRUtils::createStringComparison(llvm::Value *lhsValue,
       TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE);
 
   if (!globalTrueStr) {
-    llvm::errs() << "true_string global variable not found";
-    return nullptr;
+
+    this->logError("ELANG_GLOBAL_TRUE global variable not found");
+
+    return getNull();
   }
 
   llvm::GlobalVariable *globalFalseStr =
       TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE);
 
   if (!globalFalseStr) {
-    llvm::errs() << "false_string global variable not found";
-    return nullptr;
+
+    this->logError("ELANG_GLOBAL_FALSE global variable not found");
+
+    return getNull();
   }
 
   llvm::Value *args[] = {lhsValue, rhsValue};
@@ -623,54 +758,91 @@ llvm::GlobalVariable *IRUtils::getNullValue() {
 llvm::Value *IRUtils::getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
+
+  this->setCurrentSourceLocation(binaryExpression->getLocation());
+
   llvm::Value *result = nullptr;
+
+  std::string errorMessage = "";
+
+  std::string lhsStr = this->getConstantStringFromValue(lhsValue).str();
+  std::string rhsStr = this->getConstantStringFromValue(rhsValue).str();
+
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
 
-    result = concatenateStrings(lhsValue, rhsValue);
+    return result = concatenateStrings(lhsValue, rhsValue);
     break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = createStringComparison(lhsValue, rhsValue, "equal_strings");
+    return result = createStringComparison(lhsValue, rhsValue, "equal_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = createStringComparison(lhsValue, rhsValue, "equal_strings", "!=");
+    return result = createStringComparison(lhsValue, rhsValue, "equal_strings",
+                                           "!=");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    result = createStringComparison(lhsValue, rhsValue, "less_than_strings");
+    return result =
+               createStringComparison(lhsValue, rhsValue, "less_than_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
 
-    result = createStringComparison(lhsValue, rhsValue,
-                                    "less_than_or_equal_strings");
+    return result = createStringComparison(lhsValue, rhsValue,
+                                           "less_than_or_equal_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = createStringComparison(lhsValue, rhsValue, "greater_than_strings");
+    return result = createStringComparison(lhsValue, rhsValue,
+                                           "greater_than_strings");
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-    result = createStringComparison(lhsValue, rhsValue,
-                                    "greater_than_or_equal_strings");
+    return result = createStringComparison(lhsValue, rhsValue,
+                                           "greater_than_or_equal_strings");
     break;
 
   // Add more cases for other binary operators
-  default:
-    llvm::errs() << "Unsupported binary operator for string type";
-    return nullptr;
+  default: {
+    errorMessage = "Unsupported binary operator for string type " + lhsStr +
+                   " and " + rhsStr;
+    break;
   }
+  }
+
+  this->logError(errorMessage);
+
   return result;
 }
 llvm::ConstantInt *IRUtils::getConstantIntFromValue(llvm::Value *value) {
   if (llvm::ConstantInt *constInt = llvm::dyn_cast<llvm::ConstantInt>(value)) {
     return constInt;
   }
+
   return nullptr;
+}
+
+llvm::ConstantFP *IRUtils::getConstantFPFromValue(llvm::Value *value) {
+  if (llvm::ConstantFP *constFP = llvm::dyn_cast<llvm::ConstantFP>(value)) {
+    return constFP;
+  }
+
+  return nullptr;
+}
+
+llvm::StringRef IRUtils::getConstantStringFromValue(llvm::Value *value) {
+  if (llvm::ConstantDataArray *constDataArray =
+          llvm::dyn_cast<llvm::ConstantDataArray>(value)) {
+    if (constDataArray->isString()) {
+      return constDataArray->getAsString();
+    }
+  }
+
+  return "";
 }
 
 llvm::Value *IRUtils::getGlobalVarAndLoad(const std::string name,
@@ -724,76 +896,114 @@ void IRUtils::decrementCountIfNotZero(const std::string name) {
 llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
-  llvm::Value *result = nullptr;
+  this->setCurrentSourceLocation(binaryExpression->getLocation());
+  llvm::Value *result = getNull();
+  std::string errorMessage = "";
+  std::string lhsStr = std::to_string(
+      this->getConstantFPFromValue(lhsValue)->getValueAPF().convertToDouble());
+  std::string rhsStr = std::to_string(
+      this->getConstantFPFromValue(rhsValue)->getValueAPF().convertToDouble());
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
-    result = Builder->CreateFAdd(lhsValue, rhsValue);
+    return Builder->CreateFAdd(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
-    result = Builder->CreateFSub(lhsValue, rhsValue);
+    return Builder->CreateFSub(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
-    result = Builder->CreateFMul(lhsValue, rhsValue);
+    return Builder->CreateFMul(lhsValue, rhsValue);
     break;
-  case BinderKindUtils::BoundBinaryOperatorKind::Division:
-    result = Builder->CreateFDiv(lhsValue, rhsValue);
-    break;
+  case BinderKindUtils::BoundBinaryOperatorKind::Division: {
+    // Check if rhsValue is zero
+    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+        *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
+    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    Builder->SetInsertPoint(errorBlock);
+
+    std::string errorMessage =
+        "Division by zero of " + lhsStr + " and " + rhsStr;
+
+    this->logError(errorMessage);
+
+    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
+    Builder->CreateBr(errorExit);
+    Builder->SetInsertPoint(errorExit);
+    return result = Builder->CreateFDiv(lhsValue, rhsValue);
+    break;
+  }
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    result = Builder->CreateFRem(lhsValue, rhsValue);
+    return Builder->CreateFRem(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
-    llvm::errs() << "Bitwise And is not supported for double type";
+    errorMessage = "Bitwise And is not supported for double type " + lhsStr +
+                   " and " + rhsStr;
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
-    llvm::errs() << "Bitwise Or is not supported for double type";
+    errorMessage = "Bitwise Or is not supported for double type " + lhsStr +
+                   " and " + rhsStr;
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-    llvm::errs() << "Bitwise Xor is not supported for double type";
+    errorMessage = "Bitwise Xor is not supported for double type " + lhsStr +
+                   " and " + rhsStr;
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    llvm::errs() << "Logical And is not supported for double type";
+    errorMessage = "Logical And is not supported for double type " + lhsStr +
+                   " and " + rhsStr;
+
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    llvm::errs() << "Logical Or is not supported for double type";
+    errorMessage = "Logical Or is not supported for double type " + lhsStr +
+                   " and " + rhsStr;
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = Builder->CreateFCmpOEQ(lhsValue, rhsValue);
+    return Builder->CreateFCmpOEQ(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = Builder->CreateFCmpONE(lhsValue, rhsValue);
+    return Builder->CreateFCmpONE(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    result = Builder->CreateFCmpOLT(lhsValue, rhsValue);
+    return Builder->CreateFCmpOLT(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
 
-    result = Builder->CreateFCmpOLE(lhsValue, rhsValue);
+    return Builder->CreateFCmpOLE(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = Builder->CreateFCmpOGT(lhsValue, rhsValue);
+    return Builder->CreateFCmpOGT(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-    result = Builder->CreateFCmpOGE(lhsValue, rhsValue);
+    return Builder->CreateFCmpOGE(lhsValue, rhsValue);
     break;
 
   // Add more cases for other binary operators
-  default:
-    llvm::errs() << "Unsupported binary operator for double type";
-    return nullptr;
+  default: {
+
+    // write the brief error message
+
+    errorMessage = "Unsupported binary operator for double type" + lhsStr +
+                   " and " + rhsStr;
+
+    break;
   }
+  }
+  this->logError(errorMessage);
   return result;
 }
 
@@ -805,28 +1015,39 @@ void IRUtils::setCurrentSourceLocation(
 DiagnosticUtils::SourceLocation IRUtils::getCurrentSourceLocation() {
   return this->_currentSourceLocation;
 }
-
+void IRUtils::logError(std::string errorMessgae) {
+  std::string error = diagnosticHandler->getLogString(
+      Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Runtime,
+                 this->getCurrentSourceLocation()));
+  llvm::Value *errorStr = this->convertStringToi8Ptr(error);
+  this->incrementCount(ELANG_GLOBAL_ERROR);
+  this->printFunction(errorStr, false);
+}
 llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
+  this->setCurrentSourceLocation(binaryExpression->getLocation());
   llvm::Value *result = Builder->getInt32(1);
+
+  std::string errorMessage = "";
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
-    result = Builder->CreateAdd(lhsValue, rhsValue);
+    return result = Builder->CreateAdd(lhsValue, rhsValue);
 
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
-    result = Builder->CreateSub(lhsValue, rhsValue);
+    return result = Builder->CreateSub(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
-    result = Builder->CreateMul(lhsValue, rhsValue);
+    return result = Builder->CreateMul(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
     // Check if rhsValue is zero
-    llvm::Value *zeroCheck = this->convertToBool(rhsValue);
+    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
     llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
         *TheContext, "error", Builder->GetInsertBlock()->getParent());
     llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
@@ -835,91 +1056,105 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
     Builder->SetInsertPoint(errorBlock);
 
-    std::string error = "\x1b[31mDivision by zero";
-    llvm::Value *errorStr = this->convertStringToi8Ptr(error);
-    this->incrementCount(ELANG_GLOBAL_ERROR);
-    this->printFunction(errorStr, false);
+    std::string errorMessage =
+        "Division by zero of " +
+        std::to_string(
+            this->getConstantIntFromValue(lhsValue)->getSExtValue()) +
+        " and " +
+        std::to_string(this->getConstantIntFromValue(rhsValue)->getSExtValue());
+
+    this->logError(errorMessage);
+
     llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
     result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
     Builder->CreateBr(errorExit);
     Builder->SetInsertPoint(errorExit);
-    result = Builder->CreateSDiv(lhsValue, rhsValue);
+    return Builder->CreateSDiv(lhsValue, rhsValue);
 
     break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    result = Builder->CreateSRem(lhsValue, rhsValue);
+    return Builder->CreateSRem(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
-    result = Builder->CreateAnd(lhsValue, rhsValue);
+    return Builder->CreateAnd(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
-    result = Builder->CreateOr(lhsValue, rhsValue);
+    return Builder->CreateOr(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-    result = Builder->CreateXor(lhsValue, rhsValue);
+    return Builder->CreateXor(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result = Builder->CreateLogicalAnd(this->convertToBool(lhsValue),
-                                       this->convertToBool(rhsValue));
+    return Builder->CreateLogicalAnd(this->explicitConvertToBool(lhsValue),
+                                     this->explicitConvertToBool(rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result = Builder->CreateLogicalOr(this->convertToBool(lhsValue),
-                                      this->convertToBool(rhsValue));
+    return Builder->CreateLogicalOr(this->explicitConvertToBool(lhsValue),
+                                    this->explicitConvertToBool(rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = this->convertToBool(Builder->CreateICmpEQ(lhsValue, rhsValue));
+    return this->explicitConvertToBool(
+        Builder->CreateICmpEQ(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = this->convertToBool(Builder->CreateICmpNE(lhsValue, rhsValue));
+    return this->explicitConvertToBool(
+        Builder->CreateICmpNE(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less: {
-
-    result = this->convertToBool(Builder->CreateICmpSLT(lhsValue, rhsValue));
-
-    return result;
+    return this->explicitConvertToBool(
+        Builder->CreateICmpSLT(lhsValue, rhsValue));
     break;
   }
-
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals: {
-
-    result = this->convertToBool(Builder->CreateICmpSLE(lhsValue, rhsValue));
-
+    return this->explicitConvertToBool(
+        Builder->CreateICmpSLE(lhsValue, rhsValue));
     break;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    result = this->convertToBool(Builder->CreateICmpSGT(lhsValue, rhsValue));
+    return this->explicitConvertToBool(
+        Builder->CreateICmpSGT(lhsValue, rhsValue));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
 
-    result = this->convertToBool(Builder->CreateICmpSGE(lhsValue, rhsValue));
+    return this->explicitConvertToBool(
+        Builder->CreateICmpSGE(lhsValue, rhsValue));
     break;
+  default: {
 
-    // Add more cases for other binary operators
-
-  default:
-
-    llvm::errs() << "Unsupported binary operator for int type";
-    return nullptr;
+    errorMessage =
+        "Unsupported binary operator for int type " +
+        std::to_string(
+            this->getConstantIntFromValue(lhsValue)->getSExtValue()) +
+        " and " +
+        std::to_string(this->getConstantIntFromValue(rhsValue)->getSExtValue());
+    break;
   }
+  }
+
+  this->logError(errorMessage);
   return result;
 }
 
 llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
-  llvm::Value *result = nullptr;
+  llvm::Value *result = getNull();
+  std::string errorMessage = "";
+  this->setCurrentSourceLocation(binaryExpression->getLocation());
+  this->setCurrentSourceLocation(binaryExpression->getLocation());
+
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
@@ -930,49 +1165,58 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-    result = convertToBool(getResultFromBinaryOperationOnInt(
-        convertToInt(lhsValue), convertToInt(rhsValue), binaryExpression));
+    return explicitConvertToBool(getResultFromBinaryOperationOnInt(
+        explicitConvertToInt(lhsValue), explicitConvertToInt(rhsValue),
+        binaryExpression));
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    result = Builder->CreateLogicalAnd(lhsValue, rhsValue);
+    return Builder->CreateLogicalAnd(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    result = Builder->CreateLogicalOr(lhsValue, rhsValue);
+    return Builder->CreateLogicalOr(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    result = Builder->CreateICmpEQ(lhsValue, rhsValue);
+    return Builder->CreateICmpEQ(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    result = Builder->CreateICmpNE(lhsValue, rhsValue);
+    return Builder->CreateICmpNE(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    result = Builder->CreateICmpSLT(lhsValue, rhsValue);
+    return Builder->CreateICmpSLT(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
 
-    result = Builder->CreateICmpSLE(lhsValue, rhsValue);
+    return Builder->CreateICmpSLE(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils ::BoundBinaryOperatorKind::Greater:
-    result = Builder->CreateICmpSGT(lhsValue, rhsValue);
+    return Builder->CreateICmpSGT(lhsValue, rhsValue);
     break;
 
   case BinderKindUtils ::BoundBinaryOperatorKind::GreaterOrEquals:
 
-    result = Builder->CreateICmpSGE(lhsValue, rhsValue);
+    return Builder->CreateICmpSGE(lhsValue, rhsValue);
     break;
 
   // Add more cases for other binary operators
   default:
 
-    llvm::errs() << "Unsupported binary operator for bool type";
-    return nullptr;
+    errorMessage =
+        "Unsupported binary operator for bool type " +
+        std::to_string(
+            this->getConstantIntFromValue(lhsValue)->getSExtValue()) +
+        " and " +
+        std::to_string(this->getConstantIntFromValue(rhsValue)->getSExtValue());
+
+    break;
   }
+  this->logError(errorMessage);
+
   return result;
 }

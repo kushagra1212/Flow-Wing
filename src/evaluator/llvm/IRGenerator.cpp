@@ -7,11 +7,12 @@ IRGenerator::IRGenerator(int environment,
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
   _environment = environment;
-  this->_irUtils = std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
-                                             TheContext.get());
 
   this->_diagnosticHandler = diagnosticHandler;
 
+  this->_irUtils =
+      std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
+                                TheContext.get(), this->_diagnosticHandler);
   this->updateModule();
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -50,14 +51,7 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   if (val == nullptr) {
 
-    std::string errorMessgae = "Unsupported Literal Type ";
-    std::string error = this->_diagnosticHandler->getLogString(
-        Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Runtime,
-                   this->_irUtils->getCurrentSourceLocation()));
-    llvm::Value *errorStr = this->_irUtils->convertStringToi8Ptr(error);
-    this->_irUtils->incrementCount(ELANG_GLOBAL_ERROR);
-    this->_irUtils->printFunction(errorStr, false);
+    this->_irUtils->logError("Unsupported Literal Type ");
 
     return getNull();
   }
@@ -70,8 +64,14 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
   BoundUnaryExpression *unaryExpression = (BoundUnaryExpression *)node;
   llvm::Value *val = this->generateEvaluateExpressionStatement(
       unaryExpression->getOperandPtr().get());
+
+  this->_irUtils->setCurrentSourceLocation(unaryExpression->getLocation());
+
   if (val == nullptr) {
-    return nullptr;
+
+    this->_irUtils->logError("Unsupported Unary Expression Type ");
+
+    return getNull();
   }
 
   llvm::Value *result = nullptr;
@@ -109,8 +109,10 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
       // For boolean values, perform logical NOT
       result = Builder->CreateNot(val);
     } else {
-      // Unsupported type
-      return nullptr;
+
+      this->_irUtils->logError("Unsupported Unary Expression Type ");
+
+      return getNull();
     }
     break;
   }
@@ -122,7 +124,9 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
   }
   default: {
 
-    return nullptr;
+    this->_irUtils->logError("Unsupported Unary Expression Type ");
+
+    return getNull();
   }
   }
 
@@ -140,7 +144,8 @@ IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
   llvm::SourceMgr sourceMgr;
 
   if (irFilePaths.size() == 0) {
-    llvm::errs() << "No IR files provided\n";
+
+    llvm::errs() << "Error: No IR file specified\n";
     return nullptr;
   }
 
@@ -223,11 +228,14 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
 
   llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
 
-  if (!variableValue) {
-    // Variable not found, handle error
+  this->_irUtils->setCurrentSourceLocation(variableExpression->getLocation());
 
-    llvm::errs() << "Variable not found\n";
-    return nullptr;
+  if (!variableValue) {
+    // Variable not found,  error
+
+    this->_irUtils->logError("Variable not found in variable expression ");
+
+    return getNull();
   }
 
   return value;
@@ -241,10 +249,14 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
   std::string variableName =
       this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
 
+  this->_irUtils->setCurrentSourceLocation(assignmentExpression->getLocation());
+
   if (!this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack)) {
     // Variable not found, handle error
-    llvm::errs() << "Variable not found in assignment expression\n";
-    return nullptr;
+
+    this->_irUtils->logError("Variable not found in assignment expression ");
+
+    return getNull();
   }
 
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
@@ -253,9 +265,10 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
 
-    llvm::errs()
-        << "Right hand side value not found in assignment expression\n";
-    return nullptr;
+    this->_irUtils->logError(
+        "Right hand side value not found in assignment expression ");
+
+    return getNull();
   }
 
   // Update the variable value
@@ -280,9 +293,13 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
       binaryExpression->getRightPtr().get());
 
+  this->_irUtils->setCurrentSourceLocation(binaryExpression->getLocation());
+
   if (!lhsValue || !rhsValue) {
-    llvm::errs() << "Error in generating IR for operands\n";
-    return nullptr;
+
+    this->_irUtils->logError("Error in generating IR for operands ");
+
+    return getNull();
   }
 
   llvm::Type *lhsType = lhsValue->getType();
@@ -299,8 +316,8 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
              this->_irUtils->isDoubleType(rhsType)) {
 
     result = this->_irUtils->getResultFromBinaryOperationOnDouble(
-        this->_irUtils->convertToDouble(lhsValue),
-        this->_irUtils->convertToDouble(rhsValue), binaryExpression);
+        this->_irUtils->explicitConvertToDouble(lhsValue),
+        this->_irUtils->explicitConvertToDouble(rhsValue), binaryExpression);
   } else if (this->_irUtils->isBoolType(lhsType) &&
              this->_irUtils->isBoolType(rhsType)) {
 
@@ -309,8 +326,8 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   } else {
 
     result = this->_irUtils->getResultFromBinaryOperationOnInt(
-        this->_irUtils->convertToInt(lhsValue),
-        this->_irUtils->convertToInt(rhsValue), binaryExpression);
+        this->_irUtils->explicitConvertToInt(lhsValue),
+        this->_irUtils->explicitConvertToInt(rhsValue), binaryExpression);
   }
   return result;
 }
@@ -322,6 +339,9 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
 
   const std::string &functionName = function.name;
   std::size_t arguments_size = callExpression->getArguments().size();
+
+  this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
+
   if (functionName == Utils::BuiltInFunctions::print.name) {
     if (arguments_size == 1) {
 
@@ -333,10 +353,13 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       return this->getNull();
     }
 
-    llvm::errs() << "Error: Unexpected function cal: arguments does  not match";
+    this->_irUtils->logError(
+        "Unexpected Function Call Arguments Does  Not Match ");
+
     return this->getNull();
   }
-  llvm::errs() << "Error: Unexpected function call ";
+
+  this->_irUtils->logError("Unexpected Function Call ");
   return this->getNull();
 }
 
@@ -565,9 +588,13 @@ llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       ifStatement->getConditionPtr().get());
 
+  this->_irUtils->setCurrentSourceLocation(ifStatement->getLocation());
+
   if (conditionValue == nullptr) {
-    llvm::errs() << "Error in Compiling for if condition\n";
-    return nullptr;
+
+    this->_irUtils->logError("Condition Value is not found in if statement");
+
+    return getNull();
   }
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
@@ -608,9 +635,15 @@ llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
     llvm::Value *orIfConditionValue = this->generateEvaluateExpressionStatement(
         ifStatement->getOrIfStatementsPtr()[i]->getConditionPtr().get());
 
+    this->_irUtils->setCurrentSourceLocation(
+        ifStatement->getOrIfStatementsPtr()[i]->getLocation());
+
     if (orIfConditionValue == nullptr) {
-      llvm::errs() << "Error in Compiling for or if condition\n";
-      return nullptr;
+
+      this->_irUtils->logError(
+          "Condition Value is not found in or if statement");
+
+      return getNull();
     }
 
     if (i == orIfBlock.size() - 1) {
@@ -663,6 +696,8 @@ llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
 llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   BoundWhileStatement *whileStatement = (BoundWhileStatement *)node;
 
+  this->_irUtils->setCurrentSourceLocation(whileStatement->getLocation());
+
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::Function *function = currentBlock->getParent();
   llvm::Value *exitValue = getNull();
@@ -689,8 +724,10 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   // Load the condition
 
   if (conditionValue == nullptr) {
-    llvm::errs() << "Error in Compiling for While condition\n";
-    return this->_irUtils->getNullValue();
+
+    this->_irUtils->logError("Condition Value is not found in while statement");
+
+    return getNull();
   }
 
   Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
@@ -733,8 +770,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)); // default
 
   if (forStatement->getStepExpressionPtr().get()) {
-    stepValue =
-        this->_irUtils->convertToInt(this->generateEvaluateExpressionStatement(
+    stepValue = this->_irUtils->implicitConvertToInt(
+        this->generateEvaluateExpressionStatement(
             forStatement->getStepExpressionPtr().get()));
   }
 
@@ -774,8 +811,11 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
                                   this->_NamedValuesStack);
   }
 
+  this->_irUtils->setCurrentSourceLocation(forStatement->getLocation());
+
   if (variableName == "") {
-    llvm::errs() << "Empty Variable Name: Error in for statement\n";
+
+    this->_irUtils->logError("Variable Name is not found in for statement");
     return getNull();
   }
 
@@ -812,9 +852,9 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
       this->_irUtils->handleForLoopCondition(stepValue, value, upperBound);
 
   if (conditionPHI == nullptr) {
+    this->_irUtils->logError("Condition Value is not found in for statement");
 
-    llvm::errs() << "Error in Compiling for While condition\n";
-    return this->_irUtils->getNullValue();
+    return getNull();
   }
 
   Builder->CreateCondBr(conditionPHI, breakLoop, afterLoop);

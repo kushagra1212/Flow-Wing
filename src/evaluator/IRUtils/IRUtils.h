@@ -89,9 +89,10 @@ public:
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
   llvm::LLVMContext *TheContext;
+  DiagnosticHandler *diagnosticHandler;
 
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-          llvm::LLVMContext *TheContext);
+          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler);
 
   llvm::Value *getLLVMValue(std::any value);
 
@@ -108,7 +109,6 @@ public:
   std::string valueToString(llvm::Value *val);
 
   llvm::Value *convertToString(llvm::Value *val);
-  llvm::Value *addNewLineCharacter(llvm::Value *value, bool isNewLine);
   llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs);
   llvm::Value *convertStringToi8Ptr(std::string stringValue);
   llvm::Type *getTypeFromAny(std::any value);
@@ -121,11 +121,17 @@ public:
 
   bool isDoubleType(llvm::Type *type);
 
-  llvm::Value *convertToDouble(llvm::Value *val);
+  llvm::Value *implicitConvertToDouble(llvm::Value *val);
 
-  llvm::Value *convertToInt(llvm::Value *val);
+  llvm::Value *implicitConvertToInt(llvm::Value *val);
 
-  llvm::Value *convertToBool(llvm::Value *val);
+  llvm::Value *implicitConvertToBool(llvm::Value *val);
+
+  llvm::Value *explicitConvertToDouble(llvm::Value *val);
+
+  llvm::Value *explicitConvertToInt(llvm::Value *val);
+
+  llvm::Value *explicitConvertToBool(llvm::Value *val);
 
   llvm::Value *itos(llvm::Value *num);
 
@@ -150,6 +156,8 @@ public:
 
   // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
+  llvm::ConstantFP *getConstantFPFromValue(llvm::Value *value);
+  llvm::StringRef getConstantStringFromValue(llvm::Value *value);
   void setNamedValue(
       const std::string &name, llvm::Value *value,
       std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
@@ -213,6 +221,9 @@ public:
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
+
+  void logError(std::string errorMessgae);
+  llvm::Constant *getNull();
 
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;

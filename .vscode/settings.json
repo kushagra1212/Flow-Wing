@@ -91,6 +91,7 @@
     "shared_mutex": "cpp",
     "*.inc": "cpp",
     "future": "cpp",
-    "*.def": "cpp"
+    "*.def": "cpp",
+    "regex": "cpp"
   }
 }
