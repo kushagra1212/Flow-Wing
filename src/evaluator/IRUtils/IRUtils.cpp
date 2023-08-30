@@ -2,7 +2,9 @@
 
 IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                  llvm::LLVMContext *TheContext)
-    : TheModule(TheModule), Builder(Builder), TheContext(TheContext) {}
+    : TheModule(TheModule), Builder(Builder), TheContext(TheContext) {
+  currentSourceLocation = DiagnosticUtils::SourceLocation();
+}
 // GET VALUES
 
 llvm::Value *IRUtils::getNamedValue(
@@ -800,38 +802,25 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     // Basic block for the error case
     llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
         *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *continueBlock = llvm::BasicBlock::Create(
-        *TheContext, "continueBlock", Builder->GetInsertBlock()->getParent());
 
     llvm::BasicBlock *opExitBlock = llvm::BasicBlock::Create(
         *TheContext, "opExitBlock", Builder->GetInsertBlock()->getParent());
 
     // Conditional branch based on zeroCheck
-    Builder->CreateCondBr(zeroCheck, continueBlock, errorBlock);
+    Builder->CreateCondBr(zeroCheck, opExitBlock, errorBlock);
 
     // Set insert point to the error block
     Builder->SetInsertPoint(errorBlock);
-    // Emit error message or handling code here
-
-    // Create call to print function
-
     std::string error = "\x1b[31mDivision by zero";
-
     llvm::Value *errorStr = this->convertStringToi8Ptr(error);
-
     this->incrementCount(ELANG_GLOBAL_ERROR);
-
     this->printFunction(errorStr, false);
-
     llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
     result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
     Builder->CreateBr(opExitBlock);
 
-    Builder->SetInsertPoint(continueBlock);
-    result = Builder->CreateSDiv(lhsValue, rhsValue);
-    Builder->CreateBr(opExitBlock);
-
     Builder->SetInsertPoint(opExitBlock);
+    result = Builder->CreateSDiv(lhsValue, rhsValue);
     break;
   }
 

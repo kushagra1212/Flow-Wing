@@ -90,6 +90,8 @@ public:
   llvm::IRBuilder<> *Builder;
   llvm::LLVMContext *TheContext;
 
+  DiagnosticUtils::SourceLocation currentSourceLocation;
+
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
           llvm::LLVMContext *TheContext);
 

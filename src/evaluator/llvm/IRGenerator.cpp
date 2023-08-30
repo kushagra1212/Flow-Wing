@@ -796,6 +796,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
       this->_irUtils->handleForLoopCondition(stepValue, value, upperBound);
 
   if (conditionPHI == nullptr) {
+
     llvm::errs() << "Error in Compiling for While condition\n";
     return this->_irUtils->getNullValue();
   }
