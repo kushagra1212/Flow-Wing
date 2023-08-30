@@ -5,11 +5,11 @@
 
 class BoundSourceLocation {
 public:
-  BoundSourceLocation(const struct DiagnosticUtils::SourceLocation &location);
-  const struct DiagnosticUtils::SourceLocation &getLocation() const;
+  BoundSourceLocation(DiagnosticUtils::SourceLocation location);
+  DiagnosticUtils::SourceLocation getLocation() const;
 
 private:
-  const struct DiagnosticUtils::SourceLocation &_location;
+  DiagnosticUtils::SourceLocation _location;
 };
 
 #endif // BOUND_SOURCE_LOCATION_H

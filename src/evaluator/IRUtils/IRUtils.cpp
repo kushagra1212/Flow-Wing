@@ -3,7 +3,7 @@
 IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                  llvm::LLVMContext *TheContext)
     : TheModule(TheModule), Builder(Builder), TheContext(TheContext) {
-  currentSourceLocation = DiagnosticUtils::SourceLocation();
+  _currentSourceLocation = DiagnosticUtils::SourceLocation();
 }
 // GET VALUES
 
@@ -210,6 +210,26 @@ llvm::Value *IRUtils::getLLVMValue(std::any value) {
   } else if (value.type() == typeid(std::string)) {
 
     std::string strValue = std::any_cast<std::string>(value);
+
+    //  if the string contains only decimal numbers
+
+    if (Utils::isInteger(strValue)) {
+      // larger integer type
+      llvm::APInt llvmLongIntValue(32, strValue, 10);
+      llvm::Constant *llvmValue =
+          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
+
+      return llvmValue;
+    }
+
+    if (Utils::isDouble(strValue)) {
+      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
+                                    strValue.c_str());
+      llvm::Constant *llvmValue =
+          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
+
+      return llvmValue;
+    }
 
     llvm::Constant *strConstant =
         llvm::ConstantDataArray::getString(*TheContext, strValue);
@@ -777,6 +797,15 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
   return result;
 }
 
+void IRUtils::setCurrentSourceLocation(
+    DiagnosticUtils::SourceLocation sourceLocation) {
+  this->_currentSourceLocation = sourceLocation;
+}
+
+DiagnosticUtils::SourceLocation IRUtils::getCurrentSourceLocation() {
+  return this->_currentSourceLocation;
+}
+
 llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
@@ -798,29 +827,24 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
 
     // Check if rhsValue is zero
     llvm::Value *zeroCheck = this->convertToBool(rhsValue);
-
-    // Basic block for the error case
     llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
         *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    llvm::BasicBlock *opExitBlock = llvm::BasicBlock::Create(
-        *TheContext, "opExitBlock", Builder->GetInsertBlock()->getParent());
-
-    // Conditional branch based on zeroCheck
-    Builder->CreateCondBr(zeroCheck, opExitBlock, errorBlock);
-
-    // Set insert point to the error block
+    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
     Builder->SetInsertPoint(errorBlock);
+
     std::string error = "\x1b[31mDivision by zero";
     llvm::Value *errorStr = this->convertStringToi8Ptr(error);
     this->incrementCount(ELANG_GLOBAL_ERROR);
     this->printFunction(errorStr, false);
     llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
     result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
-    Builder->CreateBr(opExitBlock);
-
-    Builder->SetInsertPoint(opExitBlock);
+    Builder->CreateBr(errorExit);
+    Builder->SetInsertPoint(errorExit);
     result = Builder->CreateSDiv(lhsValue, rhsValue);
+
     break;
   }
 

@@ -160,3 +160,16 @@ Utils::getSourceLocation(SyntaxToken<std::any> *token) {
   return DiagnosticUtils::SourceLocation(token->getLineNumber(),
                                          token->getColumnNumber());
 }
+
+bool Utils::isInteger(const std::string &str) {
+  // Pattern for integers (optional sign followed by digits)
+  std::regex intPattern("^[-+]?[0-9]+$");
+  return std::regex_match(str, intPattern);
+}
+
+bool Utils::isDouble(const std::string &str) {
+  // Pattern for doubles (optional sign, digits, optional decimal, optional
+  // exponent)
+  std::regex doublePattern("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$");
+  return std::regex_match(str, doublePattern);
+}

@@ -171,8 +171,8 @@ void Repl::compileAndEvaluate(
   }
 
   try {
-    std::unique_ptr<IRGenerator> _evaluator =
-        std::make_unique<IRGenerator>(ENVIRONMENT::REPL);
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+        ENVIRONMENT::REPL, _diagnosticHandler.get());
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
@@ -243,8 +243,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   try {
-    std::unique_ptr<IRGenerator> _evaluator =
-        std::make_unique<IRGenerator>(ENVIRONMENT::SOURCE_FILE);
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+        ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get());
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });

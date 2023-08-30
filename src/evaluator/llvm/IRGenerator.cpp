@@ -1,6 +1,7 @@
 #include "IRGenerator.h"
 
-IRGenerator::IRGenerator(int environment) {
+IRGenerator::IRGenerator(int environment,
+                         DiagnosticHandler *diagnosticHandler) {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
@@ -8,6 +9,8 @@ IRGenerator::IRGenerator(int environment) {
   _environment = environment;
   this->_irUtils = std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
                                              TheContext.get());
+
+  this->_diagnosticHandler = diagnosticHandler;
 
   this->updateModule();
   llvm::InitializeNativeTarget();
@@ -37,13 +40,26 @@ void IRGenerator::updateModule() {
 
 llvm::Value *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
+  BoundLiteralExpression<std::any> *literalExpression =
+      (BoundLiteralExpression<std::any> *)node;
+  std::any value = literalExpression->getValue();
 
-  std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+  this->_irUtils->setCurrentSourceLocation(literalExpression->getLocation());
 
   llvm::Value *val = this->_irUtils->getLLVMValue(value);
 
   if (val == nullptr) {
-    return nullptr;
+
+    std::string errorMessgae = "Unsupported Literal Type ";
+    std::string error = this->_diagnosticHandler->getLogString(
+        Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Runtime,
+                   this->_irUtils->getCurrentSourceLocation()));
+    llvm::Value *errorStr = this->_irUtils->convertStringToi8Ptr(error);
+    this->_irUtils->incrementCount(ELANG_GLOBAL_ERROR);
+    this->_irUtils->printFunction(errorStr, false);
+
+    return getNull();
   }
 
   return val;

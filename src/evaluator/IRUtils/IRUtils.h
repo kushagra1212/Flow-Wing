@@ -90,8 +90,6 @@ public:
   llvm::IRBuilder<> *Builder;
   llvm::LLVMContext *TheContext;
 
-  DiagnosticUtils::SourceLocation currentSourceLocation;
-
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
           llvm::LLVMContext *TheContext);
 
@@ -212,6 +210,12 @@ public:
       std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
                          llvm::LLVMContext *TheContext)>
           falseBlockCode);
+
+  void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
+  DiagnosticUtils::SourceLocation getCurrentSourceLocation();
+
+private:
+  DiagnosticUtils::SourceLocation _currentSourceLocation;
 };
 
 #endif

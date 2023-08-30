@@ -48,11 +48,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
 
     return std::move(newSyntaxToken);
   }
-  const double &res = stod(text);
 
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
-      res);
+      text);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
@@ -88,11 +87,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
 
     return std::move(newSyntaxToken);
   }
-  const int &resInt = stoi(text);
 
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
-      int(resInt));
+      text);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {

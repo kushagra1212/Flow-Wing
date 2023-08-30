@@ -9,12 +9,14 @@ class IRGenerator {
   std::unique_ptr<llvm::Module>
   _getModule(const std::vector<std::string> &irFilePaths);
 
+  DiagnosticHandler *_diagnosticHandler;
+
   int showNewLineForRepl = 0;
 
   int _environment;
 
 public:
-  IRGenerator(int environment);
+  IRGenerator(int environment, DiagnosticHandler *diagnosticHandler);
   void printIR();
   //   void generateIR();
   //   void verifyIR();

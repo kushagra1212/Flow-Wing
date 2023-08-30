@@ -11,6 +11,7 @@
 #include "../syntax/SyntaxNode.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
+#include <regex>
 #include <typeinfo>
 
 namespace Utils {
@@ -33,6 +34,10 @@ const std::string concatErrors(const std::vector<std::string> &errors,
 std::string convertAnyToString(const std::any value);
 
 std::string getTypeString(const std::any &value);
+
+bool isInteger(const std::string &str);
+
+bool isDouble(const std::string &str);
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
 const std::string NULLPTR = "-2al_NuLlPtR-2al";
