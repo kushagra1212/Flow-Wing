@@ -24,11 +24,40 @@ void Repl::runIfNotInTest(std::function<void()> f) {
 std::vector<std::string>
 Repl::removePrintStatements(std::vector<std::string> text) {
   std::vector<std::string> newText;
+  bool encounteredFunction = false;
+  int braces = 0;
   for (std::string line : text) {
 
     std::string newLine = "";
-
     for (int i = 0; i < line.length();) {
+
+      if (line[i] == '{') {
+        newLine += line[i];
+        braces++;
+        encounteredFunction = false;
+        i++;
+        continue;
+      } else if (line[i] == '}') {
+        braces--;
+        newLine += line[i];
+        i++;
+        continue;
+      }
+
+      if (encounteredFunction || braces) {
+        newLine += line[i];
+        i++;
+        continue;
+      }
+
+      if (i + 3 < line.length() && line[i] == 'f' && line[i + 1] == 'u' &&
+          line[i + 2] == 'n') {
+        i += 3;
+        newLine += "fun";
+        encounteredFunction = true;
+        continue;
+      }
+
       if (i + 4 < line.length() && line[i] == 'p' && line[i + 1] == 'r' &&
           line[i + 2] == 'i' && line[i + 3] == 'n' && line[i + 4] == 't') {
         while (i < line.length() && line[i] != ')') {
@@ -41,6 +70,7 @@ Repl::removePrintStatements(std::vector<std::string> text) {
     }
     newText.push_back(newLine);
   }
+
   return newText;
 }
 
@@ -54,7 +84,8 @@ void Repl::runWithStream(std::istream &inputStream,
 
     runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
     this->_diagnosticHandler->updatePreviousLineCount(previous_lines.size());
-    text = removePrintStatements(previous_lines);
+    previous_lines = removePrintStatements(previous_lines);
+    text = previous_lines;
     std::string line;
     int emptyLines = 0;
     std::unique_ptr<DiagnosticHandler> _previousDiagnosticHandler =
@@ -69,6 +100,7 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 2) {
           _diagnosticHandler = std::move(_previousDiagnosticHandler);
+          _previousDiagnosticHandler.reset(new DiagnosticHandler());
           break;
         }
 

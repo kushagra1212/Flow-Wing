@@ -363,6 +363,45 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   return this->getNull();
 }
 
+llvm::Value *IRGenerator::generateEvaluateUserDefinedFunction(
+    BoundCallExpression *callExpression) {
+
+  Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+
+  const std::string &functionName = function.name;
+  std::size_t arguments_size = callExpression->getArguments().size();
+
+  this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
+
+  llvm::Function *calleeFunction = TheModule->getFunction(functionName);
+
+  if (!calleeFunction) {
+
+    this->_irUtils->logError("Function not found ");
+
+    return this->getNull();
+  }
+
+  std::vector<llvm::Value *> args;
+
+  for (int i = 0; i < arguments_size; i++) {
+
+    llvm::Value *arg = this->generateEvaluateExpressionStatement(
+        (BoundExpression *)callExpression->getArguments()[i].get());
+
+    if (!arg) {
+
+      this->_irUtils->logError("Error in generating IR for arguments ");
+
+      return this->getNull();
+    }
+
+    args.push_back(arg);
+  }
+
+  return Builder->CreateCall(calleeFunction, args);
+}
+
 llvm::Value *IRGenerator::generateEvaluateCallExpression(
     BoundCallExpression *callExpression) {
 
@@ -370,6 +409,8 @@ llvm::Value *IRGenerator::generateEvaluateCallExpression(
   if (Utils::BuiltInFunctions::getFunctionSymbol(function.name).name ==
       function.name) {
     return this->handleBuiltInfuntions(callExpression);
+  } else {
+    return this->generateEvaluateUserDefinedFunction(callExpression);
   }
 
   return this->getNull();
@@ -517,6 +558,17 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
+
+  // Function Declaration
+  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+
+    if (blockStatement->getStatements()[i].get()->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+      this->declareUserDefinedFunction(
+          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get());
+    }
+  }
+
   llvm::Value *returnValue = getNull(); // default return value
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
@@ -536,6 +588,11 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   Builder->SetInsertPoint(entryBlock);
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+
+    if (blockStatement->getStatements()[i].get()->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+      continue;
+    }
 
     llvm::Value *res = this->generateEvaluateStatement(
         blockStatement->getStatements()[i].get());
@@ -895,6 +952,72 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   return exitValue;
 }
 
+void IRGenerator::declareUserDefinedFunction(BoundFunctionDeclaration *node) {
+
+  std::string functionName = node->_functionSymbol.name;
+
+  std::vector<llvm::Type *> argTypes;
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    argTypes.push_back(llvm::Type::getInt8PtrTy(*TheContext));
+  }
+
+  llvm::FunctionType *FT = llvm::FunctionType::get(
+      llvm::Type::getInt8PtrTy(*TheContext), argTypes, false);
+
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
+
+  llvm::BasicBlock *entryBlock =
+      llvm::BasicBlock::Create(*TheContext, "entry", F);
+
+  Builder->SetInsertPoint(entryBlock);
+
+  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  this->_NamedValuesAllocaStack.push(
+      std::map<std::string, llvm::AllocaInst *>());
+
+  std::vector<std::string> parameterNames;
+
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    parameterNames.push_back(node->_functionSymbol.parameters[i].name);
+  }
+
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    llvm::Value *argValue = F->arg_begin() + i;
+    argValue->setName(parameterNames[i]);
+
+    llvm::AllocaInst *variable = Builder->CreateAlloca(
+        llvm::Type::getInt32Ty(*TheContext), nullptr, parameterNames[i]);
+
+    this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
+                                        this->_NamedValuesAllocaStack);
+
+    Builder->CreateStore(argValue, variable);
+
+    this->_irUtils->setNamedValue(parameterNames[i], argValue,
+                                  this->_NamedValuesStack);
+  }
+
+  this->generateEvaluateStatement(node->getBodyPtr().get());
+
+  Builder->CreateRet(getNull());
+
+  this->_NamedValuesStack.pop();
+
+  this->_NamedValuesAllocaStack.pop();
+
+  llvm::verifyFunction(*F);
+
+  this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
+
+  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
+                                      this->_NamedValuesAllocaStack);
+
+  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
+
+                                      this->_NamedValuesAllocaStack);
+}
+
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   switch (node->getKind()) {
@@ -931,10 +1054,12 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
     // BoundFunctionDeclaration *functionDeclaration =
     //     (BoundFunctionDeclaration *)node;
-    // this->defineFunction(functionDeclaration->functionSymbol.name,
-    //                      functionDeclaration);
+    // this->declareUserDefinedFunction(functionDeclaration);
 
-    // break;
+    this->_irUtils->logError("Function Declaration is only allowed in global "
+                             "scope in this version of the compiler");
+
+    break;
   }
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
@@ -949,14 +1074,21 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
     return getNull();
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
-    // BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
+    BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
 
-    // int &return_count = this->return_count_stack.top();
-    // return_count = return_count + 1;
-    // if (returnStatement->getReturnExpression() != nullptr) {
-    //   this->last_value =
-    //       this->evaluate<std::any>(returnStatement->getReturnExpression());
-    // }
+    this->_irUtils->setCurrentSourceLocation(returnStatement->getLocation());
+
+    llvm::Value *returnValue = getNull();
+
+    if (returnStatement->getReturnExpressionPtr() != nullptr) {
+      llvm::Value *returnValue = this->generateEvaluateExpressionStatement(
+          returnStatement->getReturnExpressionPtr().get());
+      Builder->CreateRet(this->_irUtils->convertToString(returnValue));
+
+    } else {
+      Builder->CreateRet(returnValue);
+    }
+    return returnValue;
     break;
   }
   default: {
