@@ -34,17 +34,19 @@ Repl::removePrintStatements(std::vector<std::string> text) {
       if (line[i] == '{') {
         newLine += line[i];
         braces++;
-        encounteredFunction = false;
         i++;
         continue;
       } else if (line[i] == '}') {
         braces--;
+        if (braces == 0) {
+          encounteredFunction = false;
+        }
         newLine += line[i];
         i++;
         continue;
       }
 
-      if (encounteredFunction || braces) {
+      if (encounteredFunction) {
         newLine += line[i];
         i++;
         continue;
@@ -58,8 +60,9 @@ Repl::removePrintStatements(std::vector<std::string> text) {
         continue;
       }
 
-      if (i + 4 < line.length() && line[i] == 'p' && line[i + 1] == 'r' &&
-          line[i + 2] == 'i' && line[i + 3] == 'n' && line[i + 4] == 't') {
+      if (!encounteredFunction && i + 4 < line.length() && line[i] == 'p' &&
+          line[i + 1] == 'r' && line[i + 2] == 'i' && line[i + 3] == 'n' &&
+          line[i + 4] == 't') {
         while (i < line.length() && line[i] != ')') {
           i++;
         }
