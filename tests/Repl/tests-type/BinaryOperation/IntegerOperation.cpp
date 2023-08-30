@@ -49,6 +49,24 @@ TEST_F(ReplTest, BasicIntegerOperationDivision) {
   EXPECT_EQ(output, expected_output);
 }
 
+TEST_F(ReplTest, BasicIntegerOperationDivision2) {
+  std::string input = "2/3";
+  std::string expected_output = "0";
+
+  std::string output = runReplWithInputPrint(input);
+
+  EXPECT_EQ(output, expected_output);
+}
+
+TEST_F(ReplTest, BasicIntegerOperationDivision3) {
+  std::string input = "5/2";
+  std::string expected_output = "2";
+
+  std::string output = runReplWithInputPrint(input);
+
+  EXPECT_EQ(output, expected_output);
+}
+
 // Binary Operations on Integers with Integers ( Logical Operations )
 
 TEST_F(ReplTest, BasicIntegerOperationLogicalAnd) {

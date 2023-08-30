@@ -164,6 +164,14 @@ TEST_F(ReplTest, BasicBooleanOperationDivisionDouble) {
 
   EXPECT_EQ(output, expected_output);
 }
+TEST_F(ReplTest, BasicBooleanOperationDivisionDouble2) {
+  std::string input = "true/1";
+  std::string expected_output = "1";
+
+  std::string output = runReplWithInputPrint(input);
+
+  EXPECT_EQ(output, expected_output);
+}
 
 // Boolean Operation on Double ( Relational )
 
