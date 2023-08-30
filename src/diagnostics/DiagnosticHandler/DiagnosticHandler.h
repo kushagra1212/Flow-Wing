@@ -3,6 +3,7 @@
 
 #include "../Diagnostic/Diagnostic.h"
 #include "../DiagnosticUtils/DiagnosticUtils.h"
+#include <string>
 
 class DiagnosticHandler {
 private:
@@ -13,14 +14,14 @@ private:
 public:
   DiagnosticHandler(DiagnosticHandler *parent = nullptr);
   void addDiagnostic(const Diagnostic &diagnostic);
+  std::string getLogString(const Diagnostic &diagnostic);
 
   void addParentDiagnostics(DiagnosticHandler *parent);
-  const void
-  logDiagnostics(std::ostream &outputStream,
-                 std::function<bool(const Diagnostic &)> filter) const;
+  const void logDiagnostics(std::ostream &outputStream,
+                            std::function<bool(const Diagnostic &)> filter);
 
   const void printDiagnostic(std::ostream &outputStream,
-                             const Diagnostic &diagnostic) const;
+                             const Diagnostic &diagnostic);
 
   bool hasError(DiagnosticUtils::DiagnosticLevel) const;
 

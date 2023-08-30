@@ -54,17 +54,18 @@ bool IRUtils::isVariableDeclared(
   return isDeclared;
 }
 
-void IRUtils::handleConditionalBranch(llvm::Value *conditionValue,
-                                      const std::string &trueBlockName,
-                                      const std::string &falseBlockName,
-                                      std::function<void()> trueBlockCode,
-                                      std::function<void()> falseBlockCode) {
+void IRUtils::handleConditionalBranch(
+    llvm::Value *conditionValue, const std::string &trueBlockName,
+    const std::string &falseBlockName,
+    std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext, IRUtils *irutils)>
+        trueBlockCode,
+    std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
+                       llvm::LLVMContext *TheContext)>
+        falseBlockCode) {
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::Function *currentFunction = currentBlock->getParent();
-
-  llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-      *TheContext, "mergeBlock", currentFunction, currentBlock);
 
   llvm::BasicBlock *trueBlock = llvm::BasicBlock::Create(
       *TheContext, trueBlockName, currentFunction, currentBlock);
@@ -74,19 +75,9 @@ void IRUtils::handleConditionalBranch(llvm::Value *conditionValue,
 
   Builder->CreateCondBr(conditionValue, trueBlock, falseBlock);
 
-  Builder->SetInsertPoint(trueBlock);
+  trueBlockCode(trueBlock, Builder, TheContext, this);
 
-  trueBlockCode();
-
-  Builder->CreateBr(mergeBlock);
-
-  Builder->SetInsertPoint(falseBlock);
-
-  falseBlockCode();
-
-  Builder->CreateBr(mergeBlock);
-
-  Builder->SetInsertPoint(mergeBlock);
+  falseBlockCode(falseBlock, Builder, TheContext);
 }
 
 // UPDATE VALUES

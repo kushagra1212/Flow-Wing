@@ -480,7 +480,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
   llvm::Value *returnValue = getNull(); // default return value
   llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext), false);
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
 
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
@@ -492,7 +492,6 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
   llvm::BasicBlock *returnBlock =
       llvm::BasicBlock::Create(*TheContext, "returnBlock", F);
 
-  Builder->CreateBr(entryBlock);
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
@@ -509,25 +508,38 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
     }
   }
 
-  Builder->CreateBr(returnBlock);
-
   // Return Block
 
-  Builder->SetInsertPoint(returnBlock);
   if (returnValue != getNull()) {
 
-    this->_irUtils->handleConditionalBranch(
-        this->_irUtils->isCountZero(ELANG_GLOBAL_ERROR,
-                                    llvm::Type::getInt32Ty(*TheContext)),
-        "printBlock", "errorBlock",
-        [&]() { this->_irUtils->printFunction(returnValue, false); },
-        [&]() {
-          Builder->CreateRet(
-              llvm::ConstantInt::get(*TheContext, llvm::APInt(1, 1, true)));
-        });
+    llvm::Value *isZero = this->_irUtils->isCountZero(
+        ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
+
+    llvm::BasicBlock *printBlock =
+        llvm::BasicBlock::Create(*TheContext, "printBlock", F);
+
+    llvm::BasicBlock *errorBlock =
+        llvm::BasicBlock::Create(*TheContext, "errorBlock", F);
+
+    Builder->CreateCondBr(isZero, printBlock, errorBlock);
+
+    Builder->SetInsertPoint(printBlock);
+
+    this->_irUtils->printFunction(returnValue, false);
+
+    Builder->CreateBr(returnBlock);
+
+    Builder->SetInsertPoint(errorBlock);
+
+    Builder->CreateBr(returnBlock);
+
+  } else {
+
+    Builder->CreateBr(returnBlock);
   }
-  Builder->CreateRet(
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(1, 0, true)));
+  Builder->SetInsertPoint(returnBlock);
+  Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
+      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext)));
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
@@ -930,12 +942,7 @@ int IRGenerator::executeGeneratedCode() {
         executionEngine->runFunction(evaluateBlockStatement, ArgValues);
 
     if (returnType->isIntegerTy()) {
-      if (returnType->getIntegerBitWidth() == 1) {
-        hasError = (resultValue.IntVal != 0) ? 1 : 0;
-
-      } else {
-        llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
-      }
+      hasError = (resultValue.IntVal != 0) ? 1 : 0;
     }
 
     if (_environment == ENVIRONMENT::REPL) {

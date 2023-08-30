@@ -201,11 +201,15 @@ public:
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
 
-  void handleConditionalBranch(llvm::Value *conditionValue,
-                               const std::string &trueBlockName,
-                               const std::string &falseBlockName,
-                               std::function<void()> trueBlockCode,
-                               std::function<void()> falseBlockCode);
+  void handleConditionalBranch(
+      llvm::Value *conditionValue, const std::string &trueBlockName,
+      const std::string &falseBlockName,
+      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
+                         llvm::LLVMContext *TheContext, IRUtils *irutils)>
+          trueBlockCode,
+      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
+                         llvm::LLVMContext *TheContext)>
+          falseBlockCode);
 };
 
 #endif

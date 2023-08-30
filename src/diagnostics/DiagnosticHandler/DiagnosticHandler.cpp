@@ -16,7 +16,7 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
 
 const void DiagnosticHandler::logDiagnostics(
     std::ostream &outputStream,
-    std::function<bool(const Diagnostic &)> filter) const {
+    std::function<bool(const Diagnostic &)> filter) {
   for (auto &diagnostic : diagnostics) {
     if (filter(diagnostic)) {
       printDiagnostic(outputStream, diagnostic);
@@ -26,15 +26,26 @@ const void DiagnosticHandler::logDiagnostics(
   // Reset the diagnostics
 }
 
-const void
-DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
-                                   const Diagnostic &diagnostic) const {
-  outputStream << RED << diagnostic.getLocation().fileName << " ["
-               << DiagnosticUtils::toString(diagnostic.getLevel())
-               << "] : " << RED_TEXT << "Line "
-               << diagnostic.getLocation().lineNumber + 1 - previousLineCount
-               << ":" << diagnostic.getLocation().columnNumber + 1 << RED
-               << " \"" << diagnostic.getMessage() << "\"" << RESET << "\n";
+std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
+  std::string fileName = diagnostic.getLocation().fileName;
+  std::string message = diagnostic.getMessage();
+  std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
+  std::string type = DiagnosticUtils::toString(diagnostic.getType());
+  std::string lineNumber = std::to_string(diagnostic.getLocation().lineNumber +
+                                          1 - previousLineCount);
+  std::string columnNumber =
+      std::to_string(diagnostic.getLocation().columnNumber + 1);
+
+  std::string logString = "";
+  logString += RED + fileName + " [" + level + "] : " + RED_TEXT + "Line " +
+               lineNumber + ":" + columnNumber + RED + " \"" + message + "\"" +
+               RESET + "\n";
+  return logString;
+}
+
+const void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
+                                              const Diagnostic &diagnostic) {
+  outputStream << getLogString(diagnostic);
 }
 
 bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticLevel level) const {
