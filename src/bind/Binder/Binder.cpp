@@ -591,10 +591,10 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
 
   verifyAllCallsAreValid(binder.get());
 
-  if (previousGlobalScope != nullptr) {
-    diagnosticHandler->addParentDiagnostics(
-        previousGlobalScope->_diagnosticHandler);
-  }
+  // if (previousGlobalScope != nullptr) {
+  //   diagnosticHandler->addParentDiagnostics(
+  //       previousGlobalScope->_diagnosticHandler);
+  // }
 
   return std::make_unique<BoundScopeGlobal>(
       std::move(previousGlobalScope), binder->root->variables,

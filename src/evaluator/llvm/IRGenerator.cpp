@@ -1,7 +1,8 @@
 #include "IRGenerator.h"
 
-IRGenerator::IRGenerator(int environment,
-                         DiagnosticHandler *diagnosticHandler) {
+IRGenerator::IRGenerator(
+    int environment, DiagnosticHandler *diagnosticHandler,
+    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions) {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
@@ -22,6 +23,8 @@ IRGenerator::IRGenerator(int environment,
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
       std::map<std::string, llvm::AllocaInst *>());
+
+  this->_boundedUserFunctions = boundedUserFunctions;
 }
 
 void IRGenerator::updateModule() {
@@ -373,18 +376,6 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
 
   this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
 
-  llvm::Function *calleeFunction = TheModule->getFunction(functionName);
-
-  if (!calleeFunction) {
-
-    this->_irUtils->logError("Function not found ");
-
-    return this->getNull();
-  }
-  llvm::FunctionType *functionType = calleeFunction->getFunctionType();
-  std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
-                                       functionType->param_end());
-
   std::vector<llvm::Value *> args;
 
   for (int i = 0; i < arguments_size; i++) {
@@ -398,12 +389,23 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
 
       return this->getNull();
     }
-    if (arg->getType() != paramTypes[i]) {
-      arg = Builder->CreateBitCast(arg, paramTypes[i]);
-    }
     args.push_back(arg);
   }
 
+  llvm::Function *calleeFunction = TheModule->getFunction(functionName);
+
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  if (!calleeFunction) {
+    this->generateUserDefinedFunctionOnFly(
+        this->_boundedUserFunctions[functionName], args);
+    Builder->SetInsertPoint(currentBlock);
+  }
+
+  calleeFunction = TheModule->getFunction(functionName);
+
+  llvm::FunctionType *functionType = calleeFunction->getFunctionType();
+  std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
+                                       functionType->param_end());
   return Builder->CreateCall(calleeFunction, args);
 }
 
@@ -569,8 +571,15 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
     if (blockStatement->getStatements()[i].get()->getKind() ==
         BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      this->generateUserDefinedFunction(
-          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get());
+      BoundFunctionDeclaration *userFunction =
+          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get();
+
+      this->_boundedUserFunctions[userFunction->getFunctionSymbol().name] =
+          userFunction;
+
+      // this->generateUserDefinedFunction(
+      //     (BoundFunctionDeclaration
+      //     *)blockStatement->getStatements()[i].get());
     }
   }
 
@@ -992,7 +1001,7 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
     argValue->setName(parameterNames[i]);
 
     llvm::AllocaInst *variable = Builder->CreateAlloca(
-        llvm::Type::getInt32Ty(*TheContext), nullptr, parameterNames[i]);
+        llvm::Type::getInt8Ty(*TheContext), nullptr, parameterNames[i]);
 
     this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
                                         this->_NamedValuesAllocaStack);
@@ -1022,7 +1031,72 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
                                       this->_NamedValuesAllocaStack);
 }
+void IRGenerator::generateUserDefinedFunctionOnFly(
+    BoundFunctionDeclaration *node, std::vector<llvm::Value *> callArgs) {
 
+  std::string functionName = node->_functionSymbol.name;
+
+  std::vector<llvm::Type *> argTypes;
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    argTypes.push_back(callArgs[i]->getType());
+  }
+
+  llvm::FunctionType *FT = llvm::FunctionType::get(
+      llvm::Type::getInt8PtrTy(*TheContext), argTypes, false);
+
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
+
+  llvm::BasicBlock *entryBlock =
+      llvm::BasicBlock::Create(*TheContext, "entry", F);
+
+  Builder->SetInsertPoint(entryBlock);
+
+  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  this->_NamedValuesAllocaStack.push(
+      std::map<std::string, llvm::AllocaInst *>());
+
+  std::vector<std::string> parameterNames;
+
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    parameterNames.push_back(node->_functionSymbol.parameters[i].name);
+  }
+
+  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+    llvm::Value *argValue = F->arg_begin() + i;
+    argValue->setName(parameterNames[i]);
+
+    llvm::AllocaInst *variable = Builder->CreateAlloca(
+        callArgs[i]->getType(), nullptr, parameterNames[i]);
+
+    this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
+                                        this->_NamedValuesAllocaStack);
+
+    Builder->CreateStore(argValue, variable);
+
+    this->_irUtils->setNamedValue(parameterNames[i], argValue,
+                                  this->_NamedValuesStack);
+  }
+
+  this->generateEvaluateStatement(node->getBodyPtr().get());
+
+  Builder->CreateRet(getNull());
+
+  this->_NamedValuesStack.pop();
+
+  this->_NamedValuesAllocaStack.pop();
+
+  llvm::verifyFunction(*F);
+
+  this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
+
+  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
+                                      this->_NamedValuesAllocaStack);
+
+  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
+
+                                      this->_NamedValuesAllocaStack);
+}
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   switch (node->getKind()) {

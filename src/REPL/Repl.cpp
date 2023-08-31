@@ -4,6 +4,7 @@ Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
 
   _diagnosticHandler = std::make_unique<DiagnosticHandler>();
   previousText = std::vector<std::string>();
+  _previousGlobalScope = nullptr;
 }
 Repl::Repl(const bool &test) {
   Repl();
@@ -156,10 +157,11 @@ void Repl::compileAndEvaluate(
 
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-        ENVIRONMENT::REPL, _diagnosticHandler.get());
+        ENVIRONMENT::REPL, _diagnosticHandler.get(),
+        globalScope.get()->functions);
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    // runIfNotInTest([&]() { _evaluator->printIR(); });
+    runIfNotInTest([&]() { _evaluator->printIR(); });
 
     int hasError = _evaluator->executeGeneratedCode();
 
@@ -167,6 +169,7 @@ void Repl::compileAndEvaluate(
       outputStream << RED << "Runtime Error: " << RESET << "\n";
     } else {
       previousText = std::vector<std::string>{currentCode};
+      _previousGlobalScope = std::move(globalScope);
     }
 
   } catch (const std::exception &e) {
@@ -228,7 +231,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
 
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-        ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get());
+        ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
+        globalScope.get()->functions);
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });

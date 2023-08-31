@@ -168,8 +168,8 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
     llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
     if (instruction->getType()->isIntegerTy(1)) {
       llvm::Value *resultStr = Builder->CreateSelect(
-          value, TheModule->getGlobalVariable("true_string"),
-          TheModule->getGlobalVariable("false_string"));
+          value, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
+          TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
       Builder->CreateCall(TheModule->getFunction("print"),
                           {resultStr, Builder->getInt1(isNewLine)});
     } else {
@@ -195,8 +195,14 @@ llvm::Value *IRUtils::getLLVMValue(std::any value) {
     return llvm::ConstantFP::get(*TheContext,
                                  llvm::APFloat(std::any_cast<double>(value)));
   } else if (value.type() == typeid(bool)) {
-    return llvm::ConstantInt::get(
-        *TheContext, llvm::APInt(1, std::any_cast<bool>(value), true));
+    bool boolValue = std::any_cast<bool>(value);
+
+    if (boolValue) {
+      return llvm::ConstantInt::getTrue(*TheContext);
+    } else {
+      return llvm::ConstantInt::getFalse(*TheContext);
+    }
+
   } else if (value.type() == typeid(std::string)) {
 
     std::string strValue = std::any_cast<std::string>(value);
@@ -332,6 +338,8 @@ std::string IRUtils::valueToString(llvm::Value *val) {
 
     if (constInt->getType()->isIntegerTy(32)) {
       return std::to_string(constInt->getSExtValue());
+    } else if (constInt->getType()->isIntegerTy(64)) {
+      return std::to_string(constInt->getSExtValue());
     } else if (constInt->getType()->isIntegerTy(1)) {
       return constInt->getSExtValue() ? "true" : "false";
     } else {
@@ -425,10 +433,10 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
   llvm::Constant *stringConstant =
       llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-      *Builder->GetInsertBlock()->getParent()->getParent(),
-      stringConstant->getType(), true, llvm::GlobalValue::PrivateLinkage,
-      stringConstant);
+      *TheModule, stringConstant->getType(), true,
+      llvm::GlobalValue::PrivateLinkage, stringConstant);
 
+  // load global variable
   llvm::Value *i8Ptr = Builder->CreateBitCast(
       globalVar, llvm::Type::getInt8PtrTy(Builder->getContext()));
   return i8Ptr;
@@ -436,13 +444,22 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
 
 llvm::Value *IRUtils::convertToString(llvm::Value *val) {
   llvm::Type *type = val->getType();
-
-  if (isIntType(type)) {
-    return itos(val);
-  }
-
   if (isStringType(type)) {
     return val;
+  }
+
+  if (isBoolType(type)) {
+    return Builder->CreateSelect(
+        val, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
+        TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
+  }
+
+  if (isIntType(type)) {
+    return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+  }
+
+  if (isDoubleType(type)) {
+    return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
   }
 
   // Attempt to convert the value to string
@@ -585,7 +602,7 @@ llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
 
   if (type->isDoubleTy()) {
     return val;
-  } else if (type->isIntegerTy(32)) {
+  } else if (type->isIntegerTy(32) || type->isIntegerTy(64)) {
     return Builder->CreateSIToFP(
         val, llvm::Type::getDoubleTy(Builder->getContext()));
   } else if (type->isIntegerTy(1)) {
@@ -899,10 +916,8 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
   this->setCurrentSourceLocation(binaryExpression->getLocation());
   llvm::Value *result = getNull();
   std::string errorMessage = "";
-  std::string lhsStr = std::to_string(
-      this->getConstantFPFromValue(lhsValue)->getValueAPF().convertToDouble());
-  std::string rhsStr = std::to_string(
-      this->getConstantFPFromValue(rhsValue)->getValueAPF().convertToDouble());
+  std::string lhsStr = valueToString(lhsValue);
+  std::string rhsStr = valueToString(rhsValue);
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
@@ -1060,12 +1075,9 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
     Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage =
-        "Division by zero of " +
-        std::to_string(
-            this->getConstantIntFromValue(lhsValue)->getSExtValue()) +
-        " and " +
-        std::to_string(this->getConstantIntFromValue(rhsValue)->getSExtValue());
+    std::string errorMessage = "Division by zero of " +
+                               valueToString(lhsValue) + " and " +
+                               valueToString(rhsValue);
 
     this->logError(errorMessage);
 
@@ -1138,12 +1150,8 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     break;
   default: {
 
-    errorMessage =
-        "Unsupported binary operator for int type " +
-        std::to_string(
-            this->getConstantIntFromValue(lhsValue)->getSExtValue()) +
-        " and " +
-        std::to_string(this->getConstantIntFromValue(rhsValue)->getSExtValue());
+    errorMessage = "Unsupported binary operator for int type " +
+                   valueToString(lhsValue) + " and " + valueToString(rhsValue);
     break;
   }
   }

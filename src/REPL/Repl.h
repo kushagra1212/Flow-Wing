@@ -40,6 +40,7 @@ private:
   std::vector<std::string> text = std::vector<std::string>();
 
   std::unique_ptr<DiagnosticHandler> _diagnosticHandler;
+  std::unique_ptr<BoundScopeGlobal> _previousGlobalScope;
   std::vector<std::string> previousText;
 
   // For testing

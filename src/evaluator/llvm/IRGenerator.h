@@ -16,7 +16,9 @@ class IRGenerator {
   int _environment;
 
 public:
-  IRGenerator(int environment, DiagnosticHandler *diagnosticHandler);
+  IRGenerator(
+      int environment, DiagnosticHandler *diagnosticHandler,
+      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -58,6 +60,9 @@ public:
 
   void
   generateUserDefinedFunction(BoundFunctionDeclaration *functionDeclaration);
+  void generateUserDefinedFunctionOnFly(
+      BoundFunctionDeclaration *functionDeclaration,
+      std::vector<llvm::Value *> args);
   llvm::Value *generateCallExpressionForUserDefinedFunction(
       BoundCallExpression *callExpression);
 
@@ -68,6 +73,12 @@ private:
 
   std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
   std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
+
+  std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
+
+  std::map<std::string,
+           std::vector<std::pair<llvm::AllocaInst *, llvm::Value *>>>
+      _functionsParameters;
 
   std::unique_ptr<IRUtils> _irUtils;
 };

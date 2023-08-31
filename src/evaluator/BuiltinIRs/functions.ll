@@ -8,6 +8,7 @@ declare i32 @strcmp(i8*, i8*)
 
 declare i32 @snprintf(i8*, i64, i8*, i32)
 @intFormat = constant [3 x i8] c"%d\00"
+@doubleFormat = constant [5 x i8] c"%.6f\00"
 define i8* @concat_strings(i8* %str1, i8* %str2) {
     ; Get the lengths of the input strings
     %len1 = call i64 @strlen(i8* %str1)
@@ -52,6 +53,17 @@ define i8* @itos(i32 %num) {
     ret i8* %buffer
 }
 
+
+define i8* @dtos(i32 %f) {
+  ; Allocate memory for the string buffer
+  %buffer = call i8* @malloc(i64 16)
+
+  ; Convert the double to a string
+  %formatStr = getelementptr [5 x i8], [5 x i8]* @doubleFormat, i32 0, i32 0
+  call i32 @snprintf(i8* %buffer, i64 16, i8* %formatStr, i32 %f)
+  ; Return the result as a pointer to the string
+  ret i8* %buffer
+}
 
 
 define i32 @compare_strings(i8* %str1, i8* %str2) {

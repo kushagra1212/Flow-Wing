@@ -173,3 +173,18 @@ TEST_F(VariableDeclaration,
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
+
+TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
+  std::string input =
+      R"(var x = 2 print(2) print(x) print(x+2) print(x+true) print(x+false) 
+      print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)  
+      x  =  true print(x==false) print(x+false) 
+      print(x+true) print(x+1) print(x+1.1) 
+      print(x+"Hello"))";
+
+  std::string expected_output =
+      "224323.1000004.2000002.2000003.200000falsetruetrue22.100000trueHello";
+
+  std::string output = runReplWithInputPrint(input);
+  EXPECT_EQ(output, expected_output);
+}
