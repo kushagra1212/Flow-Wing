@@ -34,7 +34,7 @@ public:
 
   std::unique_ptr<Lexer> lexer;
 
-  Parser(const std::vector<std::string> &text,
+  Parser(std::vector<std::string> souceCode,
          DiagnosticHandler *diagnosticHandler);
   ~Parser();
 

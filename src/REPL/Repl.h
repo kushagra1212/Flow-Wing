@@ -37,11 +37,10 @@ public:
 
 private:
   bool showSyntaxTree, showBoundTree, exit;
-  std::vector<std::string> previous_lines;
   std::vector<std::string> text = std::vector<std::string>();
-  std::vector<std::string> removePrintStatements(std::vector<std::string> text);
 
   std::unique_ptr<DiagnosticHandler> _diagnosticHandler;
+  std::vector<std::string> previousText;
 
   // For testing
   bool isTest;

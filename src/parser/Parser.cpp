@@ -1,11 +1,11 @@
 #include "Parser.h"
-Parser::Parser(const std::vector<std::string> &text,
+Parser::Parser(std::vector<std::string> souceCode,
                DiagnosticHandler *diagnosticHandler) {
 
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
 
-  lexer = std::make_unique<Lexer>(text, diagnosticHandler);
+  lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
@@ -15,6 +15,9 @@ Parser::Parser(const std::vector<std::string> &text,
     std::unique_ptr<SyntaxToken<std::any>> token =
         std::move(lexer->nextToken());
     _kind = token->getKind();
+
+    // For debugging
+    // std::cout << SyntaxKindUtils::to_string(_kind) << std::endl;
 
     if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
 
@@ -27,9 +30,7 @@ Parser::Parser(const std::vector<std::string> &text,
 
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
         _kind != SyntaxKindUtils::SyntaxKind::EndOfLineToken &&
-        _kind != SyntaxKindUtils::SyntaxKind::CommentStatement
-
-    ) {
+        _kind != SyntaxKindUtils::SyntaxKind::CommentStatement) {
       this->tokens.push_back(std::move(token));
     } else {
       token.reset();
@@ -145,7 +146,8 @@ std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
     if (functionDeclaration->getParametersPtr().size() > 0) {
-      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+      functionDeclaration->addSeparator(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
     }
     functionDeclaration->addParameter(std::make_unique<ParameterSyntax>(
         std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken))));
@@ -524,7 +526,8 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
       callExpression->addArgument(std::move(expression));
       if (this->getCurrent()->getKind() !=
           SyntaxKindUtils::SyntaxKind::CloseParenthesisToken) {
-        this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+        callExpression->addSeparator(
+            std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
       }
     }
 

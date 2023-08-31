@@ -19,6 +19,10 @@ std::vector<std::unique_ptr<ExpressionSyntax>> &
 CallExpressionSyntax::getArguments() {
   return _arguments;
 }
+std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
+CallExpressionSyntax::getSeparators() {
+  return _separators;
+}
 
 void CallExpressionSyntax::setOpenParenthesisToken(
     std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken) {
@@ -28,6 +32,11 @@ void CallExpressionSyntax::setOpenParenthesisToken(
 void CallExpressionSyntax::addArgument(
     std::unique_ptr<ExpressionSyntax> argument) {
   this->_arguments.push_back(std::move(argument));
+}
+
+void CallExpressionSyntax::addSeparator(
+    std::unique_ptr<SyntaxToken<std::any>> separator) {
+  this->_separators.push_back(std::move(separator));
 }
 
 void CallExpressionSyntax::setCloseParenthesisToken(
@@ -49,9 +58,14 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
 
     this->_children.push_back(_identifier.get());
     this->_children.push_back(_openParenthesisToken.get());
-    for (const auto &argument : _arguments) {
-      this->_children.push_back(argument.get());
+
+    for (int i = 0; i < _arguments.size(); i++) {
+      this->_children.push_back(_arguments[i].get());
+      if (i < _separators.size()) {
+        this->_children.push_back(_separators[i].get());
+      }
     }
+
     this->_children.push_back(_closeParenthesisToken.get());
   }
   return this->_children;

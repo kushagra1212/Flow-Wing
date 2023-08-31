@@ -10,13 +10,13 @@ class Lexer {
 
 public:
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
-  Lexer(const std::vector<std::string> &text,
+  Lexer(std::vector<std::string> sourceCode,
         DiagnosticHandler *diagnosticHandler);
 
 private:
-  std::vector<std::string> text;
-  const char endOfFile = '\0';
-  const char endOfLine = '\r';
+  std::vector<std::string> _sourceCode;
+  const char endOfFile = '\r';
+  const char endOfLine = '\1';
   size_t lineNumber;
   size_t position;
   size_t textSize = 0;
@@ -35,5 +35,6 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> readEndOfFile();
   std::unique_ptr<SyntaxToken<std::any>> readEndOfLine();
   std::unique_ptr<SyntaxToken<std::any>> readComment();
+  bool isEndOfLineOrFile();
 };
 #endif // LEXER_H

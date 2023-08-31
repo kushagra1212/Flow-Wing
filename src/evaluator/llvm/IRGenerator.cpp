@@ -363,7 +363,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   return this->getNull();
 }
 
-llvm::Value *IRGenerator::generateEvaluateUserDefinedFunction(
+llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
     BoundCallExpression *callExpression) {
 
   Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
@@ -381,6 +381,9 @@ llvm::Value *IRGenerator::generateEvaluateUserDefinedFunction(
 
     return this->getNull();
   }
+  llvm::FunctionType *functionType = calleeFunction->getFunctionType();
+  std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
+                                       functionType->param_end());
 
   std::vector<llvm::Value *> args;
 
@@ -395,7 +398,9 @@ llvm::Value *IRGenerator::generateEvaluateUserDefinedFunction(
 
       return this->getNull();
     }
-
+    if (arg->getType() != paramTypes[i]) {
+      arg = Builder->CreateBitCast(arg, paramTypes[i]);
+    }
     args.push_back(arg);
   }
 
@@ -410,7 +415,7 @@ llvm::Value *IRGenerator::generateEvaluateCallExpression(
       function.name) {
     return this->handleBuiltInfuntions(callExpression);
   } else {
-    return this->generateEvaluateUserDefinedFunction(callExpression);
+    return this->generateCallExpressionForUserDefinedFunction(callExpression);
   }
 
   return this->getNull();
@@ -564,7 +569,7 @@ void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
 
     if (blockStatement->getStatements()[i].get()->getKind() ==
         BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      this->declareUserDefinedFunction(
+      this->generateUserDefinedFunction(
           (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get());
     }
   }
@@ -952,7 +957,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   return exitValue;
 }
 
-void IRGenerator::declareUserDefinedFunction(BoundFunctionDeclaration *node) {
+void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   std::string functionName = node->_functionSymbol.name;
 

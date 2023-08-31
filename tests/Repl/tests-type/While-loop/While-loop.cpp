@@ -26,12 +26,9 @@ std::string WhileLoop::runReplWithInputPrint(std::string input) {
 }
 TEST_F(WhileLoop, BasicWhileLoop) {
   std::string input = R"(var x = 0 
-  
   while(x < 5) {
-    
      x = x + 1
       }
-     
       print(x)
 
      )";

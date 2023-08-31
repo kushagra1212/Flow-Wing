@@ -15,6 +15,7 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::vector<std::unique_ptr<ParameterSyntax>> _parameters;
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
 
@@ -34,6 +35,7 @@ public:
   void setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
   void addParameter(std::unique_ptr<ParameterSyntax> parameter);
+  void addSeparator(std::unique_ptr<SyntaxToken<std::any>> separator);
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
@@ -46,6 +48,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
   std::vector<std::unique_ptr<ParameterSyntax>> &getParametersPtr();
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparatorsPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
   std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 };

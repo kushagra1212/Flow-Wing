@@ -12,6 +12,7 @@ private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifier;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::vector<std::unique_ptr<ExpressionSyntax>> _arguments;
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
 public:
@@ -23,6 +24,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
 
   void addArgument(std::unique_ptr<ExpressionSyntax> argument);
+  void addSeparator(std::unique_ptr<SyntaxToken<std::any>> separator);
   void setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
   void setCloseParenthesisToken(
@@ -33,6 +35,7 @@ public:
   DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
+  std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparators();
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIdentifierPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();

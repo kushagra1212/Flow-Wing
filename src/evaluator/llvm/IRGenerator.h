@@ -57,9 +57,9 @@ public:
   llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);
 
   void
-  declareUserDefinedFunction(BoundFunctionDeclaration *functionDeclaration);
-  llvm::Value *
-  generateEvaluateUserDefinedFunction(BoundCallExpression *callExpression);
+  generateUserDefinedFunction(BoundFunctionDeclaration *functionDeclaration);
+  llvm::Value *generateCallExpressionForUserDefinedFunction(
+      BoundCallExpression *callExpression);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;

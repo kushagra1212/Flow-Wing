@@ -1,8 +1,9 @@
 #include "Repl.h"
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
-  previous_lines = std::vector<std::string>();
+
   _diagnosticHandler = std::make_unique<DiagnosticHandler>();
+  previousText = std::vector<std::string>();
 }
 Repl::Repl(const bool &test) {
   Repl();
@@ -21,61 +22,6 @@ void Repl::runIfNotInTest(std::function<void()> f) {
     f();
   }
 }
-std::vector<std::string>
-Repl::removePrintStatements(std::vector<std::string> text) {
-  std::vector<std::string> newText;
-  bool encounteredFunction = false;
-  int braces = 0;
-  for (std::string line : text) {
-
-    std::string newLine = "";
-    for (int i = 0; i < line.length();) {
-
-      if (line[i] == '{') {
-        newLine += line[i];
-        braces++;
-        i++;
-        continue;
-      } else if (line[i] == '}') {
-        braces--;
-        if (braces == 0) {
-          encounteredFunction = false;
-        }
-        newLine += line[i];
-        i++;
-        continue;
-      }
-
-      if (encounteredFunction) {
-        newLine += line[i];
-        i++;
-        continue;
-      }
-
-      if (i + 3 < line.length() && line[i] == 'f' && line[i + 1] == 'u' &&
-          line[i + 2] == 'n') {
-        i += 3;
-        newLine += "fun";
-        encounteredFunction = true;
-        continue;
-      }
-
-      if (!encounteredFunction && i + 4 < line.length() && line[i] == 'p' &&
-          line[i + 1] == 'r' && line[i + 2] == 'i' && line[i + 3] == 'n' &&
-          line[i + 4] == 't') {
-        while (i < line.length() && line[i] != ')') {
-          i++;
-        }
-      } else {
-        newLine += line[i];
-      }
-      i++;
-    }
-    newText.push_back(newLine);
-  }
-
-  return newText;
-}
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
@@ -84,13 +30,14 @@ void Repl::runWithStream(std::istream &inputStream,
   std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
 
   while (!exit) {
+    text = previousText;
 
     runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
-    this->_diagnosticHandler->updatePreviousLineCount(previous_lines.size());
-    previous_lines = removePrintStatements(previous_lines);
-    text = previous_lines;
+    this->_diagnosticHandler->updatePreviousLineCount(previousText.size());
+
     std::string line;
     int emptyLines = 0;
+
     std::unique_ptr<DiagnosticHandler> _previousDiagnosticHandler =
         std::make_unique<DiagnosticHandler>();
     while (std::getline(inputStream, line)) {
@@ -134,7 +81,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
         _diagnosticHandler.reset(new DiagnosticHandler());
 
-        text = previous_lines;
+        text = previousText;
         break;
       }
       compilationUnit = std::move(parser->parseCompilationUnit());
@@ -151,7 +98,7 @@ void Repl::runWithStream(std::istream &inputStream,
       }
       break;
     }
-    if (!this->isTest && text == previous_lines) {
+    if (!this->isTest && text == previousText) {
       continue;
     }
 
@@ -175,9 +122,9 @@ void Repl::runWithStream(std::istream &inputStream,
 
         continue;
       }
+
       compileAndEvaluate(outputStream, std::move(compilationUnit));
     }
-    text = std::vector<std::string>();
   }
 }
 
@@ -185,6 +132,8 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
+  std::string currentCode =
+      std::string(Utils::getSourceCode(compilationUnit.get()));
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
                                         this->_diagnosticHandler.get()));
@@ -210,14 +159,14 @@ void Repl::compileAndEvaluate(
         ENVIRONMENT::REPL, _diagnosticHandler.get());
 
     _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    runIfNotInTest([&]() { _evaluator->printIR(); });
+    // runIfNotInTest([&]() { _evaluator->printIR(); });
 
     int hasError = _evaluator->executeGeneratedCode();
 
     if (hasError) {
       outputStream << RED << "Runtime Error: " << RESET << "\n";
     } else {
-      previous_lines = text;
+      previousText = std::vector<std::string>{currentCode};
     }
 
   } catch (const std::exception &e) {

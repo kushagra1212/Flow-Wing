@@ -103,6 +103,64 @@ void Utils::prettyPrint(BoundStatement *statement, std::string indent,
   }
 }
 
+std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
+  if (!node) {
+    // std::cout << "null\n";
+    return "";
+  }
+  std::string code = "";
+
+  if (node->getKind() == SyntaxKindUtils::SyntaxKind::EndOfFileToken ||
+      node->getKind() == SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
+    return code;
+  }
+
+  if (!include &&
+      (node->getKind() == SyntaxKindUtils::SyntaxKind::CommentStatement ||
+       node->getKind() == SyntaxKindUtils::SyntaxKind::CallExpression)) {
+    return code;
+  }
+
+  if (isSyntaxToken(node)) {
+
+    if (node->getKind() != SyntaxKindUtils::SyntaxKind::StringToken)
+      code += ((SyntaxToken<std::any> *)node)->getText() + " ";
+    else
+      code += "\"" + ((SyntaxToken<std::any> *)node)->getText() + "\" ";
+  }
+  std::vector<SyntaxNode *> children = node->getChildren();
+  for (int i = 0; i < children.size(); i++) {
+
+    if (children[i]) {
+      bool has = include;
+
+      has = has || (children[i]->getKind() ==
+                    SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax);
+
+      code += Utils::getSourceCode(children[i], has);
+    }
+  }
+  return code;
+}
+
+std::string Utils::getSourceCode(CompilationUnitSyntax *compilationUnit) {
+  if (!compilationUnit) {
+    return "";
+  }
+  std::string code = "";
+
+  for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+
+    if (compilationUnit->getChildren()[i])
+      code += Utils::getSourceCode(
+          compilationUnit->getChildren()[i],
+          compilationUnit->getChildren()[i]->getKind() ==
+              SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax);
+  }
+
+  return code;
+}
+
 std::string Utils::convertAnyToString(std::any value) {
   if (value.type() == typeid(std::string)) {
     return std::any_cast<std::string>(value);
@@ -172,4 +230,64 @@ bool Utils::isDouble(const std::string &str) {
   // exponent)
   std::regex doublePattern("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$");
   return std::regex_match(str, doublePattern);
+}
+
+auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
+  switch (node->getKind()) {
+  case SyntaxKindUtils::SyntaxKind::BadToken:
+  case SyntaxKindUtils::SyntaxKind::NumberToken:
+  case SyntaxKindUtils::SyntaxKind::TrueKeyword:
+  case SyntaxKindUtils::SyntaxKind::FalseKeyword:
+  case SyntaxKindUtils::SyntaxKind::VarKeyword:
+  case SyntaxKindUtils::SyntaxKind::IfKeyword:
+  case SyntaxKindUtils::SyntaxKind::OrKeyword:
+  case SyntaxKindUtils::SyntaxKind::ElseKeyword:
+  case SyntaxKindUtils::SyntaxKind::WhileKeyword:
+  case SyntaxKindUtils::SyntaxKind::ForKeyword:
+  case SyntaxKindUtils::SyntaxKind::FunctionKeyword:
+  case SyntaxKindUtils::SyntaxKind::ToKeyword:
+  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
+  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
+  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
+  case SyntaxKindUtils::SyntaxKind::ConstKeyword:
+  case SyntaxKindUtils::SyntaxKind::IdentifierToken:
+  case SyntaxKindUtils::SyntaxKind::WhitespaceToken:
+  case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
+  case SyntaxKindUtils::SyntaxKind::CommentStatement:
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+  case SyntaxKindUtils::SyntaxKind::StarToken:
+  case SyntaxKindUtils::SyntaxKind::SemiColonToken:
+  case SyntaxKindUtils::SyntaxKind::CommaToken:
+  case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
+  case SyntaxKindUtils::SyntaxKind::CloseBraceToken:
+  case SyntaxKindUtils::SyntaxKind::HashToken:
+  case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken:
+  case SyntaxKindUtils::SyntaxKind::CloseParenthesisToken:
+  case SyntaxKindUtils::SyntaxKind::CaretToken:
+  case SyntaxKindUtils::SyntaxKind::PercentToken:
+  case SyntaxKindUtils::SyntaxKind::TildeToken:
+  case SyntaxKindUtils::SyntaxKind::ColonToken:
+  case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
+  case SyntaxKindUtils::SyntaxKind::AmpersandToken:
+  case SyntaxKindUtils::SyntaxKind::SlashToken:
+  case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+  case SyntaxKindUtils::SyntaxKind::PipeToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsToken:
+  case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::BangToken:
+  case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::LessToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterToken:
+  case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
+  case SyntaxKindUtils::SyntaxKind::StringToken: {
+    return true;
+  }
+  default:
+    break;
+  }
+
+  return false;
 }

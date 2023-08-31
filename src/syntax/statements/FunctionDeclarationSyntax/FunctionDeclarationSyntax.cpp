@@ -45,9 +45,14 @@ std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
     _children.push_back(_functionKeyword.get());
     _children.push_back(_identifierToken.get());
     _children.push_back(_openParenthesisToken.get());
-    for (const std::unique_ptr<ParameterSyntax> &parameter : _parameters) {
-      _children.push_back(parameter.get());
+
+    for (int i = 0; i < _parameters.size(); i++) {
+      _children.push_back(_parameters[i].get());
+      if (i < _separators.size()) {
+        _children.push_back(_separators[i].get());
+      }
     }
+
     _children.push_back(_closeParenthesisToken.get());
     _children.push_back(_body.get());
   }
@@ -70,6 +75,12 @@ std::vector<std::unique_ptr<ParameterSyntax>> &
 FunctionDeclarationSyntax::getParametersPtr() {
   return _parameters;
 }
+
+std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
+FunctionDeclarationSyntax::getSeparatorsPtr() {
+  return _separators;
+}
+
 std::unique_ptr<SyntaxToken<std::any>> &
 FunctionDeclarationSyntax::getCloseParenthesisTokenPtr() {
   return _closeParenthesisToken;
@@ -106,4 +117,9 @@ void FunctionDeclarationSyntax::setCloseParenthesisToken(
 void FunctionDeclarationSyntax::setBody(
     std::unique_ptr<BlockStatementSyntax> body) {
   _body = std::move(body);
+}
+
+void FunctionDeclarationSyntax::addSeparator(
+    std::unique_ptr<SyntaxToken<std::any>> separator) {
+  _separators.push_back(std::move(separator));
 }

@@ -1,35 +1,36 @@
 #include "Lexer.h"
 
-Lexer::Lexer(const std::vector<std::string> &text,
+Lexer::Lexer(std::vector<std::string> sourceCode,
              DiagnosticHandler *diagnosticHandler) {
 
-  textSize = text.size();
+  textSize = sourceCode.size();
 
-  this->text = text;
+  this->_sourceCode = sourceCode;
+
   this->lineNumber = 0;
   this->position = 0;
   this->_diagnosticHandler = diagnosticHandler;
 }
 
 char Lexer::getCurrent() {
-  if (this->lineNumber == textSize)
+  if (this->lineNumber >= textSize)
     return this->endOfFile;
 
-  if (this->position == this->text[lineNumber].length())
+  if (this->position >= this->_sourceCode[lineNumber].length())
     return this->endOfLine;
 
-  return this->text[lineNumber][this->position];
+  return this->_sourceCode[lineNumber][this->position];
 }
 
 void Lexer::next() { this->position++; }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
   this->next();
-  while (isdigit(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() && isdigit(this->getCurrent())) {
     this->next();
   }
   const int &length = this->position - start;
-  const std::string &text = this->text[lineNumber].substr(start, length);
+  std::string text = this->_sourceCode[lineNumber].substr(start, length);
 
   try {
     if (SyntaxKindUtils::isDouble(text) == false) {
@@ -54,10 +55,15 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
       text);
 }
 
+bool Lexer::isEndOfLineOrFile() {
+  return this->getCurrent() == this->endOfFile ||
+         this->getCurrent() == this->endOfLine;
+}
+
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
   int start = this->position;
 
-  while (isdigit(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() && isdigit(this->getCurrent())) {
     this->next();
   }
 
@@ -68,7 +74,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
   }
 
   const size_t &length = this->position - start;
-  std::string text = this->text[lineNumber].substr(start, length);
+  std::string text = this->_sourceCode[lineNumber].substr(start, length);
   try {
     if (SyntaxKindUtils::isInt64(text) == false) {
       throw std::runtime_error("ERROR: Bad Number Input Not Int64: " + text);
@@ -95,11 +101,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
   const int start = this->position;
-  while (isalnum(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() && isalnum(this->getCurrent())) {
     this->next();
   }
   const int length = this->position - start;
-  const std::string text = this->text[lineNumber].substr(start, length);
+  const std::string text = this->_sourceCode[lineNumber].substr(start, length);
   if (text == "true") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::TrueKeyword, start, text,
@@ -188,26 +194,20 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readWhitespace() {
   int start = this->position;
 
-  while (isspace(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() && isspace(this->getCurrent())) {
     this->next();
   }
-  const int &length = this->position - start;
-  const std::string &text = this->text[lineNumber].substr(start, length);
 
   return std::make_unique<SyntaxToken<std::any>>(
-      this->lineNumber, SyntaxKindUtils::SyntaxKind::WhitespaceToken, start,
-      text, 0);
+      this->lineNumber, SyntaxKindUtils::SyntaxKind::WhitespaceToken, start, "",
+      0);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
-  const int &last_line_number_0_indexed = lineNumber;
-  const int &last_pos = this->text[lineNumber].length() - 1;
-  std::string &last_line = this->text[last_line_number_0_indexed];
-
   std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
       std::make_unique<SyntaxToken<std::any>>(
-          last_line_number_0_indexed,
-          SyntaxKindUtils::SyntaxKind::EndOfFileToken, 0, "", 0);
+          lineNumber, SyntaxKindUtils::SyntaxKind::EndOfFileToken,
+          this->position, "", 0);
 
   return std::move(newSyntaxToken);
 }
@@ -215,10 +215,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readComment() {
   this->next(); // skip /
   this->next(); // skip #
-  while (this->getCurrent() != '#' ||
-         (this->getCurrent() == '#' &&
-          this->position + 1 < this->text[lineNumber].length() &&
-          this->text[lineNumber][this->position + 1] != '/')) {
+  while (!this->isEndOfLineOrFile() &&
+         (this->getCurrent() != '#' ||
+          (this->getCurrent() == '#' &&
+           this->position + 1 < this->_sourceCode[lineNumber].length() &&
+           this->_sourceCode[lineNumber][this->position + 1] != '/'))) {
     if (this->getCurrent() == endOfFile) {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::move(readEndOfFile());
@@ -307,8 +308,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
         this->position++, ":", nullptr);
   case '&': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '&') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '&') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber,
@@ -321,8 +322,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
         this->position++, "&", nullptr);
   }
   case '/': {
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '#') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '#') {
       return std::move(this->readComment());
     }
     return std::make_unique<SyntaxToken<std::any>>(
@@ -332,8 +333,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '|': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '|') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '|') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::PipePipeToken,
@@ -346,8 +347,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   }
   case '=': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '=') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::EqualsEqualsToken,
@@ -360,8 +361,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '!': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '=') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::BangEqualsToken,
@@ -374,8 +375,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '<': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '=') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::LessOrEqualsToken,
@@ -388,8 +389,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '>': {
 
-    if (this->position + 1 < this->text[lineNumber].length() &&
-        this->text[lineNumber][this->position + 1] == '=') {
+    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+        this->_sourceCode[lineNumber][this->position + 1] == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken,
@@ -409,9 +410,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   }
   }
 
-  const int &_len = this->text[lineNumber].length() - start;
+  const int &_len = std::max(
+      (int)this->_sourceCode[lineNumber].length() - (int)start, (int)0);
 
-  const std::string &str = this->text[lineNumber].substr(start, _len);
+  const std::string &str = this->_sourceCode[lineNumber].substr(start, _len);
 
   std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
       std::make_unique<SyntaxToken<std::any>>(
@@ -428,6 +430,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::nextToken() {
+
+  // For Debugging
+
+  // std::cout << "Lexer::nextToken()" << this->getCurrent() << this->lineNumber
+  //           << this->position << this->textSize << "ENDED";
 
   if (this->getCurrent() == endOfFile) {
     return std::move(this->readEndOfFile());
@@ -456,10 +463,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfLine() {
   std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
       std::make_unique<SyntaxToken<std::any>>(
           this->lineNumber, SyntaxKindUtils::SyntaxKind::EndOfLineToken,
-          this->position, "", nullptr);
+          this->position, "", 0);
 
   if (this->getCurrent() == '\n') {
-    this->next();
+    this->position++;
   } else {
     this->position = 0;
     this->lineNumber++;
@@ -471,13 +478,15 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfLine() {
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
   std::string text = "";
-  while (this->getCurrent() != '"') {
+  while (!this->isEndOfLineOrFile() && this->getCurrent() != '"') {
     if (this->getCurrent() == '\0') {
 
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::make_unique<SyntaxToken<std::any>>(
               this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
-              this->text[lineNumber].substr(start, this->position - start), 0);
+              this->_sourceCode[lineNumber].substr(start,
+                                                   this->position - start),
+              0);
 
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Unterminated String Literal",
@@ -509,15 +518,16 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
         std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
             std::make_unique<SyntaxToken<std::any>>(
                 this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
-                this->text[lineNumber].substr(start, this->position - start),
+                this->_sourceCode[lineNumber].substr(start,
+                                                     this->position - start),
                 0);
 
-        this->_diagnosticHandler->addDiagnostic(
-            Diagnostic("Bad Character Escape Sequence: \\" +
-                           this->text[lineNumber].substr(this->position, 1),
-                       DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Lexical,
-                       Utils::getSourceLocation(newSyntaxToken.get())));
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Bad Character Escape Sequence: \\" +
+                this->_sourceCode[lineNumber].substr(this->position, 1),
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Lexical,
+            Utils::getSourceLocation(newSyntaxToken.get())));
 
         return std::move(newSyntaxToken);
       }

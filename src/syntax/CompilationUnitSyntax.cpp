@@ -27,7 +27,7 @@ std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
   if (this->_children.empty()) {
     // Add Children
     for (const auto &member : this->_members) {
-      _children.push_back((member.get()));
+      _children.push_back((SyntaxNode *)(member.get()));
     }
     _children.push_back(this->_endOfFileToken.get());
   }

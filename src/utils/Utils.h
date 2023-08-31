@@ -35,9 +35,13 @@ std::string convertAnyToString(const std::any value);
 
 std::string getTypeString(const std::any &value);
 
+std::string getSourceCode(CompilationUnitSyntax *node);
+std::string getSourceCode(SyntaxNode *node, bool include);
+
 bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
+auto isSyntaxToken(SyntaxNode *node) -> bool;
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
 const std::string NULLPTR = "-2al_NuLlPtR-2al";

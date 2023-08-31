@@ -40,7 +40,7 @@ std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
   if (this->_children.size() == 0) {
     // Add children
     this->_children.push_back(this->_openBraceToken.get());
-    for (const auto &statement : this->_statements) {
+    for (const auto &statement : this->getStatements()) {
       this->_children.push_back(statement.get());
     }
     this->_children.push_back(this->_closeBraceToken.get());
