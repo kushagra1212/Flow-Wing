@@ -536,6 +536,22 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
     }
     this->next();
   }
+
+  if (this->getCurrent() != '"') {
+    std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+        std::make_unique<SyntaxToken<std::any>>(
+            this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+            this->_sourceCode[lineNumber].substr(start, this->position - start),
+            0);
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Unterminated String Literal", DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Lexical,
+        Utils::getSourceLocation(newSyntaxToken.get())));
+
+    return std::move(newSyntaxToken);
+  }
+
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::StringToken, start, text,
