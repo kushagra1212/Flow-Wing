@@ -1170,14 +1170,10 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
     break;
   }
   default: {
-    // this->root->logs.push_back(node->getLineNumberAndColumn() +
-    //                            "Error: Unexpected node" +
-    //                            BinderKindUtils::to_string(node->getKind()));
+    break;
   }
   }
 
-  // this->root->variables = this->variable_stack.top();
-  // this->root->functions = this->function_stack.top();
   return getNull();
 }
 

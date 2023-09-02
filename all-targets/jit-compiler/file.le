@@ -9,7 +9,7 @@ fun main() {
         i = i - 1
     }
 
-    print("Sum = "+ sum)
+    print("Sum = "+ sum + sum)
 }
 
 main()
