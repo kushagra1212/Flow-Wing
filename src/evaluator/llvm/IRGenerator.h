@@ -47,7 +47,7 @@ public:
 
   std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
 
-  void generateEvaluateGlobalStatement(BoundStatement *node);
+  void generateEvaluateGlobalStatement(BoundBlockStatement *blockStatement);
 
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 

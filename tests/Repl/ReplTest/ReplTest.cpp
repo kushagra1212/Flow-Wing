@@ -1,26 +1,17 @@
 #include "ReplTest.h"
-ReplTest::ReplTest() { repl = std::make_unique<Repl>(true); }
+ReplTest::ReplTest() { repl = nullptr; }
 
 void ReplTest::SetUp() {
-  cout_backup = std::cout.rdbuf();
-  std::cout.rdbuf(captured_output.rdbuf());
+  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
 }
+void ReplTest::TearDown() { std::cout.rdbuf(saved_cout_buf); }
 
-void ReplTest::TearDown() { std::cout.rdbuf(cout_backup); }
+void ReplTest::setInput(const std::string &input) { input_stream.str(input); }
 
-std::string ReplTest::runReplWithInput(const std::string &input) {
+std::string ReplTest::getOutput() const { return output_stream.str(); }
 
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return captured_output.str();
-}
-std::string ReplTest::runReplWithInputPrint(std::string input) {
-
-  testing::internal::CaptureStdout();
-
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return testing::internal::GetCapturedStdout();
+void ReplTest::runEvaluator() {
+  repl = new Repl();
+  repl->runForTest(input_stream, output_stream);
+  delete repl;
 }

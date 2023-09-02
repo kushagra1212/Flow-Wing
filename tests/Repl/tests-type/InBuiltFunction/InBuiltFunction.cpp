@@ -1,32 +1,28 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() { repl = std::make_unique<Repl>(true); }
+InBuiltFunction::InBuiltFunction() { repl = nullptr; }
 
 void InBuiltFunction::SetUp() {
-  cout_backup = std::cout.rdbuf();
-  std::cout.rdbuf(captured_output.rdbuf());
+  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
+}
+void InBuiltFunction::TearDown() { std::cout.rdbuf(saved_cout_buf); }
+
+void InBuiltFunction::setInput(const std::string &input) {
+  input_stream.str(input);
 }
 
-void InBuiltFunction::TearDown() { std::cout.rdbuf(cout_backup); }
+std::string InBuiltFunction::getOutput() const { return output_stream.str(); }
 
-std::string InBuiltFunction::runReplWithInput(const std::string &input) {
-
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return captured_output.str();
-}
-std::string InBuiltFunction::runReplWithInputPrint(std::string input) {
-
-  testing::internal::CaptureStdout();
-
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return testing::internal::GetCapturedStdout();
+void InBuiltFunction::runEvaluator() {
+  repl = new Repl();
+  repl->runForTest(input_stream, output_stream);
+  delete repl;
 }
 
-/*                                                              PRINT FUNCTION
+// TESTS
+
+/*                                                              PRINT
+FUNCTION
  */
 
 TEST_F(InBuiltFunction, BasicPrintFunctionNumber) {
@@ -34,9 +30,9 @@ TEST_F(InBuiltFunction, BasicPrintFunctionNumber) {
 
   std::string expected_output = "2";
 
-  std::string capturedOutput = runReplWithInputPrint(input);
-
-  EXPECT_EQ(capturedOutput, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 TEST_F(InBuiltFunction, BasicPrintFunctionNumberInsideScope) {
@@ -44,9 +40,9 @@ TEST_F(InBuiltFunction, BasicPrintFunctionNumberInsideScope) {
 
   std::string expected_output = "2";
 
-  std::string capturedOutput = runReplWithInputPrint(input);
-
-  EXPECT_EQ(capturedOutput, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 TEST_F(InBuiltFunction, BasicPrintFunctionString) {
@@ -54,9 +50,9 @@ TEST_F(InBuiltFunction, BasicPrintFunctionString) {
 
   std::string expected_output = "Hello";
 
-  std::string capturedOutput = runReplWithInputPrint(input);
-
-  EXPECT_EQ(capturedOutput, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 TEST_F(InBuiltFunction, BasicPrintFunctionStringBasicOperation) {
@@ -64,9 +60,9 @@ TEST_F(InBuiltFunction, BasicPrintFunctionStringBasicOperation) {
 
   std::string expected_output = "Hello World";
 
-  std::string capturedOutput = runReplWithInputPrint(input);
-
-  EXPECT_EQ(capturedOutput, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 TEST_F(InBuiltFunction, BasicPrintFunctionComparisionBasicOperation) {
@@ -74,7 +70,7 @@ TEST_F(InBuiltFunction, BasicPrintFunctionComparisionBasicOperation) {
 
   std::string expected_output = "true";
 
-  std::string capturedOutput = runReplWithInputPrint(input);
-
-  EXPECT_EQ(capturedOutput, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }

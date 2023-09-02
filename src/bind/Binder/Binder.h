@@ -24,6 +24,7 @@
 #include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 
 #include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "../../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"

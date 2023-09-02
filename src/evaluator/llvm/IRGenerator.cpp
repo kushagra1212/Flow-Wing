@@ -562,9 +562,8 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
   return getNull();
 }
 
-void IRGenerator::generateEvaluateGlobalStatement(BoundStatement *node) {
-
-  BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
+void IRGenerator::generateEvaluateGlobalStatement(
+    BoundBlockStatement *blockStatement) {
 
   // Function Declaration
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {

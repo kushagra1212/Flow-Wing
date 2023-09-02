@@ -1,31 +1,24 @@
 #include "VariableDeclaration.h"
 
-VariableDeclaration::VariableDeclaration() {
-  repl = std::make_unique<Repl>(true);
-}
+VariableDeclaration::VariableDeclaration() { repl = nullptr; }
 
 void VariableDeclaration::SetUp() {
-  cout_backup = std::cout.rdbuf();
-  std::cout.rdbuf(captured_output.rdbuf());
+  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
+}
+void VariableDeclaration::TearDown() { std::cout.rdbuf(saved_cout_buf); }
+
+void VariableDeclaration::setInput(const std::string &input) {
+  input_stream.str(input);
 }
 
-void VariableDeclaration::TearDown() { std::cout.rdbuf(cout_backup); }
-
-std::string VariableDeclaration::runReplWithInput(const std::string &input) {
-
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return captured_output.str();
+std::string VariableDeclaration::getOutput() const {
+  return output_stream.str();
 }
-std::string VariableDeclaration::runReplWithInputPrint(std::string input) {
 
-  testing::internal::CaptureStdout();
-
-  repl->addTextString(input);
-  repl->runForTest(std::cin, std::cout);
-
-  return testing::internal::GetCapturedStdout();
+void VariableDeclaration::runEvaluator() {
+  repl = new Repl();
+  repl->runForTest(input_stream, output_stream);
+  delete repl;
 }
 
 // Variable Declaration
@@ -37,9 +30,9 @@ TEST_F(VariableDeclaration, BasicVariableDeclaration) {
   std::string input = R"(var a = 2)";
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Variable Re-Declaration in the same scope
@@ -49,7 +42,11 @@ TEST_F(VariableDeclaration, BasicVariableReDeclarationInSameScope) {
   std::string expected_error = "Variable x Already Exists";
 
   // Expected output should be in the of the output
-  std::string output = runReplWithInput(input);
+
+  setInput(input);
+  runEvaluator();
+
+  std::string output = getOutput();
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
@@ -59,8 +56,9 @@ TEST_F(VariableDeclaration, BasicVariableReDeclarationInDifferentScope) {
   std::string input = R"(var a = 2 { var a = 3 })";
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Variable Declaration with Different Identifier
@@ -69,8 +67,9 @@ TEST_F(VariableDeclaration, BasicVariableDeclarationWithDifferentIdentifier) {
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Variable Declaration with Different Initializer
@@ -79,8 +78,9 @@ TEST_F(VariableDeclaration, BasicVariableDeclarationWithDifferentInitializer) {
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Constant Variable Declaration
@@ -89,16 +89,20 @@ TEST_F(VariableDeclaration, BasicConstantVariableDeclaration) {
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Constant Variable Re-Declaration
 TEST_F(VariableDeclaration, BasicConstantVariableReDeclaration) {
   std::string input = R"(const a = 2 const a = 3)";
 
+  setInput(input);
+  runEvaluator();
   // Expected output should be in the of the output
-  std::string output = runReplWithInput(input);
+  std::string output = getOutput();
+
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
@@ -110,8 +114,9 @@ TEST_F(VariableDeclaration,
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Constant Variable Declaration with Different Identifier
@@ -121,8 +126,9 @@ TEST_F(VariableDeclaration,
 
   std::string expected_output = "";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }
 
 // Constant Variable Declaration and again assign it to a different value
@@ -130,8 +136,10 @@ TEST_F(VariableDeclaration,
        BasicConstantVariableDeclarationAndAssignToDifferentValue) {
   std::string input = R"(const a = 2 a = 3)";
 
+  setInput(input);
+  runEvaluator();
   // Expected output should be in the of the output
-  std::string output = runReplWithInput(input);
+  std::string output = getOutput();
   EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
               output.find("Constant Variable") != std::string::npos);
 }
@@ -143,8 +151,10 @@ TEST_F(
     BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope) {
   std::string input = R"(const a = 2 { a = 3 })";
 
+  setInput(input);
+  runEvaluator();
   // Expected output should be in the output
-  std::string output = runReplWithInput(input);
+  std::string output = getOutput();
   EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
               output.find("Constant Variable") != std::string::npos);
 }
@@ -156,8 +166,10 @@ TEST_F(
     BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope2) {
   std::string input = R"({ const a = 2 { a = 3 } })";
 
+  setInput(input);
+  runEvaluator();
   // Expected output should be in the of the output
-  std::string output = runReplWithInput(input);
+  std::string output = getOutput();
 
   EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
               output.find("Constant Variable") != std::string::npos);
@@ -168,23 +180,26 @@ TEST_F(VariableDeclaration,
        BasicConstantVariableDeclarationAndReDeclarationUsingVar) {
   std::string input = R"(const a = 2 var a = 3)";
 
+  setInput(input);
+  runEvaluator();
   // Expected output should be in the of the output
-  std::string output = runReplWithInput(input);
+  std::string output = getOutput();
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
 
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   std::string input =
-      R"(var x = 2 print(2) print(x) print(x+2) print(x+true) print(x+false) 
-      print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)  
-      x  =  true print(x==false) print(x+false) 
-      print(x+true) print(x+1) print(x+1.1) 
+      R"(var x = 2 print(2) print(x) print(x+2) print(x+true) print(x+false)
+      print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)
+      x  =  true print(x==false) print(x+false)
+      print(x+true) print(x+1) print(x+1.1)
       print(x+"Hello"))";
 
   std::string expected_output =
       "224323.1000004.2000002.2000003.200000falsetruetrue22.100000trueHello";
 
-  std::string output = runReplWithInputPrint(input);
-  EXPECT_EQ(output, expected_output);
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
 }

@@ -629,8 +629,7 @@ llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
       return llvmValue;
     }
 
-    this->logError(
-        "Implicit conversion from string to double is not supported");
+    this->logError("Not a Valid string for conversion to double");
   } else {
     this->logError("Unsupported type for conversion to double");
   }
@@ -957,7 +956,8 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    return Builder->CreateFRem(lhsValue, rhsValue);
+    errorMessage =
+        "Modulus is not supported for double type " + lhsStr + " and " + rhsStr;
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:

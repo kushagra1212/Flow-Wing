@@ -6,6 +6,7 @@
 #include "../bind/BoundNode.h"
 #include "../bind/BoundStatement/BoundStatement.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/SyntaxNode.h"
@@ -31,8 +32,6 @@ const std::string concatErrors(const std::vector<std::string> &errors,
                                std::ostream &outputStream,
                                bool isWarning = false);
 
-std::string convertAnyToString(const std::any value);
-
 std::string getTypeString(const std::any &value);
 
 std::string getSourceCode(CompilationUnitSyntax *node);
@@ -44,7 +43,6 @@ bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
 enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
 
-const std::string NULLPTR = "-2al_NuLlPtR-2al";
 enum class SymbolKind {
   Variable,
   Function,

@@ -33,7 +33,7 @@ void Repl::runWithStream(std::istream &inputStream,
   while (!exit) {
     text = previousText;
 
-    runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
+    runIfNotInTest([&]() { outputStream << "\n" << GREEN << ">> " << RESET; });
     this->_diagnosticHandler->updatePreviousLineCount(previousText.size());
 
     std::string line;
@@ -60,9 +60,13 @@ void Repl::runWithStream(std::istream &inputStream,
             _previousDiagnosticHandler->hasError(
                 DiagnosticUtils::DiagnosticType::Lexical)) {
 
-          runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
+          runIfNotInTest([&]() {
+            outputStream << "\n" << YELLOW << "... " << RESET;
+          });
         } else {
-          runIfNotInTest([&]() { outputStream << GREEN << ">> " << RESET; });
+          runIfNotInTest([&]() {
+            outputStream << "\n" << GREEN << ">> " << RESET;
+          });
         }
 
         continue;
@@ -89,7 +93,9 @@ void Repl::runWithStream(std::istream &inputStream,
 
       if (this->_diagnosticHandler->hasError(
               DiagnosticUtils::DiagnosticType::Syntactic)) {
-        runIfNotInTest([&]() { outputStream << YELLOW << "... " << RESET; });
+        runIfNotInTest([&]() {
+          outputStream << "\n" << YELLOW << "... " << RESET;
+        });
 
         _previousDiagnosticHandler = std::move(_diagnosticHandler);
 
@@ -125,6 +131,7 @@ void Repl::runWithStream(std::istream &inputStream,
       }
 
       compileAndEvaluate(outputStream, std::move(compilationUnit));
+      _diagnosticHandler.reset(new DiagnosticHandler());
     }
   }
 }
@@ -133,17 +140,16 @@ void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
 
-  std::string currentCode =
-      std::string(Utils::getSourceCode(compilationUnit.get()));
   std::unique_ptr<BoundScopeGlobal> globalScope =
-      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
+      std::move(Binder::bindGlobalScope(std::move(_previousGlobalScope),
+                                        compilationUnit.get(),
                                         this->_diagnosticHandler.get()));
 
   const bool &hasSemanticError = this->_diagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
 
   if (showBoundTree && !hasSemanticError) {
-    Utils::prettyPrint(globalScope->statement.get());
+    Utils::prettyPrint(globalScope->globalStatement.get());
   }
 
   if (hasSemanticError) {
@@ -156,19 +162,95 @@ void Repl::compileAndEvaluate(
   }
 
   try {
-    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-        ENVIRONMENT::REPL, _diagnosticHandler.get(),
-        globalScope.get()->functions);
+    std::unique_ptr<Interpreter> interpreter = std::make_unique<Interpreter>(
+        globalScope.get(), _diagnosticHandler.get());
+    interpreter->execute(globalScope->globalStatement.get());
 
-    _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
-    runIfNotInTest([&]() { _evaluator->printIR(); });
-
-    int hasError = _evaluator->executeGeneratedCode();
-
-    if (hasError) {
-      outputStream << RED << "Runtime Error: " << RESET << "\n";
+    if (this->_diagnosticHandler->hasError(
+            DiagnosticUtils::DiagnosticType::Runtime)) {
+      _diagnosticHandler->logDiagnostics(outputStream, [](const Diagnostic &d) {
+        return d.getType() == DiagnosticUtils::DiagnosticType::Runtime;
+      });
     } else {
-      previousText = std::vector<std::string>{currentCode};
+      _previousGlobalScope = std::move(globalScope);
+    }
+
+  } catch (const std::exception &e) {
+    outputStream << RED << e.what() << RESET;
+  }
+}
+
+void Repl::toggleExit() { exit = !exit; }
+
+void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
+
+  std::string line;
+
+  while (std::getline(inputStream, line)) {
+    this->addTextString(line);
+  }
+
+  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<DiagnosticHandler>();
+
+  std::unique_ptr<Parser> parser =
+      std::make_unique<Parser>(text, currentDiagnosticHandler.get());
+
+  if (currentDiagnosticHandler->hasError(
+          DiagnosticUtils::DiagnosticType::Lexical)) {
+    currentDiagnosticHandler->logDiagnostics(
+        std::cout, [](const Diagnostic &d) {
+          return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
+        });
+    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    return;
+  }
+
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
+      std::move(parser->parseCompilationUnit());
+
+  if (currentDiagnosticHandler->hasError(
+          DiagnosticUtils::DiagnosticType::Syntactic)) {
+    currentDiagnosticHandler->logDiagnostics(
+        std::cout, [](const Diagnostic &d) {
+          return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
+        });
+    currentDiagnosticHandler.reset(new DiagnosticHandler());
+
+    return;
+  }
+
+  std::unique_ptr<BoundScopeGlobal> globalScope =
+      std::move(Binder::bindGlobalScope(std::move(_previousGlobalScope),
+                                        compilationUnit.get(),
+                                        currentDiagnosticHandler.get()));
+
+  const bool &hasSemanticError = currentDiagnosticHandler->hasError(
+      DiagnosticUtils::DiagnosticType::Semantic);
+
+  if (hasSemanticError) {
+    currentDiagnosticHandler->logDiagnostics(
+        std::cout, [](const Diagnostic &d) {
+          return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
+        });
+
+    currentDiagnosticHandler.reset(new DiagnosticHandler());
+
+    return;
+  }
+
+  try {
+    std::unique_ptr<Interpreter> interpreter = std::make_unique<Interpreter>(
+        globalScope.get(), _diagnosticHandler.get());
+    interpreter->execute(globalScope->globalStatement.get());
+
+    if (this->_diagnosticHandler->hasError(
+            DiagnosticUtils::DiagnosticType::Runtime)) {
+      _diagnosticHandler->logDiagnostics(outputStream, [](const Diagnostic &d) {
+        return d.getType() == DiagnosticUtils::DiagnosticType::Runtime;
+      });
+    } else {
+
       _previousGlobalScope = std::move(globalScope);
     }
 
@@ -177,9 +259,7 @@ void Repl::compileAndEvaluate(
   }
 }
 
-void Repl::toggleExit() { exit = !exit; }
-
-void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
+void Repl::runForTest2(std::istream &inputStream, std::ostream &outputStream) {
 
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>();
@@ -234,7 +314,8 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions);
 
-    _evaluator->generateEvaluateGlobalStatement(globalScope->statement.get());
+    _evaluator->generateEvaluateGlobalStatement(
+        globalScope->globalStatement.get());
     runIfNotInTest([&]() { _evaluator->printIR(); });
     _evaluator->executeGeneratedCode();
 

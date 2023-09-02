@@ -4,6 +4,7 @@
 #include "../Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../evaluator/llvm/IRGenerator.h"
+#include "../interpreter/Interpreter.h"
 #include "../parser/Parser.h"
 
 using namespace ELANG::EVALUATOR::CONSTANTS;
@@ -16,7 +17,6 @@ public:
   // Run the REPL with default input/output streams
   void run();
 
-  // Run the REPL with custom input/output streams for testing
   void runWithStream(std::istream &inputStream, std::ostream &outputStream);
   void runForTest(std::istream &inputStream, std::ostream &outputStream);
   bool isSyntaxTreeVisible() const;
@@ -31,11 +31,11 @@ public:
                      std::unique_ptr<CompilationUnitSyntax> compilationUnit);
   void runIfNotInTest(std::function<void()> f);
   void toggleExit();
-  // Data members
 
+  void runForTest2(std::istream &inputStream, std::ostream &outputStream);
   void addTextString(const std::string &textString);
 
-private:
+private: // Data members
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> text = std::vector<std::string>();
 

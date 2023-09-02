@@ -5,10 +5,10 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::map<std::string, struct Utils::Variable> variables,
     std::map<std::string, BoundFunctionDeclaration *> functions,
     DiagnosticHandler *diagnosticHandler,
-    std::unique_ptr<BoundStatement> statement)
+    std::unique_ptr<BoundBlockStatement> statement)
     : variables(variables), functions(functions) {
 
-  this->statement = std::move(statement);
+  this->globalStatement = std::move(statement);
 
   this->previous = std::move(previous);
   this->_diagnosticHandler = diagnosticHandler;

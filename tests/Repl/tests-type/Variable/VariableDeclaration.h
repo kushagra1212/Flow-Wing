@@ -8,17 +8,17 @@
 class VariableDeclaration : public ::testing::Test {
 protected:
   VariableDeclaration();
-
   void SetUp() override;
-
   void TearDown() override;
+  void setInput(const std::string &input);
+  std::string getOutput() const;
+  void runEvaluator();
 
   // Common methods
-  std::string runReplWithInput(const std::string &input);
-
-  std::string runReplWithInputPrint(std::string input);
-
-  std::unique_ptr<Repl> repl;
+  Repl *repl;
+  std::stringstream input_stream;
+  std::stringstream output_stream;
+  std::streambuf *saved_cout_buf;
   std::stringstream captured_output;
   std::streambuf *cout_backup;
 };

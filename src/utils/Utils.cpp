@@ -19,7 +19,8 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 
     std::any value = ((LiteralExpressionSyntax<std::any> *)node)->getValue();
 
-    std::cout << " " << convertAnyToString(value);
+    std::cout << " "
+              << InterpreterConversion::explicitConvertAnyToString(value);
   }
   std::cout << "\n";
   std::vector<SyntaxNode *> children = node->getChildren();
@@ -69,7 +70,8 @@ void Utils::prettyPrint(BoundNode *node, std::string indent, bool isLast) {
 
     std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
 
-    std::cout << " " << convertAnyToString(value);
+    std::cout << " "
+              << InterpreterConversion::explicitConvertAnyToString(value);
   }
   std::cout << "\n";
   std::vector<BoundNode *> children = node->getChildren();
@@ -116,8 +118,7 @@ std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
   }
 
   if (!include &&
-      (node->getKind() == SyntaxKindUtils::SyntaxKind::CommentStatement ||
-       node->getKind() == SyntaxKindUtils::SyntaxKind::CallExpression)) {
+      (node->getKind() == SyntaxKindUtils::SyntaxKind::CommentStatement)) {
     return code;
   }
 
@@ -159,24 +160,6 @@ std::string Utils::getSourceCode(CompilationUnitSyntax *compilationUnit) {
   }
 
   return code;
-}
-
-std::string Utils::convertAnyToString(std::any value) {
-  if (value.type() == typeid(std::string)) {
-    return std::any_cast<std::string>(value);
-  } else if (value.type() == typeid(int)) {
-    return std::to_string(std::any_cast<int>(value));
-  } else if (value.type() == typeid(double)) {
-    return std::to_string(std::any_cast<double>(value));
-  } else if (value.type() == typeid(float)) {
-    return std::to_string(std::any_cast<float>(value));
-  } else if (value.type() == typeid(bool)) {
-    return std::any_cast<bool>(value) ? "true" : "false";
-  } else if (value.type() == typeid(std::nullptr_t)) {
-    return Utils::NULLPTR; // Handle nullptr case explicitly
-  } else {
-    throw std::runtime_error("Unknown type");
-  }
 }
 
 std::string Utils::getTypeString(const std::any &value) {

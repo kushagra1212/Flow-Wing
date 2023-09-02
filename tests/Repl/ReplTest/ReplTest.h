@@ -9,17 +9,16 @@ protected:
   ReplTest();
 
   void SetUp() override;
-
   void TearDown() override;
+  void setInput(const std::string &input);
+  std::string getOutput() const;
+  void runEvaluator();
 
   // Common methods
-  std::string runReplWithInput(const std::string &input);
-
-  std::string runReplWithInputPrint(std::string input);
-
-  std::unique_ptr<Repl> repl;
-  std::stringstream captured_output;
-  std::streambuf *cout_backup;
+  Repl *repl;
+  std::stringstream input_stream;
+  std::stringstream output_stream;
+  std::streambuf *saved_cout_buf;
 };
 
 #endif // REPL_TEST_H

@@ -288,8 +288,8 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
           assignmentExpression->getLeftPtr().get())
           .release());
 
-  std::string variable_str =
-      Utils::convertAnyToString(boundIdentifierExpression->getValue());
+  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
+      boundIdentifierExpression->getValue());
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
@@ -334,8 +334,8 @@ Binder::bindVariableExpression(VariableExpressionSyntax *variableExpression) {
            *)(bindExpression(variableExpression->getIdentifierPtr().get())
                   .release()));
 
-  std::string variable_str =
-      Utils::convertAnyToString(boundIdentifierExpression->getValue());
+  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
+      boundIdentifierExpression->getValue());
 
   if (!root->tryLookupVariable(variable_str)) {
 
@@ -362,7 +362,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   Utils::FunctionSymbol functionSymbol =
       Utils::BuiltInFunctions::getFunctionSymbol(
-          Utils::convertAnyToString(boundIdentifier->getValue()));
+          InterpreterConversion::explicitConvertAnyToString(
+              boundIdentifier->getValue()));
 
   if (functionSymbol.name == "") {
     std::vector<Utils::FunctionParameterSymbol> parameters;
@@ -372,9 +373,10 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
           Utils::FunctionParameterSymbol(std::to_string(i), false));
     }
 
-    functionSymbol = Utils::FunctionSymbol(
-        Utils::convertAnyToString(boundIdentifier->getValue()), parameters,
-        Utils::type::VOID);
+    functionSymbol =
+        Utils::FunctionSymbol(InterpreterConversion::explicitConvertAnyToString(
+                                  boundIdentifier->getValue()),
+                              parameters, Utils::type::VOID);
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =

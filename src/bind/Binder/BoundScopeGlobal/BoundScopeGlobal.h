@@ -11,7 +11,7 @@ public:
                    std::map<std::string, Utils::Variable> variables,
                    std::map<std::string, BoundFunctionDeclaration *> functions,
                    DiagnosticHandler *diagnosticHandler,
-                   std::unique_ptr<BoundStatement> statement);
+                   std::unique_ptr<BoundBlockStatement> statement);
 
   bool tryLookupVariable(std::string name);
   bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
@@ -22,5 +22,5 @@ public:
   std::map<std::string, Utils::Variable> variables;
   std::map<std::string, BoundFunctionDeclaration *> functions;
   DiagnosticHandler *_diagnosticHandler;
-  std::unique_ptr<BoundStatement> statement;
+  std::unique_ptr<BoundBlockStatement> globalStatement;
 };
