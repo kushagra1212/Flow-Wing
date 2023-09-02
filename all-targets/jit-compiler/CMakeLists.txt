@@ -13,13 +13,12 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-# Conditionally define REPL_TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
+# Conditionally define TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
-    add_compile_definitions(REPL_TEST_MODE)
+    add_compile_definitions(JIT_TEST_MODE)
 else()
-    add_compile_definitions(REPL_MODE)
+    add_compile_definitions(JIT_MODE)
 endif()
-
 # Set the default executable name
 set(DEFAULT_EXECUTABLE_NAME "Elang")
 
@@ -31,7 +30,7 @@ else()
 endif()
 
 # Link the executable with the adjusted name
-add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/REPL/Repl.cpp" ${SOURCES})
+add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/just-in-time-compiler/JITCompiler.cpp" ${SOURCES})
 target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread LLVM)
 
 # Set the output name of the executable

@@ -182,7 +182,7 @@ void Repl::compileAndEvaluate(
 
 void Repl::toggleExit() { exit = !exit; }
 
-void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
+void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
 
   std::string line;
 
@@ -259,76 +259,9 @@ void Repl::runForTest(std::istream &inputStream, std::ostream &outputStream) {
   }
 }
 
-void Repl::runForTest2(std::istream &inputStream, std::ostream &outputStream) {
-
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>();
-
-  std::unique_ptr<Parser> parser =
-      std::make_unique<Parser>(text, currentDiagnosticHandler.get());
-
-  if (currentDiagnosticHandler->hasError(
-          DiagnosticUtils::DiagnosticType::Lexical)) {
-    currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
-          return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
-        });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
-    return;
-  }
-
-  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
-
-  if (currentDiagnosticHandler->hasError(
-          DiagnosticUtils::DiagnosticType::Syntactic)) {
-    currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
-          return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
-        });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
-
-    return;
-  }
-
-  std::unique_ptr<BoundScopeGlobal> globalScope =
-      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
-                                        currentDiagnosticHandler.get()));
-
-  const bool &hasSemanticError = currentDiagnosticHandler->hasError(
-      DiagnosticUtils::DiagnosticType::Semantic);
-
-  if (hasSemanticError) {
-    currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
-          return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
-        });
-
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
-
-    return;
-  }
-
-  try {
-    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-        ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions);
-
-    _evaluator->generateEvaluateGlobalStatement(
-        globalScope->globalStatement.get());
-    runIfNotInTest([&]() { _evaluator->printIR(); });
-    _evaluator->executeGeneratedCode();
-
-  } catch (const std::exception &e) {
-    outputStream << RED << e.what() << RESET << "\n";
-  }
-}
-
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << YELLOW << "Welcome to the " << GREEN << "elang" << YELLOW
+  outputStream << GREEN << "Welcome to the " << GREEN << "Elang" << YELLOW
                << " REPL!" << RESET << std::endl;
-  outputStream << YELLOW
-               << "Type `:exit` to exit, `:cls` to clear the screen.\n";
 }
 
 void Repl::addTextString(const std::string &textString) {
@@ -366,3 +299,22 @@ int Repl::countBraces(const std::string &line, char brace) {
 bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
 
 bool Repl::isBoundTreeVisible() const { return showBoundTree; }
+
+#ifdef REPL_TEST_MODE
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
+#endif
+
+#ifdef REPL_MODE
+
+int main() {
+  std::unique_ptr<Repl> repl = std::make_unique<Repl>();
+  repl->run();
+  return 0;
+}
+
+#endif
