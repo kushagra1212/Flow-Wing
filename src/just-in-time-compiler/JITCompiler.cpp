@@ -64,6 +64,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
     _evaluator->executeGeneratedCode();
+    outputStream << std::endl;
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -154,7 +155,10 @@ int main(int argc, char *argv[]) {
   }
 
   // Opens the file using the provided file path
-  std::ifstream file(argv[1]);
+
+  std::ifstream file;
+
+  file.open(argv[1]);
 
   // Check if the file was opened successfully
   if (!file.is_open()) {
