@@ -212,10 +212,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
   return std::move(newSyntaxToken);
 }
 
-std::unique_ptr<SyntaxToken<std::any>> Lexer::readComment() {
+std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
   this->next(); // skip /
   this->next(); // skip #
-  while (!this->isEndOfLineOrFile() &&
+  while (this->getCurrent() != endOfFile &&
          (this->getCurrent() != '#' ||
           (this->getCurrent() == '#' &&
            this->position + 1 < this->_sourceCode[lineNumber].length() &&
@@ -242,6 +242,29 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readComment() {
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::CommentStatement,
       this->position++, "/##/", nullptr);
+}
+
+std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
+  this->next(); // skip /
+  this->next(); // skip #
+  while (!this->isEndOfLineOrFile()) {
+    if (this->getCurrent() == endOfLine) {
+      std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+          std::move(readEndOfFile());
+
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Unterminated Comment Block", DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Lexical,
+          Utils::getSourceLocation(newSyntaxToken.get())));
+
+      return std::move(newSyntaxToken);
+    } else {
+      this->next();
+    }
+  }
+  return std::make_unique<SyntaxToken<std::any>>(
+      this->lineNumber, SyntaxKindUtils::SyntaxKind::CommentStatement,
+      this->position++, "//", nullptr);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
@@ -324,7 +347,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   case '/': {
     if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
         this->_sourceCode[lineNumber][this->position + 1] == '#') {
-      return std::move(this->readComment());
+      return std::move(this->readMultiLineComment());
+    } else if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
+               this->_sourceCode[lineNumber][this->position + 1] == '/') {
+      return std::move(this->readSingleLineComment());
     }
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::SlashToken,

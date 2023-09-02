@@ -13,7 +13,6 @@ public:
   JITCompiler();
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
-  void addString(std::string &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
   std::vector<std::string> text = std::vector<std::string>();
 };
