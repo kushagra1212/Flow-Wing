@@ -1,12 +1,10 @@
-#ifndef IF_OR_IF_ELSE_H
-#define IF_OR_IF_ELSE_H
-
-#include "../../../../src/REPL/Repl.h"
+#ifndef FOR_LOOP_TEST_H
+#define FOR_LOOP_TEST_H
+#include "../../../src/REPL/Repl.h"
 #include <gtest/gtest.h>
-
-class IfORIFELSEReplTest : public ::testing::Test {
+class ForLoopReplTest : public ::testing::Test {
 protected:
-  IfORIFELSEReplTest();
+  ForLoopReplTest();
 
   void SetUp() override;
   void TearDown() override;
@@ -20,5 +18,4 @@ protected:
   std::stringstream output_stream;
   std::streambuf *saved_cout_buf;
 };
-
-#endif // VARIABLE_DECLARATION_H
+#endif // FOR_LOOP_H

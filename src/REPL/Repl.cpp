@@ -365,11 +365,19 @@ bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
 
 bool Repl::isBoundTreeVisible() const { return showBoundTree; }
 
+#ifdef TEST_MODE
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
+#else
+
 int main() {
-
   std::unique_ptr<Repl> repl = std::make_unique<Repl>();
-
   repl->run();
-
   return 0;
 }
+
+#endif

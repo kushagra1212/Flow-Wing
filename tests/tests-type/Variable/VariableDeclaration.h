@@ -1,12 +1,13 @@
-#ifndef WHILE_LOOP_H
-#define WHILE_LOOP_H
-#include "../../../../src/REPL/Repl.h"
+#ifndef VARIABLE_DECLARATION_H
+#define VARIABLE_DECLARATION_H
+#include "../../../src/REPL/Repl.h"
+#include <algorithm> // For std::remove_if
+#include <cctype>    // For std::isspace
 #include <gtest/gtest.h>
 
-class WhileLoop : public ::testing::Test {
+class VariableDeclaration : public ::testing::Test {
 protected:
-  WhileLoop();
-
+  VariableDeclaration();
   void SetUp() override;
   void TearDown() override;
   void setInput(const std::string &input);

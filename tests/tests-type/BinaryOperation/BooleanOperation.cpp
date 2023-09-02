@@ -8,7 +8,7 @@
 
 // Boolean Operation on Boolean ( Arithmetic )
 
-TEST_F(ReplTest, BasicBooleanOperationAddition) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationAddition) {
   std::string input = "true+true";
   std::string expected_output = "true";
   setInput(input);
@@ -16,7 +16,7 @@ TEST_F(ReplTest, BasicBooleanOperationAddition) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationSubtraction) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationSubtraction) {
   std::string input = "true-true";
   std::string expected_output = "false";
 
@@ -25,7 +25,7 @@ TEST_F(ReplTest, BasicBooleanOperationSubtraction) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationMultiplication) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationMultiplication) {
   std::string input = "true*true";
   std::string expected_output = "true";
 
@@ -34,7 +34,7 @@ TEST_F(ReplTest, BasicBooleanOperationMultiplication) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationDivision) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationDivision) {
   std::string input = "true/true";
   std::string expected_output = "true";
 
@@ -45,7 +45,7 @@ TEST_F(ReplTest, BasicBooleanOperationDivision) {
 
 // Boolean Operation on Boolean ( Relational )
 
-TEST_F(ReplTest, BasicBooleanOperationLessThan) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLessThan) {
   std::string input = "true<true";
   std::string expected_output = "false";
 
@@ -54,7 +54,7 @@ TEST_F(ReplTest, BasicBooleanOperationLessThan) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationLessThanEqual) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLessThanEqual) {
   std::string input = "true<=true";
   std::string expected_output = "true";
 
@@ -63,7 +63,7 @@ TEST_F(ReplTest, BasicBooleanOperationLessThanEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationGreaterThan) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationGreaterThan) {
   std::string input = "true>true";
   std::string expected_output = "false";
 
@@ -72,7 +72,7 @@ TEST_F(ReplTest, BasicBooleanOperationGreaterThan) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationGreaterThanEqual) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationGreaterThanEqual) {
   std::string input = "true>=true";
   std::string expected_output = "true";
 
@@ -83,7 +83,7 @@ TEST_F(ReplTest, BasicBooleanOperationGreaterThanEqual) {
 
 // Boolean Operation on Boolean ( Equality )
 
-TEST_F(ReplTest, BasicBooleanOperationEqual) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationEqual) {
   std::string input = "true==true";
   std::string expected_output = "true";
 
@@ -92,7 +92,7 @@ TEST_F(ReplTest, BasicBooleanOperationEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationNotEqual) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationNotEqual) {
   std::string input = "true!=true";
   std::string expected_output = "false";
 
@@ -103,7 +103,7 @@ TEST_F(ReplTest, BasicBooleanOperationNotEqual) {
 
 // Boolean Operation on Boolean ( Logical )
 
-TEST_F(ReplTest, BasicBooleanOperationLogicalAnd) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLogicalAnd) {
   std::string input = "true&&true";
   std::string expected_output = "true";
   setInput(input);
@@ -111,7 +111,7 @@ TEST_F(ReplTest, BasicBooleanOperationLogicalAnd) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationLogicalOr) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLogicalOr) {
   std::string input = "true||true";
   std::string expected_output = "true";
 
@@ -128,7 +128,7 @@ TEST_F(ReplTest, BasicBooleanOperationLogicalOr) {
 
 // Boolean Operation on Double ( Arithmetic )
 
-TEST_F(ReplTest, BasicBooleanOperationAdditionDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationAdditionDouble) {
   std::string input = "true+1.0";
   std::string expected_output = "2.000000";
 
@@ -137,7 +137,7 @@ TEST_F(ReplTest, BasicBooleanOperationAdditionDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationSubtractionDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationSubtractionDouble) {
   std::string input = "true-1.0";
   std::string expected_output = "0.000000";
   setInput(input);
@@ -145,7 +145,7 @@ TEST_F(ReplTest, BasicBooleanOperationSubtractionDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationMultiplicationDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationMultiplicationDouble) {
   std::string input = "true*1.0";
   std::string expected_output = "1.000000";
 
@@ -155,7 +155,7 @@ TEST_F(ReplTest, BasicBooleanOperationMultiplicationDouble) {
   ;
 }
 
-TEST_F(ReplTest, BasicBooleanOperationDivisionDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationDivisionDouble) {
   std::string input = "true/1.0";
   std::string expected_output = "1.000000";
 
@@ -163,7 +163,7 @@ TEST_F(ReplTest, BasicBooleanOperationDivisionDouble) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-TEST_F(ReplTest, BasicBooleanOperationDivisionDouble2) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationDivisionDouble2) {
   std::string input = "true/1";
   std::string expected_output = "1";
   setInput(input);
@@ -173,7 +173,7 @@ TEST_F(ReplTest, BasicBooleanOperationDivisionDouble2) {
 
 // Boolean Operation on Double ( Relational )
 
-TEST_F(ReplTest, BasicBooleanOperationLessThanDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLessThanDouble) {
   std::string input = "true<1.0";
   std::string expected_output = "false";
 
@@ -182,7 +182,7 @@ TEST_F(ReplTest, BasicBooleanOperationLessThanDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationLessThanEqualDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationLessThanEqualDouble) {
   std::string input = "true<=1.0";
   std::string expected_output = "true";
 
@@ -191,7 +191,7 @@ TEST_F(ReplTest, BasicBooleanOperationLessThanEqualDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationGreaterThanDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationGreaterThanDouble) {
   std::string input = "true>1.0";
   std::string expected_output = "false";
 
@@ -200,7 +200,7 @@ TEST_F(ReplTest, BasicBooleanOperationGreaterThanDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationGreaterThanEqualDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationGreaterThanEqualDouble) {
   std::string input = "true>=1.0";
   std::string expected_output = "true";
 
@@ -211,7 +211,7 @@ TEST_F(ReplTest, BasicBooleanOperationGreaterThanEqualDouble) {
 
 // Boolean Operation on Double ( Equality )
 
-TEST_F(ReplTest, BasicBooleanOperationEqualDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationEqualDouble) {
   std::string input = "true==1.0";
   std::string expected_output = "true";
 
@@ -220,7 +220,7 @@ TEST_F(ReplTest, BasicBooleanOperationEqualDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicBooleanOperationNotEqualDouble) {
+TEST_F(BinaryOperationTest, BasicBooleanOperationNotEqualDouble) {
   std::string input = "true!=1.0";
   std::string expected_output = "false";
 

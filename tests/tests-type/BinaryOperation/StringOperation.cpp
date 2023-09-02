@@ -7,7 +7,7 @@
 
 // Binary Operations on Strings
 
-TEST_F(ReplTest, BasicStringOperationConcatWithNumber) {
+TEST_F(BinaryOperationTest, BasicStringOperationConcatWithNumber) {
   std::string input = R"("Hello"+2)";
   std::string expected_output = "Hello2";
 
@@ -16,7 +16,7 @@ TEST_F(ReplTest, BasicStringOperationConcatWithNumber) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationConcat) {
+TEST_F(BinaryOperationTest, BasicStringOperationConcat) {
   std::string input = R"("Hello"+"Elang")";
   std::string expected_output = "HelloElang";
 
@@ -25,7 +25,7 @@ TEST_F(ReplTest, BasicStringOperationConcat) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationConcatWithDouble) {
+TEST_F(BinaryOperationTest, BasicStringOperationConcatWithDouble) {
   std::string input = R"("Hello"+2.0)";
   std::string expected_output = "Hello2.000000";
 
@@ -34,7 +34,7 @@ TEST_F(ReplTest, BasicStringOperationConcatWithDouble) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationConcatWithBoolean) {
+TEST_F(BinaryOperationTest, BasicStringOperationConcatWithBoolean) {
   std::string input = R"("Hello"+true)";
   std::string expected_output = "Hellotrue";
 
@@ -45,7 +45,7 @@ TEST_F(ReplTest, BasicStringOperationConcatWithBoolean) {
 
 // Binary Operations on Strings with Strings
 
-TEST_F(ReplTest, BasicStringOperationConcatWithStrings) {
+TEST_F(BinaryOperationTest, BasicStringOperationConcatWithStrings) {
   std::string input = R"("Hello"+"Elang")";
   std::string expected_output = "HelloElang";
 
@@ -56,7 +56,7 @@ TEST_F(ReplTest, BasicStringOperationConcatWithStrings) {
 
 // Binary Operations on Strings with Strings ( Comparison Operations )
 
-TEST_F(ReplTest, BasicStringOperationComparisonEqual) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonEqual) {
   std::string input = R"("Hello"=="Hello")";
   std::string expected_output = "true";
 
@@ -65,7 +65,7 @@ TEST_F(ReplTest, BasicStringOperationComparisonEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationComparisonNotEqual) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonNotEqual) {
   std::string input = R"("Hello"!="Hello")";
   std::string expected_output = "false";
 
@@ -74,7 +74,7 @@ TEST_F(ReplTest, BasicStringOperationComparisonNotEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationComparisonLessThan) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonLessThan) {
   std::string input = R"("Hello"<"Hello")";
   std::string expected_output = "false";
 
@@ -83,7 +83,7 @@ TEST_F(ReplTest, BasicStringOperationComparisonLessThan) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationComparisonLessThanOrEqual) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonLessThanOrEqual) {
   std::string input = R"("Hello"<="Hello")";
   std::string expected_output = "true";
 
@@ -92,7 +92,7 @@ TEST_F(ReplTest, BasicStringOperationComparisonLessThanOrEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationComparisonGreaterThan) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonGreaterThan) {
   std::string input = R"("Hello">"Hello")";
   std::string expected_output = "false";
 
@@ -101,7 +101,7 @@ TEST_F(ReplTest, BasicStringOperationComparisonGreaterThan) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicStringOperationComparisonGreaterThanOrEqual) {
+TEST_F(BinaryOperationTest, BasicStringOperationComparisonGreaterThanOrEqual) {
   std::string input = R"("Hello">="Hello")";
   std::string expected_output = "true";
 

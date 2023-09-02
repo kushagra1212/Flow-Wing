@@ -1,12 +1,11 @@
-#ifndef REPL_TEST_H
-#define REPL_TEST_H
+#ifndef IN_BUILT_FUNCTIONS_H
+#define IN_BUILT_FUNCTIONS_H
 #include "../../../src/REPL/Repl.h"
 #include <gtest/gtest.h>
-#include <sstream>
 
-class ReplTest : public ::testing::Test {
+class InBuiltFunction : public ::testing::Test {
 protected:
-  ReplTest();
+  InBuiltFunction();
 
   void SetUp() override;
   void TearDown() override;
@@ -21,4 +20,4 @@ protected:
   std::streambuf *saved_cout_buf;
 };
 
-#endif // REPL_TEST_H
+#endif // IN_BUILT_FUNCTIONS_H

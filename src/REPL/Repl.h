@@ -6,7 +6,7 @@
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../interpreter/Interpreter.h"
 #include "../parser/Parser.h"
-
+#include <gtest/gtest.h>
 using namespace ELANG::EVALUATOR::CONSTANTS;
 class Repl {
 public:

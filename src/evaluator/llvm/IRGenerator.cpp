@@ -1212,46 +1212,9 @@ int IRGenerator::executeGeneratedCode() {
       hasError = (resultValue.IntVal != 0) ? 1 : 0;
     }
 
-    if (_environment == ENVIRONMENT::REPL) {
-      std::cout << "\n";
-    }
-
   } catch (const std::exception &e) {
     std::cerr << e.what();
   }
-
-  // llvm::Type *returnType = evaluateBlockStatement->getReturnType();
-
-  // if (returnType->isIntegerTy()) {
-  //   if (returnType->getIntegerBitWidth() == 1) {
-  //     //  llvm::outs() << "Boolean Value: "
-  //     //   << (resultValue.IntVal != 0 ? "true" : "false") << "\n";
-
-  //     output += (resultValue.IntVal != 0 ? "true" : "false");
-  //   } else {
-  //    // llvm::outs() << "Integer Value: " << resultValue.IntVal << "\n";
-  //   }
-
-  // } else if (returnType->isFloatingPointTy()) {
-  //   if (returnType->isFloatTy()) {
-  //     //llvm::outs() << "Float Value: " << resultValue.FloatVal << "\n";
-
-  //   } else {
-  //     llvm::outs() << "Double Value: " << resultValue.DoubleVal << "\n";
-  //   }
-  // } else if (returnType->isPointerTy()) {
-  //   if (resultValue.PointerVal) {
-  //     const char *stringValue =
-  //         static_cast<const char *>(resultValue.PointerVal);
-  //     output += stringValue;
-  //   } else {
-  //     // llvm::outs() << "Null Pointer Value\n";
-  //     output += "Null Pointer Value\n";
-  //   }
-  // } else {
-  //   //   llvm::outs() << "Unknown Value Type\n";
-  //   output += "Unknown Value Type\n";
-  // }
   delete executionEngine;
   return hasError;
 }

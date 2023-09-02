@@ -1,11 +1,11 @@
-#ifndef IN_BUILT_FUNCTIONS_H
-#define IN_BUILT_FUNCTIONS_H
-#include "../../../../src/REPL/Repl.h"
+#ifndef WHILE_LOOP_H
+#define WHILE_LOOP_H
+#include "../../../src/REPL/Repl.h"
 #include <gtest/gtest.h>
 
-class InBuiltFunction : public ::testing::Test {
+class WhileLoop : public ::testing::Test {
 protected:
-  InBuiltFunction();
+  WhileLoop();
 
   void SetUp() override;
   void TearDown() override;
@@ -18,6 +18,7 @@ protected:
   std::stringstream input_stream;
   std::stringstream output_stream;
   std::streambuf *saved_cout_buf;
+  std::stringstream captured_output;
+  std::streambuf *cout_backup;
 };
-
-#endif // IN_BUILT_FUNCTIONS_H
+#endif // VARIABLE_DECLARATION_H

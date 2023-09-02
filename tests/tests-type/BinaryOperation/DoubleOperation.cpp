@@ -8,7 +8,7 @@
 
 // Double Operation on Double ( Arithmetic )
 
-TEST_F(ReplTest, BasicDoubleOperationAddition) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationAddition) {
   std::string input = "1.0+1.0";
   std::string expected_output = "2.000000";
 
@@ -17,7 +17,7 @@ TEST_F(ReplTest, BasicDoubleOperationAddition) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicDoubleOperationSubtraction) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationSubtraction) {
   std::string input = "1.0-1.0";
   std::string expected_output = "0.000000";
 
@@ -26,7 +26,7 @@ TEST_F(ReplTest, BasicDoubleOperationSubtraction) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicDoubleOperationMultiplication) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationMultiplication) {
   std::string input = "1.0*1.0";
   std::string expected_output = "1.000000";
 
@@ -35,7 +35,7 @@ TEST_F(ReplTest, BasicDoubleOperationMultiplication) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicDoubleOperationDivision) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationDivision) {
   std::string input = "1.0/1.0";
   std::string expected_output = "1.000000";
 
@@ -46,7 +46,7 @@ TEST_F(ReplTest, BasicDoubleOperationDivision) {
 
 // Double Operation on Double ( Comparison )
 
-TEST_F(ReplTest, BasicDoubleOperationLessThan) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationLessThan) {
   std::string input = "1.0<1.0";
   std::string expected_output = "false";
 
@@ -55,7 +55,7 @@ TEST_F(ReplTest, BasicDoubleOperationLessThan) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicDoubleOperationLessThanOrEqual) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationLessThanOrEqual) {
   std::string input = "1.0<=1.0";
   std::string expected_output = "true";
 
@@ -66,7 +66,7 @@ TEST_F(ReplTest, BasicDoubleOperationLessThanOrEqual) {
 
 // Double Operation on Double ( Equality )
 
-TEST_F(ReplTest, BasicDoubleOperationEqual) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationEqual) {
   std::string input = "1.0==1.0";
   std::string expected_output = "true";
 
@@ -75,7 +75,7 @@ TEST_F(ReplTest, BasicDoubleOperationEqual) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-TEST_F(ReplTest, BasicDoubleOperationNotEqual) {
+TEST_F(BinaryOperationTest, BasicDoubleOperationNotEqual) {
   std::string input = "1.0!=1.0";
   std::string expected_output = "false";
 
