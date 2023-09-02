@@ -325,10 +325,8 @@ void Repl::runForTest2(std::istream &inputStream, std::ostream &outputStream) {
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << YELLOW << "Welcome to the " << GREEN << "elang" << YELLOW
+  outputStream << GREEN << "Welcome to the " << GREEN << "Elang" << YELLOW
                << " REPL!" << RESET << std::endl;
-  outputStream << YELLOW
-               << "Type `:exit` to exit, `:cls` to clear the screen.\n";
 }
 
 void Repl::addTextString(const std::string &textString) {
@@ -366,3 +364,12 @@ int Repl::countBraces(const std::string &line, char brace) {
 bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
 
 bool Repl::isBoundTreeVisible() const { return showBoundTree; }
+
+int main() {
+
+  std::unique_ptr<Repl> repl = std::make_unique<Repl>();
+
+  repl->run();
+
+  return 0;
+}
