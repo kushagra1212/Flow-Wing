@@ -14,8 +14,8 @@ protected:
   std::string getOutput() const;
   void runEvaluator();
 
-  // Common methods
-  Repl *repl;
+  std::unique_ptr<Repl> repl;
+
   std::stringstream input_stream;
   std::stringstream output_stream;
   std::streambuf *saved_cout_buf;

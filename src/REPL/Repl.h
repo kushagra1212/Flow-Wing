@@ -18,7 +18,7 @@ public:
   void run();
 
   void runWithStream(std::istream &inputStream, std::ostream &outputStream);
-  void runForTest(std::istream &inputStream, std::ostream &outputStream);
+  void runTests(std::istream &inputStream, std::ostream &outputStream);
   bool isSyntaxTreeVisible() const;
   bool isBoundTreeVisible() const;
   // Helper functions
@@ -32,7 +32,6 @@ public:
   void runIfNotInTest(std::function<void()> f);
   void toggleExit();
 
-  void runForTest2(std::istream &inputStream, std::ostream &outputStream);
   void addTextString(const std::string &textString);
 
 private: // Data members

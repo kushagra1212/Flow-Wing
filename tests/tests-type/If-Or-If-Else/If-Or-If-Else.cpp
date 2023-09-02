@@ -1,6 +1,6 @@
 #include "If-Or-If-Else.h"
 
-IfORIFELSEReplTest::IfORIFELSEReplTest() { repl = nullptr; }
+IfORIFELSEReplTest::IfORIFELSEReplTest() { repl = std::make_unique<Repl>(); }
 
 void IfORIFELSEReplTest::SetUp() {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
@@ -16,9 +16,7 @@ std::string IfORIFELSEReplTest::getOutput() const {
 }
 
 void IfORIFELSEReplTest::runEvaluator() {
-  repl = new Repl();
-  repl->runForTest(input_stream, output_stream);
-  delete repl;
+  repl->runTests(input_stream, output_stream);
 }
 
 // TESTS

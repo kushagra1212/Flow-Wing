@@ -11,6 +11,7 @@ public:
   JITCompiler();
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
+  void runTests(std::istream &inputStream, std::ostream &outputStream);
 };
 
 #endif // JITCOMPILER_H

@@ -1,5 +1,7 @@
 #include "BinaryOperationTest.h"
 
+BinaryOperationTest::BinaryOperationTest() { repl = std::make_unique<Repl>(); }
+
 void BinaryOperationTest::SetUp() {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
 }
@@ -12,8 +14,7 @@ void BinaryOperationTest::setInput(const std::string &input) {
 std::string BinaryOperationTest::getOutput() const {
   return output_stream.str();
 }
-
 void BinaryOperationTest::runEvaluator() {
-  std::unique_ptr<Repl> repl = std::make_unique<Repl>();
-  repl->runForTest(input_stream, output_stream);
+
+  repl->runTests(input_stream, output_stream);
 }

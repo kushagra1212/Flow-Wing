@@ -1,5 +1,5 @@
 #include "While-loop.h"
-WhileLoop::WhileLoop() { repl = nullptr; }
+WhileLoop::WhileLoop() { repl = std::make_unique<Repl>(); }
 
 void WhileLoop::SetUp() {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
@@ -10,11 +10,7 @@ void WhileLoop::setInput(const std::string &input) { input_stream.str(input); }
 
 std::string WhileLoop::getOutput() const { return output_stream.str(); }
 
-void WhileLoop::runEvaluator() {
-  repl = new Repl();
-  repl->runForTest(input_stream, output_stream);
-  delete repl;
-}
+void WhileLoop::runEvaluator() { repl->runTests(input_stream, output_stream); }
 
 TEST_F(WhileLoop, BasicWhileLoop) {
   std::string input = R"(var x = 0

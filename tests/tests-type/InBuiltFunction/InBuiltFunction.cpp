@@ -1,6 +1,6 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() { repl = nullptr; }
+InBuiltFunction::InBuiltFunction() { repl = std::make_unique<Repl>(); }
 
 void InBuiltFunction::SetUp() {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
@@ -14,9 +14,8 @@ void InBuiltFunction::setInput(const std::string &input) {
 std::string InBuiltFunction::getOutput() const { return output_stream.str(); }
 
 void InBuiltFunction::runEvaluator() {
-  repl = new Repl();
-  repl->runForTest(input_stream, output_stream);
-  delete repl;
+
+  repl->runTests(input_stream, output_stream);
 }
 
 // TESTS

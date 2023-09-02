@@ -8,7 +8,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**/**.cpp)
 
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/just-in-time-compiler/JITCompiler.cpp")
+list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/REPL/Repl.cpp")
 list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -30,7 +30,7 @@ else()
 endif()
 
 # Link the executable with the adjusted name
-add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/REPL/Repl.cpp" ${SOURCES})
+add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/just-in-time-compiler/JITCompiler.cpp" ${SOURCES})
 target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread LLVM)
 
 # Set the output name of the executable

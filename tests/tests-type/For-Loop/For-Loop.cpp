@@ -1,6 +1,6 @@
 #include "For-Loop.h"
 
-ForLoopReplTest::ForLoopReplTest() { repl = nullptr; }
+ForLoopReplTest::ForLoopReplTest() { repl = std::make_unique<Repl>(); }
 
 void ForLoopReplTest::SetUp() {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
@@ -14,9 +14,7 @@ void ForLoopReplTest::setInput(const std::string &input) {
 std::string ForLoopReplTest::getOutput() const { return output_stream.str(); }
 
 void ForLoopReplTest::runEvaluator() {
-  repl = new Repl();
-  repl->runForTest(input_stream, output_stream);
-  delete repl;
+  repl->runTests(input_stream, output_stream);
 }
 
 // Basic for loop
