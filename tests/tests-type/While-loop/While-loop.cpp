@@ -1,16 +1,26 @@
 #include "While-loop.h"
-WhileLoop::WhileLoop() { repl = std::make_unique<Repl>(); }
 
-void WhileLoop::SetUp() {
-  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
+WhileLoop::WhileLoop() {
+#ifdef JIT_TEST_MODE
+  _test = std::make_unique<JITCompilerTest>();
+#endif
+
+#ifdef REPL_TEST_MODE
+  _test = std::make_unique<ReplTest>();
+#endif
 }
-void WhileLoop::TearDown() { std::cout.rdbuf(saved_cout_buf); }
 
-void WhileLoop::setInput(const std::string &input) { input_stream.str(input); }
+void WhileLoop::SetUp() { _test->SetUp(); }
 
-std::string WhileLoop::getOutput() const { return output_stream.str(); }
+void WhileLoop::TearDown() { _test->TearDown(); }
 
-void WhileLoop::runEvaluator() { repl->runTests(input_stream, output_stream); }
+void WhileLoop::setInput(const std::string &input) { _test->setInput(input); }
+
+std::string WhileLoop::getOutput() const { return _test->getOutput(); }
+
+void WhileLoop::runEvaluator() { _test->runEvaluator(); }
+
+// TESTS
 
 TEST_F(WhileLoop, BasicWhileLoop) {
   std::string input = R"(var x = 0

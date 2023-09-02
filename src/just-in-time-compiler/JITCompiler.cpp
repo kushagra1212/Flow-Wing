@@ -73,12 +73,6 @@ void JITCompiler::compile(std::vector<std::string> &text,
 void JITCompiler::runTests(std::istream &inputStream,
                            std::ostream &outputStream) {
 
-  std::string line;
-  std::vector<std::string> text = std::vector<std::string>();
-  while (std::getline(inputStream, line)) {
-    text.push_back(line);
-  }
-
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>();
 
@@ -141,14 +135,16 @@ void JITCompiler::runTests(std::istream &inputStream,
   }
 }
 
-#ifdef TEST_MODE
+#ifdef JIT_TEST_MODE
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-#else
+#endif
+
+#ifdef JIT_MODE
 
 int main(int argc, char *argv[]) {
 

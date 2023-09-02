@@ -1,10 +1,11 @@
 #ifndef BINARY_OPERATION_TESTS_H
 #define BINARY_OPERATION_TESTS_H
 
-#include "../../../src/just-in-time-compiler/JITCompiler.h"
-
 #include "../../../src/REPL/Repl.h"
-#include <gtest/gtest.h>
+#include "../../BaseTest/BaseTest.h"
+#include "../../JITCompilerTest/JITCompilerTest.h"
+#include "../../ReplTest/ReplTest.h"
+
 class BinaryOperationTest : public ::testing::Test {
 protected:
   BinaryOperationTest();
@@ -13,12 +14,7 @@ protected:
   void setInput(const std::string &input);
   void runEvaluator();
   std::string getOutput() const;
-  // Common methods
 
-  std::unique_ptr<Repl> repl;
-
-  std::stringstream input_stream;
-  std::stringstream output_stream;
-  std::streambuf *saved_cout_buf;
+  std::unique_ptr<BaseTest> _test;
 };
 #endif // BINARY_OPERATION_H

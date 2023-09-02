@@ -1,8 +1,9 @@
 #ifndef WHILE_LOOP_H
 #define WHILE_LOOP_H
 #include "../../../src/REPL/Repl.h"
-#include <gtest/gtest.h>
-
+#include "../../BaseTest/BaseTest.h"
+#include "../../JITCompilerTest/JITCompilerTest.h"
+#include "../../ReplTest/ReplTest.h"
 class WhileLoop : public ::testing::Test {
 protected:
   WhileLoop();
@@ -13,11 +14,6 @@ protected:
   std::string getOutput() const;
   void runEvaluator();
 
-  std::unique_ptr<Repl> repl;
-  std::stringstream input_stream;
-  std::stringstream output_stream;
-  std::streambuf *saved_cout_buf;
-  std::stringstream captured_output;
-  std::streambuf *cout_backup;
+  std::unique_ptr<BaseTest> _test;
 };
 #endif // VARIABLE_DECLARATION_H

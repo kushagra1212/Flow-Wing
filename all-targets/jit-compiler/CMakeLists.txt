@@ -8,7 +8,6 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**/**.cpp)
 
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/REPL/Repl.cpp")
 list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -16,9 +15,10 @@ add_definitions(${LLVM_DEFINITIONS})
 
 # Conditionally define TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
-    add_compile_definitions(TEST_MODE)
+    add_compile_definitions(JIT_TEST_MODE)
+else()
+    add_compile_definitions(JIT_MODE)
 endif()
-
 # Set the default executable name
 set(DEFAULT_EXECUTABLE_NAME "Elang")
 

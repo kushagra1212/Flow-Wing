@@ -1,23 +1,26 @@
 #include "If-Or-If-Else.h"
 
-IfORIFELSEReplTest::IfORIFELSEReplTest() { repl = std::make_unique<Repl>(); }
+IfORIFELSEReplTest::IfORIFELSEReplTest() {
+#ifdef JIT_TEST_MODE
+  _test = std::make_unique<JITCompilerTest>();
+#endif
 
-void IfORIFELSEReplTest::SetUp() {
-  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
+#ifdef REPL_TEST_MODE
+  _test = std::make_unique<ReplTest>();
+#endif
 }
-void IfORIFELSEReplTest::TearDown() { std::cout.rdbuf(saved_cout_buf); }
+
+void IfORIFELSEReplTest::SetUp() { _test->SetUp(); }
+
+void IfORIFELSEReplTest::TearDown() { _test->TearDown(); }
 
 void IfORIFELSEReplTest::setInput(const std::string &input) {
-  input_stream.str(input);
+  _test->setInput(input);
 }
 
-std::string IfORIFELSEReplTest::getOutput() const {
-  return output_stream.str();
-}
+std::string IfORIFELSEReplTest::getOutput() const { return _test->getOutput(); }
 
-void IfORIFELSEReplTest::runEvaluator() {
-  repl->runTests(input_stream, output_stream);
-}
+void IfORIFELSEReplTest::runEvaluator() { _test->runEvaluator(); }
 
 // TESTS
 

@@ -1,22 +1,26 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() { repl = std::make_unique<Repl>(); }
+InBuiltFunction::InBuiltFunction() {
+#ifdef JIT_TEST_MODE
+  _test = std::make_unique<JITCompilerTest>();
+#endif
 
-void InBuiltFunction::SetUp() {
-  saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
+#ifdef REPL_TEST_MODE
+  _test = std::make_unique<ReplTest>();
+#endif
 }
-void InBuiltFunction::TearDown() { std::cout.rdbuf(saved_cout_buf); }
+
+void InBuiltFunction::SetUp() { _test->SetUp(); }
+
+void InBuiltFunction::TearDown() { _test->TearDown(); }
 
 void InBuiltFunction::setInput(const std::string &input) {
-  input_stream.str(input);
+  _test->setInput(input);
 }
 
-std::string InBuiltFunction::getOutput() const { return output_stream.str(); }
+std::string InBuiltFunction::getOutput() const { return _test->getOutput(); }
 
-void InBuiltFunction::runEvaluator() {
-
-  repl->runTests(input_stream, output_stream);
-}
+void InBuiltFunction::runEvaluator() { _test->runEvaluator(); }
 
 // TESTS
 

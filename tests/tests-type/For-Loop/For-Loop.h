@@ -1,7 +1,9 @@
 #ifndef FOR_LOOP_TEST_H
 #define FOR_LOOP_TEST_H
 #include "../../../src/REPL/Repl.h"
-#include <gtest/gtest.h>
+#include "../../BaseTest/BaseTest.h"
+#include "../../JITCompilerTest/JITCompilerTest.h"
+#include "../../ReplTest/ReplTest.h"
 class ForLoopReplTest : public ::testing::Test {
 protected:
   ForLoopReplTest();
@@ -12,10 +14,6 @@ protected:
   std::string getOutput() const;
   void runEvaluator();
 
-  // Common methods
-  std::unique_ptr<Repl> repl;
-  std::stringstream input_stream;
-  std::stringstream output_stream;
-  std::streambuf *saved_cout_buf;
+  std::unique_ptr<BaseTest> _test;
 };
 #endif // FOR_LOOP_H

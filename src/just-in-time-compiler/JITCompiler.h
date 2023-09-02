@@ -3,7 +3,9 @@
 
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
+
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 
 class JITCompiler {
@@ -11,7 +13,9 @@ public:
   JITCompiler();
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
+  void addString(std::string &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
+  std::vector<std::string> text = std::vector<std::string>();
 };
 
 #endif // JITCOMPILER_H

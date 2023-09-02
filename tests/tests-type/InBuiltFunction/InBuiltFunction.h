@@ -1,7 +1,9 @@
 #ifndef IN_BUILT_FUNCTIONS_H
 #define IN_BUILT_FUNCTIONS_H
 #include "../../../src/REPL/Repl.h"
-#include <gtest/gtest.h>
+#include "../../BaseTest/BaseTest.h"
+#include "../../JITCompilerTest/JITCompilerTest.h"
+#include "../../ReplTest/ReplTest.h"
 
 class InBuiltFunction : public ::testing::Test {
 protected:
@@ -13,10 +15,7 @@ protected:
   std::string getOutput() const;
   void runEvaluator();
 
-  std::unique_ptr<Repl> repl;
-  std::stringstream input_stream;
-  std::stringstream output_stream;
-  std::streambuf *saved_cout_buf;
+  std::unique_ptr<BaseTest> _test;
 };
 
 #endif // IN_BUILT_FUNCTIONS_H

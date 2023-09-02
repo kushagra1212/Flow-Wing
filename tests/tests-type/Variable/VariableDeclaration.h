@@ -1,9 +1,9 @@
 #ifndef VARIABLE_DECLARATION_H
 #define VARIABLE_DECLARATION_H
 #include "../../../src/REPL/Repl.h"
-#include <algorithm> // For std::remove_if
-#include <cctype>    // For std::isspace
-#include <gtest/gtest.h>
+#include "../../BaseTest/BaseTest.h"
+#include "../../JITCompilerTest/JITCompilerTest.h"
+#include "../../ReplTest/ReplTest.h"
 
 class VariableDeclaration : public ::testing::Test {
 protected:
@@ -14,12 +14,6 @@ protected:
   std::string getOutput() const;
   void runEvaluator();
 
-  std::unique_ptr<Repl> repl;
-
-  std::stringstream input_stream;
-  std::stringstream output_stream;
-  std::streambuf *saved_cout_buf;
-  std::stringstream captured_output;
-  std::streambuf *cout_backup;
+  std::unique_ptr<BaseTest> _test;
 };
 #endif // VARIABLE_DECLARATION_H
