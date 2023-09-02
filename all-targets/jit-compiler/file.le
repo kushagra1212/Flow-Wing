@@ -1,5 +1,4 @@
-/# Calulate sum  of natural number #/
-
+// Calulate sum  of natural number //
 fun main() {
     var num = 10
     var sum = 0
@@ -8,9 +7,7 @@ fun main() {
         sum = sum + i
         i = i - 1
     }
-
     print("Sum = "+ sum + sum)
 }
-
 main()
-
+// print(2)

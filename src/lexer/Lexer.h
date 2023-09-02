@@ -34,7 +34,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> readString(const int &start);
   std::unique_ptr<SyntaxToken<std::any>> readEndOfFile();
   std::unique_ptr<SyntaxToken<std::any>> readEndOfLine();
-  std::unique_ptr<SyntaxToken<std::any>> readComment();
+  std::unique_ptr<SyntaxToken<std::any>> readMultiLineComment();
+  std::unique_ptr<SyntaxToken<std::any>> readSingleLineComment();
   bool isEndOfLineOrFile();
 };
 #endif // LEXER_H
