@@ -2,7 +2,7 @@
 
 std::vector<Utils::FunctionSymbol> Utils::BuiltInFunctions::getAllFunctions() {
   return std::vector<FunctionSymbol>(
-      {print, random, input, String, Int32, Double, Bool});
+      {print, random, input, String, Int32, Decimal, Bool});
 }
 
 Utils::FunctionSymbol
@@ -14,6 +14,16 @@ Utils::BuiltInFunctions::getFunctionSymbol(std::string name) {
   }
   return FunctionSymbol();
 }
+
+auto Utils::BuiltInFunctions::isBuiltInFunction(std::string name) -> bool {
+  for (FunctionSymbol function : getAllFunctions()) {
+    if (function.name == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Utils::FunctionSymbol Utils::BuiltInFunctions::input =
     FunctionSymbol("input",
                    std::vector<FunctionParameterSymbol>({
@@ -28,7 +38,7 @@ Utils::FunctionSymbol Utils::BuiltInFunctions::print =
                    std::vector<FunctionParameterSymbol>({
                        FunctionParameterSymbol("value", false),
                    }),
-                   type::VOID);
+                   type::NOTHING);
 
 Utils::FunctionSymbol Utils::BuiltInFunctions::Int32 =
     FunctionSymbol("Int32",
@@ -37,12 +47,12 @@ Utils::FunctionSymbol Utils::BuiltInFunctions::Int32 =
                    }),
                    type::INT32);
 
-Utils::FunctionSymbol Utils::BuiltInFunctions::Double =
-    FunctionSymbol("Double",
+Utils::FunctionSymbol Utils::BuiltInFunctions::Decimal =
+    FunctionSymbol("Decimal",
                    std::vector<Utils::FunctionParameterSymbol>({
                        Utils::FunctionParameterSymbol("value", false),
                    }),
-                   type::DOUBLE);
+                   type::DECIMAL);
 
 Utils::FunctionSymbol Utils::BuiltInFunctions::String =
     FunctionSymbol("String",

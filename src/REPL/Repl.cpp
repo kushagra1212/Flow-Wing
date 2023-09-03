@@ -157,7 +157,7 @@ void Repl::compileAndEvaluate(
       return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
     });
     _diagnosticHandler.reset(new DiagnosticHandler());
-
+    _previousGlobalScope = std::move(globalScope->previous);
     return;
   }
 

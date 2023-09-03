@@ -39,7 +39,7 @@ private:
   Interpreter *previous = nullptr;
   std::stack<std::map<std::string, Utils::Variable>> variable_stack;
   std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
-  std::stack<int> return_count_stack;
+  std::stack<std::pair<Utils::type, int>> return_type_stack;
   BoundScopeGlobal *_globalScope = nullptr;
   std::unique_ptr<InterpreterUtils> _interpreterUtils;
   int break_count = 0, continue_count = 0, showResult = 1;
@@ -64,6 +64,7 @@ private:
   template <typename T> T evaluateAssignmentExpression(BoundExpression *node);
   template <typename T> T evaluateVariableExpression(BoundExpression *node);
   template <typename T> T evaluate(BoundExpression *node);
+  std::any handleBuiltInFunction(BoundCallExpression *node);
 
   std::any unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,
                                     std::any operand);

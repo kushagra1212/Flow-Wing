@@ -184,6 +184,34 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::ConstKeyword, start,
         text, "const");
+  } else if (text == "nthg") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::NthgKeyword, start, text,
+        "nthg");
+  }
+
+  else if (text == "int") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::Int32Keyword, start,
+        text, "int");
+  }
+
+  else if (text == "bool") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::BoolKeyword, start, text,
+        "bool");
+  }
+
+  else if (text == "str") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::StrKeyword, start, text,
+        "string");
+  }
+
+  else if (text == "deci") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::DeciKeyword, start, text,
+        "double");
   }
 
   return std::make_unique<SyntaxToken<std::any>>(
@@ -278,6 +306,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::MinusToken,
         this->position++, "-", nullptr);
+
   case '*':
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::StarToken,
@@ -329,6 +358,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::ColonToken,
         this->position++, ":", nullptr);
+
   case '&': {
 
     if (this->position + 1 < this->_sourceCode[lineNumber].length() &&

@@ -63,6 +63,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
+    _evaluator->printIR();
     _evaluator->executeGeneratedCode();
     outputStream << std::endl;
 

@@ -29,6 +29,8 @@ std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
   return std::move(_body);
 }
 
+Utils::type FunctionDeclarationSyntax::getReturnType() { return _returnType; }
+
 SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
@@ -117,6 +119,10 @@ void FunctionDeclarationSyntax::setCloseParenthesisToken(
 void FunctionDeclarationSyntax::setBody(
     std::unique_ptr<BlockStatementSyntax> body) {
   _body = std::move(body);
+}
+
+void FunctionDeclarationSyntax::setReturnType(Utils::type returnType) {
+  _returnType = returnType;
 }
 
 void FunctionDeclarationSyntax::addSeparator(

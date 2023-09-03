@@ -163,14 +163,20 @@ std::string Utils::getSourceCode(CompilationUnitSyntax *compilationUnit) {
 }
 
 std::string Utils::getTypeString(const std::any &value) {
+  return Utils::typeToString(Utils::getTypeFromAny(value));
+}
+
+Utils::type Utils::getTypeFromAny(const std::any &value) {
   if (value.type() == typeid(int)) {
-    return "int";
+    return Utils::type::INT32;
   } else if (value.type() == typeid(double)) {
-    return "double";
+    return Utils::type::DECIMAL;
   } else if (value.type() == typeid(std::string)) {
-    return "std::string";
+    return Utils::type::STRING;
+  } else if (value.type() == typeid(bool)) {
+    return Utils::type::BOOL;
   } else {
-    return "unknown";
+    return Utils::type::NOTHING;
   }
 }
 
@@ -213,6 +219,25 @@ bool Utils::isDouble(const std::string &str) {
   // exponent)
   std::regex doublePattern("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$");
   return std::regex_match(str, doublePattern);
+}
+
+auto Utils::typeToString(Utils::type type) -> std::string {
+  switch (type) {
+  case Utils::type::INT32:
+    return "Integer";
+  case Utils::type::DECIMAL:
+    return "Decimal";
+  case Utils::type::STRING:
+    return "String";
+  case Utils::type::BOOL:
+    return "Boolean";
+  case Utils::type::NOTHING:
+    return "Nothing";
+  default:
+    break;
+  }
+
+  return "Unknown";
 }
 
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {

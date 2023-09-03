@@ -34,6 +34,11 @@ enum SyntaxKind {
   SlashHashToken,
   HashSlashToken,
   HashToken,
+  NthgKeyword,
+  Int32Keyword,
+  DeciKeyword,
+  StrKeyword,
+  BoolKeyword,
 
   // Bitwise
 
