@@ -394,16 +394,16 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
         returnStatement->getReturnExpressionPtr() == nullptr) {
 
       this->_interpreterUtils->logError(
-          "Unexpected return statement, expected return type " +
-          Utils::typeToString(return_type));
+          "Function return type is not Nothing, return "
+          "expression is not found");
 
     }
 
     else if (return_type == Utils::type::NOTHING &&
              returnStatement->getReturnExpressionPtr() != nullptr) {
       this->_interpreterUtils->logError(
-          "Unexpected return statement, expected return type " +
-          Utils::typeToString(return_type));
+          "Function return type is Nothing, return "
+          "expression is found");
 
     } else {
       if (returnStatement->getReturnExpressionPtr() != nullptr) {

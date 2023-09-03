@@ -1,10 +1,13 @@
 // Calulate sum  of natural number //
-fun main(val) -> nthg {
-    val =val+ 2
-    print(val+2)
-    return 
+// fun main(val) -> nthg {
+//     val =val+ 2
+//     print(val+2)
+//     return:
+// }
+fun val(mystr) -> str {
+    return "s"+mystr
 }
-fun val() -> str {
-    return "Hello"
-}
-main(2)
+val("x")
+print(val("2"))
+// x=val("World")
+// print(x)

@@ -73,6 +73,7 @@ private:
 
   std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
   std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
+  std::stack<std::pair<Utils::type, llvm::AllocaInst *>> _returnAllocaStack;
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
 

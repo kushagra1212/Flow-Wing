@@ -10,6 +10,7 @@ namespace ELANG::EVALUATOR::CONSTANTS {
 extern const std::string ELANG_CONTINUE_COUNT;
 extern const std::string ELANG_BREAK_COUNT;
 extern const std::string ELANG_GLOBAL_ZERO;
+extern const std::string ELANG_GLOBAL_RETURN_COUNT;
 
 // For Error
 

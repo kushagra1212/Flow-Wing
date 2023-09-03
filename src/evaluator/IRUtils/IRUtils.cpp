@@ -909,6 +909,47 @@ void IRUtils::decrementCountIfNotZero(const std::string name) {
   Builder->SetInsertPoint(endBlock);
 }
 
+llvm::Type *IRUtils::getReturnType(Utils::type type) {
+  switch (type) {
+  case Utils::type::INT32:
+    return llvm::Type::getInt32Ty(*TheContext);
+    break;
+  case Utils::type::DECIMAL:
+    return llvm::Type::getDoubleTy(*TheContext);
+    break;
+  case Utils::type::BOOL:
+    return llvm::Type::getInt1Ty(*TheContext);
+    break;
+  case Utils::type::STRING:
+    return llvm::Type::getInt8PtrTy(*TheContext);
+    break;
+  case Utils::type::NOTHING:
+    return llvm::Type::getInt8PtrTy(*TheContext);
+    break;
+  default:
+    break;
+  }
+  return llvm::Type::getVoidTy(*TheContext);
+}
+
+Utils::type IRUtils::getReturnType(llvm::Type *type) {
+
+  if (type->isIntegerTy(32)) {
+    return (Utils::type::INT32);
+  } else if (type->isDoubleTy()) {
+    return (Utils::type::DECIMAL);
+  } else if (type->isIntegerTy(1)) {
+    return (Utils::type::BOOL);
+  } else if (type->isPointerTy() &&
+             type->getPointerElementType()->isIntegerTy(8)) {
+    return (Utils::type::STRING);
+  } else if (type->isVoidTy()) {
+    return (Utils::type::NOTHING);
+  } else {
+    return Utils::type::UNKNOWN;
+  }
+}
+
 llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {

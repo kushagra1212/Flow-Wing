@@ -214,6 +214,14 @@ void IRGenerator::defineStandardFunctions() {
   llvm::GlobalVariable *globalErrorCount = new llvm::GlobalVariable(
       *TheModule, errorCount->getType(), false,
       llvm::GlobalValue::ExternalLinkage, errorCount, ELANG_GLOBAL_ERROR);
+
+  llvm::Constant *returnCount =
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
+
+  llvm::GlobalVariable *globalReturnCount =
+      new llvm::GlobalVariable(*TheModule, returnCount->getType(), false,
+                               llvm::GlobalValue::ExternalLinkage, returnCount,
+                               ELANG_GLOBAL_RETURN_COUNT);
 }
 
 llvm::Value *
@@ -501,7 +509,8 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
   llvm::BasicBlock *afterNestedBlock = llvm::BasicBlock::Create(
       *TheContext, "afterNestedBlock", currentBlock->getParent());
 
-  std::vector<llvm::BasicBlock *> nestedBlocks, checkContinueBlocks;
+  std::vector<llvm::BasicBlock *> nestedBlocks, checkContinueBlocks,
+      checkReturnBlocks;
   int statementSize = blockStatement->getStatements().size();
   int indexForStatements = 0;
 
@@ -515,6 +524,11 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
         *TheContext, "checkContinueBlock", currentBlock->getParent());
 
     checkContinueBlocks.push_back(checkContinueBlock);
+
+    llvm::BasicBlock *checkReturnBlock = llvm::BasicBlock::Create(
+        *TheContext, "checkReturnBlock", currentBlock->getParent());
+
+    checkReturnBlocks.push_back(checkReturnBlock);
 
     indexForStatements++;
   }
@@ -538,6 +552,13 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
     Builder->CreateCondBr(
         this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
+                                    llvm::Type::getInt32Ty(*TheContext)),
+        checkReturnBlocks[i], afterNestedBlock);
+
+    Builder->SetInsertPoint(checkReturnBlocks[i]);
+
+    Builder->CreateCondBr(
+        this->_irUtils->isCountZero(ELANG_GLOBAL_RETURN_COUNT,
                                     llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
@@ -641,7 +662,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
     Builder->SetInsertPoint(errorBlock);
 
     Builder->CreateBr(returnBlock);
-
   } else {
 
     Builder->CreateBr(returnBlock);
@@ -1035,13 +1055,19 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
 
   std::string functionName = node->_functionSymbol.name;
 
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
+
   std::vector<llvm::Type *> argTypes;
   for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
+  llvm::Type *returnType =
+      this->_irUtils->getReturnType(node->getFunctionSymbol().getReturnType());
 
-  llvm::FunctionType *FT = llvm::FunctionType::get(
-      llvm::Type::getInt8PtrTy(*TheContext), argTypes, false);
+  this->_returnAllocaStack.push(
+      {node->getFunctionSymbol().getReturnType(), nullptr});
+
+  llvm::FunctionType *FT = llvm::FunctionType::get(returnType, argTypes, false);
 
   llvm::Function *F = llvm::Function::Create(
       FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
@@ -1078,11 +1104,50 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
   }
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
+  this->_irUtils->decrementCountIfNotZero(ELANG_GLOBAL_RETURN_COUNT);
 
-  Builder->CreateRet(getNull());
+  // Error Check
+  llvm::BasicBlock *current = Builder->GetInsertBlock();
+  llvm::Value *isTypeMatch;
 
+  if (this->_returnAllocaStack.top().first ==
+      this->_irUtils->getReturnType(returnType)) {
+    isTypeMatch = Builder->getTrue();
+  } else {
+    isTypeMatch = Builder->getFalse();
+  }
+
+  llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+      *TheContext, "error", Builder->GetInsertBlock()->getParent());
+  llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+      *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+
+  Builder->CreateCondBr(isTypeMatch, errorExit, errorBlock);
+  Builder->SetInsertPoint(errorBlock);
+
+  std::string errorMessage =
+      "Return Type Mismatch in " + functionName + " " +
+      Utils::typeToString(this->_irUtils->getReturnType(returnType)) +
+      " is expected" + " but " +
+      Utils::typeToString(this->_returnAllocaStack.top().first) + " is found";
+
+  this->_irUtils->logError(errorMessage);
+
+  Builder->CreateBr(errorExit);
+  Builder->SetInsertPoint(errorExit);
+
+  if (this->_returnAllocaStack.top().second) {
+
+    llvm::Value *loadedReturnValue =
+        Builder->CreateLoad(returnType, this->_returnAllocaStack.top().second);
+
+    Builder->CreateRet(loadedReturnValue);
+  } else {
+    Builder->CreateRetVoid();
+  }
+
+  this->_returnAllocaStack.pop();
   this->_NamedValuesStack.pop();
-
   this->_NamedValuesAllocaStack.pop();
 
   llvm::verifyFunction(*F);
@@ -1093,7 +1158,6 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
                                       this->_NamedValuesAllocaStack);
 
   this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-
                                       this->_NamedValuesAllocaStack);
 }
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
@@ -1156,16 +1220,55 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
     this->_irUtils->setCurrentSourceLocation(returnStatement->getLocation());
 
-    llvm::Value *returnValue = getNull();
+    llvm::Value *returnValue = getNull(); // default return value
 
-    if (returnStatement->getReturnExpressionPtr() != nullptr) {
-      llvm::Value *returnValue = this->generateEvaluateExpressionStatement(
-          returnStatement->getReturnExpressionPtr().get());
-      Builder->CreateRet(this->_irUtils->convertToString(returnValue));
+    llvm::Value *hasError = Builder->getFalse();
+    std::string errorMessage = "";
 
+    if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
+        returnStatement->getReturnExpressionPtr() == nullptr) {
+      hasError = Builder->getTrue();
+      errorMessage = "Function return type is not Nothing, return "
+                     "expression is not found";
+    } else if (this->_returnAllocaStack.top().first == Utils::type::NOTHING &&
+               returnStatement->getReturnExpressionPtr() != nullptr) {
+      hasError = Builder->getTrue();
+      errorMessage = "Function return type is Nothing, return "
+                     "expression is found";
     } else {
-      Builder->CreateRet(returnValue);
+      hasError = Builder->getFalse();
     }
+
+    llvm::BasicBlock *current = Builder->GetInsertBlock();
+    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+        *TheContext, "errorBlock", current->getParent());
+    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+        *TheContext, "errorExit", current->getParent());
+
+    Builder->CreateCondBr(hasError, errorBlock, errorExit);
+
+    Builder->SetInsertPoint(errorBlock);
+
+    this->_irUtils->logError(errorMessage);
+
+    Builder->CreateBr(errorExit);
+
+    Builder->SetInsertPoint(errorExit);
+
+    if (returnStatement->getReturnExpressionPtr() != nullptr &&
+        this->_returnAllocaStack.top().first != Utils::type::NOTHING) {
+      returnValue = this->generateEvaluateExpressionStatement(
+          returnStatement->getReturnExpressionPtr().get());
+      llvm::AllocaInst *returnValueStorage =
+          Builder->CreateAlloca(returnValue->getType());
+      Builder->CreateStore(returnValue, returnValueStorage);
+      this->_returnAllocaStack.top().first =
+          this->_irUtils->getReturnType(returnValue->getType());
+      this->_returnAllocaStack.top().second = returnValueStorage;
+    }
+
+    this->_irUtils->incrementCount(ELANG_GLOBAL_RETURN_COUNT);
+
     return returnValue;
     break;
   }

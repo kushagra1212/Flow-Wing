@@ -80,6 +80,7 @@ class IRUtils;
 
 #include "../llvm/IRGenerator.h"
 
+#include "../../utils/Utils.h"
 #include <llvm/Support/raw_ostream.h>
 #include <sstream>
 
@@ -115,6 +116,8 @@ public:
 
   bool isStringType(llvm::Type *type);
 
+  Utils::type getReturnType(llvm::Type *type);
+
   bool isIntType(llvm::Type *type);
 
   bool isBoolType(llvm::Type *type);
@@ -134,6 +137,8 @@ public:
   llvm::Value *explicitConvertToBool(llvm::Value *val);
 
   llvm::Value *itos(llvm::Value *num);
+
+  llvm::Type *getReturnType(Utils::type type);
 
   llvm::Value *
   getResultFromBinaryOperationOnDouble(llvm::Value *lhsValue,

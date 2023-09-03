@@ -300,6 +300,9 @@ std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {
         std::move(this->parseExpression());
     return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
                                                    std::move(expression));
+  } else {
+
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
   }
 
   return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
