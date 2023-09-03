@@ -187,7 +187,8 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
   }
 }
 
-llvm::Value *IRUtils::getLLVMValue(std::any value) {
+llvm::Value *IRUtils::getLLVMValue(std::any value,
+                                   SyntaxKindUtils::SyntaxKind kind) {
   if (value.type() == typeid(int)) {
     return llvm::ConstantInt::get(
         *TheContext, llvm::APInt(32, std::any_cast<int>(value), true));
@@ -209,22 +210,25 @@ llvm::Value *IRUtils::getLLVMValue(std::any value) {
 
     //  if the string contains only decimal numbers
 
-    if (Utils::isInteger(strValue)) {
-      // larger integer type
-      llvm::APInt llvmLongIntValue(32, strValue, 10);
-      llvm::Constant *llvmValue =
-          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
+    if (kind == SyntaxKindUtils::NumberToken) {
 
-      return llvmValue;
-    }
+      if (Utils::isInteger(strValue)) {
+        // larger integer type
+        llvm::APInt llvmLongIntValue(32, strValue, 10);
+        llvm::Constant *llvmValue =
+            llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
 
-    if (Utils::isDouble(strValue)) {
-      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
-                                    strValue.c_str());
-      llvm::Constant *llvmValue =
-          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
+        return llvmValue;
+      }
 
-      return llvmValue;
+      if (Utils::isDouble(strValue)) {
+        llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
+                                      strValue.c_str());
+        llvm::Constant *llvmValue =
+            llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
+
+        return llvmValue;
+      }
     }
 
     llvm::Constant *strConstant =

@@ -95,7 +95,7 @@ public:
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
           llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler);
 
-  llvm::Value *getLLVMValue(std::any value);
+  llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
   size_t calculateStringLength(llvm::Value *strPtr);
   llvm::Value *isCountZero(const std::string name, llvm::Type *ty);

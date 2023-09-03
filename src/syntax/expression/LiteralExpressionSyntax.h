@@ -13,8 +13,8 @@ private:
 public:
   LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
                           T value);
-
   std::string getKindText();
+  SyntaxKindUtils::SyntaxKind getSyntaxKind();
   T getValue();
   std::unique_ptr<SyntaxToken<std::any>> getToken();
 

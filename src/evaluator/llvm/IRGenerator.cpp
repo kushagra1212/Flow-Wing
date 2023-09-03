@@ -50,7 +50,8 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
 
   this->_irUtils->setCurrentSourceLocation(literalExpression->getLocation());
 
-  llvm::Value *val = this->_irUtils->getLLVMValue(value);
+  llvm::Value *val =
+      this->_irUtils->getLLVMValue(value, literalExpression->getSyntaxKind());
 
   if (val == nullptr) {
 
@@ -359,7 +360,25 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
+      llvm::Value *isZero = this->_irUtils->isCountZero(
+          ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
+
+      llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
+          *TheContext, "printBlock", Builder->GetInsertBlock()->getParent());
+
+      llvm::BasicBlock *afterPrintBlock =
+          llvm::BasicBlock::Create(*TheContext, "afterPrintBlock",
+                                   Builder->GetInsertBlock()->getParent());
+
+      Builder->CreateCondBr(isZero, printBlock, afterPrintBlock);
+
+      Builder->SetInsertPoint(printBlock);
+
       this->_irUtils->printFunction(strPtri8, false);
+
+      Builder->CreateBr(afterPrintBlock);
+
+      Builder->SetInsertPoint(afterPrintBlock);
 
       return this->getNull();
     }
@@ -414,6 +433,32 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
   llvm::FunctionType *functionType = calleeFunction->getFunctionType();
   std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
                                        functionType->param_end());
+
+  // Callefunction param types and args check for type are same or not
+
+  for (int i = 0; i < paramTypes.size(); i++) {
+    if (paramTypes[i] != args[i]->getType()) {
+
+      const std::string parameterName =
+          this->_boundedUserFunctions[functionName]
+              ->getFunctionSymbol()
+              .parameters[i]
+              .name;
+      const std::string argumentType = Utils::typeToString(
+          this->_irUtils->getReturnType(args[i]->getType()));
+
+      const std::string parameterType =
+          Utils::typeToString(this->_irUtils->getReturnType(paramTypes[i]));
+
+      const std::string errorMessage = "Argument Type " + argumentType +
+                                       " does not match with " + parameterType +
+                                       " for parameter " + parameterName;
+
+      this->_irUtils->logError(errorMessage);
+      return this->getNull();
+    }
+  }
+
   return Builder->CreateCall(calleeFunction, args);
 }
 
@@ -1289,6 +1334,7 @@ int IRGenerator::executeGeneratedCode() {
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
+          .setEngineKind(llvm::EngineKind::JIT)
           .create();
   if (!executionEngine) {
     llvm::errs() << "Failed to create Execution Engine: " << errorMessage

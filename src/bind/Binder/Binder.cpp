@@ -251,7 +251,8 @@ std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
     LiteralExpressionSyntax<std::any> *literalSyntax) {
   std::any value = literalSyntax->getValue();
   return std::make_unique<BoundLiteralExpression<std::any>>(
-      literalSyntax->getSourceLocation(), value);
+      literalSyntax->getSourceLocation(), value,
+      literalSyntax->getSyntaxKind());
 }
 
 std::unique_ptr<BoundExpression>

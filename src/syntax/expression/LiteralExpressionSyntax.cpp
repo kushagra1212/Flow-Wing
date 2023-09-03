@@ -17,6 +17,11 @@ LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
   this->_children.push_back(_token.get());
 }
 
+template <typename T>
+SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getSyntaxKind() {
+  return this->_token->getKind();
+}
+
 template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->getKind());
 }
