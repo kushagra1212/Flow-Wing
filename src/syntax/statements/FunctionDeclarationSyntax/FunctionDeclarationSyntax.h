@@ -4,6 +4,7 @@
 #include "../../../Common.h"
 #include "../../MemberSyntax.h"
 
+#include "../../../utils/Utils.h"
 #include "../../SyntaxToken.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../ParameterSyntax/ParameterSyntax.h"
@@ -18,6 +19,7 @@ private:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
+  Utils::type _returnType;
 
 public:
   FunctionDeclarationSyntax();
@@ -27,6 +29,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
   std::unique_ptr<BlockStatementSyntax> getBody();
+  Utils::type getReturnType();
 
   void
   setFunctionKeyword(std::unique_ptr<SyntaxToken<std::any>> functionKeyword);
@@ -39,6 +42,7 @@ public:
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
+  void setReturnType(Utils::type returnType);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;

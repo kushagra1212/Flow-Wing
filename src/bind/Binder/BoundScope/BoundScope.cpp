@@ -99,11 +99,6 @@ bool BoundScope::tryDeclareFunction(std::string name,
 
     return false;
   }
-
-  if (this->parent) {
-    return this->parent->tryDeclareFunction(name, function);
-  }
-
   this->functions[name] = function;
   return true;
 }

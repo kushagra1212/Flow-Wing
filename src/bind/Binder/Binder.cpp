@@ -376,7 +376,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     functionSymbol =
         Utils::FunctionSymbol(InterpreterConversion::explicitConvertAnyToString(
                                   boundIdentifier->getValue()),
-                              parameters, Utils::type::VOID);
+                              parameters);
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
@@ -457,7 +457,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   }
 
   Utils::FunctionSymbol functionSymbol =
-      Utils::FunctionSymbol(function_name, parameters, Utils::type::VOID);
+      Utils::FunctionSymbol(function_name, parameters, syntax->getReturnType());
 
   this->root->incrementFunctionCount();
 

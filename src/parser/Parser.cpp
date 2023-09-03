@@ -127,6 +127,58 @@ std::unique_ptr<MemberSyntax> Parser::parseMember() {
   return std::move(this->parseGlobalStatement());
 }
 
+Utils::type Parser::parseType() {
+  switch (this->getCurrent()->getKind()) {
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+    this->match(SyntaxKindUtils::SyntaxKind::Int32Keyword);
+    return Utils::type::INT32;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+    this->match(SyntaxKindUtils::SyntaxKind::DeciKeyword);
+    return Utils::type::DECIMAL;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+    this->match(SyntaxKindUtils::SyntaxKind::StrKeyword);
+    return Utils::type::STRING;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
+    this->match(SyntaxKindUtils::SyntaxKind::BoolKeyword);
+    return Utils::type::BOOL;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
+    this->match(SyntaxKindUtils::SyntaxKind::NthgKeyword);
+    return Utils::type::NOTHING;
+  }
+  default:
+    break;
+  }
+
+  this->_diagnosticHandler->addDiagnostic(Diagnostic(
+      "Unexpected Token <" +
+          SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+          ">, Expected <" +
+          SyntaxKindUtils::to_string(
+              SyntaxKindUtils::SyntaxKind::Int32Keyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::DeciKeyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StrKeyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::BoolKeyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::NthgKeyword) +
+          ">",
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Syntactic,
+      Utils::getSourceLocation(this->getCurrent())));
+
+  return Utils::type::UNKNOWN;
+}
+
 std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
 
   std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
@@ -154,6 +206,11 @@ std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
   }
   functionDeclaration->setCloseParenthesisToken(std::move(
       this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken)));
+
+  this->match(SyntaxKindUtils::SyntaxKind::MinusToken);
+  this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
+
+  functionDeclaration->setReturnType(this->parseType());
 
   functionDeclaration->setBody(std::move(this->parseBlockStatement()));
 
@@ -235,6 +292,12 @@ std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {
     std::unique_ptr<ExpressionSyntax> expression =
         std::move(this->parseExpression());
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
+    return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
+                                                   std::move(expression));
+  } else if (this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::ColonToken) {
+    std::unique_ptr<ExpressionSyntax> expression =
+        std::move(this->parseExpression());
     return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
                                                    std::move(expression));
   }

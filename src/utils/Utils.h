@@ -16,6 +16,7 @@
 #include <typeinfo>
 
 namespace Utils {
+enum type { INT32, DECIMAL, STRING, BOOL, NOTHING, UNKNOWN };
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
 void prettyPrint(CompilationUnitSyntax *compilationUnit,
@@ -33,7 +34,7 @@ const std::string concatErrors(const std::vector<std::string> &errors,
                                bool isWarning = false);
 
 std::string getTypeString(const std::any &value);
-
+Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
 
@@ -41,7 +42,7 @@ bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
-enum type { INT32, DOUBLE, STRING, BOOL, VOID, UNKNOWN };
+auto typeToString(Utils::type type) -> std::string;
 
 enum class SymbolKind {
   Variable,
@@ -87,28 +88,14 @@ struct FunctionSymbol {
   FunctionSymbol() { this->kind = SymbolKind::None; }
   FunctionSymbol(std::string name,
                  std::vector<FunctionParameterSymbol> parameters,
-                 type return_type) {
+                 type return_type = Utils::type::NOTHING) {
     this->name = name;
     this->parameters = parameters;
     this->kind = SymbolKind::Function;
     this->return_type = return_type;
   }
 
-  const std::type_info &getReturnType() {
-    if (return_type == type::INT32) {
-      return typeid(int);
-    } else if (return_type == type::DOUBLE) {
-      return typeid(double);
-    } else if (return_type == type::STRING) {
-      return typeid(std::string);
-    } else if (return_type == type::BOOL) {
-      return typeid(bool);
-    } else if (return_type == type::VOID) {
-      return typeid(void);
-    } else {
-      return typeid(void);
-    }
-  }
+  const type &getReturnType() { return return_type; }
 
   int arity() { return (int)parameters.size(); }
 };
@@ -123,13 +110,15 @@ public:
 
   static FunctionSymbol String;
   static FunctionSymbol Int32;
-  static FunctionSymbol Double;
+  static FunctionSymbol Decimal;
   static FunctionSymbol Bool;
-  static FunctionSymbol Void;
+  static FunctionSymbol Nothing;
 
   static std::vector<FunctionSymbol> getAllFunctions();
 
   static FunctionSymbol getFunctionSymbol(std::string name);
+
+  static auto isBuiltInFunction(std::string name) -> bool;
 };
 
 } // namespace Utils

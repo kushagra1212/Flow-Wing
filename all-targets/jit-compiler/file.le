@@ -1,13 +1,10 @@
 // Calulate sum  of natural number //
-fun main() {
-    var num = 10
-    var sum = 0
-    var i = 1
-    for (i to num) {
-        sum = sum + i
-        i = i - 1
-    }
-    print("Sum = "+ sum + sum)
+fun main(val) -> nthg {
+    val =val+ 2
+    print(val+2)
+    return 
 }
-main()
-// print(2)
+fun val() -> str {
+    return "Hello"
+}
+main(2)

@@ -130,7 +130,7 @@ void Interpreter::evaluateBlockStatement(BoundBlockStatement *node) {
 
     this->evaluateStatement(statement.get());
     if (break_count || continue_count ||
-        (!return_count_stack.empty() && return_count_stack.top())) {
+        (!return_type_stack.empty() && return_type_stack.top().second)) {
       break;
     }
   }
@@ -228,7 +228,7 @@ void Interpreter::execute(BoundBlockStatement *node) {
 
     this->evaluateStatement(statement.get());
     if (break_count || continue_count ||
-        (!return_count_stack.empty() && return_count_stack.top())) {
+        (!return_type_stack.empty() && return_type_stack.top().second)) {
       break;
     }
   }
@@ -388,18 +388,44 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
     this->_interpreterUtils->setCurrentSourceLocation(
         returnStatement->getLocation());
 
-    int &return_count = this->return_count_stack.top();
-    return_count = return_count + 1;
-    if (returnStatement->getReturnExpressionPtr() != nullptr) {
-      this->last_value = this->evaluate<std::any>(
-          returnStatement->getReturnExpressionPtr().get());
+    Utils::type return_type = this->return_type_stack.top().first;
+
+    if (return_type != Utils::type::NOTHING &&
+        returnStatement->getReturnExpressionPtr() == nullptr) {
+
+      this->_interpreterUtils->logError(
+          "Unexpected return statement, expected return type " +
+          Utils::typeToString(return_type));
+
     }
-    break;
+
+    else if (return_type == Utils::type::NOTHING &&
+             returnStatement->getReturnExpressionPtr() != nullptr) {
+      this->_interpreterUtils->logError(
+          "Unexpected return statement, expected return type " +
+          Utils::typeToString(return_type));
+
+    } else {
+      if (returnStatement->getReturnExpressionPtr() != nullptr) {
+        this->last_value = this->evaluate<std::any>(
+            returnStatement->getReturnExpressionPtr().get());
+
+        if (Utils::getTypeFromAny(this->last_value) != return_type) {
+          this->_interpreterUtils->logError(
+              "Unexpected return statement, expected return type " +
+              Utils::typeToString(return_type));
+        } else {
+          this->return_type_stack.top().second =
+              this->return_type_stack.top().second + 1;
+        }
+      }
+      break;
+    }
   }
   default: {
 
     this->_interpreterUtils->logError(
-        "Unexpected node " + BinderKindUtils::to_string(node->getKind()));
+        "Unexpected " + BinderKindUtils::to_string(node->getKind()));
 
     break;
   }
@@ -538,6 +564,111 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
   }
 }
 
+std::any
+Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
+
+  Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+
+  std::size_t arguments_size = callExpression->getArguments().size();
+  if (function.name == Utils::BuiltInFunctions::input.name) {
+
+    if (arguments_size == 0) {
+      std::string input;
+      std::getline(std::cin, input);
+      return input;
+    } else if (arguments_size == 1) {
+      std::cout << InterpreterConversion::explicitConvertAnyToString(
+          this->evaluate<std::any>(callExpression->getArguments()[0].get()));
+      std::string input;
+      std::getline(std::cin, input);
+      return input;
+    } else {
+
+      this->_interpreterUtils->logError("Unexpected Function Call" +
+                                        function.name +
+                                        "Arguments Does  Not Match");
+
+      return nullptr;
+    }
+
+  } else if (function.name == Utils::BuiltInFunctions::print.name) {
+
+    if (arguments_size != 1) {
+
+      this->_interpreterUtils->logError("Unexpected Function Call" +
+                                        function.name +
+                                        "Arguments Does  Not Match");
+
+      return nullptr;
+    } else {
+
+      std::any value = (this->evaluate<std::any>(
+          (BoundExpression *)callExpression->getArguments()[0].get()));
+
+      try {
+        std::cout << InterpreterConversion::explicitConvertAnyToString(value);
+      } catch (const std::exception &e) {
+
+        this->_interpreterUtils->logError(
+            "Unexpected Function Call" + function.name +
+            "Arguments Does  Not Match" + e.what());
+      }
+      return nullptr;
+    }
+    return nullptr;
+  } else if (function.name == Utils::BuiltInFunctions::String.name) {
+    if (arguments_size == 1) {
+      std::any value = (this->evaluate<std::any>(
+          (BoundExpression *)callExpression->getArguments()[0].get()));
+      return InterpreterConversion::explicitConvertAnyToString(value);
+    }
+
+    this->_interpreterUtils->logError("Unexpected Function Call" +
+                                      function.name +
+                                      "Arguments Does  Not Match");
+    return nullptr;
+
+  } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
+    if (arguments_size == 1) {
+      std::any value = (this->evaluate<std::any>(
+          (BoundExpression *)callExpression->getArguments()[0].get()));
+      return InterpreterConversion::explicitConvertAnyToInt(value);
+    }
+
+    this->_interpreterUtils->logError("Unexpected Function Call" +
+                                      function.name +
+                                      "Arguments Does  Not Match");
+
+    return nullptr;
+
+  } else if (function.name == Utils::BuiltInFunctions::Decimal.name) {
+    if (arguments_size == 1) {
+      std::any value = (this->evaluate<std::any>(
+          (BoundExpression *)callExpression->getArguments()[0].get()));
+      return InterpreterConversion::explicitConvertToAnyToDouble(value);
+    }
+
+    this->_interpreterUtils->logError("Unexpected Function Call" +
+                                      function.name +
+                                      "Arguments Does  Not Match");
+
+    return nullptr;
+
+  } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
+    if (arguments_size == 1) {
+      std::any value = (this->evaluate<std::any>(
+          (BoundExpression *)callExpression->getArguments()[0].get()));
+      return InterpreterConversion::explicitConvertAnyToBool(value);
+    }
+
+    this->_interpreterUtils->logError("Unexpected Function Call" +
+                                      function.name +
+                                      "Arguments Does  Not Match");
+    return nullptr;
+  }
+  return nullptr;
+}
+
 template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -572,135 +703,9 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
     std::size_t arguments_size = callExpression->getArguments().size();
 
-    if (function.name == Utils::BuiltInFunctions::input.name) {
-
-      if (arguments_size == 0) {
-        std::string input;
-        std::getline(std::cin, input);
-        return input;
-      } else if (arguments_size == 1) {
-        std::cout << std::any_cast<std::string>(
-            this->evaluate<std::any>(callExpression->getArguments()[0].get()));
-        std::string input;
-        std::getline(std::cin, input);
-        return input;
-      } else {
-
-        this->_interpreterUtils->logError("Unexpected Function Call" +
-                                          function.name +
-                                          "Arguments Does  Not Match");
-
-        return nullptr;
-      }
-
-    } else if (function.name == Utils::BuiltInFunctions::print.name) {
-
-      if (arguments_size != 1) {
-
-        this->_interpreterUtils->logError("Unexpected Function Call" +
-                                          function.name +
-                                          "Arguments Does  Not Match");
-
-        return nullptr;
-      } else {
-
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[0].get()));
-
-        try {
-          std::cout << InterpreterConversion::explicitConvertAnyToString(value);
-        } catch (const std::exception &e) {
-
-          this->_interpreterUtils->logError(
-              "Unexpected Function Call" + function.name +
-              "Arguments Does  Not Match" + e.what());
-        }
-        return nullptr;
-      }
-      return nullptr;
-    } else if (function.name == Utils::BuiltInFunctions::String.name) {
-      if (arguments_size == 1) {
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[0].get()));
-        if (value.type() == typeid(std::string)) {
-          return std::any_cast<std::string>(value);
-        } else if (value.type() == typeid(int)) {
-          return std::to_string(std::any_cast<int>(value));
-        } else if (value.type() == typeid(double)) {
-          return std::to_string(std::any_cast<double>(value));
-        } else if (value.type() == typeid(bool)) {
-          return std::to_string(std::any_cast<bool>(value));
-        }
-      }
-
-      this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
-                                        "Arguments Does  Not Match");
-      return nullptr;
-
-    } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
-      if (arguments_size == 1) {
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[0].get()));
-        if (value.type() == typeid(std::string)) {
-          return std::stoi(std::any_cast<std::string>(value));
-        } else if (value.type() == typeid(int)) {
-          return std::any_cast<int>(value);
-        } else if (value.type() == typeid(double)) {
-          return int(std::any_cast<double>(value));
-        } else if (value.type() == typeid(bool)) {
-          return int(std::any_cast<bool>(value));
-        }
-      }
-
-      this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
-                                        "Arguments Does  Not Match");
-
-      return nullptr;
-
-    } else if (function.name == Utils::BuiltInFunctions::Double.name) {
-      if (arguments_size == 1) {
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[0].get()));
-        if (value.type() == typeid(std::string)) {
-          return std::stod(std::any_cast<std::string>(value));
-        } else if (value.type() == typeid(int)) {
-          return double(std::any_cast<int>(value));
-        } else if (value.type() == typeid(double)) {
-          return std::any_cast<double>(value);
-        } else if (value.type() == typeid(bool)) {
-          return double(std::any_cast<bool>(value));
-        }
-      }
-
-      this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
-                                        "Arguments Does  Not Match");
-
-      return nullptr;
-
-    } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
-      if (arguments_size == 1) {
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[0].get()));
-        if (value.type() == typeid(std::string)) {
-          bool is = std::any_cast<std::string>(value) == "false" ||
-                    std::any_cast<std::string>(value) == "0";
-          return !is;
-        } else if (value.type() == typeid(int)) {
-          return std::any_cast<int>(value) != 0;
-        } else if (value.type() == typeid(double)) {
-          return std::any_cast<double>(value) != 0;
-        } else if (value.type() == typeid(bool)) {
-          return std::any_cast<bool>(value);
-        }
-      }
-
-      this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
-                                        "Arguments Does  Not Match");
-      return nullptr;
+    // Built In Functions
+    if (Utils::BuiltInFunctions::isBuiltInFunction(function.name)) {
+      return this->handleBuiltInFunction(callExpression);
     }
 
     BoundFunctionDeclaration *functionDefination =
@@ -723,7 +728,8 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
       this->variable_stack.push(std::map<std::string, Utils::Variable>());
 
-      this->return_count_stack.push(0);
+      this->return_type_stack.push(
+          {functionDefination->getFunctionSymbol().getReturnType(), 0});
 
       std::map<std::string, Utils::Variable> &function_Variables =
           this->variable_stack.top();
@@ -744,11 +750,11 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
       this->evaluateStatement(functionDefination->getBodyPtr().get());
 
-      this->return_count_stack.pop();
+      this->return_type_stack.pop();
 
       this->variable_stack.pop();
 
-      return nullptr;
+      return this->last_value;
     } else {
 
       this->_interpreterUtils->logError("Unexpected Function Call" +
@@ -763,7 +769,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
   }
 
   this->_interpreterUtils->logError(
-      "Unexpected node " + BinderKindUtils::to_string(node->getKind()));
+      "Unexpected " + BinderKindUtils::to_string(node->getKind()));
 
   return nullptr;
 }

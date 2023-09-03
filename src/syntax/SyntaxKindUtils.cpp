@@ -190,6 +190,21 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::CommentStatement:
     return "CommentStatement";
 
+  case SyntaxKind::NthgKeyword:
+    return "NthgKeyword";
+
+  case SyntaxKind::BoolKeyword:
+    return "BoolKeyword";
+
+  case SyntaxKind::Int32Keyword:
+    return "Int32Keyword";
+
+  case SyntaxKind::DeciKeyword:
+    return "DeciKeyword";
+
+  case SyntaxKind::StrKeyword:
+    return "StrKeyword";
+
   default:
     return "NotDefined";
   }

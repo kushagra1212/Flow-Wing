@@ -70,5 +70,6 @@ private:
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  Utils::type parseType();
 };
 #endif

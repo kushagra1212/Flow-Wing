@@ -33,7 +33,7 @@ BoundCallExpression::getCallerIdentifier() {
 }
 
 const std::type_info &BoundCallExpression::getType() {
-  return _functionalSymbol.getReturnType();
+  return _callerIdentifier->getType();
 }
 
 BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() const {
