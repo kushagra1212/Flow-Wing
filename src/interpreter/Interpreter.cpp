@@ -756,7 +756,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
           Utils::type::NOTHING !=
               functionDefination->getFunctionSymbol().getReturnType()) {
         this->_interpreterUtils->logError(
-            "Function return type is not Nothing, return  statement is not "
+            "Function return type is not Nothing, return expression is not "
             "found");
       }
 

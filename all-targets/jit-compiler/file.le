@@ -14,7 +14,11 @@
 // var x=val("World")
 //  print(x)
 
-fun main()-> str {
-return 1.2
+fun main()-> int {
+return "2"
 }
 print(main())
+// print(
+// fact(Int32("5"*"S")))
+
+// print("s"*"1")

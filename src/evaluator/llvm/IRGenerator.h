@@ -73,14 +73,14 @@ private:
 
   std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
   std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
-  std::stack<std::pair<Utils::type, llvm::AllocaInst *>> _returnAllocaStack;
+  std::stack<std::pair<Utils::type, int>> _returnAllocaStack;
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
 
   std::map<std::string,
            std::vector<std::pair<llvm::AllocaInst *, llvm::Value *>>>
       _functionsParameters;
-
+  bool recursiveCall = false;
   std::unique_ptr<IRUtils> _irUtils;
 };
 

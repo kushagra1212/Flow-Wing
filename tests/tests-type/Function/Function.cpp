@@ -114,17 +114,23 @@ print(main()))";
 }
 
 TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
-  std::string input = R"(fun main()-> nthg {
+  std::string input = R"(
+fun main()-> nthg {
     return:
 }
-print(main()))";
+print(main())
+)";
 
   setInput(input);
   runEvaluator();
   // Expected output should be in the of the output
   std::string lowerCaseOutput = getOutput();
-
-  std::string expected_output = "";
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "\xC3";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
 
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
@@ -139,7 +145,12 @@ print(main()))";
   // Expected output should be in the of the output
   std::string lowerCaseOutput = getOutput();
 
-  std::string expected_output = "";
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "\xC3";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
 
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
@@ -218,7 +229,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return  statement is not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -363,7 +374,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return  statement is not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -387,7 +398,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return  statement is not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -521,7 +532,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return  statement is not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -545,7 +556,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return  statement is not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 

@@ -84,6 +84,18 @@ define i8* @getMallocPtrOfStringConstant(i8* %str) {
     ret i8* %strPtr
 }
 
+define i8* @getMallocPtrofIntConstant(i32 %num) {
+    ; Allocate memory for the string buffer
+    %buffer = call i8* @malloc(i64 12)
+    
+    ; Convert the integer to a string
+    %formatStr = getelementptr [3 x i8], [3 x i8]* @intFormat, i32 0, i32 0
+    call i32 @snprintf(i8* %buffer, i64 12, i8* %formatStr, i32 %num)
+
+    ; Return the result as a pointer to the string
+    ret i8* %buffer
+}
+
 
 define i32 @compare_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)

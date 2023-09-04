@@ -12,7 +12,7 @@ IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
 llvm::Value *IRUtils::getNamedValue(
     const std::string &name,
     std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
-  llvm::Value *value = nullptr;
+  llvm::Value *value = getNull();
   while (!NamedValuesStack.empty()) {
     std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
     if (NamedValues.find(name) != NamedValues.end()) {
@@ -256,7 +256,7 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
 
     return elementPtr;
   } else {
-    return nullptr;
+    return getNull();
   }
 }
 
@@ -521,7 +521,7 @@ llvm::Value *IRUtils::concatenateStrings(llvm::Value *lhs, llvm::Value *rhs) {
 
   if (!stringConcatenateFunc) {
     // Function not found, handle error
-    return nullptr;
+    return getNull();
 
   } else {
 
@@ -780,12 +780,9 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnString(
 
   this->setCurrentSourceLocation(binaryExpression->getLocation());
 
-  llvm::Value *result = nullptr;
+  llvm::Value *result = getNull();
 
   std::string errorMessage = "";
-
-  std::string lhsStr = this->getConstantStringFromValue(lhsValue).str();
-  std::string rhsStr = this->getConstantStringFromValue(rhsValue).str();
 
   switch (binaryExpression->getOperator()) {
 
@@ -827,8 +824,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnString(
 
   // Add more cases for other binary operators
   default: {
-    errorMessage = "Unsupported binary operator for string type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Unsupported binary operator for string type ";
     break;
   }
   }
@@ -959,8 +955,6 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
   this->setCurrentSourceLocation(binaryExpression->getLocation());
   llvm::Value *result = getNull();
   std::string errorMessage = "";
-  std::string lhsStr = valueToString(lhsValue);
-  std::string rhsStr = valueToString(rhsValue);
   switch (binaryExpression->getOperator()) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
@@ -985,49 +979,41 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
     Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage =
-        "Division by zero of " + lhsStr + " and " + rhsStr;
+    std::string errorMessage = "Division by zero";
 
     this->logError(errorMessage);
 
-    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
+    result = getNull();
     rhsValue = explicitConvertToDouble(rhsValue);
     rhsConstantFP = getConstantFPFromValue(rhsValue);
     Builder->CreateBr(errorExit);
     Builder->SetInsertPoint(errorExit);
-    return result = Builder->CreateFDiv(lhsValue, rhsConstantFP);
+    return result = Builder->CreateFDiv(lhsValue, rhsValue);
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:
-    errorMessage =
-        "Modulus is not supported for double type " + lhsStr + " and " + rhsStr;
+    errorMessage = "Modulus is not supported for double type ";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd:
-    errorMessage = "Bitwise And is not supported for double type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Bitwise And is not supported for double type ";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr:
-    errorMessage = "Bitwise Or is not supported for double type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Bitwise Or is not supported for double type ";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor:
-    errorMessage = "Bitwise Xor is not supported for double type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Bitwise Xor is not supported for double type ";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    errorMessage = "Logical And is not supported for double type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Logical And is not supported for double type ";
 
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    errorMessage = "Logical Or is not supported for double type " + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Logical Or is not supported for double type ";
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals:
@@ -1060,8 +1046,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
 
     // write the brief error message
 
-    errorMessage = "Unsupported binary operator for double type" + lhsStr +
-                   " and " + rhsStr;
+    errorMessage = "Unsupported binary operator for double type";
 
     break;
   }
