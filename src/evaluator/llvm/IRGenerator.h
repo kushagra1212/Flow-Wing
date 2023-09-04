@@ -80,7 +80,7 @@ private:
   std::map<std::string,
            std::vector<std::pair<llvm::AllocaInst *, llvm::Value *>>>
       _functionsParameters;
-  bool recursiveCall = false;
+  std::map<std::string, bool> _recursiveFunctionsMap;
   std::unique_ptr<IRUtils> _irUtils;
 };
 

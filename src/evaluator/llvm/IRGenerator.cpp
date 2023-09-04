@@ -470,13 +470,13 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
   llvm::Function *calleeFunction = TheModule->getFunction(functionName);
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  if (!calleeFunction && !this->recursiveCall) {
-    this->recursiveCall = true;
+  if (!calleeFunction && !this->_recursiveFunctionsMap[function.name]) {
+    this->_recursiveFunctionsMap[function.name] = true;
     this->generateUserDefinedFunctionOnFly(
         this->_boundedUserFunctions[functionName], args);
     Builder->SetInsertPoint(currentBlock);
   }
-  this->recursiveCall = false;
+  this->_recursiveFunctionsMap[function.name] = false;
 
   calleeFunction = TheModule->getFunction(functionName);
 
@@ -720,35 +720,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
       returnValue = res;
     }
   }
+  Builder->CreateBr(returnBlock);
 
-  // Return Block
-
-  if (returnValue != getNull()) {
-
-    llvm::Value *isZero = this->_irUtils->isCountZero(
-        ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
-
-    llvm::BasicBlock *printBlock =
-        llvm::BasicBlock::Create(*TheContext, "printBlock", F);
-
-    llvm::BasicBlock *errorBlock =
-        llvm::BasicBlock::Create(*TheContext, "errorBlock", F);
-
-    Builder->CreateCondBr(isZero, printBlock, errorBlock);
-
-    Builder->SetInsertPoint(printBlock);
-
-    this->_irUtils->printFunction(returnValue, false);
-
-    Builder->CreateBr(returnBlock);
-
-    Builder->SetInsertPoint(errorBlock);
-
-    Builder->CreateBr(returnBlock);
-  } else {
-
-    Builder->CreateBr(returnBlock);
-  }
   Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
       ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext)));
