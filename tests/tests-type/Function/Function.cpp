@@ -652,3 +652,324 @@ print(main())
 
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
+
+// sum of n numbers using recursion
+
+TEST_F(Function, SumOfNNumbersUsingRecursion) {
+  std::string input = R"(
+fun sum(n) -> int {
+  if (n == 0) {
+    return 0
+  }
+  return n + sum(n - 1)
+}
+print(sum(10))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "55";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// sum of n numbers using loop
+
+TEST_F(Function, SumOfNNumbersUsingLoop) {
+  std::string input = R"(
+fun sum(n) -> int {
+  var sum = 0
+  for (var i = 0 to n : 1) {
+    sum = sum + i
+  }
+  return sum
+}
+print(sum(10))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "55";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the factorial of a number
+
+TEST_F(Function, FactorialOfANumberUsingRecursion) {
+  std::string input = R"(
+fun factorial(n) -> int {
+  if (n == 0) {
+    return 1
+  }
+  return n * factorial(n - 1)
+}
+print(factorial(5))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "120";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the factorial of a number using loop
+
+TEST_F(Function, FactorialOfANumberUsingLoop) {
+  std::string input = R"(
+fun factorial(n) -> int {
+  var fact = 1
+  for (var i = 1 to n : 1) {
+    fact = fact * i
+  }
+  return fact
+}
+print(factorial(5))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "120";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the fibonacci of a number
+
+TEST_F(Function, FibonacciOfANumberUsingRecursion) {
+  std::string input = R"(
+fun fibonacci(n) -> int {
+  if (n == 0) {
+    return 0
+  }
+  if (n == 1) {
+    return 1
+  }
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+print(fibonacci(10))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "55";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the fibonacci of a number using loop
+
+TEST_F(Function, FibonacciOfANumberUsingLoop) {
+  std::string input = R"(
+fun fibonacci(n) -> int {
+  var a = 0
+  var b = 1
+  var c = 0
+  for (var i = 2 to n : 1) {
+    c = a + b
+    a = b
+    b = c
+  }
+  return c
+}
+print(fibonacci(10))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "55";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the gcd of two numbers
+
+TEST_F(Function, GCDOfTwoNumbersUsingRecursion) {
+  std::string input = R"(
+fun gcd(a, b) -> int {
+  if (b == 0) {
+    return a
+  }
+  return gcd(b, a % b)
+}
+print(gcd(10, 15))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the gcd of two numbers using loop
+
+TEST_F(Function, GCDOfTwoNumbersUsingLoop) {
+  std::string input = R"(
+fun gcd(a, b) -> int {
+  while (b != 0) {
+    var temp = b
+    b = a % b
+    a = temp
+  }
+  return a
+}
+print(gcd(10, 15))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the lcm of two numbers
+
+TEST_F(Function, LCMOfTwoNumbersUsingRecursion) {
+  std::string input = R"(
+fun gcd(a, b) -> int {
+  if (b == 0) {
+    return a
+  }
+  return gcd(b, a % b)
+}
+fun lcm(a, b) -> int {
+  return ((a * b) / gcd(a, b))
+}
+print(lcm(10, 15))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "30";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the lcm of two numbers using loop
+
+TEST_F(Function, LCMOfTwoNumbersUsingLoop) {
+  std::string input = R"(
+fun gcd(a, b) -> int {
+  while (b != 0) {
+    var temp = b
+    b = a % b
+    a = temp
+  }
+  return a
+}
+
+fun lcm(a, b) -> int {
+  return ((a * b) / gcd(a, b))
+}
+
+print(lcm(10, 15))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "30";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the power of a number
+
+TEST_F(Function, PowerOfANumberUsingRecursion) {
+  std::string input = R"(
+fun power(base, exp) -> int {
+  if (exp == 0) {
+    return 1
+  }
+  return base * power(base, exp - 1)
+}
+
+print(power(2, 3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "8";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the power of a number using loop
+
+TEST_F(Function, PowerOfANumberUsingLoop) {
+  std::string input = R"(
+fun power(base, exp) -> int {
+  var result = 1
+  for (var i = 0 to exp - 1: 1) {
+    result = result * base
+  }
+  return result
+}
+
+print(power(2, 3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "8";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the sum of digits of a number
+
+TEST_F(Function, SumOfDigitsOfANumberUsingRecursion) {
+  std::string input = R"(
+
+fun sumOfDigits(n) -> int {
+  if (n == 0) {
+    return 0
+  }
+  return ((n % 10) + sumOfDigits(n / 10))
+}
+
+print(sumOfDigits(123))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "6";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// write a function to find the sum of digits of a number using loop
+
+TEST_F(Function, SumOfDigitsOfANumberUsingLoop) {
+  std::string input = R"(
+fun sumOfDigits(n) -> int {
+  var sum = 0
+  while (n != 0) {
+    sum = sum + (n % 10)
+    n = n / 10
+  }
+  return sum
+}
+
+print(sumOfDigits(123))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "6";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+// Also use the Inbuti function like Decimal() Int32() String() Bool()
+
+// write a function to find the sum of digits of a number using loop
+
+TEST_F(Function, SumOfDigitsOfANumberUsingLoopWhile) {
+  std::string input = R"(
+fun sumOfDigits(n) -> int {
+  var sum = 0
+  while (n != 0) {
+    sum = sum + (n % 10)
+    n = n / 10
+  }
+  return sum
+}
+
+print(sumOfDigits(123))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "6";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// check for prime number

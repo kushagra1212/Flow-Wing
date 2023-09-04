@@ -1127,9 +1127,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
     Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero of " +
-                               valueToString(lhsValue) + " and " +
-                               valueToString(rhsValue);
+    std::string errorMessage = "Division by zero ";
 
     this->logError(errorMessage);
 
@@ -1202,8 +1200,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     break;
   default: {
 
-    errorMessage = "Unsupported binary operator for int type " +
-                   valueToString(lhsValue) + " and " + valueToString(rhsValue);
+    errorMessage = "Unsupported binary operator for int type ";
     break;
   }
   }
