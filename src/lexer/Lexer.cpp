@@ -32,24 +32,6 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
   const int &length = this->position - start;
   std::string text = this->_sourceCode[lineNumber].substr(start, length);
 
-  try {
-    if (SyntaxKindUtils::isDouble(text) == false) {
-      throw std::runtime_error("ERROR: Bad Number Input Not Double: " + text);
-    }
-  } catch (std::exception e) {
-    std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
-        std::make_unique<SyntaxToken<std::any>>(
-            this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
-            text, text);
-
-    this->_diagnosticHandler->addDiagnostic(
-        Diagnostic(e.what(), DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Lexical,
-                   Utils::getSourceLocation(newSyntaxToken.get())));
-
-    return std::move(newSyntaxToken);
-  }
-
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::NumberToken, start, text,
       text);

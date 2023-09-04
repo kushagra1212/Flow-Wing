@@ -4,10 +4,12 @@
 //     print(val+2)
 //     return:
 // }
-fun val(mystr) -> str {
-    return "s"+mystr
-}
-val("x")
-print(val("2")+val(2))
-var x=val("World")
- print(x)
+var x = Decimal("wqd")
+print(x+1)
+// fun val(mystr) -> str {
+//     return "s"+mystr
+// }
+// val("x")
+// print(val("2")+val(2))
+// var x=val("World")
+//  print(x)

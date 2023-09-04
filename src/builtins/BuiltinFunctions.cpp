@@ -102,5 +102,4 @@ llvm::Function *createPrintFunction(llvm::Module *module) {
 
   return printFunc;
 }
-
 } // namespace Builtins

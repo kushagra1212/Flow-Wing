@@ -322,8 +322,8 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
       this->_irUtils->isStringType(rhsType)) {
 
     result = this->_irUtils->getResultFromBinaryOperationOnString(
-        this->_irUtils->convertToString(lhsValue),
-        this->_irUtils->convertToString(rhsValue), binaryExpression);
+        this->_irUtils->explicitConvertToString(lhsValue),
+        this->_irUtils->explicitConvertToString(rhsValue), binaryExpression);
   } else if (this->_irUtils->isDoubleType(lhsType) ||
              this->_irUtils->isDoubleType(rhsType)) {
 
@@ -354,42 +354,90 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
 
   this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
 
+  const std::string errorMessage =
+      "Unexpected Function Call Arguments Does Not Match in " + functionName;
+
   if (functionName == Utils::BuiltInFunctions::print.name) {
     if (arguments_size == 1) {
 
       llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      llvm::Value *isZero = this->_irUtils->isCountZero(
-          ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext));
-
-      llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
-          *TheContext, "printBlock", Builder->GetInsertBlock()->getParent());
-
-      llvm::BasicBlock *afterPrintBlock =
-          llvm::BasicBlock::Create(*TheContext, "afterPrintBlock",
-                                   Builder->GetInsertBlock()->getParent());
-
-      Builder->CreateCondBr(isZero, printBlock, afterPrintBlock);
-
-      Builder->SetInsertPoint(printBlock);
-
-      this->_irUtils->printFunction(strPtri8, false);
-
-      Builder->CreateBr(afterPrintBlock);
-
-      Builder->SetInsertPoint(afterPrintBlock);
+      this->_irUtils->errorGuard(
+          [&]() { this->_irUtils->printFunction(strPtri8, false); });
 
       return this->getNull();
     }
 
-    this->_irUtils->logError(
-        "Unexpected Function Call Arguments Does  Not Match ");
+    this->_irUtils->logError(errorMessage);
 
     return this->getNull();
-  }
+  } else if (function.name == Utils::BuiltInFunctions::input.name) {
+    if (arguments_size == 0) {
 
+      llvm::ArrayRef<llvm::Value *> Args = {};
+
+      llvm::CallInst *callInst =
+          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+
+      return callInst;
+    } else if (arguments_size == 1) {
+
+      llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+
+      this->_irUtils->errorGuard(
+          [&]() { this->_irUtils->printFunction(strPtri8, false); });
+
+      llvm::ArrayRef<llvm::Value *> Args = {};
+      llvm::CallInst *callInst =
+          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+
+      return callInst;
+    }
+
+    this->_irUtils->logError(errorMessage);
+
+    return getNull();
+  } else if (function.name == Utils::BuiltInFunctions::String.name) {
+    if (arguments_size == 1) {
+      llvm::Value *val = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+
+      return this->_irUtils->explicitConvertToString(val);
+    }
+
+    this->_irUtils->logError(errorMessage);
+  } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
+    if (arguments_size == 1) {
+      llvm::Value *val = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+
+      return this->_irUtils->explicitConvertToInt(val);
+    }
+
+    this->_irUtils->logError(errorMessage);
+  } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
+    if (arguments_size == 1) {
+      llvm::Value *val = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+
+      return this->_irUtils->explicitConvertToBool(val);
+    }
+
+    this->_irUtils->logError(errorMessage);
+  } else if (function.name == Utils::BuiltInFunctions::Decimal.name) {
+    if (arguments_size == 1) {
+      llvm::Value *val = this->generateEvaluateExpressionStatement(
+          (BoundExpression *)callExpression->getArguments()[0].get());
+
+      return this->_irUtils->explicitConvertToDouble(val);
+    }
+
+    this->_irUtils->logError(errorMessage);
+  }
   this->_irUtils->logError("Unexpected Function Call ");
+
   return this->getNull();
 }
 

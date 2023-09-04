@@ -34,10 +34,13 @@ define i8* @concat_strings(i8* %str1, i8* %str2) {
 
 define i32 @stringLength(i8* %str) {
 entry:
-  %0 = alloca i32, align 4
-  store i32 0, i32* %0, align 4
-  %1 = load i32, i32* %0, align 4
-  ret i32 %1
+  %len = call i64 @strlen(i8* %str)
+
+  ; convert to i32
+
+  %len32 = trunc i64 %len to i32
+
+  ret i32 %len32
 }
 
 
@@ -63,6 +66,22 @@ define i8* @dtos(i32 %f) {
   call i32 @snprintf(i8* %buffer, i64 16, i8* %formatStr, i32 %f)
   ; Return the result as a pointer to the string
   ret i8* %buffer
+}
+
+define i8* @getMallocPtrOfStringConstant(i8* %str) {
+    ; Get the length of the string
+    %len = call i64 @strlen(i8* %str)
+
+    %lenIncreasedByOne = add i64 %len, 1
+    
+    ; Allocate memory for the string
+    %strPtr = call i8* @malloc(i64 %lenIncreasedByOne)
+    
+    ; Copy the string to the allocated memory
+    call void @memcpy(i8* %strPtr, i8* %str, i64 %lenIncreasedByOne, i1 false)
+    
+    ; Return the pointer to the string
+    ret i8* %strPtr
 }
 
 
@@ -99,5 +118,46 @@ define i1 @equal_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %equal = icmp eq i32 %result, 0
     ret i1 %equal
+}
+
+declare i32 @scanf(i8*, ...)
+@formatStrscanf = private constant [10 x i8] c"%1000000s\00", align 1
+
+
+define i8* @getInput() {
+entry:
+  ; Allocate space for the string 
+  %inputValue = call i8* (i64) @malloc(i64 1000001)
+
+  %0 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @formatStrscanf, i32 0, i32 0), i8* %inputValue, i32 0, i32 0)
+
+
+  ret i8* %inputValue
+}
+
+declare i32 @atoi(i8*)
+
+define i32 @stringToInt(i8* %str) {
+entry:
+  ; Call the atoi function to convert the string to an integer
+  %intValue = call i32 @atoi(i8* %str)
+
+  ; Return the integer value
+  ret i32 %intValue
+}
+declare i64 @atol(i8*)
+; Example usage of the atol function
+define i64 @stringToLong(i8* %str) {
+entry:
+  %longValue = call i64 @atol(i8* %str)
+  ret i64 %longValue
+}
+
+declare double @atof(i8*)
+; Example usage of the atof function
+define double @stringToDouble(i8* %str) {
+entry:
+  %doubleValue = call double @atof(i8* %str)
+  ret double %doubleValue
 }
 

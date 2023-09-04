@@ -56,11 +56,7 @@ InterpreterConversion::explicitConvertStringToDouble(const std::string value) {
     return std::stod(value);
   }
 
-  throw std::runtime_error("Cannot convert string to double"
-                           " because string is not a double"
-                           " value"
-                           " or is not a valid double value"
-                           " in the first place");
+  return 0.0;
 }
 
 int InterpreterConversion::explicitConvertAnyToInt(const std::any value) {
@@ -89,12 +85,7 @@ int InterpreterConversion::explicitConvertStringToInt(const std::string value) {
   if (Utils::isInteger(value)) {
     return std::stoi(value);
   }
-
-  throw std::runtime_error("Cannot convert string to int"
-                           " because string is not an int"
-                           " value"
-                           " or is not a valid int value"
-                           " in the first place");
+  return 0;
 }
 
 bool InterpreterConversion::explicitConvertAnyToBool(const std::any value) {

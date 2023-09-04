@@ -11,6 +11,7 @@ int main() {
 
   // Create the print function and add it to the module
   Builtins::createPrintFunction(&module);
+  Builtins::createGetUserInputFunction(&module);
 
   // Save the module to a file
   std::error_code ec;

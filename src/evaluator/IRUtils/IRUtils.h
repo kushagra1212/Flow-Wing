@@ -135,10 +135,12 @@ public:
   llvm::Value *explicitConvertToInt(llvm::Value *val);
 
   llvm::Value *explicitConvertToBool(llvm::Value *val);
-
+  llvm::Value *explicitConvertToString(llvm::Value *val);
   llvm::Value *itos(llvm::Value *num);
 
   llvm::Type *getReturnType(Utils::type type);
+
+  void errorGuard(std::function<void()> code);
 
   llvm::Value *
   getResultFromBinaryOperationOnDouble(llvm::Value *lhsValue,

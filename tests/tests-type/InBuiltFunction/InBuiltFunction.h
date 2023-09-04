@@ -4,7 +4,11 @@
 #include "../../BaseTest/BaseTest.h"
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
-
+#include <cstdio>
+#include <gtest/gtest.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 class InBuiltFunction : public ::testing::Test {
 protected:
   InBuiltFunction();

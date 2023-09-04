@@ -7,6 +7,7 @@ namespace Builtins {
 
 // Declare the prototype for creating the print function
 llvm::Function *createPrintFunction(llvm::Module *module);
+llvm::Function *createGetUserInputFunction(llvm::Module *module);
 
 // You can declare prototypes for other built-in functions here
 

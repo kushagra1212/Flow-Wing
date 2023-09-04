@@ -174,13 +174,13 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
                           {resultStr, Builder->getInt1(isNewLine)});
     } else {
 
-      llvm::ArrayRef<llvm::Value *> Args = {this->convertToString(value),
-                                            Builder->getInt1(isNewLine)};
+      llvm::ArrayRef<llvm::Value *> Args = {
+          this->explicitConvertToString(value), Builder->getInt1(isNewLine)};
 
       Builder->CreateCall(TheModule->getFunction("print"), Args);
     }
   } else if (value) {
-    llvm::ArrayRef<llvm::Value *> Args = {this->convertToString(value),
+    llvm::ArrayRef<llvm::Value *> Args = {this->explicitConvertToString(value),
                                           Builder->getInt1(isNewLine)};
 
     Builder->CreateCall(TheModule->getFunction("print"), Args);
@@ -478,7 +478,42 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
 
   return getNull(); // Return nullptr for other types or unrecognized cases
 }
+llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
+  llvm::Type *type = val->getType();
+  if (isStringType(type)) {
+    return val;
+  }
 
+  if (isBoolType(type)) {
+
+    llvm::Value *str = Builder->CreateSelect(
+        val, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
+        TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
+
+    return Builder->CreateCall(
+        TheModule->getFunction("getMallocPtrOfStringConstant"), {str});
+  }
+
+  if (isIntType(type)) {
+    return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+  }
+
+  if (isDoubleType(type)) {
+    return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
+  }
+
+  // Attempt to convert the value to string
+  std::string stringValue = this->valueToString(val);
+
+  // Create a global constant string and return its pointer
+  if (!stringValue.empty()) {
+    return convertStringToi8Ptr(stringValue);
+  }
+
+  this->logError("Unsupported type for conversion to string");
+
+  return getNull(); // Return nullptr for other types or unrecognized cases
+}
 llvm::Value *IRUtils::concatenateStrings(llvm::Value *lhs, llvm::Value *rhs) {
 
   llvm::Function *stringConcatenateFunc =
@@ -563,34 +598,16 @@ llvm::Value *IRUtils::explicitConvertToBool(llvm::Value *val) {
 
   } else if (isStringType(type)) {
 
-    std::string strValue = this->getConstantStringFromValue(val).str();
+    llvm::Value *strLen =
+        Builder->CreateCall(TheModule->getFunction("stringLength"), {val});
 
-    if (Utils::isInteger(strValue)) {
-      // larger integer type
-      llvm::APInt llvmLongIntValue(32, strValue, 10);
-      llvm::Constant *llvmValue =
-          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
+    llvm::Value *strLenIsZero =
+        Builder->CreateICmpEQ(strLen, Builder->getInt32(0));
 
-      return Builder->CreateICmpNE(
-          llvmValue, llvm::ConstantInt::get(Builder->getInt32Ty(), 0));
-    }
+    return Builder->CreateSelect(
+        strLenIsZero, llvm::ConstantInt::get(Builder->getInt1Ty(), 0),
+        llvm::ConstantInt::get(Builder->getInt1Ty(), 1));
 
-    if (Utils::isDouble(strValue)) {
-      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
-                                    strValue.c_str());
-      llvm::Constant *llvmValue =
-          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
-
-      return Builder->CreateFCmpONE(
-          llvmValue, llvm::ConstantFP::get(Builder->getDoubleTy(), 0.0));
-    }
-
-    if (strValue != "") {
-      // return bool constant
-      return llvm::ConstantInt::get(Builder->getInt1Ty(), 1);
-    }
-
-    return llvm::ConstantInt::get(Builder->getInt1Ty(), 0);
   } else {
 
     this->logError("Unsupported type for conversion to bool");
@@ -613,27 +630,8 @@ llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
     return Builder->CreateUIToFP(
         val, llvm::Type::getDoubleTy(Builder->getContext()));
   } else if (isStringType(type)) {
-    std::string strValue = this->getConstantStringFromValue(val).str();
 
-    if (Utils::isInteger(strValue)) {
-      // larger integer type
-      llvm::APInt llvmLongIntValue(32, strValue, 10);
-      llvm::Constant *llvmValue =
-          llvm::ConstantInt::get(*TheContext, llvmLongIntValue);
-
-      return llvmValue;
-    }
-
-    if (Utils::isDouble(strValue)) {
-      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
-                                    strValue.c_str());
-      llvm::Constant *llvmValue =
-          llvm::ConstantFP::get(*TheContext, llvmDoubleValue);
-
-      return llvmValue;
-    }
-
-    this->logError("Not a Valid string for conversion to double");
+    return Builder->CreateCall(TheModule->getFunction("stringToDouble"), {val});
   } else {
     this->logError("Unsupported type for conversion to double");
   }
@@ -675,7 +673,8 @@ llvm::Value *IRUtils::explicitConvertToInt(llvm::Value *val) {
     return Builder->CreateZExt(val,
                                llvm::Type::getInt32Ty(Builder->getContext()));
   } else if (isStringType(type)) {
-    return convertToString(val);
+
+    return Builder->CreateCall(TheModule->getFunction("stringToInt"), {val});
   } else {
 
     this->logError("Unsupported type for conversion to int");
@@ -1088,6 +1087,29 @@ void IRUtils::logError(std::string errorMessgae) {
   this->incrementCount(ELANG_GLOBAL_ERROR);
   this->printFunction(errorStr, false);
 }
+
+void IRUtils::errorGuard(std::function<void()> code) {
+  llvm::Value *isZero = this->isCountZero(ELANG_GLOBAL_ERROR,
+                                          llvm::Type::getInt32Ty(*TheContext));
+
+  llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
+      *TheContext, "printBlock", this->Builder->GetInsertBlock()->getParent());
+
+  llvm::BasicBlock *afterPrintBlock =
+      llvm::BasicBlock::Create(*TheContext, "afterPrintBlock",
+                               this->Builder->GetInsertBlock()->getParent());
+
+  this->Builder->CreateCondBr(isZero, printBlock, afterPrintBlock);
+
+  this->Builder->SetInsertPoint(printBlock);
+
+  code();
+
+  this->Builder->CreateBr(afterPrintBlock);
+
+  this->Builder->SetInsertPoint(afterPrintBlock);
+}
+
 llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
