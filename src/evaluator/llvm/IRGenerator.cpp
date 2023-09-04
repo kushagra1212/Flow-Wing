@@ -1202,12 +1202,29 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
   // Error Check
   llvm::BasicBlock *current = Builder->GetInsertBlock();
   llvm::Value *isTypeMatch;
-
+  std::string errorMessage = "";
   if (this->_returnAllocaStack.top().first ==
       this->_irUtils->getReturnType(returnType)) {
+    if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
+        this->_returnAllocaStack.top().second == nullptr) {
+      isTypeMatch = Builder->getFalse();
+      errorMessage = "Function return type is not Nothing, return "
+                     " statement is not found";
+    } else {
+      isTypeMatch = Builder->getTrue();
+    }
+  } else if (this->_returnAllocaStack.top().first == Utils::NOTHING &&
+             this->_returnAllocaStack.top().second == nullptr) {
+
     isTypeMatch = Builder->getTrue();
   } else {
     isTypeMatch = Builder->getFalse();
+
+    errorMessage =
+        "Return Type Mismatch " +
+        Utils::typeToString(this->_irUtils->getReturnType(returnType)) +
+        " is expected" + " but " +
+        Utils::typeToString(this->_returnAllocaStack.top().first) + " is found";
   }
 
   llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
@@ -1218,18 +1235,12 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
   Builder->CreateCondBr(isTypeMatch, errorExit, errorBlock);
   Builder->SetInsertPoint(errorBlock);
 
-  std::string errorMessage =
-      "Return Type Mismatch in " + functionName + " " +
-      Utils::typeToString(this->_irUtils->getReturnType(returnType)) +
-      " is expected" + " but " +
-      Utils::typeToString(this->_returnAllocaStack.top().first) + " is found";
-
   this->_irUtils->logError(errorMessage);
 
   Builder->CreateBr(errorExit);
   Builder->SetInsertPoint(errorExit);
 
-  if (this->_returnAllocaStack.top().second) {
+  if (this->_returnAllocaStack.top().second != nullptr) {
 
     llvm::Value *loadedReturnValue =
         Builder->CreateLoad(returnType, this->_returnAllocaStack.top().second);

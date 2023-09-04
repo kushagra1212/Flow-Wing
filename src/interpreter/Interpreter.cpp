@@ -412,8 +412,10 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
 
         if (Utils::getTypeFromAny(this->last_value) != return_type) {
           this->_interpreterUtils->logError(
-              "Unexpected return statement, expected return type " +
-              Utils::typeToString(return_type));
+              "Return Type Mismatch " + Utils::typeToString(return_type) +
+              " is expected but " +
+              Utils::typeToString(Utils::getTypeFromAny(this->last_value)) +
+              " is found");
         } else {
           this->return_type_stack.top().second =
               this->return_type_stack.top().second + 1;
@@ -749,6 +751,14 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
       }
 
       this->evaluateStatement(functionDefination->getBodyPtr().get());
+
+      if (this->return_type_stack.top().second == 0 &&
+          Utils::type::NOTHING !=
+              functionDefination->getFunctionSymbol().getReturnType()) {
+        this->_interpreterUtils->logError(
+            "Function return type is not Nothing, return  statement is not "
+            "found");
+      }
 
       this->return_type_stack.pop();
 

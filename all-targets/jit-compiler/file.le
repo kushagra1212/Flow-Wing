@@ -4,8 +4,8 @@
 //     print(val+2)
 //     return:
 // }
-var x = Decimal("wqd")
-print(x+1)
+// var x = Decimal("wqd")
+// print(x+1)
 // fun val(mystr) -> str {
 //     return "s"+mystr
 // }
@@ -13,3 +13,8 @@ print(x+1)
 // print(val("2")+val(2))
 // var x=val("World")
 //  print(x)
+
+fun main()-> str {
+return 1.2
+}
+print(main())
