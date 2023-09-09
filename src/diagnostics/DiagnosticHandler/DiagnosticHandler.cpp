@@ -1,10 +1,13 @@
 #include "DiagnosticHandler.h"
 
-DiagnosticHandler::DiagnosticHandler(DiagnosticHandler *parent) {
-  this->parent = parent;
+DiagnosticHandler::DiagnosticHandler(std::string filePath,
+                                     DiagnosticHandler *parent)
+    : parent(parent) {
+  this->_filePath = Utils::getAbsoluteFilePath(filePath);
 }
 
 void DiagnosticHandler::addDiagnostic(const Diagnostic &diagnostic) {
+
   diagnostics.push_back(diagnostic);
 }
 
@@ -22,12 +25,28 @@ const void DiagnosticHandler::logDiagnostics(
       printDiagnostic(outputStream, diagnostic);
     }
   }
-
+  if (_filePath != "") {
+    std::string fileOut = YELLOW;
+    fileOut += "File: " + this->_filePath + "\n" + RESET;
+    outputStream << fileOut;
+  }
   // Reset the diagnostics
 }
 
+std::string DiagnosticHandler::getFileName() {
+  if (_filePath == "") {
+    return "REPL";
+  }
+  const int &lastSlashIndex = _filePath.find_last_of("/\\");
+  if (lastSlashIndex == std::string::npos) {
+    return "FILE NOT FOUND";
+  }
+
+  return _filePath.substr(lastSlashIndex + 1);
+}
+
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
-  std::string fileName = diagnostic.getLocation().fileName;
+  std::string fileName = this->getFileName();
   std::string message = diagnostic.getMessage();
   std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
   std::string type = DiagnosticUtils::toString(diagnostic.getType());
@@ -40,6 +59,7 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   logString += RED + fileName + " [" + level + "] : " + RED_TEXT + "Line " +
                lineNumber + ":" + columnNumber + RED + " \"" + message + "\"" +
                RESET + "\n";
+
   return logString;
 }
 

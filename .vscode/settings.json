@@ -92,6 +92,7 @@
     "*.inc": "cpp",
     "future": "cpp",
     "*.def": "cpp",
-    "regex": "cpp"
+    "regex": "cpp",
+    "codecvt": "cpp"
   }
 }

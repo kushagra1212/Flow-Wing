@@ -374,7 +374,6 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
   }
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
-
     break_count++;
     break;
   }
@@ -727,18 +726,15 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
         return nullptr;
       }
-
-      this->variable_stack.push(std::map<std::string, Utils::Variable>());
+      std::map<std::string, Utils::Variable> function_Variables;
 
       this->return_type_stack.push(
           {functionDefination->getFunctionSymbol().getReturnType(), 0});
 
-      std::map<std::string, Utils::Variable> &function_Variables =
-          this->variable_stack.top();
-
       for (int i = 0; i < arguments_size; i++) {
-        std::any value = (this->evaluate<std::any>(
-            (BoundExpression *)callExpression->getArguments()[i].get()));
+        std::any value =
+            this->evaluate<std::any>(callExpression->getArguments()[i].get());
+
         function_Variables[functionDefination->getFunctionSymbol()
                                .parameters[i]
                                .name] =
@@ -749,6 +745,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
                 DiagnosticUtils::DiagnosticType::Runtime))
           break;
       }
+      this->variable_stack.push(function_Variables);
 
       this->evaluateStatement(functionDefination->getBodyPtr().get());
 

@@ -202,6 +202,15 @@ const std::string Utils::concatErrors(const std::vector<std::string> &errors,
   return res;
 }
 
+std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
+  std::filesystem::path basePath = std::filesystem::current_path();
+
+  // Create an absolute path by combining the base path and the relative path
+  std::filesystem::path absolutePath = basePath / relativeFilePath;
+
+  return absolutePath.string();
+}
+
 DiagnosticUtils::SourceLocation
 Utils::getSourceLocation(SyntaxToken<std::any> *token) {
   return DiagnosticUtils::SourceLocation(token->getLineNumber(),

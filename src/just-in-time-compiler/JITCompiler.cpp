@@ -1,6 +1,6 @@
 #include "JITCompiler.h"
 
-JITCompiler::JITCompiler() {}
+JITCompiler::JITCompiler(std::string filePath) { this->_filePath = filePath; }
 
 JITCompiler::~JITCompiler() {}
 
@@ -9,7 +9,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
   // Initialize the JIT compiler with a new module
 
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>();
+      std::make_unique<DiagnosticHandler>(this->_filePath);
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -20,7 +20,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -33,7 +33,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -51,7 +51,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -87,7 +87,7 @@ void JITCompiler::runTests(std::istream &inputStream,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -100,7 +100,7 @@ void JITCompiler::runTests(std::istream &inputStream,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -118,7 +118,7 @@ void JITCompiler::runTests(std::istream &inputStream,
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler());
+    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -175,7 +175,8 @@ int main(int argc, char *argv[]) {
   // Close the file (imp)
   file.close();
 
-  std::unique_ptr<JITCompiler> jitCompiler = std::make_unique<JITCompiler>();
+  std::unique_ptr<JITCompiler> jitCompiler =
+      std::make_unique<JITCompiler>(argv[1]);
 
   jitCompiler->compile(text, std::cout);
 

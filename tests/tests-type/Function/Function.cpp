@@ -779,7 +779,7 @@ print(fibonacci(10))
 
 // write a function to find the gcd of two numbers
 
-TEST_F(Function, GCDOfTwoNumbersUsingRecursion) {
+TEST_F(Function, GCDOfTwoNumbersUsingRecuhrsion) {
   std::string input = R"(
 fun gcd(a, b) -> int {
   if (b == 0) {

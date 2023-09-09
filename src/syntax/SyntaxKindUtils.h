@@ -39,6 +39,7 @@ enum SyntaxKind {
   DeciKeyword,
   StrKeyword,
   BoolKeyword,
+  BringKeyword,
 
   // Bitwise
 

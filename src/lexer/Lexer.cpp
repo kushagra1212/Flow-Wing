@@ -196,6 +196,46 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
         "double");
   }
 
+  else if (text == "bring") {
+    while (this->getCurrent() != endOfLine && isspace(this->getCurrent())) {
+      this->next();
+    }
+    if (this->getCurrent() != '"') {
+      std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+          std::make_unique<SyntaxToken<std::any>>(
+              this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+              text, 0);
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Expected <\"...\"> After Keyword <bring>",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Lexical,
+                     Utils::getSourceLocation(newSyntaxToken.get())));
+
+      return std::move(newSyntaxToken);
+    }
+
+    SyntaxToken<std::any> *filePath = this->nextToken().get();
+
+    if (filePath->getKind() != SyntaxKindUtils::SyntaxKind::StringToken) {
+      std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+          std::make_unique<SyntaxToken<std::any>>(
+              this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+              text, 0);
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Expected <FilePath> After Keyword <bring>",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Lexical,
+                     Utils::getSourceLocation(newSyntaxToken.get())));
+
+      return std::move(newSyntaxToken);
+    }
+
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->lineNumber, SyntaxKindUtils::SyntaxKind::BringKeyword, start,
+        text, filePath->getValue());
+  }
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::IdentifierToken, start,
       text, text);

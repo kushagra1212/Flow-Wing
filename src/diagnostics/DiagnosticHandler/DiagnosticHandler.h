@@ -10,9 +10,12 @@ private:
   std::vector<Diagnostic> diagnostics;
   DiagnosticHandler *parent;
   int previousLineCount = 0;
+  std::string _filePath;
+  std::string getFileName();
 
 public:
-  DiagnosticHandler(DiagnosticHandler *parent = nullptr);
+  DiagnosticHandler(std::string filePath = "",
+                    DiagnosticHandler *parent = nullptr);
   void addDiagnostic(const Diagnostic &diagnostic);
   std::string getLogString(const Diagnostic &diagnostic);
 

@@ -205,6 +205,8 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::StrKeyword:
     return "StrKeyword";
 
+  case SyntaxKind::BringKeyword:
+    return "BringKeyword";
   default:
     return "NotDefined";
   }

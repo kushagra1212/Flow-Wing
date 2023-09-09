@@ -9,8 +9,10 @@
 #include <iostream>
 
 class JITCompiler {
+  std::string _filePath;
+
 public:
-  JITCompiler();
+  JITCompiler(std::string filePath = "");
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);

@@ -13,6 +13,8 @@
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include <regex>
+
+#include <filesystem>
 #include <typeinfo>
 
 namespace Utils {
@@ -37,6 +39,8 @@ std::string getTypeString(const std::any &value);
 Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
+
+std::string getAbsoluteFilePath(std::string relativeFilePath);
 
 bool isInteger(const std::string &str);
 
