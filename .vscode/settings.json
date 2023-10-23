@@ -99,5 +99,6 @@
     "format": "cpp",
     "cfenv": "cpp",
     "__nullptr": "cpp"
-  }
+  },
+  "cmake.configureOnOpen": false
 }
