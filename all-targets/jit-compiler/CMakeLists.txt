@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**/**.cpp)
+set(LLVM_DIR "/usr/lib/llvm-14/share/llvm/cmake")
 
 list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
 find_package(LLVM REQUIRED CONFIG)
