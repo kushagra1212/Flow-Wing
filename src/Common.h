@@ -6,6 +6,8 @@
 #include <cstdlib> // For malloc
 #include <cstring> // For strlen and memcpy
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <limits>

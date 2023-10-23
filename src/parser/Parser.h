@@ -42,7 +42,7 @@ public:
 
 private:
   DiagnosticHandler *_diagnosticHandler;
-
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
 
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
@@ -70,6 +70,7 @@ private:
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<StatementSyntax> parseBringStatement();
   Utils::type parseType();
 };
 #endif

@@ -1,5 +1,6 @@
 {
   "files.associations": {
+    "*.tsx": "typescriptreact",
     "*.cpp": "cpp",
     "iostream": "cpp",
     "array": "cpp",
@@ -93,6 +94,10 @@
     "future": "cpp",
     "*.def": "cpp",
     "regex": "cpp",
-    "codecvt": "cpp"
+    "codecvt": "cpp",
+    "charconv": "cpp",
+    "format": "cpp",
+    "cfenv": "cpp",
+    "__nullptr": "cpp"
   }
 }

@@ -39,7 +39,9 @@ std::string getTypeString(const std::any &value);
 Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
-
+auto getFileContent(const std::string &filePath) -> std::string;
+auto getSourceCodeFromFilePath(const std::string &filePath)
+    -> std::vector<std::string>;
 std::string getAbsoluteFilePath(std::string relativeFilePath);
 
 bool isInteger(const std::string &str);

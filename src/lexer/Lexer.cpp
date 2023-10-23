@@ -214,9 +214,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
 
       return std::move(newSyntaxToken);
     }
-
-    SyntaxToken<std::any> *filePath = this->nextToken().get();
-
+    std::unique_ptr<SyntaxToken<std::any>> filePath =
+        std::move(this->readSymbol());
     if (filePath->getKind() != SyntaxKindUtils::SyntaxKind::StringToken) {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::make_unique<SyntaxToken<std::any>>(
@@ -234,7 +233,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
 
     return std::make_unique<SyntaxToken<std::any>>(
         this->lineNumber, SyntaxKindUtils::SyntaxKind::BringKeyword, start,
-        text, filePath->getValue());
+        filePath->getText(), filePath->getValue());
   }
   return std::make_unique<SyntaxToken<std::any>>(
       this->lineNumber, SyntaxKindUtils::SyntaxKind::IdentifierToken, start,

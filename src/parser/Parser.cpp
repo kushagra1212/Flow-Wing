@@ -37,6 +37,7 @@ Parser::Parser(std::vector<std::string> souceCode,
     }
 
   } while (_kind != SyntaxKindUtils::SyntaxKind::EndOfFileToken);
+  compilationUnit = std::make_unique<CompilationUnitSyntax>();
 }
 
 Parser::~Parser() {
@@ -103,20 +104,18 @@ bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
 std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
 
   this->position = 0;
-  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::make_unique<CompilationUnitSyntax>();
 
   while (this->getCurrent()->getKind() !=
          SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    compilationUnit->addMember(std::move(this->parseMember()));
+    this->compilationUnit->addMember(std::move(this->parseMember()));
   }
 
   std::unique_ptr<SyntaxToken<std::any>> endOfFileToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken));
 
-  compilationUnit->setEndOfFileToken(std::move(endOfFileToken));
+  this->compilationUnit->setEndOfFileToken(std::move(endOfFileToken));
 
-  return std::move(compilationUnit);
+  return std::move(this->compilationUnit);
 }
 
 std::unique_ptr<MemberSyntax> Parser::parseMember() {
@@ -276,9 +275,30 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseContinueStatement());
   case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
     return std::move(this->parseReturnStatement());
+  case SyntaxKindUtils::SyntaxKind::BringKeyword:
+    return std::move(this->parseBringStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
+}
+std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
+  std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::BringKeyword));
+
+  const std::string relativeFilePath = bringKeyword->getText();
+
+  std::unique_ptr<Parser> parser = std::make_unique<Parser>(
+      Utils::getSourceCodeFromFilePath(relativeFilePath),
+      this->_diagnosticHandler);
+
+  std::unique_ptr<CompilationUnitSyntax> nestedCompilationUnit =
+      std::move(parser->parseCompilationUnit());
+
+  for (auto &member : nestedCompilationUnit->getMembers()) {
+    this->compilationUnit->addMember(std::move(member));
+  }
+
+  return std::move(this->parseStatement());
 }
 
 std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {

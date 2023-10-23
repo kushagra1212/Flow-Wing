@@ -249,6 +249,36 @@ auto Utils::typeToString(Utils::type type) -> std::string {
   return "Unknown";
 }
 
+auto Utils::getFileContent(const std::string &filePath) -> std::string {
+  std::ifstream file(filePath);
+  std::string content((std::istreambuf_iterator<char>(file)),
+                      (std::istreambuf_iterator<char>()));
+  return content;
+}
+
+auto Utils::getSourceCodeFromFilePath(const std::string &filePath)
+    -> std::vector<std::string> {
+
+  std::ifstream file;
+
+  file.open(Utils::getAbsoluteFilePath(filePath));
+
+  // Check if the file was opened successfully
+  if (!file.is_open()) {
+    std::cerr << "Could not open the file." << std::endl;
+    return std::vector<std::string>();
+  }
+
+  std::string line;
+  std::vector<std::string> text = std::vector<std::string>();
+  while (std::getline(file, line)) {
+    text.push_back(line);
+  }
+  file.close();
+
+  return text;
+}
+
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   switch (node->getKind()) {
   case SyntaxKindUtils::SyntaxKind::BadToken:

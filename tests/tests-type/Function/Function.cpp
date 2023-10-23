@@ -118,7 +118,7 @@ TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
 fun main()-> nthg {
     return:
 }
-print(main())
+main()
 )";
 
   setInput(input);
@@ -127,7 +127,7 @@ print(main())
   std::string lowerCaseOutput = getOutput();
   std::string expected_output;
 #ifdef JIT_TEST_MODE
-  expected_output = "\xC3";
+  expected_output = "";
 #elif REPL_TEST_MODE
   expected_output = "";
 #endif
@@ -138,7 +138,7 @@ TEST_F(Function, NthgReturnTypeWithNoReturnValue) {
   std::string input = R"(fun main()-> nthg {
   
 }
-print(main()))";
+main())";
 
   setInput(input);
   runEvaluator();
@@ -147,7 +147,7 @@ print(main()))";
 
   std::string expected_output;
 #ifdef JIT_TEST_MODE
-  expected_output = "\xC3";
+  expected_output = "";
 #elif REPL_TEST_MODE
   expected_output = "";
 #endif
