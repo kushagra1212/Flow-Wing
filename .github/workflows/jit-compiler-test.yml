@@ -1,0 +1,34 @@
+name: JIT TESTS
+
+on:
+  push:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up CMake
+        run: sudo apt-get install cmake
+
+      - name: Set up GTest
+        run: sudo apt-get install libgtest-dev
+
+      - name: Set up LLVM
+        run: sudo apt-get install llvm-14
+
+      - name: Configure and build
+        run: |
+          cd all-targets/jit-compiler
+          mkdir build
+          cd build
+          cmake ..  -DTESTS_ENABLED=ON 
+          make -j8
+
+      - name: Run tests
+        run: |
+          cd all-targets/jit-compiler/build
+          ./Elang
