@@ -20,13 +20,16 @@ jobs:
       - name: Set up LLVM
         run: sudo apt-get install llvm-dev
 
+      - name: Set up Ninja
+        run: sudo apt-get install ninja-build
+
       - name: Configure and build
         run: |
           cd all-targets/jit-compiler
           mkdir build
           cd build
-          cmake ..  -DTESTS_ENABLED=ON 
-          make -j8
+          cmake .. -GNinja -DTESTS_ENABLED=ON 
+          ninja
 
       - name: Run tests
         run: |
