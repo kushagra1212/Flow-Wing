@@ -18,7 +18,7 @@ jobs:
         run: sudo apt-get install libgtest-dev
 
       - name: Set up LLVM
-        run: sudo apt-get install llvm-14
+        run: sudo apt-get install llvm-dev
 
       - name: Configure and build
         run: |
