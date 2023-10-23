@@ -19,7 +19,7 @@ jobs:
 
       - name: Configure and build
         run: |
-          cd all-targets/jit-compiler
+          cd all-targets/repl
           mkdir build
           cd build
           cmake ..  -DTESTS_ENABLED=ON 
@@ -27,6 +27,6 @@ jobs:
 
       - name: Run tests
         run: |
-          cd all-targets/jit-compiler/build
+          cd all-targets/repl/build
           make -j8
           ./Elang
