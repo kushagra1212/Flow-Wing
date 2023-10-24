@@ -14,6 +14,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
+#include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"

@@ -6,7 +6,6 @@ JITCompiler::~JITCompiler() {}
 
 void JITCompiler::compile(std::vector<std::string> &text,
                           std::ostream &outputStream) {
-  // Initialize the JIT compiler with a new module
 
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>(this->_filePath);
@@ -41,7 +40,6 @@ void JITCompiler::compile(std::vector<std::string> &text,
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
                                         currentDiagnosticHandler.get()));
-
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
 
@@ -161,14 +159,24 @@ int main(int argc, char *argv[]) {
 
   file.open(argv[1]);
 
-  // Check if the file was opened successfully
   if (!file.is_open()) {
-    std::cerr << "Could not open the file." << std::endl;
+
+    std::cerr << "Unable to open file: " << argv[1] << std::endl;
+    if (access(argv[1], R_OK) != 0) {
+      std::cerr << "Please check if the file exists and you have read "
+                   "permissions."
+                << std::endl;
+      std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
+      return 1;
+    }
+    std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
     return 0;
   }
 
   std::string line;
   std::vector<std::string> text = std::vector<std::string>();
+
+  Utils::Node::fileMap[Utils::getAbsoluteFilePath(argv[1])] = 1;
   while (std::getline(file, line)) {
     text.push_back(line);
   }

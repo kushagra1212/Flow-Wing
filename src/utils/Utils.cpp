@@ -214,7 +214,8 @@ std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
 DiagnosticUtils::SourceLocation
 Utils::getSourceLocation(SyntaxToken<std::any> *token) {
   return DiagnosticUtils::SourceLocation(token->getLineNumber(),
-                                         token->getColumnNumber());
+                                         token->getColumnNumber(),
+                                         token->getAbsoluteFilePath());
 }
 
 bool Utils::isInteger(const std::string &str) {
@@ -265,7 +266,7 @@ auto Utils::getSourceCodeFromFilePath(const std::string &filePath)
 
   // Check if the file was opened successfully
   if (!file.is_open()) {
-    std::cerr << "Could not open the file." << std::endl;
+    //   std::cerr << "Could not open the file." << std::endl;
     return std::vector<std::string>();
   }
 
@@ -338,3 +339,6 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
 
   return false;
 }
+
+std::unordered_map<std::string, int> Utils::Node::fileMap =
+    std::unordered_map<std::string, int>();

@@ -8,7 +8,7 @@ DiagnosticHandler::DiagnosticHandler(std::string filePath,
 
 void DiagnosticHandler::addDiagnostic(const Diagnostic &diagnostic) {
 
-  diagnostics.push_back(diagnostic);
+  this->diagnostics.push_back(diagnostic);
 }
 
 void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
@@ -17,10 +17,19 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
   }
 }
 
+auto DiagnosticHandler::getAbsoluteFilePath() -> std::string {
+  return this->_filePath;
+}
+
 const void DiagnosticHandler::logDiagnostics(
     std::ostream &outputStream,
     std::function<bool(const Diagnostic &)> filter) {
-  for (auto &diagnostic : diagnostics) {
+
+  if (parent != nullptr) {
+    parent->logDiagnostics(outputStream, filter);
+  }
+
+  for (auto &diagnostic : this->diagnostics) {
     if (filter(diagnostic)) {
       printDiagnostic(outputStream, diagnostic);
     }
@@ -33,20 +42,23 @@ const void DiagnosticHandler::logDiagnostics(
   // Reset the diagnostics
 }
 
-std::string DiagnosticHandler::getFileName() {
-  if (_filePath == "") {
+std::string DiagnosticHandler::getFileName(const std::string &filePath) {
+  if (filePath == "") {
     return "REPL";
   }
-  const int &lastSlashIndex = _filePath.find_last_of("/\\");
+  const int &lastSlashIndex = filePath.find_last_of("/\\");
   if (lastSlashIndex == std::string::npos) {
     return "FILE NOT FOUND";
   }
 
-  return _filePath.substr(lastSlashIndex + 1);
+  return filePath.substr(lastSlashIndex + 1);
 }
 
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
-  std::string fileName = this->getFileName();
+  std::string fileName =
+      this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
+                            ? diagnostic.getLocation().absoluteFilePath
+                            : this->_filePath);
   std::string message = diagnostic.getMessage();
   std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
   std::string type = DiagnosticUtils::toString(diagnostic.getType());
@@ -69,19 +81,30 @@ const void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
 }
 
 bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticLevel level) const {
-  return std::any_of(diagnostics.begin(), diagnostics.end(),
-                     [level](const Diagnostic &diagnostic) {
-                       return diagnostic.getLevel() == level;
-                     });
+  bool hasError = std::any_of(diagnostics.begin(), diagnostics.end(),
+                              [level](const Diagnostic &diagnostic) {
+                                return diagnostic.getLevel() == level;
+                              });
+
+  if (parent != nullptr) {
+    return parent->hasError(level) || hasError;
+  }
+
+  return hasError;
 }
 
 bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticType type) const {
-  return std::any_of(diagnostics.begin(), diagnostics.end(),
-                     [type](const Diagnostic &diagnostic) {
-                       return diagnostic.getType() == type &&
-                              diagnostic.getLevel() ==
-                                  DiagnosticUtils::DiagnosticLevel::Error;
-                     });
+  bool hasError = std::any_of(
+      diagnostics.begin(), diagnostics.end(),
+      [type](const Diagnostic &diagnostic) {
+        return diagnostic.getType() == type &&
+               diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error;
+      });
+  if (parent != nullptr) {
+    return parent->hasError(type) || hasError;
+  }
+
+  return hasError;
 }
 
 void DiagnosticHandler::updatePreviousLineCount(const int count) {

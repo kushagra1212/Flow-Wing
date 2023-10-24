@@ -11,13 +11,15 @@ private:
   DiagnosticHandler *parent;
   int previousLineCount = 0;
   std::string _filePath;
-  std::string getFileName();
+  std::string getFileName(const std::string &filePath);
 
 public:
   DiagnosticHandler(std::string filePath = "",
                     DiagnosticHandler *parent = nullptr);
   void addDiagnostic(const Diagnostic &diagnostic);
   std::string getLogString(const Diagnostic &diagnostic);
+
+  auto getAbsoluteFilePath() -> std::string;
 
   void addParentDiagnostics(DiagnosticHandler *parent);
   const void logDiagnostics(std::ostream &outputStream,

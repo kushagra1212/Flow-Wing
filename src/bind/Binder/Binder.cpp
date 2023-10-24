@@ -380,6 +380,19 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
                               parameters);
   }
 
+  if (functionSymbol.name != "") {
+    if (callExpression->getArguments().size() !=
+        functionSymbol.parameters.size()) {
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + functionSymbol.name + " requires " +
+              std::to_string(functionSymbol.parameters.size()) + " arguments",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          Utils::getSourceLocation(
+              callExpression->getIdentifierPtr()->getTokenPtr().get())));
+    }
+  }
+
   std::unique_ptr<BoundCallExpression> boundCallExpression =
       std::make_unique<BoundCallExpression>(callExpression->getSourceLocation(),
                                             std::move(boundIdentifier),

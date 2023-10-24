@@ -3,7 +3,7 @@
 
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
-
+#include "../utils/Utils.h"
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>

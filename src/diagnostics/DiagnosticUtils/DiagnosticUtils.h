@@ -15,15 +15,19 @@ struct SourceLocation {
 
   int lineNumber;
   int columnNumber;
+  std::string absoluteFilePath;
 
   SourceLocation() {
     this->lineNumber = 0;
     this->columnNumber = 0;
+    this->absoluteFilePath = "";
   }
 
-  SourceLocation(int lineNumber, int columnNumber) {
+  SourceLocation(int lineNumber, int columnNumber,
+                 std::string absoluteFilePath) {
     this->lineNumber = lineNumber;
     this->columnNumber = columnNumber;
+    this->absoluteFilePath = absoluteFilePath;
   }
 };
 

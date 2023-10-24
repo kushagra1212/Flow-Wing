@@ -127,6 +127,55 @@ public:
   static auto isBuiltInFunction(std::string name) -> bool;
 };
 
+class Node {
+public:
+  static std::unordered_map<std::string, int> fileMap;
+
+  static void addPath(std::string path) {
+    fileMap[getAbsoluteFilePath(path)] = 1;
+  }
+
+  static bool isPathAdded(std::string path) {
+    return fileMap.find(getAbsoluteFilePath(path)) != fileMap.end();
+  }
+
+  static void clear() { fileMap.clear(); }
+
+  static void removePath(std::string path) {
+    fileMap.erase(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathExists(std::string path) {
+    return std::filesystem::exists(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathDirectory(std::string path) {
+    return std::filesystem::is_directory(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathRegularFile(std::string path) {
+    return std::filesystem::is_regular_file(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathSymlink(std::string path) {
+    return std::filesystem::is_symlink(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathEmpty(std::string path) {
+    return std::filesystem::is_empty(getAbsoluteFilePath(path));
+  }
+
+  static bool isPathRelative(std::string path) {
+    return std::filesystem::path(getAbsoluteFilePath(path)).is_relative();
+  }
+
+  static bool isPathAbsolute(std::string path) {
+    return std::filesystem::path(getAbsoluteFilePath(path)).is_absolute();
+  }
+
+  static bool isCycleDetected(std::string path) { return fileMap[(path)] >= 1; }
+};
+
 } // namespace Utils
 
 #endif // UTILS_H

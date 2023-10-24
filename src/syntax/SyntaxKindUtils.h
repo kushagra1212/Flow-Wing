@@ -104,10 +104,9 @@ enum SyntaxKind {
   ForStatement,
   ReturnStatement,
   CommentStatement,
-
   FunctionDeclarationSyntax,
-
-  ParameterSyntax
+  ParameterSyntax,
+  EmptyStatement,
 
 };
 bool isInt32(const std::string &str);

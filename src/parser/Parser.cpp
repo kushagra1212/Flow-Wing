@@ -5,6 +5,9 @@ Parser::Parser(std::vector<std::string> souceCode,
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
 
+#ifdef JIT_MODE
+  souceCode[souceCode.size() - 1] += "print(\"\")";
+#endif
   lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
   SyntaxKindUtils::SyntaxKind _kind =
@@ -88,16 +91,17 @@ Parser::match(SyntaxKindUtils::SyntaxKind kind) {
 
   if (this->getCurrent()->getKind() !=
       SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
     return std::move(this->nextToken());
   } else {
     return std::make_unique<SyntaxToken<std::any>>(
+        this->getCurrent()->getAbsoluteFilePath(),
         this->getCurrent()->getLineNumber(),
         SyntaxKindUtils::SyntaxKind::BadToken,
         this->getCurrent()->getColumnNumber(), this->getCurrent()->getText(),
         this->getCurrent()->getValue());
   }
 }
+
 bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
   return this->getCurrent()->getKind() == kind;
 }
@@ -287,9 +291,37 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 
   const std::string relativeFilePath = bringKeyword->getText();
 
+  DiagnosticHandler *diagnosticHandler =
+      new DiagnosticHandler(relativeFilePath);
+
+  const std::string &absoluteFilePath =
+      Utils::getAbsoluteFilePath(relativeFilePath);
+
+  if (!Utils::Node::isPathExists(absoluteFilePath) ||
+      Utils::Node::isPathEmpty(absoluteFilePath) ||
+      !Utils::Node::isPathAbsolute(absoluteFilePath)) {
+    diagnosticHandler->addDiagnostic(
+        Diagnostic("File <" + relativeFilePath + "> not found",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Syntactic,
+                   Utils::getSourceLocation(bringKeyword.get())));
+    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
+    return std::move(this->parseStatement());
+  }
+
+  if (Utils::Node::isCycleDetected(absoluteFilePath)) {
+    diagnosticHandler->addDiagnostic(
+        Diagnostic("Found Circular Dependency <" + relativeFilePath + "> ",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Syntactic,
+                   Utils::getSourceLocation(bringKeyword.get())));
+    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
+    return std::move(this->parseStatement());
+  }
+
+  Utils::Node::addPath(absoluteFilePath);
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(
-      Utils::getSourceCodeFromFilePath(relativeFilePath),
-      this->_diagnosticHandler);
+      Utils::getSourceCodeFromFilePath(relativeFilePath), diagnosticHandler);
 
   std::unique_ptr<CompilationUnitSyntax> nestedCompilationUnit =
       std::move(parser->parseCompilationUnit());
@@ -297,6 +329,9 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   for (auto &member : nestedCompilationUnit->getMembers()) {
     this->compilationUnit->addMember(std::move(member));
   }
+
+  this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
+  Utils::Node::removePath(absoluteFilePath);
 
   return std::move(this->parseStatement());
 }
