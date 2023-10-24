@@ -6,7 +6,8 @@ Parser::Parser(std::vector<std::string> souceCode,
   this->_diagnosticHandler = diagnosticHandler;
 
 #ifdef JIT_MODE
-  souceCode[souceCode.size() - 1] += "print(\"\")";
+  if (souceCode.size())
+    souceCode[souceCode.size() - 1] += "print(\"\")";
 #endif
   lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
@@ -125,11 +126,6 @@ std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
 
 std::unique_ptr<MemberSyntax> Parser::parseMember() {
   bool isExposed = false;
-
-  if (this->getCurrent()->getKind() ==
-      SyntaxKindUtils::SyntaxKind::BringKeyword) {
-    this->parseBringStatement();
-  }
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
@@ -320,16 +316,21 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseContinueStatement());
   case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
     return std::move(this->parseReturnStatement());
+  case SyntaxKindUtils::SyntaxKind::BringKeyword:
+    return std::move(this->parseBringStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
 }
 
-void Parser::parseBringStatement() {
+std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::BringKeyword));
 
-  std::vector<std::unique_ptr<ExpressionSyntax>> expressions;
+  std::unique_ptr<BringStatementSyntax> bringStatement =
+      std::make_unique<BringStatementSyntax>();
+
+  bringStatement->addBringKeyword(std::move(bringKeyword));
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::OpenBraceToken) {
@@ -337,8 +338,9 @@ void Parser::parseBringStatement() {
     while (this->getCurrent()->getKind() !=
            SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
 
-      expressions.push_back(std::move(this->parseExpression()));
-
+      std::unique_ptr<SyntaxToken<std::any>> identifier =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      bringStatement->addExpression(std::move(identifier));
       if (this->getCurrent()->getKind() ==
           SyntaxKindUtils::SyntaxKind::CommaToken) {
         this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
@@ -356,15 +358,13 @@ void Parser::parseBringStatement() {
             DiagnosticUtils::DiagnosticLevel::Error,
             DiagnosticUtils::DiagnosticType::Syntactic,
             Utils::getSourceLocation(this->getCurrent())));
-        return;
+        return std::move(bringStatement);
       }
     }
     this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
   }
 
-  const bool choosyImport = expressions.size() > 0;
-
-  if (choosyImport) {
+  if (bringStatement->getIsChoosyImportPtr()) {
     this->match(SyntaxKindUtils::SyntaxKind::FromKeyword);
   }
 
@@ -380,7 +380,7 @@ void Parser::parseBringStatement() {
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Syntactic,
         Utils::getSourceLocation(this->getCurrent())));
-    return;
+    return std::move(bringStatement);
   }
 
   std::unique_ptr<SyntaxToken<std::any>> stringToken =
@@ -389,50 +389,16 @@ void Parser::parseBringStatement() {
   const std::string relativeFilePath =
       std::any_cast<std::string>(stringToken->getValue());
 
-  DiagnosticHandler *diagnosticHandler =
-      new DiagnosticHandler(relativeFilePath);
+  bringStatement->setRelativeFilePath(relativeFilePath);
 
-  const std::string &absoluteFilePath =
-      Utils::getAbsoluteFilePath(relativeFilePath);
+  std::unique_ptr<DiagnosticHandler> diagnosticHandler =
+      std::make_unique<DiagnosticHandler>(relativeFilePath);
 
-  if (!Utils::Node::isPathExists(absoluteFilePath) ||
-      Utils::Node::isPathEmpty(absoluteFilePath) ||
-      !Utils::Node::isPathAbsolute(absoluteFilePath)) {
-    diagnosticHandler->addDiagnostic(
-        Diagnostic("File <" + relativeFilePath + "> not found",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Syntactic,
-                   Utils::getSourceLocation(bringKeyword.get())));
-    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-    return;
-  }
+  bringStatement->setAbsoluteFilePath(
+      Utils::getAbsoluteFilePath(relativeFilePath));
+  bringStatement->setDiagnosticHandler(std::move(diagnosticHandler));
 
-  if (Utils::Node::isCycleDetected(absoluteFilePath)) {
-    diagnosticHandler->addDiagnostic(
-        Diagnostic("Found Circular Dependency <" + relativeFilePath + "> ",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Syntactic,
-                   Utils::getSourceLocation(bringKeyword.get())));
-    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-    return;
-  }
-  if (Utils::Node::isPathVisited(absoluteFilePath)) {
-    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-    return;
-  }
-  Utils::Node::addPath(absoluteFilePath);
-  std::unique_ptr<Parser> parser = std::make_unique<Parser>(
-      Utils::getSourceCodeFromFilePath(relativeFilePath), diagnosticHandler);
-
-  std::unique_ptr<CompilationUnitSyntax> nestedCompilationUnit =
-      std::move(parser->parseCompilationUnit());
-
-  for (auto &member : nestedCompilationUnit->getMembers()) {
-    this->compilationUnit->addMember(std::move(member));
-  }
-
-  this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-  Utils::Node::removePath(absoluteFilePath);
+  return std::move(bringStatement);
 }
 
 std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {

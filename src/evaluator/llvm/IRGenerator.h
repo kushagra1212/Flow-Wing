@@ -6,19 +6,11 @@ using namespace ELANG::EVALUATOR::CONSTANTS;
 
 class IRGenerator {
 
-  std::unique_ptr<llvm::Module>
-  _getModule(const std::vector<std::string> &irFilePaths);
-
-  DiagnosticHandler *_diagnosticHandler;
-
-  int showNewLineForRepl = 0;
-
-  int _environment;
-
 public:
   IRGenerator(
       int environment, DiagnosticHandler *diagnosticHandler,
-      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions);
+      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
+      int moduleCount);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -47,7 +39,9 @@ public:
 
   std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
 
-  void generateEvaluateGlobalStatement(BoundBlockStatement *blockStatement);
+  void generateEvaluateGlobalStatement(
+      BoundBlockStatement *blockStatement,
+      std::string blockName = "evaluateBlockStatement");
 
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 
@@ -66,6 +60,9 @@ public:
   llvm::Value *generateCallExpressionForUserDefinedFunction(
       BoundCallExpression *callExpression);
 
+  std::unique_ptr<llvm::Module> &getModulePtr();
+  void setModuleCount(int count);
+
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
   std::unique_ptr<llvm::Module> TheModule;
@@ -82,6 +79,12 @@ private:
       _functionsParameters;
   std::map<std::string, bool> _recursiveFunctionsMap;
   std::unique_ptr<IRUtils> _irUtils;
+
+  DiagnosticHandler *_diagnosticHandler;
+
+  int showNewLineForRepl = 0;
+  int _moduleCount = 0;
+  int _environment;
 };
 
 #endif // IRGENERATOR_H

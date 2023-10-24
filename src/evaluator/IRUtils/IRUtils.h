@@ -10,6 +10,7 @@
 #include "../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../../bind/BoundBlockStatement/BoundBlockStatement.h"
+#include "../../bind/BoundBringStatement/BoundBringStatement.h"
 #include "../../bind/BoundExpression.h"
 #include "../../bind/BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../../bind/BoundLiteralExpression/BoundLiteralExpression.h"

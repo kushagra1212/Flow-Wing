@@ -13,6 +13,7 @@
 #include "../syntax/expression/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
@@ -73,7 +74,11 @@ private:
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
-  void parseBringStatement();
+  std::unique_ptr<StatementSyntax> parseBringStatement();
   Utils::type parseType();
+
+  auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
+                    CompilationUnitSyntax *nestedCompilationUnit)
+      -> std::unordered_map<std::string, int>;
 };
 #endif

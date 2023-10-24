@@ -1,4 +1,1 @@
 expose var x= 10
- print(" "+ " from math")
-
-bring "../build/index.le"

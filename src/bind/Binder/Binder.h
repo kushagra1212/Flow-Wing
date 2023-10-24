@@ -12,6 +12,7 @@
 #include "../../syntax/expression/VariableExpressionSyntax.h"
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "../../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
@@ -31,6 +32,7 @@
 #include "../BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../BoundBlockStatement/BoundBlockStatement.h"
 #include "../BoundBreakStatement/BoundBreakStatement.h"
+#include "../BoundBringStatement/BoundBringStatement.h"
 #include "../BoundCallExpression/BoundCallExpression.h"
 #include "../BoundContinueStatement/BoundContinueStatement.h"
 #include "../BoundExpression.h"
@@ -49,6 +51,10 @@
 #include "BoundScope/BoundScope.h"
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
 #include <stack>
+
+// other
+#include "../../parser/Parser.h"
+
 class Binder {
 private:
   std::unique_ptr<BoundScope> root;
@@ -104,6 +110,9 @@ public:
   std::unique_ptr<BoundStatement>
   bindReturnStatement(ReturnStatementSyntax *returnStatement);
 
+  std::unique_ptr<BoundStatement>
+  bindBringStatement(BringStatementSyntax *bringStatement);
+
   // BoundExpressions
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
@@ -125,4 +134,9 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindCallExpression(CallExpressionSyntax *callExpression);
+
+  // Utils
+  auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
+                    CompilationUnitSyntax *nestedCompilationUnit)
+      -> std::unordered_map<std::string, int>;
 };

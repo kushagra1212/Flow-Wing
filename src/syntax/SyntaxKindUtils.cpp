@@ -216,6 +216,9 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::FromKeyword: {
     return "FromKeyword";
   }
+  case SyntaxKind::BringStatementSyntax: {
+    return "BringStatementSyntax";
+  }
   default:
     return "NotDefined";
   }

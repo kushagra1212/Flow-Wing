@@ -57,7 +57,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions);
+        globalScope.get()->functions, 0);
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
@@ -124,8 +124,7 @@ void JITCompiler::runTests(std::istream &inputStream,
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions);
-
+        globalScope.get()->functions, 0);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
     _evaluator->executeGeneratedCode();

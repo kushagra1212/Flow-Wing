@@ -2,23 +2,27 @@
 
 IRGenerator::IRGenerator(
     int environment, DiagnosticHandler *diagnosticHandler,
-    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions) {
+    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
+    int moduleCount) {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
   _environment = environment;
-
+  this->_moduleCount = moduleCount;
   this->_diagnosticHandler = diagnosticHandler;
 
   this->_irUtils =
       std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
                                 TheContext.get(), this->_diagnosticHandler);
-  this->updateModule();
+
+  if (_moduleCount == 0)
+    this->updateModule();
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  this->defineStandardFunctions();
+  if (_moduleCount == 0)
+    this->defineStandardFunctions();
 
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
@@ -41,6 +45,8 @@ void IRGenerator::updateModule() {
     }
   }
 }
+
+void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
 
 llvm::Value *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
@@ -142,31 +148,7 @@ void IRGenerator::printIR() {
   TheModule->print(llvm::outs(), nullptr);
 }
 
-std::unique_ptr<llvm::Module>
-IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
-  llvm::SMDiagnostic err;
-  llvm::SourceMgr sourceMgr;
-
-  if (irFilePaths.size() == 0) {
-
-    llvm::errs() << "Error: No IR file specified\n";
-    return nullptr;
-  }
-
-  std::string filePath = irFilePaths[0];
-
-  llvm::Expected<std::unique_ptr<llvm::Module>> parsedModule =
-      llvm::parseIRFile(filePath, err, *TheContext);
-
-  if (!parsedModule->get()) {
-    llvm::errs() << "Error parsing IR file " << filePath << ": "
-                 << llvm::toString(parsedModule.takeError()) << "\n";
-    return nullptr; // Skip this file and continue with the next one
-  }
-  std::unique_ptr<llvm::Module> parsedModulePtr = std::move(parsedModule.get());
-
-  return std::move(parsedModulePtr);
-}
+std::unique_ptr<llvm::Module> &IRGenerator::getModulePtr() { return TheModule; }
 
 void IRGenerator::defineStandardFunctions() {
   // Create global constant strings
@@ -667,7 +649,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 }
 
 void IRGenerator::generateEvaluateGlobalStatement(
-    BoundBlockStatement *blockStatement) {
+    BoundBlockStatement *blockStatement, std::string blockName) {
 
   // Function Declaration
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
@@ -690,10 +672,10 @@ void IRGenerator::generateEvaluateGlobalStatement(
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
 
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             "evaluateBlockStatement", *TheModule);
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, blockName, *TheModule);
 
+  TheModule->dump();
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
@@ -1254,6 +1236,27 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
     this->_irUtils->incrementCount(ELANG_CONTINUE_COUNT);
     return getNull();
   }
+  case BinderKindUtils::BoundNodeKind::BringStatement: {
+
+    BoundBringStatement *bringStatement = (BoundBringStatement *)node;
+
+    std::unique_ptr<BoundScopeGlobal> globalScope =
+        std::move(Binder::bindGlobalScope(
+            nullptr, bringStatement->getCompilationUnitPtr().get(),
+            bringStatement->getDiagnosticHandlerPtr().get()));
+    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+        ENVIRONMENT::SOURCE_FILE,
+        bringStatement->getDiagnosticHandlerPtr().get(),
+        globalScope.get()->functions, 1);
+    _evaluator->generateEvaluateGlobalStatement(
+        globalScope->globalStatement.get(), "random");
+
+    llvm::Linker::linkModules(*TheModule,
+                              std::move(_evaluator.get()->TheModule));
+
+    return getNull();
+  }
+
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
     BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
 
