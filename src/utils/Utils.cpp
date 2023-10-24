@@ -342,3 +342,6 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
 
 std::unordered_map<std::string, int> Utils::Node::fileMap =
     std::unordered_map<std::string, int>();
+
+std::unordered_map<std::string, int> Utils::Node::visitedMap =
+    std::unordered_map<std::string, int>();

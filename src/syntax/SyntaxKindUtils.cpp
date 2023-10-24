@@ -210,6 +210,12 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::EmptyStatement:
     return "EmptyStatement";
+  case SyntaxKind::ExposeKeyword: {
+    return "ExposeKeyword";
+  }
+  case SyntaxKind::FromKeyword: {
+    return "FromKeyword";
+  }
   default:
     return "NotDefined";
   }

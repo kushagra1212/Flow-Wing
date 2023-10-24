@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
   std::string line;
   std::vector<std::string> text = std::vector<std::string>();
 
-  Utils::Node::fileMap[Utils::getAbsoluteFilePath(argv[1])] = 1;
+  Utils::Node::addPath(argv[1]);
   while (std::getline(file, line)) {
     text.push_back(line);
   }

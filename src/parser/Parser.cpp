@@ -77,6 +77,7 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
 
 std::unique_ptr<SyntaxToken<std::any>>
 Parser::match(SyntaxKindUtils::SyntaxKind kind) {
+
   if (this->getCurrent()->getKind() == kind) {
     return std::move(this->nextToken());
   }
@@ -123,11 +124,50 @@ std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
 }
 
 std::unique_ptr<MemberSyntax> Parser::parseMember() {
+  bool isExposed = false;
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::BringKeyword) {
+    this->parseBringStatement();
+  }
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
+    this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword);
+    isExposed = true;
+  }
+
+  if (isExposed) {
+    SyntaxKindUtils::SyntaxKind kind = this->getCurrent()->getKind();
+
+    if (!(kind == SyntaxKindUtils::SyntaxKind::FunctionKeyword ||
+          kind == SyntaxKindUtils::SyntaxKind::VarKeyword ||
+          kind == SyntaxKindUtils::SyntaxKind::ConstKeyword)) {
+
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Unexpected Token <" +
+              SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+              ">, Expected <" +
+              SyntaxKindUtils::to_string(
+                  SyntaxKindUtils::SyntaxKind::FunctionKeyword) +
+              "> or <" +
+              SyntaxKindUtils::to_string(
+                  SyntaxKindUtils::SyntaxKind::VarKeyword) +
+              "> or <" +
+              SyntaxKindUtils::to_string(
+                  SyntaxKindUtils::SyntaxKind::ConstKeyword) +
+              ">",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Syntactic,
+          Utils::getSourceLocation(this->getCurrent())));
+    }
+  }
+
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
-    return std::move(this->parseFunctionDeclaration());
+    return std::move(this->parseFunctionDeclaration(isExposed));
   }
-  return std::move(this->parseGlobalStatement());
+  return std::move(this->parseGlobalStatement(isExposed));
 }
 
 Utils::type Parser::parseType() {
@@ -182,10 +222,11 @@ Utils::type Parser::parseType() {
   return Utils::type::UNKNOWN;
 }
 
-std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
+std::unique_ptr<FunctionDeclarationSyntax>
+Parser::parseFunctionDeclaration(const bool &isExposed) {
 
   std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
-      std::make_unique<FunctionDeclarationSyntax>();
+      std::make_unique<FunctionDeclarationSyntax>(isExposed);
 
   functionDeclaration->setFunctionKeyword(
       std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
@@ -220,10 +261,12 @@ std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration() {
   return std::move(functionDeclaration);
 }
 
-std::unique_ptr<GlobalStatementSyntax> Parser::parseGlobalStatement() {
+std::unique_ptr<GlobalStatementSyntax>
+Parser::parseGlobalStatement(const bool &isExposed) {
   std::unique_ptr<StatementSyntax> statement =
       std::move(this->parseStatement());
-  return std::make_unique<GlobalStatementSyntax>(std::move(statement));
+  return std::make_unique<GlobalStatementSyntax>(isExposed,
+                                                 std::move(statement));
 }
 
 std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
@@ -240,9 +283,7 @@ std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
          this->getCurrent()->getKind() !=
-             SyntaxKindUtils::SyntaxKind::EndOfFileToken
-
-  ) {
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
     blockStatement->addStatement(std::move(this->parseStatement()));
   }
 
@@ -279,17 +320,74 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseContinueStatement());
   case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
     return std::move(this->parseReturnStatement());
-  case SyntaxKindUtils::SyntaxKind::BringKeyword:
-    return std::move(this->parseBringStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
 }
-std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
+
+void Parser::parseBringStatement() {
   std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::BringKeyword));
 
-  const std::string relativeFilePath = bringKeyword->getText();
+  std::vector<std::unique_ptr<ExpressionSyntax>> expressions;
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::OpenBraceToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+    while (this->getCurrent()->getKind() !=
+           SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
+
+      expressions.push_back(std::move(this->parseExpression()));
+
+      if (this->getCurrent()->getKind() ==
+          SyntaxKindUtils::SyntaxKind::CommaToken) {
+        this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+      }
+
+      if (this->getCurrent()->getKind() ==
+          SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Unexpected Token <" +
+                SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+                ">, Expected <" +
+                SyntaxKindUtils::to_string(
+                    SyntaxKindUtils::SyntaxKind::CloseBraceToken) +
+                ">",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Syntactic,
+            Utils::getSourceLocation(this->getCurrent())));
+        return;
+      }
+    }
+    this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
+  }
+
+  const bool choosyImport = expressions.size() > 0;
+
+  if (choosyImport) {
+    this->match(SyntaxKindUtils::SyntaxKind::FromKeyword);
+  }
+
+  if (this->getCurrent()->getKind() !=
+      SyntaxKindUtils::SyntaxKind::StringToken) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Unexpected Token <" +
+            SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+            ">, Expected <" +
+            SyntaxKindUtils::to_string(
+                SyntaxKindUtils::SyntaxKind::StringToken) +
+            ">",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Syntactic,
+        Utils::getSourceLocation(this->getCurrent())));
+    return;
+  }
+
+  std::unique_ptr<SyntaxToken<std::any>> stringToken =
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::StringToken));
+
+  const std::string relativeFilePath =
+      std::any_cast<std::string>(stringToken->getValue());
 
   DiagnosticHandler *diagnosticHandler =
       new DiagnosticHandler(relativeFilePath);
@@ -306,7 +404,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
                    DiagnosticUtils::DiagnosticType::Syntactic,
                    Utils::getSourceLocation(bringKeyword.get())));
     this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-    return std::move(this->parseStatement());
+    return;
   }
 
   if (Utils::Node::isCycleDetected(absoluteFilePath)) {
@@ -316,9 +414,12 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
                    DiagnosticUtils::DiagnosticType::Syntactic,
                    Utils::getSourceLocation(bringKeyword.get())));
     this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
-    return std::move(this->parseStatement());
+    return;
   }
-
+  if (Utils::Node::isPathVisited(absoluteFilePath)) {
+    this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
+    return;
+  }
   Utils::Node::addPath(absoluteFilePath);
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(
       Utils::getSourceCodeFromFilePath(relativeFilePath), diagnosticHandler);
@@ -332,8 +433,6 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 
   this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler);
   Utils::Node::removePath(absoluteFilePath);
-
-  return std::move(this->parseStatement());
 }
 
 std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {

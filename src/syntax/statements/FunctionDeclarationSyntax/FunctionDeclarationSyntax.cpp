@@ -1,6 +1,7 @@
 #include "FunctionDeclarationSyntax.h"
 
-FunctionDeclarationSyntax::FunctionDeclarationSyntax() {
+FunctionDeclarationSyntax::FunctionDeclarationSyntax(const bool &isExposed)
+    : MemberSyntax(isExposed) {
 
   // Add children
 }

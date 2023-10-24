@@ -67,11 +67,13 @@ private:
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<MemberSyntax> parseMember();
-  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
+  std::unique_ptr<FunctionDeclarationSyntax>
+  parseFunctionDeclaration(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
-  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
+  std::unique_ptr<GlobalStatementSyntax>
+  parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
-  std::unique_ptr<StatementSyntax> parseBringStatement();
+  void parseBringStatement();
   Utils::type parseType();
 };
 #endif

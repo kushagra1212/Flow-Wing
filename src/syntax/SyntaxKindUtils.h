@@ -107,6 +107,8 @@ enum SyntaxKind {
   FunctionDeclarationSyntax,
   ParameterSyntax,
   EmptyStatement,
+  ExposeKeyword,
+  FromKeyword
 
 };
 bool isInt32(const std::string &str);

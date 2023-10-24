@@ -128,49 +128,53 @@ public:
 };
 
 class Node {
-public:
   static std::unordered_map<std::string, int> fileMap;
+  static std::unordered_map<std::string, int> visitedMap;
 
+public:
   static void addPath(std::string path) {
-    fileMap[getAbsoluteFilePath(path)] = 1;
+    fileMap[(path)] = 1;
+    visitedMap[(path)] = 1;
+  }
+
+  static bool isPathVisited(std::string path) {
+    return visitedMap.find((path)) != visitedMap.end();
   }
 
   static bool isPathAdded(std::string path) {
-    return fileMap.find(getAbsoluteFilePath(path)) != fileMap.end();
+    return fileMap.find((path)) != fileMap.end();
   }
 
   static void clear() { fileMap.clear(); }
 
-  static void removePath(std::string path) {
-    fileMap.erase(getAbsoluteFilePath(path));
-  }
+  static void removePath(std::string path) { fileMap.erase((path)); }
 
   static bool isPathExists(std::string path) {
-    return std::filesystem::exists(getAbsoluteFilePath(path));
+    return std::filesystem::exists((path));
   }
 
   static bool isPathDirectory(std::string path) {
-    return std::filesystem::is_directory(getAbsoluteFilePath(path));
+    return std::filesystem::is_directory((path));
   }
 
   static bool isPathRegularFile(std::string path) {
-    return std::filesystem::is_regular_file(getAbsoluteFilePath(path));
+    return std::filesystem::is_regular_file((path));
   }
 
   static bool isPathSymlink(std::string path) {
-    return std::filesystem::is_symlink(getAbsoluteFilePath(path));
+    return std::filesystem::is_symlink((path));
   }
 
   static bool isPathEmpty(std::string path) {
-    return std::filesystem::is_empty(getAbsoluteFilePath(path));
+    return std::filesystem::is_empty((path));
   }
 
   static bool isPathRelative(std::string path) {
-    return std::filesystem::path(getAbsoluteFilePath(path)).is_relative();
+    return std::filesystem::path((path)).is_relative();
   }
 
   static bool isPathAbsolute(std::string path) {
-    return std::filesystem::path(getAbsoluteFilePath(path)).is_absolute();
+    return std::filesystem::path((path)).is_absolute();
   }
 
   static bool isCycleDetected(std::string path) { return fileMap[(path)] >= 1; }

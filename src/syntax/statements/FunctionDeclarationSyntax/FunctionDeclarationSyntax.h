@@ -22,7 +22,7 @@ private:
   Utils::type _returnType;
 
 public:
-  FunctionDeclarationSyntax();
+  FunctionDeclarationSyntax(const bool &isExposed);
 
   std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
   std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();

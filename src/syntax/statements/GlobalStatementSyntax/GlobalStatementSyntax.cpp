@@ -1,7 +1,8 @@
 #include "GlobalStatementSyntax.h"
 
 GlobalStatementSyntax::GlobalStatementSyntax(
-    std::unique_ptr<StatementSyntax> statement) {
+    const bool &isExposed, std::unique_ptr<StatementSyntax> statement)
+    : MemberSyntax(isExposed) {
   this->_statement = std::move(statement);
 
   _children.push_back(_statement.get());
