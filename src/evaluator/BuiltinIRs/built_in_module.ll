@@ -1,8 +1,8 @@
 ; ModuleID = 'built_in_module'
 source_filename = "built_in_module"
 
-@formatStrprintfnewline = private constant [4 x i8] c"%s\0A\00"
-@formatStrprintf = private constant [3 x i8] c"%s\00"
+@formatStrprintfnewline = global [4 x i8] c"%s\0A\00"
+@formatStrprintf = global [3 x i8] c"%s\00"
 
 define void @print(i8* %0, i1 %1) {
 entry:

@@ -17,9 +17,7 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
   }
 }
 
-auto DiagnosticHandler::getAbsoluteFilePath() -> std::string {
-  return this->_filePath;
-}
+std::string DiagnosticHandler::getAbsoluteFilePath() { return this->_filePath; }
 
 const void DiagnosticHandler::logDiagnostics(
     std::ostream &outputStream,

@@ -17,6 +17,8 @@ public:
   //   void optimizeIR();
   //   void runIR();
 
+  void mergeModules(llvm::Module *sourceFunction,
+                    llvm::Module *destinationModule);
   void defineStandardFunctions();
   void updateModule();
   llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
@@ -61,6 +63,7 @@ public:
       BoundCallExpression *callExpression);
 
   std::unique_ptr<llvm::Module> &getModulePtr();
+  std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
 
 private:
@@ -74,11 +77,15 @@ private:
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
 
+  std::unordered_map<std::string, BoundFunctionDeclaration *>
+      _isDependencyFunction;
+
   std::map<std::string,
            std::vector<std::pair<llvm::AllocaInst *, llvm::Value *>>>
       _functionsParameters;
   std::map<std::string, bool> _recursiveFunctionsMap;
   std::unique_ptr<IRUtils> _irUtils;
+  std::unique_ptr<IRParser> _irParser;
 
   DiagnosticHandler *_diagnosticHandler;
 

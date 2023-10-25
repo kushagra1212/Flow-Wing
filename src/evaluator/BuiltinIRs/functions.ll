@@ -7,8 +7,8 @@ declare void @memcpy(i8*, i8*, i64, i1)
 declare i32 @strcmp(i8*, i8*)
 
 declare i32 @snprintf(i8*, i64, i8*, i32)
-@intFormat = constant [3 x i8] c"%d\00"
-@doubleFormat = constant [5 x i8] c"%.6f\00"
+@intFormat = global [3 x i8] c"%d\00"
+@doubleFormat = global [5 x i8] c"%.6f\00"
 define i8* @concat_strings(i8* %str1, i8* %str2) {
     ; Get the lengths of the input strings
     %len1 = call i64 @strlen(i8* %str1)
@@ -133,7 +133,7 @@ define i1 @equal_strings(i8* %str1, i8* %str2) {
 }
 
 declare i32 @scanf(i8*, ...)
-@formatStrscanf = private constant [10 x i8] c"%1000000s\00", align 1
+@formatStrscanf = global [10 x i8] c"%1000000s\00", align 1
 
 
 define i8* @getInput() {
@@ -173,3 +173,8 @@ entry:
   ret double %doubleValue
 }
 
+define i32 @main() {
+entry:
+    %result = add i32 2, 3
+    ret i32 %result
+}

@@ -15,10 +15,12 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <random>
 #include <stack>
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 // ANSI color codes
 constexpr auto RESET = "\033[0m";

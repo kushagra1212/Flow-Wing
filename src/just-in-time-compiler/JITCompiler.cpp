@@ -53,6 +53,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     return;
   }
+  Utils::prettyPrint(compilationUnit.get());
 
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
@@ -61,10 +62,11 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-    _evaluator->printIR();
-    _evaluator->executeGeneratedCode();
-    outputStream << std::endl;
+    _evaluator->getIRParserPtr()->printIR();
+    this->execute(_evaluator->getIRParserPtr()->getIR());
 
+    // _evaluator->executeGeneratedCode();
+    outputStream << std::endl;
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }
@@ -127,11 +129,75 @@ void JITCompiler::runTests(std::istream &inputStream,
         globalScope.get()->functions, 0);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
+
     _evaluator->executeGeneratedCode();
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }
+}
+
+void JITCompiler::execute(std::string irCode) {
+  std::unique_ptr<llvm::LLVMContext> TheContext =
+      std::make_unique<llvm::LLVMContext>();
+  std::unique_ptr<llvm::IRBuilder<>> Builder =
+      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+  std::unique_ptr<llvm::Module> TheModule =
+      std::make_unique<llvm::Module>("Elang2", *TheContext);
+
+  // create a file in currenct director temp.ll
+
+  std::error_code EC;
+  llvm::raw_fd_ostream OS("temp.ll", EC);
+  OS << irCode;
+  OS.close();
+
+  llvm::SMDiagnostic err;
+  bool LinkResult = llvm::Linker::linkModules(
+      *TheModule, llvm::parseIRFile("temp.ll", err, *TheContext));
+  if (LinkResult) {
+    llvm::errs() << "Error linking " + ":" << err.getMessage() << "\n";
+  }
+
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  llvm::InitializeNativeTargetAsmParser();
+
+  llvm::Function *evaluateBlockStatement =
+      TheModule->getFunction("evaluateBlockStatement");
+
+  std::string errorMessage;
+  llvm::ExecutionEngine *executionEngine =
+      llvm::EngineBuilder(std::move(TheModule))
+          .setErrorStr(&errorMessage)
+          .setEngineKind(llvm::EngineKind::JIT)
+          .create();
+  if (!executionEngine) {
+    llvm::errs() << "Failed to create Execution Engine: " << errorMessage
+                 << "\n";
+  }
+
+  // Step 2: Look up the function pointer
+  if (!evaluateBlockStatement) {
+    llvm::errs() << "Function not found in module.\n";
+  }
+  int hasError = 1;
+  llvm::Type *returnType = evaluateBlockStatement->getReturnType();
+  llvm::GenericValue resultValue = llvm::GenericValue();
+  llvm::ArrayRef<llvm::GenericValue> ArgValues;
+  try {
+    resultValue =
+        executionEngine->runFunction(evaluateBlockStatement, ArgValues);
+
+    if (returnType->isIntegerTy()) {
+      hasError = (resultValue.IntVal != 0) ? 1 : 0;
+    }
+
+  } catch (const std::exception &e) {
+    std::cerr << e.what();
+  }
+  delete executionEngine;
+  // return hasError;
 }
 
 #ifdef JIT_TEST_MODE

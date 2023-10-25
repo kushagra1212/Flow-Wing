@@ -6,8 +6,9 @@ Parser::Parser(std::vector<std::string> souceCode,
   this->_diagnosticHandler = diagnosticHandler;
 
 #ifdef JIT_MODE
-  if (souceCode.size())
+  if (souceCode.size()) {
     souceCode[souceCode.size() - 1] += "print(\"\")";
+  }
 #endif
   lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
@@ -233,6 +234,8 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
   functionDeclaration->setOpenParenthesisToken(std::move(
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken)));
 
+  bool isOptionalParameterType = false;
+
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
          this->getCurrent()->getKind() !=
@@ -243,6 +246,25 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
     }
     functionDeclaration->addParameter(std::make_unique<ParameterSyntax>(
         std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken))));
+
+    if (this->getCurrent()->getKind() ==
+        SyntaxKindUtils::SyntaxKind::ColonToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+      functionDeclaration->addParameterType(this->parseType());
+      isOptionalParameterType = true;
+    } else if (isOptionalParameterType) {
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Unexpected Token <" +
+              SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
+              ">, Expected <" +
+              SyntaxKindUtils::to_string(
+                  SyntaxKindUtils::SyntaxKind::ColonToken) +
+              ">",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Syntactic,
+          Utils::getSourceLocation(this->getCurrent())));
+      return std::move(functionDeclaration);
+    }
   }
   functionDeclaration->setCloseParenthesisToken(std::move(
       this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken)));

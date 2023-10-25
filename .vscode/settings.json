@@ -98,7 +98,10 @@
     "charconv": "cpp",
     "format": "cpp",
     "cfenv": "cpp",
-    "__nullptr": "cpp"
+    "__nullptr": "cpp",
+    "__node_handle": "cpp",
+    "unordered_set": "cpp",
+    "filesystem": "cpp"
   },
   "cmake.configureOnOpen": false
 }

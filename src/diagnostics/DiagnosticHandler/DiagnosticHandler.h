@@ -19,7 +19,7 @@ public:
   void addDiagnostic(const Diagnostic &diagnostic);
   std::string getLogString(const Diagnostic &diagnostic);
 
-  auto getAbsoluteFilePath() -> std::string;
+  std::string getAbsoluteFilePath();
 
   void addParentDiagnostics(DiagnosticHandler *parent);
   const void logDiagnostics(std::ostream &outputStream,

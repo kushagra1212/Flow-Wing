@@ -34,7 +34,7 @@ void printErrors(const std::vector<std::string> &errors,
 const std::string concatErrors(const std::vector<std::string> &errors,
                                std::ostream &outputStream,
                                bool isWarning = false);
-
+auto getStrongRandomString() -> std::string;
 std::string getTypeString(const std::any &value);
 Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
@@ -78,11 +78,14 @@ struct FunctionParameterSymbol {
   std::string name;
   bool isConst;
   SymbolKind kind;
+  Utils::type type;
   FunctionParameterSymbol() = default;
-  FunctionParameterSymbol(std::string name, bool isConst) {
+  FunctionParameterSymbol(std::string name, bool isConst,
+                          Utils::type type = Utils::type::UNKNOWN) {
     this->name = name;
     this->isConst = isConst;
     this->kind = SymbolKind::Parameter;
+    this->type = type;
   }
 };
 

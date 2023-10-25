@@ -256,7 +256,6 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
       bringStatement->getDiagnosticHandlerPtr().get());
 
   if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
-      Utils::Node::isPathEmpty(bringStatement->getAbsoluteFilePath()) ||
       !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
 
     bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
@@ -266,7 +265,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()));
+        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
@@ -279,12 +278,12 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()));
+        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
   }
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()));
+        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
   }
 
   Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
@@ -328,10 +327,19 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
+  std::unique_ptr<BoundScopeGlobal> globalScope = std::move(
+      Binder::bindGlobalScope(nullptr, compilationUnit.get(),
+                              bringStatement->getDiagnosticHandlerPtr().get()));
+
+  // TODO : UPDATE/ MODIFY
+  for (auto &function : globalScope->functions) {
+    dependencyFunctions[function.first] = function.second;
+  }
 
   return std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(), std::move(compilationUnit),
-      std::move(bringStatement->getDiagnosticHandlerPtr()));
+      std::move(bringStatement->getDiagnosticHandlerPtr()),
+      std::move(globalScope));
 }
 
 std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
@@ -551,10 +559,13 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
           Utils::getSourceLocation(
               syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get())));
     }
-
+    Utils::type parameterType = Utils::type::UNKNOWN;
+    if (i < syntax->getParameterTypesPtr().size()) {
+      parameterType = syntax->getParameterTypesPtr()[i];
+    }
     parameters.push_back(Utils::FunctionParameterSymbol(
         syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText(),
-        false));
+        false, parameterType));
   }
 
   Utils::FunctionSymbol functionSymbol =
@@ -605,6 +616,11 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
     functionDefinitionMap[function->getFunctionSymbol().name] =
         function->getFunctionSymbol();
+  }
+
+  for (auto &function : binder->dependencyFunctions) {
+    functionDefinitionMap[function.second->getFunctionSymbol().name] =
+        function.second->getFunctionSymbol();
   }
 
   std::vector<Utils::FunctionSymbol> builtInFunctions =

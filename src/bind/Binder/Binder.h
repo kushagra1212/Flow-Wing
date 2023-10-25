@@ -61,6 +61,8 @@ private:
   std::vector<BoundCallExpression *> _callExpressions;
   DiagnosticHandler *_diagnosticHandler;
 
+  std::map<std::string, BoundFunctionDeclaration *> dependencyFunctions;
+
 public:
   Binder(std::unique_ptr<BoundScope> root,
          DiagnosticHandler *diagnosticHandler);

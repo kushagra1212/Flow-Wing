@@ -11,18 +11,18 @@ IRGenerator::IRGenerator(
   _environment = environment;
   this->_moduleCount = moduleCount;
   this->_diagnosticHandler = diagnosticHandler;
+  this->_irParser = std::make_unique<IRParser>();
 
   this->_irUtils =
       std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
                                 TheContext.get(), this->_diagnosticHandler);
 
-  if (_moduleCount == 0)
-    this->updateModule();
+  this->updateModule();
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  if (_moduleCount == 0)
-    this->defineStandardFunctions();
+
+  this->defineStandardFunctions();
 
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
@@ -67,6 +67,10 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
   }
 
   return val;
+}
+
+std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
+  return this->_irParser;
 }
 
 llvm::Value *
@@ -155,18 +159,18 @@ void IRGenerator::defineStandardFunctions() {
   llvm::Constant *trueStr =
       llvm::ConstantDataArray::getString(*TheContext, "true");
   llvm::GlobalVariable *globalTrueStr = new llvm::GlobalVariable(
-      *TheModule, trueStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, trueStr->getType(), false, llvm::GlobalValue::ExternalLinkage,
       trueStr, ELANG_GLOBAL_TRUE);
 
   llvm::Constant *falseStr =
       llvm::ConstantDataArray::getString(*TheContext, "false");
   llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
-      *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      falseStr, ELANG_GLOBAL_FALSE);
+      *TheModule, falseStr->getType(), false,
+      llvm::GlobalValue::ExternalLinkage, falseStr, ELANG_GLOBAL_FALSE);
 
   llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
   llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
-      *TheModule, int8PtrType, true, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, int8PtrType, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantPointerNull::get(int8PtrType), ELANG_GLOBAL_NULL);
 
   // Break keyword count
@@ -188,7 +192,7 @@ void IRGenerator::defineStandardFunctions() {
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
 
   llvm::GlobalVariable *globalZero = new llvm::GlobalVariable(
-      *TheModule, breakCount->getType(), true,
+      *TheModule, breakCount->getType(), false,
       llvm::GlobalValue::ExternalLinkage, zero, ELANG_GLOBAL_ZERO);
 
   llvm::Constant *errorCount =
@@ -452,42 +456,63 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
   llvm::Function *calleeFunction = TheModule->getFunction(functionName);
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  if (!calleeFunction && !this->_recursiveFunctionsMap[function.name]) {
+
+  if (!_isDependencyFunction[function.name] && !calleeFunction &&
+      !this->_recursiveFunctionsMap[function.name]) {
     this->_recursiveFunctionsMap[function.name] = true;
     this->generateUserDefinedFunctionOnFly(
         this->_boundedUserFunctions[functionName], args);
     Builder->SetInsertPoint(currentBlock);
   }
-  this->_recursiveFunctionsMap[function.name] = false;
 
-  calleeFunction = TheModule->getFunction(functionName);
+  if (_isDependencyFunction[functionName]) {
+    std::vector<llvm::Type *> parameterTypes = {};
 
-  llvm::FunctionType *functionType = calleeFunction->getFunctionType();
-  std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
-                                       functionType->param_end());
+    for (auto parameter :
+         _isDependencyFunction[functionName]->getFunctionSymbol().parameters) {
+      parameterTypes.push_back(this->_irUtils->getReturnType(parameter.type));
+    }
 
-  // Callefunction param types and args check for type are same or not
+    llvm::FunctionType *functionType = llvm::FunctionType::get(
+        this->_irUtils->getReturnType(_isDependencyFunction[functionName]
+                                          ->getFunctionSymbol()
+                                          .getReturnType()),
+        parameterTypes, true);
 
-  for (int i = 0; i < paramTypes.size(); i++) {
-    if (paramTypes[i] != args[i]->getType()) {
+    calleeFunction = llvm::Function::Create(
+        functionType, llvm::Function::ExternalLinkage, functionName);
 
-      const std::string parameterName =
-          this->_boundedUserFunctions[functionName]
-              ->getFunctionSymbol()
-              .parameters[i]
-              .name;
-      const std::string argumentType = Utils::typeToString(
-          this->_irUtils->getReturnType(args[i]->getType()));
+  } else {
+    calleeFunction = TheModule->getFunction(functionName);
+    this->_recursiveFunctionsMap[function.name] = false;
 
-      const std::string parameterType =
-          Utils::typeToString(this->_irUtils->getReturnType(paramTypes[i]));
+    llvm::FunctionType *functionType = calleeFunction->getFunctionType();
+    std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
+                                         functionType->param_end());
 
-      const std::string errorMessage = "Argument Type " + argumentType +
-                                       " does not match with " + parameterType +
-                                       " for parameter " + parameterName;
+    // Callefunction param types and args check for type are same or not
 
-      this->_irUtils->logError(errorMessage);
-      return this->getNull();
+    for (int i = 0; i < paramTypes.size(); i++) {
+      if (paramTypes[i] != args[i]->getType()) {
+
+        const std::string parameterName =
+            this->_boundedUserFunctions[functionName]
+                ->getFunctionSymbol()
+                .parameters[i]
+                .name;
+        const std::string argumentType = Utils::typeToString(
+            this->_irUtils->getReturnType(args[i]->getType()));
+
+        const std::string parameterType =
+            Utils::typeToString(this->_irUtils->getReturnType(paramTypes[i]));
+
+        const std::string errorMessage =
+            "Argument Type " + argumentType + " does not match with " +
+            parameterType + " for parameter " + parameterName;
+
+        this->_irUtils->logError(errorMessage);
+        return this->getNull();
+      }
     }
   }
 
@@ -648,10 +673,27 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
   return getNull();
 }
 
+void IRGenerator::mergeModules(llvm::Module *sourceModule,
+                               llvm::Module *destinationModule) {
+  llvm::LLVMContext &context = destinationModule->getContext();
+  llvm::ValueToValueMapTy vmap;
+
+  // Iterate through functions in the source module and clone them to the
+  // destination module
+  for (llvm::Function &sourceFunction : *sourceModule) {
+    llvm::Function *clonedFunction = llvm::CloneFunction(&sourceFunction, vmap);
+    clonedFunction->setName(sourceFunction.getName() + ".clone");
+    destinationModule->getFunctionList().push_back(clonedFunction);
+  }
+}
+
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
 
   // Function Declaration
+
+  // Utils::prettyPrint(blockStatement);
+
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
 
     if (blockStatement->getStatements()[i].get()->getKind() ==
@@ -659,15 +701,38 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *userFunction =
           (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get();
 
-      this->_boundedUserFunctions[userFunction->getFunctionSymbol().name] =
-          userFunction;
+      if (userFunction->hasParameterTypes()) {
 
-      // this->generateUserDefinedFunction(
-      //     (BoundFunctionDeclaration
-      //     *)blockStatement->getStatements()[i].get());
+        this->generateUserDefinedFunction(
+            (BoundFunctionDeclaration *)blockStatement->getStatements()[i]
+                .get());
+      }
+
+    } else if (blockStatement->getStatements()[i].get()->getKind() ==
+               BinderKindUtils::BoundNodeKind::BringStatement) {
+
+      BoundBringStatement *bringStatementSyntax =
+          (BoundBringStatement *)blockStatement->getStatements()[i].get();
+
+      std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+          ENVIRONMENT::SOURCE_FILE,
+          bringStatementSyntax->getDiagnosticHandlerPtr().get(),
+          bringStatementSyntax->getGlobalScopePtr().get()->functions, i + 1);
+
+      for (auto &function :
+           bringStatementSyntax->getGlobalScopePtr()->functions) {
+        this->_isDependencyFunction[function.first] = function.second;
+      }
+
+      _evaluator->generateEvaluateGlobalStatement(
+          bringStatementSyntax->getGlobalScopePtr()->globalStatement.get(),
+          Utils::getStrongRandomString() + std::to_string(i));
+
+      this->_irParser->mergeIR(_evaluator->_irParser->getIR());
     }
   }
-
+  this->_irParser->removeDuplicates();
+  // this->_irParser->removeDuplicates();
   llvm::Value *returnValue = getNull(); // default return value
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
@@ -675,7 +740,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
   llvm::Function *F = llvm::Function::Create(
       FT, llvm::Function::ExternalLinkage, blockName, *TheModule);
 
-  TheModule->dump();
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
@@ -703,10 +767,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
   Builder->CreateBr(returnBlock);
-
   Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
       ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext)));
+
+  this->_irParser->mergeIR(TheModule.get());
+
+  if (blockName == "evaluateBlockStatement") {
+    this->_irParser->removeDuplicates();
+  }
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
@@ -1027,13 +1096,19 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   std::string functionName = node->_functionSymbol.name;
 
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
+
   std::vector<llvm::Type *> argTypes;
   for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
-    argTypes.push_back(llvm::Type::getInt8PtrTy(*TheContext));
+    argTypes.push_back(this->_irUtils->getReturnType(
+        node->_functionSymbol.parameters[i].type));
   }
+  llvm::Type *returnType =
+      this->_irUtils->getReturnType(node->getFunctionSymbol().getReturnType());
 
-  llvm::FunctionType *FT = llvm::FunctionType::get(
-      llvm::Type::getInt8PtrTy(*TheContext), argTypes, false);
+  this->_returnAllocaStack.push({node->getFunctionSymbol().getReturnType(), 0});
+
+  llvm::FunctionType *FT = llvm::FunctionType::get(returnType, argTypes, false);
 
   llvm::Function *F = llvm::Function::Create(
       FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
@@ -1057,8 +1132,8 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
-    llvm::AllocaInst *variable = Builder->CreateAlloca(
-        llvm::Type::getInt8Ty(*TheContext), nullptr, parameterNames[i]);
+    llvm::AllocaInst *variable =
+        Builder->CreateAlloca(argTypes[i], nullptr, parameterNames[i]);
 
     this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
                                         this->_NamedValuesAllocaStack);
@@ -1071,10 +1146,33 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
 
-  Builder->CreateRet(getNull());
+  llvm::Value *hasError = Builder->getFalse();
 
+  if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
+      this->_returnAllocaStack.top().second == 0) {
+    hasError = Builder->getTrue();
+  }
+
+  llvm::BasicBlock *current = Builder->GetInsertBlock();
+  llvm::BasicBlock *errorBlock =
+      llvm::BasicBlock::Create(*TheContext, "errorBlock", current->getParent());
+  llvm::BasicBlock *errorExit =
+      llvm::BasicBlock::Create(*TheContext, "errorExit", current->getParent());
+
+  Builder->CreateCondBr(hasError, errorBlock, errorExit);
+
+  Builder->SetInsertPoint(errorBlock);
+
+  this->_irUtils->logError("Function return type is not Nothing, return "
+                           "expression is not found");
+
+  Builder->CreateBr(errorExit);
+
+  Builder->SetInsertPoint(errorExit);
+
+  Builder->CreateRetVoid();
+  this->_returnAllocaStack.pop();
   this->_NamedValuesStack.pop();
-
   this->_NamedValuesAllocaStack.pop();
 
   llvm::verifyFunction(*F);
@@ -1085,7 +1183,6 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
                                       this->_NamedValuesAllocaStack);
 
   this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-
                                       this->_NamedValuesAllocaStack);
 }
 void IRGenerator::generateUserDefinedFunctionOnFly(
@@ -1240,19 +1337,22 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
     BoundBringStatement *bringStatement = (BoundBringStatement *)node;
 
-    std::unique_ptr<BoundScopeGlobal> globalScope =
-        std::move(Binder::bindGlobalScope(
-            nullptr, bringStatement->getCompilationUnitPtr().get(),
-            bringStatement->getDiagnosticHandlerPtr().get()));
-    std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-        ENVIRONMENT::SOURCE_FILE,
-        bringStatement->getDiagnosticHandlerPtr().get(),
-        globalScope.get()->functions, 1);
-    _evaluator->generateEvaluateGlobalStatement(
-        globalScope->globalStatement.get(), "random");
+    // Utils::prettyPrint(bringStatement->getCompilationUnitPtr().get());
 
-    llvm::Linker::linkModules(*TheModule,
-                              std::move(_evaluator.get()->TheModule));
+    // std::unique_ptr<BoundScopeGlobal> globalScope =
+    //     std::move(Binder::bindGlobalScope(
+    //         nullptr, bringStatement->getCompilationUnitPtr().get(),
+    //         bringStatement->getDiagnosticHandlerPtr().get()));
+    // std::unique_ptr<IRGenerator> _evaluator =
+    // std::make_unique<IRGenerator>(
+    //     ENVIRONMENT::SOURCE_FILE,
+    //     bringStatement->getDiagnosticHandlerPtr().get(),
+    //     globalScope.get()->functions, 1);
+    // _evaluator->generateEvaluateGlobalStatement(
+    //     globalScope->globalStatement.get(), "random");
+
+    // llvm::Linker::linkModules(*TheModule,
+    //                           std::move(_evaluator->getModulePtr()));
 
     return getNull();
   }

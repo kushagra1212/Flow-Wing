@@ -16,6 +16,7 @@ public:
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
+  void execute(std::string irCode);
   std::vector<std::string> text = std::vector<std::string>();
 };
 

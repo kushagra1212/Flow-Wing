@@ -280,6 +280,18 @@ auto Utils::getSourceCodeFromFilePath(const std::string &filePath)
   return text;
 }
 
+auto Utils::getStrongRandomString() -> std::string {
+  std::string str(
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+  std::random_device rd;
+  std::mt19937 generator(rd());
+
+  std::shuffle(str.begin(), str.end(), generator);
+
+  return str.substr(0, 32); // assumes 32 < number of characters in str
+}
+
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   switch (node->getKind()) {
   case SyntaxKindUtils::SyntaxKind::BadToken:

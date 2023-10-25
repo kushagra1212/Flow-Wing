@@ -19,6 +19,7 @@
 #include "../../bind/BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
+#include "../IRParser/IRParser.h"
 #include "../constants/ElangIRConstants.h"
 
 using namespace ELANG::EVALUATOR::CONSTANTS;
