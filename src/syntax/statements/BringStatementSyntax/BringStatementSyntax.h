@@ -12,6 +12,7 @@ class BringStatementSyntax : public StatementSyntax {
   std::string absoluteFilePath;
   std::string relativeFilePath;
   std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
+  std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
 
 public:
   void addExpression(std::unique_ptr<SyntaxToken<std::any>> expression);
@@ -20,6 +21,8 @@ public:
   void
   setDiagnosticHandler(std::unique_ptr<DiagnosticHandler> diagnosticHandler);
   void setRelativeFilePath(const std::string &relativeFilePath);
+  void
+  setCompilationUnit(std::unique_ptr<CompilationUnitSyntax> compilationUnit);
 
   const std::string &getAbsoluteFilePath() const;
 
@@ -29,6 +32,8 @@ public:
 
   const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
   getExpressionsPtr();
+  const std::unique_ptr<CompilationUnitSyntax> &getCompilationUnitPtr();
+
   const bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
   std::unique_ptr<DiagnosticHandler> &getDiagnosticHandlerPtr();

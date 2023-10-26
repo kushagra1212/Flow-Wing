@@ -264,8 +264,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
     return std::make_unique<BoundBringStatement>(
-        bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
@@ -277,27 +277,21 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
 
     return std::make_unique<BoundBringStatement>(
-        bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
   }
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
     return std::make_unique<BoundBringStatement>(
-        bringStatement->getSourceLocation(), nullptr,
-        std::move(bringStatement->getDiagnosticHandlerPtr()), nullptr);
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
   }
 
   Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
-  std::unique_ptr<Parser> parser =
-      std::make_unique<Parser>(Utils::getSourceCodeFromFilePath(
-                                   bringStatement->getRelativeFilePathPtr()),
-                               bringStatement->getDiagnosticHandlerPtr().get());
-
-  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
 
   if (bringStatement->getIsChoosyImportPtr()) {
     std::unordered_map<std::string, int> memberMap =
-        getMemberMap(compilationUnit->getMembers(), compilationUnit.get());
+        getMemberMap(bringStatement->getCompilationUnitPtr()->getMembers(),
+                     bringStatement->getCompilationUnitPtr().get());
 
     for (const auto &expression : bringStatement->getExpressionsPtr()) {
       if (expression->getKind() !=
@@ -327,19 +321,19 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
-  std::unique_ptr<BoundScopeGlobal> globalScope = std::move(
-      Binder::bindGlobalScope(nullptr, compilationUnit.get(),
-                              bringStatement->getDiagnosticHandlerPtr().get()));
+  std::unique_ptr<BoundScopeGlobal> globalScope =
+      std::move(Binder::bindGlobalScope(
+          nullptr, bringStatement->getCompilationUnitPtr().get(),
+          bringStatement->getDiagnosticHandlerPtr().get()));
 
-  // TODO : UPDATE/ MODIFY
+  // TODO : UPDATE/ MODIFY - For variable declarations
   for (auto &function : globalScope->functions) {
     dependencyFunctions[function.first] = function.second;
   }
 
   return std::make_unique<BoundBringStatement>(
-      bringStatement->getSourceLocation(), std::move(compilationUnit),
-      std::move(bringStatement->getDiagnosticHandlerPtr()),
-      std::move(globalScope));
+      bringStatement->getSourceLocation(),
+      bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope));
 }
 
 std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(

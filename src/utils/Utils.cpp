@@ -250,6 +250,26 @@ auto Utils::typeToString(Utils::type type) -> std::string {
   return "Unknown";
 }
 
+std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {
+  std::ifstream file;
+
+  file.open(absoluteFilePath);
+  if (!file.is_open()) {
+
+    std::cerr << "Unable to open file: " << absoluteFilePath << std::endl;
+    file.close();
+    return std::vector<std::string>();
+  }
+
+  std::string line;
+  std::vector<std::string> lines = std::vector<std::string>();
+  while (std::getline(file, line)) {
+    lines.push_back(line);
+  }
+  file.close();
+  return lines;
+}
+
 auto Utils::getFileContent(const std::string &filePath) -> std::string {
   std::ifstream file(filePath);
   std::string content((std::istreambuf_iterator<char>(file)),

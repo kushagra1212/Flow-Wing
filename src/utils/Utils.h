@@ -43,7 +43,7 @@ auto getFileContent(const std::string &filePath) -> std::string;
 auto getSourceCodeFromFilePath(const std::string &filePath)
     -> std::vector<std::string>;
 std::string getAbsoluteFilePath(std::string relativeFilePath);
-
+std::vector<std::string> readLines(std::string absoluteFilePath);
 bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);

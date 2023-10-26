@@ -101,7 +101,8 @@
     "__nullptr": "cpp",
     "__node_handle": "cpp",
     "unordered_set": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "__config": "cpp"
   },
   "cmake.configureOnOpen": false
 }

@@ -395,8 +395,9 @@ std::string IRUtils::valueToString(llvm::Value *val) {
   if (constVal) {
     llvm::Module *module = builder.GetInsertBlock()->getParent()->getParent();
     llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *module, i8PtrType, true, llvm::GlobalValue::PrivateLinkage, constExpr);
+    llvm::GlobalVariable *globalVar =
+        new llvm::GlobalVariable(*module, i8PtrType, true,
+                                 llvm::GlobalValue::ExternalLinkage, constExpr);
 
     std::string str;
     llvm::raw_string_ostream rso(str);
@@ -438,7 +439,7 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
       llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
       *TheModule, stringConstant->getType(), true,
-      llvm::GlobalValue::PrivateLinkage, stringConstant);
+      llvm::GlobalValue::ExternalLinkage, stringConstant);
 
   // load global variable
   llvm::Value *i8Ptr = Builder->CreateBitCast(
@@ -931,6 +932,31 @@ llvm::Type *IRUtils::getReturnType(Utils::type type) {
   return llvm::Type::getVoidTy(*TheContext);
 }
 
+llvm::Value *IRUtils::getDefaultValue(Utils::type type) {
+  llvm::Value *_retVal = getNull();
+
+  switch (type) {
+  case Utils::type::INT32:
+    _retVal = Builder->getInt32(0);
+    break;
+  case Utils::type::DECIMAL:
+    _retVal = llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0));
+    break;
+  case Utils::type::BOOL:
+    _retVal = Builder->getInt1(false);
+    break;
+  case Utils::type::STRING:
+    _retVal = Builder->CreateGlobalStringPtr("");
+    break;
+  case Utils::type::NOTHING:
+    _retVal = Builder->CreateGlobalStringPtr("");
+    break;
+  default:
+    break;
+  }
+  return _retVal;
+}
+
 Utils::type IRUtils::getReturnType(llvm::Type *type) {
 
   if (type->isIntegerTy(32)) {
@@ -1071,6 +1097,9 @@ void IRUtils::logError(std::string errorMessgae) {
   llvm::Value *errorStr = this->convertStringToi8Ptr(error);
   this->incrementCount(ELANG_GLOBAL_ERROR);
   this->printFunction(errorStr, false);
+  llvm::SMDiagnostic Err;
+  Err.print("Elang", llvm::errs());
+  llvm::errs() << error;
 }
 
 void IRUtils::errorGuard(std::function<void()> code) {

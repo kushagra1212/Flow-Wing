@@ -6,9 +6,9 @@ Parser::Parser(std::vector<std::string> souceCode,
   this->_diagnosticHandler = diagnosticHandler;
 
 #ifdef JIT_MODE
-  if (souceCode.size()) {
-    souceCode[souceCode.size() - 1] += "print(\"\")";
-  }
+  // if (souceCode.size()) {
+  //   souceCode[souceCode.size() - 1] += "print(\"\")";
+  // }
 #endif
   lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
@@ -419,6 +419,15 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   bringStatement->setAbsoluteFilePath(
       Utils::getAbsoluteFilePath(relativeFilePath));
   bringStatement->setDiagnosticHandler(std::move(diagnosticHandler));
+
+  std::unique_ptr<Parser> parser = std::make_unique<Parser>(
+      Utils::readLines(Utils::getAbsoluteFilePath(relativeFilePath)),
+      bringStatement->getDiagnosticHandlerPtr().get());
+
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit =
+      std::move(parser->parseCompilationUnit());
+
+  bringStatement->setCompilationUnit(std::move(compilationUnit));
 
   return std::move(bringStatement);
 }

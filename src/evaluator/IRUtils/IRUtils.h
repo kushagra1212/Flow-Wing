@@ -126,6 +126,8 @@ public:
 
   bool isDoubleType(llvm::Type *type);
 
+  llvm::Value *getDefaultValue(Utils::type type);
+
   llvm::Value *implicitConvertToDouble(llvm::Value *val);
 
   llvm::Value *implicitConvertToInt(llvm::Value *val);

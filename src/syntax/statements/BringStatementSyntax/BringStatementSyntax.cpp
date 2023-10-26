@@ -2,6 +2,7 @@
 
 void BringStatementSyntax::addExpression(
     std::unique_ptr<SyntaxToken<std::any>> expression) {
+  this->_children.push_back(expression.get());
   expressions.push_back(std::move(expression));
 }
 void BringStatementSyntax::setAbsoluteFilePath(
@@ -18,9 +19,19 @@ void BringStatementSyntax::setRelativeFilePath(
   this->relativeFilePath = relativeFilePath;
 }
 
+void BringStatementSyntax::setCompilationUnit(
+    std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
+
+  for (const auto &member : compilationUnit->getMembers()) {
+    this->_children.push_back(member.get());
+  }
+  this->_compilationUnit = std::move(compilationUnit);
+}
+
 void BringStatementSyntax::addBringKeyword(
     std::unique_ptr<SyntaxToken<std::any>> bringKeyword) {
-  _bringKeyword = std::move(bringKeyword);
+  this->_children.push_back(bringKeyword.get());
+  this->_bringKeyword = std::move(bringKeyword);
 }
 
 const std::string &BringStatementSyntax::getAbsoluteFilePath() const {
@@ -31,11 +42,7 @@ SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BringStatementSyntax;
 }
 std::vector<SyntaxNode *> BringStatementSyntax::getChildren() {
-  std::vector<SyntaxNode *> children;
-  for (auto &expression : expressions) {
-    children.push_back(expression.get());
-  }
-  return children;
+  return _children;
 }
 DiagnosticUtils::SourceLocation
 BringStatementSyntax::getSourceLocation() const {
@@ -46,6 +53,7 @@ const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
 BringStatementSyntax::getExpressionsPtr() {
   return expressions;
 }
+
 const bool BringStatementSyntax::getIsChoosyImportPtr() {
   return this->expressions.size() > 0;
 }
@@ -64,4 +72,9 @@ BringStatementSyntax::getDiagnosticHandlerPtr() {
 const std::unique_ptr<SyntaxToken<std::any>> &
 BringStatementSyntax::getBringKeywordPtr() {
   return _bringKeyword;
+}
+
+const std::unique_ptr<CompilationUnitSyntax> &
+BringStatementSyntax::getCompilationUnitPtr() {
+  return _compilationUnit;
 }

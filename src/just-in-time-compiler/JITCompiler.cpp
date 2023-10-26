@@ -54,7 +54,6 @@ void JITCompiler::compile(std::vector<std::string> &text,
     return;
   }
   Utils::prettyPrint(compilationUnit.get());
-
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
@@ -62,10 +61,15 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-    _evaluator->getIRParserPtr()->printIR();
-    this->execute(_evaluator->getIRParserPtr()->getIR());
-
+    // _evaluator->printIR();
     // _evaluator->executeGeneratedCode();
+
+    _evaluator->getIRParserPtr()->printIR();
+    std::string ir = _evaluator->getIRParserPtr()->getIR();
+
+    _evaluator.reset(nullptr);
+    this->execute(ir);
+
     outputStream << std::endl;
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -138,12 +142,6 @@ void JITCompiler::runTests(std::istream &inputStream,
 }
 
 void JITCompiler::execute(std::string irCode) {
-  std::unique_ptr<llvm::LLVMContext> TheContext =
-      std::make_unique<llvm::LLVMContext>();
-  std::unique_ptr<llvm::IRBuilder<>> Builder =
-      std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  std::unique_ptr<llvm::Module> TheModule =
-      std::make_unique<llvm::Module>("Elang2", *TheContext);
 
   // create a file in currenct director temp.ll
 
@@ -152,16 +150,30 @@ void JITCompiler::execute(std::string irCode) {
   OS << irCode;
   OS.close();
 
-  llvm::SMDiagnostic err;
-  bool LinkResult = llvm::Linker::linkModules(
-      *TheModule, llvm::parseIRFile("temp.ll", err, *TheContext));
-  if (LinkResult) {
-    llvm::errs() << "Error linking " + ":" << err.getMessage() << "\n";
-  }
-
+  std::unique_ptr<llvm::LLVMContext> TheContext =
+      std::make_unique<llvm::LLVMContext>();
+  std::unique_ptr<llvm::IRBuilder<>> Builder =
+      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+  std::unique_ptr<llvm::Module> TheModule =
+      std::make_unique<llvm::Module>("MyModule", *TheContext);
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
+
+  llvm::SMDiagnostic err;
+  const std::string path = "temp.ll";
+  bool LinkResult = false;
+  try {
+    LinkResult = llvm::Linker::linkModules(
+        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()));
+  } catch (const std::exception &e) {
+    std::cerr << "Error loading LLVM IR: " << e.what() << std::endl;
+  }
+
+  if (LinkResult) {
+    llvm::errs() << "Error linking " + path + ":" << err.getMessage() << "\n";
+    return;
+  }
 
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction("evaluateBlockStatement");
@@ -172,19 +184,21 @@ void JITCompiler::execute(std::string irCode) {
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
           .create();
+
   if (!executionEngine) {
     llvm::errs() << "Failed to create Execution Engine: " << errorMessage
                  << "\n";
+    return;
   }
 
-  // Step 2: Look up the function pointer
   if (!evaluateBlockStatement) {
     llvm::errs() << "Function not found in module.\n";
   }
   int hasError = 1;
   llvm::Type *returnType = evaluateBlockStatement->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
-  llvm::ArrayRef<llvm::GenericValue> ArgValues;
+  llvm::ArrayRef<llvm::GenericValue> ArgValues = {};
+
   try {
     resultValue =
         executionEngine->runFunction(evaluateBlockStatement, ArgValues);
@@ -208,7 +222,6 @@ int main(int argc, char **argv) {
 }
 
 #endif
-
 #ifdef JIT_MODE
 
 int main(int argc, char *argv[]) {
@@ -237,16 +250,12 @@ int main(int argc, char *argv[]) {
     std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
     return 0;
   }
-
-  std::string line;
-  std::vector<std::string> text = std::vector<std::string>();
-
-  Utils::Node::addPath(argv[1]);
-  while (std::getline(file, line)) {
-    text.push_back(line);
-  }
   // Close the file (imp)
   file.close();
+
+  Utils::Node::addPath(argv[1]);
+  std::vector<std::string> text =
+      Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
 
   std::unique_ptr<JITCompiler> jitCompiler =
       std::make_unique<JITCompiler>(argv[1]);
