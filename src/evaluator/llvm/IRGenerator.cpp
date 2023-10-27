@@ -457,35 +457,15 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
-  if (!_isDependencyFunction[function.name] && !calleeFunction &&
-      !this->_recursiveFunctionsMap[function.name]) {
+  if (!calleeFunction && !this->_recursiveFunctionsMap[function.name]) {
     this->_recursiveFunctionsMap[function.name] = true;
     this->generateUserDefinedFunctionOnFly(
         this->_boundedUserFunctions[functionName], args);
     Builder->SetInsertPoint(currentBlock);
   }
 
-  if (_isDependencyFunction[functionName]) {
-    std::vector<llvm::Type *> parameterTypes = {};
+  calleeFunction = TheModule->getFunction(functionName);
 
-    for (auto parameter :
-         _isDependencyFunction[functionName]->getFunctionSymbol().parameters) {
-      parameterTypes.push_back(this->_irUtils->getReturnType(parameter.type));
-    }
-
-    llvm::FunctionType *functionType = llvm::FunctionType::get(
-        this->_irUtils->getReturnType(_isDependencyFunction[functionName]
-                                          ->getFunctionSymbol()
-                                          .getReturnType()),
-        parameterTypes, true);
-
-    calleeFunction = llvm::Function::Create(
-        functionType, llvm::Function::ExternalLinkage, functionName);
-    this->_boundedUserFunctions[functionName] =
-        _isDependencyFunction[functionName];
-  } else {
-    calleeFunction = TheModule->getFunction(functionName);
-  }
   this->_recursiveFunctionsMap[function.name] = false;
 
   llvm::FunctionType *functionType = calleeFunction->getFunctionType();
@@ -712,9 +692,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
       BoundBringStatement *bringStatementSyntax =
           (BoundBringStatement *)blockStatement->getStatements()[i].get();
-      for (auto function :
+      for (const auto &function :
            bringStatementSyntax->getGlobalScopePtr()->functions) {
-        this->_isDependencyFunction[function.first] = function.second;
+        llvm::FunctionType *funcType = llvm::FunctionType::get(
+            this->_irUtils->getReturnType(
+                function.second->getFunctionSymbol().getReturnType()),
+            true);
+        llvm::Function *functionLLVM = llvm::Function::Create(
+            funcType, llvm::Function::ExternalLinkage,
+            function.second->getFunctionSymbol().name, TheModule.get());
       }
       std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
           ENVIRONMENT::SOURCE_FILE,

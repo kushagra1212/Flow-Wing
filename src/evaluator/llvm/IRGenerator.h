@@ -77,9 +77,6 @@ private:
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
 
-  std::unordered_map<std::string, BoundFunctionDeclaration *>
-      _isDependencyFunction;
-
   std::map<std::string,
            std::vector<std::pair<llvm::AllocaInst *, llvm::Value *>>>
       _functionsParameters;

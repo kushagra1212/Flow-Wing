@@ -53,7 +53,7 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     return;
   }
-  Utils::prettyPrint(compilationUnit.get());
+  Utils::prettyPrint(globalScope->globalStatement.get());
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
