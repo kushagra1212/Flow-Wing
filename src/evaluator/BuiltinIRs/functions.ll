@@ -7,9 +7,9 @@ declare void @memcpy(i8*, i8*, i64, i1)
 declare i32 @strcmp(i8*, i8*)
 
 declare i32 @snprintf(i8*, i64, i8*, i32)
-@intFormat = global [3 x i8] c"%d\00"
-@doubleFormat = global [5 x i8] c"%.6f\00"
-define i8* @concat_strings(i8* %str1, i8* %str2) {
+@intFormat =  private global [3 x i8] c"%d\00"
+@doubleFormat =  private global [5 x i8] c"%.6f\00"
+define   i8* @concat_strings(i8* %str1, i8* %str2) {
     ; Get the lengths of the input strings
     %len1 = call i64 @strlen(i8* %str1)
     %len2 = call i64 @strlen(i8* %str2)
@@ -32,7 +32,7 @@ define i8* @concat_strings(i8* %str1, i8* %str2) {
     ret i8* %concatStr
 }
 
-define i32 @stringLength(i8* %str) {
+define  i32 @stringLength(i8* %str) {
 entry:
   %len = call i64 @strlen(i8* %str)
 
@@ -44,7 +44,7 @@ entry:
 }
 
 
-define i8* @itos(i32 %num) {
+define  i8* @itos(i32 %num) {
     ; Allocate memory for the string buffer
     %buffer = call i8* @malloc(i64 12)
     
@@ -57,7 +57,7 @@ define i8* @itos(i32 %num) {
 }
 
 
-define i8* @dtos(i32 %f) {
+define  i8* @dtos(i32 %f) {
   ; Allocate memory for the string buffer
   %buffer = call i8* @malloc(i64 16)
 
@@ -68,7 +68,7 @@ define i8* @dtos(i32 %f) {
   ret i8* %buffer
 }
 
-define i8* @getMallocPtrOfStringConstant(i8* %str) {
+define  i8* @getMallocPtrOfStringConstant(i8* %str) {
     ; Get the length of the string
     %len = call i64 @strlen(i8* %str)
 
@@ -84,7 +84,7 @@ define i8* @getMallocPtrOfStringConstant(i8* %str) {
     ret i8* %strPtr
 }
 
-define i8* @getMallocPtrofIntConstant(i32 %num) {
+define  i8* @getMallocPtrofIntConstant(i32 %num) {
     ; Allocate memory for the string buffer
     %buffer = call i8* @malloc(i64 12)
     
@@ -97,46 +97,46 @@ define i8* @getMallocPtrofIntConstant(i32 %num) {
 }
 
 
-define i32 @compare_strings(i8* %str1, i8* %str2) {
+define  i32 @compare_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     ret i32 %result
 }
 
-define i1 @less_than_strings(i8* %str1, i8* %str2) {
+define  i1 @less_than_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %less_than = icmp slt i32 %result, 0
     ret i1 %less_than
 }
 
-define i1 @less_than_or_equal_strings(i8* %str1, i8* %str2) {
+define  i1 @less_than_or_equal_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %less_than_or_equal = icmp sle i32 %result, 0
     ret i1 %less_than_or_equal
 }
 
-define i1 @greater_than_strings(i8* %str1, i8* %str2) {
+define  i1 @greater_than_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %greater_than = icmp sgt i32 %result, 0
     ret i1 %greater_than
 }
 
-define i1 @greater_than_or_equal_strings(i8* %str1, i8* %str2) {
+define  i1 @greater_than_or_equal_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %greater_than_or_equal = icmp sge i32 %result, 0
     ret i1 %greater_than_or_equal
 }
 
-define i1 @equal_strings(i8* %str1, i8* %str2) {
+define  i1 @equal_strings(i8* %str1, i8* %str2) {
     %result = call i32 @strcmp(i8* %str1, i8* %str2)
     %equal = icmp eq i32 %result, 0
     ret i1 %equal
 }
 
 declare i32 @scanf(i8*, ...)
-@formatStrscanf = global [10 x i8] c"%1000000s\00", align 1
+@formatStrscanf =  private global [10 x i8] c"%1000000s\00", align 1
 
 
-define i8* @getInput() {
+define  i8* @getInput() {
 entry:
   ; Allocate space for the string 
   %inputValue = call i8* (i64) @malloc(i64 1000001)
@@ -149,7 +149,7 @@ entry:
 
 declare i32 @atoi(i8*)
 
-define i32 @stringToInt(i8* %str) {
+define  i32 @stringToInt(i8* %str) {
 entry:
   ; Call the atoi function to convert the string to an integer
   %intValue = call i32 @atoi(i8* %str)
@@ -159,7 +159,7 @@ entry:
 }
 declare i64 @atol(i8*)
 ; Example usage of the atol function
-define i64 @stringToLong(i8* %str) {
+define  i64 @stringToLong(i8* %str) {
 entry:
   %longValue = call i64 @atol(i8* %str)
   ret i64 %longValue
@@ -167,13 +167,13 @@ entry:
 
 declare double @atof(i8*)
 ; Example usage of the atof function
-define double @stringToDouble(i8* %str) {
+define  double @stringToDouble(i8* %str) {
 entry:
   %doubleValue = call double @atof(i8* %str)
   ret double %doubleValue
 }
 
-define i32 @main() {
+define  i32 @main() {
 entry:
     %result = add i32 2, 3
     ret i32 %result

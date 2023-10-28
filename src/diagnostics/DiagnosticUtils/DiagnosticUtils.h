@@ -5,7 +5,15 @@ namespace DiagnosticUtils {
 
 enum class DiagnosticLevel { Error, Warning, Info, Debug };
 
-enum class DiagnosticType { Lexical, Syntactic, Semantic, CodeGen, Runtime };
+enum class DiagnosticType {
+  Lexical,
+  Syntactic,
+  Semantic,
+  CodeGen,
+  Runtime,
+  Linker,
+  Fatal
+};
 
 std::string toString(DiagnosticLevel level);
 

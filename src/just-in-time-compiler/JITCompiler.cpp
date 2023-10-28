@@ -57,18 +57,17 @@ void JITCompiler::compile(std::vector<std::string> &text,
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions, 0);
+        globalScope.get()->functions);
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
     // _evaluator->printIR();
     // _evaluator->executeGeneratedCode();
 
-    _evaluator->getIRParserPtr()->printIR();
-    std::string ir = _evaluator->getIRParserPtr()->getIR();
+    //_evaluator->getIRParserPtr()->printIR();
 
-    _evaluator.reset(nullptr);
-    this->execute(ir);
+    // _evaluator.reset(nullptr);
+    this->execute();
 
     outputStream << std::endl;
   } catch (const std::exception &e) {
@@ -130,7 +129,7 @@ void JITCompiler::runTests(std::istream &inputStream,
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions, 0);
+        globalScope.get()->functions);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
@@ -141,14 +140,12 @@ void JITCompiler::runTests(std::istream &inputStream,
   }
 }
 
-void JITCompiler::execute(std::string irCode) {
+void JITCompiler::execute() {
 
   // create a file in currenct director temp.ll
 
-  std::error_code EC;
-  llvm::raw_fd_ostream OS("temp.ll", EC);
-  OS << irCode;
-  OS.close();
+  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<DiagnosticHandler>();
 
   std::unique_ptr<llvm::LLVMContext> TheContext =
       std::make_unique<llvm::LLVMContext>();
@@ -159,49 +156,73 @@ void JITCompiler::execute(std::string irCode) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
+  std::vector<std::string> irFilePaths = {
+      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
 
-  llvm::SMDiagnostic err;
-  const std::string path = "temp.ll";
-  bool LinkResult = false;
-  try {
-    LinkResult = llvm::Linker::linkModules(
-        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()));
-  } catch (const std::exception &e) {
-    std::cerr << "Error loading LLVM IR: " << e.what() << std::endl;
-  }
+  std::vector<std::string> _userDefinedIRFilePaths =
+      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 
-  if (LinkResult) {
-    llvm::errs() << "Error linking " + path + ":" << err.getMessage() << "\n";
+  irFilePaths.insert(irFilePaths.end(), _userDefinedIRFilePaths.begin(),
+                     _userDefinedIRFilePaths.end());
+
+  if (irFilePaths.size() == 0) {
+    Utils::printErrors({"No IR files found in current directory."}, std::cout);
     return;
   }
 
-  llvm::Function *evaluateBlockStatement =
-      TheModule->getFunction("evaluateBlockStatement");
+  for (const std::string &path : irFilePaths) {
+    llvm::SMDiagnostic err;
+    currentDiagnosticHandler->printDiagnostic(
+        std::cout,
+        Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
+                   DiagnosticUtils::DiagnosticType::Linker,
+                   DiagnosticUtils::SourceLocation(0, 0, path)));
+    bool LinkResult = llvm::Linker::linkModules(
+        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()));
+    if (LinkResult) {
+      currentDiagnosticHandler->printDiagnostic(
+          std::cout, Diagnostic("Error linking " + path,
+                                DiagnosticUtils::DiagnosticLevel::Error,
+                                DiagnosticUtils::DiagnosticType::Linker,
+                                DiagnosticUtils::SourceLocation(0, 0, path)));
+      return;
+    }
+  }
+
+  currentDiagnosticHandler->printDiagnostic(
+      std::cout, Diagnostic("Finished linking modules.",
+                            DiagnosticUtils::DiagnosticLevel::Info,
+                            DiagnosticUtils::DiagnosticType::Linker,
+                            DiagnosticUtils::SourceLocation(0, 0, "main")));
+
+  TheModule->print(llvm::outs(), nullptr);
+  llvm::Function *mainFunction =
+      TheModule->getFunction(ELANG_GLOBAL_ENTRY_POINT);
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
-          .setEngineKind(llvm::EngineKind::JIT)
+          .setEngineKind(llvm::EngineKind::Interpreter)
           .create();
 
   if (!executionEngine) {
-    llvm::errs() << "Failed to create Execution Engine: " << errorMessage
-                 << "\n";
+    Utils::printErrors({"Failed to create Execution Engine: ", errorMessage},
+                       std::cerr);
     return;
   }
 
-  if (!evaluateBlockStatement) {
-    llvm::errs() << "Function not found in module.\n";
+  if (!mainFunction) {
+    Utils::printErrors({"Function not found in module."}, std::cerr);
+    return;
   }
   int hasError = 1;
-  llvm::Type *returnType = evaluateBlockStatement->getReturnType();
+  llvm::Type *returnType = mainFunction->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
   llvm::ArrayRef<llvm::GenericValue> ArgValues = {};
 
   try {
-    resultValue =
-        executionEngine->runFunction(evaluateBlockStatement, ArgValues);
+    resultValue = executionEngine->runFunction(mainFunction, ArgValues);
 
     if (returnType->isIntegerTy()) {
       hasError = (resultValue.IntVal != 0) ? 1 : 0;
@@ -209,6 +230,7 @@ void JITCompiler::execute(std::string irCode) {
 
   } catch (const std::exception &e) {
     std::cerr << e.what();
+    Utils::printErrors({"Error executing function."}, std::cerr);
   }
   delete executionEngine;
   // return hasError;
@@ -227,7 +249,8 @@ int main(int argc, char **argv) {
 int main(int argc, char *argv[]) {
 
   if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
+    Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
+                       std::cerr, true);
     return 0;
   }
 
@@ -239,15 +262,17 @@ int main(int argc, char *argv[]) {
 
   if (!file.is_open()) {
 
-    std::cerr << "Unable to open file: " << argv[1] << std::endl;
+    Utils::printErrors({"Unable to open file: " + std::string(argv[1]),
+                        "Usage: " + std::string(argv[0]) + " <file_path> "},
+                       std::cerr);
+
     if (access(argv[1], R_OK) != 0) {
-      std::cerr << "Please check if the file exists and you have read "
-                   "permissions."
-                << std::endl;
-      std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
+      Utils::printErrors(
+          {"Please check if the file exists and you have read permissions."},
+          std::cerr);
+
       return 1;
     }
-    std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
     return 0;
   }
   // Close the file (imp)

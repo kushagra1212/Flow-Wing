@@ -10,7 +10,7 @@ public:
   IRGenerator(
       int environment, DiagnosticHandler *diagnosticHandler,
       std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
-      int moduleCount);
+      const std::string sourceFileName = ELANG_GLOBAL_ENTRY_POINT);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -19,7 +19,8 @@ public:
 
   void mergeModules(llvm::Module *sourceFunction,
                     llvm::Module *destinationModule);
-  void defineStandardFunctions();
+  void declareDependencyFunctions();
+  void initializeGlobalVariables();
   void updateModule();
   llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
   llvm::Value *generateEvaluateLiteralExpressionFunction(BoundExpression *node);
@@ -43,7 +44,7 @@ public:
 
   void generateEvaluateGlobalStatement(
       BoundBlockStatement *blockStatement,
-      std::string blockName = "evaluateBlockStatement");
+      std::string blockName = ELANG_GLOBAL_ENTRY_POINT);
 
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 
@@ -51,7 +52,6 @@ public:
 
   llvm::Value *evaluateForStatement(BoundForStatement *node);
   llvm::Value *generateEvaluateCallExpression(BoundCallExpression *node);
-  llvm::Constant *getNull();
   llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);
 
   void
@@ -89,6 +89,7 @@ private:
   int showNewLineForRepl = 0;
   int _moduleCount = 0;
   int _environment;
+  std::string _sourceFileName;
 };
 
 #endif // IRGENERATOR_H

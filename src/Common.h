@@ -29,5 +29,7 @@ constexpr auto GREEN = "\033[32m";
 constexpr auto YELLOW = "\033[33m";
 constexpr auto BLUE = "\033[34m";
 constexpr auto RED_TEXT = "\033[1;31m";
+constexpr auto YELLOW_TEXT = "\033[1;33m";
 constexpr auto GREEN_TEXT = "\033[1;32m";
+constexpr auto BLUE_TEXT = "\033[1;34m";
 #endif

@@ -14,7 +14,7 @@ extern const std::string ELANG_GLOBAL_RETURN_COUNT;
 
 // For Error
 
-extern const std::string ELANG_GLOBAL_ERROR;
+extern const std::string ELANG_GLOBAL_ERROR_COUNT;
 
 // NULL
 
@@ -23,6 +23,10 @@ extern const std::string ELANG_GLOBAL_NULL;
 // TRUE AND FALSE KEYWORDS
 extern const std::string ELANG_GLOBAL_TRUE;
 extern const std::string ELANG_GLOBAL_FALSE;
+
+// Entry Point
+
+extern const std::string ELANG_GLOBAL_ENTRY_POINT;
 
 enum ENVIRONMENT { REPL, SOURCE_FILE };
 

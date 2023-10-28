@@ -88,6 +88,8 @@ class IRUtils;
 
 class IRUtils {
 
+  std::string _sourceFileName;
+
 public:
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
@@ -95,7 +97,8 @@ public:
   DiagnosticHandler *diagnosticHandler;
 
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler);
+          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler,
+          std::string sourceFileName);
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
@@ -214,12 +217,10 @@ public:
 
   llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition);
 
-  llvm::GlobalVariable *getNullValue();
-
   llvm::PHINode *handleForLoopCondition(llvm::Value *stepValue,
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
-
+  bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
   void handleConditionalBranch(
       llvm::Value *conditionValue, const std::string &trueBlockName,
       const std::string &falseBlockName,
@@ -234,7 +235,10 @@ public:
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
 
   void logError(std::string errorMessgae);
+  const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
+
+  const std::string getSourceFileName() const;
 
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;

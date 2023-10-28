@@ -14,7 +14,7 @@ private:
 public:
   Diagnostic(const std::string &message, DiagnosticUtils::DiagnosticLevel level,
              DiagnosticUtils::DiagnosticType type,
-             const DiagnosticUtils::SourceLocation &location);
+             const DiagnosticUtils::SourceLocation &location = {});
 
   const std::string &getMessage() const;
 

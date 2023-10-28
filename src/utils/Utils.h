@@ -31,6 +31,8 @@ void prettyPrint(BoundNode *statement, std::string indent = "",
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);
 
+const std::string getFileName(const std::string &filePath);
+
 const std::string concatErrors(const std::vector<std::string> &errors,
                                std::ostream &outputStream,
                                bool isWarning = false);
@@ -50,6 +52,10 @@ bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
 auto typeToString(Utils::type type) -> std::string;
 
+std::vector<std::string>
+getAllFilesInDirectoryWithExtension(std::string directoryPath,
+                                    std::string extension, bool recursive);
+
 enum class SymbolKind {
   Variable,
   Function,
@@ -60,8 +66,11 @@ enum class SymbolKind {
   None
 };
 
+const std::string removeExtensionFromString(const std::string &filePath);
 DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 
+const std::string getNameExtension(const std::string &filePath);
+const std::string getRelativePath(const std::string &filePath);
 struct Variable {
   std::any value;
   bool isConst;
@@ -94,7 +103,10 @@ struct FunctionSymbol {
   std::vector<FunctionParameterSymbol> parameters;
   type return_type;
   SymbolKind kind;
-  FunctionSymbol() { this->kind = SymbolKind::None; }
+  FunctionSymbol() {
+    this->kind = SymbolKind::None;
+    this->return_type = Utils::type::NOTHING;
+  }
   FunctionSymbol(std::string name,
                  std::vector<FunctionParameterSymbol> parameters,
                  type return_type = Utils::type::NOTHING) {
@@ -104,7 +116,7 @@ struct FunctionSymbol {
     this->return_type = return_type;
   }
 
-  const type &getReturnType() { return return_type; }
+  type getReturnType() { return return_type; }
 
   int arity() { return (int)parameters.size(); }
 };

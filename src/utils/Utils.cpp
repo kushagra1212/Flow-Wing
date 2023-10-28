@@ -203,12 +203,29 @@ const std::string Utils::concatErrors(const std::vector<std::string> &errors,
 }
 
 std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
+
   std::filesystem::path basePath = std::filesystem::current_path();
 
   // Create an absolute path by combining the base path and the relative path
   std::filesystem::path absolutePath = basePath / relativeFilePath;
 
   return absolutePath.string();
+}
+
+const std::string Utils::getFileName(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.filename().string();
+}
+
+const std::string Utils::getNameExtension(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.stem().string();
+}
+
+const std::string
+Utils::removeExtensionFromString(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.replace_extension("").string();
 }
 
 DiagnosticUtils::SourceLocation
@@ -256,7 +273,12 @@ std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {
   file.open(absoluteFilePath);
   if (!file.is_open()) {
 
-    std::cerr << "Unable to open file: " << absoluteFilePath << std::endl;
+    Utils::printErrors(
+        {
+            "Error: Unable to open file: " + absoluteFilePath,
+        },
+        std::cerr);
+
     file.close();
     return std::vector<std::string>();
   }
@@ -301,15 +323,44 @@ auto Utils::getSourceCodeFromFilePath(const std::string &filePath)
 }
 
 auto Utils::getStrongRandomString() -> std::string {
-  std::string str(
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+  std::string str("0123456789ABCDEF");
 
   std::random_device rd;
   std::mt19937 generator(rd());
 
   std::shuffle(str.begin(), str.end(), generator);
 
-  return str.substr(0, 32); // assumes 32 < number of characters in str
+  // append time to the end of the string
+
+  std::string time = std::to_string(
+      std::chrono::system_clock::now().time_since_epoch().count());
+
+  str += time;
+
+  return str.substr(0, 10);
+}
+
+std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
+    std::string directoryPath, std::string extension, bool recursive) {
+  std::vector<std::string> files = std::vector<std::string>();
+
+  for (const auto &entry : std::filesystem::directory_iterator(directoryPath)) {
+    if (entry.path().extension() == extension) {
+      files.push_back(entry.path().string());
+    }
+
+    if (entry.is_directory() && recursive) {
+      std::vector<std::string> subFiles = getAllFilesInDirectoryWithExtension(
+          entry.path().string(), extension, recursive);
+      files.insert(files.end(), subFiles.begin(), subFiles.end());
+    }
+  }
+  return files;
+}
+
+const std::string Utils::getRelativePath(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.relative_path().string();
 }
 
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
