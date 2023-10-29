@@ -4,12 +4,12 @@ VariableDeclarationSyntax::VariableDeclarationSyntax(
     std::unique_ptr<SyntaxToken<std::any>> keyword,
     std::unique_ptr<SyntaxToken<std::any>> identifier,
     std::unique_ptr<SyntaxToken<std::any>> equalsToken,
-    std::unique_ptr<ExpressionSyntax> initializer) {
+    std::unique_ptr<ExpressionSyntax> initializer, Utils::type type) {
   this->_keyword = std::move(keyword);
   this->_identifier = std::move(identifier);
   this->_equalsToken = std::move(equalsToken);
   this->_initializer = std::move(initializer);
-
+  this->_type = type;
   // Add children
 
   _children.push_back(_keyword.get());
@@ -68,6 +68,10 @@ VariableDeclarationSyntax::getEqualsTokenPtr() {
 std::unique_ptr<SyntaxToken<std::any>> &
 VariableDeclarationSyntax::getKeywordPtr() {
   return this->_keyword;
+}
+
+const Utils::type VariableDeclarationSyntax::getType() const {
+  return this->_type;
 }
 
 // Path:

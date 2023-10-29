@@ -121,6 +121,7 @@ public:
 
   bool isStringType(llvm::Type *type);
 
+  llvm::Constant *createConstantFromValue(llvm::Value *myValue);
   Utils::type getReturnType(llvm::Type *type);
 
   bool isIntType(llvm::Type *type);
@@ -240,8 +241,16 @@ public:
 
   const std::string getSourceFileName() const;
 
+  const int isInitializingGlobals() const;
+
+  void setInitializingGlobals(int value);
+
+  const int hasError() const;
+
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
+  int _initializingGlobals = 0;
+  int _hasError = 0;
 };
 
 #endif

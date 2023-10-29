@@ -30,13 +30,14 @@ const void DiagnosticHandler::logDiagnostics(
   for (auto &diagnostic : this->diagnostics) {
     if (filter(diagnostic)) {
       printDiagnostic(outputStream, diagnostic);
+      if (_filePath != "") {
+        std::string fileOut = YELLOW;
+        fileOut += "Location: " + this->_filePath + "\n" + RESET;
+        outputStream << fileOut;
+      }
     }
   }
-  if (_filePath != "") {
-    std::string fileOut = YELLOW;
-    fileOut += "File: " + this->_filePath + "\n" + RESET;
-    outputStream << fileOut;
-  }
+
   // Reset the diagnostics
 }
 
@@ -53,10 +54,10 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
 }
 
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
-  std::string fileName =
-      this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
-                            ? diagnostic.getLocation().absoluteFilePath
-                            : this->_filePath);
+  std::string fileName = "File: ";
+  fileName += this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
+                                    ? diagnostic.getLocation().absoluteFilePath
+                                    : this->_filePath);
   std::string message = diagnostic.getMessage();
   std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
   std::string type = DiagnosticUtils::toString(diagnostic.getType());

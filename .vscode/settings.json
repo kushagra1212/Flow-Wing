@@ -102,7 +102,16 @@
     "__node_handle": "cpp",
     "unordered_set": "cpp",
     "filesystem": "cpp",
-    "__config": "cpp"
+    "__config": "cpp",
+    "__bit_reference": "cpp",
+    "__functional_base": "cpp",
+    "__memory": "cpp",
+    "__locale": "cpp",
+    "csignal": "cpp",
+    "__functional_base_03": "cpp",
+    "__hash_table": "cpp",
+    "__tree": "cpp",
+    "__tuple": "cpp"
   },
   "cmake.configureOnOpen": false
 }

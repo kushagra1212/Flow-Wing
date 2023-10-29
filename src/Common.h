@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <any>
 #include <chrono>
+#include <csignal>
 #include <cstdlib> // For malloc
 #include <cstring> // For strlen and memcpy
 #include <exception>
@@ -22,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
 constexpr auto RED = "\033[31m";

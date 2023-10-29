@@ -418,6 +418,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 
   bringStatement->setAbsoluteFilePath(
       Utils::getAbsoluteFilePath(relativeFilePath));
+
+  this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler.get());
   bringStatement->setDiagnosticHandler(std::move(diagnosticHandler));
 
   std::unique_ptr<Parser> parser = std::make_unique<Parser>(
@@ -588,13 +590,21 @@ std::unique_ptr<StatementSyntax> Parser::parseVariableDeclaration() {
           : SyntaxKindUtils::SyntaxKind::ConstKeyword));
   std::unique_ptr<SyntaxToken<std::any>> identifier =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+
+  Utils::type type = Utils::type::UNKNOWN;
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ColonToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+    type = this->parseType();
+  }
+
   std::unique_ptr<SyntaxToken<std::any>> equalsToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
   std::unique_ptr<ExpressionSyntax> initializer =
       std::move(this->parseExpression());
   return std::make_unique<VariableDeclarationSyntax>(
       std::move(keyword), std::move(identifier), std::move(equalsToken),
-      std::move(initializer));
+      std::move(initializer), type);
 }
 
 std::unique_ptr<ExpressionSyntax>

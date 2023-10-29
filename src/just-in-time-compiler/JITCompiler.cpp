@@ -67,8 +67,10 @@ void JITCompiler::compile(std::vector<std::string> &text,
     //_evaluator->getIRParserPtr()->printIR();
 
     // _evaluator.reset(nullptr);
-    this->execute();
 
+    if (!_evaluator->hasErrors()) {
+      this->execute();
+    }
     outputStream << std::endl;
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -152,7 +154,7 @@ void JITCompiler::execute() {
   std::unique_ptr<llvm::IRBuilder<>> Builder =
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
   std::unique_ptr<llvm::Module> TheModule =
-      std::make_unique<llvm::Module>("MyModule", *TheContext);
+      std::make_unique<llvm::Module>("Module.Elang", *TheContext);
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
@@ -178,7 +180,8 @@ void JITCompiler::execute() {
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
     bool LinkResult = llvm::Linker::linkModules(
-        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()));
+        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
+        llvm::Linker::Flags::OverrideFromSrc);
     if (LinkResult) {
       currentDiagnosticHandler->printDiagnostic(
           std::cout, Diagnostic("Error linking " + path,
@@ -203,7 +206,7 @@ void JITCompiler::execute() {
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
-          .setEngineKind(llvm::EngineKind::Interpreter)
+          .setEngineKind(llvm::EngineKind::JIT)
           .create();
 
   if (!executionEngine) {
@@ -230,12 +233,23 @@ void JITCompiler::execute() {
 
   } catch (const std::exception &e) {
     std::cerr << e.what();
-    Utils::printErrors({"Error executing function."}, std::cerr);
+    currentDiagnosticHandler->printDiagnostic(
+        std::cout, Diagnostic("Error executing function.",
+                              DiagnosticUtils::DiagnosticLevel::Error,
+                              DiagnosticUtils::DiagnosticType::Runtime,
+                              DiagnosticUtils::SourceLocation(0, 0, "main")));
   }
   delete executionEngine;
   // return hasError;
 }
+void signalHandler(int signal) {
+  // Output information about the signal:
 
+  std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
+            << ") received." << std::endl;
+
+  exit(1); // Exit with a non-zero status to indicate an error.
+}
 #ifdef JIT_TEST_MODE
 
 int main(int argc, char **argv) {
@@ -247,7 +261,7 @@ int main(int argc, char **argv) {
 #ifdef JIT_MODE
 
 int main(int argc, char *argv[]) {
-
+  signal(SIGSEGV, signalHandler);
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);

@@ -1,11 +1,11 @@
 ; ModuleID = 'built_in_module'
 source_filename = "built_in_module"
 
-@formatStrprintfnewline =  private global [4 x i8] c"%s\0A\00"
-@formatStrprintf =  private global [3 x i8] c"%s\00"
-@formatStrscanf =  private global [10 x i8] c"%1000000s\00", align 1
-@intFormat =  private global [3 x i8] c"%d\00"
-@doubleFormat =  private global [5 x i8] c"%.6f\00"
+@formatStrprintfnewline =   global [4 x i8] c"%s\0A\00"
+@formatStrprintf =   global [3 x i8] c"%s\00"
+@formatStrscanf =   global [10 x i8] c"%1000000s\00", align 1
+@intFormat =   global [3 x i8] c"%d\00"
+@doubleFormat =   global [5 x i8] c"%.6f\00"
 
 declare i8* @malloc(i64)
 declare i64 @strlen(i8*)
@@ -82,13 +82,13 @@ define  i8* @itos(i32 %num) {
 }
 
 
-define  i8* @dtos(i32 %f) {
+define  i8* @dtos(double %f) {
   ; Allocate memory for the string buffer
-  %buffer = call i8* @malloc(i64 16)
+  %buffer = call i8* @malloc(i64 32)
 
   ; Convert the double to a string
   %formatStr = getelementptr [5 x i8], [5 x i8]* @doubleFormat, i32 0, i32 0
-  call i32 @snprintf(i8* %buffer, i64 16, i8* %formatStr, i32 %f)
+  call i32 @snprintf(i8* %buffer, i64 32, i8* %formatStr, double %f)
   ; Return the result as a pointer to the string
   ret i8* %buffer
 }

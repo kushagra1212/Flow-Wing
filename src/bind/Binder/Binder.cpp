@@ -46,8 +46,9 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
   bool isConst = variableDeclaration->getKeywordPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
-  if (!root->tryDeclareVariable(variable_str,
-                                Utils::Variable(nullptr, isConst))) {
+  if (!root->tryDeclareVariable(
+          variable_str,
+          Utils::Variable(nullptr, isConst, variableDeclaration->getType()))) {
 
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variable_str + " Already Exists",
@@ -326,9 +327,26 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
           nullptr, bringStatement->getCompilationUnitPtr().get(),
           bringStatement->getDiagnosticHandlerPtr().get()));
 
-  // TODO : UPDATE/ MODIFY - For variable declarations
   for (auto &function : globalScope->functions) {
-    dependencyFunctions[function.first] = function.second;
+    if (!this->root->tryDeclareFunction(function.first, function.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Function " + function.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+  }
+
+  for (auto &variable : globalScope->variables) {
+    if (!this->root->tryDeclareVariable(variable.first, variable.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Variable " + variable.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
   }
 
   return std::make_unique<BoundBringStatement>(

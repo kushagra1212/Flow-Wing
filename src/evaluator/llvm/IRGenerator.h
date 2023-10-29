@@ -65,6 +65,24 @@ public:
   std::unique_ptr<llvm::Module> &getModulePtr();
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
+  const int hasErrors() const;
+
+  // Globals
+
+  // Global Functions
+  void handleGlobalFunctionDefinition(BoundFunctionDeclaration *userFunction);
+  // Global Fuction Declaration
+  void handleGlobalFunctionDeclaration(BoundFunctionDeclaration *node);
+
+  // Global Bring Statements
+  void handleGlobalBringStatement(BoundBringStatement *bringStatement);
+
+  // Global Expression Statements
+  void handleGlobalExpressionStatement(BoundExpressionStatement *node);
+  // - Assignment Expression
+  void handleGlobalAssignmentExpression(BoundAssignmentExpression *node);
+  // - Variable Declaration
+  void handleGlobalVariableDeclaration(BoundVariableDeclaration *node);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;

@@ -8,6 +8,7 @@ IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
       diagnosticHandler(diagnosticHandler) {
   _currentSourceLocation = DiagnosticUtils::SourceLocation();
   _sourceFileName = sourceFileName;
+  this->_initializingGlobals = 1;
 }
 // GET VALUES
 
@@ -182,7 +183,6 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
       Builder->CreateCall(TheModule->getFunction("print"),
                           {resultStr, Builder->getInt1(isNewLine)});
     } else {
-
       llvm::ArrayRef<llvm::Value *> Args = {
           this->explicitConvertToString(value), Builder->getInt1(isNewLine)};
 
@@ -194,6 +194,56 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
 
     Builder->CreateCall(TheModule->getFunction("print"), Args);
   }
+}
+
+llvm::Constant *IRUtils::createConstantFromValue(llvm::Value *myValue) {
+  llvm::Type *valueType = myValue->getType();
+
+  if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
+    return constant;
+  }
+
+  if (valueType->isIntegerTy(32)) {
+    if (auto intConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
+      llvm::APInt intValue = intConstant->getValue();
+      return llvm::ConstantInt::get(valueType, intValue);
+    }
+  } else if (valueType->isFloatTy() || valueType->isDoubleTy()) {
+    if (auto floatConstant = llvm::dyn_cast<llvm::ConstantFP>(myValue)) {
+      llvm::APFloat floatValue = floatConstant->getValueAPF();
+      return llvm::ConstantFP::get(*TheContext, floatValue);
+    }
+  } else if (valueType->isPointerTy()) {
+    if (auto ptrConstant = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
+      return llvm::ConstantPointerNull::get(
+          llvm::cast<llvm::PointerType>(valueType));
+    } else if (auto constArray =
+                   llvm::dyn_cast<llvm::ConstantDataArray>(myValue)) {
+      if (constArray->isCString()) {
+        std::string str = constArray->getAsCString().str();
+        llvm::Constant *strConstant =
+            llvm::ConstantDataArray::getString(*TheContext, str, true);
+        return strConstant;
+      }
+    }
+  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
+    if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
+      return llvm::ConstantInt::get(valueType,
+                                    boolConstant->getUniqueInteger());
+    }
+  }
+  // Add more cases for other types if needed.
+
+  // this->logError("Unsupported type for conversion to constant");
+
+  return nullptr; // Return nullptr if the type is not recognized.
+}
+
+const int IRUtils::isInitializingGlobals() const {
+  return this->_initializingGlobals;
+}
+void IRUtils::setInitializingGlobals(int value) {
+  this->_initializingGlobals = value;
 }
 
 llvm::Value *IRUtils::getLLVMValue(std::any value,
@@ -246,7 +296,7 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
     llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
         *TheModule, strConstant->getType(),
         true, // isConstant
-        llvm::GlobalValue::PrivateLinkage, strConstant, "string_constant");
+        llvm::GlobalValue::ExternalLinkage, strConstant, strValue);
 
     llvm::Value *zero =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
@@ -404,8 +454,9 @@ std::string IRUtils::valueToString(llvm::Value *val) {
   if (constVal) {
     llvm::Module *module = builder.GetInsertBlock()->getParent()->getParent();
     llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *module, i8PtrType, true, llvm::GlobalValue::PrivateLinkage, constExpr);
+    llvm::GlobalVariable *globalVar =
+        new llvm::GlobalVariable(*module, i8PtrType, true,
+                                 llvm::GlobalValue::ExternalLinkage, constExpr);
 
     std::string str;
     llvm::raw_string_ostream rso(str);
@@ -446,7 +497,7 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
       llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
       *TheModule, stringConstant->getType(), true,
-      llvm::GlobalValue::PrivateLinkage, stringConstant);
+      llvm::GlobalValue::ExternalLinkage, stringConstant);
 
   // load global variable
   llvm::Value *i8Ptr = Builder->CreateBitCast(
@@ -455,6 +506,7 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
 }
 
 llvm::Value *IRUtils::convertToString(llvm::Value *val) {
+
   llvm::Type *type = val->getType();
   if (isStringType(type)) {
     return val;
@@ -491,6 +543,59 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
 }
 llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
   llvm::Type *type = val->getType();
+
+  // check if it a global variable i32
+
+  if (auto globalVar = llvm::dyn_cast<llvm::GlobalVariable>(val)) {
+    if (globalVar->getValueType()->isIntegerTy(32)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+    } else if (globalVar->getValueType()->isIntegerTy(1)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt1Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+    } else if (globalVar->getValueType()->isDoubleTy()) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getDoubleTy(*TheContext), globalVar);
+
+      return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
+    } else if (globalVar->getValueType()->isPointerTy()) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), globalVar);
+
+      // bitcast to i8*
+
+      return val;
+
+    } else if (globalVar->getValueType()->isIntegerTy(8)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt8Ty(*TheContext), globalVar);
+
+      // bitcast to i8*
+
+      return val;
+    } else if (globalVar->getValueType()->isIntegerTy(64)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt64Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
+    }
+  }
+
+  if (auto dataArr = llvm::dyn_cast<llvm::ConstantDataArray>(val)) {
+
+    // bitcast to i8*
+    // Define a global variable for the string
+    llvm::GlobalVariable *str = new llvm::GlobalVariable(
+        *TheModule, dataArr->getType(), true, llvm::GlobalValue::PrivateLinkage,
+        dataArr, ".str");
+
+    return Builder->CreateBitCast(str, llvm::Type::getInt8PtrTy(*TheContext));
+  }
+
   if (isStringType(type)) {
     return val;
   }
@@ -505,8 +610,7 @@ llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
         TheModule->getGlobalVariable(
             this->addPrefixToVariableName(ELANG_GLOBAL_FALSE)));
 
-    return Builder->CreateCall(
-        TheModule->getFunction("getMallocPtrOfStringConstant"), {str});
+    return explicitConvertToString(str);
   }
 
   if (isIntType(type)) {
@@ -561,9 +665,7 @@ llvm::Type *IRUtils::getTypeFromAny(std::any value) {
   }
 }
 
-bool IRUtils::isStringType(llvm::Type *type) {
-  return type->isPointerTy() && type->isIntegerTy(8);
-}
+bool IRUtils::isStringType(llvm::Type *type) { return type->isPointerTy(); }
 bool IRUtils::isDoubleType(llvm::Type *type) { return type->isDoubleTy(); }
 
 bool IRUtils::isIntType(llvm::Type *type) { return type->isIntegerTy(32); }
@@ -1002,7 +1104,7 @@ Utils::type IRUtils::getReturnType(llvm::Type *type) {
     return (Utils::type::DECIMAL);
   } else if (type->isIntegerTy(1)) {
     return (Utils::type::BOOL);
-  } else if (type->isPointerTy() && type->isIntegerTy(8)) {
+  } else if (type->isPointerTy()) {
     return (Utils::type::STRING);
   } else if (type->isVoidTy()) {
     return (Utils::type::NOTHING);
@@ -1127,15 +1229,17 @@ DiagnosticUtils::SourceLocation IRUtils::getCurrentSourceLocation() {
 }
 void IRUtils::logError(std::string errorMessgae) {
   if (errorMessgae != "") {
+    _hasError = 1;
     std::string error = diagnosticHandler->getLogString(
         Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Runtime,
                    this->getCurrentSourceLocation()));
-    llvm::SMDiagnostic Err;
-    Err.print("Elang", llvm::errs());
+
     llvm::errs() << error;
   }
 }
+
+const int IRUtils::hasError() const { return _hasError; }
 
 void IRUtils::errorGuard(std::function<void()> code) {
   llvm::Value *isZero =

@@ -72,14 +72,17 @@ DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 const std::string getNameExtension(const std::string &filePath);
 const std::string getRelativePath(const std::string &filePath);
 struct Variable {
+  Utils::type type;
   std::any value;
   bool isConst;
   SymbolKind kind;
   Variable() = default;
-  Variable(std::any value, bool isConst) {
+  Variable(std::any value, bool isConst,
+           Utils::type type = Utils::type::UNKNOWN) {
     this->value = value;
     this->isConst = isConst;
     this->kind = SymbolKind::Variable;
+    this->type = type;
   }
 };
 
