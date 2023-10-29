@@ -820,18 +820,9 @@ void IRGenerator::handleGlobalBringStatement(
     BoundBringStatement *bringStatementSyntax) {
   this->_irUtils->setCurrentSourceLocation(bringStatementSyntax->getLocation());
 
-  for (const auto &function :
+  for (const auto &_function :
        bringStatementSyntax->getGlobalScopePtr()->functions) {
-    llvm::FunctionType *funcType = llvm::FunctionType::get(
-        this->_irUtils->getReturnType(
-            function.second->getFunctionSymbol().getReturnType()),
-        true);
-    llvm::Function *functionLLVM = llvm::Function::Create(
-        funcType, llvm::Function::ExternalLinkage,
-        function.second->getFunctionSymbol().name, *TheModule);
-
-    this->_boundedUserFunctions[function.second->getFunctionSymbol().name] =
-        function.second;
+    handleGlobalFunctionDeclaration(_function.second);
   }
 
   for (const auto &variable :
