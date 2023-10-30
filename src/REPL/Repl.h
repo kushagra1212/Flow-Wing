@@ -7,7 +7,7 @@
 #include "../interpreter/Interpreter.h"
 #include "../parser/Parser.h"
 #include <gtest/gtest.h>
-using namespace ELANG::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::EVALUATOR::CONSTANTS;
 class Repl {
 public:
   Repl();

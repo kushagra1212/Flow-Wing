@@ -1,0 +1,12 @@
+#ifndef FLOWWING_INTERPRETER_CONSTANTS_H
+#define FLOWWING_INTERPRETER_CONSTANTS_H
+
+#include <string>
+
+namespace FLOWWING::EVALUATOR::CONSTANTS {
+
+// FlowWing Global Strings
+
+}; // namespace FLOWWING::EVALUATOR::CONSTANTS
+
+#endif // FLOWWING_IR_CONSTANTS_H

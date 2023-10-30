@@ -260,7 +260,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << GREEN << "Welcome to the " << GREEN << "Elang" << YELLOW
+  outputStream << GREEN << "Welcome to the " << GREEN << "Flux Orbit" << YELLOW
                << " REPL!" << RESET << std::endl;
 }
 

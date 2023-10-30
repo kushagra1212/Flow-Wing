@@ -7,7 +7,7 @@ IRGenerator::IRGenerator(
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
+  TheModule = std::make_unique<llvm::Module>("FlowWing", *TheContext);
   _environment = environment;
   this->_diagnosticHandler = diagnosticHandler;
   this->_irParser = std::make_unique<IRParser>();
@@ -114,53 +114,54 @@ void IRGenerator::declareDependencyFunctions() {
                               {llvm::Type::getInt8PtrTy(*TheContext)}, false);
 
   // Declare the functions
-  llvm::Function *printFn = llvm::Function::Create(
-      printFnType, llvm::Function::ExternalLinkage, "print", *TheModule);
+  llvm::Function *printFn =
+      llvm::Function::Create(printFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::PRINT, *TheModule);
   llvm::Function *concatStringsFn = llvm::Function::Create(
-      concatStringsFnType, llvm::Function::ExternalLinkage, "concat_strings",
-      *TheModule);
+      concatStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::CONCAT_STRINGS, *TheModule);
   llvm::Function *stringLengthFn = llvm::Function::Create(
-      stringLengthFnType, llvm::Function::ExternalLinkage, "string_length",
-      *TheModule);
-  llvm::Function *itosFn = llvm::Function::Create(
-      itosFnType, llvm::Function::ExternalLinkage, "itos", *TheModule);
-  llvm::Function *dtosFn = llvm::Function::Create(
-      dtosFnType, llvm::Function::ExternalLinkage, "dtos", *TheModule);
+      stringLengthFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::STRING_LENGTH, *TheModule);
+  llvm::Function *itosFn =
+      llvm::Function::Create(itosFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::ITOS, *TheModule);
+  llvm::Function *dtosFn =
+      llvm::Function::Create(dtosFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::DTOS, *TheModule);
   llvm::Function *getMallocPtrOfStringConstantFn = llvm::Function::Create(
       getMallocPtrOfStringConstantFnType, llvm::Function::ExternalLinkage,
-      "get_malloc_ptr_of_string_constant", *TheModule);
+      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_STRING_CONSTANT, *TheModule);
   llvm::Function *getMallocPtrofIntConstantFn = llvm::Function::Create(
       getMallocPtrofIntConstantFnType, llvm::Function::ExternalLinkage,
-      "get_malloc_ptr_of_int_constant", *TheModule);
+      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_INT_CONSTANT, *TheModule);
   llvm::Function *compareStringsFn = llvm::Function::Create(
-      compareStringsFnType, llvm::Function::ExternalLinkage, "compare_strings",
-      *TheModule);
+      compareStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::COMPARE_STRINGS, *TheModule);
   llvm::Function *lessThanStringsFn = llvm::Function::Create(
       lessThanStringsFnType, llvm::Function::ExternalLinkage,
-      "less_than_strings", *TheModule);
+      INNERS::FUNCTIONS::LESS_THAN_STRINGS, *TheModule);
   llvm::Function *lessThanOrEqualStringsFn = llvm::Function::Create(
       lessThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
-      "less_than_or_equal_strings", *TheModule);
+      INNERS::FUNCTIONS::LESS_THAN_OR_EQUAL_STRINGS, *TheModule);
   llvm::Function *greaterThanStringsFn = llvm::Function::Create(
       greaterThanStringsFnType, llvm::Function::ExternalLinkage,
-      "greater_than_strings", *TheModule);
-  llvm::Function *greaterThanOrEqualStringsFn = llvm::Function::Create(
+      INNERS::FUNCTIONS::GREATER_THAN_STRINGS, *TheModule);
+
+  llvm::Function::Create(
       greaterThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
-      "greater_than_or_equal_strings", *TheModule);
-  llvm::Function *equalStringsFn = llvm::Function::Create(
-      equalStringsFnType, llvm::Function::ExternalLinkage, "equal_strings",
-      *TheModule);
-  llvm::Function *getInputFn = llvm::Function::Create(
-      getInputFnType, llvm::Function::ExternalLinkage, "get_input", *TheModule);
-  llvm::Function *stringToIntFn =
-      llvm::Function::Create(stringToIntFnType, llvm::Function::ExternalLinkage,
-                             "string_to_int", *TheModule);
-  llvm::Function *stringToLongFn = llvm::Function::Create(
-      stringToLongFnType, llvm::Function::ExternalLinkage, "string_to_long",
-      *TheModule);
-  llvm::Function *stringToDoubleFn = llvm::Function::Create(
-      stringToDoubleFnType, llvm::Function::ExternalLinkage, "string_to_double",
-      *TheModule);
+      INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS, *TheModule);
+  llvm::Function::Create(equalStringsFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::EQUAL_STRINGS, *TheModule);
+
+  llvm::Function::Create(getInputFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::GET_INPUT, *TheModule);
+  llvm::Function::Create(stringToIntFnType, llvm::Function::ExternalLinkage,
+                         "string_to_int", *TheModule);
+  llvm::Function::Create(stringToLongFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::STRING_TO_INT, *TheModule);
+  llvm::Function::Create(stringToDoubleFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::STRING_TO_DOUBLE, *TheModule);
 }
 
 void IRGenerator::initializeGlobalVariables() {
@@ -173,37 +174,37 @@ void IRGenerator::initializeGlobalVariables() {
       true, // isConstant
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantDataArray::getString(*TheContext, "true\00"),
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_TRUE));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE));
 
   new llvm::GlobalVariable(
       *TheModule, llvm::ArrayType::get(i8Type, 6), true,
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantDataArray::getString(*TheContext, "false\00"),
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_FALSE));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE));
   new llvm::GlobalVariable(
       *TheModule, i8Type, false, llvm::GlobalValue::ExternalLinkage,
       nullptr, // For null, you can pass nullptr as the initializer
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_NULL));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_NULL));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(ELANG_CONTINUE_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_ZERO));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ZERO));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_ERROR_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT));
 }
 
 void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
@@ -270,8 +271,11 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
     } else if (val->getType()->isPointerTy() &&
                val->getType()->isIntegerTy(8)) {
       // Get the string length
-      llvm::Value *length =
-          Builder->CreateCall(TheModule->getFunction("stringLength"), val);
+
+      llvm::ArrayRef<llvm::Value *> Args = {
+          this->_irUtils->explicitConvertToString(val)};
+      llvm::Value *length = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH), Args);
       val = length;
 
       // Compare the string Length to Zero
@@ -313,6 +317,40 @@ void IRGenerator::printIR() {
 std::unique_ptr<llvm::Module> &IRGenerator::getModulePtr() { return TheModule; }
 
 llvm::Value *
+IRGenerator::handleGlobalVariableExpression(const std::string &variableName,
+                                            llvm::GlobalVariable *variable) {
+  if (variable->getValueType()->isIntegerTy(32) ||
+      variable->getValueType()->isIntegerTy(64) ||
+      variable->getValueType()->isIntegerTy(1) ||
+      variable->getValueType()->isFloatTy() ||
+      variable->getValueType()->isDoubleTy() ||
+      variable->getValueType()->isIntegerTy(8) ||
+      variable->getValueType()->isBFloatTy() ||
+      variable->getValueType()->isHalfTy() ||
+      variable->getValueType()->isFP128Ty() ||
+      variable->getValueType()->isX86_FP80Ty() ||
+      variable->getValueType()->isPPC_FP128Ty()) {
+    llvm::Value *loaded =
+        Builder->CreateLoad(variable->getValueType(), variable, variableName);
+
+    return loaded;
+  }
+
+  llvm::Value *loaded =
+      Builder->CreateLoad(variable->getValueType(), variable, variableName);
+  llvm::Value *zero =
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
+  llvm::Value *indices[] = {zero, zero};
+  llvm::Value *strPtr = Builder->CreateInBoundsGEP(
+      variable->getValueType(), variable, indices, "str_ptr");
+
+  llvm::Value *elementPtr = Builder->CreateBitCast(
+      strPtr, llvm::IntegerType::getInt8PtrTy((*TheContext)), "element_ptr");
+
+  return elementPtr;
+}
+
+llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
@@ -326,50 +364,23 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
       this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
   if (!variableValue) {
-    // Variable not found,  error
-
     if (variable) {
-      if (variable->getValueType()->isIntegerTy(32) ||
-          variable->getValueType()->isIntegerTy(64) ||
-          variable->getValueType()->isIntegerTy(1) ||
-          variable->getValueType()->isFloatTy() ||
-          variable->getValueType()->isDoubleTy() ||
-          variable->getValueType()->isIntegerTy(8) ||
-          variable->getValueType()->isBFloatTy() ||
-          variable->getValueType()->isHalfTy() ||
-          variable->getValueType()->isFP128Ty() ||
-          variable->getValueType()->isX86_FP80Ty() ||
-          variable->getValueType()->isPPC_FP128Ty()) {
-        llvm::Value *loaded = Builder->CreateLoad(variable->getValueType(),
-                                                  variable, variableName);
-
-        return loaded;
-      }
-
-      llvm::Value *zero =
-          llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
-      llvm::Value *indices[] = {zero, zero};
-      llvm::Value *strPtr = Builder->CreateInBoundsGEP(
-          variable->getValueType(), variable, indices, "str_ptr");
-
-      llvm::Value *elementPtr = Builder->CreateBitCast(
-          strPtr, llvm::IntegerType::getInt8PtrTy((*TheContext)),
-          "element_ptr");
-
-      return elementPtr;
+      return handleGlobalVariableExpression(variableName, variable);
     }
-
     this->_irUtils->logError("Variable not found in variable expression ");
-
     return nullptr;
   }
 
   llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
       variableName, this->_NamedValuesAllocaStack);
 
-  llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
-
+  llvm::Value *value = Builder->CreateLoad(
+      variableValue->getType(),
+      Builder->CreateStructGEP(
+          this->_dynamicType, v,
+          this->_irUtils->getIndexofMemberType(variableValue->getType())));
   this->_irUtils->setCurrentSourceLocation(variableExpression->getLocation());
+
   return value;
 }
 llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
@@ -381,8 +392,9 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   std::string variableName =
       this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
-
-  if (!this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack)) {
+  llvm::Value *oldValue =
+      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+  if (!oldValue) {
     // Variable not found, handle error
 
     llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
@@ -409,14 +421,16 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     return nullptr;
   }
 
-  // Update the variable value
+  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
+      variableName, this->_NamedValuesAllocaStack);
 
   this->_irUtils->updateNamedValue(variableName, rhsValue,
                                    this->_NamedValuesStack);
 
-  Builder->CreateStore(rhsValue,
-                       this->_irUtils->getNamedValueAlloca(
-                           variableName, this->_NamedValuesAllocaStack));
+  Builder->CreateStore(
+      rhsValue, Builder->CreateStructGEP(
+                    this->_dynamicType, v,
+                    this->_irUtils->getIndexofMemberType(rhsValue->getType())));
 
   return rhsValue;
 }
@@ -488,6 +502,11 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
 
       llvm::Value *value = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
+
+      if (this->_irUtils->getReturnType(value->getType()) ==
+          Utils::type::NOTHING) {
+        return nullptr;
+      }
       this->_irUtils->printFunction(value, false);
       return nullptr;
     }
@@ -500,8 +519,8 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
 
       llvm::ArrayRef<llvm::Value *> Args = {};
 
-      llvm::CallInst *callInst =
-          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+      llvm::CallInst *callInst = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
 
       return callInst;
     } else if (arguments_size == 1) {
@@ -512,8 +531,8 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       this->_irUtils->printFunction(strPtri8, false);
 
       llvm::ArrayRef<llvm::Value *> Args = {};
-      llvm::CallInst *callInst =
-          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+      llvm::CallInst *callInst = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
 
       return callInst;
     }
@@ -536,9 +555,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *res = nullptr;
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
-
-      this->_irUtils->errorGuard(
-          [&]() { res = this->_irUtils->explicitConvertToInt(val); });
+      res = this->_irUtils->explicitConvertToInt(val);
       return res;
     }
 
@@ -704,13 +721,16 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
 
   // create and load variable
 
-  llvm::AllocaInst *variable = nullptr;
+  llvm::AllocaInst *variable =
+      Builder->CreateAlloca(this->_dynamicType, nullptr, variable_name.c_str());
 
-  variable =
-      Builder->CreateAlloca(result->getType(), nullptr, variable_name.c_str());
   this->_irUtils->setNamedValueAlloca(variable_name, variable,
                                       this->_NamedValuesAllocaStack);
-  Builder->CreateStore(result, variable);
+
+  Builder->CreateStore(
+      result, Builder->CreateStructGEP(
+                  this->_dynamicType, variable,
+                  this->_irUtils->getIndexofMemberType(result->getType())));
 
   return result;
 }
@@ -764,7 +784,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
         blockStatement->getStatements()[i].get());
     Builder->CreateCondBr(
         this->_irUtils->isCountZero(
-            this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT),
+            this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
             llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
@@ -777,7 +797,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     else {
       Builder->CreateCondBr(
           this->_irUtils->isCountZero(
-              this->_irUtils->addPrefixToVariableName(ELANG_CONTINUE_COUNT),
+              this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT),
               llvm::Type::getInt32Ty(*TheContext)),
           nestedBlocks[i + 1], afterNestedBlock);
     }
@@ -840,7 +860,8 @@ void IRGenerator::handleGlobalBringStatement(
         *TheModule, type, false, llvm::GlobalValue::ExternalLinkage, nullptr,
         variable.first);
 
-    // Builder->CreateStore(llvm::Constant::getNullValue(type), variableLLVM);
+    // Builder->CreateStore(llvm::Constant::getNullValue(type),
+    // variableLLVM);
   }
 
   const std::string onlyFileName = Utils::getNameExtension(
@@ -890,8 +911,8 @@ void IRGenerator::handleGlobalAssignmentExpression(
   // if (!variableValue) {
   //   // Variable not found,  error
 
-  //   this->_irUtils->logError("Variable not found in assignment expression ");
-  //   return;
+  //   this->_irUtils->logError("Variable not found in assignment expression
+  //   "); return;
   // }
 
   llvm::GlobalVariable *oldVariable =
@@ -902,19 +923,17 @@ void IRGenerator::handleGlobalAssignmentExpression(
     return;
   }
 
-  llvm::GlobalVariable *_newGlobalVariable = nullptr;
-
   if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(rhsValue)) {
-
-    if (rhsValue->getType() == oldVariable->getValueType())
+    Utils::type rhsType = this->_irUtils->getReturnType(rhsValue->getType());
+    if (rhsType == Utils::type::STRING)
       Builder->CreateStore(rhsValue, oldVariable);
     else {
 
       this->_irUtils->logError(
-          "Assigning String to " +
+          "Assigning " +
           Utils::typeToString(
-              this->_irUtils->getReturnType(oldVariable->getValueType())) +
-          " is not allowed in Global "
+              this->_irUtils->getReturnType(rhsValue->getType())) +
+          " to String is not allowed in Global "
           "assignment expression ");
     }
 
@@ -957,8 +976,7 @@ void IRGenerator::handleGlobalVariableDeclaration(
         *TheModule,
         llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
                              str.length() + 1),
-        true, llvm::GlobalValue::ExternalLinkage,
-        llvm::ConstantDataArray::getString(*TheContext, str), variableName);
+        true, llvm::GlobalValue::ExternalLinkage, constDataArray, variableName);
 
     // v = Builder->CreateAlloca(
     //     llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
@@ -977,8 +995,6 @@ void IRGenerator::handleGlobalVariableDeclaration(
           *TheModule, result->getType(), false,
           llvm::GlobalValue::ExternalLinkage,
           llvm::Constant::getNullValue(result->getType()), variableName);
-
-      Builder->CreateStore(result, _globalVariable);
     }
     // v = Builder->CreateAlloca(_globalVariable->getType(), nullptr,
     //                           variableName.c_str());
@@ -1113,6 +1129,10 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   Builder->SetInsertPoint(entryBlock);
 
+  this->_dynamicType = llvm::StructType::create(*TheContext, "DynamicType");
+
+  this->_dynamicType->setBody(this->_irUtils->getMemberTypesForDynamicTypes());
+
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
@@ -1169,7 +1189,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateBr(returnBlock);
   Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
-      this->_irUtils->addPrefixToVariableName(ELANG_GLOBAL_ERROR_COUNT),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT),
       llvm::Type::getInt32Ty(*TheContext)));
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
@@ -1194,7 +1214,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #ifdef JIT_MODE
   if (this->_irUtils->hasError()) {
     llvm::SMDiagnostic Err;
-    Err.print("Elang", llvm::errs());
+    Err.print("FLowWing", llvm::errs());
   }
 #endif
 }
@@ -1335,7 +1355,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(loopCondition);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(ELANG_CONTINUE_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -1354,7 +1374,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->CreateCondBr(
       this->_irUtils->isCountZero(
-          this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT),
+          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
           llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -1371,7 +1391,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(afterLoop);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
   return exitValue;
 }
@@ -1461,7 +1481,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(loopCondition);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(ELANG_CONTINUE_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
 
   llvm::Value *variableValue =
       this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
@@ -1486,7 +1506,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->CreateCondBr(
       this->_irUtils->isCountZero(
-          this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT),
+          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
           llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -1512,7 +1532,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(afterLoop);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
   this->_NamedValuesAllocaStack.pop();
   this->_NamedValuesStack.pop();
@@ -1582,8 +1602,13 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
                              "expression not found");
   }
 
-  Builder->CreateRet(this->_irUtils->getDefaultValue(
-      node->getFunctionSymbol().getReturnType()));
+  if (node->getFunctionSymbol().getReturnType() == Utils::type::NOTHING) {
+    Builder->CreateRetVoid();
+  } else {
+    Builder->CreateRet(this->_irUtils->getDefaultValue(
+        node->getFunctionSymbol().getReturnType()));
+  }
+
   this->_returnAllocaStack.pop();
   this->_NamedValuesStack.pop();
   this->_NamedValuesAllocaStack.pop();
@@ -1721,14 +1746,14 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
 
     this->_irUtils->incrementCount(
-        this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT));
+        this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
     return nullptr;
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
     this->_irUtils->incrementCount(
-        this->_irUtils->addPrefixToVariableName(ELANG_CONTINUE_COUNT));
+        this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
 
     return nullptr;
   }
@@ -1815,7 +1840,8 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
 int IRGenerator::executeGeneratedCode() {
 
-  llvm::Function *evaluateBlockStatement = TheModule->getFunction("main");
+  llvm::Function *evaluateBlockStatement =
+      TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =

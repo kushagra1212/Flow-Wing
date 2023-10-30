@@ -57,7 +57,7 @@ define   i8* @concat_strings(i8* %str1, i8* %str2) {
     ret i8* %concatStr
 }
 
-define  i32 @stringLength(i8* %str) {
+define  i32 @string_length(i8* %str) {
 entry:
   %len = call i64 @strlen(i8* %str)
 
@@ -93,7 +93,7 @@ define  i8* @dtos(double %f) {
   ret i8* %buffer
 }
 
-define  i8* @getMallocPtrOfStringConstant(i8* %str) {
+define  i8* @get_malloc_ptr_of_string_constant(i8* %str) {
     ; Get the length of the string
     %len = call i64 @strlen(i8* %str)
 
@@ -109,7 +109,7 @@ define  i8* @getMallocPtrOfStringConstant(i8* %str) {
     ret i8* %strPtr
 }
 
-define  i8* @getMallocPtrofIntConstant(i32 %num) {
+define  i8* @get_malloc_ptr_of_int_constant(i32 %num) {
     ; Allocate memory for the string buffer
     %buffer = call i8* @malloc(i64 12)
     
@@ -159,7 +159,7 @@ define  i1 @equal_strings(i8* %str1, i8* %str2) {
 
 
 
-define  i8* @getInput() {
+define  i8* @get_input() {
 entry:
   ; Allocate space for the string 
   %inputValue = call i8* (i64) @malloc(i64 1000001)
@@ -170,7 +170,7 @@ entry:
   ret i8* %inputValue
 }
 
-define  i32 @stringToInt(i8* %str) {
+define  i32 @string_to_int(i8* %str) {
 entry:
   ; Call the atoi function to convert the string to an integer
   %intValue = call i32 @atoi(i8* %str)
@@ -180,14 +180,14 @@ entry:
 }
 
 ; Example usage of the atol function
-define  i64 @stringToLong(i8* %str) {
+define  i64 @string_to_long(i8* %str) {
 entry:
   %longValue = call i64 @atol(i8* %str)
   ret i64 %longValue
 }
 
 ; Example usage of the atof function
-define  double @stringToDouble(i8* %str) {
+define  double @string_to_double(i8* %str) {
 entry:
   %doubleValue = call double @atof(i8* %str)
   ret double %doubleValue

@@ -121,7 +121,7 @@ TEST_F(InBuiltFunction, BasicDoubleToBoolTrue) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-#ifndef JIT_TEST_MODE
+
 TEST_F(InBuiltFunction, BasicStringToBoolFalse) {
   std::string input = R"(print(Bool("")))";
 
@@ -141,7 +141,6 @@ TEST_F(InBuiltFunction, BasicStringToBoolTrue) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-#endif
 
 TEST_F(InBuiltFunction, BasicBoolToBoolFalse) {
   std::string input = R"(print(Bool(false)))";

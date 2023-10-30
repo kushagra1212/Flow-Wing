@@ -1,7 +1,7 @@
 #ifndef IR_UTILS_H
 #define IR_UTILS_H
 
-// Elang Files Import
+// FLOWWING Files Import
 
 #include "../../Common.h"
 #include "../../bind/Binder/Binder.h"
@@ -20,9 +20,10 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../IRParser/IRParser.h"
-#include "../constants/ElangIRConstants.h"
+#include "../constants/FlowWingIRConstants.h"
 
-using namespace ELANG::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::EVALUATOR::CONSTANTS;
+
 class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
@@ -102,7 +103,6 @@ public:
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
-  size_t calculateStringLength(llvm::Value *strPtr);
   llvm::Value *isCountZero(const std::string name, llvm::Type *ty);
   llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty);
 
@@ -239,6 +239,8 @@ public:
   const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
 
+  llvm::Value *explicitConvertToType(llvm::Value *value, llvm::Type *type);
+
   const std::string getSourceFileName() const;
 
   const int isInitializingGlobals() const;
@@ -247,10 +249,15 @@ public:
 
   const int hasError() const;
 
+  const int getIndexofMemberType(llvm::Type *type);
+
+  const std::vector<llvm::Type *> getMemberTypesForDynamicTypes() const;
+
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
   int _initializingGlobals = 0;
   int _hasError = 0;
+  std::vector<llvm::Type *> _memberTypesForDynamicTypes;
 };
 
 #endif

@@ -2,7 +2,7 @@
 #define IRGENERATOR_H
 
 #include "../IRUtils/IRUtils.h"
-using namespace ELANG::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::EVALUATOR::CONSTANTS;
 
 class IRGenerator {
 
@@ -10,7 +10,7 @@ public:
   IRGenerator(
       int environment, DiagnosticHandler *diagnosticHandler,
       std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
-      const std::string sourceFileName = ELANG_GLOBAL_ENTRY_POINT);
+      const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
@@ -44,7 +44,7 @@ public:
 
   void generateEvaluateGlobalStatement(
       BoundBlockStatement *blockStatement,
-      std::string blockName = ELANG_GLOBAL_ENTRY_POINT);
+      std::string blockName = FLOWWING_GLOBAL_ENTRY_POINT);
 
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 
@@ -84,6 +84,9 @@ public:
   // - Variable Declaration
   void handleGlobalVariableDeclaration(BoundVariableDeclaration *node);
 
+  llvm::Value *handleGlobalVariableExpression(const std::string &variableName,
+                                              llvm::GlobalVariable *variable);
+
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
   std::unique_ptr<llvm::Module> TheModule;
@@ -108,6 +111,7 @@ private:
   int _moduleCount = 0;
   int _environment;
   std::string _sourceFileName;
+  llvm::StructType *_dynamicType;
 };
 
 #endif // IRGENERATOR_H

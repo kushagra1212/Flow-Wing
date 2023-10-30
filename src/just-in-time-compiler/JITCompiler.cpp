@@ -143,8 +143,6 @@ void JITCompiler::runTests(std::istream &inputStream,
 
 void JITCompiler::execute() {
 
-  // create a file in currenct director temp.ll
-
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>();
 
@@ -153,7 +151,7 @@ void JITCompiler::execute() {
   std::unique_ptr<llvm::IRBuilder<>> Builder =
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
   std::unique_ptr<llvm::Module> TheModule =
-      std::make_unique<llvm::Module>("Module.Elang", *TheContext);
+      std::make_unique<llvm::Module>("Module.FLOWWING", *TheContext);
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
@@ -200,12 +198,13 @@ void JITCompiler::execute() {
       std::cout, Diagnostic("Finished linking modules.",
                             DiagnosticUtils::DiagnosticLevel::Info,
                             DiagnosticUtils::DiagnosticType::Linker,
-                            DiagnosticUtils::SourceLocation(0, 0, "main")));
+                            DiagnosticUtils::SourceLocation(
+                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
   TheModule->print(llvm::outs(), nullptr);
 #endif
   llvm::Function *mainFunction =
-      TheModule->getFunction(ELANG_GLOBAL_ENTRY_POINT);
+      TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
@@ -242,7 +241,8 @@ void JITCompiler::execute() {
         std::cout, Diagnostic("Error executing function.",
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Runtime,
-                              DiagnosticUtils::SourceLocation(0, 0, "main")));
+                              DiagnosticUtils::SourceLocation(
+                                  0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
   }
   delete executionEngine;
   // return hasError;
@@ -250,15 +250,17 @@ void JITCompiler::execute() {
 void signalHandler(int signal) {
   // Output information about the signal:
 
+#ifdef JIT_MODE
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
             << ") received." << std::endl;
-
+#endif
   exit(1); // Exit with a non-zero status to indicate an error.
 }
 #ifdef JIT_TEST_MODE
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  signal(SIGSEGV, signalHandler);
   return RUN_ALL_TESTS();
 }
 

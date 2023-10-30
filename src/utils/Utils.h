@@ -55,7 +55,7 @@ auto typeToString(Utils::type type) -> std::string;
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,
                                     std::string extension, bool recursive);
-
+bool isSubstring(const std::string &s1, const std::string &s2);
 enum class SymbolKind {
   Variable,
   Function,

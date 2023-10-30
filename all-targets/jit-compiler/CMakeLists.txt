@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(Elang)
+project(FlowWing)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -24,13 +24,13 @@ else()
     add_compile_definitions(JIT_MODE)
 endif()
 # Set the default executable name
-set(DEFAULT_EXECUTABLE_NAME "Elang")
+set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 
 # Set the executable name based on whether it's a test build or not
 if(TESTS_ENABLED)
     set(EXECUTABLE_NAME "runTests")
 else()
-    set(EXECUTABLE_NAME "Elang")
+    set(EXECUTABLE_NAME "FlowWing")
 endif()
 
 # Link the executable with the adjusted name
