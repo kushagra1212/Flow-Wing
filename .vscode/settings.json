@@ -111,7 +111,8 @@
     "__functional_base_03": "cpp",
     "__hash_table": "cpp",
     "__tree": "cpp",
-    "__tuple": "cpp"
+    "__tuple": "cpp",
+    "__string": "cpp"
   },
   "cmake.configureOnOpen": false
 }

@@ -21,6 +21,7 @@ public:
 
   std::string getAbsoluteFilePath();
 
+  std::string getErrorProducingSnippet(int lineNumber, int columnNumber);
   void addParentDiagnostics(DiagnosticHandler *parent);
   const void logDiagnostics(std::ostream &outputStream,
                             std::function<bool(const Diagnostic &)> filter);

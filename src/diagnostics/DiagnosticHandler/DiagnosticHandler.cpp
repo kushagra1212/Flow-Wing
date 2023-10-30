@@ -17,6 +17,55 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
   }
 }
 
+std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
+                                                        int columnNumber) {
+  std::string snippet = "\n";
+  std::ifstream fileStream(_filePath);
+  std::string line;
+  int currentLineNumber = 1;
+
+  auto errorMarker = [&]() {
+    std::string marker = "";
+    marker += GREEN_TEXT;
+    marker += BOLD;
+    for (int i = 0; i < columnNumber; i++) {
+      marker += " ";
+    }
+    marker += "\n";
+    marker += "   ";
+    for (int i = 0; i < columnNumber; i++) {
+      marker += "^";
+    }
+    marker += RESET;
+    marker += "\n";
+    return marker;
+  };
+
+  while (std::getline(fileStream, line)) {
+
+    if (currentLineNumber <= lineNumber + 4 &&
+        currentLineNumber >= lineNumber - 4) {
+      snippet += YELLOW + std::to_string(currentLineNumber) + "| " + RESET;
+      if (currentLineNumber <= lineNumber && currentLineNumber >= lineNumber) {
+        snippet += RED_TEXT;
+      } else {
+        snippet += RESET;
+      }
+      snippet += line + "\n";
+      snippet += RESET;
+      if (lineNumber == currentLineNumber) {
+
+        snippet += errorMarker();
+      }
+    }
+    currentLineNumber++;
+  }
+  if (lineNumber == currentLineNumber) {
+    snippet += errorMarker();
+  }
+  return snippet;
+}
+
 std::string DiagnosticHandler::getAbsoluteFilePath() { return this->_filePath; }
 
 const void DiagnosticHandler::logDiagnostics(
@@ -66,7 +115,8 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   std::string columnNumber =
       std::to_string(diagnostic.getLocation().columnNumber + 1);
 
-  std::string logString = "";
+  std::string logString =
+      getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber));
 
   if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error) {
 

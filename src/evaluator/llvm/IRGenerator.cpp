@@ -316,6 +316,7 @@ llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
+  this->_irUtils->setCurrentSourceLocation(variableExpression->getLocation());
   std::string variableName = this->_irUtils->getString(
       variableExpression->getIdentifierExpressionPtr().get());
 
@@ -643,7 +644,7 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
 
 llvm::Value *IRGenerator::generateEvaluateCallExpression(
     BoundCallExpression *callExpression) {
-
+  this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
   Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
   if (Utils::BuiltInFunctions::getFunctionSymbol(function.name).name ==
       function.name) {
@@ -698,7 +699,7 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   std::string variable_name = node->getVariable();
   llvm::Value *result = this->generateEvaluateExpressionStatement(
       node->getInitializerPtr().get());
-
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
   this->_irUtils->setNamedValue(variable_name, result, this->_NamedValuesStack);
 
   // create and load variable
@@ -716,7 +717,7 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
 
 llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     BoundBlockStatement *blockStatement) {
-
+  this->_irUtils->setCurrentSourceLocation(blockStatement->getLocation());
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
       std::map<std::string, llvm::AllocaInst *>());
@@ -761,7 +762,6 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
     llvm::Value *res = this->generateEvaluateStatement(
         blockStatement->getStatements()[i].get());
-
     Builder->CreateCondBr(
         this->_irUtils->isCountZero(
             this->_irUtils->addPrefixToVariableName(ELANG_BREAK_COUNT),
@@ -860,6 +860,12 @@ void IRGenerator::handleGlobalBringStatement(
   _evaluator->generateEvaluateGlobalStatement(
       bringStatementSyntax->getGlobalScopePtr()->globalStatement.get(),
       onlyFileName);
+  this->_irUtils->setCurrentSourceLocation(bringStatementSyntax->getLocation());
+  if (_evaluator->hasErrors()) {
+    this->_irUtils->logError(
+        "Error in importing file " +
+        bringStatementSyntax->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+  }
 }
 
 void IRGenerator::handleGlobalAssignmentExpression(
@@ -870,7 +876,7 @@ void IRGenerator::handleGlobalAssignmentExpression(
 
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
       assignmentExpression->getRightPtr().get());
-
+  this->_irUtils->setCurrentSourceLocation(assignmentExpression->getLocation());
   if (!rhsValue) {
 
     this->_irUtils->logError(
@@ -935,7 +941,7 @@ void IRGenerator::handleGlobalVariableDeclaration(
   std::string variableName = variableDeclaration->getVariable();
   llvm::Value *result = this->generateEvaluateExpressionStatement(
       variableDeclaration->getInitializerPtr().get());
-
+  this->_irUtils->setCurrentSourceLocation(variableDeclaration->getLocation());
   if (result == nullptr) {
     this->_irUtils->logError(
         "Error in generating IR for variable declaration ");
@@ -1087,7 +1093,7 @@ void IRGenerator::handleGlobalFunctionDeclaration(
 
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
-
+  this->_irUtils->setCurrentSourceLocation(blockStatement->getLocation());
   this->_irUtils->setInitializingGlobals(0);
 
   llvm::Value *returnValue = nullptr; // default return value
@@ -1399,6 +1405,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
     BoundVariableDeclaration *variableDeclaration =
         (BoundVariableDeclaration *)forStatement->getInitializationPtr().get();
 
+    this->_irUtils->setCurrentSourceLocation(
+        variableDeclaration->getLocation());
     variableName = variableDeclaration->getVariable();
 
     this->generateEvaluateStatement(variableDeclaration);
@@ -1545,6 +1553,11 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
   for (int i = 0; i < node->getFunctionSymbol().parameters.size(); i++) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
+
+    if (argValue->getType() != argTypes[i]) {
+      this->_irUtils->logError("Argument type mismatch in function " +
+                               functionName);
+    }
 
     llvm::AllocaInst *variable =
         Builder->CreateAlloca(argTypes[i], nullptr, parameterNames[i]);
