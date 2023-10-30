@@ -28,4 +28,6 @@ jobs:
           make -j8
 
       - name: Run tests
-        run: ./Elang
+        run: |
+          cd all-targets/jit-compiler/build
+          ./Elang

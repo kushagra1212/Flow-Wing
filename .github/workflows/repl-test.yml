@@ -25,4 +25,6 @@ jobs:
           make -j8
 
       - name: Run tests
-        run: ./Elang
+        run: |
+          cd all-targets/repl/build
+          ./Elang
