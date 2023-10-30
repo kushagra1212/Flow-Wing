@@ -27,6 +27,8 @@ void Function::runEvaluator() { _test->runEvaluator(); }
 
 // nthg is the return type and int str bool deci nthg are the return value
 
+#ifndef JIT_TEST_MODE
+
 TEST_F(Function, NthgReturnTypeWithIntReturnValue) {
   std::string input = R"(fun main()-> nthg {
     return 2
@@ -43,8 +45,6 @@ print(main()))";
 
   std::string expected_output =
       R"(Function return type is Nothing, return expression is found)";
-  std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
@@ -634,7 +634,6 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
-
 TEST_F(Function, StringReturnTypeWithStringReturnValue) {
   std::string input = R"(
 fun main()-> str {
@@ -973,3 +972,5 @@ print(sumOfDigits(123))
 }
 
 // check for prime number
+
+#endif

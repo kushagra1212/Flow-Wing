@@ -1191,10 +1191,12 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   // this->_irParser->removeDuplicates();
 
+#ifdef JIT_MODE
   if (this->_irUtils->hasError()) {
     llvm::SMDiagnostic Err;
     Err.print("Elang", llvm::errs());
   }
+#endif
 }
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
 
@@ -1813,8 +1815,7 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
 int IRGenerator::executeGeneratedCode() {
 
-  llvm::Function *evaluateBlockStatement =
-      TheModule->getFunction("evaluateBlockStatement");
+  llvm::Function *evaluateBlockStatement = TheModule->getFunction("main");
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =

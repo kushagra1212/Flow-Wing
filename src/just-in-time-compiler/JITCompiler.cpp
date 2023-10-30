@@ -134,8 +134,7 @@ void JITCompiler::runTests(std::istream &inputStream,
         globalScope.get()->functions);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-
-    _evaluator->executeGeneratedCode();
+    this->execute();
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -174,11 +173,16 @@ void JITCompiler::execute() {
 
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
+#ifdef JIT_MODE
+
     currentDiagnosticHandler->printDiagnostic(
         std::cout,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
+
+#endif
+
     bool LinkResult = llvm::Linker::linkModules(
         *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
         llvm::Linker::Flags::OverrideFromSrc);
@@ -191,7 +195,7 @@ void JITCompiler::execute() {
       return;
     }
   }
-
+#ifdef JIT_MODE
   currentDiagnosticHandler->printDiagnostic(
       std::cout, Diagnostic("Finished linking modules.",
                             DiagnosticUtils::DiagnosticLevel::Info,
@@ -199,6 +203,7 @@ void JITCompiler::execute() {
                             DiagnosticUtils::SourceLocation(0, 0, "main")));
 
   TheModule->print(llvm::outs(), nullptr);
+#endif
   llvm::Function *mainFunction =
       TheModule->getFunction(ELANG_GLOBAL_ENTRY_POINT);
 

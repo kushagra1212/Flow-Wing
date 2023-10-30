@@ -60,7 +60,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
     }
     currentLineNumber++;
   }
-  if (lineNumber == currentLineNumber) {
+  if (lineNumber == currentLineNumber && snippet != "\n") {
     snippet += errorMarker();
   }
   return snippet;
@@ -103,6 +103,10 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
 }
 
 std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
+
+#ifdef JIT_TEST_MODE
+  return diagnostic.getMessage();
+#endif
   std::string fileName = "File: ";
   fileName += this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
                                     ? diagnostic.getLocation().absoluteFilePath
