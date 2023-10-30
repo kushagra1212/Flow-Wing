@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up CMake
         run: sudo apt-get install cmake
@@ -19,18 +19,13 @@ jobs:
       - name: Set up LLVM
         run: sudo apt-get install llvm-dev
 
-      - name: Set up Ninja
-        run: sudo apt-get install ninja-build
-
       - name: Configure and build
         run: |
           cd all-targets/jit-compiler
           mkdir build
           cd build
-          cmake .. -GNinja -DTESTS_ENABLED=ON 
-          ninja
+          cmake .. -DTESTS_ENABLED=ON       
+          make -j8
 
       - name: Run tests
-        run: |
-          cd all-targets/jit-compiler/build
-          ./Elang
+        run: ./Elang

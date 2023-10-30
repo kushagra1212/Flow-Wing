@@ -45,6 +45,8 @@ print(main()))";
 
   std::string expected_output =
       R"(Function return type is Nothing, return expression is found)";
+  std::transform(expected_output.begin(), expected_output.end(),
+                 expected_output.begin(), ::tolower);
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }

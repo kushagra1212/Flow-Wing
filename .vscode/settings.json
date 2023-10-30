@@ -112,7 +112,8 @@
     "__hash_table": "cpp",
     "__tree": "cpp",
     "__tuple": "cpp",
-    "__string": "cpp"
+    "__string": "cpp",
+    "__split_buffer": "cpp"
   },
   "cmake.configureOnOpen": false
 }
