@@ -26,7 +26,7 @@ void Function::runEvaluator() { _test->runEvaluator(); }
 // Function with only return statement
 
 // nthg is the return type and int str bool deci nthg are the return value
-
+#ifndef JIT_TEST_MODE
 TEST_F(Function, NthgReturnTypeWithIntReturnValue) {
   std::string input = R"(
 fun main()-> nthg {
@@ -50,7 +50,7 @@ print(main())
 
   // check expected output is substring of the output or not
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 TEST_F(Function, NthgReturnTypeWithStringReturnValue) {
   std::string input = R"(
@@ -73,7 +73,7 @@ TEST_F(Function, NthgReturnTypeWithStringReturnValue) {
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 
 TEST_F(Function, NthgReturnTypeWithBoolReturnValue) {
@@ -95,7 +95,7 @@ print(main()))";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 TEST_F(Function, NthgReturnTypeWithDeciReturnValue) {
   std::string input = R"(fun main()-> nthg {
@@ -116,7 +116,7 @@ print(main()))";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 
 TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
@@ -218,8 +218,9 @@ print(main())
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(expected_output, lowerCaseOutput));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
+#endif
 
 TEST_F(Function, IntReturnTypeWithNoReturn) {
   std::string input = R"(fun main2()-> int {
@@ -238,21 +239,31 @@ TEST_F(Function, IntReturnTypeWithNoReturn) {
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 
 TEST_F(Function, IntReturnTypeWithStrReturnValue) {
-  std::string input = R"(fun main()-> int { return "str" } print(main()))";
+  std::string input = R"(
+fun main()-> int {
+return "str"
+}
+print(main())
+)";
 
   setInput(input);
   runEvaluator();
   // Expected output should be in the of the output
   std::string lowerCaseOutput = getOutput();
 
-  std::string expected_output =
-      "Return Type Mismatch Integer is expected but String is found";
+  std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
+                 lowerCaseOutput.begin(), ::tolower);
 
-  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+  std::string expected_output =
+      R"(Return Type Mismatch Integer is expected but String is found)";
+  std::transform(expected_output.begin(), expected_output.end(),
+                 expected_output.begin(), ::tolower);
+
+  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 
 TEST_F(Function, IntReturnTypeWithBoolReturnValue) {
@@ -629,7 +640,6 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
-#endif
 TEST_F(Function, StringReturnTypeWithStringReturnValue) {
   std::string input = R"(
 fun main()-> str {
@@ -966,3 +976,5 @@ print(sumOfDigits(123))
   std::string expected_output = "6";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
+
+#endif
