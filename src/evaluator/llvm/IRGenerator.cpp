@@ -1218,6 +1218,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   }
 #endif
 }
+
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
 
   BoundIfStatement *ifStatement = (BoundIfStatement *)node;

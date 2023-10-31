@@ -27,6 +27,7 @@ using namespace FLOWWING::EVALUATOR::CONSTANTS;
 class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
+#include "llvm/Pass.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>

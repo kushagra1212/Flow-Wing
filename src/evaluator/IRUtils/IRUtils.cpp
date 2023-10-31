@@ -1183,26 +1183,26 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
     // Check if rhsValue is zero
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
 
-    llvm::ConstantFP *rhsConstantFP = getConstantFPFromValue(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // llvm::ConstantFP *rhsConstantFP = getConstantFPFromValue(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero";
+    // std::string errorMessage = "Division by zero";
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    result = nullptr;
-    rhsValue = explicitConvertToDouble(rhsValue);
-    rhsConstantFP = getConstantFPFromValue(rhsValue);
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // result = nullptr;
+    // rhsValue = explicitConvertToDouble(rhsValue);
+    // rhsConstantFP = getConstantFPFromValue(rhsValue);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return result = Builder->CreateFDiv(lhsValue, rhsValue);
     break;
   }
@@ -1341,24 +1341,24 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
-    // Check if rhsValue is zero
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // // Check if rhsValue is zero
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero ";
+    // std::string errorMessage = "Division by zero ";
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
 
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return Builder->CreateSDiv(lhsValue, rhsValue);
 
     break;
@@ -1455,25 +1455,25 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero of " +
-                               valueToString(lhsValue) + " and " +
-                               valueToString(rhsValue);
+    // std::string errorMessage = "Division by zero of " +
+    //                            valueToString(lhsValue) + " and " +
+    //                            valueToString(rhsValue);
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    rhsValue = Builder->getInt32(1);
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    // rhsValue = Builder->getInt32(1);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return explicitConvertToBool(getResultFromBinaryOperationOnInt(
         explicitConvertToInt(lhsValue), explicitConvertToInt(rhsValue),
         binaryExpression));

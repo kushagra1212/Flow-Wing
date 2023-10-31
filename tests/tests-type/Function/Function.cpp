@@ -26,7 +26,9 @@ void Function::runEvaluator() { _test->runEvaluator(); }
 // Function with only return statement
 
 // nthg is the return type and int str bool deci nthg are the return value
+
 #ifndef JIT_TEST_MODE
+
 TEST_F(Function, NthgReturnTypeWithIntReturnValue) {
   std::string input = R"(
 fun main()-> nthg {
@@ -117,48 +119,6 @@ print(main()))";
                  expected_output.begin(), ::tolower);
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
-}
-
-TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
-  std::string input = R"(
-fun main()-> nthg {
-    return:
-}
-main()
-)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string lowerCaseOutput = getOutput();
-  std::string expected_output;
-#ifdef JIT_TEST_MODE
-  expected_output = "";
-#elif REPL_TEST_MODE
-  expected_output = "";
-#endif
-
-  EXPECT_EQ(lowerCaseOutput, expected_output);
-}
-TEST_F(Function, NthgReturnTypeWithNoReturnValue) {
-  std::string input = R"(fun main()-> nthg {
-  
-}
-main())";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string lowerCaseOutput = getOutput();
-
-  std::string expected_output;
-#ifdef JIT_TEST_MODE
-  expected_output = "";
-#elif REPL_TEST_MODE
-  expected_output = "";
-#endif
-
-  EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
 // Int return type with int str bool deci nthg as return value
@@ -636,6 +596,50 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
+#endif
+
+TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
+  std::string input = R"(
+fun main()-> nthg {
+    return:
+}
+main()
+)";
+
+  setInput(input);
+  runEvaluator();
+  // Expected output should be in the of the output
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
+
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+TEST_F(Function, NthgReturnTypeWithNoReturnValue) {
+  std::string input = R"(fun main()-> nthg {
+  
+}
+main())";
+
+  setInput(input);
+  runEvaluator();
+  // Expected output should be in the of the output
+  std::string lowerCaseOutput = getOutput();
+
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
+
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
 TEST_F(Function, StringReturnTypeWithStringReturnValue) {
   std::string input = R"(
 fun main()-> str {
@@ -972,5 +976,3 @@ print(sumOfDigits(123))
   std::string expected_output = "6";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
-
-#endif

@@ -255,8 +255,6 @@ TEST_F(InBuiltFunction, BasicBoolToInt32False) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-#ifndef JIT_TEST_MODE
-
 TEST_F(InBuiltFunction, BasicStringToInt32) {
   std::string input = R"(print(Int32("123")))";
 
@@ -277,7 +275,6 @@ TEST_F(InBuiltFunction, BasicStringToInt32UndefinedBehaviour) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-#endif
 // To Double
 
 TEST_F(InBuiltFunction, BasicIntToDouble) {

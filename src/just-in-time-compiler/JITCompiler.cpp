@@ -134,7 +134,10 @@ void JITCompiler::runTests(std::istream &inputStream,
         globalScope.get()->functions);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-    this->execute();
+
+    if (!_evaluator->hasErrors()) {
+      this->execute();
+    }
 
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
@@ -250,17 +253,16 @@ void JITCompiler::execute() {
 void signalHandler(int signal) {
   // Output information about the signal:
 
-#ifdef JIT_MODE
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
             << ") received." << std::endl;
-#endif
+
   exit(1); // Exit with a non-zero status to indicate an error.
 }
 #ifdef JIT_TEST_MODE
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  // signal(SIGSEGV, signalHandler);
+  signal(SIGSEGV, signalHandler);
   return RUN_ALL_TESTS();
 }
 
