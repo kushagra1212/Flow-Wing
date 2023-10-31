@@ -260,7 +260,7 @@ void signalHandler(int signal) {
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  signal(SIGSEGV, signalHandler);
+  // signal(SIGSEGV, signalHandler);
   return RUN_ALL_TESTS();
 }
 
