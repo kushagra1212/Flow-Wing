@@ -212,7 +212,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return expression is not foundFunction return type is not Nothing, return expression not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -231,7 +231,7 @@ TEST_F(Function, IntReturnTypeWithNoReturn) {
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is not Nothing, return expression not found)";
+      R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 

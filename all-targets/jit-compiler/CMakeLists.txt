@@ -23,6 +23,8 @@ else()
     list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
     add_compile_definitions(JIT_MODE)
 endif()
+# Set the default executable name
+set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 
 # Set the executable name based on whether it's a test build or not
 if(TESTS_ENABLED)
@@ -36,4 +38,4 @@ add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/just-in
 target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread LLVM)
 
 # Set the output name of the executable
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${EXECUTABLE_NAME})
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${DEFAULT_EXECUTABLE_NAME})
