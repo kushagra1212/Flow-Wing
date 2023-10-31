@@ -5,11 +5,6 @@ Parser::Parser(std::vector<std::string> souceCode,
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
 
-#ifdef JIT_MODE
-  // if (souceCode.size()) {
-  //   souceCode[souceCode.size() - 1] += "print(\"\")";
-  // }
-#endif
   lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
 
   SyntaxKindUtils::SyntaxKind _kind =

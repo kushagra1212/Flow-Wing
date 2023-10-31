@@ -22,12 +22,12 @@ jobs:
       - name: Configure and build
         run: |
           cd all-targets/jit-compiler
-          mkdir build
-          cd build
+          mkdir test-build
+          cd test-build
           cmake .. -DTESTS_ENABLED=ON       
           make -j8
 
       - name: Run tests
         run: |
-          cd all-targets/jit-compiler/build
-          ./FlowWing
+          cd all-targets/jit-compiler/test-build
+          ./runTests

@@ -220,7 +220,6 @@ print(main())
 
   EXPECT_TRUE(Utils::isSubstring(expected_output, lowerCaseOutput));
 }
-#endif
 
 TEST_F(Function, IntReturnTypeWithNoReturn) {
   std::string input = R"(fun main2()-> int {
@@ -243,27 +242,17 @@ TEST_F(Function, IntReturnTypeWithNoReturn) {
 }
 
 TEST_F(Function, IntReturnTypeWithStrReturnValue) {
-  std::string input = R"(
-fun main()-> int {
-return "str"
-}
-print(main())
-)";
+  std::string input = R"(fun main()-> int { return "str" } print(main()))";
 
   setInput(input);
   runEvaluator();
   // Expected output should be in the of the output
   std::string lowerCaseOutput = getOutput();
 
-  std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
-                 lowerCaseOutput.begin(), ::tolower);
-
   std::string expected_output =
-      R"(Return Type Mismatch Integer is expected but String is found)";
-  std::transform(expected_output.begin(), expected_output.end(),
-                 expected_output.begin(), ::tolower);
+      "Return Type Mismatch Integer is expected but String is found";
 
-  EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 }
 
 TEST_F(Function, IntReturnTypeWithBoolReturnValue) {
@@ -640,6 +629,7 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
+#endif
 TEST_F(Function, StringReturnTypeWithStringReturnValue) {
   std::string input = R"(
 fun main()-> str {
