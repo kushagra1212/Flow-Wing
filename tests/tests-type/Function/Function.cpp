@@ -195,8 +195,6 @@ print(main()))";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
-#ifndef JIT_TEST_MODE
-
 TEST_F(Function, IntReturnTypeWithNthg) {
   std::string input = R"(
 fun main()-> int {
@@ -220,8 +218,6 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
-#endif
-
 TEST_F(Function, IntReturnTypeWithNoReturn) {
   std::string input = R"(fun main2()-> int {
 }print(main2()))";
