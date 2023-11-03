@@ -10,12 +10,15 @@ private:
   T value;
 
 public:
-  SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind,
-              int columnNumber, std::string text, T value);
+  SyntaxToken(const std::string absoluteFilePath, int lineNumber,
+              SyntaxKindUtils::SyntaxKind kind, int columnNumber,
+              std::string text, T value);
 
   int getColumnNumber();
 
   int getLineNumber();
+
+  const std::string &getAbsoluteFilePath() const;
 
   std::string getText();
 

@@ -17,8 +17,8 @@ TEST_F(BinaryOperationTest, BasicStringOperationConcatWithNumber) {
 }
 
 TEST_F(BinaryOperationTest, BasicStringOperationConcat) {
-  std::string input = R"("Hello"+"Elang")";
-  std::string expected_output = "HelloElang";
+  std::string input = R"("Hello"+"FlowWing")";
+  std::string expected_output = "HelloFlowWing";
 
   setInput(input);
   runEvaluator();
@@ -46,8 +46,8 @@ TEST_F(BinaryOperationTest, BasicStringOperationConcatWithBoolean) {
 // Binary Operations on Strings with Strings
 
 TEST_F(BinaryOperationTest, BasicStringOperationConcatWithStrings) {
-  std::string input = R"("Hello"+"Elang")";
-  std::string expected_output = "HelloElang";
+  std::string input = R"("Hello"+"FlowWing")";
+  std::string expected_output = "HelloFlowWing";
 
   setInput(input);
   runEvaluator();

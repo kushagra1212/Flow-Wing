@@ -1,7 +1,7 @@
 #ifndef IR_UTILS_H
 #define IR_UTILS_H
 
-// Elang Files Import
+// FLOWWING Files Import
 
 #include "../../Common.h"
 #include "../../bind/Binder/Binder.h"
@@ -10,6 +10,7 @@
 #include "../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../../bind/BoundBlockStatement/BoundBlockStatement.h"
+#include "../../bind/BoundBringStatement/BoundBringStatement.h"
 #include "../../bind/BoundExpression.h"
 #include "../../bind/BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../../bind/BoundLiteralExpression/BoundLiteralExpression.h"
@@ -18,12 +19,15 @@
 #include "../../bind/BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
-#include "../constants/ElangIRConstants.h"
+#include "../IRParser/IRParser.h"
+#include "../constants/FlowWingIRConstants.h"
 
-using namespace ELANG::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::EVALUATOR::CONSTANTS;
+
 class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
+#include "llvm/Pass.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -86,6 +90,8 @@ class IRUtils;
 
 class IRUtils {
 
+  std::string _sourceFileName;
+
 public:
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
@@ -93,11 +99,11 @@ public:
   DiagnosticHandler *diagnosticHandler;
 
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler);
+          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler,
+          std::string sourceFileName);
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
-  size_t calculateStringLength(llvm::Value *strPtr);
   llvm::Value *isCountZero(const std::string name, llvm::Type *ty);
   llvm::Value *getGlobalVarAndLoad(const std::string name, llvm::Type *Ty);
 
@@ -116,6 +122,7 @@ public:
 
   bool isStringType(llvm::Type *type);
 
+  llvm::Constant *createConstantFromValue(llvm::Value *myValue);
   Utils::type getReturnType(llvm::Type *type);
 
   bool isIntType(llvm::Type *type);
@@ -123,6 +130,8 @@ public:
   bool isBoolType(llvm::Type *type);
 
   bool isDoubleType(llvm::Type *type);
+
+  llvm::Value *getDefaultValue(Utils::type type);
 
   llvm::Value *implicitConvertToDouble(llvm::Value *val);
 
@@ -210,12 +219,10 @@ public:
 
   llvm::Value *checkBitSet(llvm::Value *result, unsigned int bitPosition);
 
-  llvm::GlobalVariable *getNullValue();
-
   llvm::PHINode *handleForLoopCondition(llvm::Value *stepValue,
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
-
+  bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
   void handleConditionalBranch(
       llvm::Value *conditionValue, const std::string &trueBlockName,
       const std::string &falseBlockName,
@@ -230,10 +237,28 @@ public:
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
 
   void logError(std::string errorMessgae);
+  const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
+
+  llvm::Value *explicitConvertToType(llvm::Value *value, llvm::Type *type);
+
+  const std::string getSourceFileName() const;
+
+  const int isInitializingGlobals() const;
+
+  void setInitializingGlobals(int value);
+
+  const int hasError() const;
+
+  const int getIndexofMemberType(llvm::Type *type);
+
+  const std::vector<llvm::Type *> getMemberTypesForDynamicTypes() const;
 
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
+  int _initializingGlobals = 0;
+  int _hasError = 0;
+  std::vector<llvm::Type *> _memberTypesForDynamicTypes;
 };
 
 #endif

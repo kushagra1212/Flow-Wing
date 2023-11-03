@@ -8,13 +8,15 @@ template class SyntaxToken<std::string>;
 template class SyntaxToken<char>;
 
 template <typename T>
-SyntaxToken<T>::SyntaxToken(int lineNumber, SyntaxKindUtils::SyntaxKind kind,
-                            int columnNumber, std::string text, T value) {
+SyntaxToken<T>::SyntaxToken(const std::string absoluteFilePath, int lineNumber,
+                            SyntaxKindUtils::SyntaxKind kind, int columnNumber,
+                            std::string text, T value) {
   this->kind = kind;
   this->text = text;
   this->value = value;
   this->lineNumber = lineNumber;
   this->columnNumber = columnNumber;
+  this->absoluteFilePath = absoluteFilePath;
 }
 
 template <typename T>
@@ -32,6 +34,12 @@ template <typename T> int SyntaxToken<T>::getLineNumber() {
 template <typename T> std::string SyntaxToken<T>::getText() {
   return this->text;
 }
+
+template <typename T>
+const std::string &SyntaxToken<T>::getAbsoluteFilePath() const {
+  return this->absoluteFilePath;
+}
+
 template <typename T> T SyntaxToken<T>::getValue() { return (this->value); }
 template <typename T> std::string SyntaxToken<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->kind);
@@ -87,5 +95,6 @@ template <typename T> std::vector<SyntaxNode *> SyntaxToken<T>::getChildren() {
 
 template <typename T>
 DiagnosticUtils::SourceLocation SyntaxToken<T>::getSourceLocation() const {
-  return DiagnosticUtils::SourceLocation(this->lineNumber, this->columnNumber);
+  return DiagnosticUtils::SourceLocation(this->lineNumber, this->columnNumber,
+                                         this->absoluteFilePath);
 }

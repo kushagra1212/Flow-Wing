@@ -1,8 +1,11 @@
 #ifndef BUILTIN_FUNCTIONS_H
 #define BUILTIN_FUNCTIONS_H
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/Module.h>
-
 namespace Builtins {
 
 // Declare the prototype for creating the print function

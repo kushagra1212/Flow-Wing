@@ -3,7 +3,7 @@
 
 #include "../evaluator/llvm/IRGenerator.h"
 #include "../parser/Parser.h"
-
+#include "../utils/Utils.h"
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
@@ -16,6 +16,7 @@ public:
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
+  void execute();
   std::vector<std::string> text = std::vector<std::string>();
 };
 

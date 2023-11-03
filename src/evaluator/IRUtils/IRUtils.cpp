@@ -2,17 +2,28 @@
 
 IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                  llvm::LLVMContext *TheContext,
-                 DiagnosticHandler *diagnosticHandler)
+                 DiagnosticHandler *diagnosticHandler,
+                 std::string sourceFileName)
     : TheModule(TheModule), Builder(Builder), TheContext(TheContext),
       diagnosticHandler(diagnosticHandler) {
   _currentSourceLocation = DiagnosticUtils::SourceLocation();
+  _sourceFileName = sourceFileName;
+  this->_initializingGlobals = 1;
+
+  this->_memberTypesForDynamicTypes = {
+      llvm::Type::getInt32Ty(*TheContext),
+      llvm::Type::getDoubleTy(*TheContext),
+      llvm::Type::getInt1Ty(*TheContext),
+      llvm::Type::getInt8PtrTy(*TheContext),
+
+  };
 }
 // GET VALUES
 
 llvm::Value *IRUtils::getNamedValue(
     const std::string &name,
     std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
-  llvm::Value *value = getNull();
+  llvm::Value *value = nullptr;
   while (!NamedValuesStack.empty()) {
     std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
     if (NamedValues.find(name) != NamedValues.end()) {
@@ -22,6 +33,33 @@ llvm::Value *IRUtils::getNamedValue(
     NamedValuesStack.pop();
   }
   return value;
+}
+
+const std::vector<llvm::Type *> IRUtils::getMemberTypesForDynamicTypes() const {
+  return this->_memberTypesForDynamicTypes;
+}
+
+const int IRUtils::getIndexofMemberType(llvm::Type *type) {
+  int index = -1;
+  for (int i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
+    if (this->_memberTypesForDynamicTypes[i] == type) {
+      index = i;
+      break;
+    }
+  }
+
+  if (index == -1) {
+    std::string typeUsedByUser =
+        Utils::getTypeString(this->getReturnType(type));
+    this->logError("Unsupported type for dynamic type: " + typeUsedByUser);
+    index = 0;
+  }
+
+  return index;
+}
+
+const std::string IRUtils::getSourceFileName() const {
+  return this->_sourceFileName;
 }
 
 llvm::AllocaInst *IRUtils::getNamedValueAlloca(
@@ -168,23 +206,76 @@ void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
     llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
     if (instruction->getType()->isIntegerTy(1)) {
       llvm::Value *resultStr = Builder->CreateSelect(
-          value, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
-          TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
-      Builder->CreateCall(TheModule->getFunction("print"),
+          value,
+          TheModule->getGlobalVariable(
+              this->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE)),
+          TheModule->getGlobalVariable(
+              this->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE)));
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                           {resultStr, Builder->getInt1(isNewLine)});
     } else {
-
       llvm::ArrayRef<llvm::Value *> Args = {
           this->explicitConvertToString(value), Builder->getInt1(isNewLine)};
 
-      Builder->CreateCall(TheModule->getFunction("print"), Args);
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          Args);
     }
   } else if (value) {
     llvm::ArrayRef<llvm::Value *> Args = {this->explicitConvertToString(value),
                                           Builder->getInt1(isNewLine)};
 
-    Builder->CreateCall(TheModule->getFunction("print"), Args);
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT), Args);
   }
+}
+
+llvm::Constant *IRUtils::createConstantFromValue(llvm::Value *myValue) {
+  llvm::Type *valueType = myValue->getType();
+
+  if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
+    return constant;
+  }
+
+  if (valueType->isIntegerTy(32)) {
+    if (auto intConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
+      llvm::APInt intValue = intConstant->getValue();
+      return llvm::ConstantInt::get(valueType, intValue);
+    }
+  } else if (valueType->isFloatTy() || valueType->isDoubleTy()) {
+    if (auto floatConstant = llvm::dyn_cast<llvm::ConstantFP>(myValue)) {
+      llvm::APFloat floatValue = floatConstant->getValueAPF();
+      return llvm::ConstantFP::get(*TheContext, floatValue);
+    }
+  } else if (valueType->isPointerTy()) {
+    if (auto ptrConstant = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
+      return llvm::ConstantPointerNull::get(
+          llvm::cast<llvm::PointerType>(valueType));
+    } else if (auto constArray =
+                   llvm::dyn_cast<llvm::ConstantDataArray>(myValue)) {
+      if (constArray->isCString()) {
+        std::string str = constArray->getAsCString().str();
+        llvm::Constant *strConstant =
+            llvm::ConstantDataArray::getString(*TheContext, str, true);
+        return strConstant;
+      }
+    }
+  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
+    if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
+      return llvm::ConstantInt::get(valueType,
+                                    boolConstant->getUniqueInteger());
+    }
+  }
+  // Add more cases for other types if needed.
+
+  // this->logError("Unsupported type for conversion to constant");
+
+  return nullptr; // Return nullptr if the type is not recognized.
+}
+
+const int IRUtils::isInitializingGlobals() const {
+  return this->_initializingGlobals;
+}
+void IRUtils::setInitializingGlobals(int value) {
+  this->_initializingGlobals = value;
 }
 
 llvm::Value *IRUtils::getLLVMValue(std::any value,
@@ -234,10 +325,14 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
     llvm::Constant *strConstant =
         llvm::ConstantDataArray::getString(*TheContext, strValue);
 
+    // if (this->isInitializingGlobals()) {
+    //   return strConstant;
+    // }
+
     llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
         *TheModule, strConstant->getType(),
         true, // isConstant
-        llvm::GlobalValue::ExternalLinkage, strConstant, "string_constant");
+        llvm::GlobalValue::ExternalLinkage, strConstant, strValue);
 
     llvm::Value *zero =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
@@ -248,15 +343,12 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
     llvm::Value *elementPtr = Builder->CreateBitCast(
         strPtr, llvm::IntegerType::getInt8PtrTy((*TheContext)), "element_ptr");
 
-    llvm::LoadInst *elementLoad = Builder->CreateLoad(
-        llvm::IntegerType::getInt8PtrTy(*TheContext), elementPtr, "element");
-
     // llvm::Value *strVarPtr = Builder->CreatePointerCast(
     //     strVar, llvm::Type::getInt8PtrTy(*TheContext), "str_var_ptr");
 
     return elementPtr;
   } else {
-    return getNull();
+    return nullptr;
   }
 }
 
@@ -298,22 +390,8 @@ llvm::PHINode *IRUtils::handleForLoopCondition(llvm::Value *stepValue,
   return conditionPHI;
 }
 
-size_t IRUtils::calculateStringLength(llvm::Value *strPtr) {
-  llvm::Function *stringLengthFunc = TheModule->getFunction("stringLength");
-
-  if (!stringLengthFunc) {
-
-    llvm::errs() << "Function stringLength not found\n";
-
-    return 0;
-  }
-
-  llvm::Value *length = Builder->CreateCall(stringLengthFunc, strPtr);
-  return std::any_cast<size_t>(length);
-}
-
 llvm::Value *IRUtils::itos(llvm::Value *num) {
-  llvm::Function *itosFunc = TheModule->getFunction("itos");
+  llvm::Function *itosFunc = TheModule->getFunction(INNERS::FUNCTIONS::ITOS);
 
   if (!itosFunc) {
 
@@ -395,8 +473,9 @@ std::string IRUtils::valueToString(llvm::Value *val) {
   if (constVal) {
     llvm::Module *module = builder.GetInsertBlock()->getParent()->getParent();
     llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
-    llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
-        *module, i8PtrType, true, llvm::GlobalValue::PrivateLinkage, constExpr);
+    llvm::GlobalVariable *globalVar =
+        new llvm::GlobalVariable(*module, i8PtrType, true,
+                                 llvm::GlobalValue::ExternalLinkage, constExpr);
 
     std::string str;
     llvm::raw_string_ostream rso(str);
@@ -404,8 +483,7 @@ std::string IRUtils::valueToString(llvm::Value *val) {
     return rso.str();
   }
 
-  if (val->getType()->isPointerTy() &&
-      val->getType()->getPointerElementType()->isIntegerTy(8)) {
+  if (val->getType()->isPointerTy() && val->getType()->isIntegerTy(8)) {
     llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
     if (constExpr &&
         constExpr->getOpcode() == llvm::Instruction::GetElementPtr) {
@@ -438,7 +516,7 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
       llvm::ConstantDataArray::getString(Builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
       *TheModule, stringConstant->getType(), true,
-      llvm::GlobalValue::PrivateLinkage, stringConstant);
+      llvm::GlobalValue::ExternalLinkage, stringConstant);
 
   // load global variable
   llvm::Value *i8Ptr = Builder->CreateBitCast(
@@ -447,6 +525,7 @@ llvm::Value *IRUtils::convertStringToi8Ptr(std::string stringValue) {
 }
 
 llvm::Value *IRUtils::convertToString(llvm::Value *val) {
+
   llvm::Type *type = val->getType();
   if (isStringType(type)) {
     return val;
@@ -454,16 +533,21 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
 
   if (isBoolType(type)) {
     return Builder->CreateSelect(
-        val, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
-        TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
+        val,
+        TheModule->getGlobalVariable(
+            this->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE)),
+        TheModule->getGlobalVariable(
+            this->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE)));
   }
 
   if (isIntType(type)) {
-    return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+    return Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::ITOS),
+                               {val});
   }
 
   if (isDoubleType(type)) {
-    return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
+    return Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::DTOS),
+                               {val});
   }
 
   // Attempt to convert the value to string
@@ -476,10 +560,67 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
 
   this->logError("Unsupported type for conversion to string");
 
-  return getNull(); // Return nullptr for other types or unrecognized cases
+  return nullptr; // Return nullptr for other types or unrecognized cases
 }
 llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
   llvm::Type *type = val->getType();
+
+  // check if it a global variable i32
+
+  if (auto globalVar = llvm::dyn_cast<llvm::GlobalVariable>(val)) {
+    if (globalVar->getValueType()->isIntegerTy(32)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::ITOS), {val});
+    } else if (globalVar->getValueType()->isIntegerTy(1)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt1Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::ITOS), {val});
+    } else if (globalVar->getValueType()->isDoubleTy()) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getDoubleTy(*TheContext), globalVar);
+
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::DTOS), {val});
+    } else if (globalVar->getValueType()->isPointerTy()) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), globalVar);
+
+      // bitcast to i8*
+
+      return val;
+
+    } else if (globalVar->getValueType()->isIntegerTy(8)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt8Ty(*TheContext), globalVar);
+
+      // bitcast to i8*
+
+      return val;
+    } else if (globalVar->getValueType()->isIntegerTy(64)) {
+      llvm::Value *val =
+          Builder->CreateLoad(llvm::Type::getInt64Ty(*TheContext), globalVar);
+
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::DTOS), {val});
+    }
+  }
+
+  if (auto dataArr = llvm::dyn_cast<llvm::ConstantDataArray>(val)) {
+
+    // bitcast to i8*
+    // Define a global variable for the string
+    llvm::GlobalVariable *str = new llvm::GlobalVariable(
+        *TheModule, dataArr->getType(), true, llvm::GlobalValue::PrivateLinkage,
+        dataArr, ".str");
+
+    return Builder->CreateBitCast(str, llvm::Type::getInt8PtrTy(*TheContext));
+  }
+
   if (isStringType(type)) {
     return val;
   }
@@ -487,19 +628,24 @@ llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
   if (isBoolType(type)) {
 
     llvm::Value *str = Builder->CreateSelect(
-        val, TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE),
-        TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE));
+        val,
+        TheModule->getGlobalVariable(
+            this->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE)),
 
-    return Builder->CreateCall(
-        TheModule->getFunction("getMallocPtrOfStringConstant"), {str});
+        TheModule->getGlobalVariable(
+            this->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE)));
+
+    return explicitConvertToString(str);
   }
 
   if (isIntType(type)) {
-    return Builder->CreateCall(TheModule->getFunction("itos"), {val});
+    return Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::ITOS),
+                               {val});
   }
 
   if (isDoubleType(type)) {
-    return Builder->CreateCall(TheModule->getFunction("dtos"), {val});
+    return Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::DTOS),
+                               {val});
   }
 
   // Attempt to convert the value to string
@@ -512,20 +658,21 @@ llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
 
   this->logError("Unsupported type for conversion to string");
 
-  return getNull(); // Return nullptr for other types or unrecognized cases
+  return nullptr; // Return nullptr for other types or unrecognized cases
 }
 llvm::Value *IRUtils::concatenateStrings(llvm::Value *lhs, llvm::Value *rhs) {
 
   llvm::Function *stringConcatenateFunc =
-      TheModule->getFunction("concat_strings");
+      TheModule->getFunction(INNERS::FUNCTIONS::CONCAT_STRINGS);
 
   if (!stringConcatenateFunc) {
     // Function not found, handle error
-    return getNull();
+    return nullptr;
 
   } else {
 
-    llvm::Value *args[] = {lhs, rhs};
+    llvm::Value *args[] = {this->explicitConvertToString(lhs),
+                           this->explicitConvertToString(rhs)};
 
     llvm::Value *res = Builder->CreateCall(stringConcatenateFunc, args);
     return res;
@@ -546,9 +693,24 @@ llvm::Type *IRUtils::getTypeFromAny(std::any value) {
   }
 }
 
-bool IRUtils::isStringType(llvm::Type *type) {
-  return type->isPointerTy() && type->getPointerElementType()->isIntegerTy(8);
+llvm::Value *IRUtils::explicitConvertToType(llvm::Value *value,
+                                            llvm::Type *type) {
+  if (value->getType() == type) {
+    return value;
+  } else if (type->isIntegerTy(32)) {
+    return this->explicitConvertToInt(value);
+  } else if (type->isDoubleTy()) {
+    return this->explicitConvertToDouble(value);
+  } else if (type->isIntegerTy(1)) {
+    return this->explicitConvertToBool(value);
+  } else if (isStringType(type)) {
+    return this->explicitConvertToString(value);
+  } else {
+    this->logError("Unsupported type for conversion");
+    return nullptr;
+  }
 }
+bool IRUtils::isStringType(llvm::Type *type) { return type->isPointerTy(); }
 bool IRUtils::isDoubleType(llvm::Type *type) { return type->isDoubleTy(); }
 
 bool IRUtils::isIntType(llvm::Type *type) { return type->isIntegerTy(32); }
@@ -558,7 +720,7 @@ bool IRUtils::isBoolType(llvm::Type *type) { return type->isIntegerTy(1); }
 llvm::Value *IRUtils::implicitConvertToDouble(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isDoubleTy()) {
     return val;
@@ -581,7 +743,7 @@ llvm::Value *IRUtils::explicitConvertToBool(llvm::Value *val) {
 
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isIntegerTy(1)) {
     return val;
@@ -598,8 +760,9 @@ llvm::Value *IRUtils::explicitConvertToBool(llvm::Value *val) {
 
   } else if (isStringType(type)) {
 
-    llvm::Value *strLen =
-        Builder->CreateCall(TheModule->getFunction("stringLength"), {val});
+    llvm::Value *strLen = Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH),
+        {this->explicitConvertToString(val)});
 
     llvm::Value *strLenIsZero =
         Builder->CreateICmpEQ(strLen, Builder->getInt32(0));
@@ -616,10 +779,31 @@ llvm::Value *IRUtils::explicitConvertToBool(llvm::Value *val) {
   return res;
 }
 
+bool IRUtils::saveLLVMModuleToFile(llvm::Module *module,
+                                   const std::string &path) {
+
+  // Create an output stream for the .ll file
+  std::error_code EC;
+  llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
+
+  if (!EC) {
+    // Write the LLVM module to the .ll file
+    module->print(OS, nullptr);
+    OS.flush();
+    return true;
+  } else {
+
+    this->logError("Error opening " + Utils::getFileName(path) +
+                   " for writing: " + EC.message());
+
+    return false;
+  }
+}
+
 llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isDoubleTy()) {
     return val;
@@ -631,7 +815,9 @@ llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
         val, llvm::Type::getDoubleTy(Builder->getContext()));
   } else if (isStringType(type)) {
 
-    return Builder->CreateCall(TheModule->getFunction("stringToDouble"), {val});
+    return Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE),
+        {this->explicitConvertToString(val)});
   } else {
     this->logError("Unsupported type for conversion to double");
   }
@@ -640,7 +826,7 @@ llvm::Value *IRUtils::explicitConvertToDouble(llvm::Value *val) {
 llvm::Value *IRUtils::implicitConvertToInt(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isIntegerTy(32)) {
     return val;
@@ -660,7 +846,7 @@ llvm::Value *IRUtils::implicitConvertToInt(llvm::Value *val) {
 llvm::Value *IRUtils::explicitConvertToInt(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isIntegerTy(32)) {
     return val;
@@ -674,7 +860,9 @@ llvm::Value *IRUtils::explicitConvertToInt(llvm::Value *val) {
                                llvm::Type::getInt32Ty(Builder->getContext()));
   } else if (isStringType(type)) {
 
-    return Builder->CreateCall(TheModule->getFunction("stringToInt"), {val});
+    llvm::ArrayRef<llvm::Value *> Args = {this->explicitConvertToString(val)};
+    return Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::STRING_TO_INT), Args);
   } else {
 
     this->logError("Unsupported type for conversion to int");
@@ -683,14 +871,20 @@ llvm::Value *IRUtils::explicitConvertToInt(llvm::Value *val) {
 }
 
 llvm::Constant *IRUtils::getNull() {
-  llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-  return llvm::ConstantExpr::getBitCast(this->getNullValue(), int8PtrType);
+
+  llvm::PointerType *charPointerType = llvm::Type::getInt8PtrTy(*TheContext);
+
+  // Create a null pointer to i8.
+  llvm::Constant *nullCharPointer =
+      llvm::ConstantPointerNull::get(charPointerType);
+
+  return nullCharPointer;
 }
 
 llvm::Value *IRUtils::implicitConvertToBool(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
-  llvm::Value *res = getNull();
+  llvm::Value *res = nullptr;
 
   if (type->isIntegerTy(1)) {
     return val;
@@ -733,29 +927,29 @@ llvm::Value *IRUtils::createStringComparison(llvm::Value *lhsValue,
 
     this->logError("Function " + functionName + " not found");
 
-    return getNull();
+    return nullptr;
   }
 
   // / Get the Global Variable using the name
 
-  llvm::GlobalVariable *globalTrueStr =
-      TheModule->getGlobalVariable(ELANG_GLOBAL_TRUE);
+  llvm::GlobalVariable *globalTrueStr = TheModule->getGlobalVariable(
+      this->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE));
 
   if (!globalTrueStr) {
 
-    this->logError("ELANG_GLOBAL_TRUE global variable not found");
+    this->logError("FLOWWING_GLOBAL_TRUE global variable not found");
 
-    return getNull();
+    return nullptr;
   }
 
-  llvm::GlobalVariable *globalFalseStr =
-      TheModule->getGlobalVariable(ELANG_GLOBAL_FALSE);
+  llvm::GlobalVariable *globalFalseStr = TheModule->getGlobalVariable(
+      this->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE));
 
   if (!globalFalseStr) {
 
-    this->logError("ELANG_GLOBAL_FALSE global variable not found");
+    this->logError("FLOWWING_GLOBAL_FALSE global variable not found");
 
-    return getNull();
+    return nullptr;
   }
 
   llvm::Value *args[] = {lhsValue, rhsValue};
@@ -769,18 +963,13 @@ llvm::Value *IRUtils::createStringComparison(llvm::Value *lhsValue,
                                 llvm::Type::getInt8PtrTy(*TheContext));
 }
 
-llvm::GlobalVariable *IRUtils::getNullValue() {
-
-  return TheModule->getGlobalVariable(ELANG_GLOBAL_NULL);
-}
-
 llvm::Value *IRUtils::getResultFromBinaryOperationOnString(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
   this->setCurrentSourceLocation(binaryExpression->getLocation());
 
-  llvm::Value *result = getNull();
+  llvm::Value *result = nullptr;
 
   std::string errorMessage = "";
 
@@ -872,7 +1061,8 @@ llvm::Value *IRUtils::getGlobalVarAndLoad(const std::string name,
 }
 llvm::Value *IRUtils::isCountZero(const std::string name, llvm::Type *ty) {
   llvm::Value *count = getGlobalVarAndLoad(name, ty);
-  llvm::Value *loadZero = getGlobalVarAndLoad(ELANG_GLOBAL_ZERO, ty);
+  llvm::Value *loadZero = getGlobalVarAndLoad(
+      this->addPrefixToVariableName(FLOWWING_GLOBAL_ZERO), ty);
 
   llvm::Value *isZero = Builder->CreateICmpEQ(count, loadZero);
   return isZero;
@@ -923,12 +1113,38 @@ llvm::Type *IRUtils::getReturnType(Utils::type type) {
     return llvm::Type::getInt8PtrTy(*TheContext);
     break;
   case Utils::type::NOTHING:
-    return llvm::Type::getInt8PtrTy(*TheContext);
+    return llvm::Type::getVoidTy(*TheContext);
     break;
   default:
     break;
   }
   return llvm::Type::getVoidTy(*TheContext);
+}
+
+llvm::Value *IRUtils::getDefaultValue(Utils::type type) {
+  llvm::Value *_retVal = nullptr;
+
+  switch (type) {
+  case Utils::type::INT32:
+    _retVal = Builder->getInt32(0);
+    break;
+  case Utils::type::DECIMAL:
+    _retVal = llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0));
+    break;
+  case Utils::type::BOOL:
+    _retVal = Builder->getInt1(false);
+    break;
+  case Utils::type::STRING:
+    _retVal = Builder->CreateGlobalStringPtr("");
+    break;
+  case Utils::type::NOTHING:
+    break;
+  case Utils::type::UNKNOWN:
+    break;
+  default:
+    break;
+  }
+  return _retVal;
 }
 
 Utils::type IRUtils::getReturnType(llvm::Type *type) {
@@ -939,8 +1155,7 @@ Utils::type IRUtils::getReturnType(llvm::Type *type) {
     return (Utils::type::DECIMAL);
   } else if (type->isIntegerTy(1)) {
     return (Utils::type::BOOL);
-  } else if (type->isPointerTy() &&
-             type->getPointerElementType()->isIntegerTy(8)) {
+  } else if (type->isPointerTy()) {
     return (Utils::type::STRING);
   } else if (type->isVoidTy()) {
     return (Utils::type::NOTHING);
@@ -953,7 +1168,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
   this->setCurrentSourceLocation(binaryExpression->getLocation());
-  llvm::Value *result = getNull();
+  llvm::Value *result = nullptr;
   std::string errorMessage = "";
   switch (binaryExpression->getOperator()) {
 
@@ -968,26 +1183,26 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
     // Check if rhsValue is zero
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
 
-    llvm::ConstantFP *rhsConstantFP = getConstantFPFromValue(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // llvm::ConstantFP *rhsConstantFP = getConstantFPFromValue(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero";
+    // std::string errorMessage = "Division by zero";
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    result = getNull();
-    rhsValue = explicitConvertToDouble(rhsValue);
-    rhsConstantFP = getConstantFPFromValue(rhsValue);
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // result = nullptr;
+    // rhsValue = explicitConvertToDouble(rhsValue);
+    // rhsConstantFP = getConstantFPFromValue(rhsValue);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return result = Builder->CreateFDiv(lhsValue, rhsValue);
     break;
   }
@@ -1064,18 +1279,23 @@ DiagnosticUtils::SourceLocation IRUtils::getCurrentSourceLocation() {
   return this->_currentSourceLocation;
 }
 void IRUtils::logError(std::string errorMessgae) {
-  std::string error = diagnosticHandler->getLogString(
-      Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Runtime,
-                 this->getCurrentSourceLocation()));
-  llvm::Value *errorStr = this->convertStringToi8Ptr(error);
-  this->incrementCount(ELANG_GLOBAL_ERROR);
-  this->printFunction(errorStr, false);
+  if (errorMessgae != "") {
+    _hasError = 1;
+    std::string error = diagnosticHandler->getLogString(
+        Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Runtime,
+                   this->getCurrentSourceLocation()));
+
+    llvm::errs() << error;
+  }
 }
 
+const int IRUtils::hasError() const { return _hasError; }
+
 void IRUtils::errorGuard(std::function<void()> code) {
-  llvm::Value *isZero = this->isCountZero(ELANG_GLOBAL_ERROR,
-                                          llvm::Type::getInt32Ty(*TheContext));
+  llvm::Value *isZero = this->isCountZero(
+      this->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT),
+      llvm::Type::getInt32Ty(*TheContext));
 
   llvm::BasicBlock *printBlock = llvm::BasicBlock::Create(
       *TheContext, "printBlock", this->Builder->GetInsertBlock()->getParent());
@@ -1093,6 +1313,10 @@ void IRUtils::errorGuard(std::function<void()> code) {
   this->Builder->CreateBr(afterPrintBlock);
 
   this->Builder->SetInsertPoint(afterPrintBlock);
+}
+
+const std::string IRUtils::addPrefixToVariableName(const std::string name) {
+  return name + this->getSourceFileName();
 }
 
 llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
@@ -1117,25 +1341,24 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
-    // Check if rhsValue is zero
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // // Check if rhsValue is zero
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero ";
+    // std::string errorMessage = "Division by zero ";
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
+    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
 
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return Builder->CreateSDiv(lhsValue, rhsValue);
 
     break;
@@ -1212,7 +1435,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
 llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
-  llvm::Value *result = getNull();
+  llvm::Value *result = nullptr;
   std::string errorMessage = "";
   this->setCurrentSourceLocation(binaryExpression->getLocation());
   this->setCurrentSourceLocation(binaryExpression->getLocation());
@@ -1232,26 +1455,25 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
+    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
+    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
+    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
+    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    Builder->SetInsertPoint(errorBlock);
+    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
+    // Builder->SetInsertPoint(errorBlock);
 
-    std::string errorMessage = "Division by zero of " +
-                               valueToString(lhsValue) + " and " +
-                               valueToString(rhsValue);
+    // std::string errorMessage = "Division by zero of " +
+    //                            valueToString(lhsValue) + " and " +
+    //                            valueToString(rhsValue);
 
-    this->logError(errorMessage);
+    // this->logError(errorMessage);
 
-    llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    result = llvm::ConstantExpr::getBitCast(getNullValue(), int8PtrType);
-    rhsValue = Builder->getInt32(1);
-    Builder->CreateBr(errorExit);
-    Builder->SetInsertPoint(errorExit);
+    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
+    // rhsValue = Builder->getInt32(1);
+    // Builder->CreateBr(errorExit);
+    // Builder->SetInsertPoint(errorExit);
     return explicitConvertToBool(getResultFromBinaryOperationOnInt(
         explicitConvertToInt(lhsValue), explicitConvertToInt(rhsValue),
         binaryExpression));

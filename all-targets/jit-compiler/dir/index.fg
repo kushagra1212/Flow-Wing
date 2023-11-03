@@ -1,0 +1,4 @@
+fun main()-> nthg {
+    return 2
+}
+print(main())

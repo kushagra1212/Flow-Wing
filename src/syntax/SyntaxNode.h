@@ -9,7 +9,7 @@ class SyntaxNode {
 public:
   int lineNumber;
   int columnNumber;
-
+  std::string absoluteFilePath;
   std::vector<SyntaxNode *> _children;
 
   virtual SyntaxKindUtils::SyntaxKind getKind() const = 0;

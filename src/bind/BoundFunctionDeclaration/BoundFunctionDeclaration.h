@@ -24,6 +24,8 @@ public:
   Utils::FunctionSymbol getFunctionSymbol() const;
 
   std::unique_ptr<BoundBlockStatement> &getBodyPtr();
+
+  const bool hasParameterTypes() const;
 };
 
 #endif

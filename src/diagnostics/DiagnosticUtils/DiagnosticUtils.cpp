@@ -30,6 +30,11 @@ std::string toString(DiagnosticType type) {
     return "CodeGen";
   case DiagnosticType::Runtime:
     return "Runtime";
+  case DiagnosticType::Linker:
+    return "Linker";
+  case DiagnosticType::Fatal:
+    return "Fatal";
+
   default:
     break;
   }

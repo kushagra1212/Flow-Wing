@@ -11,7 +11,7 @@ private:
   DiagnosticHandler *parent;
   int previousLineCount = 0;
   std::string _filePath;
-  std::string getFileName();
+  std::string getFileName(const std::string &filePath);
 
 public:
   DiagnosticHandler(std::string filePath = "",
@@ -19,6 +19,9 @@ public:
   void addDiagnostic(const Diagnostic &diagnostic);
   std::string getLogString(const Diagnostic &diagnostic);
 
+  std::string getAbsoluteFilePath();
+
+  std::string getErrorProducingSnippet(int lineNumber, int columnNumber);
   void addParentDiagnostics(DiagnosticHandler *parent);
   const void logDiagnostics(std::ostream &outputStream,
                             std::function<bool(const Diagnostic &)> filter);

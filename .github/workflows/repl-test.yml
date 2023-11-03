@@ -1,0 +1,30 @@
+name: REPL TESTS
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up CMake
+        run: sudo apt-get install cmake
+
+      - name: Set up GTest
+        run: sudo apt-get install libgtest-dev
+
+      - name: Configure and build
+        run: |
+          cd all-targets/repl
+          mkdir build
+          cd build
+          cmake .. -DTESTS_ENABLED=ON       
+          make -j8
+
+      - name: Run tests
+        run: |
+          cd all-targets/repl/build
+          ./FlowWing

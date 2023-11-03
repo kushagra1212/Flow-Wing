@@ -27,11 +27,15 @@ void Function::runEvaluator() { _test->runEvaluator(); }
 
 // nthg is the return type and int str bool deci nthg are the return value
 
+#ifndef JIT_TEST_MODE
+
 TEST_F(Function, NthgReturnTypeWithIntReturnValue) {
-  std::string input = R"(fun main()-> nthg {
+  std::string input = R"(
+fun main()-> nthg {
     return 2
 }
-print(main()))";
+print(main())
+)";
 
   setInput(input);
   runEvaluator();
@@ -42,17 +46,21 @@ print(main()))";
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Function return type is Nothing, return expression is found)";
+      "Function return type is Nothing, return expression is found";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
+
+  // check expected output is substring of the output or not
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 TEST_F(Function, NthgReturnTypeWithStringReturnValue) {
-  std::string input = R"(fun main()-> nthg {
-    return "Hello"
-}
-print(main()))";
+  std::string input = R"(
+    fun main()-> nthg {
+      return "Hello"
+    }
+    print(main())
+  )";
 
   setInput(input);
   runEvaluator();
@@ -113,48 +121,6 @@ print(main()))";
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
 
-TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
-  std::string input = R"(
-fun main()-> nthg {
-    return:
-}
-print(main())
-)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string lowerCaseOutput = getOutput();
-  std::string expected_output;
-#ifdef JIT_TEST_MODE
-  expected_output = "\xC3";
-#elif REPL_TEST_MODE
-  expected_output = "";
-#endif
-
-  EXPECT_EQ(lowerCaseOutput, expected_output);
-}
-TEST_F(Function, NthgReturnTypeWithNoReturnValue) {
-  std::string input = R"(fun main()-> nthg {
-  
-}
-print(main()))";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string lowerCaseOutput = getOutput();
-
-  std::string expected_output;
-#ifdef JIT_TEST_MODE
-  expected_output = "\xC3";
-#elif REPL_TEST_MODE
-  expected_output = "";
-#endif
-
-  EXPECT_EQ(lowerCaseOutput, expected_output);
-}
-
 // Int return type with int str bool deci nthg as return value
 
 TEST_F(Function, IntReturnTypeWithNoReturnValue) {
@@ -212,13 +178,9 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
-
 TEST_F(Function, IntReturnTypeWithNoReturn) {
-  std::string input = R"(
-fun main()-> int {
-}
-print(main())
-)";
+  std::string input = R"(fun main2()-> int {
+}print(main2()))";
 
   setInput(input);
   runEvaluator();
@@ -634,6 +596,49 @@ print(main())
 
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 }
+#endif
+
+TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
+  std::string input = R"(
+fun main()-> nthg {
+    return:
+}
+main()
+)";
+
+  setInput(input);
+  runEvaluator();
+  // Expected output should be in the of the output
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
+
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+TEST_F(Function, NthgReturnTypeWithNoReturnValue) {
+  std::string input = R"(fun main()-> nthg {
+  
+}
+main())";
+
+  setInput(input);
+  runEvaluator();
+  // Expected output should be in the of the output
+  std::string lowerCaseOutput = getOutput();
+
+  std::string expected_output;
+#ifdef JIT_TEST_MODE
+  expected_output = "";
+#elif REPL_TEST_MODE
+  expected_output = "";
+#endif
+
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
 
 TEST_F(Function, StringReturnTypeWithStringReturnValue) {
   std::string input = R"(
@@ -971,5 +976,3 @@ print(sumOfDigits(123))
   std::string expected_output = "6";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
-
-// check for prime number

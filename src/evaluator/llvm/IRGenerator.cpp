@@ -2,23 +2,26 @@
 
 IRGenerator::IRGenerator(
     int environment, DiagnosticHandler *diagnosticHandler,
-    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions) {
+    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
+    const std::string sourceFileName) {
 
   TheContext = std::make_unique<llvm::LLVMContext>();
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  TheModule = std::make_unique<llvm::Module>("Elang", *TheContext);
+  TheModule = std::make_unique<llvm::Module>("FlowWing", *TheContext);
   _environment = environment;
-
   this->_diagnosticHandler = diagnosticHandler;
+  this->_irParser = std::make_unique<IRParser>();
 
-  this->_irUtils =
-      std::make_unique<IRUtils>(TheModule.get(), Builder.get(),
-                                TheContext.get(), this->_diagnosticHandler);
-  this->updateModule();
+  this->_irUtils = std::make_unique<IRUtils>(
+      TheModule.get(), Builder.get(), TheContext.get(),
+      this->_diagnosticHandler, sourceFileName);
+
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  this->defineStandardFunctions();
+
+  this->declareDependencyFunctions();
+  this->initializeGlobalVariables();
 
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
@@ -29,8 +32,7 @@ IRGenerator::IRGenerator(
 
 void IRGenerator::updateModule() {
   std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/BuiltinIRs/built_in_module.ll",
-      "../../../src/evaluator/BuiltinIRs/functions.ll"};
+      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
 
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
@@ -41,6 +43,171 @@ void IRGenerator::updateModule() {
     }
   }
 }
+
+void IRGenerator::declareDependencyFunctions() {
+  // Declare the function types
+  llvm::FunctionType *printFnType =
+      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt1Ty(*TheContext)},
+                              false);
+  llvm::FunctionType *concatStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *stringLengthFnType =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+  llvm::FunctionType *itosFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getInt32Ty(*TheContext)}, false);
+  llvm::FunctionType *dtosFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getDoubleTy(*TheContext)}, false);
+  llvm::FunctionType *getMallocPtrOfStringConstantFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+  llvm::FunctionType *getMallocPtrofIntConstantFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getInt32Ty(*TheContext)}, false);
+  llvm::FunctionType *compareStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *lessThanStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *lessThanOrEqualStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *greaterThanStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *greaterThanOrEqualStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *equalStringsFnType =
+      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
+  llvm::FunctionType *getInputFnType =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), {}, false);
+  llvm::FunctionType *stringToIntFnType =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+  llvm::FunctionType *stringToLongFnType =
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+  llvm::FunctionType *stringToDoubleFnType =
+      llvm::FunctionType::get(llvm::Type::getDoubleTy(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+
+  // Declare the functions
+  llvm::Function *printFn =
+      llvm::Function::Create(printFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::PRINT, *TheModule);
+  llvm::Function *concatStringsFn = llvm::Function::Create(
+      concatStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::CONCAT_STRINGS, *TheModule);
+  llvm::Function *stringLengthFn = llvm::Function::Create(
+      stringLengthFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::STRING_LENGTH, *TheModule);
+  llvm::Function *itosFn =
+      llvm::Function::Create(itosFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::ITOS, *TheModule);
+  llvm::Function *dtosFn =
+      llvm::Function::Create(dtosFnType, llvm::Function::ExternalLinkage,
+                             INNERS::FUNCTIONS::DTOS, *TheModule);
+  llvm::Function *getMallocPtrOfStringConstantFn = llvm::Function::Create(
+      getMallocPtrOfStringConstantFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_STRING_CONSTANT, *TheModule);
+  llvm::Function *getMallocPtrofIntConstantFn = llvm::Function::Create(
+      getMallocPtrofIntConstantFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_INT_CONSTANT, *TheModule);
+  llvm::Function *compareStringsFn = llvm::Function::Create(
+      compareStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::COMPARE_STRINGS, *TheModule);
+  llvm::Function *lessThanStringsFn = llvm::Function::Create(
+      lessThanStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::LESS_THAN_STRINGS, *TheModule);
+  llvm::Function *lessThanOrEqualStringsFn = llvm::Function::Create(
+      lessThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::LESS_THAN_OR_EQUAL_STRINGS, *TheModule);
+  llvm::Function *greaterThanStringsFn = llvm::Function::Create(
+      greaterThanStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::GREATER_THAN_STRINGS, *TheModule);
+
+  llvm::Function::Create(
+      greaterThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
+      INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS, *TheModule);
+  llvm::Function::Create(equalStringsFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::EQUAL_STRINGS, *TheModule);
+
+  llvm::Function::Create(getInputFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::GET_INPUT, *TheModule);
+  llvm::Function::Create(stringToIntFnType, llvm::Function::ExternalLinkage,
+                         "string_to_int", *TheModule);
+  llvm::Function::Create(stringToLongFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::STRING_TO_INT, *TheModule);
+  llvm::Function::Create(stringToDoubleFnType, llvm::Function::ExternalLinkage,
+                         INNERS::FUNCTIONS::STRING_TO_DOUBLE, *TheModule);
+}
+
+void IRGenerator::initializeGlobalVariables() {
+  llvm::Type *i8Type = llvm::Type::getInt8Ty(*TheContext);
+  llvm::Type *i32Type = llvm::Type::getInt32Ty(*TheContext);
+
+  // Create the private global variables.
+  new llvm::GlobalVariable(
+      *TheModule, llvm::ArrayType::get(i8Type, 5),
+      true, // isConstant
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantDataArray::getString(*TheContext, "true\00"),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE));
+
+  new llvm::GlobalVariable(
+      *TheModule, llvm::ArrayType::get(i8Type, 6), true,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantDataArray::getString(*TheContext, "false\00"),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE));
+  new llvm::GlobalVariable(
+      *TheModule, i8Type, false, llvm::GlobalValue::ExternalLinkage,
+      nullptr, // For null, you can pass nullptr as the initializer
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_NULL));
+
+  new llvm::GlobalVariable(
+      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantInt::get(i32Type, 0),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
+
+  new llvm::GlobalVariable(
+      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantInt::get(i32Type, 0),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+
+  new llvm::GlobalVariable(
+      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantInt::get(i32Type, 0),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ZERO));
+
+  new llvm::GlobalVariable(
+      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::ConstantInt::get(i32Type, 0),
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT));
+}
+
+void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
 
 llvm::Value *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
@@ -54,13 +221,15 @@ IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
       this->_irUtils->getLLVMValue(value, literalExpression->getSyntaxKind());
 
   if (val == nullptr) {
-
     this->_irUtils->logError("Unsupported Literal Type ");
-
-    return getNull();
+    return nullptr;
   }
 
   return val;
+}
+
+std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
+  return this->_irParser;
 }
 
 llvm::Value *
@@ -75,7 +244,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
 
     this->_irUtils->logError("Unsupported Unary Expression Type ");
 
-    return getNull();
+    return nullptr;
   }
 
   llvm::Value *result = nullptr;
@@ -100,10 +269,13 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
       result = Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
     } else if (val->getType()->isPointerTy() &&
-               val->getType()->getPointerElementType()->isIntegerTy(8)) {
+               val->getType()->isIntegerTy(8)) {
       // Get the string length
-      llvm::Value *length =
-          Builder->CreateCall(TheModule->getFunction("stringLength"), val);
+
+      llvm::ArrayRef<llvm::Value *> Args = {
+          this->_irUtils->explicitConvertToString(val)};
+      llvm::Value *length = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH), Args);
       val = length;
 
       // Compare the string Length to Zero
@@ -116,7 +288,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
 
       this->_irUtils->logError("Unsupported Unary Expression Type ");
 
-      return getNull();
+      return nullptr;
     }
     break;
   }
@@ -130,7 +302,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
 
     this->_irUtils->logError("Unsupported Unary Expression Type ");
 
-    return getNull();
+    return nullptr;
   }
   }
 
@@ -142,105 +314,72 @@ void IRGenerator::printIR() {
   TheModule->print(llvm::outs(), nullptr);
 }
 
-std::unique_ptr<llvm::Module>
-IRGenerator::_getModule(const std::vector<std::string> &irFilePaths) {
-  llvm::SMDiagnostic err;
-  llvm::SourceMgr sourceMgr;
+std::unique_ptr<llvm::Module> &IRGenerator::getModulePtr() { return TheModule; }
 
-  if (irFilePaths.size() == 0) {
+llvm::Value *
+IRGenerator::handleGlobalVariableExpression(const std::string &variableName,
+                                            llvm::GlobalVariable *variable) {
+  if (variable->getValueType()->isIntegerTy(32) ||
+      variable->getValueType()->isIntegerTy(64) ||
+      variable->getValueType()->isIntegerTy(1) ||
+      variable->getValueType()->isFloatTy() ||
+      variable->getValueType()->isDoubleTy() ||
+      variable->getValueType()->isIntegerTy(8) ||
+      variable->getValueType()->isBFloatTy() ||
+      variable->getValueType()->isHalfTy() ||
+      variable->getValueType()->isFP128Ty() ||
+      variable->getValueType()->isX86_FP80Ty() ||
+      variable->getValueType()->isPPC_FP128Ty()) {
+    llvm::Value *loaded =
+        Builder->CreateLoad(variable->getValueType(), variable, variableName);
 
-    llvm::errs() << "Error: No IR file specified\n";
-    return nullptr;
+    return loaded;
   }
 
-  std::string filePath = irFilePaths[0];
+  llvm::Value *loaded =
+      Builder->CreateLoad(variable->getValueType(), variable, variableName);
+  llvm::Value *zero =
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
+  llvm::Value *indices[] = {zero, zero};
+  llvm::Value *strPtr = Builder->CreateInBoundsGEP(
+      variable->getValueType(), variable, indices, "str_ptr");
 
-  llvm::Expected<std::unique_ptr<llvm::Module>> parsedModule =
-      llvm::parseIRFile(filePath, err, *TheContext);
+  llvm::Value *elementPtr = Builder->CreateBitCast(
+      strPtr, llvm::IntegerType::getInt8PtrTy((*TheContext)), "element_ptr");
 
-  if (!parsedModule->get()) {
-    llvm::errs() << "Error parsing IR file " << filePath << ": "
-                 << llvm::toString(parsedModule.takeError()) << "\n";
-    return nullptr; // Skip this file and continue with the next one
-  }
-  std::unique_ptr<llvm::Module> parsedModulePtr = std::move(parsedModule.get());
-
-  return std::move(parsedModulePtr);
-}
-
-void IRGenerator::defineStandardFunctions() {
-  // Create global constant strings
-  llvm::Constant *trueStr =
-      llvm::ConstantDataArray::getString(*TheContext, "true");
-  llvm::GlobalVariable *globalTrueStr = new llvm::GlobalVariable(
-      *TheModule, trueStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      trueStr, ELANG_GLOBAL_TRUE);
-
-  llvm::Constant *falseStr =
-      llvm::ConstantDataArray::getString(*TheContext, "false");
-  llvm::GlobalVariable *globalFalseStr = new llvm::GlobalVariable(
-      *TheModule, falseStr->getType(), true, llvm::GlobalValue::ExternalLinkage,
-      falseStr, ELANG_GLOBAL_FALSE);
-
-  llvm::PointerType *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-  llvm::GlobalVariable *globalNullPtr = new llvm::GlobalVariable(
-      *TheModule, int8PtrType, true, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantPointerNull::get(int8PtrType), ELANG_GLOBAL_NULL);
-
-  // Break keyword count
-
-  llvm::Constant *breakCount =
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
-
-  llvm::GlobalVariable *globalBreakCount = new llvm::GlobalVariable(
-      *TheModule, breakCount->getType(), false,
-      llvm::GlobalValue::ExternalLinkage, breakCount, ELANG_BREAK_COUNT);
-
-  llvm::GlobalVariable *globalContinueCount = new llvm::GlobalVariable(
-      *TheModule, breakCount->getType(), false,
-      llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)),
-      ELANG_CONTINUE_COUNT);
-
-  llvm::Constant *zero =
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
-
-  llvm::GlobalVariable *globalZero = new llvm::GlobalVariable(
-      *TheModule, breakCount->getType(), true,
-      llvm::GlobalValue::ExternalLinkage, zero, ELANG_GLOBAL_ZERO);
-
-  llvm::Constant *errorCount =
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true));
-
-  llvm::GlobalVariable *globalErrorCount = new llvm::GlobalVariable(
-      *TheModule, errorCount->getType(), false,
-      llvm::GlobalValue::ExternalLinkage, errorCount, ELANG_GLOBAL_ERROR);
+  return elementPtr;
 }
 
 llvm::Value *
 IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
+  this->_irUtils->setCurrentSourceLocation(variableExpression->getLocation());
   std::string variableName = this->_irUtils->getString(
       variableExpression->getIdentifierExpressionPtr().get());
+
+  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
   llvm::Value *variableValue =
       this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
+  if (!variableValue) {
+    if (variable) {
+      return handleGlobalVariableExpression(variableName, variable);
+    }
+    this->_irUtils->logError("Variable not found in variable expression ");
+    return nullptr;
+  }
+
   llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
       variableName, this->_NamedValuesAllocaStack);
 
-  llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
-
+  llvm::Value *value = Builder->CreateLoad(
+      variableValue->getType(),
+      Builder->CreateStructGEP(
+          this->_dynamicType, v,
+          this->_irUtils->getIndexofMemberType(variableValue->getType())));
   this->_irUtils->setCurrentSourceLocation(variableExpression->getLocation());
-
-  if (!variableValue) {
-    // Variable not found,  error
-
-    this->_irUtils->logError("Variable not found in variable expression ");
-
-    return getNull();
-  }
 
   return value;
 }
@@ -249,18 +388,25 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   BoundAssignmentExpression *assignmentExpression =
       (BoundAssignmentExpression *)node;
+  this->_irUtils->setCurrentSourceLocation(assignmentExpression->getLocation());
 
   std::string variableName =
       this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
-
-  this->_irUtils->setCurrentSourceLocation(assignmentExpression->getLocation());
-
-  if (!this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack)) {
+  llvm::Value *oldValue =
+      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+  if (!oldValue) {
     // Variable not found, handle error
+
+    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+
+    if (variable) {
+      handleGlobalAssignmentExpression(assignmentExpression);
+      return nullptr;
+    }
 
     this->_irUtils->logError("Variable not found in assignment expression ");
 
-    return getNull();
+    return nullptr;
   }
 
   llvm::Value *rhsValue = generateEvaluateExpressionStatement(
@@ -272,17 +418,19 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     this->_irUtils->logError(
         "Right hand side value not found in assignment expression ");
 
-    return getNull();
+    return nullptr;
   }
 
-  // Update the variable value
+  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
+      variableName, this->_NamedValuesAllocaStack);
 
   this->_irUtils->updateNamedValue(variableName, rhsValue,
                                    this->_NamedValuesStack);
 
-  Builder->CreateStore(rhsValue,
-                       this->_irUtils->getNamedValueAlloca(
-                           variableName, this->_NamedValuesAllocaStack));
+  Builder->CreateStore(
+      rhsValue, Builder->CreateStructGEP(
+                    this->_dynamicType, v,
+                    this->_irUtils->getIndexofMemberType(rhsValue->getType())));
 
   return rhsValue;
 }
@@ -303,7 +451,7 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
 
     this->_irUtils->logError("Error in generating IR for operands ");
 
-    return getNull();
+    return nullptr;
   }
 
   llvm::Type *lhsType = lhsValue->getType();
@@ -352,25 +500,27 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   if (functionName == Utils::BuiltInFunctions::print.name) {
     if (arguments_size == 1) {
 
-      llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
+      llvm::Value *value = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      this->_irUtils->errorGuard(
-          [&]() { this->_irUtils->printFunction(strPtri8, false); });
-
-      return this->getNull();
+      if (this->_irUtils->getReturnType(value->getType()) ==
+          Utils::type::NOTHING) {
+        return nullptr;
+      }
+      this->_irUtils->printFunction(value, false);
+      return nullptr;
     }
 
     this->_irUtils->logError(errorMessage);
 
-    return this->getNull();
+    return nullptr;
   } else if (function.name == Utils::BuiltInFunctions::input.name) {
     if (arguments_size == 0) {
 
       llvm::ArrayRef<llvm::Value *> Args = {};
 
-      llvm::CallInst *callInst =
-          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+      llvm::CallInst *callInst = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
 
       return callInst;
     } else if (arguments_size == 1) {
@@ -378,19 +528,18 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      this->_irUtils->errorGuard(
-          [&]() { this->_irUtils->printFunction(strPtri8, false); });
+      this->_irUtils->printFunction(strPtri8, false);
 
       llvm::ArrayRef<llvm::Value *> Args = {};
-      llvm::CallInst *callInst =
-          Builder->CreateCall(TheModule->getFunction("getInput"), Args);
+      llvm::CallInst *callInst = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
 
       return callInst;
     }
 
     this->_irUtils->logError(errorMessage);
 
-    return getNull();
+    return nullptr;
   } else if (function.name == Utils::BuiltInFunctions::String.name) {
     if (arguments_size == 1) {
       llvm::Value *val = this->generateEvaluateExpressionStatement(
@@ -403,12 +552,10 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
     if (arguments_size == 1) {
 
-      llvm::Value *res = getNull();
+      llvm::Value *res = nullptr;
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
-
-      this->_irUtils->errorGuard(
-          [&]() { res = this->_irUtils->explicitConvertToInt(val); });
+      res = this->_irUtils->explicitConvertToInt(val);
       return res;
     }
 
@@ -434,7 +581,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
   }
   this->_irUtils->logError("Unexpected Function Call ");
 
-  return this->getNull();
+  return nullptr;
 }
 
 llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
@@ -453,16 +600,14 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
 
     llvm::Value *arg = nullptr;
 
-    this->_irUtils->errorGuard([&]() {
-      arg = this->generateEvaluateExpressionStatement(
-          (BoundExpression *)callExpression->getArguments()[i].get());
-    });
+    arg = this->generateEvaluateExpressionStatement(
+        (BoundExpression *)callExpression->getArguments()[i].get());
 
     if (!arg) {
 
       this->_irUtils->logError("Error in generating IR for arguments ");
 
-      return this->getNull();
+      return nullptr;
     }
     args.push_back(arg);
   }
@@ -470,15 +615,17 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
   llvm::Function *calleeFunction = TheModule->getFunction(functionName);
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+
   if (!calleeFunction && !this->_recursiveFunctionsMap[function.name]) {
     this->_recursiveFunctionsMap[function.name] = true;
     this->generateUserDefinedFunctionOnFly(
         this->_boundedUserFunctions[functionName], args);
     Builder->SetInsertPoint(currentBlock);
   }
-  this->_recursiveFunctionsMap[function.name] = false;
 
   calleeFunction = TheModule->getFunction(functionName);
+
+  this->_recursiveFunctionsMap[function.name] = false;
 
   llvm::FunctionType *functionType = calleeFunction->getFunctionType();
   std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
@@ -505,16 +652,16 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
                                        " for parameter " + parameterName;
 
       this->_irUtils->logError(errorMessage);
-      return this->getNull();
+
+      return nullptr;
     }
   }
-
   return Builder->CreateCall(calleeFunction, args);
 }
 
 llvm::Value *IRGenerator::generateEvaluateCallExpression(
     BoundCallExpression *callExpression) {
-
+  this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
   Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
   if (Utils::BuiltInFunctions::getFunctionSymbol(function.name).name ==
       function.name) {
@@ -523,7 +670,7 @@ llvm::Value *IRGenerator::generateEvaluateCallExpression(
     return this->generateCallExpressionForUserDefinedFunction(callExpression);
   }
 
-  return this->getNull();
+  return nullptr;
 }
 
 llvm::Value *
@@ -558,9 +705,7 @@ IRGenerator::generateEvaluateExpressionStatement(BoundExpression *node) {
   case BinderKindUtils::BoundNodeKind::CallExpression: {
     return this->generateEvaluateCallExpression((BoundCallExpression *)node);
   }
-
   default: {
-
     return nullptr;
   }
   }
@@ -571,30 +716,28 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   std::string variable_name = node->getVariable();
   llvm::Value *result = this->generateEvaluateExpressionStatement(
       node->getInitializerPtr().get());
-
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
   this->_irUtils->setNamedValue(variable_name, result, this->_NamedValuesStack);
 
   // create and load variable
 
   llvm::AllocaInst *variable =
-      Builder->CreateAlloca(result->getType(), nullptr, variable_name.c_str());
+      Builder->CreateAlloca(this->_dynamicType, nullptr, variable_name.c_str());
 
   this->_irUtils->setNamedValueAlloca(variable_name, variable,
                                       this->_NamedValuesAllocaStack);
 
-  Builder->CreateStore(result, variable);
+  Builder->CreateStore(
+      result, Builder->CreateStructGEP(
+                  this->_dynamicType, variable,
+                  this->_irUtils->getIndexofMemberType(result->getType())));
 
   return result;
-}
-llvm::Constant *IRGenerator::getNull() {
-  llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-  return llvm::ConstantExpr::getBitCast(this->_irUtils->getNullValue(),
-                                        int8PtrType);
 }
 
 llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     BoundBlockStatement *blockStatement) {
-
+  this->_irUtils->setCurrentSourceLocation(blockStatement->getLocation());
   this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
   this->_NamedValuesAllocaStack.push(
       std::map<std::string, llvm::AllocaInst *>());
@@ -639,10 +782,10 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
     llvm::Value *res = this->generateEvaluateStatement(
         blockStatement->getStatements()[i].get());
-
     Builder->CreateCondBr(
-        this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
-                                    llvm::Type::getInt32Ty(*TheContext)),
+        this->_irUtils->isCountZero(
+            this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+            llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
     //  i th Check continue Block
@@ -653,8 +796,9 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
       Builder->CreateBr(afterNestedBlock);
     else {
       Builder->CreateCondBr(
-          this->_irUtils->isCountZero(ELANG_CONTINUE_COUNT,
-                                      llvm::Type::getInt32Ty(*TheContext)),
+          this->_irUtils->isCountZero(
+              this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT),
+              llvm::Type::getInt32Ty(*TheContext)),
           nestedBlocks[i + 1], afterNestedBlock);
     }
   }
@@ -663,36 +807,317 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
   this->_NamedValuesStack.pop();
   this->_NamedValuesAllocaStack.pop();
-  return getNull();
+  return nullptr;
+}
+
+void IRGenerator::mergeModules(llvm::Module *sourceModule,
+                               llvm::Module *destinationModule) {
+  llvm::LLVMContext &context = destinationModule->getContext();
+  llvm::ValueToValueMapTy vmap;
+
+  // Iterate through functions in the source module and clone them to the
+  // destination module
+  for (llvm::Function &sourceFunction : *sourceModule) {
+    llvm::Function *clonedFunction = llvm::CloneFunction(&sourceFunction, vmap);
+    clonedFunction->setName(sourceFunction.getName() + ".clone");
+    destinationModule->getFunctionList().push_back(clonedFunction);
+  }
+}
+
+const int IRGenerator::hasErrors() const { return this->_irUtils->hasError(); }
+
+void IRGenerator::handleGlobalFunctionDefinition(
+    BoundFunctionDeclaration *userFunction) {
+
+  this->_irUtils->setCurrentSourceLocation(userFunction->getLocation());
+
+  if (userFunction->hasParameterTypes()) {
+    this->generateUserDefinedFunction(userFunction);
+  }
+}
+
+void IRGenerator::handleGlobalBringStatement(
+    BoundBringStatement *bringStatementSyntax) {
+  this->_irUtils->setCurrentSourceLocation(bringStatementSyntax->getLocation());
+
+  for (const auto &_function :
+       bringStatementSyntax->getGlobalScopePtr()->functions) {
+    handleGlobalFunctionDeclaration(_function.second);
+  }
+
+  for (const auto &variable :
+       bringStatementSyntax->getGlobalScopePtr()->variables) {
+
+    if (variable.second.type == Utils::type::UNKNOWN) {
+      this->_irUtils->logError("Multifile UNKOWN type not allowed, Please "
+                               "specify the type of variable " +
+                               variable.first);
+      continue;
+    }
+
+    llvm::Type *type = this->_irUtils->getReturnType(variable.second.type);
+    llvm::GlobalVariable *variableLLVM = new llvm::GlobalVariable(
+        *TheModule, type, false, llvm::GlobalValue::ExternalLinkage, nullptr,
+        variable.first);
+
+    // Builder->CreateStore(llvm::Constant::getNullValue(type),
+    // variableLLVM);
+  }
+
+  const std::string onlyFileName = Utils::getNameExtension(
+      bringStatementSyntax->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+  std::string removedExtenstionFromAbsolutePath =
+      Utils::removeExtensionFromString(
+          bringStatementSyntax->getDiagnosticHandlerPtr()
+              ->getAbsoluteFilePath());
+
+  std::replace(removedExtenstionFromAbsolutePath.begin(),
+               removedExtenstionFromAbsolutePath.end(), '/', '-');
+  std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+      ENVIRONMENT::SOURCE_FILE, bringStatementSyntax->getDiagnosticHandlerPtr(),
+      bringStatementSyntax->getGlobalScopePtr()->functions,
+      removedExtenstionFromAbsolutePath);
+
+  _evaluator->generateEvaluateGlobalStatement(
+      bringStatementSyntax->getGlobalScopePtr()->globalStatement.get(),
+      onlyFileName);
+  this->_irUtils->setCurrentSourceLocation(bringStatementSyntax->getLocation());
+  if (_evaluator->hasErrors()) {
+    this->_irUtils->logError(
+        "Error in importing file " +
+        bringStatementSyntax->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+  }
+}
+
+void IRGenerator::handleGlobalAssignmentExpression(
+    BoundAssignmentExpression *assignmentExpression) {
+
+  std::string variableName =
+      this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
+
+  llvm::Value *rhsValue = generateEvaluateExpressionStatement(
+      assignmentExpression->getRightPtr().get());
+  this->_irUtils->setCurrentSourceLocation(assignmentExpression->getLocation());
+  if (!rhsValue) {
+
+    this->_irUtils->logError(
+        "Right hand side value not found in assignment expression ");
+    return;
+  }
+
+  // llvm::Value *variableValue = this->_irUtils->getNamedValue(
+  //     variableName, this->_GlobalNamedValuesStack);
+
+  // if (!variableValue) {
+  //   // Variable not found,  error
+
+  //   this->_irUtils->logError("Variable not found in assignment expression
+  //   "); return;
+  // }
+
+  llvm::GlobalVariable *oldVariable =
+      TheModule->getGlobalVariable(variableName);
+
+  if (!oldVariable) {
+    this->_irUtils->logError("Variable not found in assignment expression ");
+    return;
+  }
+
+  if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(rhsValue)) {
+    Utils::type rhsType = this->_irUtils->getReturnType(rhsValue->getType());
+    if (rhsType == Utils::type::STRING)
+      Builder->CreateStore(rhsValue, oldVariable);
+    else {
+
+      this->_irUtils->logError(
+          "Assigning " +
+          Utils::typeToString(
+              this->_irUtils->getReturnType(rhsValue->getType())) +
+          " to String is not allowed in Global "
+          "assignment expression ");
+    }
+
+  } else {
+
+    if (rhsValue->getType() == oldVariable->getValueType())
+      Builder->CreateStore(rhsValue, oldVariable);
+    else {
+      this->_irUtils->logError(
+          "Assigning " +
+          Utils::typeToString(
+              this->_irUtils->getReturnType(rhsValue->getType())) +
+          " to " +
+          Utils::typeToString(
+              this->_irUtils->getReturnType(oldVariable->getValueType())) +
+          " is not allowed in Global "
+          "assignment expression ");
+    }
+  }
+}
+
+void IRGenerator::handleGlobalVariableDeclaration(
+    BoundVariableDeclaration *variableDeclaration) {
+  std::string variableName = variableDeclaration->getVariable();
+  llvm::Value *result = this->generateEvaluateExpressionStatement(
+      variableDeclaration->getInitializerPtr().get());
+  this->_irUtils->setCurrentSourceLocation(variableDeclaration->getLocation());
+  if (result == nullptr) {
+    this->_irUtils->logError(
+        "Error in generating IR for variable declaration ");
+    return;
+  }
+  llvm::GlobalVariable *_globalVariable = nullptr;
+  llvm::AllocaInst *v = nullptr;
+  if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(result)) {
+
+    std::string str = constDataArray->getAsCString().str();
+
+    _globalVariable = new llvm::GlobalVariable(
+        *TheModule,
+        llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
+                             str.length() + 1),
+        true, llvm::GlobalValue::ExternalLinkage, constDataArray, variableName);
+
+    // v = Builder->CreateAlloca(
+    //     llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
+    //                          str.length() + 1),
+    //     nullptr, variableName.c_str());
+
+  } else {
+    llvm::Constant *constant = this->_irUtils->createConstantFromValue(result);
+
+    if (constant) {
+      _globalVariable = new llvm::GlobalVariable(
+          *TheModule, result->getType(), false,
+          llvm::GlobalValue::ExternalLinkage, constant, variableName);
+    } else {
+      _globalVariable = new llvm::GlobalVariable(
+          *TheModule, result->getType(), false,
+          llvm::GlobalValue::ExternalLinkage,
+          llvm::Constant::getNullValue(result->getType()), variableName);
+    }
+    // v = Builder->CreateAlloca(_globalVariable->getType(), nullptr,
+    //                           variableName.c_str());
+  }
+  // Builder->CreateStore(_globalVariable, v);
+  //  this->_irUtils->setNamedValue(variableName, _globalVariable,
+  //                                this->_GlobalNamedValuesStack);
+
+  // this->_irUtils->setNamedValueAlloca(variableName, v,
+  //                                     this->_GlobalNamedValuesAllocaStack);
+}
+void IRGenerator::handleGlobalExpressionStatement(
+    BoundExpressionStatement *expressionStatement) {
+  this->_irUtils->setCurrentSourceLocation(expressionStatement->getLocation());
+
+  BinderKindUtils::BoundNodeKind innerKind =
+      expressionStatement->getExpressionPtr().get()->getKind();
+
+  switch (innerKind) {
+  case BinderKindUtils::BoundNodeKind::LiteralExpression: {
+
+    this->_irUtils->logError(
+        "Literal Expression is not allowed in global scope ");
+    return;
+  }
+  case BinderKindUtils::BoundNodeKind::UnaryExpression: {
+
+    this->_irUtils->logError(
+        "Unary Expression is not allowed in global scope ");
+    return;
+  }
+  case BinderKindUtils::BoundNodeKind::VariableExpression: {
+
+    this->_irUtils->logError(
+        "Variable Expression is not allowed in global scope ");
+    return;
+  }
+  case BinderKindUtils::BoundNodeKind::AssignmentExpression: {
+
+    BoundAssignmentExpression *assignmentExpression =
+        (BoundAssignmentExpression *)expressionStatement->getExpressionPtr()
+            .get();
+    this->_irUtils->setCurrentSourceLocation(
+        assignmentExpression->getLocation());
+    this->handleGlobalAssignmentExpression(assignmentExpression);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
+    BoundVariableDeclaration *variableDeclaration =
+        (BoundVariableDeclaration *)expressionStatement->getExpressionPtr()
+            .get();
+    this->_irUtils->setCurrentSourceLocation(
+        variableDeclaration->getLocation());
+    this->handleGlobalVariableDeclaration(variableDeclaration);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::BinaryExpression: {
+
+    this->_irUtils->logError(
+        "Binary Expression is not allowed in global scope ");
+    return;
+  }
+  case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
+
+    this->_irUtils->logError(
+        "Parenthesized Expression is not allowed in global scope ");
+    return;
+  }
+
+  case BinderKindUtils::BoundNodeKind::CallExpression: {
+    BoundCallExpression *callExpression =
+        (BoundCallExpression *)expressionStatement->getExpressionPtr().get();
+
+    this->_irUtils->setCurrentSourceLocation(callExpression->getLocation());
+    this->generateEvaluateCallExpression(callExpression);
+    break;
+  }
+  default: {
+    break;
+  }
+  }
+}
+
+void IRGenerator::handleGlobalFunctionDeclaration(
+    BoundFunctionDeclaration *node) {
+
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
+
+  if (node->hasParameterTypes()) {
+
+    std::string functionName = node->getFunctionSymbol().name;
+
+    this->_irUtils->setCurrentSourceLocation(node->getLocation());
+
+    std::vector<llvm::Type *> argTypes;
+    for (int i = 0; i < node->getFunctionSymbol().parameters.size(); i++) {
+      argTypes.push_back(this->_irUtils->getReturnType(
+          node->getFunctionSymbol().parameters[i].type));
+    }
+    llvm::Type *returnType = this->_irUtils->getReturnType(
+        node->getFunctionSymbol().getReturnType());
+
+    llvm::FunctionType *FT =
+        llvm::FunctionType::get(returnType, argTypes, false);
+
+    llvm::Function *F = llvm::Function::Create(
+        FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
+
+    this->_boundedUserFunctions[node->getFunctionSymbol().name] = node;
+  }
 }
 
 void IRGenerator::generateEvaluateGlobalStatement(
-    BoundBlockStatement *blockStatement) {
+    BoundBlockStatement *blockStatement, std::string blockName) {
+  this->_irUtils->setCurrentSourceLocation(blockStatement->getLocation());
+  this->_irUtils->setInitializingGlobals(0);
 
-  // Function Declaration
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-
-    if (blockStatement->getStatements()[i].get()->getKind() ==
-        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      BoundFunctionDeclaration *userFunction =
-          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get();
-
-      this->_boundedUserFunctions[userFunction->getFunctionSymbol().name] =
-          userFunction;
-
-      // this->generateUserDefinedFunction(
-      //     (BoundFunctionDeclaration
-      //     *)blockStatement->getStatements()[i].get());
-    }
-  }
-
-  llvm::Value *returnValue = getNull(); // default return value
+  llvm::Value *returnValue = nullptr; // default return value
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
 
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             "evaluateBlockStatement", *TheModule);
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, blockName, *TheModule);
 
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
@@ -704,33 +1129,100 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   Builder->SetInsertPoint(entryBlock);
 
+  this->_dynamicType = llvm::StructType::create(*TheContext, "DynamicType");
+
+  this->_dynamicType->setBody(this->_irUtils->getMemberTypesForDynamicTypes());
+
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+    BinderKindUtils::BoundNodeKind kind =
+        blockStatement->getStatements()[i].get()->getKind();
+    this->_irUtils->setInitializingGlobals(1);
+    if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
 
-    if (blockStatement->getStatements()[i].get()->getKind() ==
-        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      continue;
-    }
+      BoundFunctionDeclaration *userFunction =
+          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get();
 
-    llvm::Value *res = this->generateEvaluateStatement(
-        blockStatement->getStatements()[i].get());
+      // Declaration of function
 
-    if (i == blockStatement->getStatements().size() - 1 &&
-        blockStatement->getStatements()[i].get()->getKind() ==
-            BinderKindUtils::BoundNodeKind::ExpressionStatement) {
-      returnValue = res;
+      this->_irUtils->setCurrentSourceLocation(userFunction->getLocation());
+
+      this->handleGlobalFunctionDeclaration(userFunction);
+
+    } else if (kind == BinderKindUtils::BoundNodeKind::BringStatement) {
+      this->_irUtils->setInitializingGlobals(0);
+      BoundBringStatement *bringStatementSyntax =
+          (BoundBringStatement *)blockStatement->getStatements()[i].get();
+
+      this->handleGlobalBringStatement(bringStatementSyntax);
+
+    } else if (kind == BinderKindUtils::BoundNodeKind::ExpressionStatement) {
+      BoundExpressionStatement *expressionStatement =
+          (BoundExpressionStatement *)blockStatement->getStatements()[i].get();
+      this->_irUtils->setCurrentSourceLocation(
+          expressionStatement->getLocation());
+      this->handleGlobalExpressionStatement(expressionStatement);
+    } else if (kind == BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      BoundVariableDeclaration *variableDeclaration =
+          (BoundVariableDeclaration *)blockStatement->getStatements()[i].get();
+      this->_irUtils->setCurrentSourceLocation(
+          variableDeclaration->getLocation());
+      this->handleGlobalVariableDeclaration(variableDeclaration);
+    } else if (kind == BinderKindUtils::BoundNodeKind::AssignmentExpression) {
+      BoundAssignmentExpression *assignmentExpression =
+          (BoundAssignmentExpression *)blockStatement->getStatements()[i].get();
+      this->_irUtils->setCurrentSourceLocation(
+          assignmentExpression->getLocation());
+      this->handleGlobalAssignmentExpression(assignmentExpression);
+    } else {
+      this->_irUtils->setInitializingGlobals(0);
+      llvm::Value *res = this->generateEvaluateStatement(
+          blockStatement->getStatements()[i].get());
+
+      if (i == blockStatement->getStatements().size() - 1 &&
+          blockStatement->getStatements()[i].get()->getKind() ==
+              BinderKindUtils::BoundNodeKind::ExpressionStatement) {
+        returnValue = res;
+      }
     }
   }
-  Builder->CreateBr(returnBlock);
 
+  Builder->CreateBr(returnBlock);
   Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
-      ELANG_GLOBAL_ERROR, llvm::Type::getInt32Ty(*TheContext)));
+      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT),
+      llvm::Type::getInt32Ty(*TheContext)));
+
+  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+    BinderKindUtils::BoundNodeKind kind =
+        blockStatement->getStatements()[i].get()->getKind();
+    if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+
+      BoundFunctionDeclaration *userFunction =
+          (BoundFunctionDeclaration *)blockStatement->getStatements()[i].get();
+
+      this->_irUtils->setCurrentSourceLocation(userFunction->getLocation());
+
+      this->handleGlobalFunctionDefinition(userFunction);
+    }
+  }
+  this->_irUtils->saveLLVMModuleToFile(
+      TheModule.get(), this->_irUtils->getSourceFileName() + ".ll");
+  // this->_irParser->mergeIR(TheModule.get());
+
+  // this->_irParser->removeDuplicates();
+
+#ifdef JIT_MODE
+  if (this->_irUtils->hasError()) {
+    llvm::SMDiagnostic Err;
+    Err.print("FLowWing", llvm::errs());
+  }
+#endif
 }
 
 llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
 
   BoundIfStatement *ifStatement = (BoundIfStatement *)node;
-  llvm::Value *exitValue = getNull();
+  llvm::Value *exitValue = nullptr;
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       ifStatement->getConditionPtr().get());
 
@@ -740,7 +1232,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
 
     this->_irUtils->logError("Condition Value is not found in if statement");
 
-    return getNull();
+    return nullptr;
   }
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
@@ -789,7 +1281,7 @@ llvm::Value *IRGenerator::evaluateIfStatement(BoundStatement *node) {
       this->_irUtils->logError(
           "Condition Value is not found in or if statement");
 
-      return getNull();
+      return nullptr;
     }
 
     if (i == orIfBlock.size() - 1) {
@@ -846,7 +1338,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::Function *function = currentBlock->getParent();
-  llvm::Value *exitValue = getNull();
+  llvm::Value *exitValue = nullptr;
   llvm::BasicBlock *loopCondition =
       llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
   llvm::BasicBlock *loopBody =
@@ -863,7 +1355,8 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  this->_irUtils->decrementCountIfNotZero(ELANG_CONTINUE_COUNT);
+  this->_irUtils->decrementCountIfNotZero(
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -873,7 +1366,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
     this->_irUtils->logError("Condition Value is not found in while statement");
 
-    return getNull();
+    return nullptr;
   }
 
   Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
@@ -881,8 +1374,9 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
-                                  llvm::Type::getInt32Ty(*TheContext)),
+      this->_irUtils->isCountZero(
+          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+          llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
   // Loop Body
@@ -897,7 +1391,8 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  this->_irUtils->decrementCountIfNotZero(ELANG_BREAK_COUNT);
+  this->_irUtils->decrementCountIfNotZero(
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
   return exitValue;
 }
@@ -933,6 +1428,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
     BoundVariableDeclaration *variableDeclaration =
         (BoundVariableDeclaration *)forStatement->getInitializationPtr().get();
 
+    this->_irUtils->setCurrentSourceLocation(
+        variableDeclaration->getLocation());
     variableName = variableDeclaration->getVariable();
 
     this->generateEvaluateStatement(variableDeclaration);
@@ -962,12 +1459,12 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   if (variableName == "") {
 
     this->_irUtils->logError("Variable Name is not found in for statement");
-    return getNull();
+    return nullptr;
   }
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::Function *function = currentBlock->getParent();
-  llvm::Value *exitValue = getNull();
+  llvm::Value *exitValue = nullptr;
   llvm::BasicBlock *loopCondition =
       llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
   llvm::BasicBlock *loopBody =
@@ -984,7 +1481,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(loopCondition);
 
-  this->_irUtils->decrementCountIfNotZero(ELANG_CONTINUE_COUNT);
+  this->_irUtils->decrementCountIfNotZero(
+      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
 
   llvm::Value *variableValue =
       this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
@@ -1000,7 +1498,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   if (conditionPHI == nullptr) {
     this->_irUtils->logError("Condition Value is not found in for statement");
 
-    return getNull();
+    return nullptr;
   }
 
   Builder->CreateCondBr(conditionPHI, breakLoop, afterLoop);
@@ -1008,8 +1506,9 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(breakLoop);
 
   Builder->CreateCondBr(
-      this->_irUtils->isCountZero(ELANG_BREAK_COUNT,
-                                  llvm::Type::getInt32Ty(*TheContext)),
+      this->_irUtils->isCountZero(
+          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+          llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
   // Loop Body
@@ -1033,7 +1532,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->SetInsertPoint(afterLoop);
 
-  this->_irUtils->decrementCountIfNotZero(ELANG_BREAK_COUNT);
+  this->_irUtils->decrementCountIfNotZero(
+      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
   this->_NamedValuesAllocaStack.pop();
   this->_NamedValuesStack.pop();
@@ -1043,19 +1543,21 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
 void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
-  std::string functionName = node->_functionSymbol.name;
+  std::string functionName = node->getFunctionSymbol().name;
+
+  this->_irUtils->setCurrentSourceLocation(node->getLocation());
 
   std::vector<llvm::Type *> argTypes;
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
-    argTypes.push_back(llvm::Type::getInt8PtrTy(*TheContext));
+  for (int i = 0; i < node->getFunctionSymbol().parameters.size(); i++) {
+    argTypes.push_back(this->_irUtils->getReturnType(
+        node->getFunctionSymbol().parameters[i].type));
   }
+  llvm::Type *returnType =
+      this->_irUtils->getReturnType(node->getFunctionSymbol().getReturnType());
 
-  llvm::FunctionType *FT = llvm::FunctionType::get(
-      llvm::Type::getInt8PtrTy(*TheContext), argTypes, false);
+  this->_returnAllocaStack.push({node->getFunctionSymbol().getReturnType(), 0});
 
-  llvm::Function *F = llvm::Function::Create(
-      FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
-
+  llvm::Function *F = TheModule->getFunction(functionName);
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
@@ -1067,16 +1569,21 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   std::vector<std::string> parameterNames;
 
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
-    parameterNames.push_back(node->_functionSymbol.parameters[i].name);
+  for (int i = 0; i < node->getFunctionSymbol().parameters.size(); i++) {
+    parameterNames.push_back(node->getFunctionSymbol().parameters[i].name);
   }
 
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+  for (int i = 0; i < node->getFunctionSymbol().parameters.size(); i++) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
-    llvm::AllocaInst *variable = Builder->CreateAlloca(
-        llvm::Type::getInt8Ty(*TheContext), nullptr, parameterNames[i]);
+    if (argValue->getType() != argTypes[i]) {
+      this->_irUtils->logError("Argument type mismatch in function " +
+                               functionName);
+    }
+
+    llvm::AllocaInst *variable =
+        Builder->CreateAlloca(argTypes[i], nullptr, parameterNames[i]);
 
     this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
                                         this->_NamedValuesAllocaStack);
@@ -1089,10 +1596,22 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
 
-  Builder->CreateRet(getNull());
+  if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
+      this->_returnAllocaStack.top().second == 0) {
 
+    this->_irUtils->logError("Function return type is not Nothing, return "
+                             "expression not found");
+  }
+
+  if (node->getFunctionSymbol().getReturnType() == Utils::type::NOTHING) {
+    Builder->CreateRetVoid();
+  } else {
+    Builder->CreateRet(this->_irUtils->getDefaultValue(
+        node->getFunctionSymbol().getReturnType()));
+  }
+
+  this->_returnAllocaStack.pop();
   this->_NamedValuesStack.pop();
-
   this->_NamedValuesAllocaStack.pop();
 
   llvm::verifyFunction(*F);
@@ -1103,7 +1622,6 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
                                       this->_NamedValuesAllocaStack);
 
   this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-
                                       this->_NamedValuesAllocaStack);
 }
 void IRGenerator::generateUserDefinedFunctionOnFly(
@@ -1160,32 +1678,15 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
 
-  llvm::Value *hasError = Builder->getFalse();
-
   if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
       this->_returnAllocaStack.top().second == 0) {
-    hasError = Builder->getTrue();
+
+    this->_irUtils->logError("Function return type is not Nothing, return "
+                             "expression is not found");
   }
 
-  llvm::BasicBlock *current = Builder->GetInsertBlock();
-  llvm::BasicBlock *errorBlock =
-      llvm::BasicBlock::Create(*TheContext, "errorBlock", current->getParent());
-  llvm::BasicBlock *errorExit =
-      llvm::BasicBlock::Create(*TheContext, "errorExit", current->getParent());
-
-  Builder->CreateCondBr(hasError, errorBlock, errorExit);
-
-  Builder->SetInsertPoint(errorBlock);
-
-  this->_irUtils->logError("Function return type is not Nothing, return "
-                           "expression is not found");
-
-  Builder->CreateBr(errorExit);
-
-  Builder->SetInsertPoint(errorExit);
-
-  Builder->CreateRetVoid();
-  this->_returnAllocaStack.pop();
+  Builder->CreateRet(
+      this->_irUtils->getDefaultValue(node->_functionSymbol.return_type));
   this->_NamedValuesStack.pop();
   this->_NamedValuesAllocaStack.pop();
 
@@ -1199,11 +1700,11 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
   this->_irUtils->setNamedValueAlloca(functionName, nullptr,
                                       this->_NamedValuesAllocaStack);
 }
+
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
-
     return this->generateEvaluateExpressionStatement(
         ((BoundExpressionStatement *)node)->getExpressionPtr().get());
   }
@@ -1245,14 +1746,17 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
 
-    this->_irUtils->incrementCount(ELANG_BREAK_COUNT);
+    this->_irUtils->incrementCount(
+        this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
-    return getNull();
+    return nullptr;
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
-    this->_irUtils->incrementCount(ELANG_CONTINUE_COUNT);
-    return getNull();
+    this->_irUtils->incrementCount(
+        this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+
+    return nullptr;
   }
   case BinderKindUtils::BoundNodeKind::ReturnStatement: {
     BoundReturnStatement *returnStatement = (BoundReturnStatement *)node;
@@ -1272,21 +1776,23 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
 
     this->_irUtils->setCurrentSourceLocation(returnStatement->getLocation());
 
-    llvm::Value *returnValue = getNull(); // default return value
+    llvm::Value *returnValue = nullptr; // default return value
 
     llvm::Value *hasError = Builder->getFalse();
     std::string errorMessage = "";
 
     if (this->_returnAllocaStack.top().first != Utils::type::NOTHING &&
         returnStatement->getReturnExpressionPtr() == nullptr) {
-      hasError = Builder->getTrue();
+
       errorMessage = "Function return type is not Nothing, return "
                      "expression is not found";
+      this->_irUtils->logError(errorMessage);
     } else if (this->_returnAllocaStack.top().first == Utils::type::NOTHING &&
                returnStatement->getReturnExpressionPtr() != nullptr) {
-      hasError = Builder->getTrue();
+
       errorMessage = "Function return type is Nothing, return "
                      "expression is found";
+      this->_irUtils->logError(errorMessage);
     } else if (returnStatement->getReturnExpressionPtr() != nullptr) {
       returnValue = this->generateEvaluateExpressionStatement(
           returnStatement->getReturnExpressionPtr().get());
@@ -1300,29 +1806,13 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
             Utils::typeToString(
                 this->_irUtils->getReturnType(returnValue->getType())) +
             " is found";
-        hasError = Builder->getTrue();
-      } else {
-        hasError = Builder->getFalse();
+        this->_irUtils->logError(errorMessage);
       }
     }
-    llvm::BasicBlock *current = Builder->GetInsertBlock();
-    llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-        *TheContext, "errorBlock", current->getParent());
-    llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-        *TheContext, "errorExit", current->getParent());
-
-    Builder->CreateCondBr(hasError, errorBlock, errorExit);
-
-    Builder->SetInsertPoint(errorBlock);
-
-    this->_irUtils->logError(errorMessage);
-
-    Builder->CreateBr(errorExit);
-
-    Builder->SetInsertPoint(errorExit);
 
     if (returnStatement->getReturnExpressionPtr() != nullptr &&
         this->_returnAllocaStack.top().first != Utils::type::NOTHING) {
+
       returnValue = this->generateEvaluateExpressionStatement(
           returnStatement->getReturnExpressionPtr().get());
 
@@ -1346,13 +1836,13 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   }
   }
 
-  return getNull();
+  return nullptr;
 }
 
 int IRGenerator::executeGeneratedCode() {
 
   llvm::Function *evaluateBlockStatement =
-      TheModule->getFunction("evaluateBlockStatement");
+      TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
@@ -1365,7 +1855,6 @@ int IRGenerator::executeGeneratedCode() {
                  << "\n";
   }
 
-  // Step 2: Look up the function pointer
   if (!evaluateBlockStatement) {
     llvm::errs() << "Function not found in module.\n";
   }

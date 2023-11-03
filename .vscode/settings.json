@@ -1,5 +1,6 @@
 {
   "files.associations": {
+    "*.tsx": "typescriptreact",
     "*.cpp": "cpp",
     "iostream": "cpp",
     "array": "cpp",
@@ -93,6 +94,26 @@
     "future": "cpp",
     "*.def": "cpp",
     "regex": "cpp",
-    "codecvt": "cpp"
-  }
+    "codecvt": "cpp",
+    "charconv": "cpp",
+    "format": "cpp",
+    "cfenv": "cpp",
+    "__nullptr": "cpp",
+    "__node_handle": "cpp",
+    "unordered_set": "cpp",
+    "filesystem": "cpp",
+    "__config": "cpp",
+    "__bit_reference": "cpp",
+    "__functional_base": "cpp",
+    "__memory": "cpp",
+    "__locale": "cpp",
+    "csignal": "cpp",
+    "__functional_base_03": "cpp",
+    "__hash_table": "cpp",
+    "__tree": "cpp",
+    "__tuple": "cpp",
+    "__string": "cpp",
+    "__split_buffer": "cpp"
+  },
+  "cmake.configureOnOpen": false
 }

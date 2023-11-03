@@ -46,8 +46,9 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
   bool isConst = variableDeclaration->getKeywordPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
-  if (!root->tryDeclareVariable(variable_str,
-                                Utils::Variable(nullptr, isConst))) {
+  if (!root->tryDeclareVariable(
+          variable_str,
+          Utils::Variable(nullptr, isConst, variableDeclaration->getType()))) {
 
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variable_str + " Already Exists",
@@ -242,9 +243,115 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ReturnStatement: {
     return std::move(bindReturnStatement((ReturnStatementSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::BringStatementSyntax: {
+    return std::move(bindBringStatement((BringStatementSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
+}
+
+std::unique_ptr<BoundStatement>
+Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
+  this->_diagnosticHandler->addParentDiagnostics(
+      bringStatement->getDiagnosticHandlerPtr().get());
+
+  if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
+      !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
+
+    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+        "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+    return std::make_unique<BoundBringStatement>(
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+  }
+
+  if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
+    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+        "Found Circular Dependency <" +
+            bringStatement->getRelativeFilePathPtr() + "> ",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+
+    return std::make_unique<BoundBringStatement>(
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+  }
+  if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
+    return std::make_unique<BoundBringStatement>(
+        bringStatement->getSourceLocation(),
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+  }
+
+  Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
+
+  if (bringStatement->getIsChoosyImportPtr()) {
+    std::unordered_map<std::string, int> memberMap =
+        getMemberMap(bringStatement->getCompilationUnitPtr()->getMembers(),
+                     bringStatement->getCompilationUnitPtr().get());
+
+    for (const auto &expression : bringStatement->getExpressionsPtr()) {
+      if (expression->getKind() !=
+          SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Unexpected Token <" +
+                           SyntaxKindUtils::to_string(expression->getKind()) +
+                           ">, Expected <" +
+                           SyntaxKindUtils::to_string(
+                               SyntaxKindUtils::SyntaxKind::IdentifierToken) +
+                           ">",
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       (expression->getSourceLocation())));
+        continue;
+      }
+
+      if (memberMap.find(expression->getText()) == memberMap.end()) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Identifier <" + expression->getText() + "> not found in <" +
+                bringStatement->getRelativeFilePathPtr() + ">",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Syntactic,
+            (expression->getSourceLocation())));
+        continue;
+      }
+    }
+  }
+  Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
+  std::unique_ptr<BoundScopeGlobal> globalScope =
+      std::move(Binder::bindGlobalScope(
+          nullptr, bringStatement->getCompilationUnitPtr().get(),
+          bringStatement->getDiagnosticHandlerPtr().get()));
+
+  for (auto &function : globalScope->functions) {
+    if (!this->root->tryDeclareFunction(function.first, function.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Function " + function.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+  }
+
+  for (auto &variable : globalScope->variables) {
+    if (!this->root->tryDeclareVariable(variable.first, variable.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Variable " + variable.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+  }
+
+  return std::make_unique<BoundBringStatement>(
+      bringStatement->getSourceLocation(),
+      bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope));
 }
 
 std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
@@ -380,6 +487,19 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
                               parameters);
   }
 
+  if (functionSymbol.name != "") {
+    if (callExpression->getArguments().size() !=
+        functionSymbol.parameters.size()) {
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + functionSymbol.name + " requires " +
+              std::to_string(functionSymbol.parameters.size()) + " arguments",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          Utils::getSourceLocation(
+              callExpression->getIdentifierPtr()->getTokenPtr().get())));
+    }
+  }
+
   std::unique_ptr<BoundCallExpression> boundCallExpression =
       std::make_unique<BoundCallExpression>(callExpression->getSourceLocation(),
                                             std::move(boundIdentifier),
@@ -451,10 +571,13 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
           Utils::getSourceLocation(
               syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get())));
     }
-
+    Utils::type parameterType = Utils::type::UNKNOWN;
+    if (i < syntax->getParameterTypesPtr().size()) {
+      parameterType = syntax->getParameterTypesPtr()[i];
+    }
     parameters.push_back(Utils::FunctionParameterSymbol(
         syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText(),
-        false));
+        false, parameterType));
   }
 
   Utils::FunctionSymbol functionSymbol =
@@ -505,6 +628,11 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 
     functionDefinitionMap[function->getFunctionSymbol().name] =
         function->getFunctionSymbol();
+  }
+
+  for (auto &function : binder->dependencyFunctions) {
+    functionDefinitionMap[function.second->getFunctionSymbol().name] =
+        function.second->getFunctionSymbol();
   }
 
   std::vector<Utils::FunctionSymbol> builtInFunctions =
@@ -603,4 +731,37 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
       std::move(previousGlobalScope), binder->root->variables,
       binder->root->functions, diagnosticHandler,
       std::move(_globalBoundBlockStatement));
+}
+
+// Utils
+
+auto Binder::getMemberMap(
+    const std::vector<std::unique_ptr<MemberSyntax>> &members,
+    CompilationUnitSyntax *nestedCompilationUnit)
+    -> std::unordered_map<std::string, int> {
+
+  std::unordered_map<std::string, int> memberMap;
+
+  for (std::unique_ptr<MemberSyntax> &member :
+       nestedCompilationUnit->getMembers()) {
+    if (member->getKind() ==
+        SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
+      FunctionDeclarationSyntax *functionDeclaration =
+          dynamic_cast<FunctionDeclarationSyntax *>(member.get());
+      memberMap[functionDeclaration->getIdentifierTokenPtr()->getText()] = 1;
+    } else if (member->getKind() ==
+               SyntaxKindUtils::SyntaxKind::GlobalStatement) {
+      GlobalStatementSyntax *globalStatement =
+          dynamic_cast<GlobalStatementSyntax *>(member.get());
+      if (globalStatement->getStatementPtr()->getKind() ==
+          SyntaxKindUtils::SyntaxKind::VariableDeclaration) {
+        VariableDeclarationSyntax *variableDeclaration =
+            dynamic_cast<VariableDeclarationSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap[variableDeclaration->getIdentifierPtr()->getText()] = 1;
+      }
+    }
+  }
+
+  return memberMap;
 }

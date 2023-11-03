@@ -40,6 +40,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "ReturnStatement";
   case OrIfStatement:
     return "OrIfStatement";
+  case BringStatement:
+    return "BringStatement";
   default:
     return "NotDefined";
   }

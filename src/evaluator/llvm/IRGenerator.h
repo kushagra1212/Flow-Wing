@@ -2,30 +2,25 @@
 #define IRGENERATOR_H
 
 #include "../IRUtils/IRUtils.h"
-using namespace ELANG::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::EVALUATOR::CONSTANTS;
 
 class IRGenerator {
-
-  std::unique_ptr<llvm::Module>
-  _getModule(const std::vector<std::string> &irFilePaths);
-
-  DiagnosticHandler *_diagnosticHandler;
-
-  int showNewLineForRepl = 0;
-
-  int _environment;
 
 public:
   IRGenerator(
       int environment, DiagnosticHandler *diagnosticHandler,
-      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions);
+      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
+      const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
   void printIR();
   //   void generateIR();
   //   void verifyIR();
   //   void optimizeIR();
   //   void runIR();
 
-  void defineStandardFunctions();
+  void mergeModules(llvm::Module *sourceFunction,
+                    llvm::Module *destinationModule);
+  void declareDependencyFunctions();
+  void initializeGlobalVariables();
   void updateModule();
   llvm::Value *generateEvaluateExpressionStatement(BoundExpression *node);
   llvm::Value *generateEvaluateLiteralExpressionFunction(BoundExpression *node);
@@ -47,7 +42,9 @@ public:
 
   std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
 
-  void generateEvaluateGlobalStatement(BoundBlockStatement *blockStatement);
+  void generateEvaluateGlobalStatement(
+      BoundBlockStatement *blockStatement,
+      std::string blockName = FLOWWING_GLOBAL_ENTRY_POINT);
 
   llvm::Value *evaluateIfStatement(BoundStatement *node);
 
@@ -55,7 +52,6 @@ public:
 
   llvm::Value *evaluateForStatement(BoundForStatement *node);
   llvm::Value *generateEvaluateCallExpression(BoundCallExpression *node);
-  llvm::Constant *getNull();
   llvm::Value *handleBuiltInfuntions(BoundCallExpression *callExpression);
 
   void
@@ -65,6 +61,31 @@ public:
       std::vector<llvm::Value *> args);
   llvm::Value *generateCallExpressionForUserDefinedFunction(
       BoundCallExpression *callExpression);
+
+  std::unique_ptr<llvm::Module> &getModulePtr();
+  std::unique_ptr<IRParser> &getIRParserPtr();
+  void setModuleCount(int count);
+  const int hasErrors() const;
+
+  // Globals
+
+  // Global Functions
+  void handleGlobalFunctionDefinition(BoundFunctionDeclaration *userFunction);
+  // Global Fuction Declaration
+  void handleGlobalFunctionDeclaration(BoundFunctionDeclaration *node);
+
+  // Global Bring Statements
+  void handleGlobalBringStatement(BoundBringStatement *bringStatement);
+
+  // Global Expression Statements
+  void handleGlobalExpressionStatement(BoundExpressionStatement *node);
+  // - Assignment Expression
+  void handleGlobalAssignmentExpression(BoundAssignmentExpression *node);
+  // - Variable Declaration
+  void handleGlobalVariableDeclaration(BoundVariableDeclaration *node);
+
+  llvm::Value *handleGlobalVariableExpression(const std::string &variableName,
+                                              llvm::GlobalVariable *variable);
 
 private:
   std::unique_ptr<llvm::LLVMContext> TheContext;
@@ -82,6 +103,15 @@ private:
       _functionsParameters;
   std::map<std::string, bool> _recursiveFunctionsMap;
   std::unique_ptr<IRUtils> _irUtils;
+  std::unique_ptr<IRParser> _irParser;
+
+  DiagnosticHandler *_diagnosticHandler;
+
+  int showNewLineForRepl = 0;
+  int _moduleCount = 0;
+  int _environment;
+  std::string _sourceFileName;
+  llvm::StructType *_dynamicType;
 };
 
 #endif // IRGENERATOR_H

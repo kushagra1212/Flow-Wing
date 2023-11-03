@@ -10,7 +10,8 @@ private:
   std::unique_ptr<StatementSyntax> _statement;
 
 public:
-  GlobalStatementSyntax(std::unique_ptr<StatementSyntax> statement);
+  GlobalStatementSyntax(const bool &isExposed,
+                        std::unique_ptr<StatementSyntax> statement);
 
   std::unique_ptr<StatementSyntax> getStatement();
 

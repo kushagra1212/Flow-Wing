@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  compiler-test:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.CompilerTest
+    volumes:
+      - .:/compiler-test
+  compiler-dev:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.CompilerDev
+    volumes:
+      - .:/compiler-dev
+  repl-test:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.ReplTest
+    volumes:
+      - .:/repl-test
+  repl-dev:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.ReplDev
+    volumes:
+      - .:/repl-dev

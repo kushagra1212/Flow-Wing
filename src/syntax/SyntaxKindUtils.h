@@ -76,7 +76,8 @@ enum SyntaxKind {
   BreakKeyword,
   ReturnKeyword,
   OrKeyword,
-
+  ExposeKeyword,
+  FromKeyword,
   ElseClause,
 
   // Identifiers
@@ -104,10 +105,10 @@ enum SyntaxKind {
   ForStatement,
   ReturnStatement,
   CommentStatement,
-
   FunctionDeclarationSyntax,
-
-  ParameterSyntax
+  ParameterSyntax,
+  EmptyStatement,
+  BringStatementSyntax
 
 };
 bool isInt32(const std::string &str);

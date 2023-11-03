@@ -1,6 +1,7 @@
 #include "FunctionDeclarationSyntax.h"
 
-FunctionDeclarationSyntax::FunctionDeclarationSyntax() {
+FunctionDeclarationSyntax::FunctionDeclarationSyntax(const bool &isExposed)
+    : MemberSyntax(isExposed) {
 
   // Add children
 }
@@ -78,6 +79,10 @@ FunctionDeclarationSyntax::getParametersPtr() {
   return _parameters;
 }
 
+std::vector<Utils::type> &FunctionDeclarationSyntax::getParameterTypesPtr() {
+  return _parameterTypes;
+}
+
 std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
 FunctionDeclarationSyntax::getSeparatorsPtr() {
   return _separators;
@@ -109,6 +114,10 @@ void FunctionDeclarationSyntax::setOpenParenthesisToken(
 void FunctionDeclarationSyntax::addParameter(
     std::unique_ptr<ParameterSyntax> parameter) {
   _parameters.push_back(std::move(parameter));
+}
+
+void FunctionDeclarationSyntax::addParameterType(Utils::type parameterType) {
+  _parameterTypes.push_back(parameterType);
 }
 
 void FunctionDeclarationSyntax::setCloseParenthesisToken(

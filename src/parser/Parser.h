@@ -13,7 +13,9 @@
 #include "../syntax/expression/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
+#include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
+#include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
@@ -42,7 +44,7 @@ public:
 
 private:
   DiagnosticHandler *_diagnosticHandler;
-
+  std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
 
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
@@ -66,10 +68,17 @@ private:
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<MemberSyntax> parseMember();
-  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
+  std::unique_ptr<FunctionDeclarationSyntax>
+  parseFunctionDeclaration(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
-  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
+  std::unique_ptr<GlobalStatementSyntax>
+  parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<StatementSyntax> parseBringStatement();
   Utils::type parseType();
+
+  auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
+                    CompilationUnitSyntax *nestedCompilationUnit)
+      -> std::unordered_map<std::string, int>;
 };
 #endif

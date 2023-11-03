@@ -203,6 +203,7 @@ const std::string Utils::concatErrors(const std::vector<std::string> &errors,
 }
 
 std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
+
   std::filesystem::path basePath = std::filesystem::current_path();
 
   // Create an absolute path by combining the base path and the relative path
@@ -211,10 +212,46 @@ std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
   return absolutePath.string();
 }
 
+const std::string Utils::getFileName(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.filename().string();
+}
+
+const std::string Utils::getNameExtension(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.stem().string();
+}
+bool Utils::isSubstring(const std::string &s1, const std::string &s2) {
+  int M = s1.length();
+  int N = s2.length();
+
+  /* A loop to slide pat[] one by one */
+  for (int i = 0; i <= N - M; i++) {
+    int j;
+
+    /* For current index i, check for
+    pattern match */
+    for (j = 0; j < M; j++)
+      if (s2[i + j] != s1[j])
+        break;
+
+    if (j == M)
+      return true; // or print index of the pattern
+  }
+
+  return false;
+}
+const std::string
+Utils::removeExtensionFromString(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.replace_extension("").string();
+}
+
 DiagnosticUtils::SourceLocation
 Utils::getSourceLocation(SyntaxToken<std::any> *token) {
   return DiagnosticUtils::SourceLocation(token->getLineNumber(),
-                                         token->getColumnNumber());
+                                         token->getColumnNumber(),
+                                         token->getAbsoluteFilePath());
 }
 
 bool Utils::isInteger(const std::string &str) {
@@ -247,6 +284,102 @@ auto Utils::typeToString(Utils::type type) -> std::string {
   }
 
   return "Unknown";
+}
+
+std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {
+  std::ifstream file;
+
+  file.open(absoluteFilePath);
+  if (!file.is_open()) {
+
+    Utils::printErrors(
+        {
+            "Error: Unable to open file: " + absoluteFilePath,
+        },
+        std::cerr);
+
+    file.close();
+    return std::vector<std::string>();
+  }
+
+  std::string line;
+  std::vector<std::string> lines = std::vector<std::string>();
+  while (std::getline(file, line)) {
+    lines.push_back(line);
+  }
+  file.close();
+  return lines;
+}
+
+auto Utils::getFileContent(const std::string &filePath) -> std::string {
+  std::ifstream file(filePath);
+  std::string content((std::istreambuf_iterator<char>(file)),
+                      (std::istreambuf_iterator<char>()));
+  return content;
+}
+
+auto Utils::getSourceCodeFromFilePath(const std::string &filePath)
+    -> std::vector<std::string> {
+
+  std::ifstream file;
+
+  file.open(Utils::getAbsoluteFilePath(filePath));
+
+  // Check if the file was opened successfully
+  if (!file.is_open()) {
+    //   std::cerr << "Could not open the file." << std::endl;
+    return std::vector<std::string>();
+  }
+
+  std::string line;
+  std::vector<std::string> text = std::vector<std::string>();
+  while (std::getline(file, line)) {
+    text.push_back(line);
+  }
+  file.close();
+
+  return text;
+}
+
+auto Utils::getStrongRandomString() -> std::string {
+  std::string str("0123456789ABCDEF");
+
+  std::random_device rd;
+  std::mt19937 generator(rd());
+
+  std::shuffle(str.begin(), str.end(), generator);
+
+  // append time to the end of the string
+
+  std::string time = std::to_string(
+      std::chrono::system_clock::now().time_since_epoch().count());
+
+  str += time;
+
+  return str.substr(0, 10);
+}
+
+std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
+    std::string directoryPath, std::string extension, bool recursive) {
+  std::vector<std::string> files = std::vector<std::string>();
+
+  for (const auto &entry : std::filesystem::directory_iterator(directoryPath)) {
+    if (entry.path().extension() == extension) {
+      files.push_back(entry.path().string());
+    }
+
+    if (entry.is_directory() && recursive) {
+      std::vector<std::string> subFiles = getAllFilesInDirectoryWithExtension(
+          entry.path().string(), extension, recursive);
+      files.insert(files.end(), subFiles.begin(), subFiles.end());
+    }
+  }
+  return files;
+}
+
+const std::string Utils::getRelativePath(const std::string &filePath) {
+  std::filesystem::path path(filePath);
+  return path.relative_path().string();
 }
 
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
@@ -308,3 +441,9 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
 
   return false;
 }
+
+std::unordered_map<std::string, int> Utils::Node::fileMap =
+    std::unordered_map<std::string, int>();
+
+std::unordered_map<std::string, int> Utils::Node::visitedMap =
+    std::unordered_map<std::string, int>();

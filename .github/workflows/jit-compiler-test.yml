@@ -1,0 +1,33 @@
+name: JIT TESTS
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup CMake and Build Tools
+        run: |
+          sudo apt update
+          sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
+          sudo wget https://apt.llvm.org/llvm.sh
+          sudo chmod +x llvm.sh
+          sudo ./llvm.sh 16
+
+      - name: Configure and build
+        run: |
+          cd all-targets/jit-compiler
+          sudo rm -rf build
+          mkdir build
+          cd build
+          cmake -DTESTS_ENABLED=ON ..        
+          make -j8
+
+      - name: Run tests
+        run: |
+          cd all-targets/jit-compiler/build
+          ./FlowWing

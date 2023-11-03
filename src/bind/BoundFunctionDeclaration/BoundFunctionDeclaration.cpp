@@ -31,3 +31,9 @@ Utils::FunctionSymbol BoundFunctionDeclaration::getFunctionSymbol() const {
 std::unique_ptr<BoundBlockStatement> &BoundFunctionDeclaration::getBodyPtr() {
   return this->_body;
 }
+
+const bool BoundFunctionDeclaration::hasParameterTypes() const {
+  return (this->_functionSymbol.parameters.size() > 0 &&
+          this->_functionSymbol.parameters[0].type != Utils::type::UNKNOWN) ||
+         this->_functionSymbol.parameters.size() == 0;
+}

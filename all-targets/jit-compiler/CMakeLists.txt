@@ -1,32 +1,36 @@
 cmake_minimum_required(VERSION 3.5)
-project(Elang)
+project(FlowWing)
 
 set(CMAKE_CXX_STANDARD 17)
 
 # Locate GTest
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
-file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**/**.cpp)
 
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
+set(LLVM_DIR "/usr/lib/llvm-16/share/llvm/cmake")
+
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Conditionally define TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
+    file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**.cpp)
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
     add_compile_definitions(JIT_TEST_MODE)
 else()
+    file(GLOB_RECURSE SOURCES ../../src/**.cpp)   
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
     add_compile_definitions(JIT_MODE)
 endif()
 # Set the default executable name
-set(DEFAULT_EXECUTABLE_NAME "Elang")
+set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 
 # Set the executable name based on whether it's a test build or not
 if(TESTS_ENABLED)
     set(EXECUTABLE_NAME "runTests")
 else()
-    set(EXECUTABLE_NAME "Elang")
+    set(EXECUTABLE_NAME "FlowWing")
 endif()
 
 # Link the executable with the adjusted name
