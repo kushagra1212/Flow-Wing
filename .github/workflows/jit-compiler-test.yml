@@ -12,8 +12,11 @@ jobs:
 
       - name: Setup CMake and Build Tools
         run: |
-          apt update &&  apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
-          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
+          sudo apt update
+          sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 16
 
       - name: Configure and build
         run: |
