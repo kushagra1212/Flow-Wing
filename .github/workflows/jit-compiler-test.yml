@@ -14,14 +14,14 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
-          wget https://apt.llvm.org/llvm.sh
+          sudo wget https://apt.llvm.org/llvm.sh
           sudo chmod +x llvm.sh
-          ./llvm.sh 16
+          sudo ./llvm.sh 16
 
       - name: Configure and build
         run: |
           cd all-targets/jit-compiler
-          rm -rf build
+          sudo rm -rf build
           mkdir build
           cd build
           cmake -DTESTS_ENABLED=ON ..        
