@@ -1,10 +1,6 @@
 
 // BuiltinFunctions.cpp
 #include "BuiltinFunctions.h"
-#include <llvm/IR/Function.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Intrinsics.h>
 namespace Builtins {
 llvm::Function *createPrintFunction(llvm::Module *module) {
   llvm::LLVMContext &context = module->getContext();

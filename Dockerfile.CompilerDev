@@ -24,17 +24,16 @@ RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
 
 # Copy your source code to the container
 
-COPY . /compiler-test
+COPY . /compiler-dev
 # Set the working directory
-WORKDIR /compiler-test/all-targets/jit-compiler
+WORKDIR /compiler-dev/all-targets/jit-compiler
 
-# Create a test-build directory
-RUN rm -rf test-build && mkdir test-build
+# Create a build directory
+RUN rm -rf build && mkdir build
 
-# Configure and test-build your project
+# Configure and build your project
 
-WORKDIR /compiler-test/all-targets/jit-compiler/test-build
-RUN cmake -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug ..
-RUN make -j8
-# Run Tests
-RUN ./FlowWing
+WORKDIR /compiler-dev/all-targets/jit-compiler/build
+# RUN cmake -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug ..
+# RUN make -j8
+# RUN ./FlowWing ../dir/index.fg
