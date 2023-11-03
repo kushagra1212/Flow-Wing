@@ -10,18 +10,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up CMake
-        run: sudo apt-get install cmake
-
-      - name: Set up GTest
-        run: sudo apt-get install libgtest-dev
-
-      - name: Set up LLVM
-        run: sudo apt-get install llvm-dev
+      - name: Setup CMake and Build Tools
+        run: |
+          sudo apt update && sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
+          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
 
       - name: Configure and build
         run: |
           cd all-targets/jit-compiler
+          rm -rf build
           mkdir build
           cd build
           cmake -DTESTS_ENABLED=ON ..        
