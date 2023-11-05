@@ -20,13 +20,18 @@ public:
 
   CodeGenerationContext *_codeGenerationContext;
 
+  llvm::Module *TheModule = nullptr;
+  llvm::IRBuilder<> *Builder = nullptr;
+  llvm::LLVMContext *TheContext = nullptr;
+
   BinaryOperationStrategy(CodeGenerationContext *context)
       : _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
-        _codeGenerationContext(context){};
+        _codeGenerationContext(context), TheModule(context->getModule()),
+        Builder(context->getBuilder()), TheContext(context->getContext()){};
 
   virtual llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,

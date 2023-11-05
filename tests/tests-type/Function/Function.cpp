@@ -1037,3 +1037,287 @@ print(sumOfDigits(123))
   std::string expected_output = "6";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
+
+#ifdef JIT_TEST_MODE
+
+TEST_F(Function, FunctionStringTest) {
+  std::string input = R"(
+
+fun getConactString(b:str,a:str)-> str {
+
+    return a + b
+}
+
+print(getConactString("Hello","World"))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "WorldHello";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionIntTest) {
+  std::string input = R"(
+fun getSum(a:int,b:int)-> int {
+    return a + b
+}
+
+print(getSum(2,3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionBoolTest) {
+  std::string input = R"(
+fun getBool(a:bool,b:bool)-> bool {
+    return a && b
+}
+
+print(getBool(true,false))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "false";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionDeciTest) {
+  std::string input = R"(
+
+fun getSum(a:deci,b:deci)-> deci {
+    return a + b
+}
+
+print(getSum(2.2,3.3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5.500000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// TODO: Nthg Tests are Pending
+
+// TEST_F(Function, FunctionNthgTest) {
+//   std::string input = R"(
+// fun getNthg(a:nthg,b:nthg)-> nthg {
+//     return:
+// }
+
+// print(getNthg(2,null))
+// )";
+//   setInput(input);
+//   runEvaluator();
+//   std::string lowerCaseOutput = getOutput();
+//   std::string expected_output = "";
+//   EXPECT_EQ(lowerCaseOutput, expected_output);
+// }
+
+TEST_F(Function, FunctionIntWithDeciTest) {
+  std::string input = R"(
+fun getSum(a:int,b:deci)-> deci {
+    return a + b
+
+}
+
+print(getSum(2,3.3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5.300000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionIntWithBoolTest) {
+  std::string input = R"(
+fun getSum(a:int,b:bool)-> int {
+    return a + b
+
+}
+
+print(getSum(2,true))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "3";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionIntWithStringTest) {
+  std::string input = R"(
+fun getSum(a:int,b:str)-> str {
+    return a + b
+
+}
+
+print(getSum(2,"Hello"))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "2Hello";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// TEST_F(Function, FunctionIntWithNthgTest) {
+//   std::string input = R"(
+
+// fun getSum(a:int,b:nthg)-> int {
+//     return a + b
+
+// }
+
+// print(getSum(2,3))
+// )";
+//   setInput(input);
+//   runEvaluator();
+//   std::string lowerCaseOutput = getOutput();
+//   std::string expected_output = "5";
+//   EXPECT_EQ(lowerCaseOutput, expected_output);
+// }
+
+TEST_F(Function, FunctionDeciWithIntTest) {
+  std::string input = R"(
+fun getSum(a:deci,b:int)-> deci {
+    return a + b
+
+}
+
+print(getSum(2.2,3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5.200000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionDeciWithDeciTest) {
+  std::string input = R"(
+
+fun getSum(a:deci,b:deci)-> deci {
+    return a + b
+
+}
+
+print(getSum(2.2,3.3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "5.500000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionDeciWithBoolTest) {
+  std::string input = R"(
+
+fun getSum(a:deci,b:bool)-> deci {
+    return a + b
+
+}
+
+print(getSum(2.2,true))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "3.200000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionDeciWithStringTest) {
+  std::string input = R"(
+
+fun getSum(a:deci,b:str)-> str {
+    return a + b
+
+}
+
+print(getSum(2.2,"Hello"))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "2.200000Hello";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+// TEST_F(Function, FunctionDeciWithNthgTest) {
+//   std::string input = R"(
+
+// fun getSum(a:deci,b:nthg)-> deci {
+//     return a + b
+
+// }
+
+// print(getSum(2.2,3))
+// )";
+//   setInput(input);
+//   runEvaluator();
+//   std::string lowerCaseOutput = getOutput();
+//   std::string expected_output = "5.200000";
+//   EXPECT_EQ(lowerCaseOutput, expected_output);
+// }
+
+TEST_F(Function, FunctionBoolWithIntTest) {
+  std::string input = R"(
+
+fun getSum(a:bool,b:int)-> int {
+    return a + b
+
+}
+
+print(getSum(true,3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "4";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionBoolWithDeciTest) {
+  std::string input = R"(
+
+fun getSum(a:bool,b:deci)-> deci {
+    return a + b
+
+}
+
+print(getSum(true,3.3))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "4.300000";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+TEST_F(Function, FunctionBoolWithBoolTest) {
+  std::string input = R"(
+
+fun getSum(a:bool,b:bool)-> bool {
+    return a && b
+
+}
+
+print(getSum(true,false))
+)";
+  setInput(input);
+  runEvaluator();
+  std::string lowerCaseOutput = getOutput();
+  std::string expected_output = "false";
+  EXPECT_EQ(lowerCaseOutput, expected_output);
+}
+
+#endif

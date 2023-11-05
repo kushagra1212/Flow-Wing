@@ -13,6 +13,7 @@
 #include "../../IR/strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
+#include "../../IR/strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
 #include "../IRUtils/IRUtils.h"
 using namespace FLOWWING::IR::CONSTANTS;
 
@@ -133,6 +134,7 @@ private:
   std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
   std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
   std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
+  std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
 
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;

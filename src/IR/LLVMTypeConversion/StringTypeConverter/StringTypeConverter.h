@@ -11,6 +11,10 @@ public:
 
   llvm::Value *convertExplicit(llvm::Value *value) override;
   llvm::Value *convertImplicit(llvm::Value *value) override;
+
+  std::string valueToString(llvm::Value *val);
+
+  llvm::Value *convertStringToi8Ptr(std::string stringValue);
 };
 
 #endif // __STRING_TYPE_CONVERTER_H__

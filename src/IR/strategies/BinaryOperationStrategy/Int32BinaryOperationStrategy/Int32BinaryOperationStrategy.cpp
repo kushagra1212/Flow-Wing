@@ -9,7 +9,6 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
-  llvm::IRBuilder<> *Builder = this->_codeGenerationContext->getBuilder();
   llvm::Value *result = Builder->getInt32(1);
 
   std::string errorMessage = "";

@@ -58,6 +58,10 @@ IRGenerator::IRGenerator(
   _boolTypeConverter =
       std::make_unique<BoolTypeConverter>(this->_codeGenerationContext.get());
 
+  _stringBinaryOperationStrategy =
+      std::make_unique<StringBinaryOperationStrategy>(
+          this->_codeGenerationContext.get());
+
   _typeSpecificValueVisitor = std::make_unique<TypeSpecificValueVisitor>();
 
   // Binary Operation Strategies
@@ -67,6 +71,10 @@ IRGenerator::IRGenerator(
 
   _boolBinaryOperationStrategy = std::make_unique<BoolBinaryOperationStrategy>(
       this->_codeGenerationContext.get());
+
+  _doubleBinaryOperationStrategy =
+      std::make_unique<DoubleBinaryOperationStrategy>(
+          this->_codeGenerationContext.get());
 
   this->_boundedUserFunctions = boundedUserFunctions;
 }
@@ -499,18 +507,21 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
   llvm::Type *rhsType = rhsValue->getType();
 
   llvm::Value *result = nullptr;
-  if (this->_irUtils->isStringType(lhsType) ||
-      this->_irUtils->isStringType(rhsType)) {
+  if (_typeMapper->isStringType(lhsType) ||
+      _typeMapper->isStringType(rhsType)) {
 
-    result = this->_irUtils->getResultFromBinaryOperationOnString(
-        this->_irUtils->explicitConvertToString(lhsValue),
-        this->_irUtils->explicitConvertToString(rhsValue), binaryExpression);
-  } else if (this->_irUtils->isDoubleType(lhsType) ||
-             this->_irUtils->isDoubleType(rhsType)) {
+    result = _stringBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
+        binaryExpression);
 
-    result = this->_irUtils->getResultFromBinaryOperationOnDouble(
-        this->_irUtils->explicitConvertToDouble(lhsValue),
-        this->_irUtils->explicitConvertToDouble(rhsValue), binaryExpression);
+  } else if (_typeMapper->isDoubleType(lhsType) ||
+             _typeMapper->isDoubleType(rhsType)) {
+
+    result = _doubleBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), rhsValue),
+        binaryExpression);
 
   } else if (_typeMapper->isBoolType(lhsType) &&
              _typeMapper->isBoolType(rhsType)) {
@@ -599,7 +610,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *res = nullptr;
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
-      res = this->_irUtils->explicitConvertToInt(val);
+      res = _int32TypeConverter->convertExplicit(val);
       return res;
     }
 
@@ -609,7 +620,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      return this->_irUtils->explicitConvertToBool(val);
+      return _boolTypeConverter->convertExplicit(val);
     }
 
     this->_irUtils->logError(errorMessage);
@@ -618,7 +629,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      return this->_irUtils->explicitConvertToDouble(val);
+      return _doubleTypeConverter->convertExplicit(val);
     }
 
     this->_irUtils->logError(errorMessage);
@@ -661,6 +672,7 @@ llvm::Value *IRGenerator::generateCallExpressionForUserDefinedFunction(
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
   if (!calleeFunction && !this->_recursiveFunctionsMap[function.name]) {
+
     this->_recursiveFunctionsMap[function.name] = true;
     this->generateUserDefinedFunctionOnFly(
         this->_boundedUserFunctions[functionName], args);
@@ -1455,7 +1467,8 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)); // default
 
   if (forStatement->getStepExpressionPtr().get()) {
-    stepValue = this->_irUtils->implicitConvertToInt(
+
+    stepValue = _int32TypeConverter->convertImplicit(
         this->generateEvaluateExpressionStatement(
             forStatement->getStepExpressionPtr().get()));
   }
@@ -1621,11 +1634,14 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
     }
 
     llvm::AllocaInst *variable =
-        Builder->CreateAlloca(argTypes[i], nullptr, parameterNames[i]);
+        Builder->CreateAlloca(this->_dynamicType, nullptr, parameterNames[i]);
 
     _allocaChain->setAllocaInst(parameterNames[i], variable);
 
-    Builder->CreateStore(argValue, variable);
+    Builder->CreateStore(
+        argValue, Builder->CreateStructGEP(this->_dynamicType, variable,
+                                           this->_irUtils->getIndexofMemberType(
+                                               argValue->getType())));
 
     _namedValueChain->setNamedValue(parameterNames[i], argValue);
   }
@@ -1698,13 +1714,15 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
-    llvm::AllocaInst *variable = Builder->CreateAlloca(
-        callArgs[i]->getType(), nullptr, parameterNames[i]);
+    llvm::AllocaInst *variable =
+        Builder->CreateAlloca(this->_dynamicType, nullptr, parameterNames[i]);
 
     _allocaChain->setAllocaInst(parameterNames[i], variable);
 
-    Builder->CreateStore(argValue, variable);
-
+    Builder->CreateStore(
+        argValue, Builder->CreateStructGEP(this->_dynamicType, variable,
+                                           this->_irUtils->getIndexofMemberType(
+                                               argValue->getType())));
     // this->_irUtils->setNamedValue(parameterNames[i], argValue,
     //                               this->_NamedValuesStack);
     _namedValueChain->setNamedValue(parameterNames[i], argValue);

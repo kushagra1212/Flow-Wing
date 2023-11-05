@@ -134,17 +134,6 @@ public:
 
   llvm::Value *getDefaultValue(Utils::type type);
 
-  llvm::Value *implicitConvertToDouble(llvm::Value *val);
-
-  llvm::Value *implicitConvertToInt(llvm::Value *val);
-
-  llvm::Value *implicitConvertToBool(llvm::Value *val);
-
-  llvm::Value *explicitConvertToDouble(llvm::Value *val);
-
-  llvm::Value *explicitConvertToInt(llvm::Value *val);
-
-  llvm::Value *explicitConvertToBool(llvm::Value *val);
   llvm::Value *explicitConvertToString(llvm::Value *val);
   llvm::Value *itos(llvm::Value *num);
 
@@ -153,25 +142,6 @@ public:
   llvm::Type *getReturnType(Utils::type type);
 
   void errorGuard(std::function<void()> code);
-
-  llvm::Value *
-  getResultFromBinaryOperationOnDouble(llvm::Value *lhsValue,
-                                       llvm::Value *rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
-
-  llvm::Value *
-  getResultFromBinaryOperationOnInt(llvm::Value *lhsValue,
-                                    llvm::Value *rhsValue,
-                                    BoundBinaryExpression *binaryExpression);
-
-  llvm::Value *
-  getResultFromBinaryOperationOnBool(llvm::Value *lhsValue,
-                                     llvm::Value *rhsValue,
-                                     BoundBinaryExpression *binaryExpression);
-  llvm::Value *
-  getResultFromBinaryOperationOnString(llvm::Value *lhsValue,
-                                       llvm::Value *rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
 
   // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
@@ -213,8 +183,6 @@ public:
   void logError(std::string errorMessgae);
   const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
-
-  llvm::Value *explicitConvertToType(llvm::Value *value, llvm::Type *type);
 
   const std::string getSourceFileName() const;
 

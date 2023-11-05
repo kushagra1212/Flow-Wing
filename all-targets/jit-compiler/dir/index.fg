@@ -1,1 +1,8 @@
-var x = true+1.0
+
+fun getConactString(b:str,a:str)-> nthg {
+    var  x= 2
+    a = a + " " + x
+    return a + b + 2*100 + "S"
+}
+
+print(getConactString("Hello","World"))
