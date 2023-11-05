@@ -12,9 +12,15 @@ IRGenerator::IRGenerator(
   this->_diagnosticHandler = diagnosticHandler;
   this->_irParser = std::make_unique<IRParser>();
 
+  // Initialize the LLVM_Logger
+
+  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
+
+  // Initialize the IRUtils
+
   this->_irUtils = std::make_unique<IRUtils>(
       TheModule.get(), Builder.get(), TheContext.get(),
-      this->_diagnosticHandler, sourceFileName);
+      this->_diagnosticHandler, sourceFileName, _llvmLogger.get());
 
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -23,9 +29,44 @@ IRGenerator::IRGenerator(
   this->declareDependencyFunctions();
   this->initializeGlobalVariables();
 
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
+  // Initialize the named value chain
+  _namedValueChain = std::make_unique<ValueChain>();
+  _namedValueChain->addHandler(new NamedValueTable());
+
+  // Initialize the alloca chain
+  _allocaChain = std::make_unique<AllocaChain>();
+  _allocaChain->addHandler(new AllocaTable());
+
+  // Mapper
+  _typeMapper = std::make_unique<TypeMapper>(TheContext.get());
+
+  // Initialize the code generation context
+  _codeGenerationContext = std::make_unique<CodeGenerationContext>(
+      Builder.get(), TheModule.get(), TheContext.get(), _typeMapper.get(),
+      _llvmLogger.get(), sourceFileName);
+
+  // Initialize Conversion Strategies
+  _int32TypeConverter =
+      std::make_unique<Int32TypeConverter>(this->_codeGenerationContext.get());
+
+  _doubleTypeConverter =
+      std::make_unique<DoubleTypeConverter>(this->_codeGenerationContext.get());
+
+  _stringTypeConverter =
+      std::make_unique<StringTypeConverter>(this->_codeGenerationContext.get());
+
+  _boolTypeConverter =
+      std::make_unique<BoolTypeConverter>(this->_codeGenerationContext.get());
+
+  _typeSpecificValueVisitor = std::make_unique<TypeSpecificValueVisitor>();
+
+  // Binary Operation Strategies
+  _int32BinaryOperationStrategy =
+      std::make_unique<Int32BinaryOperationStrategy>(
+          this->_codeGenerationContext.get());
+
+  _boolBinaryOperationStrategy = std::make_unique<BoolBinaryOperationStrategy>(
+      this->_codeGenerationContext.get());
 
   this->_boundedUserFunctions = boundedUserFunctions;
 }
@@ -360,8 +401,7 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
 
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
-  llvm::Value *variableValue =
-      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+  llvm::Value *variableValue = _namedValueChain->getNamedValue(variableName);
 
   if (!variableValue) {
     if (variable) {
@@ -371,8 +411,7 @@ IRGenerator::generateEvaluateVariableExpressionFunction(BoundExpression *node) {
     return nullptr;
   }
 
-  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
-      variableName, this->_NamedValuesAllocaStack);
+  llvm::AllocaInst *v = _allocaChain->getAllocaInst(variableName);
 
   llvm::Value *value = Builder->CreateLoad(
       variableValue->getType(),
@@ -392,8 +431,9 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   std::string variableName =
       this->_irUtils->getString(assignmentExpression->getLeftPtr().get());
-  llvm::Value *oldValue =
-      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+  llvm::Value *oldValue = _namedValueChain->getNamedValue(variableName);
+  //  this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+
   if (!oldValue) {
     // Variable not found, handle error
 
@@ -421,11 +461,12 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
     return nullptr;
   }
 
-  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
-      variableName, this->_NamedValuesAllocaStack);
+  llvm::AllocaInst *v = _allocaChain->getAllocaInst(variableName);
 
-  this->_irUtils->updateNamedValue(variableName, rhsValue,
-                                   this->_NamedValuesStack);
+  // this->_irUtils->updateNamedValue(variableName, rhsValue,
+  //                                  this->_NamedValuesStack);
+
+  _namedValueChain->updateNamedValue(variableName, rhsValue);
 
   Builder->CreateStore(
       rhsValue, Builder->CreateStructGEP(
@@ -470,16 +511,19 @@ llvm::Value *IRGenerator::generateEvaluateBinaryExpressionFunction(
     result = this->_irUtils->getResultFromBinaryOperationOnDouble(
         this->_irUtils->explicitConvertToDouble(lhsValue),
         this->_irUtils->explicitConvertToDouble(rhsValue), binaryExpression);
-  } else if (this->_irUtils->isBoolType(lhsType) &&
-             this->_irUtils->isBoolType(rhsType)) {
 
-    result = this->_irUtils->getResultFromBinaryOperationOnBool(
-        lhsValue, rhsValue, binaryExpression);
+  } else if (_typeMapper->isBoolType(lhsType) &&
+             _typeMapper->isBoolType(rhsType)) {
+
+    result = _boolBinaryOperationStrategy->performOperation(lhsValue, rhsValue,
+                                                            binaryExpression);
+
   } else {
 
-    result = this->_irUtils->getResultFromBinaryOperationOnInt(
-        this->_irUtils->explicitConvertToInt(lhsValue),
-        this->_irUtils->explicitConvertToInt(rhsValue), binaryExpression);
+    result = _int32BinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
+        binaryExpression);
   }
   return result;
 }
@@ -717,15 +761,15 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
   llvm::Value *result = this->generateEvaluateExpressionStatement(
       node->getInitializerPtr().get());
   this->_irUtils->setCurrentSourceLocation(node->getLocation());
-  this->_irUtils->setNamedValue(variable_name, result, this->_NamedValuesStack);
+
+  _namedValueChain->setNamedValue(variable_name, result);
 
   // create and load variable
 
   llvm::AllocaInst *variable =
       Builder->CreateAlloca(this->_dynamicType, nullptr, variable_name.c_str());
 
-  this->_irUtils->setNamedValueAlloca(variable_name, variable,
-                                      this->_NamedValuesAllocaStack);
+  _allocaChain->setAllocaInst(variable_name, variable);
 
   Builder->CreateStore(
       result, Builder->CreateStructGEP(
@@ -738,9 +782,8 @@ llvm::Value *IRGenerator::generateEvaluateVariableDeclaration(
 llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     BoundBlockStatement *blockStatement) {
   this->_irUtils->setCurrentSourceLocation(blockStatement->getLocation());
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
+  _namedValueChain->addHandler(new NamedValueTable());
+  _allocaChain->addHandler(new AllocaTable());
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   // create and load variable
 
@@ -805,8 +848,9 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
 
   Builder->SetInsertPoint(afterNestedBlock);
 
-  this->_NamedValuesStack.pop();
-  this->_NamedValuesAllocaStack.pop();
+  // this->_NamedValuesStack.pop();
+  _namedValueChain->removeHandler();
+  _allocaChain->removeHandler();
   return nullptr;
 }
 
@@ -1399,9 +1443,9 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
 llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   BoundForStatement *forStatement = (BoundForStatement *)node;
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
+  _namedValueChain->addHandler(new NamedValueTable());
+
+  _allocaChain->addHandler(new AllocaTable());
 
   std::string variableName = "";
 
@@ -1442,16 +1486,14 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
     llvm::AllocaInst *variable = Builder->CreateAlloca(
         llvm::Type::getInt32Ty(*TheContext), nullptr, variableName.c_str());
 
-    this->_irUtils->setNamedValueAlloca(variableName, variable,
-                                        this->_NamedValuesAllocaStack);
+    _allocaChain->setAllocaInst(variableName, variable);
 
     llvm::Value *result = this->generateEvaluateStatement(
         forStatement->getInitializationPtr().get());
 
     Builder->CreateStore(result, variable);
 
-    this->_irUtils->setNamedValue(variableName, result,
-                                  this->_NamedValuesStack);
+    _namedValueChain->setNamedValue(variableName, result);
   }
 
   this->_irUtils->setCurrentSourceLocation(forStatement->getLocation());
@@ -1484,11 +1526,10 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   this->_irUtils->decrementCountIfNotZero(
       this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
 
-  llvm::Value *variableValue =
-      this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
+  llvm::Value *variableValue = _namedValueChain->getNamedValue(variableName);
+  //  this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
-  llvm::AllocaInst *v = this->_irUtils->getNamedValueAlloca(
-      variableName, this->_NamedValuesAllocaStack);
+  llvm::AllocaInst *v = _allocaChain->getAllocaInst(variableName);
 
   llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
 
@@ -1521,23 +1562,20 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
-  this->_irUtils->updateNamedValue(variableName, incrementedValue,
-                                   this->_NamedValuesStack);
+  _namedValueChain->updateNamedValue(variableName, incrementedValue);
 
   Builder->CreateStore(incrementedValue, v);
 
   Builder->CreateBr(loopCondition);
-
-  // After Loop
 
   Builder->SetInsertPoint(afterLoop);
 
   this->_irUtils->decrementCountIfNotZero(
       this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
 
-  this->_NamedValuesAllocaStack.pop();
-  this->_NamedValuesStack.pop();
+  _allocaChain->removeHandler();
 
+  _namedValueChain->removeHandler();
   return exitValue;
 }
 
@@ -1563,9 +1601,9 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
 
   Builder->SetInsertPoint(entryBlock);
 
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
+  _namedValueChain->addHandler(new NamedValueTable());
+
+  _allocaChain->addHandler(new AllocaTable());
 
   std::vector<std::string> parameterNames;
 
@@ -1585,13 +1623,11 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
     llvm::AllocaInst *variable =
         Builder->CreateAlloca(argTypes[i], nullptr, parameterNames[i]);
 
-    this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
-                                        this->_NamedValuesAllocaStack);
+    _allocaChain->setAllocaInst(parameterNames[i], variable);
 
     Builder->CreateStore(argValue, variable);
 
-    this->_irUtils->setNamedValue(parameterNames[i], argValue,
-                                  this->_NamedValuesStack);
+    _namedValueChain->setNamedValue(parameterNames[i], argValue);
   }
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
@@ -1611,18 +1647,15 @@ void IRGenerator::generateUserDefinedFunction(BoundFunctionDeclaration *node) {
   }
 
   this->_returnAllocaStack.pop();
-  this->_NamedValuesStack.pop();
-  this->_NamedValuesAllocaStack.pop();
+  _namedValueChain->removeHandler();
+
+  _allocaChain->removeHandler();
 
   llvm::verifyFunction(*F);
 
-  this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
+  _namedValueChain->setNamedValue(functionName, F);
 
-  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-                                      this->_NamedValuesAllocaStack);
-
-  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-                                      this->_NamedValuesAllocaStack);
+  _allocaChain->setAllocaInst(functionName, nullptr);
 }
 void IRGenerator::generateUserDefinedFunctionOnFly(
     BoundFunctionDeclaration *node, std::vector<llvm::Value *> callArgs) {
@@ -1650,9 +1683,10 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
 
   Builder->SetInsertPoint(entryBlock);
 
-  this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
-  this->_NamedValuesAllocaStack.push(
-      std::map<std::string, llvm::AllocaInst *>());
+  // this->_NamedValuesStack.push(std::map<std::string, llvm::Value *>());
+  _namedValueChain->addHandler(new NamedValueTable());
+
+  _allocaChain->addHandler(new AllocaTable());
 
   std::vector<std::string> parameterNames;
 
@@ -1667,13 +1701,13 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
     llvm::AllocaInst *variable = Builder->CreateAlloca(
         callArgs[i]->getType(), nullptr, parameterNames[i]);
 
-    this->_irUtils->setNamedValueAlloca(parameterNames[i], variable,
-                                        this->_NamedValuesAllocaStack);
+    _allocaChain->setAllocaInst(parameterNames[i], variable);
 
     Builder->CreateStore(argValue, variable);
 
-    this->_irUtils->setNamedValue(parameterNames[i], argValue,
-                                  this->_NamedValuesStack);
+    // this->_irUtils->setNamedValue(parameterNames[i], argValue,
+    //                               this->_NamedValuesStack);
+    _namedValueChain->setNamedValue(parameterNames[i], argValue);
   }
 
   this->generateEvaluateStatement(node->getBodyPtr().get());
@@ -1687,18 +1721,16 @@ void IRGenerator::generateUserDefinedFunctionOnFly(
 
   Builder->CreateRet(
       this->_irUtils->getDefaultValue(node->_functionSymbol.return_type));
-  this->_NamedValuesStack.pop();
-  this->_NamedValuesAllocaStack.pop();
+  // this->_NamedValuesStack.pop();
+  _namedValueChain->removeHandler();
+  _allocaChain->removeHandler();
 
   llvm::verifyFunction(*F);
 
-  this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
+  // this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
 
-  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-                                      this->_NamedValuesAllocaStack);
-
-  this->_irUtils->setNamedValueAlloca(functionName, nullptr,
-                                      this->_NamedValuesAllocaStack);
+  _namedValueChain->setNamedValue(functionName, F);
+  _allocaChain->setAllocaInst(functionName, nullptr);
 }
 
 llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {

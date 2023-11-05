@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace FLOWWING::EVALUATOR::CONSTANTS {
+namespace FLOWWING::IR::CONSTANTS {
 
 // FlowWing Global Strings
 
@@ -53,6 +53,19 @@ extern const std::string STRING_TO_DOUBLE;
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 
-}; // namespace FLOWWING::EVALUATOR::CONSTANTS
+enum class CustomLLVMType {
+  Int8,
+  Int16,
+  Int32,
+  Int64,
+  Float,
+  Double,
+  Bool,
+  String,
+  Void,
+  Unknown
+};
+
+}; // namespace FLOWWING::IR::CONSTANTS
 
 #endif // FLOWWING_IR_CONSTANTS_H

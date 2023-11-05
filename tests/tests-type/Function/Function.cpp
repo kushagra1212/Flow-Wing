@@ -27,8 +27,6 @@ void Function::runEvaluator() { _test->runEvaluator(); }
 
 // nthg is the return type and int str bool deci nthg are the return value
 
-#ifndef JIT_TEST_MODE
-
 TEST_F(Function, NthgReturnTypeWithIntReturnValue) {
   std::string input = R"(
 fun main()-> nthg {
@@ -50,9 +48,12 @@ print(main())
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-  // check expected output is substring of the output or not
-
+// check expected output is substring of the output or not
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 TEST_F(Function, NthgReturnTypeWithStringReturnValue) {
   std::string input = R"(
@@ -74,8 +75,11 @@ TEST_F(Function, NthgReturnTypeWithStringReturnValue) {
       R"(Function return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, NthgReturnTypeWithBoolReturnValue) {
@@ -96,8 +100,11 @@ print(main()))";
       R"(Function return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 TEST_F(Function, NthgReturnTypeWithDeciReturnValue) {
   std::string input = R"(fun main()-> nthg {
@@ -117,8 +124,11 @@ print(main()))";
       R"(Function return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 // Int return type with int str bool deci nthg as return value
@@ -175,8 +185,11 @@ print(main())
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 TEST_F(Function, IntReturnTypeWithNoReturn) {
   std::string input = R"(fun main2()-> int {
@@ -194,8 +207,11 @@ TEST_F(Function, IntReturnTypeWithNoReturn) {
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, IntReturnTypeWithStrReturnValue) {
@@ -218,8 +234,11 @@ print(main())
       R"(Return Type Mismatch Integer is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, IntReturnTypeWithBoolReturnValue) {
@@ -243,7 +262,11 @@ print(main())
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, IntReturnTypeWithBoolReturnValueFalse) {
@@ -266,8 +289,11 @@ print(main())
       R"(Return Type Mismatch Integer is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 TEST_F(Function, IntReturnTypeWithDeciReturnValue) {
   std::string input = R"(
@@ -289,8 +315,11 @@ print(main())
       R"(Return Type Mismatch Integer is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 // Bool Return Type
@@ -315,8 +344,11 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, BoolReturnTypeWithNthgReturnValue) {
@@ -339,8 +371,11 @@ print(main())
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, BoolReturnTypeWithNoReturn) {
@@ -363,8 +398,11 @@ print(main())
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, BoolReturnTypeWithStringReturnValue) {
@@ -387,8 +425,11 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, BoolReturnTypeWithBoolReturnValueTrue) {
@@ -447,8 +488,11 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 // String Return Type
@@ -473,8 +517,11 @@ print(main())
       R"(Return Type Mismatch String is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, StringReturnTypeWithNthgReturnValue) {
@@ -497,8 +544,11 @@ print(main())
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, StringReturnTypeWithNoReturnValue) {
@@ -521,8 +571,11 @@ print(main())
       R"(Function return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, StringReturnTypeWithBoolReturnValueTrue) {
@@ -545,8 +598,11 @@ print(main())
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, StringReturnTypeWithBoolReturnValueFalse) {
@@ -569,8 +625,11 @@ print(main())
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
+#endif
 }
 
 TEST_F(Function, StringReturnTypeWithDeciReturnValue) {
@@ -593,10 +652,12 @@ print(main())
       R"(Return Type Mismatch String is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-
+#ifdef JIT_TEST_MODE
+  EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+#elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
-}
 #endif
+}
 
 TEST_F(Function, NthgReturnTypeWithNthgReturnValue) {
   std::string input = R"(

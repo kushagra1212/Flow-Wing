@@ -3,12 +3,15 @@
 IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
                  llvm::LLVMContext *TheContext,
                  DiagnosticHandler *diagnosticHandler,
-                 std::string sourceFileName)
+                 std::string sourceFileName, LLVMLogger *llvmLogger)
     : TheModule(TheModule), Builder(Builder), TheContext(TheContext),
       diagnosticHandler(diagnosticHandler) {
   _currentSourceLocation = DiagnosticUtils::SourceLocation();
   _sourceFileName = sourceFileName;
   this->_initializingGlobals = 1;
+
+  // Initialize the LLVM Custom Logger
+  _llvmLogger = llvmLogger;
 
   this->_memberTypesForDynamicTypes = {
       llvm::Type::getInt32Ty(*TheContext),
@@ -17,22 +20,6 @@ IRUtils::IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
       llvm::Type::getInt8PtrTy(*TheContext),
 
   };
-}
-// GET VALUES
-
-llvm::Value *IRUtils::getNamedValue(
-    const std::string &name,
-    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
-  llvm::Value *value = nullptr;
-  while (!NamedValuesStack.empty()) {
-    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
-    if (NamedValues.find(name) != NamedValues.end()) {
-      value = NamedValues[name];
-      break;
-    }
-    NamedValuesStack.pop();
-  }
-  return value;
 }
 
 const std::vector<llvm::Type *> IRUtils::getMemberTypesForDynamicTypes() const {
@@ -60,23 +47,6 @@ const int IRUtils::getIndexofMemberType(llvm::Type *type) {
 
 const std::string IRUtils::getSourceFileName() const {
   return this->_sourceFileName;
-}
-
-llvm::AllocaInst *IRUtils::getNamedValueAlloca(
-    const std::string &name,
-    std::stack<std::map<std::string, llvm::AllocaInst *>>
-        NamedValuesAllocaStack) {
-  llvm::AllocaInst *value = nullptr;
-  while (!NamedValuesAllocaStack.empty()) {
-    std::map<std::string, llvm::AllocaInst *> &NamedValues =
-        NamedValuesAllocaStack.top();
-    if (NamedValues.find(name) != NamedValues.end()) {
-      value = NamedValues[name];
-      break;
-    }
-    NamedValuesAllocaStack.pop();
-  }
-  return value;
 }
 
 // CHECK VALUES
@@ -120,83 +90,6 @@ void IRUtils::handleConditionalBranch(
   trueBlockCode(trueBlock, Builder, TheContext, this);
 
   falseBlockCode(falseBlock, Builder, TheContext);
-}
-
-// UPDATE VALUES
-
-bool IRUtils::updateNamedValue(
-    const std::string &name, llvm::Value *value,
-    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
-
-  std::stack<std::map<std::string, llvm::Value *>> tempStack;
-
-  bool isSet = false;
-  while (!NamedValuesStack.empty()) {
-    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
-    if (NamedValues.find(name) != NamedValues.end()) {
-      NamedValues[name] = value;
-      isSet = true;
-      break;
-    }
-    tempStack.push(NamedValues);
-    NamedValuesStack.pop();
-  }
-
-  while (!tempStack.empty()) {
-    NamedValuesStack.push(tempStack.top());
-    tempStack.pop();
-  }
-
-  return isSet;
-}
-
-bool IRUtils::updateNamedValueAlloca(
-    const std::string &name, llvm::AllocaInst *value,
-    std::stack<std::map<std::string, llvm::AllocaInst *>>
-        &NamedValuesAllocaStack) {
-
-  std::stack<std::map<std::string, llvm::AllocaInst *>> tempStack;
-
-  bool isSet = false;
-  while (!NamedValuesAllocaStack.empty()) {
-    std::map<std::string, llvm::AllocaInst *> &NamedValues =
-        NamedValuesAllocaStack.top();
-    if (NamedValues.find(name) != NamedValues.end()) {
-      NamedValues[name] = value;
-      isSet = true;
-      break;
-    }
-    tempStack.push(NamedValues);
-    NamedValuesAllocaStack.pop();
-  }
-
-  while (!tempStack.empty()) {
-    NamedValuesAllocaStack.push(tempStack.top());
-    tempStack.pop();
-  }
-
-  return isSet;
-}
-
-// SET VALUES
-
-void IRUtils::setNamedValue(
-    const std::string &name, llvm::Value *value,
-    std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack) {
-  std::stack<std::map<std::string, llvm::Value *>> tempStack;
-
-  std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
-  NamedValues[name] = value;
-}
-
-void IRUtils::setNamedValueAlloca(
-    const std::string &name, llvm::AllocaInst *value,
-    std::stack<std::map<std::string, llvm::AllocaInst *>>
-        &NamedValuesAllocaStack) {
-
-  std::map<std::string, llvm::AllocaInst *> &NamedValues =
-      NamedValuesAllocaStack.top();
-  NamedValues[name] = value;
 }
 
 void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
@@ -482,7 +375,6 @@ std::string IRUtils::valueToString(llvm::Value *val) {
     globalVar->printAsOperand(rso, true, module);
     return rso.str();
   }
-
   if (val->getType()->isPointerTy() && val->getType()->isIntegerTy(8)) {
     llvm::ConstantExpr *constExpr = llvm::dyn_cast<llvm::ConstantExpr>(val);
     if (constExpr &&
@@ -562,6 +454,43 @@ llvm::Value *IRUtils::convertToString(llvm::Value *val) {
 
   return nullptr; // Return nullptr for other types or unrecognized cases
 }
+
+llvm::Value *IRUtils::loadGlobalValue(llvm::Value *val) {
+  if (auto globalVar = llvm::dyn_cast<llvm::GlobalVariable>(val)) {
+    if (globalVar->getValueType()->isIntegerTy(32)) {
+
+      return Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
+                                 globalVar);
+
+    } else if (globalVar->getValueType()->isIntegerTy(1)) {
+
+      return Builder->CreateLoad(llvm::Type::getInt1Ty(*TheContext), globalVar);
+
+    } else if (globalVar->getValueType()->isDoubleTy()) {
+      return Builder->CreateLoad(llvm::Type::getDoubleTy(*TheContext),
+                                 globalVar);
+
+    } else if (globalVar->getValueType()->isPointerTy()) {
+
+      return Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext),
+                                 globalVar);
+
+    } else if (globalVar->getValueType()->isIntegerTy(8)) {
+
+      return Builder->CreateLoad(llvm::Type::getInt8Ty(*TheContext), globalVar);
+
+    } else if (globalVar->getValueType()->isIntegerTy(64)) {
+
+      return Builder->CreateLoad(llvm::Type::getInt64Ty(*TheContext),
+                                 globalVar);
+    }
+  }
+
+  this->logError("Value is not a global variable");
+
+  return nullptr;
+}
+
 llvm::Value *IRUtils::explicitConvertToString(llvm::Value *val) {
   llvm::Type *type = val->getType();
 
@@ -1167,7 +1096,6 @@ Utils::type IRUtils::getReturnType(llvm::Type *type) {
 llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
-  this->setCurrentSourceLocation(binaryExpression->getLocation());
   llvm::Value *result = nullptr;
   std::string errorMessage = "";
   switch (binaryExpression->getOperator()) {
@@ -1182,27 +1110,6 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnDouble(
     return Builder->CreateFMul(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    // Check if rhsValue is zero
-    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-
-    // llvm::ConstantFP *rhsConstantFP = getConstantFPFromValue(rhsValue);
-    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
-
-    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    // Builder->SetInsertPoint(errorBlock);
-
-    // std::string errorMessage = "Division by zero";
-
-    // this->logError(errorMessage);
-
-    // result = nullptr;
-    // rhsValue = explicitConvertToDouble(rhsValue);
-    // rhsConstantFP = getConstantFPFromValue(rhsValue);
-    // Builder->CreateBr(errorExit);
-    // Builder->SetInsertPoint(errorExit);
     return result = Builder->CreateFDiv(lhsValue, rhsValue);
     break;
   }
@@ -1281,12 +1188,14 @@ DiagnosticUtils::SourceLocation IRUtils::getCurrentSourceLocation() {
 void IRUtils::logError(std::string errorMessgae) {
   if (errorMessgae != "") {
     _hasError = 1;
-    std::string error = diagnosticHandler->getLogString(
+    std::string errorString = diagnosticHandler->getLogString(
         Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Runtime,
                    this->getCurrentSourceLocation()));
 
-    llvm::errs() << error;
+    llvm::Error error =
+        llvm::createStringError(llvm::inconvertibleErrorCode(), errorString);
+    _llvmLogger->logLLVMError(std::move(error));
   }
 }
 
@@ -1316,7 +1225,7 @@ void IRUtils::errorGuard(std::function<void()> code) {
 }
 
 const std::string IRUtils::addPrefixToVariableName(const std::string name) {
-  return name + this->getSourceFileName();
+  return this->getSourceFileName() + "_" + name;
 }
 
 llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
@@ -1340,25 +1249,6 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnInt(
     return result = Builder->CreateMul(lhsValue, rhsValue);
     break;
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-
-    // // Check if rhsValue is zero
-    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
-
-    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    // Builder->SetInsertPoint(errorBlock);
-
-    // std::string errorMessage = "Division by zero ";
-
-    // this->logError(errorMessage);
-
-    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-
-    // Builder->CreateBr(errorExit);
-    // Builder->SetInsertPoint(errorExit);
     return Builder->CreateSDiv(lhsValue, rhsValue);
 
     break;
@@ -1455,25 +1345,7 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    // llvm::Value *zeroCheck = this->explicitConvertToBool(rhsValue);
-    // llvm::BasicBlock *errorBlock = llvm::BasicBlock::Create(
-    //     *TheContext, "error", Builder->GetInsertBlock()->getParent());
-    // llvm::BasicBlock *errorExit = llvm::BasicBlock::Create(
-    //     *TheContext, "errorExit", Builder->GetInsertBlock()->getParent());
 
-    // Builder->CreateCondBr(zeroCheck, errorExit, errorBlock);
-    // Builder->SetInsertPoint(errorBlock);
-
-    // std::string errorMessage = "Division by zero of " +
-    //                            valueToString(lhsValue) + " and " +
-    //                            valueToString(rhsValue);
-
-    // this->logError(errorMessage);
-
-    // llvm::Type *int8PtrType = llvm::Type::getInt8PtrTy(*TheContext);
-    // rhsValue = Builder->getInt32(1);
-    // Builder->CreateBr(errorExit);
-    // Builder->SetInsertPoint(errorExit);
     return explicitConvertToBool(getResultFromBinaryOperationOnInt(
         explicitConvertToInt(lhsValue), explicitConvertToInt(rhsValue),
         binaryExpression));
@@ -1512,7 +1384,6 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
   case BinderKindUtils ::BoundBinaryOperatorKind::GreaterOrEquals:
 
     return Builder->CreateICmpSGE(lhsValue, rhsValue);
-    break;
 
   // Add more cases for other binary operators
   default:
@@ -1527,6 +1398,5 @@ llvm::Value *IRUtils::getResultFromBinaryOperationOnBool(
     break;
   }
   this->logError(errorMessage);
-
   return result;
 }

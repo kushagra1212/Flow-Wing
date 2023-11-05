@@ -1,8 +1,20 @@
 #ifndef IRGENERATOR_H
 #define IRGENERATOR_H
 
+#include "../../IR/context/CodeGenerationContext.h"
+#include "../../IR/handlers/alloca/AllocaChain/AllocaChain.h"
+#include "../../IR/handlers/alloca/AllocaHandler.h"
+#include "../../IR/handlers/alloca/AllocaTable/AllocaTable.h"
+#include "../../IR/handlers/value/NamedValueTable/NamedValueTable.h"
+#include "../../IR/handlers/value/ValueChain/ValueChain.h"
+#include "../../IR/handlers/value/ValueHandler.h"
+#include "../../IR/mappers/TypeMapper/TypeMapper.h"
+#include "../../IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
+#include "../../IR/strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
+#include "../../IR/strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
+#include "../../IR/strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
 #include "../IRUtils/IRUtils.h"
-using namespace FLOWWING::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::IR::CONSTANTS;
 
 class IRGenerator {
 
@@ -92,8 +104,6 @@ private:
   std::unique_ptr<llvm::Module> TheModule;
   std::unique_ptr<llvm::IRBuilder<>> Builder;
 
-  std::stack<std::map<std::string, llvm::Value *>> _NamedValuesStack;
-  std::stack<std::map<std::string, llvm::AllocaInst *>> _NamedValuesAllocaStack;
   std::stack<std::pair<Utils::type, int>> _returnAllocaStack;
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
@@ -112,6 +122,23 @@ private:
   int _environment;
   std::string _sourceFileName;
   llvm::StructType *_dynamicType;
+
+  std::unique_ptr<ValueChain> _namedValueChain;
+  std::unique_ptr<AllocaChain> _allocaChain;
+
+  std::unique_ptr<TypeMapper> _typeMapper;
+  std::unique_ptr<CodeGenerationContext> _codeGenerationContext;
+  std::unique_ptr<LLVMLogger> _llvmLogger;
+
+  std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
+  std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
+  std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
+
+  std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
+  std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
+  std::unique_ptr<StringTypeConverter> _stringTypeConverter;
+  std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
+  std::unique_ptr<TypeSpecificValueVisitor> _typeSpecificValueVisitor;
 };
 
 #endif // IRGENERATOR_H

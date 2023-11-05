@@ -4,6 +4,8 @@
 // FLOWWING Files Import
 
 #include "../../Common.h"
+#include "../../IR/constants/FlowWingIRConstants.h"
+#include "../../IR/logger/LLVMLogger.h"
 #include "../../bind/Binder/Binder.h"
 #include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
 #include "../../bind/BinderKindUtils.h"
@@ -20,9 +22,8 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../IRParser/IRParser.h"
-#include "../constants/FlowWingIRConstants.h"
 
-using namespace FLOWWING::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::IR::CONSTANTS;
 
 class IRUtils;
 // LLVM Imports
@@ -100,7 +101,7 @@ public:
 
   IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
           llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler,
-          std::string sourceFileName);
+          std::string sourceFileName, LLVMLogger *llvmLogger);
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
@@ -147,6 +148,8 @@ public:
   llvm::Value *explicitConvertToString(llvm::Value *val);
   llvm::Value *itos(llvm::Value *num);
 
+  llvm::Value *loadGlobalValue(llvm::Value *val);
+
   llvm::Type *getReturnType(Utils::type type);
 
   void errorGuard(std::function<void()> code);
@@ -174,41 +177,12 @@ public:
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
   llvm::ConstantFP *getConstantFPFromValue(llvm::Value *value);
   llvm::StringRef getConstantStringFromValue(llvm::Value *value);
-  void setNamedValue(
-      const std::string &name, llvm::Value *value,
-      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
-
-  void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
-                           std::stack<std::map<std::string, llvm::AllocaInst *>>
-                               &NamedValuesAllocaStack);
-
-  // GET
-
-  llvm::Value *getNamedValue(
-      const std::string &name,
-      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-  llvm::AllocaInst *
-  getNamedValueAlloca(const std::string &name,
-                      std::stack<std::map<std::string, llvm::AllocaInst *>>
-                          NamedValuesAllocaStack);
 
   // CHECK
 
   bool isVariableDeclared(
       const std::string &name,
       std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-  // UPDATE
-
-  bool updateNamedValue(
-      const std::string &name, llvm::Value *value,
-      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
-
-  bool
-  updateNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
-                         std::stack<std::map<std::string, llvm::AllocaInst *>>
-                             &NamedValuesAllocaStack);
 
   void printFunction(llvm::Value *value, bool printNewline);
 
@@ -259,6 +233,7 @@ private:
   int _initializingGlobals = 0;
   int _hasError = 0;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;
+  LLVMLogger *_llvmLogger;
 };
 
 #endif

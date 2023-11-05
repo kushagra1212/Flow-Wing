@@ -1,6 +1,6 @@
 #include "FlowWingIRConstants.h"
 
-namespace FLOWWING::EVALUATOR::CONSTANTS {
+namespace FLOWWING::IR::CONSTANTS {
 const std::string FLOWWING_CONTINUE_COUNT = "FLOWWING_CONTINUE_COUNT";
 const std::string FLOWWING_BREAK_COUNT = "FLOWWING_BREAK_COUNT";
 const std::string FLOWWING_GLOBAL_ZERO = "FLOWWING_GLOBAL_ZERO";
@@ -47,4 +47,4 @@ const std::string STRING_TO_DOUBLE = "string_to_double";
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 
-}; // namespace FLOWWING::EVALUATOR::CONSTANTS
+}; // namespace FLOWWING::IR::CONSTANTS

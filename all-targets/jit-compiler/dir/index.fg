@@ -1,4 +1,1 @@
-fun main()-> nthg {
-    return 2
-}
-print(main())
+var x = true+1.0

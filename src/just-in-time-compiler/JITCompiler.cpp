@@ -254,7 +254,7 @@ void signalHandler(int signal) {
   // Output information about the signal:
 
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
-            << ") received." << std::endl;
+            << ") received." << RESET << std::endl;
 
   exit(1); // Exit with a non-zero status to indicate an error.
 }
