@@ -132,6 +132,7 @@ public:
 
   void errorGuard(std::function<void()> code);
 
+  // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
   llvm::ConstantFP *getConstantFPFromValue(llvm::Value *value);
   llvm::StringRef getConstantStringFromValue(llvm::Value *value);

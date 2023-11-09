@@ -23,6 +23,10 @@ public:
   void LogError(const std::string &errorMessgae,
                 const DiagnosticUtils::SourceLocation &location);
 
+  const std::string
+  getLLVMErrorMsg(const std::string &errorMessgae,
+                  const DiagnosticUtils::SourceLocation &location);
+
 private:
   llvm::SourceMgr _sourceMgr;
   llvm::raw_ostream &_errs;

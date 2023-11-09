@@ -894,7 +894,7 @@ fun gcd(a, b) -> int {
   return gcd(b, a % b)
 }
 fun lcm(a, b) -> int {
-  return ((a * b) / gcd(a, b))
+  return ((a * b) // gcd(a, b))
 }
 print(lcm(10, 15))
 )";
@@ -919,7 +919,7 @@ fun gcd(a, b) -> int {
 }
 
 fun lcm(a, b) -> int {
-  return ((a * b) / gcd(a, b))
+  return ((a * b) // gcd(a, b))
 }
 
 print(lcm(10, 15))
@@ -981,7 +981,7 @@ fun sumOfDigits(n) -> int {
   if (n == 0) {
     return 0
   }
-  return ((n % 10) + sumOfDigits(n / 10))
+  return ((n % 10) + sumOfDigits(n // 10))
 }
 
 print(sumOfDigits(123))
@@ -1001,7 +1001,7 @@ fun sumOfDigits(n) -> int {
   var sum = 0
   while (n != 0) {
     sum = sum + (n % 10)
-    n = n / 10
+    n = n // 10
   }
   return sum
 }
@@ -1024,7 +1024,7 @@ fun sumOfDigits(n) -> int {
   var sum = 0
   while (n != 0) {
     sum = sum + (n % 10)
-    n = n / 10
+    n = n // 10
   }
   return sum
 }
@@ -1099,7 +1099,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.500000";
+  std::string expected_output = "5.500000000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1132,7 +1132,7 @@ print(getSum(2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.300000";
+  std::string expected_output = "5.299999999999999822";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1197,7 +1197,7 @@ print(getSum(2.2,3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.200000";
+  std::string expected_output = "5.200000000000000178";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1214,7 +1214,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.500000";
+  std::string expected_output = "5.500000000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1231,7 +1231,7 @@ print(getSum(2.2,true))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "3.200000";
+  std::string expected_output = "3.200000000000000178";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1248,7 +1248,7 @@ print(getSum(2.2,"Hello"))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "2.200000Hello";
+  std::string expected_output = "2.200000000000000178Hello";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1299,7 +1299,7 @@ print(getSum(true,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "4.300000";
+  std::string expected_output = "4.299999999999999822";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 

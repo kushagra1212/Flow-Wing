@@ -219,6 +219,9 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::BringStatementSyntax: {
     return "BringStatementSyntax";
   }
+
+  case SyntaxKind::SlashSlashToken:
+    return "SlashSlashToken";
   default:
     return "NotDefined";
   }

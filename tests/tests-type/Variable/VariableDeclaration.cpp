@@ -207,7 +207,8 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
       )";
 
   std::string expected_output =
-      "224323.1000004.2000002.2000003.200000falsetruetrue22.100000trueHello";
+      "224323.1000000000000000894.2000000000000001782.2000000000000001783."
+      "200000000000000178falsetruetrue22.100000000000000089trueHello";
 
   setInput(input);
   runEvaluator();

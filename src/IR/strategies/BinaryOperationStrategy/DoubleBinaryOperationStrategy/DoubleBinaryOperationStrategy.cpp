@@ -25,6 +25,30 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     return Builder->CreateFMul(lhsValue, rhsValue);
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
+    llvm::Value *isZero = Builder->CreateFCmpOEQ(
+        rhsValue, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)));
+
+    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    llvm::BasicBlock *ifBlock =
+        llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
+    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
+        *TheContext, "else", currentBlock->getParent());
+
+    // Create a conditional branch
+    Builder->CreateCondBr(isZero, ifBlock, elseBlock);
+
+    // Set up the 'if' block
+    Builder->SetInsertPoint(ifBlock);
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(
+            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+                "Floating point division by zero is not allowed",
+                binaryExpression->getLocation()))});
+
+    Builder->CreateBr(elseBlock);
+
+    Builder->SetInsertPoint(elseBlock);
 
     return Builder->CreateFDiv(lhsValue, rhsValue);
   }

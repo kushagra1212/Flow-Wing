@@ -98,6 +98,8 @@ std::string BinderKindUtils::to_string(BoundBinaryOperatorKind kind) {
     return "BitwiseXor";
   case Modulus:
     return "Modulus";
+  case IntegerDivision:
+    return "IntegerDivision";
   default:
     return "NotDefined";
   }
@@ -138,6 +140,9 @@ BinderKindUtils::getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind) {
 
   case SyntaxKindUtils::SyntaxKind::SlashToken:
     return BinderKindUtils::BoundBinaryOperatorKind::Division;
+
+  case SyntaxKindUtils::SyntaxKind::SlashSlashToken:
+    return BinderKindUtils::BoundBinaryOperatorKind::IntegerDivision;
 
   case SyntaxKindUtils::SyntaxKind::PercentToken:
     return BinderKindUtils::BoundBinaryOperatorKind::Modulus;

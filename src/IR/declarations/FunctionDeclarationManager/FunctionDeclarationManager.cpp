@@ -192,3 +192,13 @@ llvm::Function *FunctionDeclarationManager::declareStringToDoubleFn() {
   return declareFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE,
                          stringToDoubleFnType);
 }
+
+llvm::Function *FunctionDeclarationManager::declareRaiseExceptionFn() {
+
+  llvm::FunctionType *raiseDivisionByZeroExceptionFnType =
+      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext),
+                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+
+  return declareFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION,
+                         raiseDivisionByZeroExceptionFnType);
+}

@@ -24,8 +24,67 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return result = Builder->CreateMul(lhsValue, rhsValue);
     break;
+
+  case BinderKindUtils::BoundBinaryOperatorKind::IntegerDivision: {
+
+    llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
+
+    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    llvm::BasicBlock *ifBlock =
+        llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
+    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
+        *TheContext, "else", currentBlock->getParent());
+
+    // Create a conditional branch
+    Builder->CreateCondBr(isZero, ifBlock, elseBlock);
+
+    // Set up the 'if' block
+    Builder->SetInsertPoint(ifBlock);
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(
+            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+                "Division by zero is not allowed",
+                binaryExpression->getLocation()))});
+
+    Builder->CreateBr(elseBlock);
+
+    Builder->SetInsertPoint(elseBlock);
+
+    llvm::Value *divisionResult = Builder->CreateSDiv(lhsValue, rhsValue);
+    return divisionResult;
+    break;
+  }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    return Builder->CreateSDiv(lhsValue, rhsValue);
+
+    llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
+
+    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    llvm::BasicBlock *ifBlock =
+        llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
+    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
+        *TheContext, "else", currentBlock->getParent());
+
+    // Create a conditional branch
+    Builder->CreateCondBr(isZero, ifBlock, elseBlock);
+
+    // Set up the 'if' block
+    Builder->SetInsertPoint(ifBlock);
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(
+            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+                "Division by zero is not allowed",
+                binaryExpression->getLocation()))});
+
+    Builder->CreateBr(elseBlock);
+
+    Builder->SetInsertPoint(elseBlock);
+
+    llvm::Value *divisionResult =
+        Builder->CreateFDiv(_doubleTypeConverter->convertExplicit(lhsValue),
+                            _doubleTypeConverter->convertExplicit(rhsValue));
+    return divisionResult;
     break;
   }
 

@@ -31,6 +31,8 @@ public:
   llvm::Function *declareStringToLongFn();
   llvm::Function *declareStringToDoubleFn();
 
+  llvm::Function *declareRaiseExceptionFn();
+
 private:
   llvm::Module *TheModule;
   llvm::LLVMContext *TheContext;

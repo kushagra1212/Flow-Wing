@@ -1,7 +1,7 @@
-var x = 2
-var y = 2
+var x = 0
+var y = 2.2
 
-y= 3*x + 1
-print(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello"=="1.100000S20.0000001111hello")
+y= 0.0001   
+print(3/2)
 
 

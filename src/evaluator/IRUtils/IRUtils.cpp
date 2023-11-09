@@ -128,7 +128,7 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
                                    SyntaxKindUtils::SyntaxKind kind) {
   if (value.type() == typeid(int)) {
     return llvm::ConstantInt::get(
-        *_TheContext, llvm::APInt(32, std::any_cast<int>(value), true));
+        *_TheContext, llvm::APInt(32, std::any_cast<long long>(value), true));
   } else if (value.type() == typeid(double)) {
     return llvm::ConstantFP::get(*_TheContext,
                                  llvm::APFloat(std::any_cast<double>(value)));
@@ -170,10 +170,6 @@ llvm::Value *IRUtils::getLLVMValue(std::any value,
 
     llvm::Constant *strConstant =
         llvm::ConstantDataArray::getString(*_TheContext, strValue);
-
-    // if (this->isInitializingGlobals()) {
-    //   return strConstant;
-    // }
 
     llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
         *_TheModule, strConstant->getType(),

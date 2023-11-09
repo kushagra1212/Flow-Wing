@@ -208,6 +208,21 @@ std::any InterpreterUtils::getResultFromBinaryOperationOnInt(
     return lhsValue - rhsValue;
   case BinderKindUtils::BoundBinaryOperatorKind::Multiplication:
     return lhsValue * rhsValue;
+  case BinderKindUtils::BoundBinaryOperatorKind::IntegerDivision: {
+
+    // Check if rhsValue is zero
+    if (!rhsValue) {
+
+      std::string errorMessage =
+          "Division by zero of " + lhsStr + " and " + rhsStr;
+
+      this->logError(errorMessage);
+
+      return result;
+    }
+    return InterpreterConversion::explicitConvertAnyToInt(lhsValue) /
+           InterpreterConversion::explicitConvertAnyToInt(rhsValue);
+  }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
     // Check if rhsValue is zero
@@ -220,7 +235,7 @@ std::any InterpreterUtils::getResultFromBinaryOperationOnInt(
 
       return result;
     }
-    return lhsValue / rhsValue;
+    return (double)lhsValue / rhsValue;
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Modulus:

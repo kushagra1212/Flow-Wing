@@ -32,3 +32,12 @@ void LLVMLogger::LogError(const std::string &errorMessgae,
 
   // llvm::createStringError(llvm::inconvertibleErrorCode(), message)
 }
+
+const std::string
+LLVMLogger::getLLVMErrorMsg(const std::string &errorMessgae,
+                            const DiagnosticUtils::SourceLocation &location) {
+
+  return _diagnosticHandler->getLogString(
+      Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Runtime, location));
+}

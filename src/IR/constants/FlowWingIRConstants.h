@@ -49,6 +49,8 @@ extern const std::string GET_INPUT;
 extern const std::string STRING_TO_INT;
 extern const std::string STRING_TO_LONG;
 extern const std::string STRING_TO_DOUBLE;
+
+extern const std::string RAISE_EXCEPTION;
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 

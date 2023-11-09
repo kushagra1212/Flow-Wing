@@ -21,7 +21,7 @@ std::string CommentTest::getOutput() const { return _test->getOutput(); }
 void CommentTest::runEvaluator() { _test->runEvaluator(); }
 TEST_F(CommentTest, BasicSingleLineComment) {
   std::string input = R"(print(5)
-// print(2) print(3)
+/; print(2) print(3)
     
 )";
   std::string expected_output = "5";
