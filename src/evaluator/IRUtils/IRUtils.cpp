@@ -48,23 +48,6 @@ const int IRUtils::getIndexofMemberType(llvm::Type *type) {
   return index;
 }
 
-// CHECK VALUES
-
-bool IRUtils::isVariableDeclared(
-    const std::string &name,
-    std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack) {
-  bool isDeclared = false;
-  while (!NamedValuesStack.empty()) {
-    std::map<std::string, llvm::Value *> &NamedValues = NamedValuesStack.top();
-    if (NamedValues.find(name) != NamedValues.end()) {
-      isDeclared = true;
-      break;
-    }
-    NamedValuesStack.pop();
-  }
-  return isDeclared;
-}
-
 void IRUtils::handleConditionalBranch(
     llvm::Value *conditionValue, const std::string &trueBlockName,
     const std::string &falseBlockName,
@@ -89,37 +72,6 @@ void IRUtils::handleConditionalBranch(
   trueBlockCode(trueBlock, _Builder, _TheContext, this);
 
   falseBlockCode(falseBlock, _Builder, _TheContext);
-}
-
-void IRUtils::printFunction(llvm::Value *value, bool isNewLine) {
-
-  if (value && llvm::isa<llvm::Instruction>(value)) {
-    // The value is an instruction or a derived class of Instruction
-    llvm::Instruction *instruction = llvm::cast<llvm::Instruction>(value);
-    if (instruction->getType()->isIntegerTy(1)) {
-
-      llvm::Value *resultStr = _Builder->CreateSelect(
-          value,
-          _TheModule->getGlobalVariable(
-              _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE)),
-          _TheModule->getGlobalVariable(
-              _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE)));
-      _Builder->CreateCall(_TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                           {resultStr, _Builder->getInt1(isNewLine)});
-    } else {
-      llvm::ArrayRef<llvm::Value *> Args = {
-          this->explicitConvertToString(value), _Builder->getInt1(isNewLine)};
-
-      _Builder->CreateCall(_TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                           Args);
-    }
-  } else if (value) {
-    llvm::ArrayRef<llvm::Value *> Args = {this->explicitConvertToString(value),
-                                          _Builder->getInt1(isNewLine)};
-
-    _Builder->CreateCall(_TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                         Args);
-  }
 }
 
 llvm::Constant *IRUtils::createConstantFromValue(llvm::Value *myValue) {
@@ -283,19 +235,6 @@ llvm::PHINode *IRUtils::handleForLoopCondition(llvm::Value *stepValue,
   conditionPHI->addIncoming(normalCondition, falseBlock);
 
   return conditionPHI;
-}
-
-llvm::Value *IRUtils::itos(llvm::Value *num) {
-  llvm::Function *itosFunc = _TheModule->getFunction(INNERS::FUNCTIONS::ITOS);
-
-  if (!itosFunc) {
-
-    llvm::errs() << "Function itos not found\n";
-    return 0;
-  }
-
-  llvm::Value *strValue = _Builder->CreateCall(itosFunc, num);
-  return strValue;
 }
 
 std::string IRUtils::getString(BoundExpression *node) {
@@ -759,8 +698,8 @@ llvm::Value *IRUtils::getGlobalVarAndLoad(const std::string name,
 }
 llvm::Value *IRUtils::isCountZero(const std::string name, llvm::Type *ty) {
   llvm::Value *count = getGlobalVarAndLoad(name, ty);
-  llvm::Value *loadZero = getGlobalVarAndLoad(
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ZERO), ty);
+  llvm::Value *loadZero =
+      llvm::ConstantInt::get(*_TheContext, llvm::APInt(32, 0, true));
 
   llvm::Value *isZero = _Builder->CreateICmpEQ(count, loadZero);
   return isZero;

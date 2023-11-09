@@ -1,12 +1,14 @@
 #ifndef IRGENERATOR_H
 #define IRGENERATOR_H
 
+#include "../../IR/declarations/FunctionDeclarationManager/FunctionDeclarationManager.h"
 #include "../../IR/handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../../IR/handlers/alloca/AllocaHandler.h"
 #include "../../IR/handlers/alloca/AllocaTable/AllocaTable.h"
 #include "../../IR/handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../../IR/handlers/value/ValueHandler.h"
+#include "../../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
 #include "../../IR/mappers/TypeMapper/TypeMapper.h"
 #include "../../IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"

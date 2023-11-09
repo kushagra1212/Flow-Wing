@@ -197,12 +197,12 @@ void JITCompiler::execute() {
     }
   }
 #ifdef JIT_MODE
-  currentDiagnosticHandler->printDiagnostic(
-      std::cout, Diagnostic("Finished linking modules.",
-                            DiagnosticUtils::DiagnosticLevel::Info,
-                            DiagnosticUtils::DiagnosticType::Linker,
-                            DiagnosticUtils::SourceLocation(
-                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
+  // currentDiagnosticHandler->printDiagnostic(
+  //     std::cout, Diagnostic("Finished linking modules.",
+  //                           DiagnosticUtils::DiagnosticLevel::Info,
+  //                           DiagnosticUtils::DiagnosticType::Linker,
+  //                           DiagnosticUtils::SourceLocation(
+  //                               0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
   TheModule->print(llvm::outs(), nullptr);
 #endif

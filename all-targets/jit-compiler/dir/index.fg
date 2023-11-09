@@ -1,8 +1,7 @@
+var x = 2
+var y = 2
 
-fun getConactString(b:str,a:str)-> str {
-    var  x= 2
-    a = a + " " + x
-    return a + b + 2*100 + "S"
-}
+y= 3*x + 1
+print(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello"=="1.100000S20.0000001111hello")
 
-print(getConactString("Hello","World"))
+

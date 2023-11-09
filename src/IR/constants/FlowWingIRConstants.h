@@ -9,7 +9,6 @@ namespace FLOWWING::IR::CONSTANTS {
 
 extern const std::string FLOWWING_CONTINUE_COUNT;
 extern const std::string FLOWWING_BREAK_COUNT;
-extern const std::string FLOWWING_GLOBAL_ZERO;
 extern const std::string FLOWWING_GLOBAL_RETURN_COUNT;
 
 // For Error

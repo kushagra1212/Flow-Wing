@@ -85,166 +85,39 @@ void IRGenerator::updateModule() {
 }
 
 void IRGenerator::declareDependencyFunctions() {
-  // Declare the function types
-  llvm::FunctionType *printFnType =
-      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt1Ty(*TheContext)},
-                              false);
-  llvm::FunctionType *concatStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *stringLengthFnType =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
-  llvm::FunctionType *itosFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getInt32Ty(*TheContext)}, false);
-  llvm::FunctionType *dtosFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getDoubleTy(*TheContext)}, false);
-  llvm::FunctionType *getMallocPtrOfStringConstantFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
-  llvm::FunctionType *getMallocPtrofIntConstantFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getInt32Ty(*TheContext)}, false);
-  llvm::FunctionType *compareStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *lessThanStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *lessThanOrEqualStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *greaterThanStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *greaterThanOrEqualStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *equalStringsFnType =
-      llvm::FunctionType::get(llvm::Type::getInt1Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext),
-                               llvm::Type::getInt8PtrTy(*TheContext)},
-                              false);
-  llvm::FunctionType *getInputFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), {}, false);
-  llvm::FunctionType *stringToIntFnType =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
-  llvm::FunctionType *stringToLongFnType =
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
-  llvm::FunctionType *stringToDoubleFnType =
-      llvm::FunctionType::get(llvm::Type::getDoubleTy(*TheContext),
-                              {llvm::Type::getInt8PtrTy(*TheContext)}, false);
+  std::unique_ptr<FunctionDeclarationManager> functionDeclarationManager =
+      std::make_unique<FunctionDeclarationManager>(
+          _codeGenerationContext.get());
 
-  // Declare the functions
-  llvm::Function *printFn =
-      llvm::Function::Create(printFnType, llvm::Function::ExternalLinkage,
-                             INNERS::FUNCTIONS::PRINT, *TheModule);
-  llvm::Function *concatStringsFn = llvm::Function::Create(
-      concatStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::CONCAT_STRINGS, *TheModule);
-  llvm::Function *stringLengthFn = llvm::Function::Create(
-      stringLengthFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::STRING_LENGTH, *TheModule);
-  llvm::Function *itosFn =
-      llvm::Function::Create(itosFnType, llvm::Function::ExternalLinkage,
-                             INNERS::FUNCTIONS::ITOS, *TheModule);
-  llvm::Function *dtosFn =
-      llvm::Function::Create(dtosFnType, llvm::Function::ExternalLinkage,
-                             INNERS::FUNCTIONS::DTOS, *TheModule);
-  llvm::Function *getMallocPtrOfStringConstantFn = llvm::Function::Create(
-      getMallocPtrOfStringConstantFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_STRING_CONSTANT, *TheModule);
-  llvm::Function *getMallocPtrofIntConstantFn = llvm::Function::Create(
-      getMallocPtrofIntConstantFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::GET_MALLOC_PTR_OF_INT_CONSTANT, *TheModule);
-  llvm::Function *compareStringsFn = llvm::Function::Create(
-      compareStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::COMPARE_STRINGS, *TheModule);
-  llvm::Function *lessThanStringsFn = llvm::Function::Create(
-      lessThanStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::LESS_THAN_STRINGS, *TheModule);
-  llvm::Function *lessThanOrEqualStringsFn = llvm::Function::Create(
-      lessThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::LESS_THAN_OR_EQUAL_STRINGS, *TheModule);
-  llvm::Function *greaterThanStringsFn = llvm::Function::Create(
-      greaterThanStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::GREATER_THAN_STRINGS, *TheModule);
-
-  llvm::Function::Create(
-      greaterThanOrEqualStringsFnType, llvm::Function::ExternalLinkage,
-      INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS, *TheModule);
-  llvm::Function::Create(equalStringsFnType, llvm::Function::ExternalLinkage,
-                         INNERS::FUNCTIONS::EQUAL_STRINGS, *TheModule);
-
-  llvm::Function::Create(getInputFnType, llvm::Function::ExternalLinkage,
-                         INNERS::FUNCTIONS::GET_INPUT, *TheModule);
-  llvm::Function::Create(stringToIntFnType, llvm::Function::ExternalLinkage,
-                         "string_to_int", *TheModule);
-  llvm::Function::Create(stringToLongFnType, llvm::Function::ExternalLinkage,
-                         INNERS::FUNCTIONS::STRING_TO_INT, *TheModule);
-  llvm::Function::Create(stringToDoubleFnType, llvm::Function::ExternalLinkage,
-                         INNERS::FUNCTIONS::STRING_TO_DOUBLE, *TheModule);
+  functionDeclarationManager->declareCompareStringsFn();
+  functionDeclarationManager->declareConcatStringsFn();
+  functionDeclarationManager->declareDtosFn();
+  functionDeclarationManager->declareEqualStringsFn();
+  functionDeclarationManager->declareGetInputFn();
+  functionDeclarationManager->declareGetMallocPtrofIntConstantFn();
+  functionDeclarationManager->declareGetMallocPtrOfStringConstantFn();
+  functionDeclarationManager->declareGreaterThanOrEqualStringsFn();
+  functionDeclarationManager->declareGreaterThanStringsFn();
+  functionDeclarationManager->declareItosFn();
+  functionDeclarationManager->declareLessThanOrEqualStringsFn();
+  functionDeclarationManager->declareLessThanStringsFn();
+  functionDeclarationManager->declarePrintFn();
+  functionDeclarationManager->declareStringLengthFn();
+  functionDeclarationManager->declareStringToDoubleFn();
+  functionDeclarationManager->declareStringToIntFn();
+  functionDeclarationManager->declareStringToLongFn();
 }
 
 void IRGenerator::initializeGlobalVariables() {
-  llvm::Type *i8Type = llvm::Type::getInt8Ty(*TheContext);
-  llvm::Type *i32Type = llvm::Type::getInt32Ty(*TheContext);
+  std::unique_ptr<GlobalVariableInitializer> globalVariableInitializer =
+      std::make_unique<GlobalVariableInitializer>(_codeGenerationContext.get());
 
-  // Create the private global variables.
-  new llvm::GlobalVariable(
-      *TheModule, llvm::ArrayType::get(i8Type, 5),
-      true, // isConstant
-      llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantDataArray::getString(*TheContext, "true\00"),
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE));
-
-  new llvm::GlobalVariable(
-      *TheModule, llvm::ArrayType::get(i8Type, 6), true,
-      llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantDataArray::getString(*TheContext, "false\00"),
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE));
-  new llvm::GlobalVariable(
-      *TheModule, i8Type, false, llvm::GlobalValue::ExternalLinkage,
-      nullptr, // For null, you can pass nullptr as the initializer
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_NULL));
-
-  new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantInt::get(i32Type, 0),
-      _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
-
-  new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantInt::get(i32Type, 0),
-      _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
-
-  new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantInt::get(i32Type, 0),
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ZERO));
-
-  new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::ConstantInt::get(i32Type, 0),
-      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ERROR_COUNT));
+  globalVariableInitializer->initializeTrue();
+  globalVariableInitializer->initializeFalse();
+  globalVariableInitializer->initializeI8Null();
+  globalVariableInitializer->initializeBreakCount();
+  globalVariableInitializer->initializeContinueCount();
+  globalVariableInitializer->initializeErrorCount();
 }
 
 void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
@@ -313,7 +186,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
       // Get the string length
 
       llvm::ArrayRef<llvm::Value *> Args = {
-          this->_irUtils->explicitConvertToString(val)};
+          _stringTypeConverter->convertExplicit(val)};
       llvm::Value *length = Builder->CreateCall(
           TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH), Args);
       val = length;
@@ -460,9 +333,6 @@ llvm::Value *IRGenerator::generateEvaluateAssignmentExpressionFunction(
 
   llvm::AllocaInst *v = _allocaChain->getAllocaInst(variableName);
 
-  // this->_irUtils->updateNamedValue(variableName, rhsValue,
-  //                                  this->_NamedValuesStack);
-
   _namedValueChain->updateNamedValue(variableName, rhsValue);
 
   Builder->CreateStore(
@@ -551,7 +421,10 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
           Utils::type::NOTHING) {
         return nullptr;
       }
-      this->_irUtils->printFunction(value, false);
+
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          {_stringTypeConverter->convertExplicit(value),
+                           Builder->getInt1(false)});
       return nullptr;
     }
 
@@ -572,7 +445,9 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *strPtri8 = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      this->_irUtils->printFunction(strPtri8, false);
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          {_stringTypeConverter->convertExplicit(strPtri8),
+                           Builder->getInt1(false)});
 
       llvm::ArrayRef<llvm::Value *> Args = {};
       llvm::CallInst *callInst = Builder->CreateCall(
@@ -589,7 +464,7 @@ IRGenerator::handleBuiltInfuntions(BoundCallExpression *callExpression) {
       llvm::Value *val = this->generateEvaluateExpressionStatement(
           (BoundExpression *)callExpression->getArguments()[0].get());
 
-      return this->_irUtils->explicitConvertToString(val);
+      return _stringTypeConverter->convertExplicit(val);
     }
 
     this->_irUtils->logError(errorMessage);

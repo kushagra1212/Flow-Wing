@@ -125,7 +125,6 @@ public:
   llvm::Value *getDefaultValue(Utils::type type);
 
   llvm::Value *explicitConvertToString(llvm::Value *val);
-  llvm::Value *itos(llvm::Value *num);
 
   llvm::Value *loadGlobalValue(llvm::Value *val);
 
@@ -133,18 +132,9 @@ public:
 
   void errorGuard(std::function<void()> code);
 
-  // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
   llvm::ConstantFP *getConstantFPFromValue(llvm::Value *value);
   llvm::StringRef getConstantStringFromValue(llvm::Value *value);
-
-  // CHECK
-
-  bool isVariableDeclared(
-      const std::string &name,
-      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-  void printFunction(llvm::Value *value, bool printNewline);
 
   llvm::Value *createStringComparison(llvm::Value *lhsValue,
                                       llvm::Value *rhsValue,

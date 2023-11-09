@@ -109,3 +109,23 @@ TEST_F(BinaryOperationTest, BasicStringOperationComparisonGreaterThanOrEqual) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
+
+TEST_F(BinaryOperationTest, ComplexStringDoubleIntBoolOperation) {
+  std::string input =
+      R"(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello")";
+  std::string expected_output = "1.100000S20.0000001111hello";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(BinaryOperationTest, ComplexStringDoubleIntBoolOperationCompare) {
+  std::string input =
+      R"(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello"=="1.100000S20.0000001111hello")";
+  std::string expected_output = "true";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
