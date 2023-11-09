@@ -3,11 +3,7 @@
 
 StringBinaryOperationStrategy::StringBinaryOperationStrategy(
     CodeGenerationContext *context)
-    : BinaryOperationStrategy(context) {
-  llvm::Module *TheModule = this->_codeGenerationContext->getModule();
-  llvm::IRBuilder<> *Builder = this->_codeGenerationContext->getBuilder();
-  llvm::LLVMContext *TheContext = this->_codeGenerationContext->getContext();
-};
+    : BinaryOperationStrategy(context){};
 
 llvm::Value *StringBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,

@@ -30,8 +30,9 @@ public:
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
-        _codeGenerationContext(context), TheModule(context->getModule()),
-        Builder(context->getBuilder()), TheContext(context->getContext()){};
+        _codeGenerationContext(context), TheModule(context->getModule().get()),
+        Builder(context->getBuilder().get()),
+        TheContext(context->getContext().get()){};
 
   virtual llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,

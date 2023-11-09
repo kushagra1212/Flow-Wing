@@ -1,7 +1,6 @@
 #ifndef IRGENERATOR_H
 #define IRGENERATOR_H
 
-#include "../../IR/context/CodeGenerationContext.h"
 #include "../../IR/handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../../IR/handlers/alloca/AllocaHandler.h"
 #include "../../IR/handlers/alloca/AllocaTable/AllocaTable.h"
@@ -75,7 +74,6 @@ public:
   llvm::Value *generateCallExpressionForUserDefinedFunction(
       BoundCallExpression *callExpression);
 
-  std::unique_ptr<llvm::Module> &getModulePtr();
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
   const int hasErrors() const;
@@ -101,9 +99,12 @@ public:
                                               llvm::GlobalVariable *variable);
 
 private:
-  std::unique_ptr<llvm::LLVMContext> TheContext;
-  std::unique_ptr<llvm::Module> TheModule;
-  std::unique_ptr<llvm::IRBuilder<>> Builder;
+  llvm::LLVMContext *TheContext;
+  llvm::Module *TheModule;
+  llvm::IRBuilder<> *Builder;
+
+  TypeMapper *_typeMapper;
+  LLVMLogger *_llvmLogger;
 
   std::stack<std::pair<Utils::type, int>> _returnAllocaStack;
 
@@ -121,21 +122,17 @@ private:
   int showNewLineForRepl = 0;
   int _moduleCount = 0;
   int _environment;
-  std::string _sourceFileName;
   llvm::StructType *_dynamicType;
 
   std::unique_ptr<ValueChain> _namedValueChain;
   std::unique_ptr<AllocaChain> _allocaChain;
 
-  std::unique_ptr<TypeMapper> _typeMapper;
   std::unique_ptr<CodeGenerationContext> _codeGenerationContext;
-  std::unique_ptr<LLVMLogger> _llvmLogger;
 
   std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
   std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
   std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
-
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
   std::unique_ptr<StringTypeConverter> _stringTypeConverter;

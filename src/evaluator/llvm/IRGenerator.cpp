@@ -4,30 +4,23 @@ IRGenerator::IRGenerator(
     int environment, DiagnosticHandler *diagnosticHandler,
     std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
     const std::string sourceFileName) {
+  // Initialize the code generation context
+  _codeGenerationContext = std::make_unique<CodeGenerationContext>(
+      diagnosticHandler, sourceFileName);
 
-  TheContext = std::make_unique<llvm::LLVMContext>();
-  Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  TheModule = std::make_unique<llvm::Module>("FlowWing", *TheContext);
+  Builder = _codeGenerationContext->getBuilder().get();
+  TheModule = _codeGenerationContext->getModule().get();
+  TheContext = _codeGenerationContext->getContext().get();
+  _typeMapper = _codeGenerationContext->getMapper().get();
+  _llvmLogger = _codeGenerationContext->getLogger().get();
+  _diagnosticHandler = _codeGenerationContext->getDiagnosticHandler();
+
   _environment = environment;
-  this->_diagnosticHandler = diagnosticHandler;
-  this->_irParser = std::make_unique<IRParser>();
-
-  // Initialize the LLVM_Logger
-
-  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
+  _irParser = std::make_unique<IRParser>();
 
   // Initialize the IRUtils
 
-  this->_irUtils = std::make_unique<IRUtils>(
-      TheModule.get(), Builder.get(), TheContext.get(),
-      this->_diagnosticHandler, sourceFileName, _llvmLogger.get());
-
-  llvm::InitializeNativeTarget();
-  llvm::InitializeNativeTargetAsmPrinter();
-  llvm::InitializeNativeTargetAsmParser();
-
-  this->declareDependencyFunctions();
-  this->initializeGlobalVariables();
+  _irUtils = std::make_unique<IRUtils>(_codeGenerationContext.get());
 
   // Initialize the named value chain
   _namedValueChain = std::make_unique<ValueChain>();
@@ -38,12 +31,7 @@ IRGenerator::IRGenerator(
   _allocaChain->addHandler(new AllocaTable());
 
   // Mapper
-  _typeMapper = std::make_unique<TypeMapper>(TheContext.get());
-
-  // Initialize the code generation context
-  _codeGenerationContext = std::make_unique<CodeGenerationContext>(
-      Builder.get(), TheModule.get(), TheContext.get(), _typeMapper.get(),
-      _llvmLogger.get(), sourceFileName);
+  _typeMapper = _codeGenerationContext->getMapper().get();
 
   // Initialize Conversion Strategies
   _int32TypeConverter =
@@ -75,6 +63,9 @@ IRGenerator::IRGenerator(
   _doubleBinaryOperationStrategy =
       std::make_unique<DoubleBinaryOperationStrategy>(
           this->_codeGenerationContext.get());
+
+  this->declareDependencyFunctions();
+  this->initializeGlobalVariables();
 
   this->_boundedUserFunctions = boundedUserFunctions;
 }
@@ -223,37 +214,37 @@ void IRGenerator::initializeGlobalVariables() {
       true, // isConstant
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantDataArray::getString(*TheContext, "true\00"),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_TRUE));
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE));
 
   new llvm::GlobalVariable(
       *TheModule, llvm::ArrayType::get(i8Type, 6), true,
       llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantDataArray::getString(*TheContext, "false\00"),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_FALSE));
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE));
   new llvm::GlobalVariable(
       *TheModule, i8Type, false, llvm::GlobalValue::ExternalLinkage,
       nullptr, // For null, you can pass nullptr as the initializer
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_NULL));
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_NULL));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ZERO));
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ZERO));
 
   new llvm::GlobalVariable(
       *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
       llvm::ConstantInt::get(i32Type, 0),
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ERROR_COUNT));
 }
 
 void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
@@ -362,8 +353,6 @@ void IRGenerator::printIR() {
   // Print LLVM IR to console
   TheModule->print(llvm::outs(), nullptr);
 }
-
-std::unique_ptr<llvm::Module> &IRGenerator::getModulePtr() { return TheModule; }
 
 llvm::Value *
 IRGenerator::handleGlobalVariableExpression(const std::string &variableName,
@@ -839,7 +828,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
         blockStatement->getStatements()[i].get());
     Builder->CreateCondBr(
         this->_irUtils->isCountZero(
-            this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+            _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),
             llvm::Type::getInt32Ty(*TheContext)),
         checkContinueBlocks[i], afterNestedBlock);
 
@@ -852,7 +841,7 @@ llvm::Value *IRGenerator::generateEvaluateBlockStatement(
     else {
       Builder->CreateCondBr(
           this->_irUtils->isCountZero(
-              this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT),
+              _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT),
               llvm::Type::getInt32Ty(*TheContext)),
           nestedBlocks[i + 1], afterNestedBlock);
     }
@@ -1245,7 +1234,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateBr(returnBlock);
   Builder->SetInsertPoint(returnBlock);
   Builder->CreateRet(this->_irUtils->getGlobalVarAndLoad(
-      this->_irUtils->addPrefixToVariableName(FLOWWING_GLOBAL_ERROR_COUNT),
+      _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_ERROR_COUNT),
       llvm::Type::getInt32Ty(*TheContext)));
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
@@ -1262,7 +1251,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
   this->_irUtils->saveLLVMModuleToFile(
-      TheModule.get(), this->_irUtils->getSourceFileName() + ".ll");
+      TheModule, _codeGenerationContext->getSourceFileName() + ".ll");
   // this->_irParser->mergeIR(TheModule.get());
 
   // this->_irParser->removeDuplicates();
@@ -1412,7 +1401,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(loopCondition);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
   llvm::Value *conditionValue = this->generateEvaluateExpressionStatement(
       whileStatement->getConditionPtr().get());
 
@@ -1431,7 +1420,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
 
   Builder->CreateCondBr(
       this->_irUtils->isCountZero(
-          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+          _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),
           llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -1448,7 +1437,7 @@ llvm::Value *IRGenerator::evaluateWhileStatement(BoundWhileStatement *node) {
   Builder->SetInsertPoint(afterLoop);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
   return exitValue;
 }
@@ -1537,7 +1526,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(loopCondition);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
 
   llvm::Value *variableValue = _namedValueChain->getNamedValue(variableName);
   //  this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
@@ -1561,7 +1550,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
 
   Builder->CreateCondBr(
       this->_irUtils->isCountZero(
-          this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT),
+          _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),
           llvm::Type::getInt32Ty(*TheContext)),
       loopBody, afterLoop);
 
@@ -1584,7 +1573,7 @@ llvm::Value *IRGenerator::evaluateForStatement(BoundForStatement *node) {
   Builder->SetInsertPoint(afterLoop);
 
   this->_irUtils->decrementCountIfNotZero(
-      this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
+      _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
   _allocaChain->removeHandler();
 
@@ -1797,14 +1786,14 @@ llvm::Value *IRGenerator::generateEvaluateStatement(BoundStatement *node) {
   case BinderKindUtils::BoundNodeKind::BreakStatement: {
 
     this->_irUtils->incrementCount(
-        this->_irUtils->addPrefixToVariableName(FLOWWING_BREAK_COUNT));
+        _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
     return nullptr;
   }
   case BinderKindUtils::BoundNodeKind::ContinueStatement: {
 
     this->_irUtils->incrementCount(
-        this->_irUtils->addPrefixToVariableName(FLOWWING_CONTINUE_COUNT));
+        _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
 
     return nullptr;
   }
@@ -1896,7 +1885,7 @@ int IRGenerator::executeGeneratedCode() {
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
-      llvm::EngineBuilder(std::move(TheModule))
+      llvm::EngineBuilder(std::move(_codeGenerationContext->getModule()))
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
           .create();

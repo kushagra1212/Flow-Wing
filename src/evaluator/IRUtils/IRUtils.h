@@ -5,6 +5,7 @@
 
 #include "../../Common.h"
 #include "../../IR/constants/FlowWingIRConstants.h"
+#include "../../IR/context/CodeGenerationContext.h"
 #include "../../IR/logger/LLVMLogger.h"
 #include "../../bind/Binder/Binder.h"
 #include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
@@ -62,7 +63,6 @@ class IRUtils;
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
-#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -72,7 +72,6 @@ class IRUtils;
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/TargetSelect.h>
 
 #include "llvm//IR/Value.h"
 #include "llvm/IR/Constants.h"
@@ -91,17 +90,8 @@ class IRUtils;
 
 class IRUtils {
 
-  std::string _sourceFileName;
-
 public:
-  llvm::Module *TheModule;
-  llvm::IRBuilder<> *Builder;
-  llvm::LLVMContext *TheContext;
-  DiagnosticHandler *diagnosticHandler;
-
-  IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler,
-          std::string sourceFileName, LLVMLogger *llvmLogger);
+  IRUtils(CodeGenerationContext *codeGenerationContext);
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
@@ -181,10 +171,7 @@ public:
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
 
   void logError(std::string errorMessgae);
-  const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
-
-  const std::string getSourceFileName() const;
 
   const int isInitializingGlobals() const;
 
@@ -202,6 +189,11 @@ private:
   int _hasError = 0;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;
   LLVMLogger *_llvmLogger;
+  llvm::Module *_TheModule;
+  llvm::IRBuilder<> *_Builder;
+  llvm::LLVMContext *_TheContext;
+  DiagnosticHandler *_diagnosticHandler;
+  CodeGenerationContext *_codeGenerationContext;
 };
 
 #endif

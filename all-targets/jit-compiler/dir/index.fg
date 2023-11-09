@@ -1,5 +1,5 @@
 
-fun getConactString(b:str,a:str)-> nthg {
+fun getConactString(b:str,a:str)-> str {
     var  x= 2
     a = a + " " + x
     return a + b + 2*100 + "S"

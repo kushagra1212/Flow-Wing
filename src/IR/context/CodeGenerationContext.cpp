@@ -1,28 +1,56 @@
 #include "CodeGenerationContext.h"
 
-CodeGenerationContext ::CodeGenerationContext(llvm::IRBuilder<> *builder,
-                                              llvm::Module *module,
-                                              llvm::LLVMContext *context,
-                                              TypeMapper *mapper,
-                                              LLVMLogger *logger,
-                                              std::string sourceFileName)
-    : _builder(builder), _module(module), _context(context), _mapper(mapper),
-      _logger(logger), _sourceFileName(sourceFileName){};
+CodeGenerationContext ::CodeGenerationContext(
+    DiagnosticHandler *diagnosticHandler, const std::string sourceFileName)
+    : _sourceFileName(sourceFileName) {
+  _context = std::make_unique<llvm::LLVMContext>();
+  _builder = std::make_unique<llvm::IRBuilder<>>(*_context);
+  _module = std::make_unique<llvm::Module>("FlowWing", *_context);
 
-llvm::IRBuilder<> *CodeGenerationContext::getBuilder() const {
+  _sourceFileName = sourceFileName;
+
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  llvm::InitializeNativeTargetAsmParser();
+
+  // Assign diagnosticHandler
+  _diagnosticHandler = diagnosticHandler;
+
+  // Initialize
+  _typeMapper = std::make_unique<TypeMapper>(_context.get());
+
+  // Initialize  LLVM_Logger
+  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
+};
+
+std::unique_ptr<llvm::IRBuilder<>> &CodeGenerationContext::getBuilder() {
   return _builder;
 }
 
-llvm::Module *CodeGenerationContext::getModule() const { return _module; }
+std::unique_ptr<llvm::Module> &CodeGenerationContext::getModule() {
+  return _module;
+}
 
-TypeMapper *CodeGenerationContext::getMapper() const { return _mapper; }
-
-LLVMLogger *CodeGenerationContext::getLogger() const { return _logger; }
-
-llvm::LLVMContext *CodeGenerationContext::getContext() const {
+std::unique_ptr<llvm::LLVMContext> &CodeGenerationContext::getContext() {
   return _context;
 }
 
-std::string CodeGenerationContext::getPrefixedName(std::string name) const {
+std::unique_ptr<TypeMapper> &CodeGenerationContext::getMapper() {
+  return _typeMapper;
+}
+
+std::unique_ptr<LLVMLogger> &CodeGenerationContext::getLogger() {
+  return _llvmLogger;
+}
+
+std::string CodeGenerationContext::getPrefixedName(std::string name) {
   return this->_sourceFileName + "_" + name;
+}
+
+const std::string &CodeGenerationContext::getSourceFileName() const {
+  return this->_sourceFileName;
+}
+
+DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler() const {
+  return _diagnosticHandler;
 }

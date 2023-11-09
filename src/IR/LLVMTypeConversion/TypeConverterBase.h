@@ -21,9 +21,12 @@ public:
   llvm::LLVMContext *_llvmContext;
 
   TypeConverterBase(CodeGenerationContext *context)
-      : _module(context->getModule()), _mapper(context->getMapper()),
-        _logger(context->getLogger()), _builder(context->getBuilder()),
-        _llvmContext(context->getContext()), _codeGenerationContext(context){};
+      : _module(context->getModule().get()),
+        _mapper(context->getMapper().get()),
+        _logger(context->getLogger().get()),
+        _builder(context->getBuilder().get()),
+        _llvmContext(context->getContext().get()),
+        _codeGenerationContext(context){};
 
   virtual llvm::Value *convertExplicit(llvm::Value *value) = 0;
 

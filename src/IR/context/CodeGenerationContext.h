@@ -3,6 +3,7 @@
 
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
+#include "llvm/Support/TargetSelect.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -10,24 +11,27 @@
 
 class CodeGenerationContext {
 public:
-  CodeGenerationContext(llvm::IRBuilder<> *builder, llvm::Module *module,
-                        llvm::LLVMContext *context, TypeMapper *mapper,
-                        LLVMLogger *logger, std::string sourceFileName);
+  CodeGenerationContext(DiagnosticHandler *diagnosticHandler,
+                        const std::string sourceFileName);
 
-  llvm::IRBuilder<> *getBuilder() const;
-  llvm::Module *getModule() const;
-  TypeMapper *getMapper() const;
-  LLVMLogger *getLogger() const;
-  llvm::LLVMContext *getContext() const;
+  std::unique_ptr<llvm::IRBuilder<>> &getBuilder();
+  std::unique_ptr<llvm::Module> &getModule();
+  std::unique_ptr<llvm::LLVMContext> &getContext();
+  std::unique_ptr<TypeMapper> &getMapper();
+  std::unique_ptr<LLVMLogger> &getLogger();
 
-  std::string getPrefixedName(std::string name) const;
+  std::string getPrefixedName(std::string name);
+  const std::string &getSourceFileName() const;
+
+  DiagnosticHandler *getDiagnosticHandler() const;
 
 private:
-  llvm::IRBuilder<> *_builder;
-  llvm::Module *_module;
-  llvm::LLVMContext *_context;
-  TypeMapper *_mapper;
-  LLVMLogger *_logger;
+  std::unique_ptr<llvm::LLVMContext> _context;
+  std::unique_ptr<llvm::Module> _module;
+  std::unique_ptr<llvm::IRBuilder<>> _builder;
+  std::unique_ptr<TypeMapper> _typeMapper;
+  std::unique_ptr<LLVMLogger> _llvmLogger;
+  DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 };
 

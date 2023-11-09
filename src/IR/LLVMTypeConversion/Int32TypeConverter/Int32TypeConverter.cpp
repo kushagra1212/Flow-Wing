@@ -7,7 +7,7 @@ llvm::Value *Int32TypeConverter::convertExplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  llvm::LLVMContext *TheContext = _codeGenerationContext->getContext();
+  llvm::LLVMContext *TheContext = _codeGenerationContext->getContext().get();
 
   CustomLLVMType type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());

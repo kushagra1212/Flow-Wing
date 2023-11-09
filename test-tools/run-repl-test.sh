@@ -7,7 +7,7 @@
 # Build and run containers defined in docker-compose.yml
 
 
-docker-compose up repl-test --build 
+docker-compose up repl-test -d --build 
 
 
 # Run tests
