@@ -20,18 +20,24 @@ public:
   void logLLVMError(llvm::Error E);
   void logLLVMWarning(llvm::Error E);
 
-  void LogError(const std::string &errorMessgae,
+  void LogError(const std::string &errorMessage,
                 const DiagnosticUtils::SourceLocation &location);
 
+  void LogError(const std::string &errorMessage);
+
   const std::string
-  getLLVMErrorMsg(const std::string &errorMessgae,
+  getLLVMErrorMsg(const std::string &errorMessage,
                   const DiagnosticUtils::SourceLocation &location);
+
+  void
+  setCurrentSourceLocation(const DiagnosticUtils::SourceLocation &location);
 
 private:
   llvm::SourceMgr _sourceMgr;
   llvm::raw_ostream &_errs;
   std::string _llvmErrorMsg;
   std::string _llvmWarningMsg;
+  DiagnosticUtils::SourceLocation _location;
 };
 
 #endif // LLVMLOGGER_H

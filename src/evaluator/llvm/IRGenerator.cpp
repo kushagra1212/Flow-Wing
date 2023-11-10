@@ -4,6 +4,8 @@ IRGenerator::IRGenerator(
     int environment, DiagnosticHandler *diagnosticHandler,
     std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
     const std::string sourceFileName) {
+  // Initialize Map of Expression Generation Strategies
+
   // Initialize the code generation context
   _codeGenerationContext = std::make_unique<CodeGenerationContext>(
       diagnosticHandler, sourceFileName);
@@ -50,6 +52,9 @@ IRGenerator::IRGenerator(
       std::make_unique<StringBinaryOperationStrategy>(
           this->_codeGenerationContext.get());
 
+  _unaryOperationStrategy = std::make_unique<UnaryOperationStrategy>(
+      this->_codeGenerationContext.get());
+
   _typeSpecificValueVisitor = std::make_unique<TypeSpecificValueVisitor>();
 
   // Binary Operation Strategies
@@ -68,6 +73,10 @@ IRGenerator::IRGenerator(
   this->initializeGlobalVariables();
 
   this->_boundedUserFunctions = boundedUserFunctions;
+
+  _literalExpressionGenerationStrategy =
+      std::make_unique<LiteralExpressionGenerationStrategy>(
+          this->_codeGenerationContext.get());
 }
 
 void IRGenerator::updateModule() {
@@ -126,21 +135,8 @@ void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
 
 llvm::Value *
 IRGenerator::generateEvaluateLiteralExpressionFunction(BoundExpression *node) {
-  BoundLiteralExpression<std::any> *literalExpression =
-      (BoundLiteralExpression<std::any> *)node;
-  std::any value = literalExpression->getValue();
 
-  this->_irUtils->setCurrentSourceLocation(literalExpression->getLocation());
-
-  llvm::Value *val =
-      this->_irUtils->getLLVMValue(value, literalExpression->getSyntaxKind());
-
-  if (val == nullptr) {
-    this->_irUtils->logError("Unsupported Literal Type ");
-    return nullptr;
-  }
-
-  return val;
+  return _literalExpressionGenerationStrategy->generateExpression(node);
 }
 
 std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
@@ -154,7 +150,6 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
       unaryExpression->getOperandPtr().get());
 
   this->_irUtils->setCurrentSourceLocation(unaryExpression->getLocation());
-
   if (val == nullptr) {
 
     this->_irUtils->logError("Unsupported Unary Expression Type ");
@@ -162,66 +157,7 @@ IRGenerator::generateEvaluateUnaryExpressionFunction(BoundExpression *node) {
     return nullptr;
   }
 
-  llvm::Value *result = nullptr;
-
-  switch (unaryExpression->getOperatorPtr()) {
-  case BinderKindUtils::BoundUnaryOperatorKind::Identity: {
-
-    result = Builder->CreateAdd(
-        val, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)));
-    break;
-  }
-  case BinderKindUtils::BoundUnaryOperatorKind::Negation: {
-
-    result = Builder->CreateSub(
-        llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, true)), val);
-    break;
-  }
-  case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation: {
-
-    if (val->getType()->isIntegerTy() || val->getType()->isFloatingPointTy()) {
-      // Convert non-boolean values to boolean (true if zero, false if non-zero)
-      result = Builder->CreateICmpEQ(
-          val, llvm::Constant::getNullValue(val->getType()));
-    } else if (val->getType()->isPointerTy() &&
-               val->getType()->isIntegerTy(8)) {
-      // Get the string length
-
-      llvm::ArrayRef<llvm::Value *> Args = {
-          _stringTypeConverter->convertExplicit(val)};
-      llvm::Value *length = Builder->CreateCall(
-          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH), Args);
-      val = length;
-
-      // Compare the string Length to Zero
-      result = Builder->CreateICmpEQ(
-          length, llvm::ConstantInt::get(length->getType(), 0));
-    } else if (val->getType()->isIntegerTy(1)) {
-      // For boolean values, perform logical NOT
-      result = Builder->CreateNot(val);
-    } else {
-
-      this->_irUtils->logError("Unsupported Unary Expression Type ");
-
-      return nullptr;
-    }
-    break;
-  }
-  case BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation: {
-
-    result = Builder->CreateXor(
-        val, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, -1, true)));
-    break;
-  }
-  default: {
-
-    this->_irUtils->logError("Unsupported Unary Expression Type ");
-
-    return nullptr;
-  }
-  }
-
-  return result;
+  return _unaryOperationStrategy->performOperation(val, unaryExpression);
 }
 
 void IRGenerator::printIR() {

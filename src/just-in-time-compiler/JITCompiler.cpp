@@ -214,6 +214,7 @@ void JITCompiler::execute() {
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
+          .setOptLevel(llvm::CodeGenOpt::Aggressive)
           .create();
 
   if (!executionEngine) {

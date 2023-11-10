@@ -48,32 +48,6 @@ const int IRUtils::getIndexofMemberType(llvm::Type *type) {
   return index;
 }
 
-void IRUtils::handleConditionalBranch(
-    llvm::Value *conditionValue, const std::string &trueBlockName,
-    const std::string &falseBlockName,
-    std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *_Builder,
-                       llvm::LLVMContext *_TheContext, IRUtils *irutils)>
-        trueBlockCode,
-    std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *_Builder,
-                       llvm::LLVMContext *_TheContext)>
-        falseBlockCode) {
-
-  llvm::BasicBlock *currentBlock = _Builder->GetInsertBlock();
-  llvm::Function *currentFunction = currentBlock->getParent();
-
-  llvm::BasicBlock *trueBlock = llvm::BasicBlock::Create(
-      *_TheContext, trueBlockName, currentFunction, currentBlock);
-
-  llvm::BasicBlock *falseBlock = llvm::BasicBlock::Create(
-      *_TheContext, falseBlockName, currentFunction, currentBlock);
-
-  _Builder->CreateCondBr(conditionValue, trueBlock, falseBlock);
-
-  trueBlockCode(trueBlock, _Builder, _TheContext, this);
-
-  falseBlockCode(falseBlock, _Builder, _TheContext);
-}
-
 llvm::Constant *IRUtils::createConstantFromValue(llvm::Value *myValue) {
   llvm::Type *valueType = myValue->getType();
 

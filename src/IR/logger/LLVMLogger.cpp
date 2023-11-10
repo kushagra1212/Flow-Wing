@@ -20,11 +20,11 @@ void LLVMLogger::logLLVMWarning(llvm::Error E) {
   });
 }
 
-void LLVMLogger::LogError(const std::string &errorMessgae,
+void LLVMLogger::LogError(const std::string &errorMessage,
                           const DiagnosticUtils::SourceLocation &location) {
 
   const std::string &message = _diagnosticHandler->getLogString(
-      Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Runtime, location));
 
   this->logLLVMError(llvm::make_error<llvm::StringError>(
@@ -33,11 +33,26 @@ void LLVMLogger::LogError(const std::string &errorMessgae,
   // llvm::createStringError(llvm::inconvertibleErrorCode(), message)
 }
 
+void LLVMLogger::LogError(const std::string &errorMessage) {
+
+  const std::string &message = _diagnosticHandler->getLogString(
+      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Runtime, _location));
+
+  this->logLLVMError(llvm::make_error<llvm::StringError>(
+      message, llvm::inconvertibleErrorCode()));
+}
+
 const std::string
-LLVMLogger::getLLVMErrorMsg(const std::string &errorMessgae,
+LLVMLogger::getLLVMErrorMsg(const std::string &errorMessage,
                             const DiagnosticUtils::SourceLocation &location) {
 
   return _diagnosticHandler->getLogString(
-      Diagnostic(errorMessgae, DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Runtime, location));
+}
+
+void LLVMLogger::setCurrentSourceLocation(
+    const DiagnosticUtils::SourceLocation &location) {
+  _location = location;
 }

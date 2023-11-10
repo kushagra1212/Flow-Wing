@@ -1,6 +1,8 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+// #include
+// "../irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "llvm/Support/TargetSelect.h"
@@ -22,6 +24,9 @@ public:
 
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
+
+  // ExpressionGenerationStrategy *
+  // getExpressionGenerationStrategy(BinderKindUtils::BoundNodeKind kind);
 
   DiagnosticHandler *getDiagnosticHandler() const;
 

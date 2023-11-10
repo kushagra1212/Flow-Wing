@@ -9,12 +9,15 @@
 #include "../../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../../IR/handlers/value/ValueHandler.h"
 #include "../../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
+#include "../../IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "../../IR/irGen/expressions/UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
 #include "../../IR/mappers/TypeMapper/TypeMapper.h"
-#include "../../IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
 #include "../../IR/strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
+#include "../../IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
+
 #include "../IRUtils/IRUtils.h"
 using namespace FLOWWING::IR::CONSTANTS;
 
@@ -131,14 +134,26 @@ private:
 
   std::unique_ptr<CodeGenerationContext> _codeGenerationContext;
 
+  // Binary Operation Strategy
   std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
   std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
   std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
+
+  // Unary Operation Strategy
+  std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;
+
+  // Expression Generation Strategy
+  std::unique_ptr<LiteralExpressionGenerationStrategy>
+      _literalExpressionGenerationStrategy;
+
+  // Type Converters
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
   std::unique_ptr<StringTypeConverter> _stringTypeConverter;
   std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
+
+  // Value Handler
   std::unique_ptr<TypeSpecificValueVisitor> _typeSpecificValueVisitor;
 };
 

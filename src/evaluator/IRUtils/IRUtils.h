@@ -148,15 +148,6 @@ public:
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
-  void handleConditionalBranch(
-      llvm::Value *conditionValue, const std::string &trueBlockName,
-      const std::string &falseBlockName,
-      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext, IRUtils *irutils)>
-          trueBlockCode,
-      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext)>
-          falseBlockCode);
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
