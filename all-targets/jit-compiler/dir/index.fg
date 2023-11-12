@@ -1,4 +1,7 @@
-fun main()-> nthg {
-    return 2
+fun sum(n:deci) -> int {
+  if (n == 0) {
+    return 0
+  }
+  return n + sum(n - 1)
 }
-print(main())
+print(sum(10))

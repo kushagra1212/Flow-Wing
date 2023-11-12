@@ -57,6 +57,7 @@ enum BoundBinaryOperatorKind {
   BitwiseOr,
   BitwiseXor,
   Modulus,
+  IntegerDivision
 };
 std::string to_string(BoundNodeKind kind);
 

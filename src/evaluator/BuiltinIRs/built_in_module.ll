@@ -5,7 +5,7 @@ source_filename = "built_in_module"
 @formatStrprintf =   global [3 x i8] c"%s\00"
 @formatStrscanf =   global [10 x i8] c"%1000000s\00", align 1
 @intFormat =   global [3 x i8] c"%d\00"
-@doubleFormat =   global [5 x i8] c"%.6f\00"
+@doubleFormat =   global [6 x i8] c"%.18f\00"
 
 declare i8* @malloc(i64)
 declare i64 @strlen(i8*)
@@ -17,6 +17,8 @@ declare i32 @atoi(i8*)
 declare double @atof(i8*)
 declare i32 @scanf(i8*, ...)
 declare i64 @atol(i8*)
+declare void @puts(i8*)
+declare void @exit(i32)
 
 define  void @print(i8* %0, i1 %1) {
 entry:
@@ -87,7 +89,7 @@ define  i8* @dtos(double %f) {
   %buffer = call i8* @malloc(i64 32)
 
   ; Convert the double to a string
-  %formatStr = getelementptr [5 x i8], [5 x i8]* @doubleFormat, i32 0, i32 0
+  %formatStr = getelementptr [6 x i8], [6 x i8]* @doubleFormat, i32 0, i32 0
   call i32 @snprintf(i8* %buffer, i64 32, i8* %formatStr, double %f)
   ; Return the result as a pointer to the string
   ret i8* %buffer
@@ -192,4 +194,18 @@ entry:
   %doubleValue = call double @atof(i8* %str)
   ret double %doubleValue
 }
+
+
+; Exception handling functions
+
+; This function is called when a division by zero occurs
+define void @raise_exception(i8* %errorMsg) {
+    ; Print the error message
+    call void @puts(i8* %errorMsg)
+
+    ; Exit the program with an error code
+    call void @exit(i32 1)
+    unreachable ; Terminate the program (unreachable code)
+}
+
 

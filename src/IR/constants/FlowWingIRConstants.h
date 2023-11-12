@@ -3,13 +3,12 @@
 
 #include <string>
 
-namespace FLOWWING::EVALUATOR::CONSTANTS {
+namespace FLOWWING::IR::CONSTANTS {
 
 // FlowWing Global Strings
 
 extern const std::string FLOWWING_CONTINUE_COUNT;
 extern const std::string FLOWWING_BREAK_COUNT;
-extern const std::string FLOWWING_GLOBAL_ZERO;
 extern const std::string FLOWWING_GLOBAL_RETURN_COUNT;
 
 // For Error
@@ -50,9 +49,11 @@ extern const std::string GET_INPUT;
 extern const std::string STRING_TO_INT;
 extern const std::string STRING_TO_LONG;
 extern const std::string STRING_TO_DOUBLE;
+
+extern const std::string RAISE_EXCEPTION;
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 
-}; // namespace FLOWWING::EVALUATOR::CONSTANTS
+}; // namespace FLOWWING::IR::CONSTANTS
 
 #endif // FLOWWING_IR_CONSTANTS_H

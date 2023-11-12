@@ -197,12 +197,12 @@ void JITCompiler::execute() {
     }
   }
 #ifdef JIT_MODE
-  currentDiagnosticHandler->printDiagnostic(
-      std::cout, Diagnostic("Finished linking modules.",
-                            DiagnosticUtils::DiagnosticLevel::Info,
-                            DiagnosticUtils::DiagnosticType::Linker,
-                            DiagnosticUtils::SourceLocation(
-                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
+  // currentDiagnosticHandler->printDiagnostic(
+  //     std::cout, Diagnostic("Finished linking modules.",
+  //                           DiagnosticUtils::DiagnosticLevel::Info,
+  //                           DiagnosticUtils::DiagnosticType::Linker,
+  //                           DiagnosticUtils::SourceLocation(
+  //                               0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
   TheModule->print(llvm::outs(), nullptr);
 #endif
@@ -214,6 +214,7 @@ void JITCompiler::execute() {
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
+          .setOptLevel(llvm::CodeGenOpt::Aggressive)
           .create();
 
   if (!executionEngine) {
@@ -254,7 +255,7 @@ void signalHandler(int signal) {
   // Output information about the signal:
 
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
-            << ") received." << std::endl;
+            << ") received." << RESET << std::endl;
 
   exit(1); // Exit with a non-zero status to indicate an error.
 }

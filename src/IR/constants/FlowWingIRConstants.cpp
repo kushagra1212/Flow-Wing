@@ -1,9 +1,8 @@
 #include "FlowWingIRConstants.h"
 
-namespace FLOWWING::EVALUATOR::CONSTANTS {
+namespace FLOWWING::IR::CONSTANTS {
 const std::string FLOWWING_CONTINUE_COUNT = "FLOWWING_CONTINUE_COUNT";
 const std::string FLOWWING_BREAK_COUNT = "FLOWWING_BREAK_COUNT";
-const std::string FLOWWING_GLOBAL_ZERO = "FLOWWING_GLOBAL_ZERO";
 const std::string FLOWWING_GLOBAL_RETURN_COUNT = "FLOWWING_GLOBAL_RETURN_COUNT";
 
 // For Error
@@ -44,7 +43,9 @@ const std::string GET_INPUT = "get_input";
 const std::string STRING_TO_INT = "string_to_int";
 const std::string STRING_TO_LONG = "string_to_long";
 const std::string STRING_TO_DOUBLE = "string_to_double";
+
+const std::string RAISE_EXCEPTION = "raise_exception";
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 
-}; // namespace FLOWWING::EVALUATOR::CONSTANTS
+}; // namespace FLOWWING::IR::CONSTANTS

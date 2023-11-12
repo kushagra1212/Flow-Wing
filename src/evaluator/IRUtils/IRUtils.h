@@ -4,6 +4,9 @@
 // FLOWWING Files Import
 
 #include "../../Common.h"
+#include "../../IR/constants/FlowWingIRConstants.h"
+#include "../../IR/context/CodeGenerationContext.h"
+#include "../../IR/logger/LLVMLogger.h"
 #include "../../bind/Binder/Binder.h"
 #include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
 #include "../../bind/BinderKindUtils.h"
@@ -20,9 +23,8 @@
 #include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../IRParser/IRParser.h"
-#include "../constants/FlowWingIRConstants.h"
 
-using namespace FLOWWING::EVALUATOR::CONSTANTS;
+using namespace FLOWWING::IR::CONSTANTS;
 
 class IRUtils;
 // LLVM Imports
@@ -61,7 +63,6 @@ class IRUtils;
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
-#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -71,7 +72,6 @@ class IRUtils;
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/TargetSelect.h>
 
 #include "llvm//IR/Value.h"
 #include "llvm/IR/Constants.h"
@@ -90,17 +90,8 @@ class IRUtils;
 
 class IRUtils {
 
-  std::string _sourceFileName;
-
 public:
-  llvm::Module *TheModule;
-  llvm::IRBuilder<> *Builder;
-  llvm::LLVMContext *TheContext;
-  DiagnosticHandler *diagnosticHandler;
-
-  IRUtils(llvm::Module *TheModule, llvm::IRBuilder<> *Builder,
-          llvm::LLVMContext *TheContext, DiagnosticHandler *diagnosticHandler,
-          std::string sourceFileName);
+  IRUtils(CodeGenerationContext *codeGenerationContext);
 
   llvm::Value *getLLVMValue(std::any value, SyntaxKindUtils::SyntaxKind kind);
 
@@ -133,84 +124,18 @@ public:
 
   llvm::Value *getDefaultValue(Utils::type type);
 
-  llvm::Value *implicitConvertToDouble(llvm::Value *val);
-
-  llvm::Value *implicitConvertToInt(llvm::Value *val);
-
-  llvm::Value *implicitConvertToBool(llvm::Value *val);
-
-  llvm::Value *explicitConvertToDouble(llvm::Value *val);
-
-  llvm::Value *explicitConvertToInt(llvm::Value *val);
-
-  llvm::Value *explicitConvertToBool(llvm::Value *val);
   llvm::Value *explicitConvertToString(llvm::Value *val);
-  llvm::Value *itos(llvm::Value *num);
+
+  llvm::Value *loadGlobalValue(llvm::Value *val);
 
   llvm::Type *getReturnType(Utils::type type);
 
   void errorGuard(std::function<void()> code);
 
-  llvm::Value *
-  getResultFromBinaryOperationOnDouble(llvm::Value *lhsValue,
-                                       llvm::Value *rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
-
-  llvm::Value *
-  getResultFromBinaryOperationOnInt(llvm::Value *lhsValue,
-                                    llvm::Value *rhsValue,
-                                    BoundBinaryExpression *binaryExpression);
-
-  llvm::Value *
-  getResultFromBinaryOperationOnBool(llvm::Value *lhsValue,
-                                     llvm::Value *rhsValue,
-                                     BoundBinaryExpression *binaryExpression);
-  llvm::Value *
-  getResultFromBinaryOperationOnString(llvm::Value *lhsValue,
-                                       llvm::Value *rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
-
   // SET VALUES
   llvm::ConstantInt *getConstantIntFromValue(llvm::Value *value);
   llvm::ConstantFP *getConstantFPFromValue(llvm::Value *value);
   llvm::StringRef getConstantStringFromValue(llvm::Value *value);
-  void setNamedValue(
-      const std::string &name, llvm::Value *value,
-      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
-
-  void setNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
-                           std::stack<std::map<std::string, llvm::AllocaInst *>>
-                               &NamedValuesAllocaStack);
-
-  // GET
-
-  llvm::Value *getNamedValue(
-      const std::string &name,
-      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-  llvm::AllocaInst *
-  getNamedValueAlloca(const std::string &name,
-                      std::stack<std::map<std::string, llvm::AllocaInst *>>
-                          NamedValuesAllocaStack);
-
-  // CHECK
-
-  bool isVariableDeclared(
-      const std::string &name,
-      std::stack<std::map<std::string, llvm::Value *>> NamedValuesStack);
-
-  // UPDATE
-
-  bool updateNamedValue(
-      const std::string &name, llvm::Value *value,
-      std::stack<std::map<std::string, llvm::Value *>> &NamedValuesStack);
-
-  bool
-  updateNamedValueAlloca(const std::string &name, llvm::AllocaInst *value,
-                         std::stack<std::map<std::string, llvm::AllocaInst *>>
-                             &NamedValuesAllocaStack);
-
-  void printFunction(llvm::Value *value, bool printNewline);
 
   llvm::Value *createStringComparison(llvm::Value *lhsValue,
                                       llvm::Value *rhsValue,
@@ -223,30 +148,12 @@ public:
                                         llvm::Value *value,
                                         llvm::Value *upperBound);
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
-  void handleConditionalBranch(
-      llvm::Value *conditionValue, const std::string &trueBlockName,
-      const std::string &falseBlockName,
-      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext, IRUtils *irutils)>
-          trueBlockCode,
-      std::function<void(llvm::BasicBlock *, llvm::IRBuilder<> *Builder,
-                         llvm::LLVMContext *TheContext)>
-          falseBlockCode);
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
 
   void logError(std::string errorMessgae);
-  const std::string addPrefixToVariableName(const std::string name);
   llvm::Constant *getNull();
-
-  llvm::Value *explicitConvertToType(llvm::Value *value, llvm::Type *type);
-
-  const std::string getSourceFileName() const;
-
-  const int isInitializingGlobals() const;
-
-  void setInitializingGlobals(int value);
 
   const int hasError() const;
 
@@ -259,6 +166,12 @@ private:
   int _initializingGlobals = 0;
   int _hasError = 0;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;
+  LLVMLogger *_llvmLogger;
+  llvm::Module *_TheModule;
+  llvm::IRBuilder<> *_Builder;
+  llvm::LLVMContext *_TheContext;
+  DiagnosticHandler *_diagnosticHandler;
+  CodeGenerationContext *_codeGenerationContext;
 };
 
 #endif

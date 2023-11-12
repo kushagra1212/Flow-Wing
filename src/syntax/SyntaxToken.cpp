@@ -58,6 +58,7 @@ template <typename T> int SyntaxToken<T>::getUnaryOperatorPrecedence() {
 template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::StarToken:
+  case SyntaxKindUtils::SyntaxKind::SlashSlashToken:
   case SyntaxKindUtils::SyntaxKind::SlashToken:
   case SyntaxKindUtils::SyntaxKind::PercentToken:
     return 9;
