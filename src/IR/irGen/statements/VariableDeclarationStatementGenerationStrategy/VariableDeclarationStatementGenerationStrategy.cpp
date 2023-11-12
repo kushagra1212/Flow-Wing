@@ -13,13 +13,12 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       static_cast<BoundVariableDeclaration *>(statement);
 
   std::string variable_name = node->getVariable();
-  auto _expressionGenerationStrategy =
-      _expressionGenerationFactory
-          ->createStrategy(node->getInitializerPtr().get()->getKind())
-          .get();
 
-  llvm::Value *result = _expressionGenerationStrategy->generateExpression(
-      node->getInitializerPtr().get());
+  BoundExpression *initializerExp = node->getInitializerPtr().get();
+
+  llvm::Value *result =
+      _expressionGenerationFactory->createStrategy(initializerExp->getKind())
+          ->generateExpression(initializerExp);
 
   _codeGenerationContext->getNamedValueChain()->setNamedValue(variable_name,
                                                               result);

@@ -1,6 +1,7 @@
 #include "TypeMapper.h"
 
-TypeMapper::TypeMapper(llvm::LLVMContext *context) : _context(context) {
+TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
+    : _context(context), _builder(builder) {
   _typeMappings = {
       {(llvm::Type *)llvm::Type::getInt1Ty(*context), Utils::type::BOOL},
       {(llvm::Type *)llvm::Type::getInt8Ty(*context), Utils::type::INT8},

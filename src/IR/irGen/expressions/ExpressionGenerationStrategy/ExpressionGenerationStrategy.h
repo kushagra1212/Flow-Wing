@@ -3,8 +3,6 @@
 #include "../../GenerationStrategy.h"
 class ExpressionGenerationStrategy : public GenerationStrategy {
 public:
-  CodeGenerationContext *_codeGenerationContext;
-
   ExpressionGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 

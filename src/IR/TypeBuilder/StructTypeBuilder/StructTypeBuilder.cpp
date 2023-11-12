@@ -5,7 +5,15 @@
 
 StructTypeBuilder::StructTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)
-    : TypeBuilderInterface(_codeGenerationContext) {}
+    : TypeBuilderInterface(_codeGenerationContext) {
+
+  _memberTypesForDynamicTypes = _memberTypesForDynamicTypes = {
+      llvm::Type::getInt32Ty(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getDoubleTy(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getInt1Ty(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getInt8PtrTy(*_codeGenerationContext->getContext().get()),
+  };
+}
 
 void StructTypeBuilder::buildType() {
   this->_dynamicType = llvm::StructType::create(

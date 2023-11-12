@@ -9,6 +9,9 @@ IRGenerator::IRGenerator(
   _codeGenerationContext = std::make_unique<CodeGenerationContext>(
       diagnosticHandler, sourceFileName);
 
+  // Initialize the BoundUserFunctions
+  _codeGenerationContext->getBoundedUserFunctions() = boundedUserFunctions;
+
   Builder = _codeGenerationContext->getBuilder().get();
   TheModule = _codeGenerationContext->getModule().get();
   TheContext = _codeGenerationContext->getContext().get();

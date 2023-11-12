@@ -48,6 +48,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                             {_stringTypeConverter->convertExplicit(value),
                              Builder->getInt1(false)});
       }
+      return nullptr;
     }
   } else if (function.name == Utils::BuiltInFunctions::input.name) {
     if (arguments_size == 0) {
@@ -157,7 +158,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
-  auto definedFunction =
+  BoundFunctionDeclaration *definedFunction =
       _codeGenerationContext->getBoundedUserFunctions()[function.name];
 
   if (!calleeFunction &&
@@ -165,13 +166,11 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
     _codeGenerationContext->getRecursiveFunctionsMap()[function.name] = 1;
 
-    auto functionStatementGenerationStrategy =
-        static_cast<FunctionStatementGenerationStrategy *>(
-            _statementGenerationFactory
-                ->createStrategy(definedFunction->getKind())
-                .get());
-    functionStatementGenerationStrategy->generateStatementOnFly(definedFunction,
-                                                                args);
+    std::unique_ptr<FunctionStatementGenerationStrategy> fgst =
+        std::make_unique<FunctionStatementGenerationStrategy>(
+            _codeGenerationContext);
+
+    fgst->generateStatementOnFly(definedFunction, args);
 
     Builder->SetInsertPoint(currentBlock);
   }

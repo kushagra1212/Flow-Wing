@@ -6,9 +6,13 @@ FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
 
 llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
+
   BoundFunctionDeclaration *functionDeclaration =
       static_cast<BoundFunctionDeclaration *>(statement);
 
+  if (!functionDeclaration->hasParameterTypes()) {
+    return nullptr;
+  }
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       functionDeclaration->getLocation());
 
@@ -55,7 +59,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
 
     if (argValue->getType() != argTypes[i]) {
       _codeGenerationContext->getLogger()->LogError(
-          "Argument type mismatch in function " + functionName);
+          "Argument type mismatch in function " + functionName +
+          " for parameter " + parameterNames[i] + " expected " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(argTypes[i]) +
+          " but found " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              argValue->getType()));
     }
 
     llvm::AllocaInst *variable =
@@ -119,7 +128,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
       node->getLocation());
 
   std::vector<llvm::Type *> argTypes;
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+  for (int i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
   llvm::Type *returnType =

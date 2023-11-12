@@ -4,8 +4,6 @@
 
 class StatementGenerationStrategy : public GenerationStrategy {
 public:
-  CodeGenerationContext *_codeGenerationContext;
-
   StatementGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 

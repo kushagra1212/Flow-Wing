@@ -46,8 +46,7 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
     llvm::Function *F = llvm::Function::Create(
         FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
 
-    _codeGenerationContext
-        ->getBoundedUserFunctions()[node->getFunctionSymbol().name] = node;
+    _codeGenerationContext->addBoundedUserFunction(functionName, node);
   }
   return nullptr;
 }

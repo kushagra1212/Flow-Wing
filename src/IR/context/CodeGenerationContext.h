@@ -31,8 +31,7 @@ public:
   // TODO: Refactor this to a better place
   std::stack<std::pair<Utils::type, int8_t>> &getReturnAllocaStack();
   std::unordered_map<std::string, int8_t> &getRecursiveFunctionsMap();
-  std::unordered_map<std::string, BoundFunctionDeclaration *> &
-  getBoundedUserFunctions();
+  std::map<std::string, BoundFunctionDeclaration *> &getBoundedUserFunctions();
 
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
@@ -40,6 +39,9 @@ public:
   std::unique_ptr<StructTypeBuilder> &getDynamicType();
 
   DiagnosticHandler *getDiagnosticHandler() const;
+
+  void addBoundedUserFunction(std::string name,
+                              BoundFunctionDeclaration *functionDeclaration);
 
   // TODO: Refactor this to a better place
   llvm::Value *isCountZero(const std::string name, llvm::Type *ty);
@@ -66,8 +68,8 @@ private:
 
   std::stack<std::pair<Utils::type, int8_t>> _returnAllocaStack;
   std::unordered_map<std::string, int8_t> _recursiveFunctionsMap;
-  std::unordered_map<std::string, BoundFunctionDeclaration *>
-      _boundedUserFunctions;
+
+  std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
 };
 
 #endif // CODEGENERATIONCONTEXT_H

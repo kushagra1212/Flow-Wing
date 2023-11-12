@@ -17,7 +17,7 @@ class TypeMapper {
   std::unordered_map<Utils::type, llvm::Type *> _reverseTypeMappings;
 
 public:
-  TypeMapper(llvm::LLVMContext *context);
+  TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder);
 
   Utils::type mapLLVMTypeToCustomType(llvm::Type *type) const;
   llvm::Type *mapCustomTypeToLLVMType(Utils::type type) const;

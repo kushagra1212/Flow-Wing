@@ -17,7 +17,7 @@ CodeGenerationContext ::CodeGenerationContext(
   _diagnosticHandler = diagnosticHandler;
 
   // Initialize
-  _typeMapper = std::make_unique<TypeMapper>(_context.get());
+  _typeMapper = std::make_unique<TypeMapper>(_context.get(), _builder.get());
 
   // Initialize  LLVM_Logger
   _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
@@ -84,11 +84,15 @@ CodeGenerationContext::getReturnAllocaStack() {
   return _returnAllocaStack;
 }
 
-std::unordered_map<std::string, BoundFunctionDeclaration *> &
+std::map<std::string, BoundFunctionDeclaration *> &
 CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
 }
 
+void CodeGenerationContext::addBoundedUserFunction(
+    std::string name, BoundFunctionDeclaration *functionDeclaration) {
+  _boundedUserFunctions[name] = functionDeclaration;
+}
 std::unordered_map<std::string, int8_t> &
 CodeGenerationContext::getRecursiveFunctionsMap() {
   return _recursiveFunctionsMap;
