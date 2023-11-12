@@ -2,34 +2,29 @@
 
 TypeMapper::TypeMapper(llvm::LLVMContext *context) : _context(context) {
   _typeMappings = {
-      {(llvm::Type *)llvm::Type::getInt1Ty(*context), CustomLLVMType::Bool},
-      {(llvm::Type *)llvm::Type::getInt8Ty(*context), CustomLLVMType::Int8},
-      {(llvm::Type *)llvm::Type::getInt16Ty(*context), CustomLLVMType::Int16},
-      {(llvm::Type *)llvm::Type::getInt32Ty(*context), CustomLLVMType::Int32},
-      {(llvm::Type *)llvm::Type::getInt64Ty(*context), CustomLLVMType::Int64},
-      {(llvm::Type *)llvm::Type::getFloatTy(*context), CustomLLVMType::Float},
-      {(llvm::Type *)llvm::Type::getDoubleTy(*context), CustomLLVMType::Double},
-      {(llvm::Type *)llvm::Type::getInt8PtrTy(*context),
-       CustomLLVMType::String},
-      {(llvm::Type *)llvm::Type::getVoidTy(*context), CustomLLVMType::Void},
+      {(llvm::Type *)llvm::Type::getInt1Ty(*context), Utils::type::BOOL},
+      {(llvm::Type *)llvm::Type::getInt8Ty(*context), Utils::type::INT8},
+      {(llvm::Type *)llvm::Type::getInt16Ty(*context), Utils::type::INT16},
+      {(llvm::Type *)llvm::Type::getInt32Ty(*context), Utils::type::INT32},
+      {(llvm::Type *)llvm::Type::getInt64Ty(*context), Utils::type::INT64},
+      {(llvm::Type *)llvm::Type::getDoubleTy(*context), Utils::type::DECIMAL},
+      {(llvm::Type *)llvm::Type::getInt8PtrTy(*context), Utils::type::STRING},
+      {(llvm::Type *)llvm::Type::getVoidTy(*context), Utils::type::NOTHING},
   };
 
   _reverseTypeMappings = {
-      {CustomLLVMType::Bool, (llvm::Type *)llvm::Type::getInt1Ty(*context)},
-      {CustomLLVMType::Int8, (llvm::Type *)llvm::Type::getInt8Ty(*context)},
-      {CustomLLVMType::Int16, (llvm::Type *)llvm::Type::getInt16Ty(*context)},
-      {CustomLLVMType::Int32, (llvm::Type *)llvm::Type::getInt32Ty(*context)},
-      {CustomLLVMType::Int64, (llvm::Type *)llvm::Type::getInt64Ty(*context)},
-      {CustomLLVMType::Float, (llvm::Type *)llvm::Type::getFloatTy(*context)},
-      {CustomLLVMType::Double, (llvm::Type *)llvm::Type::getDoubleTy(*context)},
-      {CustomLLVMType::String,
-       (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
-      {CustomLLVMType::Void, (llvm::Type *)llvm::Type::getVoidTy(*context)},
+      {Utils::type::BOOL, (llvm::Type *)llvm::Type::getInt1Ty(*context)},
+      {Utils::type::INT8, (llvm::Type *)llvm::Type::getInt8Ty(*context)},
+      {Utils::type::INT16, (llvm::Type *)llvm::Type::getInt16Ty(*context)},
+      {Utils::type::INT32, (llvm::Type *)llvm::Type::getInt32Ty(*context)},
+      {Utils::type::INT64, (llvm::Type *)llvm::Type::getInt64Ty(*context)},
+      {Utils::type::DECIMAL, (llvm::Type *)llvm::Type::getDoubleTy(*context)},
+      {Utils::type::STRING, (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
+      {Utils::type::NOTHING, (llvm::Type *)llvm::Type::getVoidTy(*context)},
   };
 }
 
-const llvm::Type *
-TypeMapper::mapCustomTypeToLLVMType(CustomLLVMType type) const {
+llvm::Type *TypeMapper::mapCustomTypeToLLVMType(Utils::type type) const {
   auto it = _reverseTypeMappings.find(type);
   if (it != _reverseTypeMappings.end()) {
     return it->second;
@@ -38,40 +33,90 @@ TypeMapper::mapCustomTypeToLLVMType(CustomLLVMType type) const {
   }
 }
 
-const CustomLLVMType
-TypeMapper::mapLLVMTypeToCustomType(llvm::Type *type) const {
+Utils::type TypeMapper::mapLLVMTypeToCustomType(llvm::Type *type) const {
   auto it = _typeMappings.find(type);
   if (it != _typeMappings.end()) {
     return it->second;
   } else {
-    return CustomLLVMType::Unknown;
+    return Utils::type::UNKNOWN;
   }
 }
 
 const bool TypeMapper::isVoidType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Void;
+  return mapLLVMTypeToCustomType(type) == Utils::type::NOTHING;
 }
 
 const bool TypeMapper::isStringType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::String;
+  return mapLLVMTypeToCustomType(type) == Utils::type::STRING;
 }
 
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Bool;
+  return mapLLVMTypeToCustomType(type) == Utils::type::BOOL;
 }
 
 const bool TypeMapper::isDoubleType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Double;
-}
-
-const bool TypeMapper::isFloatType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Float;
+  return mapLLVMTypeToCustomType(type) == Utils::type::DECIMAL;
 }
 
 const bool TypeMapper::isInt64Type(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Int64;
+  return mapLLVMTypeToCustomType(type) == Utils::type::INT64;
 }
 
 const bool TypeMapper::isInt32Type(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == CustomLLVMType::Int32;
+  return mapLLVMTypeToCustomType(type) == Utils::type::INT32;
+}
+std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
+
+  Utils::type customType = mapLLVMTypeToCustomType(type);
+
+  return getLLVMTypeName(customType);
+}
+
+std::string TypeMapper::getLLVMTypeName(Utils::type customType) const {
+
+  switch (customType) {
+  case Utils::type::BOOL:
+    return "Boolean";
+  case Utils::type::INT8:
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64:
+    return "Integer";
+  case Utils::type::DECIMAL:
+    return "Decimal";
+  case Utils::type::STRING:
+    return "String";
+  case Utils::type::NOTHING:
+    return "Nothing";
+  default:
+    break;
+  }
+
+  return "Unknown";
+}
+
+llvm::Value *TypeMapper::getDefaultValue(Utils::type type) {
+  llvm::Value *_retVal = nullptr;
+
+  switch (type) {
+  case Utils::type::INT32:
+    _retVal = _builder->getInt32(0);
+    break;
+  case Utils::type::DECIMAL:
+    _retVal = llvm::ConstantFP::get(*_context, llvm::APFloat(0.0));
+    break;
+  case Utils::type::BOOL:
+    _retVal = _builder->getInt1(false);
+    break;
+  case Utils::type::STRING:
+    _retVal = _builder->CreateGlobalStringPtr("");
+    break;
+  case Utils::type::NOTHING:
+    break;
+  case Utils::type::UNKNOWN:
+    break;
+  default:
+    break;
+  }
+  return _retVal;
 }

@@ -10,6 +10,7 @@
 #include "llvm/Support/raw_ostream.h"
 class LLVMLogger {
   DiagnosticHandler *_diagnosticHandler;
+  int32_t errorCount;
 
 public:
   LLVMLogger(DiagnosticHandler *diagnosticHandler)
@@ -31,6 +32,8 @@ public:
 
   void
   setCurrentSourceLocation(const DiagnosticUtils::SourceLocation &location);
+
+  const int32_t getErrorCount() const;
 
 private:
   llvm::SourceMgr _sourceMgr;

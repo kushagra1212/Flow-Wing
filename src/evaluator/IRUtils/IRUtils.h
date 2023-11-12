@@ -155,10 +155,6 @@ public:
   void logError(std::string errorMessgae);
   llvm::Constant *getNull();
 
-  const int isInitializingGlobals() const;
-
-  void setInitializingGlobals(int value);
-
   const int hasError() const;
 
   const int getIndexofMemberType(llvm::Type *type);

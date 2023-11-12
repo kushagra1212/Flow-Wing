@@ -25,3 +25,17 @@ llvm::Value *LiteralExpressionGenerationStrategy::generateExpression(
 
   return val;
 }
+
+llvm::Value *LiteralExpressionGenerationStrategy::generateGlobalExpression(
+    BoundExpression *expression) {
+  BoundLiteralExpression<std::any> *literalExpression =
+      (BoundLiteralExpression<std::any> *)expression;
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      literalExpression->getLocation());
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Literal Expression is not allowed in global scope ");
+
+  return nullptr;
+}

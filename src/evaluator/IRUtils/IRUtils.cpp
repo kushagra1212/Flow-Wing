@@ -91,13 +91,6 @@ llvm::Constant *IRUtils::createConstantFromValue(llvm::Value *myValue) {
   return nullptr; // Return nullptr if the type is not recognized.
 }
 
-const int IRUtils::isInitializingGlobals() const {
-  return this->_initializingGlobals;
-}
-void IRUtils::setInitializingGlobals(int value) {
-  this->_initializingGlobals = value;
-}
-
 llvm::Value *IRUtils::getLLVMValue(std::any value,
                                    SyntaxKindUtils::SyntaxKind kind) {
   if (value.type() == typeid(int)) {

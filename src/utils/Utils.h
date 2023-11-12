@@ -18,7 +18,17 @@
 #include <typeinfo>
 
 namespace Utils {
-enum type { INT32, DECIMAL, STRING, BOOL, NOTHING, UNKNOWN };
+enum type {
+  INT8,
+  INT16,
+  INT32,
+  INT64,
+  DECIMAL,
+  BOOL,
+  STRING,
+  NOTHING,
+  UNKNOWN
+};
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
 void prettyPrint(CompilationUnitSyntax *compilationUnit,

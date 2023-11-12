@@ -54,19 +54,6 @@ extern const std::string RAISE_EXCEPTION;
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 
-enum class CustomLLVMType {
-  Int8,
-  Int16,
-  Int32,
-  Int64,
-  Float,
-  Double,
-  Bool,
-  String,
-  Void,
-  Unknown
-};
-
 }; // namespace FLOWWING::IR::CONSTANTS
 
 #endif // FLOWWING_IR_CONSTANTS_H

@@ -7,25 +7,23 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case CustomLLVMType::Int16:
-  case CustomLLVMType::Int32:
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64: {
     return _builder->CreateICmpNE(value,
                                   llvm::ConstantInt::get(value->getType(), 0));
   }
-  case CustomLLVMType::Float:
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     return _builder->CreateFCmpONE(
         value, llvm::ConstantFP::get(_builder->getDoubleTy(), 0.0));
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     return value;
   }
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
 
     std::unique_ptr<StringTypeConverter> stringConverter =
         std::make_unique<StringTypeConverter>(this->_codeGenerationContext);
@@ -56,30 +54,28 @@ llvm::Value *BoolTypeConverter::convertImplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case CustomLLVMType::Int16:
-  case CustomLLVMType::Int32:
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64: {
     this->_logger->logLLVMError(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
                                 "Implicit conversion from int to bool is not "
                                 "supported for variable with predefined type"));
   }
-  case CustomLLVMType::Float:
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     this->_logger->logLLVMError(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
                                 "Implicit conversion from float/double to bool "
                                 "is not supported for variable with "
                                 "predefined type"));
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     return value;
   }
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
     this->_logger->logLLVMError(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
                                 "Implicit conversion from string to bool is "

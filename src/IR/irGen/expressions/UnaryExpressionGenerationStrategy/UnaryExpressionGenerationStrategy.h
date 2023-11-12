@@ -8,6 +8,7 @@ public:
   UnaryExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
+  llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 };
 
 #endif // __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__

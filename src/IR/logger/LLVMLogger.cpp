@@ -1,6 +1,7 @@
 #include "LLVMLogger.h"
 
 void LLVMLogger::logLLVMError(llvm::Error E) {
+  errorCount++;
   llvm::handleAllErrors(std::move(E), [&](llvm::ErrorInfoBase &EIB) {
     // _sourceMgr.PrintMessage(llvm::SMLoc(), llvm::SourceMgr::DK_Error,
     //                         _llvmErrorMsg + EIB.message());
@@ -11,6 +12,7 @@ void LLVMLogger::logLLVMError(llvm::Error E) {
 }
 
 void LLVMLogger::logLLVMWarning(llvm::Error E) {
+  errorCount++;
   llvm::handleAllErrors(std::move(E), [&](llvm::ErrorInfoBase &EIB) {
     // _sourceMgr.PrintMessage(llvm::SMLoc(), llvm::SourceMgr::DK_Warning,
     //                         _llvmWarningMsg + EIB.message());
@@ -35,6 +37,7 @@ void LLVMLogger::LogError(const std::string &errorMessage,
 
 void LLVMLogger::LogError(const std::string &errorMessage) {
 
+  errorCount++;
   const std::string &message = _diagnosticHandler->getLogString(
       Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Runtime, _location));
@@ -56,3 +59,5 @@ void LLVMLogger::setCurrentSourceLocation(
     const DiagnosticUtils::SourceLocation &location) {
   _location = location;
 }
+
+const int32_t LLVMLogger::getErrorCount() const { return errorCount; }

@@ -7,29 +7,24 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
 
-  case CustomLLVMType::Int16:
-  case CustomLLVMType::Int32:
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64: {
     return _builder->CreateSIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
-  case CustomLLVMType::Float: {
-    return _builder->CreateFPTrunc(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
-  }
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     return value;
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     return _builder->CreateUIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
 
     return _builder->CreateCall(
         _module->getFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE), {value});
@@ -48,32 +43,27 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *value) {
 llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *value) {
   llvm::Value *res = nullptr;
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
 
-  case CustomLLVMType::Int16:
-  case CustomLLVMType::Int32:
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64: {
     return _builder->CreateSIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
-  case CustomLLVMType::Float: {
-    return _builder->CreateFPTrunc(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
-  }
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     return value;
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     _logger->logLLVMError(llvm::createStringError(
         llvm::inconvertibleErrorCode(),
         "Implicit conversion from bool to double is not "
         "supported for variable with predefined type"));
     return nullptr;
   }
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
     _logger->logLLVMError(llvm::createStringError(
         llvm::inconvertibleErrorCode(),
         "Implicit conversion from string to double is not "

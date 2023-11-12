@@ -9,25 +9,23 @@ llvm::Value *Int32TypeConverter::convertExplicit(llvm::Value *value) {
 
   llvm::LLVMContext *TheContext = _codeGenerationContext->getContext().get();
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case CustomLLVMType::Int32: {
+  case Utils::type::INT32: {
     return value;
   }
-  case CustomLLVMType::Int16:
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT16:
+  case Utils::type::INT64: {
     return _builder->CreateTrunc(value, llvm::Type::getInt32Ty(*TheContext));
   }
-  case CustomLLVMType::Float:
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     return _builder->CreateFPToSI(value, llvm::Type::getInt32Ty(*TheContext));
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     return _builder->CreateZExt(value, llvm::Type::getInt32Ty(*TheContext));
   }
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
     // TODO: Implement explicit conversion from string to int
 
     // llvm::ArrayRef<llvm::Value *> Args =
@@ -52,18 +50,17 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  CustomLLVMType type =
-      this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case CustomLLVMType::Int16: {
+  case Utils::type::INT16: {
     return _builder->CreateSExt(value,
                                 llvm::Type::getInt32Ty(_builder->getContext()));
   }
-  case CustomLLVMType::Int32: {
+  case Utils::type::INT32: {
     return value;
   }
-  case CustomLLVMType::Int64: {
+  case Utils::type::INT64: {
 
     this->_logger->logLLVMWarning(llvm::createStringError(
         llvm::inconvertibleErrorCode(),
@@ -72,8 +69,7 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *value) {
 
     return nullptr;
   }
-  case CustomLLVMType::Float:
-  case CustomLLVMType::Double: {
+  case Utils::type::DECIMAL: {
     this->_logger->logLLVMWarning(llvm::createStringError(
         llvm::inconvertibleErrorCode(),
         "Implicit conversion from float/double to int32 "
@@ -82,7 +78,7 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *value) {
 
     return nullptr;
   }
-  case CustomLLVMType::Bool: {
+  case Utils::type::BOOL: {
     this->_logger->logLLVMWarning(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
                                 "Implicit conversion from bool to int32"));
@@ -91,7 +87,7 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *value) {
                                 llvm::Type::getInt32Ty(_builder->getContext()));
   }
 
-  case CustomLLVMType::String: {
+  case Utils::type::STRING: {
     this->_logger->logLLVMWarning(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
                                 "Implicit conversion from string to int32 is "
