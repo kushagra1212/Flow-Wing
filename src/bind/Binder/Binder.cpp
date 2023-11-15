@@ -363,6 +363,49 @@ std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
 }
 
 std::unique_ptr<BoundExpression>
+Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
+      (BoundLiteralExpression<std::any> *)bindExpression(
+          indexExpression->getIndexIdentifierExpressionPtr().get())
+          .release());
+
+  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
+      boundIdentifierExpression->getValue());
+
+  if (!root->tryLookupVariable(variable_str)) {
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Variable " + variable_str + " Does Not Exist",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        indexExpression->getIndexEpressionPtr().get()->getSourceLocation()));
+
+    return nullptr;
+  }
+
+  if (indexExpression->getIndexEpressionPtr().get()->getTokenPtr()->getKind() !=
+      SyntaxKindUtils::SyntaxKind::NumberToken) {
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Index Expression Must Be A Number",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        indexExpression->getIndexEpressionPtr().get()->getSourceLocation()));
+
+    return nullptr;
+  }
+
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexExpression(
+      (BoundLiteralExpression<std::any> *)bindExpression(
+          indexExpression->getIndexEpressionPtr().get())
+          .release());
+
+  return std::make_unique<BoundIndexExpression>(
+      indexExpression->getSourceLocation(),
+      std::move(boundIdentifierExpression), std::move(boundIndexExpression));
+}
+
+std::unique_ptr<BoundExpression>
 Binder::bindunaryExpression(UnaryExpressionSyntax *unaryExpression) {
   std::unique_ptr<BoundExpression> boundOperand =
       std::move(bindExpression(unaryExpression->getOperandPtr().get()));
@@ -543,6 +586,9 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   }
   case SyntaxKindUtils::SyntaxKind::CallExpression: {
     return std::move(bindCallExpression((CallExpressionSyntax *)syntax));
+  }
+  case SyntaxKindUtils::SyntaxKind::IndexExpression: {
+    return std::move(bindIndexExpression((IndexExpressionSyntax *)syntax));
   }
   default:
     throw "Unexpected syntax";

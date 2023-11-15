@@ -40,6 +40,7 @@
 #include "../BoundForStatement/BoundForStatement.h"
 #include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../BoundIfStatement/BoundIfStatement.h"
+#include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
@@ -136,6 +137,9 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindCallExpression(CallExpressionSyntax *callExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindIndexExpression(IndexExpressionSyntax *indexExpression);
 
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,

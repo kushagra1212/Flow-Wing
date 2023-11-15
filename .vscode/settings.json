@@ -114,7 +114,8 @@
     "__tuple": "cpp",
     "__string": "cpp",
     "__split_buffer": "cpp",
-    "*.o": "cpp"
+    "*.o": "cpp",
+    "forward_list": "cpp"
   },
   "cmake.configureOnOpen": false
 }

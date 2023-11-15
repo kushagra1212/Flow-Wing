@@ -12,6 +12,7 @@ enum BoundNodeKind {
   AssignmentExpression,
   VariableExpression,
   CallExpression,
+  IndexExpression,
 
   // Statements
   BoundStatementKind,

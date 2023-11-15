@@ -7,6 +7,7 @@
 #include "../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
@@ -28,6 +29,7 @@
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
+
 #include <typeindex>
 class Parser {
 

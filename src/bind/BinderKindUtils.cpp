@@ -16,6 +16,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "VariableExpression";
   case CallExpression:
     return "CallExpression";
+  case IndexExpression:
+    return "IndexExpression";
   case BoundStatementKind:
     return "BoundStatementKind";
   case ExpressionStatement:

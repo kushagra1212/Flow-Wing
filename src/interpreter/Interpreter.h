@@ -2,6 +2,7 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 #include "../bind/Binder/Binder.h"
+#include "../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../syntax/SyntaxKindUtils.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/ExpressionSyntax.h"
@@ -63,7 +64,9 @@ private:
   template <typename T> T evaluateBinaryExpression(BoundExpression *node);
   template <typename T> T evaluateAssignmentExpression(BoundExpression *node);
   template <typename T> T evaluateVariableExpression(BoundExpression *node);
+  template <typename T> T evaluateIndexExpression(BoundExpression *node);
   template <typename T> T evaluate(BoundExpression *node);
+
   std::any handleBuiltInFunction(BoundCallExpression *node);
 
   std::any unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,

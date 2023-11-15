@@ -171,6 +171,7 @@ void Repl::compileAndEvaluate(
       _diagnosticHandler->logDiagnostics(outputStream, [](const Diagnostic &d) {
         return d.getType() == DiagnosticUtils::DiagnosticType::Runtime;
       });
+      _previousGlobalScope = std::move(globalScope->previous);
     } else {
       _previousGlobalScope = std::move(globalScope);
     }
@@ -260,7 +261,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << GREEN << "Welcome to the " << GREEN << "Flux Orbit" << YELLOW
+  outputStream << GREEN << "Welcome to the " << GREEN << "Flow Wing" << YELLOW
                << " REPL!" << RESET << std::endl;
 }
 

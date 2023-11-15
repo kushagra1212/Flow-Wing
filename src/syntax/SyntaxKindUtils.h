@@ -56,7 +56,8 @@ enum SyntaxKind {
 
   OpenBraceToken,
   CloseBraceToken,
-
+  OpenBracketToken,
+  CloseBracketToken,
   // Strings
 
   StringToken,
@@ -94,6 +95,7 @@ enum SyntaxKind {
   VariableExpression,
   CompilationUnit,
   CallExpression,
+  IndexExpression,
 
   // Statements
   GlobalStatement,

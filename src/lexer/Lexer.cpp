@@ -6,7 +6,6 @@ Lexer::Lexer(std::vector<std::string> sourceCode,
   textSize = sourceCode.size();
 
   this->_sourceCode = sourceCode;
-
   this->lineNumber = 0;
   this->position = 0;
   this->_diagnosticHandler = diagnosticHandler;
@@ -330,6 +329,17 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::CloseBraceToken, this->position++, "}",
+        nullptr);
+  case '[':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::OpenBracketToken, this->position++, "[",
+        nullptr);
+
+  case ']':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CloseBracketToken, this->position++, "]",
         nullptr);
 
   case '#':

@@ -216,12 +216,21 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::FromKeyword: {
     return "FromKeyword";
   }
-  case SyntaxKind::BringStatementSyntax: {
-    return "BringStatementSyntax";
-  }
 
+  case SyntaxKind::BringStatementSyntax:
+    return "BringStatementSyntax";
+
+  case SyntaxKind::OpenBracketToken:
+    return "OpenBracketToken";
+
+  case SyntaxKind::CloseBracketToken:
+    return "CloseBracketToken";
+
+  case SyntaxKind::IndexExpression:
+    return "IndexExpression";
   case SyntaxKind::SlashSlashToken:
     return "SlashSlashToken";
+
   default:
     return "NotDefined";
   }
