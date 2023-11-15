@@ -11,6 +11,7 @@ private:
   DiagnosticHandler *parent;
   int previousLineCount = 0;
   std::string _filePath;
+  std::vector<std::string> _replLines;
   std::string getFileName(const std::string &filePath);
 
 public:
@@ -34,6 +35,14 @@ public:
   bool hasError(DiagnosticUtils::DiagnosticType) const;
 
   void updatePreviousLineCount(const int count);
+
+  void setReplLines(const std::vector<std::string> &replLines);
+
+  const std::vector<std::string> &getReplLines() const;
+
+  std::vector<std::string> getLines();
+
+  const int8_t isRepl() const;
 };
 
 #endif // DIAGNOSTIC_HANDLER_H

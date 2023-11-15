@@ -74,6 +74,7 @@ void Repl::runWithStream(std::istream &inputStream,
       emptyLines = 0;
 
       text.push_back(line);
+      _diagnosticHandler->setReplLines(text);
 
       parser = std::make_unique<Parser>(text, this->_diagnosticHandler.get());
 

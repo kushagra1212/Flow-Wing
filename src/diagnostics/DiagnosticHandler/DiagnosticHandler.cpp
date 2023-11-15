@@ -20,8 +20,8 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
 std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
                                                         int columnNumber) {
   std::string snippet = "\n";
-  std::ifstream fileStream(_filePath);
-  std::string line;
+  std::vector<std::string> lines = isRepl() ? getReplLines() : getLines();
+  int lineCount = lines.size();
   int currentLineNumber = 1;
 
   auto errorMarker = [&]() {
@@ -41,8 +41,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
     return marker;
   };
 
-  while (std::getline(fileStream, line)) {
-
+  while (currentLineNumber <= lineCount) {
     if (currentLineNumber <= lineNumber + 4 &&
         currentLineNumber >= lineNumber - 4) {
       snippet += YELLOW + std::to_string(currentLineNumber) + "| " + RESET;
@@ -51,7 +50,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
       } else {
         snippet += RESET;
       }
-      snippet += line + "\n";
+      snippet += lines[currentLineNumber - 1] + "\n";
       snippet += RESET;
       if (lineNumber == currentLineNumber) {
 
@@ -64,6 +63,31 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
     snippet += errorMarker();
   }
   return snippet;
+}
+
+void DiagnosticHandler::setReplLines(
+    const std::vector<std::string> &replLines) {
+  this->_replLines = replLines;
+}
+
+const std::vector<std::string> &DiagnosticHandler::getReplLines() const {
+  return this->_replLines;
+}
+
+std::vector<std::string> DiagnosticHandler::getLines() {
+  std::vector<std::string> lines;
+  std::ifstream fileStream(_filePath);
+  std::string line;
+
+  while (std::getline(fileStream, line)) {
+    lines.push_back(line);
+  }
+
+  return lines;
+}
+
+const int8_t DiagnosticHandler::isRepl() const {
+  return this->_replLines.size() > 0 ? 1 : 0;
 }
 
 std::string DiagnosticHandler::getAbsoluteFilePath() { return this->_filePath; }
@@ -170,6 +194,7 @@ bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticType type) const {
         return diagnostic.getType() == type &&
                diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error;
       });
+
   if (parent != nullptr) {
     return parent->hasError(type) || hasError;
   }
