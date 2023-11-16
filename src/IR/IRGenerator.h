@@ -1,40 +1,42 @@
 #ifndef IRGENERATOR_H
 #define IRGENERATOR_H
 
-#include "../../Common.h"
-#include "../../IR/constants/FlowWingIRConstants.h"
-#include "../../IR/context/CodeGenerationContext.h"
-#include "../../IR/declarations/FunctionDeclarationManager/FunctionDeclarationManager.h"
-#include "../../IR/handlers/alloca/AllocaChain/AllocaChain.h"
-#include "../../IR/handlers/alloca/AllocaHandler.h"
-#include "../../IR/handlers/alloca/AllocaTable/AllocaTable.h"
-#include "../../IR/handlers/value/NamedValueTable/NamedValueTable.h"
-#include "../../IR/handlers/value/ValueChain/ValueChain.h"
-#include "../../IR/handlers/value/ValueHandler.h"
-#include "../../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
-#include "../../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
-#include "../../IR/irGen/statements/StatementGenerationFactory.h"
-#include "../../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
-#include "../../IR/logger/LLVMLogger.h"
-#include "../../bind/Binder/Binder.h"
-#include "../../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
-#include "../../bind/BinderKindUtils.h"
-#include "../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../../bind/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../bind/BoundBringStatement/BoundBringStatement.h"
-#include "../../bind/BoundExpression.h"
-#include "../../bind/BoundExpressionStatement/BoundExpressionStatement.h"
-#include "../../bind/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
-#include "../../bind/BoundStatement/BoundStatement.h"
-#include "../../bind/BoundUnaryExpression/BoundUnaryExpression.h"
-#include "../../bind/BoundVariableExpression/BoundVariableExpression.h"
-#include "../../syntax/CompilationUnitSyntax.h"
-#include "../IRParser/IRParser.h"
+#include "../Common.h"
+#include "../IR/constants/FlowWingIRConstants.h"
+#include "../IR/context/CodeGenerationContext.h"
+#include "../IR/declarations/FunctionDeclarationManager/FunctionDeclarationManager.h"
+#include "../IR/handlers/alloca/AllocaChain/AllocaChain.h"
+#include "../IR/handlers/alloca/AllocaHandler.h"
+#include "../IR/handlers/alloca/AllocaTable/AllocaTable.h"
+#include "../IR/handlers/value/NamedValueTable/NamedValueTable.h"
+#include "../IR/handlers/value/ValueChain/ValueChain.h"
+#include "../IR/handlers/value/ValueHandler.h"
+#include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
+#include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
+#include "../IR/irGen/statements/StatementGenerationFactory.h"
+#include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+#include "../IR/logger/LLVMLogger.h"
+#include "../bind/Binder/Binder.h"
+#include "../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
+#include "../bind/BinderKindUtils.h"
+#include "../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../bind/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../bind/BoundBlockStatement/BoundBlockStatement.h"
+#include "../bind/BoundBringStatement/BoundBringStatement.h"
+#include "../bind/BoundExpression.h"
+#include "../bind/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "../bind/BoundStatement/BoundStatement.h"
+#include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../bind/BoundVariableExpression/BoundVariableExpression.h"
+#include "../syntax/CompilationUnitSyntax.h"
+#include "../utils/Utils.h"
+#include "IRGenerator.h"
+#include "IRParser/IRParser.h"
+
 using namespace FLOWWING::IR::CONSTANTS;
 
-class IRUtils;
 // LLVM Imports
 #include "llvm/IR/Type.h"
 #include "llvm/Pass.h"
@@ -90,9 +92,6 @@ class IRUtils;
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 
-#include "../llvm/IRGenerator.h"
-
-#include "../../utils/Utils.h"
 #include <llvm/Support/raw_ostream.h>
 #include <sstream>
 

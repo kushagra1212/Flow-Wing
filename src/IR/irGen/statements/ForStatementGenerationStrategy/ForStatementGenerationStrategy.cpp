@@ -113,7 +113,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   llvm::Value *variableValue =
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
-  //  this->_irUtils->getNamedValue(variableName, this->_NamedValuesStack);
 
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);

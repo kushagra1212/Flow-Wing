@@ -37,7 +37,7 @@ IRGenerator::IRGenerator(
 
 void IRGenerator::updateModule() {
   std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
+      "../../../src/IR/BuiltinIRs/built_in_module.ll"};
 
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;

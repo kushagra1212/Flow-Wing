@@ -1,7 +1,7 @@
 #ifndef JITCOMPILER_H
 #define JITCOMPILER_H
 
-#include "../evaluator/llvm/IRGenerator.h"
+#include "../IR/IRGenerator.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 #include <fstream>

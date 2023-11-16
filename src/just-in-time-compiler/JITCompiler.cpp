@@ -159,7 +159,7 @@ void JITCompiler::execute() {
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
   std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
+      "../../../src/IR/BuiltinIRs/built_in_module.ll"};
 
   std::vector<std::string> _userDefinedIRFilePaths =
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
