@@ -59,7 +59,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
                            {Builder->getInt32(0),
                             _int32TypeConverter->convertExplicit(indexValue)});
 
-    return elementPtr;
+    return Builder->CreateLoad(elementType, elementPtr);
   }
 
   _codeGenerationContext->getLogger()->LogError(

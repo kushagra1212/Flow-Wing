@@ -176,9 +176,26 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     return nullptr;
   }
 
-  llvm::Value *elementPtr =
+  llvm::Value *loadedElementValue =
       _expressionGenerationFactory->createStrategy(indexExpression->getKind())
           ->generateExpression(indexExpression);
+
+  if (!loadedElementValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Index value not found in assignment expression ");
+
+    return nullptr;
+  }
+
+  std::string variableName = std::any_cast<std::string>(
+      (indexExpression->getBoundIdentifierExpression().get())->getValue());
+
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+  // Get Element pointer
+  llvm::Value *elementPtr = Builder->CreateGEP(
+      v->getAllocatedType(), v,
+      {Builder->getInt32(0), _int32TypeConverter->convertExplicit(indexValue)});
 
   Builder->CreateStore(rhsValue, elementPtr);
 
