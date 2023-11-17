@@ -187,6 +187,19 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     return nullptr;
   }
 
+  if (rhsValue->getType() != loadedElementValue->getType()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in assignment expression, expected " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            loadedElementValue->getType()) +
+        " but found " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()) +
+        " ");
+
+    return nullptr;
+  }
+
   std::string variableName = std::any_cast<std::string>(
       (indexExpression->getBoundIdentifierExpression().get())->getValue());
 
