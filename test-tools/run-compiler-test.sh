@@ -7,7 +7,7 @@
 # Build and run containers defined in docker-compose.yml
 
 
-docker-compose up compiler-test -d   --build 
+docker-compose up compiler-test -d --build 
 
 
 # Run tests

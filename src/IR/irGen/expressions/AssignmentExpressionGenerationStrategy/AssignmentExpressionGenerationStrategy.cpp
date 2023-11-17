@@ -4,10 +4,9 @@ AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
-    BoundExpression *expression) {
-  BoundAssignmentExpression *assignmentExpression =
-      static_cast<BoundAssignmentExpression *>(expression);
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
+    BoundAssignmentExpression *assignmentExpression) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
@@ -40,7 +39,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   if (!oldVariable) {
 
     _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression ");
+        "Global Variable not found in assignment expression ");
 
     return nullptr;
   }
@@ -79,10 +78,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   return nullptr;
 }
 
-llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
-    BoundExpression *expression) {
-  BoundAssignmentExpression *assignmentExpression =
-      (BoundAssignmentExpression *)expression;
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
+    BoundAssignmentExpression *assignmentExpression) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
@@ -141,8 +139,106 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
 
   return rhsValue;
 }
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
+    BoundAssignmentExpression *assignmentExpression) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
 
+  BoundIndexExpression *indexExpression = static_cast<BoundIndexExpression *>(
+      assignmentExpression->getLeftPtr().get());
+
+  llvm::Value *rhsValue =
+      _expressionGenerationFactory
+          ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+          ->generateExpression(assignmentExpression->getRightPtr().get());
+
+  if (!rhsValue) {
+    // Error generating IR for the right-hand side expression
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Right hand side value not found in assignment expression ");
+
+    return nullptr;
+  }
+
+  llvm::Value *indexValue =
+      _expressionGenerationFactory
+          ->createStrategy(
+              indexExpression->getBoundIndexExpression().get()->getKind())
+          ->generateExpression(
+              indexExpression->getBoundIndexExpression().get());
+
+  if (!indexValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Index value not found in assignment expression ");
+
+    return nullptr;
+  }
+
+  llvm::Value *elementPtr =
+      _expressionGenerationFactory->createStrategy(indexExpression->getKind())
+          ->generateExpression(indexExpression);
+
+  Builder->CreateStore(rhsValue, elementPtr);
+
+  return rhsValue;
+}
+
+llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
+    BoundExpression *expression) {
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+
+  if (auto boundLiteralExpression =
+          dynamic_cast<BoundLiteralExpression<std::any> *>(
+              assignmentExpression->getLeftPtr().get())) {
+    return this->handleLiteralExpressionAssignment(assignmentExpression);
+  } else if (auto boundIndexExpression = dynamic_cast<BoundIndexExpression *>(
+                 assignmentExpression->getLeftPtr().get())) {
+    return this->handleIndexExpressionAssignment(assignmentExpression);
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Left hand side value not found in assignment expression ");
+
+  return nullptr;
+}
+
+// TODO: Implement global index expression assignment
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
+    BoundAssignmentExpression *assignmentExpression) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+
+  _codeGenerationContext->getLogger()->LogError(
+      "TODO: Implement global index expression assignment ");
+
+  return nullptr;
+}
 llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
-  return this->handleAssignmentExpression(expression);
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+
+  if (auto boundLiteralExpression =
+          dynamic_cast<BoundLiteralExpression<std::any> *>(
+              assignmentExpression->getLeftPtr().get())) {
+    return this->handleGlobalLiteralExpressionAssignment(assignmentExpression);
+  } else if (auto boundIndexExpression = dynamic_cast<BoundIndexExpression *>(
+                 assignmentExpression->getLeftPtr().get())) {
+    return this->handleGlobalIndexExpressionAssignment(assignmentExpression);
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Left hand side value not found in assignment expression ");
+
+  return nullptr;
 }

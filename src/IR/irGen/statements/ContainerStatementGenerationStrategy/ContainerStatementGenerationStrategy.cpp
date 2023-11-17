@@ -72,7 +72,17 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
   return arrayAlloca;
 }
 
+// TODO: Implement this
 llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-  return this->generateStatement(statement);
+
+  auto containerStatement = static_cast<BoundContainerStatement *>(statement);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      containerStatement->getLocation());
+
+  _codeGenerationContext->getLogger()->LogError(
+      "TODO: Global Container is not supported yet");
+
+  return nullptr;
 }

@@ -42,9 +42,16 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArguments()[0].get()->getKind())
               ->generateExpression(callExpression->getArguments()[0].get());
 
+      // check if value is element pointer
+      if (llvm::isa<llvm::GetElementPtrInst>(value)) {
+        auto v = static_cast<llvm::GetElementPtrInst *>(value);
+        value = Builder->CreateLoad(v->getResultElementType(), v);
+      }
+
       if (llvm::isa<llvm::AllocaInst>(value)) {
 
         auto v = static_cast<llvm::AllocaInst *>(value);
+
         if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
           return printArray(v);
         }
@@ -55,7 +62,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
         return nullptr;
       }
-
       if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
               value->getType()) != Utils::type::NOTHING) {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
@@ -234,7 +240,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
 llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
 
   llvm::ArrayType *arrayType =
-      llvm::cast<llvm::ArrayType>(v->getAllocatedType());
+      llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType());
   llvm::Type *elementType = arrayType->getElementType();
   const uint64_t size = arrayType->getNumElements();
 

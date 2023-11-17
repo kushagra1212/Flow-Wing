@@ -42,9 +42,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   return result;
 }
 
-void VariableDeclarationStatementGenerationStrategy::
-    handleGlobalVariableDeclaration(BoundStatement *statement) {
-
+llvm::Value *
+VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
   BoundVariableDeclaration *variableDeclaration =
       static_cast<BoundVariableDeclaration *>(statement);
 
@@ -58,10 +58,10 @@ void VariableDeclarationStatementGenerationStrategy::
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);
 
-  if (result == nullptr) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Error in generating IR for variable declaration ");
-    return;
+  if (!result) {
+    _codeGenerationContext->getLogger()->LogError("Rhhs of variable " +
+                                                  variableName + " is null");
+    return nullptr;
   }
   llvm::GlobalVariable *_globalVariable = nullptr;
   llvm::AllocaInst *v = nullptr;
@@ -90,10 +90,6 @@ void VariableDeclarationStatementGenerationStrategy::
           llvm::Constant::getNullValue(result->getType()), variableName);
     }
   }
-}
 
-llvm::Value *
-VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
-  return this->generateStatement(statement);
+  return result;
 }

@@ -32,7 +32,8 @@
 #include "../utils/Utils.h"
 
 #include <typeindex>
-class Parser {
+class Parser
+{
 
 public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
@@ -69,6 +70,7 @@ private:
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
+  std::unique_ptr<IndexExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<MemberSyntax> parseMember();
   std::unique_ptr<FunctionDeclarationSyntax>

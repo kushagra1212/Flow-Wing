@@ -12,13 +12,6 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       indexExpression->getLocation());
 
-  llvm::Value *value =
-      _expressionGenerationFactory
-          ->createStrategy(
-              indexExpression->getBoundIdentifierExpression().get()->getKind())
-          ->generateExpression(
-              indexExpression->getBoundIdentifierExpression().get());
-
   llvm::Value *indexValue =
       _expressionGenerationFactory
           ->createStrategy(
@@ -26,15 +19,35 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
           ->generateExpression(
               indexExpression->getBoundIndexExpression().get());
 
+  if (!_codeGenerationContext->getMapper()->isInt32Type(
+          indexValue->getType())) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Index value must be of type int32");
+    return nullptr;
+  }
+
   std::string variableName = std::any_cast<std::string>(
-      ((BoundLiteralExpression<std::any> *)indexExpression
-           ->getBoundIdentifierExpression()
-           ->getIdentifierExpressionPtr()
-           .get())
-          ->getValue());
+      (indexExpression->getBoundIdentifierExpression().get())->getValue());
 
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+
+  if (!v) {
+    // Variable not found, handle error
+
+    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+
+    if (variable) {
+      this->generateGlobalExpression(indexExpression);
+      return nullptr;
+    }
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Variable not found in assignment expression ");
+
+    return nullptr;
+  }
+
   if (llvm::ArrayType *arrayType =
           llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType())) {
     llvm::Type *elementType = arrayType->getElementType();
@@ -46,16 +59,25 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
                            {Builder->getInt32(0),
                             _int32TypeConverter->convertExplicit(indexValue)});
 
-    return Builder->CreateLoad(elementType, elementPtr);
+    return elementPtr;
   }
 
   _codeGenerationContext->getLogger()->LogError(
-      "Variable not found in variable expression ");
+      "Variable" + variableName + " not found in variable expression ");
 
   return nullptr;
 }
 
+// TODO: Implement global index expression generation strategy
 llvm::Value *IndexExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
-  return this->generateExpression(expression);
+  BoundIndexExpression *indexExpression =
+      static_cast<BoundIndexExpression *>(expression);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      indexExpression->getLocation());
+
+  _codeGenerationContext->getLogger()->LogError(
+      "TODO: Implement global index expression generation strategy");
+
+  return nullptr;
 }

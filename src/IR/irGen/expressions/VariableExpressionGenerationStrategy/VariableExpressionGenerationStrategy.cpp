@@ -24,21 +24,21 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
-  if (llvm::ArrayType *arrayType =
-          llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType())) {
-    return v;
-  }
-
   llvm::Value *variableValue =
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
 
   if (!variableValue) {
     if (variable) {
+
       return this->handleGlobalVariable(variableName, variable);
     }
 
+    if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+
+      return v;
+    }
     _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in variable expression ");
+        "Variable " + variableName + " not found in variable expression ");
 
     return nullptr;
   }

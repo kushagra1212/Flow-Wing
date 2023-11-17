@@ -1,7 +1,6 @@
-container<deci> x = [1.2,3.5]
-
-print(x)
-
-print(true+1.0)
-
-print(x[0])
+{container<int> a = [1, 2, 3, 4, 5]
+a[2] = 10
+a[3] = 20
+a[4] = 30
+print(a[3])
+print(a)}

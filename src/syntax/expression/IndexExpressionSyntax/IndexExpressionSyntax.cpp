@@ -1,13 +1,13 @@
 #include "IndexExpressionSyntax.h"
 
 IndexExpressionSyntax::IndexExpressionSyntax(
-    std::unique_ptr<VariableExpressionSyntax> identifierExpression,
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,
     std::unique_ptr<LiteralExpressionSyntax<std::any>> indexToken) {
   this->_identifierExpression = std::move(identifierExpression);
   this->_indexExpression = std::move(indexToken);
 }
 
-std::unique_ptr<VariableExpressionSyntax> &
+std::unique_ptr<LiteralExpressionSyntax<std::any>> &
 IndexExpressionSyntax::getIndexIdentifierExpressionPtr() {
   return this->_identifierExpression;
 }

@@ -2,7 +2,7 @@
 
 BoundIndexExpression::BoundIndexExpression(
     const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundVariableExpression> boundIdentifierExpression,
+    std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression,
     std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexExpression)
     : BoundSourceLocation(location) {
 
@@ -11,7 +11,7 @@ BoundIndexExpression::BoundIndexExpression(
 }
 
 const std::type_info &BoundIndexExpression::getType() {
-  return _boundIdentifierExpression->getIdentifierExpressionPtr()->getType();
+  return _boundIdentifierExpression->getType();
 }
 
 BinderKindUtils::BoundNodeKind BoundIndexExpression::getKind() const {
@@ -27,7 +27,7 @@ std::vector<BoundNode *> BoundIndexExpression::getChildren() {
   return _children;
 }
 
-std::unique_ptr<BoundVariableExpression> &
+std::unique_ptr<BoundLiteralExpression<std::any>> &
 BoundIndexExpression::getBoundIdentifierExpression() {
   return _boundIdentifierExpression;
 }

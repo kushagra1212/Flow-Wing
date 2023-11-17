@@ -12,8 +12,6 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
-
-  void handleGlobalVariableDeclaration(BoundStatement *statement);
 };
 
 #endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

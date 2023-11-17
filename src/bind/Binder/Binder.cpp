@@ -193,7 +193,6 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
                    DiagnosticUtils::DiagnosticType::Semantic,
                    Utils::getSourceLocation(
                        returnStatement->getReturnKeywordPtr().get())));
-
   } else {
     ExpressionSyntax *returnExpression =
         returnStatement->getExpressionPtr().get();
@@ -407,9 +406,7 @@ std::unique_ptr<BoundExpression>
 Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
 
   std::string variableName = std::any_cast<std::string>(
-      indexExpression->getIndexIdentifierExpressionPtr()
-          ->getIdentifierPtr()
-          ->getValue());
+      indexExpression->getIndexIdentifierExpressionPtr()->getValue());
 
   Utils::Variable variable = root->tryGetVariable(variableName);
 
@@ -420,24 +417,23 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
                    DiagnosticUtils::DiagnosticType::Semantic,
                    Utils::getSourceLocation(
                        indexExpression->getIndexIdentifierExpressionPtr()
-                           ->getIdentifierPtr()
                            ->getTokenPtr()
                            .get())));
   }
 
-  std::unique_ptr<BoundVariableExpression> boundIdentifierExpression(
-      (BoundVariableExpression *)bindVariableExpression(
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
+      (BoundLiteralExpression<std::any> *)bindExpression(
           indexExpression->getIndexIdentifierExpressionPtr().get())
           .release());
 
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexExpression(
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexLiteral(
       (BoundLiteralExpression<std::any> *)bindExpression(
           indexExpression->getIndexEpressionPtr().get())
           .release());
 
   return std::make_unique<BoundIndexExpression>(
       indexExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression), std::move(boundIndexExpression));
+      std::move(boundIdentifierExpression), std::move(boundIndexLiteral));
 }
 
 std::unique_ptr<BoundExpression>
@@ -469,13 +465,30 @@ Binder::bindBinaryExpression(BinaryExpressionSyntax *binaryExpression) {
 
 std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     AssignmentExpressionSyntax *assignmentExpression) {
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
-      (BoundLiteralExpression<std::any> *)bindExpression(
-          assignmentExpression->getLeftPtr().get())
-          .release());
 
-  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
-      boundIdentifierExpression->getValue());
+  std::string variable_str = "";
+
+  if (auto literalExpression =
+          dynamic_cast<LiteralExpressionSyntax<std::any> *>(
+              assignmentExpression->getLeftPtr().get())) {
+    variable_str = std::any_cast<std::string>(literalExpression->getValue());
+  } else if (auto indexExpression = dynamic_cast<IndexExpressionSyntax *>(
+                 assignmentExpression->getLeftPtr().get())) {
+    variable_str = std::any_cast<std::string>(
+        indexExpression->getIndexIdentifierExpressionPtr()->getValue());
+  } else {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Invalid Assignment Expression",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       assignmentExpression->getOperatorTokenPtr().get())));
+
+    return std::move(bindExpression(assignmentExpression->getLeftPtr().get()));
+  }
+
+  std::unique_ptr<BoundExpression> boundIdentifierExpression(
+      bindExpression(assignmentExpression->getLeftPtr().get()).release());
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
