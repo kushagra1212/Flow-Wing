@@ -42,8 +42,10 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArguments()[0].get()->getKind())
               ->generateExpression(callExpression->getArguments()[0].get());
 
-      if (auto v = static_cast<llvm::AllocaInst *>(value)) {
-        if (v->getAllocatedType()->isArrayTy()) {
+      if (llvm::isa<llvm::AllocaInst>(value)) {
+
+        auto v = static_cast<llvm::AllocaInst *>(value);
+        if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
           return printArray(v);
         }
 
@@ -59,7 +61,11 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                             {_stringTypeConverter->convertExplicit(value),
                              Builder->getInt1(false)});
+        return nullptr;
       }
+      _codeGenerationContext->getLogger()->LogError("Something went wrong in "
+                                                    "print function call ");
+
       return nullptr;
     }
   } else if (function.name == Utils::BuiltInFunctions::input.name) {
@@ -226,6 +232,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
 }
 
 llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
+
   llvm::ArrayType *arrayType =
       llvm::cast<llvm::ArrayType>(v->getAllocatedType());
   llvm::Type *elementType = arrayType->getElementType();

@@ -25,7 +25,7 @@ InterpreterConversion::explicitConvertBoolToString(const bool value) {
 std::string
 InterpreterConversion::explicitConvertDoubleToString(const double value) {
   std::stringstream stream;
-  stream << std::fixed << std::setprecision(18) << value;
+  stream << std::fixed << std::setprecision(16) << value;
   std::string formattedResult = stream.str();
   return formattedResult;
 }

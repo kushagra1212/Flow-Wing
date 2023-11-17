@@ -177,7 +177,7 @@ TEST_F(InBuiltFunction, BasicIntToString) {
 TEST_F(InBuiltFunction, BasicDoubleToString) {
   std::string input = R"(print(String(123.33)))";
 
-  std::string expected_output = "123.329999999999998295";
+  std::string expected_output = "123.3299999999999983";
 
   setInput(input);
   runEvaluator();
@@ -280,7 +280,7 @@ TEST_F(InBuiltFunction, BasicStringToInt32UndefinedBehaviour) {
 TEST_F(InBuiltFunction, BasicIntToDouble) {
   std::string input = R"(print(Decimal(123)))";
 
-  std::string expected_output = "123.000000000000000000";
+  std::string expected_output = "123.0000000000000000";
 
   setInput(input);
   runEvaluator();
@@ -290,7 +290,7 @@ TEST_F(InBuiltFunction, BasicIntToDouble) {
 TEST_F(InBuiltFunction, BasicDoubleToDouble) {
   std::string input = R"(print(Decimal(123.33)))";
 
-  std::string expected_output = "123.329999999999998295";
+  std::string expected_output = "123.3299999999999983";
 
   setInput(input);
   runEvaluator();
@@ -300,7 +300,7 @@ TEST_F(InBuiltFunction, BasicDoubleToDouble) {
 TEST_F(InBuiltFunction, BasicBoolToDoubleTrue) {
   std::string input = R"(print(Decimal(true)))";
 
-  std::string expected_output = "1.000000000000000000";
+  std::string expected_output = "1.0000000000000000";
 
   setInput(input);
   runEvaluator();
@@ -310,7 +310,7 @@ TEST_F(InBuiltFunction, BasicBoolToDoubleTrue) {
 TEST_F(InBuiltFunction, BasicBoolToDoubleFalse) {
   std::string input = R"(print(Decimal(false)))";
 
-  std::string expected_output = "0.000000000000000000";
+  std::string expected_output = "0.0000000000000000";
 
   setInput(input);
   runEvaluator();
@@ -322,7 +322,7 @@ TEST_F(InBuiltFunction, BasicBoolToDoubleFalse) {
 TEST_F(InBuiltFunction, BasicStringToDoubleWithInt) {
   std::string input = R"(print(Decimal("123")))";
 
-  std::string expected_output = "123.000000000000000000";
+  std::string expected_output = "123.0000000000000000";
 
   setInput(input);
   runEvaluator();
@@ -332,7 +332,7 @@ TEST_F(InBuiltFunction, BasicStringToDoubleWithInt) {
 TEST_F(InBuiltFunction, BasicStringToDouble) {
   std::string input = R"(print(Decimal("123.33")))";
 
-  std::string expected_output = "123.329999999999998295";
+  std::string expected_output = "123.3299999999999983";
 
   setInput(input);
   runEvaluator();
@@ -342,7 +342,7 @@ TEST_F(InBuiltFunction, BasicStringToDouble) {
 TEST_F(InBuiltFunction, BasicStringToDoubleUndefinedBehaviour) {
   std::string input = R"(print(Decimal("wwws")))";
 
-  std::string expected_output = "0.000000000000000000";
+  std::string expected_output = "0.0000000000000000";
 
   setInput(input);
   runEvaluator();

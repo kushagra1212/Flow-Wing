@@ -5,7 +5,7 @@ source_filename = "built_in_module"
 @formatStrprintf =   global [3 x i8] c"%s\00"
 @formatStrscanf =   global [10 x i8] c"%1000000s\00", align 1
 @intFormat =   global [3 x i8] c"%d\00"
-@doubleFormat =   global [6 x i8] c"%.18f\00"
+@doubleFormat =   global [6 x i8] c"%.16f\00"
 
 declare i8* @malloc(i64)
 declare i64 @strlen(i8*)

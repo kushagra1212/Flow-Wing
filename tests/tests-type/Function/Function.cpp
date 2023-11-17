@@ -1099,7 +1099,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.500000000000000000";
+  std::string expected_output = "5.5000000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1132,7 +1132,7 @@ print(getSum(2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.299999999999999822";
+  std::string expected_output = "5.2999999999999998";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1197,7 +1197,7 @@ print(getSum(2.2,3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.200000000000000178";
+  std::string expected_output = "5.2000000000000002";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1214,7 +1214,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.500000000000000000";
+  std::string expected_output = "5.5000000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1231,7 +1231,7 @@ print(getSum(2.2,true))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "3.200000000000000178";
+  std::string expected_output = "3.2000000000000002";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1248,7 +1248,7 @@ print(getSum(2.2,"Hello"))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "2.200000000000000178Hello";
+  std::string expected_output = "2.2000000000000002Hello";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1299,7 +1299,7 @@ print(getSum(true,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "4.299999999999999822";
+  std::string expected_output = "4.2999999999999998";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 

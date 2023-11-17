@@ -27,7 +27,7 @@ TEST_F(BinaryOperationTest, BasicStringOperationConcat) {
 
 TEST_F(BinaryOperationTest, BasicStringOperationConcatWithDouble) {
   std::string input = R"("Hello"+2.0)";
-  std::string expected_output = "Hello2.000000000000000000";
+  std::string expected_output = "Hello2.0000000000000000";
 
   setInput(input);
   runEvaluator();
@@ -114,7 +114,7 @@ TEST_F(BinaryOperationTest, ComplexStringDoubleIntBoolOperation) {
   std::string input =
       R"(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello")";
   std::string expected_output =
-      "1.100000000000000089S20.0000000000000000001111hello";
+      "1.1000000000000001S20.00000000000000001111hello";
 
   setInput(input);
   runEvaluator();
@@ -123,7 +123,7 @@ TEST_F(BinaryOperationTest, ComplexStringDoubleIntBoolOperation) {
 
 TEST_F(BinaryOperationTest, ComplexStringDoubleIntBoolOperationCompare) {
   std::string input =
-      R"(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello"=="1.100000000000000089S20.0000000000000000001111hello")";
+      R"(true*false*0*(1+true)+1.1*true+"S"+1*2+false*0.01+"1111"+"hello"=="1.1000000000000001S20.00000000000000001111hello")";
   std::string expected_output = "true";
 
   setInput(input);

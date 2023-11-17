@@ -1,3 +1,7 @@
 container<deci> x = [1.2,3.5]
 
+print(x)
+
+print(true+1.0)
+
 print(x[0])

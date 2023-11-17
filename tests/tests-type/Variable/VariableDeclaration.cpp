@@ -190,7 +190,6 @@ TEST_F(VariableDeclaration,
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
-#ifndef JIT_TEST_MODE
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   std::string input =
       R"(fun main2() -> int {   
@@ -207,12 +206,10 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
       )";
 
   std::string expected_output =
-      "224323.1000000000000000894.2000000000000001782.2000000000000001783."
-      "200000000000000178falsetruetrue22.100000000000000089trueHello";
+      "224323.10000000000000014.20000000000000022.20000000000000023."
+      "2000000000000002falsetruetrue22.1000000000000001trueHello";
 
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-
-#endif
