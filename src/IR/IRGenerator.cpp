@@ -71,7 +71,6 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareStringToDoubleFn();
   functionDeclarationManager->declareStringToIntFn();
   functionDeclarationManager->declareStringToLongFn();
-
   functionDeclarationManager->declareRaiseExceptionFn();
 }
 

@@ -208,8 +208,13 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::FromKeyword, start, text, "from");
-  }
 
+  } else if (text == "container") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ContainerKeyword, start, text,
+        "container");
+  }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
       SyntaxKindUtils::SyntaxKind::IdentifierToken, start, text, text);

@@ -46,7 +46,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
         currentLineNumber >= lineNumber - 4) {
       snippet += YELLOW + std::to_string(currentLineNumber) + "| " + RESET;
       if (currentLineNumber <= lineNumber && currentLineNumber >= lineNumber) {
-        snippet += RED_TEXT;
+        snippet += PINK_TEXT;
       } else {
         snippet += RESET;
       }

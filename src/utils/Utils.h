@@ -26,6 +26,7 @@ enum type {
   DECIMAL,
   BOOL,
   STRING,
+  CONTAINER,
   NOTHING,
   UNKNOWN
 };

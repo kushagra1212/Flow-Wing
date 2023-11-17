@@ -44,6 +44,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "OrIfStatement";
   case BringStatement:
     return "BringStatement";
+  case ContainerStatement:
+    return "ContainerStatement";
   default:
     return "NotDefined";
   }

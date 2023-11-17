@@ -21,6 +21,14 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+
+  if (llvm::ArrayType *arrayType =
+          llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType())) {
+    return v;
+  }
+
   llvm::Value *variableValue =
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
 
@@ -34,9 +42,6 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
     return nullptr;
   }
-
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
   llvm::Value *value = Builder->CreateLoad(
       variableValue->getType(),

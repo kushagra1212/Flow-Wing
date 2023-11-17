@@ -3,6 +3,7 @@
 #include "AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
 #include "CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
 #include "LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "ParenthesizedExpressionGenerationStrategy/ParenthesizedExpressionGenerationStrategy.h"
 #include "UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
@@ -36,6 +37,9 @@ ExpressionGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::CallExpression:
     return std::make_unique<CallExpressionGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::IndexExpression:
+    return std::make_unique<IndexExpressionGenerationStrategy>(
         _codeGenerationContext);
   default: {
 

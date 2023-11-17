@@ -3,6 +3,7 @@
 #include "BlockStatementGenerationStrategy/BlockStatementGenerationStrategy.h"
 #include "BreakStatementGenerationStrategy/BreakStatementGenerationStrategy.h"
 #include "BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
+#include "ContainerStatementGenerationStrategy/ContainerStatementGenerationStrategy.h"
 #include "ContinueStatementGenerationStrategy/ContinueStatementGenerationStrategy.h"
 #include "ExpressionStatementGenerationStrategy/ExpressionStatementGenerationStrategy.h"
 #include "ForStatementGenerationStrategy/ForStatementGenerationStrategy.h"
@@ -52,6 +53,9 @@ StatementGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::BringStatement:
     return std::make_unique<BringStatementGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::ContainerStatement:
+    return std::make_unique<ContainerStatementGenerationStrategy>(
         _codeGenerationContext);
   default: {
 

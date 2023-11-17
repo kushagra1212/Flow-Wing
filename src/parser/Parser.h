@@ -15,6 +15,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
@@ -76,7 +77,9 @@ private:
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<StatementSyntax> parseBringStatement();
+  std::unique_ptr<StatementSyntax> parseContainerStatement();
   Utils::type parseType();
 
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,

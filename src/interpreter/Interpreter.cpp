@@ -675,26 +675,21 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
   BoundIndexExpression *indexExpression =
       static_cast<BoundIndexExpression *>(node);
 
-  std::any identifier = this->evaluateLiteralExpression<std::any>(
-      indexExpression->getBoundIdentifierExpression().get());
-
-  std::string identifier_name = std::any_cast<std::string>(identifier);
+  std::any value = this->evaluateVariableExpression<std::any>(
+      (BoundExpression *)indexExpression->getBoundIdentifierExpression().get());
 
   std::any index = this->evaluateLiteralExpression<std::any>(
       indexExpression->getBoundIndexExpression().get());
 
   int index_value = std::any_cast<int>(index);
 
-  Utils::Variable variable = this->getVariable(identifier_name);
-
-  if (variable.value.type() != typeid(std::string)) {
+  if (value.type() != typeid(std::string)) {
     this->_interpreterUtils->logError("String expected but " +
-                                      Utils::getTypeString(variable.value) +
-                                      " found");
+                                      Utils::getTypeString(value) + " found");
     return nullptr;
   }
 
-  std::string var_value = std::any_cast<std::string>(variable.value);
+  std::string var_value = std::any_cast<std::string>(value);
 
   if (index_value < 0 || index_value >= var_value.length()) {
     this->_interpreterUtils->logError("Index out of bound");

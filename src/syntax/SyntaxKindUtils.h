@@ -81,6 +81,7 @@ enum SyntaxKind {
   ExposeKeyword,
   FromKeyword,
   ElseClause,
+  ContainerKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -111,7 +112,8 @@ enum SyntaxKind {
   FunctionDeclarationSyntax,
   ParameterSyntax,
   EmptyStatement,
-  BringStatementSyntax
+  BringStatementSyntax,
+  ContainerStatement
 
 };
 bool isInt32(const std::string &str);

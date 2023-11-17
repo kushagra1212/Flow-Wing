@@ -115,7 +115,8 @@
     "__string": "cpp",
     "__split_buffer": "cpp",
     "*.o": "cpp",
-    "forward_list": "cpp"
+    "forward_list": "cpp",
+    "valarray": "cpp"
   },
   "cmake.configureOnOpen": false
 }

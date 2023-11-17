@@ -3,20 +3,19 @@
 #include "../../../Common.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+#include "../VariableExpressionSyntax.h"
 
 class IndexExpressionSyntax : public ExpressionSyntax {
 private:
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
+  std::unique_ptr<VariableExpressionSyntax> _identifierExpression;
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _indexExpression;
 
 public:
   IndexExpressionSyntax(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,
+      std::unique_ptr<VariableExpressionSyntax> identifierExpression,
       std::unique_ptr<LiteralExpressionSyntax<std::any>> indexExpression);
 
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-  getIndexIdentifierExpressionPtr();
+  std::unique_ptr<VariableExpressionSyntax> &getIndexIdentifierExpressionPtr();
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIndexEpressionPtr();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;

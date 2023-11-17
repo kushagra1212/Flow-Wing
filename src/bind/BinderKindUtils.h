@@ -26,6 +26,7 @@ enum BoundNodeKind {
   ContinueStatement,
   ReturnStatement,
   BringStatement,
+  ContainerStatement,
 
   // declarations
 
