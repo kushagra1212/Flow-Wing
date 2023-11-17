@@ -120,6 +120,141 @@ print(a[0])})";
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest, BasicContainerUpdate) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+a[0] = 10
+print(a)})";
+
+  std::string expected_output = "[10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerStringIndexingAssignment) {
+  std::string input = R"({container<str> a = ["a", "yay", "c", "d", "e"]
+a[1] = "hello"
+print(a[1])})";
+
+  std::string expected_output = "hello";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerBoolIndexingAssignment) {
+  std::string input = R"({container<bool> a = [true, false, true, false, true]
+
+a[2] = false  
+print(a[2])})";
+
+  std::string expected_output = "false";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerDeciIndexingAssignment) {
+  std::string input = R"({container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+a[3] = 10.10
+print(a[3])})";
+
+  std::string expected_output = "10.0999999999999996";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerUpdateAssignment) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+a[0] = 10
+print(a)})";
+
+  std::string expected_output = "[10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// TEST_F(ContainerTest, BasicContainerOutofBoundsIndexing) {
+//   std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+// print(a[10])})";
+
+//   setInput(input);
+//   runEvaluator();
+//   // Expected output should be in the of the output
+//   std::string lowerCaseOutput = getOutput();
+
+//   std::transform(lowerCaseOutput.begin(), lowerCaseOutput.end(),
+//                  lowerCaseOutput.begin(), ::tolower);
+
+//   std::string expected_output =
+//       "Index out of bounds of 'a' in index expression, array size is 5";
+//   std::transform(expected_output.begin(), expected_output.end(),
+//                  expected_output.begin(), ::tolower);
+
+//   // check expected output is substring of the output or not
+
+//   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
+// }
+TEST_F(ContainerTest, BasicContainerUpdateWithBinaryExpression) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+a[0] = 10 + 10
+print(a)})";
+
+  std::string expected_output = "[20, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerUpdateWithUnaryExpression) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+a[0] = -10
+print(a)})";
+
+  std::string expected_output = "[-10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerUpdateWithFunctionCall) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+a[0] = Int32(10)
+print(a)})";
+
+  std::string expected_output = "[10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerUpdateWithVariable) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+var b = 10
+a[0] = b
+print(a)})";
+
+  std::string expected_output = "[10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerUpdateWithConstVariable) {
+  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+const b = 10
+a[0] = b
+print(a)})";
+
+  std::string expected_output = "[10, 2, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 // TODO: ADD GLOBAL CONTAINER ASSIGNMENT TESTS
 
 #endif // JIT_TEST_MODE

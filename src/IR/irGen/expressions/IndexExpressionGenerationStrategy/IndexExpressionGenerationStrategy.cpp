@@ -53,6 +53,41 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
     llvm::Type *elementType = arrayType->getElementType();
     const uint64_t size = arrayType->getNumElements();
 
+    if (size <= 0) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Array size must be greater than 0");
+      return nullptr;
+    }
+
+    // check if index is out of bounds
+    llvm::Value *indexOutOfBounds = Builder->CreateICmpSGE(
+        indexValue, llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext),
+                                           size, true));
+
+    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    llvm::BasicBlock *indexOutOfBoundsBlock = llvm::BasicBlock::Create(
+        *TheContext, "indexOutOfBounds", currentBlock->getParent());
+
+    llvm::BasicBlock *indexInBoundsBlock = llvm::BasicBlock::Create(
+        *TheContext, "indexInBounds", currentBlock->getParent());
+
+    Builder->CreateCondBr(indexOutOfBounds, indexOutOfBoundsBlock,
+                          indexInBoundsBlock);
+
+    Builder->SetInsertPoint(indexOutOfBoundsBlock);
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(
+            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+                "Index out of bounds of '" + variableName +
+                    "' in index expression, array size is " +
+                    std::to_string(size),
+                indexExpression->getLocation()))});
+
+    Builder->CreateBr(indexInBoundsBlock);
+
+    Builder->SetInsertPoint(indexInBoundsBlock);
+
     llvm::Value *arrayPtr = v;
     llvm::Value *elementPtr =
         Builder->CreateGEP(arrayType, arrayPtr,
