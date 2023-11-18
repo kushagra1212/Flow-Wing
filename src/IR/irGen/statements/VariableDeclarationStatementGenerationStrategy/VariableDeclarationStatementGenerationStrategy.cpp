@@ -59,37 +59,29 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           ->generateExpression(expression);
 
   if (!result) {
-    _codeGenerationContext->getLogger()->LogError("Rhhs of variable " +
+    _codeGenerationContext->getLogger()->LogError("Rhs of variable " +
                                                   variableName + " is null");
     return nullptr;
   }
-  llvm::GlobalVariable *_globalVariable = nullptr;
-  llvm::AllocaInst *v = nullptr;
-  if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(result)) {
+  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+      *TheModule, _codeGenerationContext->getDynamicType()->get(), false,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::Constant::getNullValue(
+          _codeGenerationContext->getDynamicType()->get()),
+      variableName);
 
-    std::string str = constDataArray->getAsCString().str();
+  llvm::Value *loadedValue = Builder->CreateLoad(
+      _codeGenerationContext->getDynamicType()->get(), _globalVariable);
 
-    _globalVariable = new llvm::GlobalVariable(
-        *TheModule,
-        llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
-                             str.length() + 1),
-        true, llvm::GlobalValue::ExternalLinkage, constDataArray, variableName);
+  llvm::Value *updatedValue = Builder->CreateInsertValue(
+      loadedValue, result,
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          result->getType()));
 
-  } else {
-    llvm::Constant *constant =
-        _codeGenerationContext->createConstantFromValue(result);
+  _codeGenerationContext->getGlobalTypeMap()[variableName] =
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          result->getType());
 
-    if (constant) {
-      _globalVariable = new llvm::GlobalVariable(
-          *TheModule, result->getType(), false,
-          llvm::GlobalValue::ExternalLinkage, constant, variableName);
-    } else {
-      _globalVariable = new llvm::GlobalVariable(
-          *TheModule, result->getType(), false,
-          llvm::GlobalValue::ExternalLinkage,
-          llvm::Constant::getNullValue(result->getType()), variableName);
-    }
-  }
-
+  Builder->CreateStore(updatedValue, _globalVariable);
   return result;
 }

@@ -32,6 +32,7 @@ public:
   std::stack<std::pair<Utils::type, int8_t>> &getReturnAllocaStack();
   std::unordered_map<std::string, int8_t> &getRecursiveFunctionsMap();
   std::map<std::string, BoundFunctionDeclaration *> &getBoundedUserFunctions();
+  std::unordered_map<std::string, uint64_t> &getGlobalTypeMap();
 
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
@@ -70,6 +71,7 @@ private:
   std::unordered_map<std::string, int8_t> _recursiveFunctionsMap;
 
   std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
+  std::unordered_map<std::string, uint64_t> _globalTypeMap;
 };
 
 #endif // CODEGENERATIONCONTEXT_H

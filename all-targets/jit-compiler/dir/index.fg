@@ -1,10 +1,13 @@
-{container<int> a = [1, 2, 3, 4, 5]
-a[2] ="hello"
-print(a[2])
-print(a)}
+/;{container<int> a = [1, 2, 3, 4, 5]
+/;print(a[10])}
 
-/#
-var x = 10
-var y = 20
-x = y + "hello"
-print(x)#/
+
+fun main2() -> int {
+      var x = 2
+      print(2) print(x) print(x+2) print(x+true) print(x+false)
+      return (0)
+      }
+
+
+var y = main2()
+y = main2()

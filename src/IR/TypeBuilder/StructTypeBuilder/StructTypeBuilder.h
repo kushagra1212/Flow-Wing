@@ -11,7 +11,7 @@ public:
   llvm::StructType *get() const override;
   const std::vector<llvm::Type *> &getMemberTypes() const;
 
-  const int getIndexofMemberType(llvm::Type *type) const;
+  const uint64_t getIndexofMemberType(llvm::Type *type) const;
 
 private:
   llvm::StructType *_dynamicType;

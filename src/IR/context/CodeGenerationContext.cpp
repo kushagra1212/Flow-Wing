@@ -89,6 +89,11 @@ CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
 }
 
+std::unordered_map<std::string, uint64_t> &
+CodeGenerationContext::getGlobalTypeMap() {
+  return _globalTypeMap;
+}
+
 void CodeGenerationContext::addBoundedUserFunction(
     std::string name, BoundFunctionDeclaration *functionDeclaration) {
   _boundedUserFunctions[name] = functionDeclaration;
@@ -142,6 +147,12 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
 
   if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
     return constant;
+  }
+
+  if (auto callInst = llvm::dyn_cast<llvm::CallInst>(myValue)) {
+
+    this->getLogger()->LogError("Unsupported type for conversion to constant");
+    return nullptr;
   }
 
   if (valueType->isIntegerTy(32)) {

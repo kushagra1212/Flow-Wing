@@ -44,37 +44,19 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
     return nullptr;
   }
 
-  if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(rhsValue)) {
+  llvm::Value *loadedValue = Builder->CreateLoad(oldVariable->getValueType(),
+                                                 oldVariable, variableName);
 
-    if (_codeGenerationContext->getMapper()->isStringType(rhsValue->getType()))
-      Builder->CreateStore(rhsValue, oldVariable);
-    else {
+  llvm::Value *updatedValue = Builder->CreateInsertValue(
+      loadedValue, rhsValue,
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          rhsValue->getType()));
 
-      _codeGenerationContext->getLogger()->LogError(
-          "Assigning " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType()) +
-          " to String is not allowed in Global "
-          "assignment expression ");
-    }
+  _codeGenerationContext->getGlobalTypeMap()[variableName] =
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          rhsValue->getType());
 
-  } else {
-
-    if (rhsValue->getType() == oldVariable->getValueType())
-      Builder->CreateStore(rhsValue, oldVariable);
-    else {
-      _codeGenerationContext->getLogger()->LogError(
-          "Assigning " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType()) +
-          " to " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              oldVariable->getValueType()) +
-          " is not allowed in Global "
-          "assignment expression ");
-    }
-  }
-
+  Builder->CreateStore(updatedValue, oldVariable);
   return nullptr;
 }
 
