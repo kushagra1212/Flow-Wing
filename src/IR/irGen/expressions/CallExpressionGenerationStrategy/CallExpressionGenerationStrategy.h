@@ -16,6 +16,7 @@ public:
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
   llvm::Value *printArray(llvm::AllocaInst *v);
+  llvm::Value *printGlobalArray(llvm::GlobalVariable *v);
 };
 
 #endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

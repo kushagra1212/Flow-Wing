@@ -190,3 +190,10 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
 
   return nullptr; // Return nullptr if the type is not recognized.
 }
+
+void CodeGenerationContext::callREF(const std::string &error) {
+  _builder->CreateCall(
+      _module->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+      {_builder->CreateGlobalStringPtr(this->getLogger()->getLLVMErrorMsg(
+          error, this->getLogger()->getCurrentSourceLocation()))});
+}

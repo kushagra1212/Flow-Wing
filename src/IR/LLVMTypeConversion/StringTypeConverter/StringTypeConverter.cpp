@@ -21,7 +21,7 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
     // bitcast to i8*
     // Define a global variable for the string
     llvm::GlobalVariable *str = new llvm::GlobalVariable(
-        *_module, dataArr->getType(), true, llvm::GlobalValue::PrivateLinkage,
+        *_module, dataArr->getType(), true, llvm::GlobalValue::ExternalLinkage,
         dataArr, ".str");
 
     return _builder->CreateBitCast(

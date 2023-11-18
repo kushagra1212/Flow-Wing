@@ -38,8 +38,18 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
     llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
     if (variable) {
-      this->generateGlobalExpression(indexExpression);
-      return nullptr;
+
+      if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+
+        llvm::ConstantInt *constantInt =
+            llvm::dyn_cast<llvm::ConstantInt>(indexValue);
+
+        return this->handleGlobalVariable(variable, constantInt->getSExtValue(),
+                                          indexValue, variableName);
+      }
+
+      _codeGenerationContext->getLogger()->LogError(
+          "Variable not found in assignment expression ");
     }
 
     _codeGenerationContext->getLogger()->LogError(
@@ -103,7 +113,47 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   return nullptr;
 }
 
-// TODO: Implement global index expression generation strategy
+llvm::Value *IndexExpressionGenerationStrategy::handleGlobalVariable(
+    llvm::GlobalVariable *variable, int index, llvm::Value *indexValue,
+    std::string variableName) {
+  if (llvm::ArrayType *arrayType =
+          llvm::dyn_cast<llvm::ArrayType>(variable->getValueType())) {
+    llvm::Type *elementType = arrayType->getElementType();
+    const uint64_t size = arrayType->getNumElements();
+
+    if (size <= 0) {
+      _codeGenerationContext->callREF("Array size must be greater than 0");
+      return nullptr;
+    }
+
+    if (index < 0) {
+      _codeGenerationContext->callREF(
+          "Index out of bounds of '" + variableName +
+          "' in index expression, array size is " + std::to_string(size));
+      return nullptr;
+    }
+
+    if (index >= size) {
+      _codeGenerationContext->callREF(
+          "Index out of bounds of '" + variableName +
+          "' in index expression, array size is " + std::to_string(size));
+      return nullptr;
+    }
+
+    llvm::Value *loadedValue =
+        Builder->CreateLoad(variable->getValueType(), variable);
+
+    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, index);
+    // Builder->CreateLoad(elementType, innerValue);
+    return innerValue;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable" + variableName + " not found in variable expression ");
+
+  return nullptr;
+}
+
 llvm::Value *IndexExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   BoundIndexExpression *indexExpression =

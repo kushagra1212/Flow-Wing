@@ -1,6 +1,2 @@
-/;{container<int> a = [1, 2, 3, 4, 5]
-/;print(a[10])}
-
-
-var x:str = 1
-x= 3.3
+container<int> a = ["Hello", "World"]
+print(a)

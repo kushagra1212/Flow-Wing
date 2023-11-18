@@ -33,6 +33,8 @@ public:
   void
   setCurrentSourceLocation(const DiagnosticUtils::SourceLocation &location);
 
+  DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
+
   const int32_t getErrorCount() const;
 
 private:

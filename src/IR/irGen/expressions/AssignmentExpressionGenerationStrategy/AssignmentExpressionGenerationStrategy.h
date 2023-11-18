@@ -25,7 +25,8 @@ public:
       BoundAssignmentExpression *assignmentExpression);
 
   llvm::Value *handleGlobalIndexExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+      llvm::GlobalVariable *variable, llvm::Value *indexValue, llvm::Value *rhs,
+      const std::string &variableName);
 };
 
 #endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

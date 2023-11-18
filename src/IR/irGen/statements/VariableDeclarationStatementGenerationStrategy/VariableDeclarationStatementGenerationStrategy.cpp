@@ -25,17 +25,13 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
           result->getType()) != variableType) {
 
-    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+    _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable declaration " + variableName +
-            " Expected type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-            " but got type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                result->getType()),
-        node->getLocation());
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(errorStr)});
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            result->getType()));
     return nullptr;
   }
 
@@ -87,17 +83,13 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
           result->getType()) != variableType) {
 
-    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+    _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable declaration " + variableName +
-            " Expected type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-            " but got type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                result->getType()),
-        variableDeclaration->getLocation());
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(errorStr)});
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            result->getType()));
     return nullptr;
   }
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(

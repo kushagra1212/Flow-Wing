@@ -62,6 +62,16 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
         return nullptr;
       }
+
+      // check if is Global Variable
+      if (llvm::isa<llvm::GlobalVariable>(value)) {
+        auto v = static_cast<llvm::GlobalVariable *>(value);
+
+        if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
+          return printGlobalArray(v);
+        }
+      }
+
       if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
               value->getType()) != Utils::type::NOTHING) {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
@@ -260,6 +270,49 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
 
     Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                         {_stringTypeConverter->convertExplicit(elementValue),
+                         Builder->getInt1(false)});
+    if (i < size - 1) {
+      // Print a comma and a space for all elements except the last one
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          {_stringTypeConverter->convertExplicit(
+                               llvm::ConstantDataArray::getString(
+                                   TheModule->getContext(), ", ")),
+                           Builder->getInt1(false)});
+    }
+  }
+
+  // Print the closing bracket
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "]")),
+       Builder->getInt1(false)});
+
+  return nullptr;
+}
+
+llvm::Value *CallExpressionGenerationStrategy::printGlobalArray(
+    llvm::GlobalVariable *variable) {
+  llvm::ArrayType *arrayType =
+      llvm::dyn_cast<llvm::ArrayType>(variable->getValueType());
+  llvm::Type *elementType = arrayType->getElementType();
+  const uint64_t size = arrayType->getNumElements();
+
+  llvm::Value *loadedValue =
+      Builder->CreateLoad(variable->getValueType(), variable);
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
+       Builder->getInt1(false)});
+
+  // Iterate over each element of the array
+  for (uint64_t i = 0; i < size; ++i) {
+    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, i);
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(innerValue),
                          Builder->getInt1(false)});
     if (i < size - 1) {
       // Print a comma and a space for all elements except the last one

@@ -284,3 +284,33 @@ This is a string
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
+
+// TODO: Fix this test and Also add test for other types combinations
+
+// TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENTError) {
+
+//   try {
+//     std::string input =
+//         R"(
+// var x:str = 1
+//       )";
+
+//     std::string expected_output = "Type mismatch in variable declaration x "
+//                                   "Expected type String but got type
+//                                   Integer";
+
+//     setInput(input);
+//     runEvaluator();
+//     EXPECT_EQ(getOutput(), expected_output);
+//     // If the function does not throw an exception, fail the test
+//     FAIL() << "Expected exception not thrown";
+//   } catch (const std::runtime_error &e) {
+//     // Compare the error message with the expected error message
+//     EXPECT_STREQ(e.what(), "Type mismatch in variable declaration x Expected
+//     "
+//                            "type String but got type Integer");
+//   } catch (...) {
+//     // If the thrown exception is not of type std::runtime_error, fail the
+//     test FAIL() << "Unexpected exception type thrown";
+//   }
+// }

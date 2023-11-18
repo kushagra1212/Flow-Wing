@@ -222,6 +222,7 @@ const std::string Utils::getNameExtension(const std::string &filePath) {
   return path.stem().string();
 }
 bool Utils::isSubstring(const std::string &s1, const std::string &s2) {
+
   int M = s1.length();
   int N = s2.length();
 

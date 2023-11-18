@@ -77,12 +77,55 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
 
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
+  BoundLiteralExpression<std::any> *literalExpression =
+      (BoundLiteralExpression<std::any> *)containerStatement
+          ->getIdentifierExpression()
+          .get();
 
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      containerStatement->getLocation());
+  std::any value = literalExpression->getValue();
 
-  _codeGenerationContext->getLogger()->LogError(
-      "TODO: Global Container is not supported yet");
+  std::string containerName = std::any_cast<std::string>(value);
+
+  size_t size = containerStatement->getEntryExpressions().size();
+
+  std::vector<llvm::Value *> items(size);
+  llvm::Type *elementType =
+      _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+          containerStatement->getContainerType());
+  llvm::ArrayType *arrayType = llvm::ArrayType::get(elementType, size);
+
+  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+      *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
+      llvm::Constant::getNullValue(arrayType), containerName);
+  for (uint64_t i = 0; i < size; i++) {
+
+    llvm::Value *itemValue =
+        _expressionGenerationFactory
+            ->createStrategy(
+                containerStatement->getEntryExpressions()[i].get()->getKind())
+            ->generateExpression(
+                containerStatement->getEntryExpressions()[i].get());
+
+    if (elementType != itemValue->getType()) {
+      std::string elementTypeName =
+          _codeGenerationContext->getMapper()->getLLVMTypeName(elementType);
+
+      std::string itemValueTypeName =
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              itemValue->getType());
+
+      _codeGenerationContext->getLogger()->LogError(
+          containerName + " Container item type mismatch. Expected " +
+          elementTypeName + " but got " + itemValueTypeName);
+
+      return nullptr;
+    }
+    llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
+    llvm::Value *updatedValue =
+        Builder->CreateInsertValue(loadedValue, itemValue, (uint)i);
+
+    Builder->CreateStore(updatedValue, _globalVariable);
+  }
 
   return nullptr;
 }

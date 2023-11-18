@@ -38,17 +38,13 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
           _codeGenerationContext->getDynamicType()->getIndexofMemberType(
               rhsValue->getType())) {
 
-    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+    _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable Assignment " + variableName +
-            " Expected type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-            " but got type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                rhsValue->getType()),
-        assignmentExpression->getLocation());
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(errorStr)});
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
     return nullptr;
   }
 
@@ -101,11 +97,11 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
     llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
     if (variable) {
-      this->generateGlobalExpression(assignmentExpression);
+      this->handleGlobalLiteralExpressionAssignment(assignmentExpression);
       return nullptr;
     }
 
-    _codeGenerationContext->getLogger()->LogError(
+    _codeGenerationContext->callREF(
         "Variable not found in assignment expression ");
 
     return nullptr;
@@ -119,7 +115,7 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
 
-    _codeGenerationContext->getLogger()->LogError(
+    _codeGenerationContext->callREF(
         "Right hand side value not found in assignment expression ");
 
     return nullptr;
@@ -131,17 +127,13 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
       _codeGenerationContext->getGlobalTypeMap()[variableName] !=
           _codeGenerationContext->getDynamicType()->getIndexofMemberType(
               rhsValue->getType())) {
-    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+    _codeGenerationContext->callREF(
         "Type mismatch in variable Assignment " + variableName +
-            " Expected type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-            " but got type " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                rhsValue->getType()),
-        assignmentExpression->getLocation());
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(errorStr)});
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
     return nullptr;
   }
 
@@ -177,7 +169,7 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
 
-    _codeGenerationContext->getLogger()->LogError(
+    _codeGenerationContext->callREF(
         "Right hand side value not found in assignment expression ");
 
     return nullptr;
@@ -191,8 +183,9 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
               indexExpression->getBoundIndexExpression().get());
 
   if (!indexValue) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Index value not found in assignment expression ");
+
+    _codeGenerationContext->callREF(
+        "Index value not found in assignment expression");
 
     return nullptr;
   }
@@ -202,8 +195,8 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
           ->generateExpression(indexExpression);
 
   if (!loadedElementValue) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Index value not found in assignment expression ");
+    _codeGenerationContext->callREF(
+        "Index value not found in assignment expression");
 
     return nullptr;
   }
@@ -226,6 +219,22 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
 
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+
+  if (!v) {
+    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+
+    if (variable) {
+
+      return this->handleGlobalIndexExpressionAssignment(
+          variable, indexValue, rhsValue, variableName);
+    }
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Variable not found in assignment expression , " + variableName);
+
+    return nullptr;
+  }
+
   // Get Element pointer
   llvm::Value *elementPtr = Builder->CreateGEP(
       v->getAllocatedType(), v,
@@ -262,12 +271,46 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
 // TODO: Implement global index expression assignment
 llvm::Value *
 AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
-    BoundAssignmentExpression *assignmentExpression) {
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
+    llvm::GlobalVariable *variable, llvm::Value *indexValue, llvm::Value *rhs,
+    const std::string &variableName) {
+
+  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+    int index = 0;
+
+    if (llvm::ConstantInt *constantInt =
+            llvm::dyn_cast<llvm::ConstantInt>(indexValue)) {
+      index = constantInt->getSExtValue();
+    } else {
+      _codeGenerationContext->getLogger()->LogError(
+          "Index value must be of type int32");
+      return nullptr;
+    }
+    if (index < 0) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Index value must be greater than or equal to 0");
+      return nullptr;
+    }
+
+    if (index >= variable->getValueType()->getArrayNumElements()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Index value must be less than or equal to " +
+          std::to_string(variable->getValueType()->getArrayNumElements() - 1));
+      return nullptr;
+    }
+
+    llvm::Value *loadedValue =
+        Builder->CreateLoad(variable->getValueType(), variable, variableName);
+
+    llvm::Value *updatedValue =
+        Builder->CreateInsertValue(loadedValue, rhs, index);
+
+    Builder->CreateStore(updatedValue, variable);
+
+    return rhs;
+  }
 
   _codeGenerationContext->getLogger()->LogError(
-      "TODO: Implement global index expression assignment ");
+      "Variable not found in assignment expression ");
 
   return nullptr;
 }
@@ -282,10 +325,10 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
   if (auto boundLiteralExpression =
           dynamic_cast<BoundLiteralExpression<std::any> *>(
               assignmentExpression->getLeftPtr().get())) {
-    return this->handleGlobalLiteralExpressionAssignment(assignmentExpression);
+    return this->handleLiteralExpressionAssignment(assignmentExpression);
   } else if (auto boundIndexExpression = dynamic_cast<BoundIndexExpression *>(
                  assignmentExpression->getLeftPtr().get())) {
-    return this->handleGlobalIndexExpressionAssignment(assignmentExpression);
+    return this->handleIndexExpressionAssignment(assignmentExpression);
   }
 
   _codeGenerationContext->getLogger()->LogError(

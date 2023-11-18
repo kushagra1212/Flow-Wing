@@ -28,15 +28,16 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
 
   if (!variableValue) {
+    if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+
+      return v;
+    }
+
     if (variable) {
 
       return this->handleGlobalVariable(variableName, variable);
     }
 
-    if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
-
-      return v;
-    }
     _codeGenerationContext->getLogger()->LogError(
         "Variable " + variableName + " not found in variable expression ");
 
@@ -55,6 +56,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
 llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
     const std::string &variableName, llvm::GlobalVariable *variable) {
+
   if (llvm::isa<llvm::StructType>(variable->getValueType())) {
 
     llvm::Value *loadedValue =
@@ -68,6 +70,11 @@ llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
                                                  // boolean field
 
     return innerValue;
+  }
+
+  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+
+    return variable;
   }
 
   llvm::Value *loaded =

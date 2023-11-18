@@ -53,6 +53,8 @@ public:
   // TODO: Refactor this to a better place
   llvm::Constant *createConstantFromValue(llvm::Value *myValue);
 
+  void callREF(const std::string &error);
+
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;

@@ -10,6 +10,10 @@ public:
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
+
+  llvm::Value *handleGlobalVariable(llvm::GlobalVariable *variable, int index,
+                                    llvm::Value *indexValue,
+                                    std::string variableName);
 };
 
 #endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
