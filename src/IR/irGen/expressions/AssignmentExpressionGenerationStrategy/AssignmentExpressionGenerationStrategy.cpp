@@ -32,6 +32,25 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
 
     return nullptr;
   }
+  Utils::type variableType = assignmentExpression->getVariable().type;
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getGlobalTypeMap()[variableName] !=
+          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+              rhsValue->getType())) {
+
+    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+        "Type mismatch in variable Assignment " + variableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                rhsValue->getType()),
+        assignmentExpression->getLocation());
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(errorStr)});
+    return nullptr;
+  }
 
   llvm::GlobalVariable *oldVariable =
       TheModule->getGlobalVariable(variableName);
@@ -103,6 +122,26 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
     _codeGenerationContext->getLogger()->LogError(
         "Right hand side value not found in assignment expression ");
 
+    return nullptr;
+  }
+
+  Utils::type variableType = assignmentExpression->getVariable().type;
+
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getGlobalTypeMap()[variableName] !=
+          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+              rhsValue->getType())) {
+    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+        "Type mismatch in variable Assignment " + variableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                rhsValue->getType()),
+        assignmentExpression->getLocation());
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(errorStr)});
     return nullptr;
   }
 

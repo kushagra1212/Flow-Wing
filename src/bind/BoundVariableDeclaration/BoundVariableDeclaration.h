@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Common.h"
 #include "../../syntax/expression/ExpressionSyntax.h"
+#include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
@@ -12,10 +13,11 @@ private:
   std::string _variable;
   std::unique_ptr<BoundExpression> _initializer;
   bool _isConst;
+  Utils::type _type;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
-                           std::string variable, bool isConst,
+                           std::string variable, bool isConst, Utils::type type,
                            std::unique_ptr<BoundExpression> initializer);
 
   std::string getVariable() const;
@@ -29,4 +31,6 @@ public:
   bool isConst() const;
 
   std::unique_ptr<BoundExpression> &getInitializerPtr();
+
+  Utils::type getType() const;
 };

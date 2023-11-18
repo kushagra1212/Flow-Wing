@@ -12,24 +12,43 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   BoundVariableDeclaration *node =
       static_cast<BoundVariableDeclaration *>(statement);
 
-  std::string variable_name = node->getVariable();
+  std::string variableName = node->getVariable();
 
   BoundExpression *initializerExp = node->getInitializerPtr().get();
 
   llvm::Value *result =
       _expressionGenerationFactory->createStrategy(initializerExp->getKind())
           ->generateExpression(initializerExp);
+  Utils::type variableType = node->getType();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(variable_name,
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          result->getType()) != variableType) {
+
+    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+        "Type mismatch in variable declaration " + variableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                result->getType()),
+        node->getLocation());
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(errorStr)});
+    return nullptr;
+  }
+
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
                                                               result);
 
   // create and load variable
 
   llvm::AllocaInst *variable =
       Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                            nullptr, variable_name.c_str());
+                            nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variable_name,
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
                                                           variable);
 
   Builder->CreateStore(
@@ -59,8 +78,26 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           ->generateExpression(expression);
 
   if (!result) {
-    _codeGenerationContext->getLogger()->LogError("Rhs of variable " +
-                                                  variableName + " is null");
+    _codeGenerationContext->getLogger()->LogError(
+        "Rhs of variable " + variableName + " is notthing");
+    return nullptr;
+  }
+  Utils::type variableType = variableDeclaration->getType();
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          result->getType()) != variableType) {
+
+    std::string errorStr = _codeGenerationContext->getLogger()->getLLVMErrorMsg(
+        "Type mismatch in variable declaration " + variableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                result->getType()),
+        variableDeclaration->getLocation());
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+        {Builder->CreateGlobalStringPtr(errorStr)});
     return nullptr;
   }
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(

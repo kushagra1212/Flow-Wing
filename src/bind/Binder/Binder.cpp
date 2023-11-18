@@ -60,7 +60,7 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
 
   return std::make_unique<BoundVariableDeclaration>(
       variableDeclaration->getSourceLocation(), variable_str, isConst,
-      std::move(boundInitializerExpression));
+      variableDeclaration->getType(), std::move(boundInitializerExpression));
 }
 
 std::unique_ptr<BoundOrIfStatement>
@@ -522,7 +522,8 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
       bindExpression(assignmentExpression->getRightPtr().get());
   return std::make_unique<BoundAssignmentExpression>(
       assignmentExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression), op, std::move(boundRight));
+      root->tryGetVariable(variable_str), std::move(boundIdentifierExpression),
+      op, std::move(boundRight));
 }
 
 std::unique_ptr<BoundExpression>

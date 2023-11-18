@@ -2,12 +2,5 @@
 /;print(a[10])}
 
 
-fun main2() -> int {
-      var x = 2
-      print(2) print(x) print(x+2) print(x+true) print(x+false)
-      return (0)
-      }
-
-
-var y = main2()
-y = main2()
+var x:str = 1
+x= 3.3
