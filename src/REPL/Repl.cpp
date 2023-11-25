@@ -6,10 +6,7 @@ Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   previousText = std::vector<std::string>();
   _previousGlobalScope = nullptr;
 }
-Repl::Repl(const bool &test) {
-  Repl();
-  this->isTest = test;
-}
+Repl::Repl(const bool &test) { this->isTest = test; }
 Repl::~Repl() {}
 std::mutex textMutex;
 
