@@ -36,9 +36,13 @@ IRGenerator::IRGenerator(
 }
 
 void IRGenerator::updateModule() {
-  std::vector<std::string> irFilePaths = {
-      "../../../src/IR/BuiltinIRs/built_in_module.ll"};
+  std::vector<std::string> irFilePaths;
 
+#ifdef DEBUG
+  irFilePaths = {"lib/FlowWing/built_in_module.ll"};
+#else
+  irFilePaths = {"../lib/FlowWing/built_in_module.ll"};
+#endif
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
     bool LinkResult = llvm::Linker::linkModules(

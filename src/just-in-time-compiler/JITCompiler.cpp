@@ -53,7 +53,11 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     return;
   }
+
+#ifdef DEBUG
   Utils::prettyPrint(globalScope->globalStatement.get());
+#endif
+
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
@@ -158,9 +162,13 @@ void JITCompiler::execute() {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  std::vector<std::string> irFilePaths = {
-      "../../../src/IR/BuiltinIRs/built_in_module.ll"};
+  std::vector<std::string> irFilePaths;
 
+#ifdef DEBUG
+  irFilePaths = {"lib/FlowWing/built_in_module.ll"};
+#else
+  irFilePaths = {"../lib/FlowWing/built_in_module.ll"};
+#endif
   std::vector<std::string> _userDefinedIRFilePaths =
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 
@@ -175,13 +183,13 @@ void JITCompiler::execute() {
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
 #ifdef JIT_MODE
-
+#ifdef DEBUG
     currentDiagnosticHandler->printDiagnostic(
         std::cout,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
-
+#endif
 #endif
 
     bool LinkResult = llvm::Linker::linkModules(
@@ -203,8 +211,9 @@ void JITCompiler::execute() {
   //                           DiagnosticUtils::DiagnosticType::Linker,
   //                           DiagnosticUtils::SourceLocation(
   //                               0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
-
+#ifdef DEBUG
   TheModule->print(llvm::outs(), nullptr);
+#endif
 #endif
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);

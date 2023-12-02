@@ -116,7 +116,9 @@
     "__split_buffer": "cpp",
     "*.o": "cpp",
     "forward_list": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "stdfloat": "cpp"
   },
-  "cmake.configureOnOpen": false
+  "cmake.configureOnOpen": false,
+  "workbench.colorTheme": "GitHub Dark High Contrast"
 }
