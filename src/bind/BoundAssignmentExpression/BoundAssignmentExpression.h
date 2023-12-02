@@ -28,7 +28,7 @@ public:
 
   const std::type_info &getType();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 
