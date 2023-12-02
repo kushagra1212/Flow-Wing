@@ -1,8 +1,17 @@
 const PI:deci = 3.14
+container<int> a = [1,2,3,4,5,6,7,8,9,10] 
+while(
+  2<5
+  ){
+  print("Hello World")
+  }
 
+/# if(){
+    return "Hello World"
 
-
-
+  }
+#/
 fun area(r:int) -> deci {
-//	return (PI * r * r)
+	return (PI * r * r)
+
 }

@@ -11,7 +11,7 @@ public:
   BoundContinueStatement(const DiagnosticUtils::SourceLocation &location);
 
 public:
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 };

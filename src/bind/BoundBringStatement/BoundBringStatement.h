@@ -17,7 +17,7 @@ public:
                       DiagnosticHandler *diagnosticHandler,
                       std::unique_ptr<BoundScopeGlobal> globalScope);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
   DiagnosticHandler *getDiagnosticHandlerPtr() const;
