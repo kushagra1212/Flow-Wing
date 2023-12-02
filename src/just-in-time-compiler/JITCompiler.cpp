@@ -167,7 +167,9 @@ void JITCompiler::execute() {
 #ifdef DEBUG
   irFilePaths = {"lib/FlowWing/built_in_module.ll"};
 #else
-  irFilePaths = {"../lib/FlowWing/built_in_module.ll"};
+  std::string builtInModulePath =
+      this->executable_directory_string + "/../lib/FlowWing/";
+  irFilePaths = {builtInModulePath + "built_in_module.ll"};
 #endif
   std::vector<std::string> _userDefinedIRFilePaths =
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
@@ -280,13 +282,18 @@ int main(int argc, char **argv) {
 #ifdef JIT_MODE
 
 int main(int argc, char *argv[]) {
+
   signal(SIGSEGV, signalHandler);
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return 0;
   }
+  std::filesystem::path executable_path =
+      std::filesystem::canonical(std::filesystem::path(argv[0]));
 
+  std::filesystem::path executable_directory = executable_path.parent_path();
+  std::string executable_directory_string = executable_directory.string();
   // Opens the file using the provided file path
 
   std::ifstream file;
@@ -317,6 +324,7 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<JITCompiler> jitCompiler =
       std::make_unique<JITCompiler>(argv[1]);
+  jitCompiler->executable_directory_string = executable_directory_string;
 
   jitCompiler->compile(text, std::cout);
 

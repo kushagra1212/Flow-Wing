@@ -12,6 +12,7 @@ class JITCompiler {
   std::string _filePath;
 
 public:
+  std::string executable_directory_string;
   JITCompiler(std::string filePath = "");
   ~JITCompiler();
   void compile(std::vector<std::string> &text, std::ostream &outputStream);

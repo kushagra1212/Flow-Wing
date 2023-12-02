@@ -23,6 +23,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+// TODO: Add support for Windows
+// #include <windows.h>
+#include <unistd.h>
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";

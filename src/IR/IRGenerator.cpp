@@ -35,24 +35,6 @@ IRGenerator::IRGenerator(
       this->_codeGenerationContext.get());
 }
 
-void IRGenerator::updateModule() {
-  std::vector<std::string> irFilePaths;
-
-#ifdef DEBUG
-  irFilePaths = {"lib/FlowWing/built_in_module.ll"};
-#else
-  irFilePaths = {"../lib/FlowWing/built_in_module.ll"};
-#endif
-  for (const std::string &path : irFilePaths) {
-    llvm::SMDiagnostic err;
-    bool LinkResult = llvm::Linker::linkModules(
-        *TheModule, llvm::parseIRFile(path, err, *TheContext));
-    if (LinkResult) {
-      llvm::errs() << "Error linking " + path + ":" << err.getMessage() << "\n";
-    }
-  }
-}
-
 void IRGenerator::declareDependencyFunctions() {
   std::unique_ptr<FunctionDeclarationManager> functionDeclarationManager =
       std::make_unique<FunctionDeclarationManager>(

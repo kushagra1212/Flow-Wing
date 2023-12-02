@@ -108,7 +108,6 @@ public:
                     llvm::Module *destinationModule);
   void declareDependencyFunctions();
   void initializeGlobalVariables();
-  void updateModule();
 
   int executeGeneratedCode();
 
