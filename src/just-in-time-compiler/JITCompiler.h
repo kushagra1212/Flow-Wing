@@ -2,6 +2,7 @@
 #define JITCOMPILER_H
 
 #include "../IR/IRGenerator.h"
+#include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 #include <fstream>
@@ -10,6 +11,7 @@
 
 class JITCompiler {
   std::string _filePath;
+  std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
 
 public:
   std::string executable_directory_string;

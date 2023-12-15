@@ -119,6 +119,9 @@
     "valarray": "cpp",
     "stdfloat": "cpp"
   },
-  "cmake.configureOnOpen": false,
-  "workbench.colorTheme": "GitHub Dark High Contrast"
+  "workbench.colorTheme": "GitHub Dark High Contrast",
+  "editor.unicodeHighlight.invisibleCharacters": false,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+
+  "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold"
 }

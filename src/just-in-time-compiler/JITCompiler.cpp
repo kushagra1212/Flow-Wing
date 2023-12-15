@@ -1,6 +1,9 @@
 #include "JITCompiler.h"
 
-JITCompiler::JITCompiler(std::string filePath) { this->_filePath = filePath; }
+JITCompiler::JITCompiler(std::string filePath) {
+  this->_filePath = filePath;
+  llFileSaveStrategy = std::make_unique<LLFileSaveStrategy>(nullptr);
+}
 
 JITCompiler::~JITCompiler() {}
 
@@ -206,26 +209,40 @@ void JITCompiler::execute() {
       return;
     }
   }
-#ifdef JIT_MODE
-  // currentDiagnosticHandler->printDiagnostic(
-  //     std::cout, Diagnostic("Finished linking modules.",
-  //                           DiagnosticUtils::DiagnosticLevel::Info,
-  //                           DiagnosticUtils::DiagnosticType::Linker,
-  //                           DiagnosticUtils::SourceLocation(
-  //                               0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
-#ifdef DEBUG
-  TheModule->print(llvm::outs(), nullptr);
-#endif
-#endif
+
+  /*
+    Create the main function
+    START
+  */
+
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
+
+  /*
+    Create the main function
+    END
+  */
+
+#ifdef JIT_MODE
+  currentDiagnosticHandler->printDiagnostic(
+      std::cout, Diagnostic("Finished linking modules.",
+                            DiagnosticUtils::DiagnosticLevel::Info,
+                            DiagnosticUtils::DiagnosticType::Linker,
+                            DiagnosticUtils::SourceLocation(
+                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
+#ifdef DEBUG
+  TheModule->print(llvm::outs(), nullptr);
+
+  // llFileSaveStrategy->saveToFile("my_module.ll", TheModule.get());
+#endif
+#endif
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
-          .setOptLevel(llvm::CodeGenOpt::Aggressive)
+          .setOptLevel(llvm::CodeGenOpt::Less)
           .create();
 
   if (!executionEngine) {

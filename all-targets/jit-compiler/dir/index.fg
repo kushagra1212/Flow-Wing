@@ -1,9 +1,5 @@
-fun factorail(n:int) -> int {
-    if (n == 0) {
-        return 1
-    } else {
-        return n * factorail(n - 1)
-    }
-}
-
-print(factorail(5))
+container<str> a = ["1","2"]
+print(a[0]/a[1])
+var  x = "pritn"
+print(x)
+print("Hello World")

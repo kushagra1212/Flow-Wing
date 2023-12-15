@@ -63,6 +63,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
         binaryExpression);
   }
+
   return result;
 }
 

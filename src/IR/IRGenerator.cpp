@@ -33,6 +33,10 @@ IRGenerator::IRGenerator(
 
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
       this->_codeGenerationContext.get());
+
+  // Initialize the file save strategy
+
+  llFileSaveStrategy = std::make_unique<LLFileSaveStrategy>(_llvmLogger);
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -143,8 +147,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
 
-  this->saveLLVMModuleToFile(
-      TheModule, _codeGenerationContext->getSourceFileName() + ".ll");
+  llFileSaveStrategy->saveToFile(
+      _codeGenerationContext->getSourceFileName() + ".ll", TheModule);
+
   // this->_irParser->mergeIR(TheModule.get());
 
   // this->_irParser->removeDuplicates();
