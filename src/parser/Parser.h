@@ -32,8 +32,7 @@
 #include "../utils/Utils.h"
 
 #include <typeindex>
-class Parser
-{
+class Parser {
 
 public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
@@ -81,9 +80,8 @@ private:
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
   std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<StatementSyntax> parseBringStatement();
-  std::unique_ptr<StatementSyntax> parseContainerStatement();
+  std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
   Utils::type parseType();
-
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
                     CompilationUnitSyntax *nestedCompilationUnit)
       -> std::unordered_map<std::string, int>;

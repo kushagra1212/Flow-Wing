@@ -81,7 +81,6 @@ enum SyntaxKind {
   ExposeKeyword,
   FromKeyword,
   ElseClause,
-  ContainerKeyword,
 
   // Identifiers
   IdentifierToken,

@@ -335,34 +335,34 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseReturnStatement());
   case SyntaxKindUtils::SyntaxKind::BringKeyword:
     return std::move(this->parseBringStatement());
-  case SyntaxKindUtils::SyntaxKind::ContainerKeyword:
-    return std::move(this->parseContainerStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
 }
 
-std::unique_ptr<StatementSyntax> Parser::parseContainerStatement() {
-  this->match(SyntaxKindUtils::SyntaxKind::ContainerKeyword);
+std::unique_ptr<ContainerStatementSyntax> Parser::parseContainerStatement() {
 
-  this->match(SyntaxKindUtils::SyntaxKind::LessToken);
+  std::unique_ptr<ContainerStatementSyntax> containerStatement =
+      std::make_unique<ContainerStatementSyntax>();
 
-  Utils::type type = this->parseType();
+  this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
-  this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
+  if (!this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::NumberToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::NumberToken);
+  }
 
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression =
-      std::make_unique<LiteralExpressionSyntax<std::any>>(
-          std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)),
-          this->getCurrent()->getValue());
+  std::unique_ptr<ExpressionSyntax> containerSizeExpression =
+      std::move(this->parsePrimaryExpression());
+
+  this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
 
   this->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
 
   this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
-  std::unique_ptr<ContainerStatementSyntax> containerStatement =
-      std::make_unique<ContainerStatementSyntax>(
-          type, std::move(identifierExpression));
+  containerStatement->setContainerSizeExpression(
+      std::move(containerSizeExpression));
 
   while (this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseBracketToken &&
@@ -370,7 +370,7 @@ std::unique_ptr<StatementSyntax> Parser::parseContainerStatement() {
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
     std::unique_ptr<ExpressionSyntax> expression =
         std::move(this->parseExpression());
-    containerStatement->addItem(std::move(expression));
+    containerStatement->setValue(std::move(expression));
     if (this->getCurrent()->getKind() !=
         SyntaxKindUtils::SyntaxKind::CloseBracketToken) {
       this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
@@ -633,6 +633,20 @@ std::unique_ptr<StatementSyntax> Parser::parseVariableDeclaration() {
       SyntaxKindUtils::SyntaxKind::ColonToken) {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     type = this->parseType();
+  }
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+
+    type = Utils::toContainerType(type);
+
+    std::unique_ptr<ContainerStatementSyntax> containerStat =
+        std::move(this->parseContainerStatement());
+
+    containerStat->setIdentifierToken(std::move(identifier));
+    containerStat->setType(type);
+    containerStat->setKeyword(std::move(keyword));
+    return std::move(containerStat);
   }
 
   std::unique_ptr<SyntaxToken<std::any>> equalsToken =

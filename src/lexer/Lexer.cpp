@@ -21,6 +21,16 @@ char Lexer::getCurrent() {
   return this->_sourceCode[lineNumber][this->position];
 }
 
+auto Lexer::peek(const int64_t &offset) const -> const char {
+  if (this->lineNumber >= textSize)
+    return this->endOfFile;
+
+  if (this->position + offset >= this->_sourceCode[lineNumber].length())
+    return this->endOfLine;
+
+  return this->_sourceCode[lineNumber][this->position + offset];
+}
+
 void Lexer::next() { this->position++; }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
@@ -208,12 +218,6 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::FromKeyword, start, text, "from");
-
-  } else if (text == "container") {
-    return std::make_unique<SyntaxToken<std::any>>(
-        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-        SyntaxKindUtils::SyntaxKind::ContainerKeyword, start, text,
-        "container");
   }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -246,9 +250,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
   this->next(); // skip #
   while (this->getCurrent() != endOfFile &&
          (this->getCurrent() != '#' ||
-          (this->getCurrent() == '#' &&
-           this->position + 1 < this->_sourceCode[lineNumber].length() &&
-           this->_sourceCode[lineNumber][this->position + 1] != '/'))) {
+          (this->getCurrent() == '#' && this->peek(1) != '/'))) {
     if (this->getCurrent() == endOfFile) {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::move(readEndOfFile());
@@ -386,8 +388,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '&': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '&') {
+    if (this->peek(1) == '&') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -401,14 +402,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
         nullptr);
   }
   case '/': {
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '#') {
+    if (this->peek(1) == '#') {
       return std::move(this->readMultiLineComment());
-    } else if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-               this->_sourceCode[lineNumber][this->position + 1] == ';') {
+    } else if (this->peek(1) == ';') {
       return std::move(this->readSingleLineComment());
-    } else if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-               this->_sourceCode[lineNumber][this->position + 1] == '/') {
+    } else if (this->peek(1) == '/') {
 
       this->next(); // Skip /
       return std::make_unique<SyntaxToken<std::any>>(
@@ -424,8 +422,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '|': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '|') {
+    if (this->peek(1) == '|') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -439,8 +436,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   }
   case '=': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '=') {
+    if (this->peek(1) == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -455,8 +451,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '!': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '=') {
+    if (this->peek(1) == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -470,8 +465,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '<': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '=') {
+    if (this->peek(1) == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -485,8 +479,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
 
   case '>': {
 
-    if (this->position + 1 < this->_sourceCode[lineNumber].length() &&
-        this->_sourceCode[lineNumber][this->position + 1] == '=') {
+    if (this->peek(1) == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,

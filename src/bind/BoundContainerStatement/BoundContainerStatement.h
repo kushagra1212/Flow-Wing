@@ -11,23 +11,36 @@ class BoundContainerStatement : public BoundStatement,
                                 public BoundSourceLocation {
 private:
   Utils::type _type;
-  std::unique_ptr<BoundLiteralExpression<std::any>> _identifierExpression;
   std::vector<std::unique_ptr<BoundExpression>> _entryExpressions;
+  std::string _variableName;
+  std::unique_ptr<BoundExpression> _containerSizeExpression;
 
 public:
-  BoundContainerStatement(
-      const DiagnosticUtils::SourceLocation &location, Utils::type type,
-      std::unique_ptr<BoundLiteralExpression<std::any>> identifierExpression);
+  BoundContainerStatement(const DiagnosticUtils::SourceLocation &location,
+                          const Utils::type &type, std::string variableName);
 
+  /*
+    Overrides
+  */
   BinderKindUtils::BoundNodeKind getKind() const override;
-
   std::vector<BoundNode *> getChildren() override;
 
-  void addEntryExpression(std::unique_ptr<BoundExpression> entryExpression);
+  /*
+    Setters
+  */
+  void setEntryExpression(std::unique_ptr<BoundExpression> entryExpression);
+  void setContainerSizeExpression(
+      std::unique_ptr<BoundExpression> containerSizeExpression);
 
-  std::unique_ptr<BoundLiteralExpression<std::any>> &getIdentifierExpression();
-  std::vector<std::unique_ptr<BoundExpression>> &getEntryExpressions();
-  Utils::type getContainerType() const;
+  /*
+    Getters
+  */
+  auto getVariableNameRef() const -> const std::string &;
+  auto getEntryExpressionsRef() const
+      -> const std::vector<std::unique_ptr<BoundExpression>> &;
+  auto getContainerTypeRef() const -> const Utils::type &;
+  auto getContainerSizeExpressionRef() const
+      -> const std::unique_ptr<BoundExpression> &;
 };
 
 #endif //  __BOUND_CONTAINER_STATEMENT_H__

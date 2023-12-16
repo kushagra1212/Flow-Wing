@@ -6,6 +6,12 @@
 
 class ContainerStatementGenerationStrategy
     : public StatementGenerationStrategy {
+
+  size_t getActualContainerSize(BoundContainerStatement *containerStatement);
+  void generateContainerItems(BoundContainerStatement *containerStatement,
+                              std::vector<llvm::Constant *> &items,
+                              llvm::Type *elementType);
+
 public:
   ContainerStatementGenerationStrategy(CodeGenerationContext *context);
 

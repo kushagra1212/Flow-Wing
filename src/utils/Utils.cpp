@@ -255,6 +255,75 @@ Utils::getSourceLocation(SyntaxToken<std::any> *token) {
                                          token->getAbsoluteFilePath());
 }
 
+Utils::type Utils::toContainerType(Utils::type basicType) {
+  switch (basicType) {
+  case Utils::type::INT8:
+    return Utils::type::INT8_CONTAINER;
+  case Utils::type::INT16:
+    return Utils::type::INT16_CONTAINER;
+  case Utils::type::INT32:
+    return Utils::type::INT32_CONTAINER;
+  case Utils::type::INT64:
+    return Utils::type::INT64_CONTAINER;
+  case Utils::type::DECIMAL:
+    return Utils::type::DECIMAL_CONTAINER;
+  case Utils::type::BOOL:
+    return Utils::type::BOOL_CONTAINER;
+  case Utils::type::STRING:
+    return Utils::type::STRING_CONTAINER;
+  case Utils::type::NOTHING:
+    return Utils::type::NOTHING_CONTAINER;
+  case Utils::type::UNKNOWN:
+    return Utils::type::UNKNOWN_CONTAINER;
+  default:
+    // Handle error: basicType is not a basic Utils::type
+    throw std::invalid_argument("Invalid basic Utils::type");
+  }
+}
+
+Utils::type Utils::toNonContainerType(Utils::type containerType) {
+  switch (containerType) {
+  case Utils::type::INT8_CONTAINER:
+    return Utils::type::INT8;
+  case Utils::type::INT16_CONTAINER:
+    return Utils::type::INT16;
+  case Utils::type::INT32_CONTAINER:
+    return Utils::type::INT32;
+  case Utils::type::INT64_CONTAINER:
+    return Utils::type::INT64;
+  case Utils::type::DECIMAL_CONTAINER:
+    return Utils::type::DECIMAL;
+  case Utils::type::BOOL_CONTAINER:
+    return Utils::type::BOOL;
+  case Utils::type::STRING_CONTAINER:
+    return Utils::type::STRING;
+  case Utils::type::NOTHING_CONTAINER:
+    return Utils::type::NOTHING;
+  case Utils::type::UNKNOWN_CONTAINER:
+    return Utils::type::UNKNOWN;
+  default:
+    // Handle error: containerType is not a container Utils::type
+    throw std::invalid_argument("Invalid container Utils::type");
+  }
+}
+
+auto Utils::isContainerType(Utils::type type) -> const bool {
+  switch (type) {
+  case Utils::type::INT8_CONTAINER:
+  case Utils::type::INT16_CONTAINER:
+  case Utils::type::INT32_CONTAINER:
+  case Utils::type::INT64_CONTAINER:
+  case Utils::type::DECIMAL_CONTAINER:
+  case Utils::type::BOOL_CONTAINER:
+  case Utils::type::STRING_CONTAINER:
+  case Utils::type::NOTHING_CONTAINER:
+  case Utils::type::UNKNOWN_CONTAINER:
+    return true;
+  default:
+    return false;
+  }
+}
+
 bool Utils::isInteger(const std::string &str) {
   // Pattern for integers (optional sign followed by digits)
   std::regex intPattern("^[-+]?[0-9]+$");

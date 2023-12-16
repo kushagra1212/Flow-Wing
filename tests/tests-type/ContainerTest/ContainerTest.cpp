@@ -25,7 +25,7 @@ void ContainerTest::runEvaluator() { _test->runEvaluator(); }
 #ifdef JIT_TEST_MODE
 
 TEST_F(ContainerTest, BasicContainerIntDeclaration) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5] 
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5] 
 print(a)})";
 
   std::string expected_output = "[1, 2, 3, 4, 5]";
@@ -35,7 +35,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerStringDeclaration) {
-  std::string input = R"({container<str> a = ["a", "b", "c", "d", "e"]
+  std::string input = R"({ var a:str[5] = ["a", "b", "c", "d", "e"]
 print(a)})";
 
   std::string expected_output = "[a, b, c, d, e]";
@@ -45,7 +45,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolDeclaration) {
-  std::string input = R"({container<bool> a = [true, false, true, false, true]
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
 
 print(a)})";
 
@@ -56,7 +56,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciDeclaration) {
-  std::string input = R"({container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 print(a)})";
 
   std::string expected_output =
@@ -68,7 +68,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerIntIndexing) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 print(a[0])})";
 
   std::string expected_output = "1";
@@ -78,7 +78,7 @@ print(a[0])})";
 }
 
 TEST_F(ContainerTest, BasicContainerStringIndexing) {
-  std::string input = R"({container<str> a = ["a", "yay", "c", "d", "e"]
+  std::string input = R"({var a:str[5] = ["a", "yay", "c", "d", "e"]
 print(a[1])})";
 
   std::string expected_output = "yay";
@@ -88,7 +88,7 @@ print(a[1])})";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolIndexing) {
-  std::string input = R"({container<bool> a = [true, false, true, false, true]
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
 
 print(a[2])})";
 
@@ -99,7 +99,7 @@ print(a[2])})";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciIndexing) {
-  std::string input = R"({container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 
 print(a[3])})";
 
@@ -110,7 +110,7 @@ print(a[3])})";
 }
 
 TEST_F(ContainerTest, BasicContainerIntIndexingAssignment) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a[0])})";
 
@@ -121,7 +121,7 @@ print(a[0])})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdate) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a)})";
 
@@ -132,7 +132,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerStringIndexingAssignment) {
-  std::string input = R"({container<str> a = ["a", "yay", "c", "d", "e"]
+  std::string input = R"({var a:str[5] = ["a", "yay", "c", "d", "e"]
 a[1] = "hello"
 print(a[1])})";
 
@@ -143,7 +143,7 @@ print(a[1])})";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolIndexingAssignment) {
-  std::string input = R"({container<bool> a = [true, false, true, false, true]
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
 
 a[2] = false  
 print(a[2])})";
@@ -155,7 +155,7 @@ print(a[2])})";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciIndexingAssignment) {
-  std::string input = R"({container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 
 a[3] = 10.10
 print(a[3])})";
@@ -167,7 +167,7 @@ print(a[3])})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateAssignment) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a)})";
 
@@ -182,7 +182,7 @@ print(a)})";
 //       "Index out of bounds of 'a' in index expression, array size is 5";
 
 //   try {
-//     std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+//     std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 // print(a[10])})";
 
 //     setInput(input);
@@ -203,7 +203,7 @@ print(a)})";
 // }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithBinaryExpression) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10 + 10
 print(a)})";
 
@@ -214,7 +214,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithUnaryExpression) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = -10
 print(a)})";
 
@@ -225,7 +225,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithFunctionCall) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = Int32(10)
 print(a)})";
 
@@ -236,7 +236,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithVariable) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 var b = 10
 a[0] = b
 print(a)})";
@@ -248,7 +248,7 @@ print(a)})";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithConstVariable) {
-  std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 const b = 10
 a[0] = b
 print(a)})";
@@ -266,7 +266,7 @@ print(a)})";
 //       "Index out of bounds of 'a' in index expression, array size is 5";
 
 //   try {
-//     std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+//     std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 // print(a[10])})";
 
 //     setInput(input);
@@ -287,7 +287,7 @@ print(a)})";
 // }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithBinaryExpressionGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10 + 10
 print(a))";
 
@@ -300,7 +300,7 @@ print(a))";
 // TODO: ADD GLOBAL CONTAINER ASSIGNMENT TESTS
 
 TEST_F(ContainerTest, BasicContainerIntDeclarationGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5] 
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5] 
 print(a))";
 
   std::string expected_output = "[1, 2, 3, 4, 5]";
@@ -310,7 +310,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerStringDeclarationGlobal) {
-  std::string input = R"(container<str> a = ["a", "b", "c", "d", "e"]
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
 print(a))";
 
   std::string expected_output = "[a, b, c, d, e]";
@@ -320,7 +320,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolDeclarationGlobal) {
-  std::string input = R"(container<bool> a = [true, false, true, false, true]
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
 
 print(a))";
 
@@ -331,7 +331,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciDeclarationGlobal) {
-  std::string input = R"(container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 print(a))";
 
   std::string expected_output =
@@ -343,7 +343,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerIntIndexingGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 print(a[0]))";
 
   std::string expected_output = "1";
@@ -353,7 +353,7 @@ print(a[0]))";
 }
 
 TEST_F(ContainerTest, BasicContainerStringIndexingGlobal) {
-  std::string input = R"(container<str> a = ["a", "yay", "c", "d", "e"]
+  std::string input = R"(var a:str[5] = ["a", "yay", "c", "d", "e"]
 print(a[1]))";
 
   std::string expected_output = "yay";
@@ -363,7 +363,7 @@ print(a[1]))";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolIndexingGlobal) {
-  std::string input = R"(container<bool> a = [true, false, true, false, true]
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
 
 print(a[2]))";
 
@@ -374,7 +374,7 @@ print(a[2]))";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciIndexingGlobal) {
-  std::string input = R"(container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 
 print(a[3]))";
 
@@ -385,7 +385,7 @@ print(a[3]))";
 }
 
 TEST_F(ContainerTest, BasicContainerIntIndexingAssignmentGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a[0]))";
 
@@ -396,7 +396,7 @@ print(a[0]))";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a))";
 
@@ -407,7 +407,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerStringIndexingAssignmentGlobal) {
-  std::string input = R"(container<str> a = ["a", "yay", "c", "d", "e"]
+  std::string input = R"(var a:str[5] = ["a", "yay", "c", "d", "e"]
 a[1] = "hello"
 print(a[1]))";
 
@@ -418,7 +418,7 @@ print(a[1]))";
 }
 
 TEST_F(ContainerTest, BasicContainerBoolIndexingAssignmentGlobal) {
-  std::string input = R"(container<bool> a = [true, false, true, false, true]
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
 
 a[2] = false  
 print(a[2]))";
@@ -430,7 +430,7 @@ print(a[2]))";
 }
 
 TEST_F(ContainerTest, BasicContainerDeciIndexingAssignmentGlobal) {
-  std::string input = R"(container<deci> a = [1.1, 2.2, 3.3, 4.4, 5.5]
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 
 a[3] = 10.10
 print(a[3]))";
@@ -442,7 +442,7 @@ print(a[3]))";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateAssignmentGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = 10
 print(a))";
 
@@ -457,7 +457,7 @@ print(a))";
 //       "Index out of bounds of 'a' in index expression, array size is 5";
 
 //   try {
-//     std::string input = R"({container<int> a = [1, 2, 3, 4, 5]
+//     std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
 // print(a[10])})";
 
 //     setInput(input);
@@ -478,7 +478,7 @@ print(a))";
 // }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithUnaryExpressionGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = -10
 print(a))";
 
@@ -489,7 +489,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithFunctionCallGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 a[0] = Int32(10)
 print(a))";
 
@@ -500,7 +500,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithVariableGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 var b = 10
 a[0] = b
 print(a))";
@@ -512,7 +512,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerUpdateWithConstVariableGlobal) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 const b = 10
 a[0] = b
 print(a))";
@@ -524,7 +524,7 @@ print(a))";
 }
 
 TEST_F(ContainerTest, BasicContainerGlobalInsideScopeAccess) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 {
   print(a)
 })";
@@ -536,7 +536,7 @@ TEST_F(ContainerTest, BasicContainerGlobalInsideScopeAccess) {
 }
 
 TEST_F(ContainerTest, BasicContainerGlobalInsideScopeUpdate) {
-  std::string input = R"(container<int> a = [1, 2, 3, 4, 5]
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
 {
   a[0] = 10
   print(a)

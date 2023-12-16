@@ -67,6 +67,10 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
     const std::string &variableName, llvm::GlobalVariable *variable) {
 
+  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+    return variable;
+  }
+
   // when Global Variable is not a dynamic type
   if (variable->getValueType() !=
       _codeGenerationContext->getDynamicType()->get()) {
@@ -86,11 +90,6 @@ llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
                                                  // boolean field
 
     return innerValue;
-  }
-
-  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-
-    return variable;
   }
 
   llvm::Value *loaded =

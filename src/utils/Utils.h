@@ -26,9 +26,21 @@ enum type {
   DECIMAL,
   BOOL,
   STRING,
-  CONTAINER,
   NOTHING,
-  UNKNOWN
+  UNKNOWN,
+
+  // Container Types
+
+  INT8_CONTAINER,
+  INT16_CONTAINER,
+  INT32_CONTAINER,
+  INT64_CONTAINER,
+  DECIMAL_CONTAINER,
+  BOOL_CONTAINER,
+  STRING_CONTAINER,
+  NOTHING_CONTAINER,
+  UNKNOWN_CONTAINER,
+
 };
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 
@@ -52,6 +64,10 @@ std::string getTypeString(const std::any &value);
 Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
+
+Utils::type toContainerType(Utils::type type);
+Utils::type toNonContainerType(Utils::type type);
+auto isContainerType(Utils::type type) -> const bool;
 auto getFileContent(const std::string &filePath) -> std::string;
 auto getSourceCodeFromFilePath(const std::string &filePath)
     -> std::vector<std::string>;
@@ -118,7 +134,7 @@ struct FunctionSymbol {
   type return_type;
   SymbolKind kind;
   FunctionSymbol() {
-    this->kind = SymbolKind::None;
+    this->kind = SymbolKind::Function;
     this->return_type = Utils::type::NOTHING;
   }
   FunctionSymbol(std::string name,

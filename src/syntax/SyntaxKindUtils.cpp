@@ -231,9 +231,6 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::SlashSlashToken:
     return "SlashSlashToken";
 
-  case SyntaxKind::ContainerKeyword:
-    return "ContainerKeyword";
-
   case SyntaxKind::ContainerStatement:
     return "ContainerStatement";
   default:

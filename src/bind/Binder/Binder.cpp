@@ -256,36 +256,39 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
 std::unique_ptr<BoundStatement>
 Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
 
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
-      (BoundLiteralExpression<std::any> *)bindLiteralExpression(
-          containerSyntax->getIdentifierExpression().get())
-          .release());
+  std::string variable_str = std::any_cast<std::string>(
+      containerSyntax->getIdentifierTokenRef()->getValue());
 
-  std::string variable_str =
-      std::any_cast<std::string>(boundIdentifierExpression->getValue());
+  bool isConst = containerSyntax->getIdentifierTokenRef()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ConstKeyword;
 
   if (!root->tryDeclareVariable(
           variable_str,
-          Utils::Variable(nullptr, false, Utils::type::CONTAINER))) {
+          Utils::Variable(nullptr, isConst, containerSyntax->getType()))) {
 
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Container " + variable_str + " Already Exists",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(
-            containerSyntax->getIdentifierExpression()->getTokenPtr().get())));
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Container " + variable_str + " Already Exists",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       containerSyntax->getIdentifierTokenRef().get())));
   }
 
   std::unique_ptr<BoundContainerStatement> boundContainerStatement =
       std::make_unique<BoundContainerStatement>(
           containerSyntax->getSourceLocation(), containerSyntax->getType(),
-          std::move(boundIdentifierExpression));
+          std::move(variable_str));
 
-  for (int i = 0; i < containerSyntax->getItems().size(); i++) {
+  std::unique_ptr<BoundExpression> boundContainerSizeExpression = std::move(
+      bindExpression(containerSyntax->getContainerSizeExpressionRef().get()));
 
+  boundContainerStatement->setContainerSizeExpression(
+      std::move(boundContainerSizeExpression));
+
+  for (int i = 0; i < containerSyntax->getValuesRef().size(); i++) {
     std::unique_ptr<BoundExpression> boundStatement =
-        std::move(bindExpression(containerSyntax->getItems()[i].get()));
-    boundContainerStatement->addEntryExpression(std::move(boundStatement));
+        std::move(bindExpression(containerSyntax->getValuesRef()[i].get()));
+    boundContainerStatement->setEntryExpression(std::move(boundStatement));
   }
 
   return std::move(boundContainerStatement);
@@ -410,7 +413,7 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
 
   Utils::Variable variable = root->tryGetVariable(variableName);
 
-  if (variable.type != Utils::type::CONTAINER) {
+  if (!Utils::isContainerType(variable.type)) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableName + " is not a container",
                    DiagnosticUtils::DiagnosticLevel::Error,
@@ -867,9 +870,7 @@ auto Binder::getMemberMap(
         ContainerStatementSyntax *containerDeclaration =
             dynamic_cast<ContainerStatementSyntax *>(
                 globalStatement->getStatementPtr().get());
-        memberMap[containerDeclaration->getIdentifierExpression()
-                      ->getTokenPtr()
-                      ->getText()] = 1;
+        memberMap[containerDeclaration->getIdentifierTokenRef()->getText()] = 1;
       }
     }
   }
