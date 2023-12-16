@@ -1,4 +1,4 @@
-# FlowWing Programming Language (Elang --> Old Name)
+# FlowWing Programming Language ( Old Name Elang )
 
 Elang is a simple, dynamically-typed programming language designed for ease of use and readability. It supports a variety of language constructs and inbuilt functions to help you write expressive and efficient code.
 
