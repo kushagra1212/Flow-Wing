@@ -1,5 +1,4 @@
-container<str> a = ["1","2"]
-print(a[0]/a[1])
-var  x = "pritn"
-print(x)
-print("Hello World")
+fun main()-> nthg {
+    return 2
+}
+print(main())

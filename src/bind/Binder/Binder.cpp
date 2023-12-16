@@ -653,6 +653,14 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
 
   std::string function_name = syntax->getIdentifierTokenPtr()->getText();
 
+  if (Utils::BuiltInFunctions::getFunctionSymbol(function_name).name != "") {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Function " + function_name + " Already Exists",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
+  }
+
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     std::string variable_str =
         syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText();

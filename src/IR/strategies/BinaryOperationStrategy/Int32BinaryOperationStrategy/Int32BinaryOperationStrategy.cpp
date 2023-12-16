@@ -26,7 +26,7 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::IntegerDivision: {
-
+    llvm::Value *divisionResult = nullptr;
     llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
 
     llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
@@ -34,29 +34,30 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
         llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
     llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
         *TheContext, "else", currentBlock->getParent());
-
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        *TheContext, "merge", currentBlock->getParent());
     // Create a conditional branch
     Builder->CreateCondBr(isZero, ifBlock, elseBlock);
 
     // Set up the 'if' block
     Builder->SetInsertPoint(ifBlock);
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(
-            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
-                "Division by zero is not allowed",
-                binaryExpression->getLocation()))});
 
-    Builder->CreateBr(elseBlock);
+    _codeGenerationContext->callREF("Division by zero is not allowed");
+
+    Builder->CreateBr(mergeBlock);
 
     Builder->SetInsertPoint(elseBlock);
+    divisionResult = Builder->CreateSDiv(lhsValue, rhsValue);
+    Builder->CreateBr(mergeBlock);
 
-    llvm::Value *divisionResult = Builder->CreateSDiv(lhsValue, rhsValue);
+    Builder->SetInsertPoint(mergeBlock);
+
     return divisionResult;
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
+    llvm::Value *divisionResult = nullptr;
     llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
 
     llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
@@ -64,26 +65,25 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
         llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
     llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
         *TheContext, "else", currentBlock->getParent());
-
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        *TheContext, "merge", currentBlock->getParent());
     // Create a conditional branch
     Builder->CreateCondBr(isZero, ifBlock, elseBlock);
 
     // Set up the 'if' block
     Builder->SetInsertPoint(ifBlock);
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(
-            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
-                "Division by zero is not allowed",
-                binaryExpression->getLocation()))});
 
-    Builder->CreateBr(elseBlock);
+    _codeGenerationContext->callREF("Division by zero is not allowed");
+
+    Builder->CreateBr(mergeBlock);
 
     Builder->SetInsertPoint(elseBlock);
 
-    llvm::Value *divisionResult =
+    divisionResult =
         Builder->CreateFDiv(_doubleTypeConverter->convertExplicit(lhsValue),
                             _doubleTypeConverter->convertExplicit(rhsValue));
+    Builder->CreateBr(mergeBlock);
+    Builder->SetInsertPoint(mergeBlock);
     return divisionResult;
     break;
   }

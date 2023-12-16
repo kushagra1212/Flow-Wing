@@ -37,6 +37,8 @@ public:
 
   const int32_t getErrorCount() const;
 
+  auto increaseErrorCount() -> void;
+
 private:
   llvm::SourceMgr _sourceMgr;
   llvm::raw_ostream &_errs;

@@ -19,8 +19,6 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
            .get())
           ->getValue());
 
-  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
-
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
@@ -28,13 +26,13 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
 
   if (!variableValue) {
-    if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
+    if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
       return v;
     }
 
     if (variable) {
-
       return this->handleGlobalVariable(variableName, variable);
     }
 
@@ -43,6 +41,18 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
     return nullptr;
   }
+
+  // When Local Variable is not a dynamic type
+  if (v->getAllocatedType() !=
+      _codeGenerationContext->getDynamicType()->get()) {
+
+    llvm::Value *value =
+        Builder->CreateLoad(variableValue->getType(), v, variableName);
+
+    return variableValue;
+  }
+
+  // Get the dynamic type of the variable
 
   llvm::Value *value = Builder->CreateLoad(
       variableValue->getType(),
@@ -57,8 +67,14 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
     const std::string &variableName, llvm::GlobalVariable *variable) {
 
-  if (llvm::isa<llvm::StructType>(variable->getValueType())) {
+  // when Global Variable is not a dynamic type
+  if (variable->getValueType() !=
+      _codeGenerationContext->getDynamicType()->get()) {
+    return Builder->CreateLoad(variable->getValueType(), variable,
+                               variableName);
+  }
 
+  if (llvm::isa<llvm::StructType>(variable->getValueType())) {
     llvm::Value *loadedValue =
         Builder->CreateLoad(variable->getValueType(), variable, variableName);
 

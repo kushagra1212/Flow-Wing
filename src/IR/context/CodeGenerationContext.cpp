@@ -192,6 +192,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
 }
 
 void CodeGenerationContext::callREF(const std::string &error) {
+  // _llvmLogger->increaseErrorCount();
   _builder->CreateCall(
       _module->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
       {_builder->CreateGlobalStringPtr(this->getLogger()->getLLVMErrorMsg(

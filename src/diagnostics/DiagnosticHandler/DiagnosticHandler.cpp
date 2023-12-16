@@ -108,6 +108,7 @@ const void DiagnosticHandler::logDiagnostics(
         fileOut += "Location: " + this->_filePath + "\n" + RESET;
         outputStream << fileOut;
       }
+      break;
     }
   }
 

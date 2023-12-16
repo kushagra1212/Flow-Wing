@@ -43,8 +43,10 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
               ->generateExpression(callExpression->getArguments()[0].get());
 
       if (!value) {
-        _codeGenerationContext->getLogger()->LogError("Something went wrong in "
-                                                      "print function call ");
+        // _codeGenerationContext->getLogger()->LogError("Something went wrong
+        // in "
+        //                                               "print function call
+        //                                               ");
         return nullptr;
       }
 
@@ -99,8 +101,9 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                              Builder->getInt1(false)});
         return nullptr;
       }
-      _codeGenerationContext->getLogger()->LogError("Something went wrong in "
-                                                    "print function call ");
+      // _codeGenerationContext->getLogger()->LogError("Something went wrong in
+      // "
+      //                                               "print function call ");
 
       return nullptr;
     }

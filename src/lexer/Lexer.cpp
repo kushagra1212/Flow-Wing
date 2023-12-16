@@ -411,7 +411,6 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
                this->_sourceCode[lineNumber][this->position + 1] == '/') {
 
       this->next(); // Skip /
-      this->next(); // Skip /
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
           SyntaxKindUtils::SyntaxKind::SlashSlashToken, this->position++, "//",
