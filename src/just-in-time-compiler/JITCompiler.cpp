@@ -167,11 +167,12 @@ void JITCompiler::execute() {
   llvm::InitializeNativeTargetAsmParser();
   std::vector<std::string> irFilePaths;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(JIT_TEST_MODE)
   irFilePaths = {"lib/FlowWing/built_in_module.ll"};
 #else
   std::string builtInModulePath =
       this->executable_directory_string + "/../lib/FlowWing/";
+  std::cout << builtInModulePath;
   irFilePaths = {builtInModulePath + "built_in_module.ll"};
 #endif
   std::vector<std::string> _userDefinedIRFilePaths =
