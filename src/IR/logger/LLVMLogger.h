@@ -33,7 +33,11 @@ public:
   void
   setCurrentSourceLocation(const DiagnosticUtils::SourceLocation &location);
 
+  DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
+
   const int32_t getErrorCount() const;
+
+  auto increaseErrorCount() -> void;
 
 private:
   llvm::SourceMgr _sourceMgr;

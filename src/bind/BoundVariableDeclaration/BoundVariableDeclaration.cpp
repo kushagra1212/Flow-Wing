@@ -3,11 +3,13 @@
 BoundVariableDeclaration::BoundVariableDeclaration(
 
     const DiagnosticUtils::SourceLocation &location, std::string variable,
-    bool isConst, std::unique_ptr<BoundExpression> initializer)
+    bool isConst, Utils::type type,
+    std::unique_ptr<BoundExpression> initializer)
     : BoundSourceLocation(location) {
   this->_variable = variable;
   this->_isConst = isConst;
   this->_initializer = std::move(initializer);
+  this->_type = type;
 
   this->_children.push_back(this->_initializer.get());
 }
@@ -31,3 +33,5 @@ std::unique_ptr<BoundExpression> &
 BoundVariableDeclaration::getInitializerPtr() {
   return this->_initializer;
 }
+
+Utils::type BoundVariableDeclaration::getType() const { return _type; }

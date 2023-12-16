@@ -1,7 +1,7 @@
 #include "AssignmentExpressionSyntax.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> left,
+    std::unique_ptr<ExpressionSyntax> left,
     std::unique_ptr<SyntaxToken<std::any>> operatorToken,
     std::unique_ptr<ExpressionSyntax> right) {
   this->_left = std::move(left);
@@ -34,8 +34,7 @@ std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
   return std::move(this->_right);
 }
 
-std::unique_ptr<LiteralExpressionSyntax<std::any>>
-AssignmentExpressionSyntax::getLeft() {
+std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getLeft() {
   return std::move(this->_left);
 }
 
@@ -53,7 +52,6 @@ std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightPtr() {
   return this->_right;
 }
 
-std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-AssignmentExpressionSyntax::getLeftPtr() {
+std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getLeftPtr() {
   return this->_left;
 }

@@ -670,6 +670,37 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
   return nullptr;
 }
 
+template <typename T>
+T Interpreter::evaluateIndexExpression(BoundExpression *node) {
+  BoundIndexExpression *indexExpression =
+      static_cast<BoundIndexExpression *>(node);
+
+  std::any value = this->evaluateVariableExpression<std::any>(
+      (BoundExpression *)indexExpression->getBoundIdentifierExpression().get());
+
+  std::any index = this->evaluateLiteralExpression<std::any>(
+      indexExpression->getBoundIndexExpression().get());
+
+  int index_value = std::any_cast<int>(index);
+
+  if (value.type() != typeid(std::string)) {
+    this->_interpreterUtils->logError("String expected but " +
+                                      Utils::getTypeString(value) + " found");
+    return nullptr;
+  }
+
+  std::string var_value = std::any_cast<std::string>(value);
+
+  if (index_value < 0 || index_value >= var_value.length()) {
+    this->_interpreterUtils->logError("Index out of bound");
+    return nullptr;
+  }
+
+  std::string result = "";
+  result += var_value[index_value];
+  return result;
+}
+
 template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
   switch (node->getKind()) {
@@ -689,10 +720,14 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     return this->evaluateBinaryExpression<T>(node);
   }
+
   case BinderKindUtils::BoundNodeKind::ParenthesizedExpression: {
     BoundParenthesizedExpression *parenthesizedExpression =
         (BoundParenthesizedExpression *)node;
     return this->evaluate<T>(parenthesizedExpression->getExpressionPtr().get());
+  }
+  case BinderKindUtils::BoundNodeKind::IndexExpression: {
+    return this->evaluateIndexExpression<T>(node);
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
     BoundCallExpression *callExpression = (BoundCallExpression *)node;

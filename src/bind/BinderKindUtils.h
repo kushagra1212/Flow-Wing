@@ -12,6 +12,7 @@ enum BoundNodeKind {
   AssignmentExpression,
   VariableExpression,
   CallExpression,
+  IndexExpression,
 
   // Statements
   BoundStatementKind,
@@ -25,6 +26,7 @@ enum BoundNodeKind {
   ContinueStatement,
   ReturnStatement,
   BringStatement,
+  ContainerStatement,
 
   // declarations
 

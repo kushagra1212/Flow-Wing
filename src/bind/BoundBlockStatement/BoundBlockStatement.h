@@ -19,7 +19,7 @@ public:
   void addStatement(std::unique_ptr<BoundStatement> statement);
   bool getGlobal() const;
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 };

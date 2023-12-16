@@ -5,7 +5,7 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
-RUN apt  update && apt install -y \
+RUN apt-get update && apt-get install -y \
     cmake \
     libgtest-dev \
     llvm-dev \
@@ -15,25 +15,28 @@ RUN apt  update && apt install -y \
     wget \
     lsb-release \
     software-properties-common \
+    ninja-build \
+    zlib1g-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install LLVM 16
-
 RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
 
-
 # Copy your source code to the container
-
 COPY . /compiler-dev
+
 # Set the working directory
 WORKDIR /compiler-dev/all-targets/jit-compiler
 
 # Create a build directory
 RUN rm -rf build && mkdir build
 
-# Configure and build your project
-
+# Configure and build your project using Ninja
 WORKDIR /compiler-dev/all-targets/jit-compiler/build
-# RUN cmake -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug ..
-# RUN make -j8
-# RUN ./FlowWing ../dir/index.fg
+#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug ..
+#RUN ninja
+
+# Run your executable (assuming it's named FlowWing)
+#CMD ["./FlowWing", "../dir/index.fg"]

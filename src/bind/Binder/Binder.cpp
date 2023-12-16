@@ -60,7 +60,7 @@ std::unique_ptr<BoundStatement> Binder::bindVariableDeclaration(
 
   return std::make_unique<BoundVariableDeclaration>(
       variableDeclaration->getSourceLocation(), variable_str, isConst,
-      std::move(boundInitializerExpression));
+      variableDeclaration->getType(), std::move(boundInitializerExpression));
 }
 
 std::unique_ptr<BoundOrIfStatement>
@@ -193,7 +193,6 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
                    DiagnosticUtils::DiagnosticType::Semantic,
                    Utils::getSourceLocation(
                        returnStatement->getReturnKeywordPtr().get())));
-
   } else {
     ExpressionSyntax *returnExpression =
         returnStatement->getExpressionPtr().get();
@@ -208,7 +207,6 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
 }
 
 std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
-  ;
 
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::ExpressionStatement: {
@@ -246,9 +244,54 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::BringStatementSyntax: {
     return std::move(bindBringStatement((BringStatementSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::ContainerStatement: {
+    return std::move(
+        bindContainerStatement((ContainerStatementSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
+}
+
+std::unique_ptr<BoundStatement>
+Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
+
+  std::string variable_str = std::any_cast<std::string>(
+      containerSyntax->getIdentifierTokenRef()->getValue());
+
+  bool isConst = containerSyntax->getIdentifierTokenRef()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ConstKeyword;
+
+  if (!root->tryDeclareVariable(
+          variable_str,
+          Utils::Variable(nullptr, isConst, containerSyntax->getType()))) {
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Container " + variable_str + " Already Exists",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       containerSyntax->getIdentifierTokenRef().get())));
+  }
+
+  std::unique_ptr<BoundContainerStatement> boundContainerStatement =
+      std::make_unique<BoundContainerStatement>(
+          containerSyntax->getSourceLocation(), containerSyntax->getType(),
+          std::move(variable_str));
+
+  std::unique_ptr<BoundExpression> boundContainerSizeExpression = std::move(
+      bindExpression(containerSyntax->getContainerSizeExpressionRef().get()));
+
+  boundContainerStatement->setContainerSizeExpression(
+      std::move(boundContainerSizeExpression));
+
+  for (int i = 0; i < containerSyntax->getValuesRef().size(); i++) {
+    std::unique_ptr<BoundExpression> boundStatement =
+        std::move(bindExpression(containerSyntax->getValuesRef()[i].get()));
+    boundContainerStatement->setEntryExpression(std::move(boundStatement));
+  }
+
+  return std::move(boundContainerStatement);
 }
 
 std::unique_ptr<BoundStatement>
@@ -363,6 +406,40 @@ std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
 }
 
 std::unique_ptr<BoundExpression>
+Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
+
+  std::string variableName = std::any_cast<std::string>(
+      indexExpression->getIndexIdentifierExpressionPtr()->getValue());
+
+  Utils::Variable variable = root->tryGetVariable(variableName);
+
+  if (!Utils::isContainerType(variable.type)) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Variable " + variableName + " is not a container",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       indexExpression->getIndexIdentifierExpressionPtr()
+                           ->getTokenPtr()
+                           .get())));
+  }
+
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
+      (BoundLiteralExpression<std::any> *)bindExpression(
+          indexExpression->getIndexIdentifierExpressionPtr().get())
+          .release());
+
+  std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexLiteral(
+      (BoundLiteralExpression<std::any> *)bindExpression(
+          indexExpression->getIndexEpressionPtr().get())
+          .release());
+
+  return std::make_unique<BoundIndexExpression>(
+      indexExpression->getSourceLocation(),
+      std::move(boundIdentifierExpression), std::move(boundIndexLiteral));
+}
+
+std::unique_ptr<BoundExpression>
 Binder::bindunaryExpression(UnaryExpressionSyntax *unaryExpression) {
   std::unique_ptr<BoundExpression> boundOperand =
       std::move(bindExpression(unaryExpression->getOperandPtr().get()));
@@ -391,13 +468,30 @@ Binder::bindBinaryExpression(BinaryExpressionSyntax *binaryExpression) {
 
 std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     AssignmentExpressionSyntax *assignmentExpression) {
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
-      (BoundLiteralExpression<std::any> *)bindExpression(
-          assignmentExpression->getLeftPtr().get())
-          .release());
 
-  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
-      boundIdentifierExpression->getValue());
+  std::string variable_str = "";
+
+  if (auto literalExpression =
+          dynamic_cast<LiteralExpressionSyntax<std::any> *>(
+              assignmentExpression->getLeftPtr().get())) {
+    variable_str = std::any_cast<std::string>(literalExpression->getValue());
+  } else if (auto indexExpression = dynamic_cast<IndexExpressionSyntax *>(
+                 assignmentExpression->getLeftPtr().get())) {
+    variable_str = std::any_cast<std::string>(
+        indexExpression->getIndexIdentifierExpressionPtr()->getValue());
+  } else {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Invalid Assignment Expression",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       assignmentExpression->getOperatorTokenPtr().get())));
+
+    return std::move(bindExpression(assignmentExpression->getLeftPtr().get()));
+  }
+
+  std::unique_ptr<BoundExpression> boundIdentifierExpression(
+      bindExpression(assignmentExpression->getLeftPtr().get()).release());
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
@@ -431,7 +525,8 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
       bindExpression(assignmentExpression->getRightPtr().get());
   return std::make_unique<BoundAssignmentExpression>(
       assignmentExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression), op, std::move(boundRight));
+      root->tryGetVariable(variable_str), std::move(boundIdentifierExpression),
+      op, std::move(boundRight));
 }
 
 std::unique_ptr<BoundExpression>
@@ -544,6 +639,9 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::CallExpression: {
     return std::move(bindCallExpression((CallExpressionSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::IndexExpression: {
+    return std::move(bindIndexExpression((IndexExpressionSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
@@ -557,6 +655,14 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
 
   std::string function_name = syntax->getIdentifierTokenPtr()->getText();
+
+  if (Utils::BuiltInFunctions::getFunctionSymbol(function_name).name != "") {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Function " + function_name + " Already Exists",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
+  }
 
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     std::string variable_str =
@@ -759,6 +865,12 @@ auto Binder::getMemberMap(
             dynamic_cast<VariableDeclarationSyntax *>(
                 globalStatement->getStatementPtr().get());
         memberMap[variableDeclaration->getIdentifierPtr()->getText()] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ContainerStatement) {
+        ContainerStatementSyntax *containerDeclaration =
+            dynamic_cast<ContainerStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap[containerDeclaration->getIdentifierTokenRef()->getText()] = 1;
       }
     }
   }

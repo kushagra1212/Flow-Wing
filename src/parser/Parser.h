@@ -7,6 +7,7 @@
 #include "../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
 #include "../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
@@ -14,6 +15,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
@@ -28,6 +30,7 @@
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
+
 #include <typeindex>
 class Parser {
 
@@ -66,6 +69,7 @@ private:
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
+  std::unique_ptr<IndexExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<MemberSyntax> parseMember();
   std::unique_ptr<FunctionDeclarationSyntax>
@@ -74,9 +78,10 @@ private:
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<StatementSyntax> parseBringStatement();
+  std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
   Utils::type parseType();
-
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
                     CompilationUnitSyntax *nestedCompilationUnit)
       -> std::unordered_map<std::string, int>;

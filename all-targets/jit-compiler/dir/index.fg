@@ -1,7 +1,2 @@
-fun sum(n:deci) -> int {
-  if (n == 0) {
-    return 0
-  }
-  return n + sum(n - 1)
-}
-print(sum(10))
+var x : int[4] = [1,2,3,4] 
+print(x)

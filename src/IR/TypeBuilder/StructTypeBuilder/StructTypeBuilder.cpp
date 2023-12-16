@@ -7,7 +7,7 @@ StructTypeBuilder::StructTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)
     : TypeBuilderInterface(_codeGenerationContext) {
 
-  _memberTypesForDynamicTypes = _memberTypesForDynamicTypes = {
+  _memberTypesForDynamicTypes = {
       llvm::Type::getInt32Ty(*_codeGenerationContext->getContext().get()),
       llvm::Type::getDoubleTy(*_codeGenerationContext->getContext().get()),
       llvm::Type::getInt1Ty(*_codeGenerationContext->getContext().get()),
@@ -27,9 +27,9 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
   return _memberTypesForDynamicTypes;
 }
 
-const int StructTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
+const uint64_t StructTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
   int index = -1;
-  for (int i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
+  for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
       index = i;
       break;

@@ -6,10 +6,7 @@ Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   previousText = std::vector<std::string>();
   _previousGlobalScope = nullptr;
 }
-Repl::Repl(const bool &test) {
-  Repl();
-  this->isTest = test;
-}
+Repl::Repl(const bool &test) { this->isTest = test; }
 Repl::~Repl() {}
 std::mutex textMutex;
 
@@ -74,6 +71,7 @@ void Repl::runWithStream(std::istream &inputStream,
       emptyLines = 0;
 
       text.push_back(line);
+      _diagnosticHandler->setReplLines(text);
 
       parser = std::make_unique<Parser>(text, this->_diagnosticHandler.get());
 
@@ -171,6 +169,7 @@ void Repl::compileAndEvaluate(
       _diagnosticHandler->logDiagnostics(outputStream, [](const Diagnostic &d) {
         return d.getType() == DiagnosticUtils::DiagnosticType::Runtime;
       });
+      _previousGlobalScope = std::move(globalScope->previous);
     } else {
       _previousGlobalScope = std::move(globalScope);
     }
@@ -260,7 +259,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
 }
 
 void Repl::printWelcomeMessage(std::ostream &outputStream) {
-  outputStream << GREEN << "Welcome to the " << GREEN << "Flux Orbit" << YELLOW
+  outputStream << GREEN << "Welcome to the " << GREEN << "Flow Wing" << YELLOW
                << " REPL!" << RESET << std::endl;
 }
 

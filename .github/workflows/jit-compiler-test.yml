@@ -10,10 +10,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id:   cpu-cores
+      
       - name: Setup CMake and Build Tools
         run: |
           sudo apt update
-          sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common
+          sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common zlib1g-dev libzstd-dev libcurl4-openssl-dev 
+          apt-get clean && rm -rf /var/lib/apt/lists/*
           sudo wget https://apt.llvm.org/llvm.sh
           sudo chmod +x llvm.sh
           sudo ./llvm.sh 16
@@ -25,7 +30,7 @@ jobs:
           mkdir build
           cd build
           cmake -DTESTS_ENABLED=ON ..        
-          make -j8
+          make -j${{ steps.cpu-cores.outputs.count }}
 
       - name: Run tests
         run: |

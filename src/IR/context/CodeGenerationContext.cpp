@@ -89,6 +89,11 @@ CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
 }
 
+std::unordered_map<std::string, uint64_t> &
+CodeGenerationContext::getGlobalTypeMap() {
+  return _globalTypeMap;
+}
+
 void CodeGenerationContext::addBoundedUserFunction(
     std::string name, BoundFunctionDeclaration *functionDeclaration) {
   _boundedUserFunctions[name] = functionDeclaration;
@@ -144,6 +149,12 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
     return constant;
   }
 
+  if (auto callInst = llvm::dyn_cast<llvm::CallInst>(myValue)) {
+
+    this->getLogger()->LogError("Unsupported type for conversion to constant");
+    return nullptr;
+  }
+
   if (valueType->isIntegerTy(32)) {
     if (auto intConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
       llvm::APInt intValue = intConstant->getValue();
@@ -178,4 +189,12 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
   // this->logError("Unsupported type for conversion to constant");
 
   return nullptr; // Return nullptr if the type is not recognized.
+}
+
+void CodeGenerationContext::callREF(const std::string &error) {
+  // _llvmLogger->increaseErrorCount();
+  _builder->CreateCall(
+      _module->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
+      {_builder->CreateGlobalStringPtr(this->getLogger()->getLLVMErrorMsg(
+          error, this->getLogger()->getCurrentSourceLocation()))});
 }

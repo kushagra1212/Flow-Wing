@@ -12,39 +12,88 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   BoundVariableDeclaration *node =
       static_cast<BoundVariableDeclaration *>(statement);
 
-  std::string variable_name = node->getVariable();
+  std::string variableName = node->getVariable();
 
   BoundExpression *initializerExp = node->getInitializerPtr().get();
 
-  llvm::Value *result =
+  llvm::Value *rhsValue =
       _expressionGenerationFactory->createStrategy(initializerExp->getKind())
           ->generateExpression(initializerExp);
+  Utils::type variableType = node->getType();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(variable_name,
-                                                              result);
+  // Handle Type Local Variable
+  if (variableType != Utils::type::UNKNOWN) {
+
+    llvm::Type *llvmType =
+        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+            variableType);
+
+    if (variableType !=
+        _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+            rhsValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Type mismatch in variable declaration " + variableName +
+          " Expected type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+          " but got type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              rhsValue->getType()));
+      return nullptr;
+    }
+
+    _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
+                                                                rhsValue);
+
+    llvm::AllocaInst *variable =
+        Builder->CreateAlloca(llvmType, nullptr, variableName.c_str());
+
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
+                                                            variable);
+
+    Builder->CreateStore(rhsValue, variable);
+
+    return rhsValue;
+  }
+
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          rhsValue->getType()) != variableType) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in variable declaration " + variableName +
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
+    return nullptr;
+  }
+
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
+                                                              rhsValue);
 
   // create and load variable
 
   llvm::AllocaInst *variable =
       Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                            nullptr, variable_name.c_str());
+                            nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variable_name,
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
                                                           variable);
 
   Builder->CreateStore(
-      result,
+      rhsValue,
       Builder->CreateStructGEP(
           _codeGenerationContext->getDynamicType()->get(), variable,
           _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              result->getType())));
+              rhsValue->getType())));
 
-  return result;
+  return rhsValue;
 }
 
-void VariableDeclarationStatementGenerationStrategy::
-    handleGlobalVariableDeclaration(BoundStatement *statement) {
-
+llvm::Value *
+VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
   BoundVariableDeclaration *variableDeclaration =
       static_cast<BoundVariableDeclaration *>(statement);
 
@@ -54,46 +103,80 @@ void VariableDeclarationStatementGenerationStrategy::
   std::string variableName = variableDeclaration->getVariable();
 
   BoundExpression *expression = variableDeclaration->getInitializerPtr().get();
-  llvm::Value *result =
+  llvm::Value *rhsValue =
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);
 
-  if (result == nullptr) {
+  if (!rhsValue) {
     _codeGenerationContext->getLogger()->LogError(
-        "Error in generating IR for variable declaration ");
-    return;
+        "Rhs of variable " + variableName + " is notthing");
+    return nullptr;
   }
-  llvm::GlobalVariable *_globalVariable = nullptr;
-  llvm::AllocaInst *v = nullptr;
-  if (auto constDataArray = llvm::dyn_cast<llvm::ConstantDataArray>(result)) {
+  Utils::type variableType = variableDeclaration->getType();
 
-    std::string str = constDataArray->getAsCString().str();
+  // Handle Type Global Variable
+  if (variableType != Utils::type::UNKNOWN) {
 
-    _globalVariable = new llvm::GlobalVariable(
-        *TheModule,
-        llvm::ArrayType::get(llvm::IntegerType::getInt8Ty((*TheContext)),
-                             str.length() + 1),
-        true, llvm::GlobalValue::ExternalLinkage, constDataArray, variableName);
-
-  } else {
-    llvm::Constant *constant =
-        _codeGenerationContext->createConstantFromValue(result);
-
-    if (constant) {
-      _globalVariable = new llvm::GlobalVariable(
-          *TheModule, result->getType(), false,
-          llvm::GlobalValue::ExternalLinkage, constant, variableName);
-    } else {
-      _globalVariable = new llvm::GlobalVariable(
-          *TheModule, result->getType(), false,
-          llvm::GlobalValue::ExternalLinkage,
-          llvm::Constant::getNullValue(result->getType()), variableName);
+    if (variableType !=
+        _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+            rhsValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Type mismatch in variable declaration " + variableName +
+          " Expected type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+          " but got type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              rhsValue->getType()));
+      return nullptr;
     }
-  }
-}
 
-llvm::Value *
-VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
-  return this->generateStatement(statement);
+    llvm::Type *llvmType =
+        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+            variableType);
+
+    llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+        *TheModule, llvmType, false, llvm::GlobalValue::ExternalLinkage,
+        llvm::Constant::getNullValue(llvmType), variableName);
+
+    Builder->CreateStore(rhsValue, _globalVariable);
+
+    return rhsValue;
+  }
+
+  if (variableType != Utils::type::UNKNOWN &&
+      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          rhsValue->getType()) != variableType) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in variable declaration " + variableName +
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
+    return nullptr;
+  }
+
+  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+      *TheModule, _codeGenerationContext->getDynamicType()->get(), false,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::Constant::getNullValue(
+          _codeGenerationContext->getDynamicType()->get()),
+      variableName);
+
+  llvm::Value *loadedValue = Builder->CreateLoad(
+      _codeGenerationContext->getDynamicType()->get(), _globalVariable);
+
+  llvm::Value *updatedValue = Builder->CreateInsertValue(
+      loadedValue, rhsValue,
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          rhsValue->getType()));
+
+  _codeGenerationContext->getGlobalTypeMap()[variableName] =
+      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+          rhsValue->getType());
+
+  Builder->CreateStore(updatedValue, _globalVariable);
+
+  return rhsValue;
 }

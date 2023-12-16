@@ -42,12 +42,69 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArguments()[0].get()->getKind())
               ->generateExpression(callExpression->getArguments()[0].get());
 
+      if (!value) {
+        // _codeGenerationContext->getLogger()->LogError("Something went wrong
+        // in "
+        //                                               "print function call
+        //                                               ");
+        return nullptr;
+      }
+
+      // check if value is element pointer
+      if (llvm::isa<llvm::GetElementPtrInst>(value)) {
+        auto v = static_cast<llvm::GetElementPtrInst *>(value);
+        value = Builder->CreateLoad(v->getResultElementType(), v);
+      }
+
+      if (llvm::isa<llvm::AllocaInst>(value)) {
+
+        auto v = static_cast<llvm::AllocaInst *>(value);
+
+        if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+
+          llvm::ArrayType *arrayType =
+              llvm::cast<llvm::ArrayType>(v->getAllocatedType());
+          llvm::Type *elementType = arrayType->getElementType();
+
+          if (!elementType->isIntegerTy(8)) {
+            return printArray(v);
+          }
+        }
+
+        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                            {_stringTypeConverter->convertExplicit(value),
+                             Builder->getInt1(false)});
+
+        return nullptr;
+      }
+
+      // check if is Global Variable
+      if (llvm::isa<llvm::GlobalVariable>(value)) {
+        auto v = static_cast<llvm::GlobalVariable *>(value);
+
+        if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
+
+          llvm::ArrayType *arrayType =
+              llvm::cast<llvm::ArrayType>(v->getValueType());
+          llvm::Type *elementType = arrayType->getElementType();
+
+          if (!elementType->isIntegerTy(8)) {
+            return printGlobalArray(v);
+          }
+        }
+      }
+
       if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
               value->getType()) != Utils::type::NOTHING) {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                             {_stringTypeConverter->convertExplicit(value),
                              Builder->getInt1(false)});
+        return nullptr;
       }
+      // _codeGenerationContext->getLogger()->LogError("Something went wrong in
+      // "
+      //                                               "print function call ");
+
       return nullptr;
     }
   } else if (function.name == Utils::BuiltInFunctions::input.name) {
@@ -61,14 +118,14 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       return callInst;
     } else if (arguments_size == 1) {
 
-      llvm::Value *strPtri8 =
+      llvm::Value *val =
           _expressionGenerationFactory
               ->createStrategy(
                   callExpression->getArguments()[0].get()->getKind())
               ->generateExpression(callExpression->getArguments()[0].get());
 
       Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {_stringTypeConverter->convertExplicit(strPtri8),
+                          {_stringTypeConverter->convertExplicit(val),
                            Builder->getInt1(false)});
 
       llvm::ArrayRef<llvm::Value *> Args = {};
@@ -211,4 +268,93 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   return this->generateExpression(expression);
+}
+
+llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
+
+  llvm::ArrayType *arrayType =
+      llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType());
+  llvm::Type *elementType = arrayType->getElementType();
+  const uint64_t size = arrayType->getNumElements();
+
+  llvm::Value *arrayPtr = v;
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
+       Builder->getInt1(false)});
+
+  // Iterate over each element of the array
+  for (uint64_t i = 0; i < size; ++i) {
+    llvm::Value *elementPtr = Builder->CreateGEP(
+        arrayType, arrayPtr, {Builder->getInt32(0), Builder->getInt32(i)});
+    llvm::Value *elementValue = Builder->CreateLoad(elementType, elementPtr);
+
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(elementValue),
+                         Builder->getInt1(false)});
+    if (i < size - 1) {
+      // Print a comma and a space for all elements except the last one
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          {_stringTypeConverter->convertExplicit(
+                               llvm::ConstantDataArray::getString(
+                                   TheModule->getContext(), ", ")),
+                           Builder->getInt1(false)});
+    }
+  }
+
+  // Print the closing bracket
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "]")),
+       Builder->getInt1(false)});
+
+  return nullptr;
+}
+
+llvm::Value *CallExpressionGenerationStrategy::printGlobalArray(
+    llvm::GlobalVariable *variable) {
+  llvm::ArrayType *arrayType =
+      llvm::dyn_cast<llvm::ArrayType>(variable->getValueType());
+  llvm::Type *elementType = arrayType->getElementType();
+  const uint64_t size = arrayType->getNumElements();
+
+  llvm::Value *loadedValue =
+      Builder->CreateLoad(variable->getValueType(), variable);
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
+       Builder->getInt1(false)});
+
+  // Get Pointer to comma
+  llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
+      llvm::ConstantDataArray::getString(TheModule->getContext(), ", "));
+
+  // Iterate over each element of the array
+  for (uint64_t i = 0; i < size; ++i) {
+    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, i);
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(innerValue),
+                         Builder->getInt1(false)});
+    if (i < size - 1) {
+      // Print a comma and a space for all elements except the last one
+      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                          {commaPtr, Builder->getInt1(false)});
+    }
+  }
+
+  // Print the closing bracket
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(
+           llvm::ConstantDataArray::getString(TheModule->getContext(), "]")),
+       Builder->getInt1(false)});
+
+  return nullptr;
 }

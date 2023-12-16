@@ -196,11 +196,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
       node->_functionSymbol.return_type));
-  // this->_NamedValuesStack.pop();
+
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-
-  // this->_irUtils->setNamedValue(functionName, F, this->_NamedValuesStack);
 
   _codeGenerationContext->getNamedValueChain()->setNamedValue(functionName, F);
   _codeGenerationContext->getAllocaChain()->setAllocaInst(functionName,

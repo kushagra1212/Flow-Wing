@@ -22,11 +22,11 @@ public:
   BoundLiteralExpression(const DiagnosticUtils::SourceLocation &location,
                          T value, SyntaxKindUtils::SyntaxKind syntaxKind);
 
-  const std::type_info &getType();
+  const std::type_info &getType() override;
 
   T getValue();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
   SyntaxKindUtils::SyntaxKind getSyntaxKind();

@@ -1,6 +1,9 @@
 #include "JITCompiler.h"
 
-JITCompiler::JITCompiler(std::string filePath) { this->_filePath = filePath; }
+JITCompiler::JITCompiler(std::string filePath) {
+  this->_filePath = filePath;
+  llFileSaveStrategy = std::make_unique<LLFileSaveStrategy>(nullptr);
+}
 
 JITCompiler::~JITCompiler() {}
 
@@ -53,7 +56,11 @@ void JITCompiler::compile(std::vector<std::string> &text,
 
     return;
   }
+
+#ifdef DEBUG
   Utils::prettyPrint(globalScope->globalStatement.get());
+#endif
+
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
@@ -158,9 +165,16 @@ void JITCompiler::execute() {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
-  std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
+  std::vector<std::string> irFilePaths;
 
+#if defined(DEBUG) || defined(JIT_TEST_MODE)
+  irFilePaths = {"lib/FlowWing/built_in_module.ll"};
+#else
+  std::string builtInModulePath =
+      this->executable_directory_string + "/../lib/FlowWing/";
+  std::cout << builtInModulePath;
+  irFilePaths = {builtInModulePath + "built_in_module.ll"};
+#endif
   std::vector<std::string> _userDefinedIRFilePaths =
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 
@@ -175,13 +189,13 @@ void JITCompiler::execute() {
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
 #ifdef JIT_MODE
-
+#ifdef DEBUG
     currentDiagnosticHandler->printDiagnostic(
         std::cout,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
-
+#endif
 #endif
 
     bool LinkResult = llvm::Linker::linkModules(
@@ -196,25 +210,40 @@ void JITCompiler::execute() {
       return;
     }
   }
-#ifdef JIT_MODE
-  // currentDiagnosticHandler->printDiagnostic(
-  //     std::cout, Diagnostic("Finished linking modules.",
-  //                           DiagnosticUtils::DiagnosticLevel::Info,
-  //                           DiagnosticUtils::DiagnosticType::Linker,
-  //                           DiagnosticUtils::SourceLocation(
-  //                               0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
-  TheModule->print(llvm::outs(), nullptr);
-#endif
+  /*
+    Create the main function
+    START
+  */
+
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
+
+  /*
+    Create the main function
+    END
+  */
+
+#ifdef JIT_MODE
+  currentDiagnosticHandler->printDiagnostic(
+      std::cout, Diagnostic("Finished linking modules.",
+                            DiagnosticUtils::DiagnosticLevel::Info,
+                            DiagnosticUtils::DiagnosticType::Linker,
+                            DiagnosticUtils::SourceLocation(
+                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
+#ifdef DEBUG
+  TheModule->print(llvm::outs(), nullptr);
+
+  // llFileSaveStrategy->saveToFile("my_module.ll", TheModule.get());
+#endif
+#endif
 
   std::string errorMessage;
   llvm::ExecutionEngine *executionEngine =
       llvm::EngineBuilder(std::move(TheModule))
           .setErrorStr(&errorMessage)
           .setEngineKind(llvm::EngineKind::JIT)
-          .setOptLevel(llvm::CodeGenOpt::Aggressive)
+          .setOptLevel(llvm::CodeGenOpt::Less)
           .create();
 
   if (!executionEngine) {
@@ -271,13 +300,18 @@ int main(int argc, char **argv) {
 #ifdef JIT_MODE
 
 int main(int argc, char *argv[]) {
+
   signal(SIGSEGV, signalHandler);
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return 0;
   }
+  std::filesystem::path executable_path =
+      std::filesystem::canonical(std::filesystem::path(argv[0]));
 
+  std::filesystem::path executable_directory = executable_path.parent_path();
+  std::string executable_directory_string = executable_directory.string();
   // Opens the file using the provided file path
 
   std::ifstream file;
@@ -308,6 +342,7 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<JITCompiler> jitCompiler =
       std::make_unique<JITCompiler>(argv[1]);
+  jitCompiler->executable_directory_string = executable_directory_string;
 
   jitCompiler->compile(text, std::cout);
 

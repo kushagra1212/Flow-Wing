@@ -1,6 +1,6 @@
 #include "BringStatementGenerationStrategy.h"
 
-#include "../../../../evaluator/llvm/IRGenerator.h"
+#include "../../../IRGenerator.h"
 #include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 
 BringStatementGenerationStrategy::BringStatementGenerationStrategy(

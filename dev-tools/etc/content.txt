@@ -1,0 +1,10 @@
+# generate js
+
+em++ my_module.ll \                                                                          ─╯
+  --std=c++17 \
+  -s ENVIRONMENT='web' \
+  -s LINKABLE=1 -s EXPORT_ALL=1 \
+-s NO_EXIT_RUNTIME=1 \
+--bind -o build/main.js
+
+

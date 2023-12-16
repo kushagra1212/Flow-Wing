@@ -25,6 +25,7 @@ private:
   char getCurrent();
 
   void next();
+  auto peek(const int64_t &offset) const -> const char;
 
   std::unique_ptr<SyntaxToken<std::any>> readNumber();
   std::unique_ptr<SyntaxToken<std::any>> readDecimal(const int &start);

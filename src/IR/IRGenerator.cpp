@@ -33,20 +33,10 @@ IRGenerator::IRGenerator(
 
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
       this->_codeGenerationContext.get());
-}
 
-void IRGenerator::updateModule() {
-  std::vector<std::string> irFilePaths = {
-      "../../../src/evaluator/BuiltinIRs/built_in_module.ll"};
+  // Initialize the file save strategy
 
-  for (const std::string &path : irFilePaths) {
-    llvm::SMDiagnostic err;
-    bool LinkResult = llvm::Linker::linkModules(
-        *TheModule, llvm::parseIRFile(path, err, *TheContext));
-    if (LinkResult) {
-      llvm::errs() << "Error linking " + path + ":" << err.getMessage() << "\n";
-    }
-  }
+  llFileSaveStrategy = std::make_unique<LLFileSaveStrategy>(_llvmLogger);
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -71,7 +61,6 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareStringToDoubleFn();
   functionDeclarationManager->declareStringToIntFn();
   functionDeclarationManager->declareStringToLongFn();
-
   functionDeclarationManager->declareRaiseExceptionFn();
 }
 
@@ -158,8 +147,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
 
-  this->saveLLVMModuleToFile(
-      TheModule, _codeGenerationContext->getSourceFileName() + ".ll");
+  llFileSaveStrategy->saveToFile(
+      _codeGenerationContext->getSourceFileName() + ".ll", TheModule);
+
   // this->_irParser->mergeIR(TheModule.get());
 
   // this->_irParser->removeDuplicates();

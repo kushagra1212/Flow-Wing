@@ -23,6 +23,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+// TODO: Add support for Windows
+// #include <windows.h>
+#include <unistd.h>
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
@@ -33,7 +36,9 @@ constexpr auto BLUE = "\033[34m";
 constexpr auto RED_TEXT = "\033[1;31m";
 constexpr auto YELLOW_TEXT = "\033[1;33m";
 constexpr auto GREEN_TEXT = "\033[1;32m";
+constexpr auto ORANGE_TEXT = "\033[1;33m";
 constexpr auto BLUE_TEXT = "\033[1;34m";
+constexpr auto PINK_TEXT = "\033[1;35m";
 constexpr auto CYAN_TEXT = "\033[1;36m";
 constexpr auto MAGENTA_TEXT = "\033[1;35m";
 constexpr auto WHITE_TEXT = "\033[1;37m";

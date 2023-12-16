@@ -1,5 +1,9 @@
 
-#pragma once
+#ifndef __BIND_BINDER_H__
+#define __BIND_BINDER_H__
+
+#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "../../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../../syntax/CompilationUnitSyntax.h"
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../../syntax/expression/AssignmentExpressionSyntax.h"
@@ -13,6 +17,7 @@
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
@@ -23,9 +28,6 @@
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
-
-#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -34,12 +36,14 @@
 #include "../BoundBreakStatement/BoundBreakStatement.h"
 #include "../BoundBringStatement/BoundBringStatement.h"
 #include "../BoundCallExpression/BoundCallExpression.h"
+#include "../BoundContainerStatement/BoundContainerStatement.h"
 #include "../BoundContinueStatement/BoundContinueStatement.h"
 #include "../BoundExpression.h"
 #include "../BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../BoundForStatement/BoundForStatement.h"
 #include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../BoundIfStatement/BoundIfStatement.h"
+#include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
@@ -115,6 +119,9 @@ public:
   std::unique_ptr<BoundStatement>
   bindBringStatement(BringStatementSyntax *bringStatement);
 
+  std::unique_ptr<BoundStatement>
+  bindContainerStatement(ContainerStatementSyntax *containerSyntax);
+
   // BoundExpressions
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
@@ -137,8 +144,13 @@ public:
   std::unique_ptr<BoundExpression>
   bindCallExpression(CallExpressionSyntax *callExpression);
 
+  std::unique_ptr<BoundExpression>
+  bindIndexExpression(IndexExpressionSyntax *indexExpression);
+
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
                     CompilationUnitSyntax *nestedCompilationUnit)
       -> std::unordered_map<std::string, int>;
 };
+
+#endif // __BIND_BINDER_H__

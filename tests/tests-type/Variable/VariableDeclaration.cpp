@@ -190,29 +190,127 @@ TEST_F(VariableDeclaration,
   EXPECT_TRUE(output.find("Variable") != std::string::npos &&
               output.find("Already Exists") != std::string::npos);
 }
-#ifndef JIT_TEST_MODE
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   std::string input =
-      R"(fun main2() -> int {   
-      var x = 2 
+      R"(fun main2() -> int {
+      var x = 2
       print(2) print(x) print(x+2) print(x+true) print(x+false)
       print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)
-      x  =  true 
+      x  =  true
       print(x==false) print(x+false)
       print(x+true) print(x+1) print(x+1.1)
-      print(x+"Hello") 
+      print(x+"Hello")
       return (0)
       }
       var y = main2()
       )";
 
   std::string expected_output =
-      "224323.1000000000000000894.2000000000000001782.2000000000000001783."
-      "200000000000000178falsetruetrue22.100000000000000089trueHello";
+      "224323.10000000000000014.20000000000000022.20000000000000023."
+      "2000000000000002falsetruetrue22.1000000000000001trueHello";
 
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-#endif
+TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT2) {
+  std::string input =
+      R"(
+print("String"+"\n")
+var x = "This is a string"
+print(x+"\n")
+x = 2
+print(x+"\n")
+x = true
+print(x+"\n")
+x = 2.0
+print(x+"\n")
+
+print("Int"+"\n")
+var y = 2
+print(y+"\n")
+y = 2.0
+print(y+"\n")
+y = true
+print(y+"\n")
+y = "This is a string"
+print(y+"\n")
+
+print("Bool"+"\n")
+var z = true
+print(z+"\n")
+z = 2
+print(z+"\n")
+z = 2.0
+print(z+"\n")
+z = "This is a string"
+print(z+"\n")
+
+print("Float"+"\n")
+var a = 2.0
+print(a+"\n")
+a = 2
+print(a+"\n")
+a = true
+print(a+"\n")
+a = "This is a string"
+print(a+"\n"))";
+
+  std::string expected_output =
+      R"(String
+This is a string
+2
+true
+2.0000000000000000
+Int
+2
+2.0000000000000000
+true
+This is a string
+Bool
+true
+2
+2.0000000000000000
+This is a string
+Float
+2.0000000000000000
+2
+true
+This is a string
+)";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// TODO: Fix this test and Also add test for other types combinations
+
+// TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENTError) {
+
+//   try {
+//     std::string input =
+//         R"(
+// var x:str = 1
+//       )";
+
+//     std::string expected_output = "Type mismatch in variable declaration x "
+//                                   "Expected type String but got type
+//                                   Integer";
+
+//     setInput(input);
+//     runEvaluator();
+//     EXPECT_EQ(getOutput(), expected_output);
+//     // If the function does not throw an exception, fail the test
+//     FAIL() << "Expected exception not thrown";
+//   } catch (const std::runtime_error &e) {
+//     // Compare the error message with the expected error message
+//     EXPECT_STREQ(e.what(), "Type mismatch in variable declaration x Expected
+//     "
+//                            "type String but got type Integer");
+//   } catch (...) {
+//     // If the thrown exception is not of type std::runtime_error, fail the
+//     test FAIL() << "Unexpected exception type thrown";
+//   }
+// }

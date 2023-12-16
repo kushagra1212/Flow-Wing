@@ -19,24 +19,40 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
            .get())
           ->getValue());
 
-  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
   llvm::Value *variableValue =
       _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
 
   if (!variableValue) {
+    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+
+    if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+      return v;
+    }
+
     if (variable) {
       return this->handleGlobalVariable(variableName, variable);
     }
 
     _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in variable expression ");
+        "Variable " + variableName + " not found in variable expression ");
 
     return nullptr;
   }
 
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+  // When Local Variable is not a dynamic type
+  if (v->getAllocatedType() !=
+      _codeGenerationContext->getDynamicType()->get()) {
+
+    llvm::Value *value =
+        Builder->CreateLoad(variableValue->getType(), v, variableName);
+
+    return variableValue;
+  }
+
+  // Get the dynamic type of the variable
 
   llvm::Value *value = Builder->CreateLoad(
       variableValue->getType(),
@@ -50,21 +66,30 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
 llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
     const std::string &variableName, llvm::GlobalVariable *variable) {
-  if (variable->getValueType()->isIntegerTy(32) ||
-      variable->getValueType()->isIntegerTy(64) ||
-      variable->getValueType()->isIntegerTy(1) ||
-      variable->getValueType()->isFloatTy() ||
-      variable->getValueType()->isDoubleTy() ||
-      variable->getValueType()->isIntegerTy(8) ||
-      variable->getValueType()->isBFloatTy() ||
-      variable->getValueType()->isHalfTy() ||
-      variable->getValueType()->isFP128Ty() ||
-      variable->getValueType()->isX86_FP80Ty() ||
-      variable->getValueType()->isPPC_FP128Ty()) {
-    llvm::Value *loaded =
+
+  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+    return variable;
+  }
+
+  // when Global Variable is not a dynamic type
+  if (variable->getValueType() !=
+      _codeGenerationContext->getDynamicType()->get()) {
+    return Builder->CreateLoad(variable->getValueType(), variable,
+                               variableName);
+  }
+
+  if (llvm::isa<llvm::StructType>(variable->getValueType())) {
+    llvm::Value *loadedValue =
         Builder->CreateLoad(variable->getValueType(), variable, variableName);
 
-    return loaded;
+    // Extract the boolean value from the structure
+    llvm::Value *innerValue = Builder->CreateExtractValue(
+        loadedValue,
+        _codeGenerationContext
+            ->getGlobalTypeMap()[variableName]); // 4 is the index of the
+                                                 // boolean field
+
+    return innerValue;
   }
 
   llvm::Value *loaded =

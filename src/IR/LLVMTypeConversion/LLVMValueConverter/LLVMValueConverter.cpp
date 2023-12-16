@@ -70,7 +70,7 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
   llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
       *_module, strConstant->getType(),
       true, // isConstant
-      llvm::GlobalValue::ExternalLinkage, strConstant, value);
+      llvm::GlobalValue::ExternalLinkage, strConstant, value + ".str");
 
   llvm::Value *zero =
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*_llvmContext), 0);
