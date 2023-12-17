@@ -16,9 +16,8 @@ BinderKindUtils::BoundNodeKind BoundContainerStatement::getKind() const {
 
 std::vector<BoundNode *> BoundContainerStatement::getChildren() {
   if (_children.size() == 0) {
-    for (auto &entry : this->_entryExpressions) {
-      _children.push_back(entry.get());
-    }
+    _children.push_back(_containerExpression.get());
+    _children.push_back(_containerSizeExpression.get());
   }
 
   return _children;
@@ -28,9 +27,9 @@ std::vector<BoundNode *> BoundContainerStatement::getChildren() {
   Setters
 */
 
-void BoundContainerStatement::setEntryExpression(
-    std::unique_ptr<BoundExpression> entryExpression) {
-  this->_entryExpressions.push_back(std::move(entryExpression));
+void BoundContainerStatement::setBracketedExpression(
+    std::unique_ptr<BoundExpression> containerExpression) {
+  this->_containerExpression = std::move(containerExpression);
 }
 
 void BoundContainerStatement::setContainerSizeExpression(
@@ -46,11 +45,6 @@ auto BoundContainerStatement::getVariableNameRef() const
   return this->_variableName;
 }
 
-auto BoundContainerStatement::getEntryExpressionsRef() const
-    -> const std::vector<std::unique_ptr<BoundExpression>> & {
-  return this->_entryExpressions;
-}
-
 auto BoundContainerStatement::getContainerTypeRef() const
     -> const Utils::type & {
   return this->_type;
@@ -59,4 +53,9 @@ auto BoundContainerStatement::getContainerTypeRef() const
 auto BoundContainerStatement::getContainerSizeExpressionRef() const
     -> const std::unique_ptr<BoundExpression> & {
   return this->_containerSizeExpression;
+}
+
+auto BoundContainerStatement::getBracketedExpressionRef() const
+    -> const std::unique_ptr<BoundExpression> & {
+  return this->_containerExpression;
 }

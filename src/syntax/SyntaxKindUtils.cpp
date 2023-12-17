@@ -231,6 +231,18 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::SlashSlashToken:
     return "SlashSlashToken";
 
+  case SyntaxKind::ContainerExpression:
+    return "ContainerExpression";
+
+  case SyntaxKind::FillExpression:
+    return "FillExpression";
+
+  case SyntaxKind::BracketedExpression:
+    return "BracketedExpression";
+
+  case SyntaxKind::FillKeyword:
+    return "FillKeyword";
+
   case SyntaxKind::ContainerStatement:
     return "ContainerStatement";
   default:

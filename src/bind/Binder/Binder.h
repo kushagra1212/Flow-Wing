@@ -8,8 +8,10 @@
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../../syntax/expression/BinaryExpressionSyntax.h"
+#include "../../syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
 #include "../../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "../../syntax/expression/ExpressionSyntax.h"
+#include "../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../../syntax/expression/LiteralExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
@@ -33,13 +35,16 @@
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../BoundBlockStatement/BoundBlockStatement.h"
+#include "../BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../BoundBreakStatement/BoundBreakStatement.h"
 #include "../BoundBringStatement/BoundBringStatement.h"
 #include "../BoundCallExpression/BoundCallExpression.h"
+#include "../BoundContainerExpression/BoundContainerExpression.h"
 #include "../BoundContainerStatement/BoundContainerStatement.h"
 #include "../BoundContinueStatement/BoundContinueStatement.h"
 #include "../BoundExpression.h"
 #include "../BoundExpressionStatement/BoundExpressionStatement.h"
+#include "../BoundFillExpression/BoundFillExpression.h"
 #include "../BoundForStatement/BoundForStatement.h"
 #include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../BoundIfStatement/BoundIfStatement.h"
@@ -146,6 +151,15 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindIndexExpression(IndexExpressionSyntax *indexExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindContainerExpression(ContainerExpressionSyntax *containerExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindFillExpression(FillExpressionSyntax *fillExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindBracketedExpression(BracketedExpressionSyntax *bracketedExpression);
 
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,

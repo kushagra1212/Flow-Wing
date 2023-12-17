@@ -253,6 +253,58 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   }
 }
 
+std::unique_ptr<BoundExpression> Binder::bindContainerExpression(
+    ContainerExpressionSyntax *containerExpression) {
+
+  std::unique_ptr<BoundContainerExpression> boundContainerExpression =
+      std::make_unique<BoundContainerExpression>(
+          containerExpression->getSourceLocation());
+
+  for (int i = 0; i < containerExpression->getElementsRef().size(); i++) {
+    std::unique_ptr<BoundExpression> boundExpression = std::move(
+        bindExpression(containerExpression->getElementsRef()[i].get()));
+    boundContainerExpression->setElement(std::move(boundExpression));
+  }
+
+  return std::move(boundContainerExpression);
+}
+
+std::unique_ptr<BoundExpression> Binder::bindBracketedExpression(
+    BracketedExpressionSyntax *bracketedExpression) {
+
+  SyntaxKindUtils::SyntaxKind kind =
+      bracketedExpression->getExpressionRef()->getKind();
+
+  std::unique_ptr<BoundBracketedExpression> boundBracketedExpression =
+      std::make_unique<BoundBracketedExpression>(
+          bracketedExpression->getSourceLocation());
+
+  switch (kind) {
+  case SyntaxKindUtils::SyntaxKind::ContainerExpression: {
+    boundBracketedExpression->setExpression(std::move(bindContainerExpression(
+        (ContainerExpressionSyntax *)bracketedExpression->getExpressionRef()
+            .get())));
+    break;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::FillExpression: {
+    boundBracketedExpression->setExpression(std::move(bindFillExpression(
+        (FillExpressionSyntax *)bracketedExpression->getExpressionRef()
+            .get())));
+    break;
+  }
+  default: {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Invalid Bracketed Expression", DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        bracketedExpression->getSourceLocation()));
+    break;
+  }
+  }
+
+  return std::move(boundBracketedExpression);
+}
+
 std::unique_ptr<BoundStatement>
 Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
 
@@ -285,11 +337,26 @@ Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
   boundContainerStatement->setContainerSizeExpression(
       std::move(boundContainerSizeExpression));
 
-  for (int i = 0; i < containerSyntax->getValuesRef().size(); i++) {
-    std::unique_ptr<BoundExpression> boundStatement =
-        std::move(bindExpression(containerSyntax->getValuesRef()[i].get()));
-    boundContainerStatement->setEntryExpression(std::move(boundStatement));
+  BracketedExpressionSyntax *bracketedExpression =
+      (BracketedExpressionSyntax *)containerSyntax->getContainerExpressionRef()
+          .get();
+
+  SyntaxKindUtils::SyntaxKind containerExpressionKind =
+      bracketedExpression->getKind();
+
+  if (containerExpressionKind !=
+      SyntaxKindUtils::SyntaxKind::BracketedExpression) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Invalid BracketedExpression Expression",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   bracketedExpression->getSourceLocation()));
+
+    return std::move(boundContainerStatement);
   }
+
+  boundContainerStatement->setBracketedExpression(
+      std::move(bindBracketedExpression(bracketedExpression)));
 
   return std::move(boundContainerStatement);
 }
@@ -607,6 +674,24 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   this->_callExpressions.push_back(boundCallExpression.get());
   return std::move(boundCallExpression);
+}
+
+std::unique_ptr<BoundExpression>
+Binder::bindFillExpression(FillExpressionSyntax *fillExpression) {
+
+  std::unique_ptr<BoundFillExpression> boundFillExpression =
+      std::make_unique<BoundFillExpression>(
+          fillExpression->getSourceLocation());
+
+  if (fillExpression->getSizeToFillExpressionRef().get()) {
+    boundFillExpression->setSizeToFill(std::move(
+        bindExpression(fillExpression->getSizeToFillExpressionRef().get())));
+  }
+
+  boundFillExpression->setElementToFill(std::move(
+      bindExpression(fillExpression->getElementExpressionRef().get())));
+
+  return std::move(boundFillExpression);
 }
 
 std::unique_ptr<BoundExpression>

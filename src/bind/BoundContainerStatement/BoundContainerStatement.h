@@ -2,18 +2,18 @@
 #define __BOUND_CONTAINER_STATEMENT_H__
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
+#include "../BoundContainerExpression/BoundContainerExpression.h"
 #include "../BoundExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundNode.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
-
 class BoundContainerStatement : public BoundStatement,
                                 public BoundSourceLocation {
 private:
   Utils::type _type;
-  std::vector<std::unique_ptr<BoundExpression>> _entryExpressions;
   std::string _variableName;
   std::unique_ptr<BoundExpression> _containerSizeExpression;
+  std::unique_ptr<BoundExpression> _containerExpression;
 
 public:
   BoundContainerStatement(const DiagnosticUtils::SourceLocation &location,
@@ -28,17 +28,19 @@ public:
   /*
     Setters
   */
-  void setEntryExpression(std::unique_ptr<BoundExpression> entryExpression);
   void setContainerSizeExpression(
       std::unique_ptr<BoundExpression> containerSizeExpression);
+
+  void
+  setBracketedExpression(std::unique_ptr<BoundExpression> containerExpression);
 
   /*
     Getters
   */
   auto getVariableNameRef() const -> const std::string &;
-  auto getEntryExpressionsRef() const
-      -> const std::vector<std::unique_ptr<BoundExpression>> &;
   auto getContainerTypeRef() const -> const Utils::type &;
+  auto getBracketedExpressionRef() const
+      -> const std::unique_ptr<BoundExpression> &;
   auto getContainerSizeExpressionRef() const
       -> const std::unique_ptr<BoundExpression> &;
 };

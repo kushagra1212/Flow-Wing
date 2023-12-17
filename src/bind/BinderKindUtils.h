@@ -13,6 +13,9 @@ enum BoundNodeKind {
   VariableExpression,
   CallExpression,
   IndexExpression,
+  BoundContainerExpression,
+  BoundFillExpression,
+  BoundBracketedExpression,
 
   // Statements
   BoundStatementKind,

@@ -6,7 +6,10 @@
 #include "../syntax/MemberSyntax.h"
 #include "../syntax/expression/AssignmentExpressionSyntax.h"
 #include "../syntax/expression/BinaryExpressionSyntax.h"
+#include "../syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
 #include "../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "../syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
+#include "../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
@@ -58,6 +61,10 @@ private:
   SyntaxToken<std::any> *peek(int offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
+
+  /*
+    STATEMENTS
+  */
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
@@ -69,21 +76,27 @@ private:
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
+  std::unique_ptr<StatementSyntax> parseBringStatement();
+  std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
+  std::unique_ptr<GlobalStatementSyntax>
+  parseGlobalStatement(const bool &isExposed);
+
+  /*
+    EXPRESSIONS
+  */
   std::unique_ptr<IndexExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
-  std::unique_ptr<MemberSyntax> parseMember();
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
-  std::unique_ptr<GlobalStatementSyntax>
-  parseGlobalStatement(const bool &isExposed);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
   std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
-  std::unique_ptr<StatementSyntax> parseBringStatement();
-  std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
+  std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
+  std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
+  std::unique_ptr<FillExpressionSyntax> parseFillExpression();
+
   Utils::type parseType();
-  auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
-                    CompilationUnitSyntax *nestedCompilationUnit)
-      -> std::unordered_map<std::string, int>;
+
+  std::unique_ptr<MemberSyntax> parseMember();
 };
 #endif

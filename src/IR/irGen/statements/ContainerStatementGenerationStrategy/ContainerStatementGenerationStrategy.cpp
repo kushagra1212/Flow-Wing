@@ -1,5 +1,6 @@
 #include "ContainerStatementGenerationStrategy.h"
 
+#include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ContainerStatementGenerationStrategy::ContainerStatementGenerationStrategy(
@@ -8,84 +9,88 @@ ContainerStatementGenerationStrategy::ContainerStatementGenerationStrategy(
 
 llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
-  auto containerStatement = static_cast<BoundContainerStatement *>(statement);
+  return nullptr;
+  // auto containerStatement = static_cast<BoundContainerStatement
+  // *>(statement);
 
-  const std::string &containerName = containerStatement->getVariableNameRef();
+  // auto containerExpression = static_cast<BoundContainerExpression *>(
+  //     containerStatement->getContainerExpressionRef().get());
 
-  size_t actualSize = this->getActualContainerSize(containerStatement);
+  // const std::string &containerName =
+  // containerStatement->getVariableNameRef();
 
-  size_t size = containerStatement->getEntryExpressionsRef().size();
+  // size_t actualSize = this->getActualContainerSize(containerStatement);
 
-  std::vector<llvm::Constant *> items(actualSize);
-  llvm::Type *elementType = nullptr;
+  // size_t size = containerExpression->getElementsRef().size();
 
-  if (containerStatement->getContainerTypeRef() !=
-      Utils::type::UNKNOWN_CONTAINER) {
+  // const Utils::type &containerType =
+  // containerStatement->getContainerTypeRef();
 
-    elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        Utils::toNonContainerType(containerStatement->getContainerTypeRef()));
-  }
+  // std::vector<llvm::Constant *> items(actualSize);
+  // llvm::Type *elementType = nullptr;
 
-  this->generateContainerItems(containerStatement, items, elementType);
+  // if (containerType != Utils::type::UNKNOWN_CONTAINER) {
 
-  llvm::Type *arrayType = llvm::ArrayType::get(elementType, actualSize);
+  //   elementType =
+  //   _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+  //       Utils::toNonContainerType(containerType));
+  // }
 
-  // Allocate memory on the stack for the array
-  llvm::AllocaInst *arrayAlloca =
-      Builder->CreateAlloca(arrayType, nullptr, containerName);
+  // this->generateContainerItems(containerExpression, items, elementType,
+  //                              containerName);
 
-  // Store the items in the allocated memory
-  for (size_t i = 0; i < actualSize; i++) {
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(items[i]), elementPtr);
-  }
+  // llvm::Type *arrayType = llvm::ArrayType::get(elementType, actualSize);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(containerName,
-                                                          arrayAlloca);
+  // // Allocate memory on the stack for the array
+  // llvm::AllocaInst *arrayAlloca =
+  //     Builder->CreateAlloca(arrayType, nullptr, containerName);
 
-  return arrayAlloca;
+  // // Store the items in the allocated memory
+  // for (size_t i = 0; i < actualSize; i++) {
+  //   llvm::Value *elementPtr = Builder->CreateGEP(
+  //       arrayType, arrayAlloca, {Builder->getInt32(0),
+  //       Builder->getInt32(i)});
+  //   Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(items[i]),
+  //   elementPtr);
+  // }
+
+  // _codeGenerationContext->getAllocaChain()->setAllocaInst(containerName,
+  //                                                         arrayAlloca);
+
+  // return arrayAlloca;
 }
 
-// TODO: Implement this
 llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
 
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
 
-  const std::string &containerName = containerStatement->getVariableNameRef();
-
-  uint64_t actualSize = this->getActualContainerSize(containerStatement);
-
-  uint64_t size = containerStatement->getEntryExpressionsRef().size();
+  const Utils::type &containerType = containerStatement->getContainerTypeRef();
 
   llvm::Type *elementType = nullptr;
 
-  if (containerStatement->getContainerTypeRef() !=
-      Utils::type::UNKNOWN_CONTAINER) {
+  if (containerType != Utils::type::UNKNOWN_CONTAINER) {
 
     elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        Utils::toNonContainerType(containerStatement->getContainerTypeRef()));
+        Utils::toNonContainerType(containerType));
   }
-  std::vector<llvm::Constant *> items(actualSize);
 
-  this->generateContainerItems(containerStatement, items, elementType);
+  uint64_t actualSize = this->getActualContainerSize(containerStatement);
+  std::string containerName = containerStatement->getVariableNameRef();
 
-  // Load and Store the items in the allocated memory
+  BoundBracketedExpression *bracketedExpression =
+      static_cast<BoundBracketedExpression *>(
+          containerStatement->getBracketedExpressionRef().get());
 
-  llvm::ArrayType *arrayType = llvm::ArrayType::get(elementType, actualSize);
+  ExpressionGenerationStrategy *strategy =
+      (_expressionGenerationFactory->createStrategy(
+           bracketedExpression->getKind()))
+          .get();
 
-  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-      *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::Constant::getNullValue(arrayType), containerName);
-
-  for (uint64_t i = 0; i < actualSize; i++) {
-
-    llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
-    llvm::Value *updatedValue =
-        Builder->CreateInsertValue(loadedValue, items[i], (uint)i);
-
-    Builder->CreateStore(updatedValue, _globalVariable);
+  if (auto *specificStrategy =
+          dynamic_cast<BracketedExpressionGenerationStrategy *>(strategy)) {
+    return specificStrategy->wrappedExpression(bracketedExpression, actualSize,
+                                               elementType, containerName);
   }
 
   return nullptr;
@@ -114,15 +119,14 @@ size_t ContainerStatementGenerationStrategy::getActualContainerSize(
 }
 
 void ContainerStatementGenerationStrategy::generateContainerItems(
-    BoundContainerStatement *containerStatement,
-    std::vector<llvm::Constant *> &items, llvm::Type *elementType) {
+    BoundContainerExpression *containerExpression,
+    std::vector<llvm::Constant *> &items, llvm::Type *elementType,
+    const std::string &containerName) {
 
-  uint64_t size = containerStatement->getEntryExpressionsRef().size();
-  const std::string &containerName = containerStatement->getVariableNameRef();
+  uint64_t size = containerExpression->getElementsRef().size();
 
   for (uint64_t i = 0; i < size; i++) {
-    BoundExpression *entryExp =
-        containerStatement->getEntryExpressionsRef()[i].get();
+    BoundExpression *entryExp = containerExpression->getElementsRef()[i].get();
 
     llvm::Value *itemValue =
         _expressionGenerationFactory->createStrategy(entryExp->getKind())

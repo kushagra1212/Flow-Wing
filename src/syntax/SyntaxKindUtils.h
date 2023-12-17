@@ -81,6 +81,7 @@ enum SyntaxKind {
   ExposeKeyword,
   FromKeyword,
   ElseClause,
+  FillKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -96,7 +97,9 @@ enum SyntaxKind {
   CompilationUnit,
   CallExpression,
   IndexExpression,
-
+  ContainerExpression,
+  FillExpression,
+  BracketedExpression,
   // Statements
   GlobalStatement,
   ExpressionStatement,

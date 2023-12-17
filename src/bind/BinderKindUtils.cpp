@@ -18,12 +18,19 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "CallExpression";
   case IndexExpression:
     return "IndexExpression";
+  case BoundContainerExpression:
+    return "BoundContainerExpression";
+  case BoundFillExpression:
+    return "BoundFillExpression";
+  case BoundBracketedExpression:
+    return "BoundBracketedExpression";
   case BoundStatementKind:
     return "BoundStatementKind";
   case ExpressionStatement:
     return "ExpressionStatement";
   case BlockStatement:
     return "BlockStatement";
+
   case IfStatement:
     return "IfStatement";
   case WhileStatement:

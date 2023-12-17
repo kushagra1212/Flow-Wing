@@ -9,8 +9,7 @@ std::vector<SyntaxNode *> ContainerStatementSyntax::getChildren() {
     return _children;
 
   _children.push_back(this->_identifierToken.get());
-  for (auto &value : this->_values)
-    _children.push_back(value.get());
+  _children.push_back(this->_containerExpression.get());
 
   return _children;
 }
@@ -28,9 +27,9 @@ ContainerStatementSyntax::getSourceLocation() const {
   SETTERS
 */
 
-auto ContainerStatementSyntax::setValue(std::unique_ptr<ExpressionSyntax> value)
-    -> void {
-  this->_values.push_back(std::move(value));
+auto ContainerStatementSyntax::setContainerExpression(
+    std::unique_ptr<ExpressionSyntax> containerExpression) -> void {
+  this->_containerExpression = std::move(containerExpression);
 }
 
 auto ContainerStatementSyntax::setContainerSizeExpression(
@@ -61,11 +60,6 @@ ContainerStatementSyntax::getIdentifierTokenRef() const {
   return this->_identifierToken;
 }
 
-const std::vector<std::unique_ptr<ExpressionSyntax>> &
-ContainerStatementSyntax::getValuesRef() const {
-  return this->_values;
-}
-
 const std::unique_ptr<ExpressionSyntax> &
 ContainerStatementSyntax::getContainerSizeExpressionRef() const {
   return this->_containerSizeExpression;
@@ -73,4 +67,9 @@ ContainerStatementSyntax::getContainerSizeExpressionRef() const {
 
 const Utils::type &ContainerStatementSyntax::getType() const {
   return this->_type;
+}
+
+const std::unique_ptr<ExpressionSyntax> &
+ContainerStatementSyntax::getContainerExpressionRef() const {
+  return this->_containerExpression;
 }

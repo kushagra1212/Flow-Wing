@@ -4,8 +4,10 @@
 #include "../../../utils/Utils.h"
 #include "../../SyntaxNode.h"
 #include "../../SyntaxToken.h"
+#include "../../expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 #include "../../expression/ExpressionSyntax.h"
 #include "../../expression/LiteralExpressionSyntax.h"
+
 #include "../StatementSyntax.h"
 
 class ContainerStatementSyntax : public StatementSyntax {
@@ -13,7 +15,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<ExpressionSyntax> _containerSizeExpression;
-  std::vector<std::unique_ptr<ExpressionSyntax>> _values;
+  std::unique_ptr<ExpressionSyntax> _containerExpression;
+
   Utils::type _type;
 
 public:
@@ -25,7 +28,9 @@ public:
   DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  auto setValue(std::unique_ptr<ExpressionSyntax> values) -> void;
+  auto
+  setContainerExpression(std::unique_ptr<ExpressionSyntax> containerExpression)
+      -> void;
   auto
   setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken)
       -> void;
@@ -36,7 +41,7 @@ public:
 
   // Getters
   const std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenRef() const;
-  const std::vector<std::unique_ptr<ExpressionSyntax>> &getValuesRef() const;
+  const std::unique_ptr<ExpressionSyntax> &getContainerExpressionRef() const;
   const std::unique_ptr<ExpressionSyntax> &
   getContainerSizeExpressionRef() const;
   const Utils::type &getType() const;
