@@ -1,5 +1,5 @@
 {
-    var x : int[4] = [1 fill 2]
-
-    print(x[0])
+    var x : deci[4] = [1 fill 2.2]
+    
+    print(x)
 }

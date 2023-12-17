@@ -17,13 +17,27 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
+  // Get And Set Default Value
+
+  llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
+      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+  for (uint64_t i = 0; i < _actualSize; i++) {
+
+    // Store the items in the allocated memory
+    llvm::Value *elementPtr = Builder->CreateGEP(
+        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
+    Builder->CreateStore(defaultVal, elementPtr);
+  }
+
+  llvm::Constant *constElement = llvm::dyn_cast<llvm::Constant>(_elementToFill);
+
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 
     // Store the items in the allocated memory
     llvm::Value *elementPtr = Builder->CreateGEP(
         arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(_elementToFill),
-                         elementPtr);
+    Builder->CreateStore(constElement, elementPtr);
   }
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
@@ -42,9 +56,17 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
 
   llvm::ArrayType *arrayType = llvm::ArrayType::get(_elementType, _actualSize);
 
+  // Create a default value for the array
+  std::vector<llvm::Constant *> defaultValues(
+      _actualSize,
+      llvm::cast<llvm::Constant>(
+          _codeGenerationContext->getMapper()->getDefaultValue(_elementType)));
+  llvm::Constant *defaultArray =
+      llvm::ConstantArray::get(arrayType, defaultValues);
+
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::Constant::getNullValue(arrayType), _containerName);
+      defaultArray, _containerName);
 
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 

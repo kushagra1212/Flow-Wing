@@ -121,3 +121,7 @@ llvm::Value *TypeMapper::getDefaultValue(Utils::type type) {
   }
   return _retVal;
 }
+
+llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
+  return getDefaultValue(mapLLVMTypeToCustomType(type));
+}

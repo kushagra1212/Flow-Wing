@@ -28,6 +28,7 @@ public:
   const bool isInt64Type(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
   llvm::Value *getDefaultValue(Utils::type type);
+  llvm::Value *getDefaultValue(llvm::Type *type);
 
   std::string getLLVMTypeName(llvm::Type *type) const;
   std::string getLLVMTypeName(Utils::type customType) const;
