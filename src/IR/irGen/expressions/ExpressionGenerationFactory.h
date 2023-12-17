@@ -11,9 +11,8 @@ public:
 
   ExpressionGenerationFactory(CodeGenerationContext *context);
 
-  template <typename... Args>
   std::unique_ptr<ExpressionGenerationStrategy>
-  createStrategy(BinderKindUtils::BoundNodeKind kind, Args... args);
+  createStrategy(BinderKindUtils::BoundNodeKind kind);
 };
 
 #endif // __FLOWWING_EXPRESSION_GENERATION_FACTORY_STRATEGY_H__

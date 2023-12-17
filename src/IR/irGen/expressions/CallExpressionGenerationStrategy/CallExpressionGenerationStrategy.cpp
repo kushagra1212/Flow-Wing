@@ -285,6 +285,10 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
            llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
        Builder->getInt1(false)});
 
+  // Get Pointer to comma
+  llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
+      llvm::ConstantDataArray::getString(TheModule->getContext(), ", "));
+
   // Iterate over each element of the array
   for (uint64_t i = 0; i < size; ++i) {
     llvm::Value *elementPtr = Builder->CreateGEP(
@@ -297,10 +301,7 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
     if (i < size - 1) {
       // Print a comma and a space for all elements except the last one
       Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {_stringTypeConverter->convertExplicit(
-                               llvm::ConstantDataArray::getString(
-                                   TheModule->getContext(), ", ")),
-                           Builder->getInt1(false)});
+                          {commaPtr, Builder->getInt1(false)});
     }
   }
 

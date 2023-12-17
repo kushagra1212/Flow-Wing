@@ -1,6 +1,7 @@
 #include "ContainerStatementGenerationStrategy.h"
 
 #include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "../../expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ContainerStatementGenerationStrategy::ContainerStatementGenerationStrategy(
@@ -9,63 +10,11 @@ ContainerStatementGenerationStrategy::ContainerStatementGenerationStrategy(
 
 llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
-  return nullptr;
-  // auto containerStatement = static_cast<BoundContainerStatement
-  // *>(statement);
-
-  // auto containerExpression = static_cast<BoundContainerExpression *>(
-  //     containerStatement->getContainerExpressionRef().get());
-
-  // const std::string &containerName =
-  // containerStatement->getVariableNameRef();
-
-  // size_t actualSize = this->getActualContainerSize(containerStatement);
-
-  // size_t size = containerExpression->getElementsRef().size();
-
-  // const Utils::type &containerType =
-  // containerStatement->getContainerTypeRef();
-
-  // std::vector<llvm::Constant *> items(actualSize);
-  // llvm::Type *elementType = nullptr;
-
-  // if (containerType != Utils::type::UNKNOWN_CONTAINER) {
-
-  //   elementType =
-  //   _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-  //       Utils::toNonContainerType(containerType));
-  // }
-
-  // this->generateContainerItems(containerExpression, items, elementType,
-  //                              containerName);
-
-  // llvm::Type *arrayType = llvm::ArrayType::get(elementType, actualSize);
-
-  // // Allocate memory on the stack for the array
-  // llvm::AllocaInst *arrayAlloca =
-  //     Builder->CreateAlloca(arrayType, nullptr, containerName);
-
-  // // Store the items in the allocated memory
-  // for (size_t i = 0; i < actualSize; i++) {
-  //   llvm::Value *elementPtr = Builder->CreateGEP(
-  //       arrayType, arrayAlloca, {Builder->getInt32(0),
-  //       Builder->getInt32(i)});
-  //   Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(items[i]),
-  //   elementPtr);
-  // }
-
-  // _codeGenerationContext->getAllocaChain()->setAllocaInst(containerName,
-  //                                                         arrayAlloca);
-
-  // return arrayAlloca;
-}
-
-llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
 
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
-
   const Utils::type &containerType = containerStatement->getContainerTypeRef();
+  uint64_t actualSize = this->getActualContainerSize(containerStatement);
+  const std::string &containerName = containerStatement->getVariableNameRef();
 
   llvm::Type *elementType = nullptr;
 
@@ -75,22 +24,75 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
         Utils::toNonContainerType(containerType));
   }
 
+  BoundBracketedExpression *bracketedExpression =
+      static_cast<BoundBracketedExpression *>(
+          containerStatement->getBracketedExpressionRef().get());
+
+  BinderKindUtils::BoundNodeKind bracketedExpressionKind =
+      bracketedExpression->getExpressionRef().get()->getKind();
+
+  switch (bracketedExpressionKind) {
+
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+
+    std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<ContainerExpressionGenerationStrategy>(
+            _codeGenerationContext, actualSize, elementType, containerName);
+
+    return specificStrategy->generateExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
+
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
+  }
+
+  return nullptr;
+}
+
+llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
+
+  auto containerStatement = static_cast<BoundContainerStatement *>(statement);
+  const Utils::type &containerType = containerStatement->getContainerTypeRef();
   uint64_t actualSize = this->getActualContainerSize(containerStatement);
-  std::string containerName = containerStatement->getVariableNameRef();
+  const std::string &containerName = containerStatement->getVariableNameRef();
+
+  llvm::Type *elementType = nullptr;
+
+  if (containerType != Utils::type::UNKNOWN_CONTAINER) {
+
+    elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        Utils::toNonContainerType(containerType));
+  }
 
   BoundBracketedExpression *bracketedExpression =
       static_cast<BoundBracketedExpression *>(
           containerStatement->getBracketedExpressionRef().get());
 
-  ExpressionGenerationStrategy *strategy =
-      (_expressionGenerationFactory->createStrategy(
-           bracketedExpression->getKind()))
-          .get();
+  BinderKindUtils::BoundNodeKind bracketedExpressionKind =
+      bracketedExpression->getExpressionRef().get()->getKind();
 
-  if (auto *specificStrategy =
-          dynamic_cast<BracketedExpressionGenerationStrategy *>(strategy)) {
-    return specificStrategy->wrappedExpression(bracketedExpression, actualSize,
-                                               elementType, containerName);
+  switch (bracketedExpressionKind) {
+
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+
+    std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<ContainerExpressionGenerationStrategy>(
+            _codeGenerationContext, actualSize, elementType, containerName);
+
+    return specificStrategy->generateGlobalExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
+
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
   }
 
   return nullptr;

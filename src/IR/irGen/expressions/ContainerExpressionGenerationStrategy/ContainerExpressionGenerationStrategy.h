@@ -4,23 +4,21 @@
 #include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
-template <typename AS, typename ET, typename CN>
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
 public:
-  ContainerExpressionGenerationStrategy(CodeGenerationContext *context);
-
   ContainerExpressionGenerationStrategy(CodeGenerationContext *context,
-                                        AS actualSize, ET elementType,
-                                        CN containerName);
+                                        uint64_t actualSize,
+                                        llvm::Type *elementType,
+                                        const std::string &containerName);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
 private:
-  AS m_actualSize;
-  ET m_elementType;
-  CN m_containerName;
+  uint64_t _actualSize;
+  llvm::Type *_elementType;
+  std::string _containerName;
 };
 
 #endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

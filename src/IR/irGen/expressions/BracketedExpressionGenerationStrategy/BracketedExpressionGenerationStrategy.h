@@ -14,9 +14,10 @@ public:
 
   // Specialized for BoundBracketedExpression
 
-  template <typename... Args>
-  llvm::Value *wrappedExpression(BoundBracketedExpression *bracketedExpression,
-                                 Args...);
+  // template <typename... Args>
+  // llvm::Value *wrappedExpression(BoundBracketedExpression
+  // *bracketedExpression,
+  //                                Args...);
 };
 
 #endif // __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
