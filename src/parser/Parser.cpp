@@ -344,11 +344,14 @@ std::unique_ptr<ExpressionSyntax> Parser::parseBracketedExpression() {
   std::unique_ptr<BracketedExpressionSyntax> bracketedExpression =
       std::make_unique<BracketedExpressionSyntax>();
 
-  if (this->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
+  if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword
+
+      || this->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword) {
+    bracketedExpression->setExpression(std::move(this->parseFillExpression()));
+
+  } else {
     bracketedExpression->setExpression(
         std::move(this->parseContainerExpression()));
-  } else {
-    bracketedExpression->setExpression(std::move(this->parseFillExpression()));
   }
   return std::move(bracketedExpression);
 }

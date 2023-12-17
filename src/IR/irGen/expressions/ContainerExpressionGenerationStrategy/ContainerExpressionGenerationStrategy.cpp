@@ -11,14 +11,16 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
 
   BoundContainerExpression *containerExpression =
       static_cast<BoundContainerExpression *>(expression);
-  uint64_t size = containerExpression->getElementsRef().size();
+
+  if (!canGenerateExpression(containerExpression))
+    return nullptr;
 
   // Allocate memory on the stack for the array
   llvm::Type *arrayType = llvm::ArrayType::get(_elementType, _actualSize);
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-  for (uint64_t i = 0; i < size; i++) {
+  for (uint64_t i = 0; i < _sizeToFill; i++) {
     BoundExpression *entryExp = containerExpression->getElementsRef()[i].get();
 
     llvm::Value *itemValue =
@@ -52,12 +54,30 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   return arrayAlloca;
 }
 
+const bool ContainerExpressionGenerationStrategy::canGenerateExpression(
+    BoundContainerExpression *containerExpression) {
+
+  _sizeToFill = containerExpression->getElementsRef().size();
+
+  if (_sizeToFill > _actualSize) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Container " + _containerName + " size mismatch. Expected " +
+        std::to_string(_actualSize) + " but got " +
+        std::to_string(_sizeToFill));
+    return false;
+  }
+
+  return true;
+}
+
 llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
 
   BoundContainerExpression *containerExpression =
       static_cast<BoundContainerExpression *>(expression);
-  uint64_t size = containerExpression->getElementsRef().size();
+
+  if (!canGenerateExpression(containerExpression))
+    return nullptr;
 
   // Load and Store the items in the allocated memory
 
@@ -67,7 +87,15 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
       llvm::Constant::getNullValue(arrayType), _containerName);
 
-  for (uint64_t i = 0; i < size; i++) {
+  return createGlobalExpression(arrayType, _globalVariable,
+                                containerExpression);
+}
+
+llvm::Value *ContainerExpressionGenerationStrategy::createGlobalExpression(
+    llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable,
+    BoundContainerExpression *containerExpression) {
+
+  for (uint64_t i = 0; i < _sizeToFill; i++) {
 
     llvm::Value *itemValue =
         _expressionGenerationFactory
@@ -97,6 +125,5 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
 
     Builder->CreateStore(updatedValue, _globalVariable);
   }
-
   return nullptr;
 }

@@ -13,6 +13,8 @@ public:
 
   const uint64_t getIndexofMemberType(llvm::Type *type) const;
 
+  const bool isDyn(llvm::Type *type) const;
+
 private:
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;

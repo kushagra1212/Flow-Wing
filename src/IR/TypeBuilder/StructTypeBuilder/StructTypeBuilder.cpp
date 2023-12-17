@@ -48,3 +48,7 @@ const uint64_t StructTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
 
   return index;
 }
+
+const bool StructTypeBuilder::isDyn(llvm::Type *type) const {
+  return type == this->_dynamicType;
+}

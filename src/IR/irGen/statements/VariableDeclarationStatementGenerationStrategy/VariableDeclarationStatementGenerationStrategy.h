@@ -12,6 +12,15 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  // Specialized for BoundVariableDeclaration
+
+  bool canGenerateStatement(BoundStatement *statement);
+
+private:
+  std::string _variableName;
+  llvm::Value *_rhsValue;
+  Utils::type _variableType;
 };
 
 #endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

@@ -38,7 +38,6 @@ enum type {
   DECIMAL_CONTAINER,
   BOOL_CONTAINER,
   STRING_CONTAINER,
-  NOTHING_CONTAINER,
   UNKNOWN_CONTAINER,
 
 };
@@ -68,6 +67,14 @@ std::string getSourceCode(SyntaxNode *node, bool include);
 Utils::type toContainerType(Utils::type type);
 Utils::type toNonContainerType(Utils::type type);
 auto isContainerType(Utils::type type) -> const bool;
+auto isStaticTypedContainerType(Utils::type type) -> const bool;
+auto isDynamicTypedContainerType(Utils::type type) -> const bool;
+auto isStaticTypedPrimitiveType(Utils::type type) -> const bool;
+auto isDynamicTypedPrimitiveType(Utils::type type) -> const bool;
+
+auto isStaticTypedType(Utils::type type) -> const bool;
+auto isDynamicTypedType(Utils::type type) -> const bool;
+
 auto getFileContent(const std::string &filePath) -> std::string;
 auto getSourceCodeFromFilePath(const std::string &filePath)
     -> std::vector<std::string>;

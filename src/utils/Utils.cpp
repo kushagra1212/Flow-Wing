@@ -271,8 +271,6 @@ Utils::type Utils::toContainerType(Utils::type basicType) {
     return Utils::type::BOOL_CONTAINER;
   case Utils::type::STRING:
     return Utils::type::STRING_CONTAINER;
-  case Utils::type::NOTHING:
-    return Utils::type::NOTHING_CONTAINER;
   case Utils::type::UNKNOWN:
     return Utils::type::UNKNOWN_CONTAINER;
   default:
@@ -297,8 +295,6 @@ Utils::type Utils::toNonContainerType(Utils::type containerType) {
     return Utils::type::BOOL;
   case Utils::type::STRING_CONTAINER:
     return Utils::type::STRING;
-  case Utils::type::NOTHING_CONTAINER:
-    return Utils::type::NOTHING;
   case Utils::type::UNKNOWN_CONTAINER:
     return Utils::type::UNKNOWN;
   default:
@@ -307,7 +303,36 @@ Utils::type Utils::toNonContainerType(Utils::type containerType) {
   }
 }
 
+auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> const bool {
+  switch (type) {
+  case Utils::type::INT8:
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64:
+  case Utils::type::DECIMAL:
+  case Utils::type::BOOL:
+  case Utils::type::STRING:
+    return true;
+  default:
+    return false;
+  }
+}
+auto Utils::isDynamicTypedPrimitiveType(Utils::type type) -> const bool {
+  return type == Utils::type::UNKNOWN;
+}
+
 auto Utils::isContainerType(Utils::type type) -> const bool {
+  return isStaticTypedContainerType(type) || isDynamicTypedContainerType(type);
+}
+
+auto Utils::isStaticTypedType(Utils::type type) -> const bool {
+  return isStaticTypedPrimitiveType(type) || isStaticTypedContainerType(type);
+}
+auto Utils::isDynamicTypedType(Utils::type type) -> const bool {
+  return isDynamicTypedPrimitiveType(type) || isDynamicTypedContainerType(type);
+}
+
+auto Utils::isStaticTypedContainerType(Utils::type type) -> const bool {
   switch (type) {
   case Utils::type::INT8_CONTAINER:
   case Utils::type::INT16_CONTAINER:
@@ -316,12 +341,14 @@ auto Utils::isContainerType(Utils::type type) -> const bool {
   case Utils::type::DECIMAL_CONTAINER:
   case Utils::type::BOOL_CONTAINER:
   case Utils::type::STRING_CONTAINER:
-  case Utils::type::NOTHING_CONTAINER:
-  case Utils::type::UNKNOWN_CONTAINER:
     return true;
   default:
     return false;
   }
+}
+
+auto Utils::isDynamicTypedContainerType(Utils::type type) -> const bool {
+  return type == Utils::type::UNKNOWN_CONTAINER;
 }
 
 bool Utils::isInteger(const std::string &str) {

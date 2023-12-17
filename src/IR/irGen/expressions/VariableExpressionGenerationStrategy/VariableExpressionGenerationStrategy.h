@@ -12,8 +12,8 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
-  llvm::Value *handleGlobalVariable(const std::string &variableName,
-                                    llvm::GlobalVariable *variable);
+  llvm::Value *handleGlobalDeclaredVariable(const std::string &variableName,
+                                            llvm::GlobalVariable *variable);
 };
 
 #endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

@@ -66,6 +66,10 @@ const bool TypeMapper::isInt64Type(llvm::Type *type) const {
 const bool TypeMapper::isInt32Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) == Utils::type::INT32;
 }
+
+const bool TypeMapper::isPtrType(llvm::Type *type) const {
+  return type->isPointerTy();
+}
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
 
   Utils::type customType = mapLLVMTypeToCustomType(type);
@@ -124,4 +128,31 @@ llvm::Value *TypeMapper::getDefaultValue(Utils::type type) {
 
 llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
   return getDefaultValue(mapLLVMTypeToCustomType(type));
+}
+
+const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
+
+  return isBoolType(type) || isDoubleType(type) || isInt32Type(type) ||
+         isInt64Type(type) || isStringType(type);
+}
+
+const bool TypeMapper::isPrimitiveType(Utils::type type) const {
+  return isPrimitiveType(mapCustomTypeToLLVMType(type));
+}
+
+const bool TypeMapper::isEquivalentType(llvm::Type *type,
+                                        Utils::type customType) const {
+  return type == mapCustomTypeToLLVMType(customType);
+}
+const bool TypeMapper::isEquivalentType(Utils::type customType,
+                                        llvm::Type *type) const {
+  return isEquivalentType(type, customType);
+}
+const bool TypeMapper::isEquivalentType(llvm::Type *type1,
+                                        llvm::Type *type2) const {
+  return type1 == type2;
+}
+const bool TypeMapper::isEquivalentType(Utils::type type1,
+                                        Utils::type type2) const {
+  return type1 == type2;
 }

@@ -13,6 +13,10 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
+  llvm::Value *createGlobalExpression(llvm::Type *arrayType,
+                                      llvm::GlobalVariable *_globalVariable,
+                                      BoundFillExpression *fillExpression);
+
   bool canGenerateExpression(BoundExpression *expression);
 
 private:

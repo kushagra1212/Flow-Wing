@@ -68,6 +68,16 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
       defaultArray, _containerName);
 
+  return createGlobalExpression(arrayType, _globalVariable,
+                                static_cast<BoundFillExpression *>(expression));
+
+  return nullptr;
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
+    llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable,
+    BoundFillExpression *fillExpression) {
+
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 
     llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);

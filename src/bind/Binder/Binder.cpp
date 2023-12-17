@@ -727,6 +727,11 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::IndexExpression: {
     return std::move(bindIndexExpression((IndexExpressionSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::BracketedExpression: {
+    return std::move(
+        bindBracketedExpression((BracketedExpressionSyntax *)syntax));
+  }
+
   default:
     throw "Unexpected syntax";
   }

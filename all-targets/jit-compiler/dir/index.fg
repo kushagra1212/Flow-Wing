@@ -1,5 +1,30 @@
+/#
+// Primitive types Test
+
+/; 1
+var x:int = 5
+x = "hello"
+print(x+"\n")
+
+
+/; 2
+var x:int = 5
+print(x+"\n")
+x = 2
+print(x+"\n")
+x = 3
 {
-    var x : deci[4] = [1 fill 2.2]
-    
-    print(x)
+    print(x+"\n")
 }
+print(x+"\n")
+#/
+
+
+var x:int[5] = [1,2,3]
+
+print(x)
+print("\n")
+x = [3,4,5]
+x = [fill 10]
+print(x)
+

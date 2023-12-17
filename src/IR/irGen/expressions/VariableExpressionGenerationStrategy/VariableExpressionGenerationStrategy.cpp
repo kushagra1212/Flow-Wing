@@ -28,12 +28,12 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
   if (!variableValue) {
     llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
+    if (variable) {
+      return this->handleGlobalDeclaredVariable(variableName, variable);
+    }
+    // When Local Variable is an array type
     if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
       return v;
-    }
-
-    if (variable) {
-      return this->handleGlobalVariable(variableName, variable);
     }
 
     _codeGenerationContext->getLogger()->LogError(
@@ -43,8 +43,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
   }
 
   // When Local Variable is not a dynamic type
-  if (v->getAllocatedType() !=
-      _codeGenerationContext->getDynamicType()->get()) {
+  if (!_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
 
     llvm::Value *value =
         Builder->CreateLoad(variableValue->getType(), v, variableName);
@@ -52,58 +51,64 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
     return variableValue;
   }
 
-  // Get the dynamic type of the variable
+  // When Local Variable is a dynamic type
+  if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
 
-  llvm::Value *value = Builder->CreateLoad(
-      variableValue->getType(),
-      Builder->CreateStructGEP(
-          _codeGenerationContext->getDynamicType()->get(), v,
-          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              variableValue->getType())));
+    return Builder->CreateLoad(
+        variableValue->getType(),
+        Builder->CreateStructGEP(
+            _codeGenerationContext->getDynamicType()->get(), v,
+            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
+                variableValue->getType())));
+  }
 
-  return value;
+  // When Local Variable is a struct type
+  if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
+    return v;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable " + variableName + " not found in variable expression ");
+
+  return nullptr;
 }
 
-llvm::Value *VariableExpressionGenerationStrategy::handleGlobalVariable(
+llvm::Value *VariableExpressionGenerationStrategy::handleGlobalDeclaredVariable(
     const std::string &variableName, llvm::GlobalVariable *variable) {
 
+  // when Global Variable (Value) is an array type
   if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
     return variable;
   }
 
-  // when Global Variable is not a dynamic type
-  if (variable->getValueType() !=
-      _codeGenerationContext->getDynamicType()->get()) {
+  // when Global Variable (Value) is not a dynamic type
+  if (!_codeGenerationContext->getDynamicType()->isDyn(
+          variable->getValueType())) {
     return Builder->CreateLoad(variable->getValueType(), variable,
                                variableName);
   }
 
-  if (llvm::isa<llvm::StructType>(variable->getValueType())) {
+  // when Global Variable (Value) is a dynamic type
+  if (_codeGenerationContext->getDynamicType()->isDyn(
+          variable->getValueType())) {
     llvm::Value *loadedValue =
         Builder->CreateLoad(variable->getValueType(), variable, variableName);
 
-    // Extract the boolean value from the structure
+    // Extract the  value from the structure
     llvm::Value *innerValue = Builder->CreateExtractValue(
-        loadedValue,
-        _codeGenerationContext
-            ->getGlobalTypeMap()[variableName]); // 4 is the index of the
-                                                 // boolean field
+        loadedValue, _codeGenerationContext->getGlobalTypeMap()[variableName]);
 
     return innerValue;
   }
 
-  llvm::Value *loaded =
-      Builder->CreateLoad(variable->getValueType(), variable, variableName);
-  llvm::Value *zero =
-      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0);
-  llvm::Value *indices[] = {zero, zero};
-  llvm::Value *strPtr = Builder->CreateInBoundsGEP(
-      variable->getValueType(), variable, indices, "str_ptr");
+  // When Global Variable (Value) is a struct type
+  if (llvm::isa<llvm::StructType>(variable->getValueType())) {
+    return variable;
+  }
 
-  llvm::Value *elementPtr = Builder->CreateBitCast(
-      strPtr, llvm::IntegerType::getInt8PtrTy((*TheContext)), "element_ptr");
-
-  return elementPtr;
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable " + variableName + " not found in variable expression ");
+  return nullptr;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::generateGlobalExpression(

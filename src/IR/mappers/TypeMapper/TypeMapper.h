@@ -27,6 +27,14 @@ public:
   const bool isDoubleType(llvm::Type *type) const;
   const bool isInt64Type(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
+  const bool isPtrType(llvm::Type *type) const;
+  const bool isPrimitiveType(llvm::Type *type) const;
+  const bool isPrimitiveType(Utils::type type) const;
+  const bool isEquivalentType(llvm::Type *type, Utils::type customType) const;
+  const bool isEquivalentType(Utils::type customType, llvm::Type *type) const;
+  const bool isEquivalentType(llvm::Type *type1, llvm::Type *type2) const;
+  const bool isEquivalentType(Utils::type type1, Utils::type type2) const;
+
   llvm::Value *getDefaultValue(Utils::type type);
   llvm::Value *getDefaultValue(llvm::Type *type);
 
