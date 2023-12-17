@@ -3,6 +3,7 @@
 #include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../../expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../../expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 ContainerStatementGenerationStrategy::ContainerStatementGenerationStrategy(
     CodeGenerationContext *context)
@@ -37,6 +38,16 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
 
     std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
         std::make_unique<ContainerExpressionGenerationStrategy>(
+            _codeGenerationContext, actualSize, elementType, containerName);
+
+    return specificStrategy->generateExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
+
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+
+    std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<FillExpressionGenerationStrategy>(
             _codeGenerationContext, actualSize, elementType, containerName);
 
     return specificStrategy->generateExpression(
@@ -88,6 +99,16 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
         bracketedExpression->getExpressionRef().get());
   }
 
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+
+    std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<FillExpressionGenerationStrategy>(
+            _codeGenerationContext, actualSize, elementType, containerName);
+
+    return specificStrategy->generateGlobalExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
+
   default: {
     _codeGenerationContext->getLogger()->LogError(
         "Unsupported Container Expression Type ");
@@ -113,42 +134,9 @@ size_t ContainerStatementGenerationStrategy::getActualContainerSize(
       llvm::dyn_cast<llvm::ConstantInt>(sizeValue);
   if (!sizeConstInt) {
     _codeGenerationContext->getLogger()->LogError(
-        "Container size must be a constant integer");
+        "Container size must be an integer");
     return 0;
   }
 
   return sizeConstInt->getZExtValue();
-}
-
-void ContainerStatementGenerationStrategy::generateContainerItems(
-    BoundContainerExpression *containerExpression,
-    std::vector<llvm::Constant *> &items, llvm::Type *elementType,
-    const std::string &containerName) {
-
-  uint64_t size = containerExpression->getElementsRef().size();
-
-  for (uint64_t i = 0; i < size; i++) {
-    BoundExpression *entryExp = containerExpression->getElementsRef()[i].get();
-
-    llvm::Value *itemValue =
-        _expressionGenerationFactory->createStrategy(entryExp->getKind())
-            ->generateExpression(entryExp);
-
-    if (elementType && elementType != itemValue->getType()) {
-      std::string elementTypeName =
-          _codeGenerationContext->getMapper()->getLLVMTypeName(elementType);
-
-      std::string itemValueTypeName =
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              itemValue->getType());
-
-      _codeGenerationContext->getLogger()->LogError(
-          containerName + " Container item type mismatch. Expected " +
-          elementTypeName + " but got " + itemValueTypeName);
-
-      return;
-    }
-
-    items[i] = llvm::dyn_cast<llvm::Constant>(itemValue);
-  }
 }

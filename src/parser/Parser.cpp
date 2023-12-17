@@ -348,8 +348,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseBracketedExpression() {
     bracketedExpression->setExpression(
         std::move(this->parseContainerExpression()));
   } else {
-    bracketedExpression->setExpression(
-        std::move(this->parseContainerExpression()));
+    bracketedExpression->setExpression(std::move(this->parseFillExpression()));
   }
   return std::move(bracketedExpression);
 }

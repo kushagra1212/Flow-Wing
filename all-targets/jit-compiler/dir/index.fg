@@ -1,5 +1,5 @@
-{var x : int[4] = [1,2,3,4]
+{
+    var x : int[4] = [1 fill 2]
 
-x[2] = 5
-
-print(x)}
+    print(x[0])
+}
