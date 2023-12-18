@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     libzstd-dev \
     libcurl4-openssl-dev \
+    lld \  
+    ccache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install LLVM 16
@@ -30,12 +32,12 @@ COPY . /compiler-dev
 # Set the working directory
 WORKDIR /compiler-dev/all-targets/jit-compiler
 
-# Create a build directory
-RUN rm -rf build && mkdir build
+# Create a compiler-build directory
+RUN mkdir -p compiler-build
 
 # Configure and build your project using Ninja
-WORKDIR /compiler-dev/all-targets/jit-compiler/build
-#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug ..
+WORKDIR /compiler-dev/all-targets/jit-compiler/compiler-build
+#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja
 
 # Run your executable (assuming it's named FlowWing)

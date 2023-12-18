@@ -11,6 +11,14 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
+
+# use ccache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    message(STATUS "Using ccache, found in ${CCACHE_FOUND}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif(CCACHE_FOUND)
+
 # Conditionally define REPL_TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
     file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**.cpp)

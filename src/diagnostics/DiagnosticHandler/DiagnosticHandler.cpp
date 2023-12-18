@@ -98,6 +98,7 @@ const void DiagnosticHandler::logDiagnostics(
 
   if (parent != nullptr) {
     parent->logDiagnostics(outputStream, filter);
+    return;
   }
 
   for (auto &diagnostic : this->diagnostics) {

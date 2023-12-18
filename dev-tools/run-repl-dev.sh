@@ -7,10 +7,9 @@
 # Build and run containers defined in docker-compose.yml
 
 
-docker-compose up repl-dev -d  --build 
+
+docker-compose build repl-dev  
 
 
-# Run Repl Dev
-docker-compose run --rm repl-dev /bin/bash
- 
-
+# Run Compiler Dev
+docker-compose run --rm repl-dev /bin/bash 

@@ -2,3 +2,7 @@ build/
 test-build/
 debug/
 new-test.txt
+compiler-build/
+repl-build/
+compiler-test-build/
+repl-test-build/

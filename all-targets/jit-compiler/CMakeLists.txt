@@ -16,6 +16,12 @@ add_definitions(${LLVM_DEFINITIONS})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../src/IR/BuiltinIRs/ DESTINATION ${CMAKE_BINARY_DIR}/lib/FlowWing)
 
+# use ccache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    message(STATUS "Using ccache, found in ${CCACHE_FOUND}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif(CCACHE_FOUND)
 
 # Add find_package calls for ZLIB and Zstandard (zstd)
 find_package(ZLIB REQUIRED)

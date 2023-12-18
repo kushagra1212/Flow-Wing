@@ -7,10 +7,10 @@
 # Build and run containers defined in docker-compose.yml
 
 
-docker-compose up compiler-dev -d --build 
+docker-compose build compiler-dev  
 
 
 # Run Compiler Dev
-docker-compose run --rm compiler-dev /bin/bash
+docker-compose run --rm compiler-dev /bin/bash 
  
 

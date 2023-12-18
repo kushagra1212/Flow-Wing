@@ -548,4 +548,557 @@ TEST_F(ContainerTest, BasicContainerGlobalInsideScopeUpdate) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+// Container Assignment Tests
+
+TEST_F(ContainerTest, BasicContainerAssignmentIntDeclaration) {
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
+  a = [10, 20, 30, 40, 50]
+
+print(a)})";
+
+  std::string expected_output = "[10, 20, 30, 40, 50]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentStringDeclaration) {
+  std::string input = R"({var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = ["hello", "world", "this", "is", "a"]
+
+print(a)})";
+
+  std::string expected_output = "[hello, world, this, is, a]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentBoolDeclaration) {
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
+  a = [false, true, false, true, false]
+
+print(a)})";
+
+  std::string expected_output = "[false, true, false, true, false]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentDeciDeclaration) {
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+  a = [10.10, 20.20, 30.30, 40.40, 50.50]
+
+print(a)})";
+
+  std::string expected_output =
+      "[10.0999999999999996, 20.1999999999999993, 30.3000000000000007, "
+      "40.3999999999999986, 50.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialIntDeclaration) {
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
+  a = [10, 20, 30]
+
+print(a)})";
+
+  std::string expected_output = "[10, 20, 30, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclaration) {
+  std::string input = R"({var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = ["hello", "world", "this"]
+
+print(a)})";
+
+  std::string expected_output = "[hello, world, this, d, e]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialBoolDeclaration) {
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
+  a = [false, true, false]
+
+
+print(a)})";
+
+  std::string expected_output = "[false, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialDeciDeclaration) {
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+  a = [10.10, 20.20, 30.30]
+
+print(a)})";
+
+  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
+                                "30.2999999999999972, 4.4000000000000057, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialIntDeclarationGlobal) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+  a = [10, 20, 30]
+
+
+print(a))";
+
+  std::string expected_output = "[10, 20, 30, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclarationGlobal) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = ["hello", "world", "this"]
+
+print(a))";
+
+  std::string expected_output = "[hello, world, this, d, e]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialBoolDeclarationGlobal) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+  a = [false, true, false]
+
+
+print(a))";
+
+  std::string expected_output = "[false, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerAssignmentPartialDeciDeclarationGlobal) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+  a = [10.10, 20.20, 30.30]
+
+print(a))";
+
+  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
+                                "30.2999999999999972, 4.4000000000000057, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialIntDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  a = [10, 20, 30]
+
+
+
+  print(a)
+
+})";
+
+  std::string expected_output = "[10, 20, 30, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerAssignmentPartialStringDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+{
+  a = ["hello", "world", "this"]
+
+print(a)
+})";
+
+  std::string expected_output = "[hello, world, this, d, e]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialBoolDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+{
+  a = [false, true, false]
+
+
+print(a)
+
+})";
+
+  std::string expected_output = "[false, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialDeciDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+{
+  a = [10.10, 20.20, 30.30]
+
+print(a)
+})";
+
+  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
+                                "30.2999999999999972, 4.4000000000000057, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialIntDeclarationGlobalInsideScopeUpdate) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  a = [10, 20, 30]
+
+
+  a[0] = 100
+  print(a)
+
+})";
+
+  std::string expected_output = "[100, 20, 30, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerAssignmentPartialStringDeclarationGlobalInsideScopeUpdate) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+{
+  a = ["hello", "world", "this"]
+
+a[0] = "hello world"
+
+print(a)
+})";
+
+  std::string expected_output = "[hello world, world, this, d, e]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialBoolDeclarationGlobalInsideScopeUpdate) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+{
+  a = [false, true, false]
+
+
+a[0] = true
+print(a)
+
+})";
+
+  std::string expected_output = "[true, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerAssignmentPartialDeciDeclarationGlobalInsideScopeUpdate) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+{
+  a = [10.10, 20.20, 30.30]
+
+a[0] = 100.10
+print(a)
+})";
+
+  std::string expected_output = "[100.0999999999999943, 20.2000000000000011, "
+                                "30.2999999999999972, 4.4000000000000057, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerAssignmentPartialIntDeclarationGlobalInsideScopeUpdateWithBinaryExpression) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  a = [10, 20, 30]
+
+
+  a[0] = 10 + 10
+
+  print(a)
+
+})";
+
+  std::string expected_output = "[20, 20, 30, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// Fill Assignment Tests
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentIntDeclaration) {
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
+  a = [2 fill 10]
+
+print(a)})";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentStringDeclaration) {
+  std::string input = R"({var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = [5 fill "hello"]
+
+print(a)})";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentBoolDeclaration) {
+  std::string input = R"({var a:bool[5] = [true, false, true, false, true]
+  a = [3 fill false]
+
+print(a)})";
+
+  std::string expected_output = "[false, false, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentDeciDeclaration) {
+  std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+  a = [2 fill 10.10]
+
+print(a)})";
+
+  std::string expected_output = "[10.1000000000000005, 10.1000000000000005, "
+                                "3.2999999999999998, 4.4000000000000004, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentPartialIntDeclaration) {
+  std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5]
+  a = [2 fill 10]
+
+print(a)})";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentPartialStringDeclaration) {
+  std::string input = R"({var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = [5 fill "hello"]
+
+
+print(a)})";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// Global Fill Assignment Tests
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentIntDeclarationGlobal) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+  a = [2 fill 10]
+
+print(a))";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentStringDeclarationGlobal) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = [5 fill "hello"]
+
+print(a))";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentBoolDeclarationGlobal) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+  a = [3 fill false]
+
+print(a))";
+
+  std::string expected_output = "[false, false, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentDeciDeclarationGlobal) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+  a = [2 fill 10.10]
+
+print(a))";
+
+  std::string expected_output = "[10.0999999999999996, 10.0999999999999996, "
+                                "3.2999999999999998, 4.4000000000000004, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, BasicContainerFillAssignmentPartialIntDeclarationGlobal) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+  a = [2 fill 10]
+
+print(a))";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerFillAssignmentPartialStringDeclarationGlobal) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+  a = [5 fill "hello"]
+
+print(a))";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// Scope Fill Assignment Tests
+
+TEST_F(ContainerTest,
+       BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  a = [2 fill 10]
+
+print(a)
+
+})";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerFillAssignmentStringDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+{
+  a = [5 fill "hello"]
+
+print(a)
+})";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerFillAssignmentBoolDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+{
+  a = [3 fill false]
+  
+print(a)
+  
+  })";
+
+  std::string expected_output = "[false, false, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerFillAssignmentDeciDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+{
+  a = [2 fill 10.10]
+}
+print(a)
+
+)";
+
+  std::string expected_output = "[10.0999999999999996, 10.0999999999999996, "
+                                "3.2999999999999998, 4.4000000000000004, "
+                                "5.5000000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialIntDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  a = [2 fill 10]
+
+print(a)
+  
+  })";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 #endif // JIT_TEST_MODE

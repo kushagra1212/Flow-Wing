@@ -15,6 +15,9 @@ RUN apt  update && apt install -y \
     wget \
     lsb-release \
     software-properties-common \
+    ninja-build \
+    lld \
+    ccache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy your source code to the container
@@ -23,12 +26,12 @@ COPY . /repl-dev
 # Set the working directory
 WORKDIR /repl-dev/all-targets/repl
 
-# Create a test-build directory
-RUN rm -rf build && mkdir build
+# Create a repl-build directory
+RUN mkdir -p repl-build
 
-# Configure and test-build your project
+# Configure and repl-build your project
 
-WORKDIR /repl-dev/all-targets/repl/build
-# RUN cmake -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug ..
-# RUN make -j8
-# RUN ./FlowWing
+WORKDIR /repl-dev/all-targets/repl/repl-build
+#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
+#RUN ninja
+#CMD ["./FlowWing"]
