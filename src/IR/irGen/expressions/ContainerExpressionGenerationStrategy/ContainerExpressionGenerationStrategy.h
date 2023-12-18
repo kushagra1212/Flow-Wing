@@ -21,6 +21,10 @@ public:
                          llvm::GlobalVariable *_globalVariable,
                          BoundContainerExpression *containerExpression);
 
+  llvm::Value *createExpression(llvm::Type *arrayType,
+                                llvm::AllocaInst *_allocaInst,
+                                BoundContainerExpression *containerExpression);
+
   const bool
   canGenerateExpression(BoundContainerExpression *containerExpression);
 

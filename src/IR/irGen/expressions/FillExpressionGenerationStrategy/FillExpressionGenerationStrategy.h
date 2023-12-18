@@ -14,8 +14,10 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   llvm::Value *createGlobalExpression(llvm::Type *arrayType,
-                                      llvm::GlobalVariable *_globalVariable,
-                                      BoundFillExpression *fillExpression);
+                                      llvm::GlobalVariable *_globalVariable);
+
+  llvm::Value *createExpression(llvm::Type *arrayType,
+                                llvm::AllocaInst *arrayAlloca);
 
   bool canGenerateExpression(BoundExpression *expression);
 
@@ -27,6 +29,7 @@ private:
   //  Variables for the fill expression
   uint64_t _sizeToFill;
   llvm::Value *_elementToFill;
+  llvm::AllocaInst *_allocaInst;
 };
 
 #endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

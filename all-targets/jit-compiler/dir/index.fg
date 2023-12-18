@@ -20,11 +20,48 @@ print(x+"\n")
 #/
 
 
+/#
+
+/;Test 3
+
 var x:int[5] = [1,2,3]
 
 print(x)
 print("\n")
 x = [3,4,5]
+print(x)
 x = [fill 10]
 print(x)
 
+
+#/
+
+
+
+{
+
+var x:int[5] = [1,2,3]
+
+print(x)
+print("\n")
+x = [3,4,5]
+print(x)
+x = [fill 10]
+print(x)
+
+}
+
+
+
+
+
+/#
+Test 4
+{
+var x = 5
+print(x)
+x = 2
+print(x)
+x = "hello"
+print(x)}
+#/

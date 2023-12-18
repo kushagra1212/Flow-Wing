@@ -17,6 +17,11 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
+  return createExpression(arrayType, arrayAlloca);
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createExpression(
+    llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
   // Get And Set Default Value
 
   llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
@@ -68,15 +73,13 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
       defaultArray, _containerName);
 
-  return createGlobalExpression(arrayType, _globalVariable,
-                                static_cast<BoundFillExpression *>(expression));
+  return createGlobalExpression(arrayType, _globalVariable);
 
   return nullptr;
 }
 
 llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
-    llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable,
-    BoundFillExpression *fillExpression) {
+    llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable) {
 
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 

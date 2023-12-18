@@ -43,10 +43,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
               ->generateExpression(callExpression->getArguments()[0].get());
 
       if (!value) {
-        // _codeGenerationContext->getLogger()->LogError("Something went wrong
-        // in "
-        //                                               "print function call
-        //                                               ");
         return nullptr;
       }
 
@@ -56,10 +52,12 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         value = Builder->CreateLoad(v->getResultElementType(), v);
       }
 
+      // check if value is alloca inst
       if (llvm::isa<llvm::AllocaInst>(value)) {
 
         auto v = static_cast<llvm::AllocaInst *>(value);
 
+        // local array
         if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
 
           llvm::ArrayType *arrayType =
@@ -82,6 +80,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       if (llvm::isa<llvm::GlobalVariable>(value)) {
         auto v = static_cast<llvm::GlobalVariable *>(value);
 
+        // global array
         if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
 
           llvm::ArrayType *arrayType =

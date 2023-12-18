@@ -17,41 +17,11 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
 
   // Allocate memory on the stack for the array
   llvm::Type *arrayType = llvm::ArrayType::get(_elementType, _actualSize);
+
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-  for (uint64_t i = 0; i < _sizeToFill; i++) {
-    BoundExpression *entryExp = containerExpression->getElementsRef()[i].get();
-
-    llvm::Value *itemValue =
-        _expressionGenerationFactory->createStrategy(entryExp->getKind())
-            ->generateExpression(entryExp);
-
-    if (_elementType && _elementType != itemValue->getType()) {
-      std::string elementTypeName =
-          _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
-
-      std::string itemValueTypeName =
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              itemValue->getType());
-
-      _codeGenerationContext->getLogger()->LogError(
-          _containerName + " Container item type mismatch. Expected " +
-          elementTypeName + " but got " + itemValueTypeName);
-
-      return nullptr;
-    }
-
-    // Store the items in the allocated memory
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(itemValue), elementPtr);
-  }
-
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          arrayAlloca);
-
-  return arrayAlloca;
+  return createExpression(arrayType, arrayAlloca, containerExpression);
 }
 
 const bool ContainerExpressionGenerationStrategy::canGenerateExpression(
@@ -89,6 +59,55 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
 
   return createGlobalExpression(arrayType, _globalVariable,
                                 containerExpression);
+}
+
+llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
+    llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+    BoundContainerExpression *containerExpression) {
+
+  llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
+      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+  for (uint64_t i = 0; i < _actualSize; i++) {
+
+    // Store the items in the allocated memory
+    llvm::Value *elementPtr = Builder->CreateGEP(
+        arrayType, _allocaInst, {Builder->getInt32(0), Builder->getInt32(i)});
+    Builder->CreateStore(defaultVal, elementPtr);
+  }
+
+  for (uint64_t i = 0; i < _sizeToFill; i++) {
+    BoundExpression *entryExp = containerExpression->getElementsRef()[i].get();
+
+    llvm::Value *itemValue =
+        _expressionGenerationFactory->createStrategy(entryExp->getKind())
+            ->generateExpression(entryExp);
+
+    if (_elementType && _elementType != itemValue->getType()) {
+      std::string elementTypeName =
+          _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
+
+      std::string itemValueTypeName =
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              itemValue->getType());
+
+      _codeGenerationContext->getLogger()->LogError(
+          _containerName + " Container item type mismatch. Expected " +
+          elementTypeName + " but got " + itemValueTypeName);
+
+      return nullptr;
+    }
+
+    // Store the items in the allocated memory
+    llvm::Value *elementPtr = Builder->CreateGEP(
+        arrayType, _allocaInst, {Builder->getInt32(0), Builder->getInt32(i)});
+    Builder->CreateStore(llvm::dyn_cast<llvm::Constant>(itemValue), elementPtr);
+  }
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                          _allocaInst);
+
+  return _allocaInst;
 }
 
 llvm::Value *ContainerExpressionGenerationStrategy::createGlobalExpression(

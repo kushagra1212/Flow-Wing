@@ -3,13 +3,9 @@
 
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
-#include "../../../../bind/BoundFillExpression/BoundFillExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
+#include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
-
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
 public:
@@ -36,13 +32,10 @@ public:
   bool canGenerateLiteralExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
-  // Specialized for BoundAssignmentExpression
-
-  llvm::Value *handleBracketedAssignment(BoundExpression *expression);
-
 private:
   std::string _variableName;
-  llvm::Value *_previousValue;
+  llvm::AllocaInst *_allocaInst;
+  llvm::GlobalVariable *_previousGlobalVariable;
   Utils::type _variableType;
   bool _isGlobal;
 };
