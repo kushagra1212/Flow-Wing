@@ -5,7 +5,7 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
-RUN apt-get update && apt-get install -y \
+RUN apt  update && apt install -y \
     cmake \
     libgtest-dev \
     llvm-dev \
@@ -19,26 +19,28 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     libzstd-dev \
     libcurl4-openssl-dev \
-    lld \  
+    lld \
     ccache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install LLVM 16
+
 RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
 
+
 # Copy your source code to the container
-COPY . /compiler-dev
 
+COPY . /jit-compiler-test
 # Set the working directory
-WORKDIR /compiler-dev/all-targets/jit-compiler
+WORKDIR /jit-compiler-test/all-targets/jit-compiler
 
-# Create a compiler-build directory
-RUN mkdir -p compiler-build
+# Create a compiler-test-build directory
+RUN mkdir -p jit-compiler-test-build
 
-# Configure and build your project using Ninja
-WORKDIR /compiler-dev/all-targets/jit-compiler/compiler-build
-#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
+# Configure and compiler-test-build your project
+
+WORKDIR /jit-compiler-test/all-targets/jit-compiler/jit-compiler-test-build
+#RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja
-
-# Run your executable (assuming it's named FlowWing)
-#CMD ["./FlowWing", "../dir/index.fg"]
+# Run Tests
+#RUN ./FlowWing

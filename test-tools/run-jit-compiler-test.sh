@@ -7,10 +7,10 @@
 # Build and run containers defined in docker-compose.yml
 
 
-docker-compose build compiler-dev  
+docker-compose build  jit-compiler-test
 
 
-# Run Compiler Dev
-docker-compose run --rm compiler-dev /bin/bash 
- 
+# Run tests
+docker-compose run --rm jit-compiler-test bash 
+
 

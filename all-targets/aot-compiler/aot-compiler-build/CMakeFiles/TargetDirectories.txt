@@ -1,0 +1,13 @@
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/intrinsics_gen.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/omp_gen.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/acc_gen.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/RISCVTargetParserTableGen.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/FlowWing.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/package.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/package_source.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/edit_cache.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/rebuild_cache.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/list_install_components.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/install.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/install/local.dir
+/aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build/CMakeFiles/install/strip.dir

@@ -1,0 +1,44 @@
+# Use an Ubuntu base image
+FROM ubuntu:latest
+
+# Set environment variables to avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libgtest-dev \
+    llvm-dev \
+    llvm \
+    g++ \
+    gdb \
+    wget \
+    lsb-release \
+    software-properties-common \
+    ninja-build \
+    zlib1g-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
+    lld \  
+    ccache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install LLVM 16
+RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 16
+
+# Copy your source code to the container
+COPY . /aot-compiler-dev
+
+# Set the working directory
+WORKDIR /aot-compiler-dev/all-targets/aot-compiler
+
+# Create a compiler-build directory
+RUN mkdir -p aot-compiler-build
+
+# Configure and build your project using Ninja
+WORKDIR /aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build
+#RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
+#RUN ninja
+
+# Run your executable (assuming it's named FlowWing)
+#CMD ["./FlowWing", "../dir/index.fg"]

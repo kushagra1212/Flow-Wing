@@ -1,67 +1,11 @@
-/#
-// Primitive types Test
 
-/; 1
-var x:int = 5
-x = "hello"
-print(x+"\n")
-
-
-/; 2
-var x:int = 5
-print(x+"\n")
-x = 2
-print(x+"\n")
-x = 3
-{
-    print(x+"\n")
-}
-print(x+"\n")
-#/
-
-
-/#
-
-/;Test 3
-
-var x:int[5] = [1,2,3]
-
-print(x)
-print("\n")
-x = [3,4,5]
-print(x)
-x = [fill 10]
-print(x)
-
+/# PENDDING
+var y = 1
+var x :int[1] = [y]
 
 #/
-
-
-
 {
-
-var x:int[5] = [1,2,3]
-
-print(x)
-print("\n")
-x = [3,4,5]
-print(x)
-x = [fill 10]
-print(x)
-
+var x :int[100000] = [2 fill 1]
+/;print(x)
 }
 
-
-
-
-
-/#
-Test 4
-{
-var x = 5
-print(x)
-x = 2
-print(x)
-x = "hello"
-print(x)}
-#/

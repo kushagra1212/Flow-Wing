@@ -1,8 +1,8 @@
-#include "JITCompiler.h"
+#include "AOTCompiler.h"
 
-JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
+AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
-void JITCompiler::execute() {
+void AOTCompiler::execute() {
 
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>();
@@ -18,7 +18,7 @@ void JITCompiler::execute() {
   llvm::InitializeNativeTargetAsmParser();
   std::vector<std::string> irFilePaths;
 
-#if defined(DEBUG) || defined(JIT_TEST_MODE)
+#if defined(DEBUG) || defined(AOT_TEST_MODE)
   irFilePaths = {"lib/FlowWing/built_in_module.ll"};
 #else
   std::string builtInModulePath =
@@ -41,7 +41,7 @@ void JITCompiler::execute() {
   for (const std::string &path : irFilePaths) {
     llvm::SMDiagnostic err;
 
-#if defined(DEBUG) || defined(JIT_MODE)
+#if defined(DEBUG) || defined(AOT_MODE)
 
     currentDiagnosticHandler->printDiagnostic(
         std::cout,
@@ -77,7 +77,7 @@ void JITCompiler::execute() {
     END
   */
 
-#if defined(DEBUG) || defined(JIT_MODE)
+#if defined(DEBUG) || defined(AOT_MODE)
 
   currentDiagnosticHandler->printDiagnostic(
       std::cout, Diagnostic("Finished linking modules.",
@@ -144,7 +144,7 @@ void signalHandler(int signal) {
   exit(1); // Exit with a non-zero status to indicate an error.
 }
 
-#ifdef JIT_TEST_MODE
+#ifdef AOT_TEST_MODE
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 
 #endif
 
-#ifdef JIT_MODE
+#ifdef AOT_MODE
 
 int main(int argc, char *argv[]) {
 
@@ -197,8 +197,8 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> text =
       Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
 
-  std::unique_ptr<JITCompiler> jitCompiler =
-      std::make_unique<JITCompiler>(argv[1]);
+  std::unique_ptr<AOTCompiler> jitCompiler =
+      std::make_unique<AOTCompiler>(argv[1]);
   jitCompiler->executable_directory_string = executable_directory_string;
 
   jitCompiler->compile(text, std::cout);

@@ -1,20 +1,27 @@
 version: "3.8"
 
 services:
-  compiler-test:
+  aot-compiler-dev:
     tty: true
     build:
       context: .
-      dockerfile: Dockerfile.CompilerTest
+      dockerfile: Dockerfile.AOTCompilerDev
     volumes:
-      - .:/compiler-test
-  compiler-dev:
+      - .:/aot-compiler-dev
+  jit-compiler-test:
     tty: true
     build:
       context: .
-      dockerfile: Dockerfile.CompilerDev
+      dockerfile: Dockerfile.JITCompilerTest
     volumes:
-      - .:/compiler-dev
+      - .:/jit-compiler-test
+  jit-compiler-dev:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.JITCompilerDev
+    volumes:
+      - .:/jit-compiler-dev
   repl-test:
     tty: true
     build:

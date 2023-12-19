@@ -1,5 +1,5 @@
-#ifndef JITCOMPILER_H
-#define JITCOMPILER_H
+#ifndef __FLOW__WING__AOT__COMPILER__H__
+#define __FLOW__WING__AOT__COMPILER__H__
 
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
@@ -9,12 +9,12 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
-class JITCompiler : public Compiler {
+class AOTCompiler : public Compiler {
 
 public:
-  JITCompiler(std::string filePath = "");
+  AOTCompiler(std::string filePath = "");
 
   void execute();
 };
 
-#endif // JITCOMPILER_H
+#endif // __FLOW__WING__AOT__COMPILER__H__
