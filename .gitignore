@@ -6,3 +6,7 @@ compiler-build/
 repl-build/
 compiler-test-build/
 repl-test-build/
+jit-compiler-build/
+jit-compiler-test-build/
+aot-compiler-build/
+aot-compiler-test-build/
