@@ -733,10 +733,7 @@ std::unique_ptr<FillExpressionSyntax> Parser::parseFillExpression() {
 
   std::unique_ptr<ExpressionSyntax> sizeToFillExpression = nullptr;
 
-  if (this->getCurrent()->getKind() ==
-      SyntaxKindUtils::SyntaxKind::NumberToken) {
-    sizeToFillExpression = std::move(this->parsePrimaryExpression());
-  }
+  sizeToFillExpression = std::move(this->parsePrimaryExpression());
 
   this->match(SyntaxKindUtils::SyntaxKind::FillKeyword);
 

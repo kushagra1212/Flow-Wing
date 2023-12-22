@@ -8,5 +8,10 @@ print(x)
 }
 #/
 
+{
+var y = "2"
+var x:int[2] =[y,y]
+x = [1 fill y]
+print(x)
+}
 
-print(40.40)

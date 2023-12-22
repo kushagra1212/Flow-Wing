@@ -144,8 +144,7 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   std::string logString = "";
   std::string fileName = "";
 
-  if (diagnostic.getType() == DiagnosticUtils::DiagnosticType::Linker ||
-      diagnostic.getType() == DiagnosticUtils::DiagnosticType::Runtime) {
+  if (diagnostic.getType() == DiagnosticUtils::DiagnosticType::Linker) {
     line = "";
   } else {
 

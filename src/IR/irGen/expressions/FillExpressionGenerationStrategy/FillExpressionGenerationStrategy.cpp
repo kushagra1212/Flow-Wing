@@ -17,13 +17,7 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-  return createExpression(arrayType, arrayAlloca);
-}
-
-llvm::Value *FillExpressionGenerationStrategy::createExpression(
-    llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
-  // Get And Set Default Value
-
+  // Fill the array with default values
   llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
@@ -35,14 +29,19 @@ llvm::Value *FillExpressionGenerationStrategy::createExpression(
     Builder->CreateStore(defaultVal, elementPtr);
   }
 
-  llvm::Constant *constElement = llvm::dyn_cast<llvm::Constant>(_elementToFill);
+  return createExpression(arrayType, arrayAlloca);
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createExpression(
+    llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
+  // Get And Set Default Value
 
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 
     // Store the items in the allocated memory
     llvm::Value *elementPtr = Builder->CreateGEP(
         arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(constElement, elementPtr);
+    Builder->CreateStore(_elementToFill, elementPtr);
   }
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
