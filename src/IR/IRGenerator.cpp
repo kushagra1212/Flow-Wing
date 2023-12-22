@@ -36,7 +36,14 @@ IRGenerator::IRGenerator(
 
   // Initialize the file save strategy
 
+  //.ll file save strategy
   llFileSaveStrategy = std::make_unique<LLFileSaveStrategy>(_llvmLogger);
+
+  //.bc file save strategy
+  bcFileSaveStrategy = std::make_unique<BCFileSaveStrategy>(_llvmLogger);
+
+  //.o file save strategy
+  oFileSaveStrategy = std::make_unique<OFileSaveStrategy>(_llvmLogger);
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -147,8 +154,13 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
 
+#ifdef DEBUG
   llFileSaveStrategy->saveToFile(
       _codeGenerationContext->getSourceFileName() + ".ll", TheModule);
+#else
+  bcFileSaveStrategy->saveToFile(
+      _codeGenerationContext->getSourceFileName() + ".bc", TheModule);
+#endif
 
   // this->_irParser->mergeIR(TheModule.get());
 
@@ -192,7 +204,6 @@ int IRGenerator::executeGeneratedCode() {
     if (returnType->isIntegerTy()) {
       hasError = (resultValue.IntVal != 0) ? 1 : 0;
     }
-
   } catch (const std::exception &e) {
     std::cerr << e.what();
   }

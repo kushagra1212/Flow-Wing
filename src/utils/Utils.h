@@ -39,7 +39,6 @@ enum type {
   BOOL_CONTAINER,
   STRING_CONTAINER,
   UNKNOWN_CONTAINER,
-
 };
 void prettyPrint(SyntaxNode *node, std::string indent = "", bool isLast = true);
 

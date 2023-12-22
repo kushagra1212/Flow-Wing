@@ -173,7 +173,6 @@ void Repl::compileAndEvaluate(
     } else {
       _previousGlobalScope = std::move(globalScope);
     }
-
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET;
   }
@@ -252,7 +251,6 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
 
       _previousGlobalScope = std::move(globalScope);
     }
-
   } catch (const std::exception &e) {
     outputStream << RED << e.what() << RESET << "\n";
   }

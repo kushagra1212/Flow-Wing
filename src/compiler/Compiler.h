@@ -13,9 +13,24 @@ class Compiler {
 
 public:
   Compiler(std::string filePath = "");
-  ~Compiler();
+
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
+
+  const std::string getBuiltInModulePath() const;
+  std::unique_ptr<llvm::MemoryBuffer> getMemoryBuffer(std::string filePath);
+  std::vector<std::string> getIRFilePaths() const;
+
+  std::unique_ptr<llvm::Module>
+  getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext);
+
+  std::unique_ptr<llvm::Module>
+  createModuleFromBitcode(const std::string &filePath,
+                          std::unique_ptr<llvm::LLVMContext> &TheContext);
+
+  std::unique_ptr<llvm::Module>
+  createModuleFromIR(const std::string &filePath,
+                     std::unique_ptr<llvm::LLVMContext> &TheContext);
 
   virtual void execute() = 0;
 
@@ -23,6 +38,8 @@ public:
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::vector<std::string> text = std::vector<std::string>();
   std::string executable_directory_string;
+  std::unique_ptr<DiagnosticHandler> _currentDiagnosticHandler;
+  llvm::ExecutionEngine *executionEngine;
 };
 
 #endif // __FLOW__WING__COMPILER__H__

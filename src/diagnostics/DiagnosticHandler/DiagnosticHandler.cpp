@@ -133,10 +133,6 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
 #ifdef JIT_TEST_MODE
   return diagnostic.getMessage();
 #endif
-  std::string fileName = "File: ";
-  fileName += this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
-                                    ? diagnostic.getLocation().absoluteFilePath
-                                    : this->_filePath);
   std::string message = diagnostic.getMessage();
   std::string level = DiagnosticUtils::toString(diagnostic.getLevel());
   std::string type = DiagnosticUtils::toString(diagnostic.getType());
@@ -144,28 +140,38 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
                                           1 - previousLineCount);
   std::string columnNumber =
       std::to_string(diagnostic.getLocation().columnNumber + 1);
+  std::string line = "Line " + lineNumber + ":" + columnNumber;
+  std::string logString = "";
+  std::string fileName = "";
 
-  std::string logString =
-      getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber));
+  if (diagnostic.getType() == DiagnosticUtils::DiagnosticType::Linker ||
+      diagnostic.getType() == DiagnosticUtils::DiagnosticType::Runtime) {
+    line = "";
+  } else {
+
+    logString = getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber));
+
+    fileName += "File: ";
+    fileName +=
+        this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
+                              ? diagnostic.getLocation().absoluteFilePath
+                              : this->_filePath);
+  }
 
   if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error) {
 
-    logString += RED + fileName + " [" + level + "] : " + RED_TEXT + "Line " +
-                 lineNumber + ":" + columnNumber + RED + " \"" + message +
-                 "\"" + RESET + "\n";
+    logString += RED + fileName + " [" + level + "] : " + RED_TEXT + line +
+                 RED + " \"" + message + "\"" + RESET + "\n";
   } else if (diagnostic.getLevel() ==
              DiagnosticUtils::DiagnosticLevel::Warning) {
     logString += YELLOW + fileName + " [" + level + "] : " + YELLOW_TEXT +
-                 "Line " + lineNumber + ":" + columnNumber + YELLOW + " \"" +
-                 message + "\"" + RESET + "\n";
+                 line + YELLOW + " \"" + message + "\"" + RESET + "\n";
   } else if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Info) {
-    logString += BLUE + fileName + " [" + level + "] : " + BLUE_TEXT + "Line " +
-                 lineNumber + ":" + columnNumber + BLUE + " \"" + message +
-                 "\"" + RESET + "\n";
+    logString += BLUE + fileName + " [" + level + "] : " + BLUE_TEXT + line +
+                 BLUE + " \"" + message + "\"" + RESET + "\n";
   } else if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Debug) {
-    logString += GREEN + fileName + " [" + level + "] : " + GREEN_TEXT +
-                 "Line " + lineNumber + ":" + columnNumber + GREEN + " \"" +
-                 message + "\"" + RESET + "\n";
+    logString += GREEN + fileName + " [" + level + "] : " + GREEN_TEXT + line +
+                 GREEN + " \"" + message + "\"" + RESET + "\n";
   }
 
   return logString;

@@ -61,7 +61,7 @@ add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/just-in
 llvm_map_components_to_libnames(LLVM_STATIC_LIBRARIES core executionengine orcjit native)
 
 # Link the executable with LLVM libraries and other dependencies
-target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread ${LLVM_STATIC_LIBRARIES} LLVMInterpreter LLVMMCJIT ZLIB::ZLIB zstd::libzstd_shared)
+target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread ${LLVM_STATIC_LIBRARIES} LLVMInterpreter LLVMMCJIT ZLIB::ZLIB zstd::libzstd_shared LLVMTarget LLVMAnalysis LLVMAArch64Info)
 
 # Set the output name of the executable
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${DEFAULT_EXECUTABLE_NAME})

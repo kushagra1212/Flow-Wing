@@ -1099,7 +1099,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.5000000000000000";
+  std::string expected_output = "5.50000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1132,7 +1132,7 @@ print(getSum(2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.2999999999999998";
+  std::string expected_output = "5.30000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1197,7 +1197,7 @@ print(getSum(2.2,3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.2000000000000002";
+  std::string expected_output = "5.20000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1214,7 +1214,7 @@ print(getSum(2.2,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "5.5000000000000000";
+  std::string expected_output = "5.50000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1231,7 +1231,7 @@ print(getSum(2.2,true))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "3.2000000000000002";
+  std::string expected_output = "3.20000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1248,7 +1248,7 @@ print(getSum(2.2,"Hello"))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "2.2000000000000002Hello";
+  std::string expected_output = "2.20000000000000Hello";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
@@ -1299,7 +1299,7 @@ print(getSum(true,3.3))
   setInput(input);
   runEvaluator();
   std::string lowerCaseOutput = getOutput();
-  std::string expected_output = "4.2999999999999998";
+  std::string expected_output = "4.30000000000000";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 

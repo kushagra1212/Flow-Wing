@@ -83,7 +83,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     // create alloca for return value
 
     Builder->CreateRet(returnValue);
-
   } else {
     Builder->CreateRetVoid();
   }

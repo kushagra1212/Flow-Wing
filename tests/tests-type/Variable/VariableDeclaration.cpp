@@ -206,8 +206,8 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
       )";
 
   std::string expected_output =
-      "224323.10000000000000014.20000000000000022.20000000000000023."
-      "2000000000000002falsetruetrue22.1000000000000001trueHello";
+      "224323.100000000000004.200000000000002.200000000000003."
+      "20000000000000falsetruetrue22.10000000000000trueHello";
 
   setInput(input);
   runEvaluator();
@@ -262,19 +262,19 @@ print(a+"\n"))";
 This is a string
 2
 true
-2.0000000000000000
+2.00000000000000
 Int
 2
-2.0000000000000000
+2.00000000000000
 true
 This is a string
 Bool
 true
 2
-2.0000000000000000
+2.00000000000000
 This is a string
 Float
-2.0000000000000000
+2.00000000000000
 2
 true
 This is a string

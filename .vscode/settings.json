@@ -1,7 +1,7 @@
 {
   "files.associations": {
-    "*.tsx": "typescriptreact",
     "*.cpp": "cpp",
+    "*.tsx": "typescriptreact",
     "iostream": "cpp",
     "array": "cpp",
     "atomic": "cpp",
@@ -117,11 +117,17 @@
     "*.o": "cpp",
     "forward_list": "cpp",
     "valarray": "cpp",
-    "stdfloat": "cpp"
+    "stdfloat": "cpp",
+    "__verbose_abort": "cpp",
+    "complex": "cpp"
   },
-  "workbench.colorTheme": "GitHub Dark High Contrast",
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
-
-  "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold"
+  "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold",
+  "editor.defaultFormatter": "xaver.clang-format",
+  "[cpp]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "clang-format.executable": "/usr/local/llvm-17/bin/clang-format",
+  "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
 }

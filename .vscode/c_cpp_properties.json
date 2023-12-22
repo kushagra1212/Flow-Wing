@@ -1,19 +1,19 @@
 {
-  "configurations": [
-    {
-      "name": "Linux",
-      "includePath": [
-        "${workspaceFolder}/**",
-        "${workspaceFolder}/tests",
-        "/usr/include/gtest/internal",
-        "/usr/include/gtest",
-        "/usr/include/llvm-16",
-        "/usr/include/llvm-c-16"
-      ],
-      "defines": [],
-      "compilerPath": "/usr/bin/gcc",
-      "intelliSenseMode": "linux-gcc-x64"
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include/gtest/internal",
+                "/usr/include/gtest",
+                "/usr/local/llvm-17/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/local/llvm-17/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
 }

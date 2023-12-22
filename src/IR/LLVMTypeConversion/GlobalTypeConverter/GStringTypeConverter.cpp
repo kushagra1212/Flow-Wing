@@ -48,7 +48,6 @@ GStringTypeConverter::convertImplicit(llvm::Value *possibleGlobalVariable) {
     // bitcast to i8*
 
     return val;
-
   } else if (globalVar->getValueType()->isIntegerTy(8)) {
     llvm::Value *val = _builder->CreateLoad(
         llvm::Type::getInt8Ty(_builder->getContext()), globalVar);

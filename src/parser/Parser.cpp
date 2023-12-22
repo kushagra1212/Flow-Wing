@@ -348,7 +348,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseBracketedExpression() {
 
       || this->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword) {
     bracketedExpression->setExpression(std::move(this->parseFillExpression()));
-
   } else {
     bracketedExpression->setExpression(
         std::move(this->parseContainerExpression()));

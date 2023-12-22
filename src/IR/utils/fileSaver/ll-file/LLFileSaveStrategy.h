@@ -1,5 +1,5 @@
-#ifndef LLFILESAVESTRATEGY_H
-#define LLFILESAVESTRATEGY_H
+#ifndef __FLOW_WING__LL__FILE__SAVE__STRATEGY__H__
+#define __FLOW_WING__LL__FILE__SAVE__STRATEGY__H__
 
 #include "../../../logger/LLVMLogger.h"
 #include "../FileSaveStrategy.h"
@@ -14,4 +14,4 @@ public:
   bool saveToFile(const std::string &path, llvm::Module *module) const override;
 };
 
-#endif // LLFILESAVESTRATEGY_H
+#endif // __FLOW_WING__LL__FILE__SAVE__STRATEGY__H__

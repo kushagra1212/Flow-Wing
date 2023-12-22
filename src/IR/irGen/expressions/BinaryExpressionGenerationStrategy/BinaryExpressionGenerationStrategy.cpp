@@ -41,7 +41,6 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
         binaryExpression);
-
   } else if (_typeMapper->isDoubleType(lhsType) ||
              _typeMapper->isDoubleType(rhsType)) {
 
@@ -49,13 +48,11 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), rhsValue),
         binaryExpression);
-
   } else if (_typeMapper->isBoolType(lhsType) &&
              _typeMapper->isBoolType(rhsType)) {
 
     result = _boolBinaryOperationStrategy->performOperation(lhsValue, rhsValue,
                                                             binaryExpression);
-
   } else {
 
     result = _int32BinaryOperationStrategy->performOperation(

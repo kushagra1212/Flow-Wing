@@ -117,7 +117,6 @@ StringBinaryOperationStrategy::concatenateStrings(llvm::Value *lhs,
   if (!stringConcatenateFunc) {
     // Function not found, handle error
     return nullptr;
-
   } else {
 
     llvm::Value *args[] = {_stringTypeConverter->convertExplicit(lhs),

@@ -60,8 +60,8 @@ TEST_F(ContainerTest, BasicContainerDeciDeclaration) {
 print(a)})";
 
   std::string expected_output =
-      "[1.1000000000000001, 2.2000000000000002, 3.2999999999999998, "
-      "4.4000000000000004, 5.5000000000000000]";
+      "[1.10000000000000, 2.20000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -103,7 +103,7 @@ TEST_F(ContainerTest, BasicContainerDeciIndexing) {
 
 print(a[3])})";
 
-  std::string expected_output = "4.4000000000000004";
+  std::string expected_output = "4.40000000000000";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -160,7 +160,7 @@ TEST_F(ContainerTest, BasicContainerDeciIndexingAssignment) {
 a[3] = 10.10
 print(a[3])})";
 
-  std::string expected_output = "10.0999999999999996";
+  std::string expected_output = "10.10000000000000";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -335,8 +335,8 @@ TEST_F(ContainerTest, BasicContainerDeciDeclarationGlobal) {
 print(a))";
 
   std::string expected_output =
-      "[1.1000000000000001, 2.2000000000000002, 3.2999999999999998, "
-      "4.4000000000000004, 5.5000000000000000]";
+      "[1.10000000000000, 2.20000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -378,7 +378,7 @@ TEST_F(ContainerTest, BasicContainerDeciIndexingGlobal) {
 
 print(a[3]))";
 
-  std::string expected_output = "4.4000000000000004";
+  std::string expected_output = "4.40000000000000";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -435,7 +435,7 @@ TEST_F(ContainerTest, BasicContainerDeciIndexingAssignmentGlobal) {
 a[3] = 10.10
 print(a[3]))";
 
-  std::string expected_output = "10.0999999999999996";
+  std::string expected_output = "10.10000000000000";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -588,13 +588,13 @@ print(a)})";
 
 TEST_F(ContainerTest, BasicContainerAssignmentDeciDeclaration) {
   std::string input = R"({var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
-  a = [10.10, 20.20, 30.30, 40.40, 50.50]
+  a = [10.10, 20.20, 30.35, 40.40, 50.50]
 
 print(a)})";
 
   std::string expected_output =
-      "[10.0999999999999996, 20.1999999999999993, 30.3000000000000007, "
-      "40.3999999999999986, 50.5000000000000000]";
+      "[10.10000000000000, 20.20000000000000, "
+      "30.35000000000000, 40.40000000000000, 50.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -606,7 +606,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialIntDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[10, 20, 30, 4, 5]";
+  std::string expected_output = "[10, 20, 30, 0, 0]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -618,7 +618,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, world, this, d, e]";
+  std::string expected_output = "[hello, world, this, , ]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -631,7 +631,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialBoolDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[false, true, false, false, true]";
+  std::string expected_output = "[false, true, false, false, false]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -643,9 +643,9 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialDeciDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
-                                "30.2999999999999972, 4.4000000000000057, "
-                                "5.5000000000000000]";
+  std::string expected_output = "[10.0999999999999996, 20.1999999999999993, "
+                                "30.2999999999999972, 0.00000000000000, "
+                                "0.00000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -695,9 +695,9 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialDeciDeclarationGlobal) {
 
 print(a))";
 
-  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
-                                "30.2999999999999972, 4.4000000000000057, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 20.20000000000000, 30.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -763,9 +763,9 @@ TEST_F(ContainerTest,
 print(a)
 })";
 
-  std::string expected_output = "[10.0999999999999996, 20.2000000000000011, "
-                                "30.2999999999999972, 4.4000000000000057, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 20.20000000000000, 30.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -835,9 +835,9 @@ a[0] = 100.10
 print(a)
 })";
 
-  std::string expected_output = "[100.0999999999999943, 20.2000000000000011, "
-                                "30.2999999999999972, 4.4000000000000057, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[100.09999999999999, 20.20000000000000, 30.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);

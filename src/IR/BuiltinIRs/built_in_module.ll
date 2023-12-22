@@ -5,14 +5,14 @@ source_filename = "built_in_module"
 @formatStrprintf =   global [3 x i8] c"%s\00"
 @formatStrscanf =   global [10 x i8] c"%1000000s\00", align 1
 @intFormat =   global [3 x i8] c"%d\00"
-@doubleFormat =   global [6 x i8] c"%.16f\00"
+@doubleFormat =   global [6 x i8] c"%.14f\00"
 
 declare i8* @malloc(i32)
 declare i32 @strlen(i8*)
 declare i32 @memcpy(i8*, i8*, i32)
 declare i32 @strcmp(i8*, i8*)
 declare i32 @printf(i8*, ...)
-declare i32 @snprintf(i8*, i32, i8*, i32)
+declare i32 @snprintf(i8*, i32, i8*, ...)
 declare i32 @atoi(i8*)
 declare double @atof(i8*)
 declare i32 @scanf(i8*, ...)
@@ -72,7 +72,7 @@ define  i8* @itos(i32 %num) {
     
     ; Convert the integer to a string
     %formatStr = getelementptr [3 x i8], [3 x i8]* @intFormat, i32 0, i32 0
-    call i32 @snprintf(i8* %buffer, i32 12, i8* %formatStr, i32 %num)
+    call i32 (i8*, i32, i8*, ...)@snprintf(i8* %buffer, i32 12, i8* %formatStr, i32 %num)
 
     ; Return the result as a pointer to the string
     ret i8* %buffer
@@ -85,7 +85,7 @@ define  i8* @dtos(double %f) {
 
   ; Convert the double to a string
   %formatStr = getelementptr [6 x i8], [6 x i8]* @doubleFormat, i32 0, i32 0
-  call i32 @snprintf(i8* %buffer, i32 32, i8* %formatStr, double %f)
+  call i32 (i8*, i32, i8*, ...)@snprintf(i8* %buffer, i32 32, i8* %formatStr, double %f)
   ; Return the result as a pointer to the string
   ret i8* %buffer
 }
@@ -112,7 +112,7 @@ define  i8* @get_malloc_ptr_of_int_constant(i32 %num) {
     
     ; Convert the integer to a string
     %formatStr = getelementptr [3 x i8], [3 x i8]* @intFormat, i32 0, i32 0
-    call i32 @snprintf(i8* %buffer, i32 12, i8* %formatStr, i32 %num)
+    call i32 (i8*, i32, i8*, ...)@snprintf(i8* %buffer, i32 12, i8* %formatStr, i32 %num)
 
     ; Return the result as a pointer to the string
     ret i8* %buffer
@@ -202,5 +202,3 @@ define void @raise_exception(i8* %errorMsg) {
     call void @exit(i32 1)
     unreachable ; Terminate the program (unreachable code)
 }
-
-
