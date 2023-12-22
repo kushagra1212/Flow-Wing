@@ -53,7 +53,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     _statementGenerationFactory->createStrategy(variableDeclaration->getKind())
         ->generateStatement(variableDeclaration);
-
   } else {
 
     // Loop Variable

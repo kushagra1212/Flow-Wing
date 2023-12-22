@@ -12,9 +12,9 @@ private:
   int previousLineCount = 0;
   std::string _filePath;
   std::vector<std::string> _replLines;
-  std::string getFileName(const std::string &filePath);
 
 public:
+  std::string getFileName(const std::string &filePath);
   DiagnosticHandler(std::string filePath = "",
                     DiagnosticHandler *parent = nullptr);
   void addDiagnostic(const Diagnostic &diagnostic);

@@ -42,7 +42,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationMultiplication) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationDivision) {
   std::string input = "2/2";
-  std::string expected_output = "1.0000000000000000";
+  std::string expected_output = "1.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -51,7 +51,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationDivision) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationDivision2) {
   std::string input = "2/3";
-  std::string expected_output = "0.6666666666666666";
+  std::string expected_output = "0.66666666666667";
 
   setInput(input);
   runEvaluator();
@@ -60,7 +60,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationDivision2) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationDivision3) {
   std::string input = "5/2";
-  std::string expected_output = "2.5000000000000000";
+  std::string expected_output = "2.50000000000000";
 
   setInput(input);
   runEvaluator();
@@ -209,7 +209,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationNegation) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationAdditionWithDouble) {
   std::string input = "2+2.0";
-  std::string expected_output = "4.0000000000000000";
+  std::string expected_output = "4.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -218,7 +218,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationAdditionWithDouble) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationSubtractionWithDouble) {
   std::string input = "2-2.0";
-  std::string expected_output = "0.0000000000000000";
+  std::string expected_output = "0.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -227,7 +227,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationSubtractionWithDouble) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationMultiplicationWithDouble) {
   std::string input = "2*2.0";
-  std::string expected_output = "4.0000000000000000";
+  std::string expected_output = "4.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -236,7 +236,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationMultiplicationWithDouble) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationDivisionWithDouble) {
   std::string input = "2/2.0";
-  std::string expected_output = "1.0000000000000000";
+  std::string expected_output = "1.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -361,7 +361,7 @@ TEST_F(BinaryOperationTest, BasicIntegerOperationMultiplicationWithFalse) {
 
 TEST_F(BinaryOperationTest, BasicIntegerOperationDivisionWithBoolean) {
   std::string input = "2/true";
-  std::string expected_output = "2.0000000000000000";
+  std::string expected_output = "2.00000000000000";
 
   setInput(input);
   runEvaluator();

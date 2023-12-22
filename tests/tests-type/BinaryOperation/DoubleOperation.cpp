@@ -10,7 +10,7 @@
 
 TEST_F(BinaryOperationTest, BasicDoubleOperationAddition) {
   std::string input = "1.0+1.0";
-  std::string expected_output = "2.0000000000000000";
+  std::string expected_output = "2.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -19,7 +19,7 @@ TEST_F(BinaryOperationTest, BasicDoubleOperationAddition) {
 
 TEST_F(BinaryOperationTest, BasicDoubleOperationSubtraction) {
   std::string input = "1.0-1.0";
-  std::string expected_output = "0.0000000000000000";
+  std::string expected_output = "0.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -28,7 +28,7 @@ TEST_F(BinaryOperationTest, BasicDoubleOperationSubtraction) {
 
 TEST_F(BinaryOperationTest, BasicDoubleOperationMultiplication) {
   std::string input = "1.0*1.0";
-  std::string expected_output = "1.0000000000000000";
+  std::string expected_output = "1.00000000000000";
 
   setInput(input);
   runEvaluator();
@@ -37,7 +37,7 @@ TEST_F(BinaryOperationTest, BasicDoubleOperationMultiplication) {
 
 TEST_F(BinaryOperationTest, BasicDoubleOperationDivision) {
   std::string input = "1.0/1.0";
-  std::string expected_output = "1.0000000000000000";
+  std::string expected_output = "1.00000000000000";
 
   setInput(input);
   runEvaluator();

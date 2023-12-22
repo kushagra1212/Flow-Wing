@@ -25,7 +25,6 @@ llvm::Value *UnaryOperationStrategy::performOperation(
       // Convert non-boolean values to boolean (true if zero, false if non-zero)
       result = Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
-
     } else if (typeMapper->isStringType(type)) {
       // Get the string length
 
@@ -38,7 +37,6 @@ llvm::Value *UnaryOperationStrategy::performOperation(
       // Compare the string Length to Zero
       result = Builder->CreateICmpEQ(
           length, llvm::ConstantInt::get(length->getType(), 0));
-
     } else if (typeMapper->isBoolType(type)) {
       // For boolean values, perform logical NOT
       result = Builder->CreateNot(val);

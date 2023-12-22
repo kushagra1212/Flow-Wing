@@ -18,7 +18,8 @@ const std::string FLOWWING_GLOBAL_TRUE = "FLOWWING_GLOBAL_TRUE";
 const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 // Entry Point
-const std::string FLOWWING_GLOBAL_ENTRY_POINT = "__FLOWWING__ENTRY__POINT__";
+const std::string FLOWWING_GLOBAL_ENTRY_POINT =
+    "____##FLOWWING_GLOBAL_ENTRY_POINT____##";
 
 namespace INNERS {
 namespace FUNCTIONS {

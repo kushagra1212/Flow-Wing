@@ -166,7 +166,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
       return _boolTypeConverter->convertExplicit(val);
     }
-
   } else if (function.name == Utils::BuiltInFunctions::Decimal.name) {
     if (arguments_size == 1) {
       llvm::Value *val =
@@ -278,15 +277,13 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
 
   llvm::Value *arrayPtr = v;
 
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {_stringTypeConverter->convertExplicit(
-           llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
-       Builder->getInt1(false)});
-
-  // Get Pointer to comma
   llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
-      llvm::ConstantDataArray::getString(TheModule->getContext(), ", "));
+      Builder->CreateGlobalStringPtr(", "));
+
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                      {_stringTypeConverter->convertExplicit(
+                           Builder->CreateGlobalStringPtr("[")),
+                       Builder->getInt1(false)});
 
   // Iterate over each element of the array
   for (uint64_t i = 0; i < size; ++i) {
@@ -297,20 +294,19 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
     Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                         {_stringTypeConverter->convertExplicit(elementValue),
                          Builder->getInt1(false)});
+
     if (i < size - 1) {
       // Print a comma and a space for all elements except the last one
+
       Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                           {commaPtr, Builder->getInt1(false)});
     }
   }
-
   // Print the closing bracket
-
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {_stringTypeConverter->convertExplicit(
-           llvm::ConstantDataArray::getString(TheModule->getContext(), "]")),
-       Builder->getInt1(false)});
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                      {_stringTypeConverter->convertExplicit(
+                           Builder->CreateGlobalStringPtr("]")),
+                       Builder->getInt1(false)});
 
   return nullptr;
 }
@@ -325,36 +321,34 @@ llvm::Value *CallExpressionGenerationStrategy::printGlobalArray(
   llvm::Value *loadedValue =
       Builder->CreateLoad(variable->getValueType(), variable);
 
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {_stringTypeConverter->convertExplicit(
-           llvm::ConstantDataArray::getString(TheModule->getContext(), "[")),
-       Builder->getInt1(false)});
-
-  // Get Pointer to comma
   llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
-      llvm::ConstantDataArray::getString(TheModule->getContext(), ", "));
+      Builder->CreateGlobalStringPtr(", "));
+
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                      {_stringTypeConverter->convertExplicit(
+                           Builder->CreateGlobalStringPtr("[")),
+                       Builder->getInt1(false)});
 
   // Iterate over each element of the array
   for (uint64_t i = 0; i < size; ++i) {
     llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, i);
+
     Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                         {_stringTypeConverter->convertExplicit(innerValue),
                          Builder->getInt1(false)});
     if (i < size - 1) {
       // Print a comma and a space for all elements except the last one
+
       Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                           {commaPtr, Builder->getInt1(false)});
     }
   }
 
   // Print the closing bracket
-
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {_stringTypeConverter->convertExplicit(
-           llvm::ConstantDataArray::getString(TheModule->getContext(), "]")),
-       Builder->getInt1(false)});
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                      {_stringTypeConverter->convertExplicit(
+                           Builder->CreateGlobalStringPtr("]")),
+                       Builder->getInt1(false)});
 
   return nullptr;
 }

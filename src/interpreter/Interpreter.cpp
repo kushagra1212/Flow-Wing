@@ -395,7 +395,6 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
       this->_interpreterUtils->logError(
           "Function return type is not Nothing, return "
           "expression is not found");
-
     }
 
     else if (return_type == Utils::type::NOTHING &&
@@ -403,7 +402,6 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
       this->_interpreterUtils->logError(
           "Function return type is Nothing, return "
           "expression is found");
-
     } else {
       if (returnStatement->getReturnExpressionPtr() != nullptr) {
         this->last_value = this->evaluate<std::any>(
@@ -459,7 +457,6 @@ T Interpreter::evaluateLiteralExpression(BoundExpression *node) {
       return InterpreterConversion::explicitConvertStringToDouble(str);
     }
     return str;
-
   } else if (value.type() == typeid(double)) {
     return std::any_cast<double>(value);
   } else {
@@ -591,7 +588,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
 
       return nullptr;
     }
-
   } else if (function.name == Utils::BuiltInFunctions::print.name) {
 
     if (arguments_size != 1) {
@@ -628,7 +624,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
                                       function.name +
                                       "Arguments Does  Not Match");
     return nullptr;
-
   } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
@@ -641,7 +636,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
                                       "Arguments Does  Not Match");
 
     return nullptr;
-
   } else if (function.name == Utils::BuiltInFunctions::Decimal.name) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
@@ -654,7 +648,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
                                       "Arguments Does  Not Match");
 
     return nullptr;
-
   } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(

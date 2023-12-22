@@ -4,136 +4,49 @@ AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
 void AOTCompiler::execute() {
 
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>();
-
   std::unique_ptr<llvm::LLVMContext> TheContext =
       std::make_unique<llvm::LLVMContext>();
   std::unique_ptr<llvm::IRBuilder<>> Builder =
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  std::unique_ptr<llvm::Module> TheModule =
-      std::make_unique<llvm::Module>("Module.FLOWWING", *TheContext);
-  llvm::InitializeNativeTarget();
-  llvm::InitializeNativeTargetAsmPrinter();
-  llvm::InitializeNativeTargetAsmParser();
-  std::vector<std::string> irFilePaths;
 
-#if defined(DEBUG) || defined(AOT_TEST_MODE)
-  irFilePaths = {"lib/FlowWing/built_in_module.ll"};
-#else
-  std::string builtInModulePath =
-      this->executable_directory_string + "/../lib/FlowWing/";
-  std::cout << builtInModulePath;
-  irFilePaths = {builtInModulePath + "built_in_module.ll"};
-#endif
+  std::unique_ptr<llvm::Module> linkedModule =
+      std::move(getLinkedModule(TheContext));
 
-  std::vector<std::string> _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
+  std::unique_ptr<LLVMLogger> _llvmLogger =
+      std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  irFilePaths.insert(irFilePaths.end(), _userDefinedIRFilePaths.begin(),
-                     _userDefinedIRFilePaths.end());
+  std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy =
+      std::make_unique<LLFileSaveStrategy>(_llvmLogger.get());
 
-  if (irFilePaths.size() == 0) {
-    Utils::printErrors({"No IR files found in current directory."}, std::cout);
-    return;
-  }
+  const std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
+      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
 
-  for (const std::string &path : irFilePaths) {
-    llvm::SMDiagnostic err;
+  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
+                                 linkedModule.get());
 
-#if defined(DEBUG) || defined(AOT_MODE)
+  const std::string CLANG_PATH = "/usr/bin/clang-17";
 
-    currentDiagnosticHandler->printDiagnostic(
+  // check For Clang
+
+  if (system((CLANG_PATH + " --version > /dev/null 2>&1").c_str()) != 0) {
+
+    _currentDiagnosticHandler->printDiagnostic(
         std::cout,
-        Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
+        Diagnostic("Clang not found.", DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Linker,
-                   DiagnosticUtils::SourceLocation(0, 0, path)));
+                   DiagnosticUtils::SourceLocation(
+                       0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
 
-#endif
-
-    bool LinkResult = llvm::Linker::linkModules(
-        *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
-        llvm::Linker::Flags::OverrideFromSrc);
-    if (LinkResult) {
-      currentDiagnosticHandler->printDiagnostic(
-          std::cout, Diagnostic("Error linking " + path,
-                                DiagnosticUtils::DiagnosticLevel::Error,
-                                DiagnosticUtils::DiagnosticType::Linker,
-                                DiagnosticUtils::SourceLocation(0, 0, path)));
-      return;
-    }
-  }
-
-  /*
-    Create the main function
-    START
-  */
-
-  llvm::Function *mainFunction =
-      TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
-
-  /*
-    Create the main function
-    END
-  */
-
-#if defined(DEBUG) || defined(AOT_MODE)
-
-  currentDiagnosticHandler->printDiagnostic(
-      std::cout, Diagnostic("Finished linking modules.",
-                            DiagnosticUtils::DiagnosticLevel::Info,
-                            DiagnosticUtils::DiagnosticType::Linker,
-                            DiagnosticUtils::SourceLocation(
-                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
-
-  TheModule->print(llvm::outs(), nullptr);
-
-  // llFileSaveStrategy->saveToFile("my_module.ll", TheModule.get());
-
-#endif
-
-  std::string errorMessage;
-  llvm::ExecutionEngine *executionEngine =
-      llvm::EngineBuilder(std::move(TheModule))
-          .setErrorStr(&errorMessage)
-          .setEngineKind(llvm::EngineKind::JIT)
-          .setOptLevel(llvm::CodeGenOpt::Less)
-          .create();
-
-  if (!executionEngine) {
-    Utils::printErrors({"Failed to create Execution Engine: ", errorMessage},
-                       std::cerr);
     return;
   }
 
-  if (!mainFunction) {
-    Utils::printErrors({"Function not found in module."}, std::cerr);
-    return;
-  }
-  int hasError = 1;
-  llvm::Type *returnType = mainFunction->getReturnType();
-  llvm::GenericValue resultValue = llvm::GenericValue();
-  llvm::ArrayRef<llvm::GenericValue> ArgValues = {};
-
-  try {
-    resultValue = executionEngine->runFunction(mainFunction, ArgValues);
-
-    if (returnType->isIntegerTy()) {
-      hasError = (resultValue.IntVal != 0) ? 1 : 0;
-    }
-
-  } catch (const std::exception &e) {
-    std::cerr << e.what();
-    currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error executing function.",
-                              DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Runtime,
-                              DiagnosticUtils::SourceLocation(
-                                  0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
-  }
-  delete executionEngine;
-  // return hasError;
+  std::system((CLANG_PATH + " -O3 -o " + fileNameWithOutExtension + " " +
+               fileNameWithOutExtension + ".ll" + " -Wl,-e," +
+               FLOWWING_GLOBAL_ENTRY_POINT)
+                  .c_str());
 }
+
+#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
 
 void signalHandler(int signal) {
   // Output information about the signal:
@@ -143,6 +56,8 @@ void signalHandler(int signal) {
 
   exit(1); // Exit with a non-zero status to indicate an error.
 }
+
+#endif
 
 #ifdef AOT_TEST_MODE
 
@@ -197,11 +112,11 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> text =
       Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
 
-  std::unique_ptr<AOTCompiler> jitCompiler =
+  std::unique_ptr<AOTCompiler> aotCompiler =
       std::make_unique<AOTCompiler>(argv[1]);
-  jitCompiler->executable_directory_string = executable_directory_string;
+  aotCompiler->executable_directory_string = executable_directory_string;
 
-  jitCompiler->compile(text, std::cout);
+  aotCompiler->compile(text, std::cout);
 
   return 0;
 }

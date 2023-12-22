@@ -23,7 +23,7 @@ std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
   return this->_children;
 }
 
- DiagnosticUtils::SourceLocation 
+DiagnosticUtils::SourceLocation
 VariableExpressionSyntax::getSourceLocation() const {
   return this->_identifierExpression->getSourceLocation();
 }

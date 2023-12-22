@@ -9,12 +9,13 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+
 class JITCompiler : public Compiler {
 
 public:
   JITCompiler(std::string filePath = "");
 
-  void execute();
+  void execute() override;
 };
 
 #endif // JITCOMPILER_H

@@ -116,7 +116,6 @@ enum SyntaxKind {
   EmptyStatement,
   BringStatementSyntax,
   ContainerStatement
-
 };
 bool isInt32(const std::string &str);
 

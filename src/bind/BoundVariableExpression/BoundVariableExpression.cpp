@@ -29,4 +29,3 @@ std::unique_ptr<BoundExpression> &
 BoundVariableExpression::getIdentifierExpressionPtr() {
   return this->_identiferExpression;
 }
-

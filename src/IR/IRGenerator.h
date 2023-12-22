@@ -34,7 +34,9 @@
 #include "../utils/Utils.h"
 #include "IRGenerator.h"
 #include "IRParser/IRParser.h"
+#include "utils/fileSaver/bc-file/BCFileSaveStrategy.h"
 #include "utils/fileSaver/ll-file/LLFileSaveStrategy.h"
+#include "utils/fileSaver/o-file/OFileSaveStrategy.h"
 
 using namespace FLOWWING::IR::CONSTANTS;
 
@@ -148,6 +150,8 @@ private:
   // File Save Strategy
 
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
+  std::unique_ptr<BCFileSaveStrategy> bcFileSaveStrategy;
+  std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
 };
 
 #endif // IRGENERATOR_H

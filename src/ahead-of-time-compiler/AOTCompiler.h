@@ -6,9 +6,11 @@
 #include "../compiler/Compiler.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
+#include <cstdlib>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+
 class AOTCompiler : public Compiler {
 
 public:
