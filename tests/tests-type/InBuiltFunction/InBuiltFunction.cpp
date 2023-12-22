@@ -317,8 +317,6 @@ TEST_F(InBuiltFunction, BasicBoolToDoubleFalse) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-#ifndef JIT_TEST_MODE
-
 TEST_F(InBuiltFunction, BasicStringToDoubleWithInt) {
   std::string input = R"(print(Decimal("123")))";
 
@@ -332,7 +330,7 @@ TEST_F(InBuiltFunction, BasicStringToDoubleWithInt) {
 TEST_F(InBuiltFunction, BasicStringToDouble) {
   std::string input = R"(print(Decimal("123.33")))";
 
-  std::string expected_output = "123.3299999999999983";
+  std::string expected_output = "123.33000000000000";
 
   setInput(input);
   runEvaluator();
@@ -348,7 +346,6 @@ TEST_F(InBuiltFunction, BasicStringToDoubleUndefinedBehaviour) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-#endif
 
 // input function
 #ifdef REPL_TEST_MODE

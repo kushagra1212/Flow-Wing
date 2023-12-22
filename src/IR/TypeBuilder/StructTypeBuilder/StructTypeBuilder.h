@@ -15,6 +15,8 @@ public:
 
   const bool isDyn(llvm::Type *type) const;
 
+  llvm::Value *getMemberValue(llvm::Value *structValue) const;
+
 private:
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;

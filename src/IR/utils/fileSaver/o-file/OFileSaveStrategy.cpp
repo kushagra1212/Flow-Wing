@@ -7,6 +7,10 @@ OFileSaveStrategy::OFileSaveStrategy(LLVMLogger *llvmLogger) {
 bool OFileSaveStrategy::saveToFile(const std::string &path,
                                    llvm::Module *module) const {
 
+#if defined(REPL) || defined(REPL_TEST_MODE)
+  return true;
+#endif
+
   //  LLVMInitializeAArch64TargetInfo();
   std::string targetTriple =
       "x86_64-unknown-linux-gnu"; // TODO: "x86_64-pc-windows-msvc

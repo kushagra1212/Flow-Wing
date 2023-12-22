@@ -109,9 +109,12 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   _sizeToFill = 0;
 
   if (sizeToFillVal) {
-    if (llvm::ConstantInt *constInt =
-            llvm::dyn_cast<llvm::ConstantInt>(sizeToFillVal)) {
-      _sizeToFill = constInt->getZExtValue();
+    if (_codeGenerationContext->getMapper()->isInt32Type(
+            sizeToFillVal->getType()) ||
+        _codeGenerationContext->getMapper()->isInt64Type(
+            sizeToFillVal->getType())) {
+      _sizeToFill =
+          llvm::cast<llvm::ConstantInt>(sizeToFillVal)->getZExtValue();
     } else {
       _codeGenerationContext->getLogger()->LogError(
           "Size to fill must be a integer value.");
