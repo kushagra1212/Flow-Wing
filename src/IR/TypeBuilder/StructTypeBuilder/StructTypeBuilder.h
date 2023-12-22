@@ -3,6 +3,7 @@
 #define __FLOWWING_STRUCT_TYPE_BUILDER_H__
 
 #include "../TypeBuilderInterface.h"
+#include "llvm/IR/Instructions.h"
 
 class StructTypeBuilder : public TypeBuilderInterface {
 public:
@@ -15,7 +16,11 @@ public:
 
   const bool isDyn(llvm::Type *type) const;
 
-  llvm::Value *getMemberValue(llvm::Value *structValue) const;
+  llvm::Value *getMemberValueofDynGlVar(llvm::Value *structValue,
+                                        const std::string &variableName) const;
+
+  llvm::Value *getMemberValueOfDynlcVar(llvm::AllocaInst *v,
+                                        llvm::Value *variableValue) const;
 
 private:
   llvm::StructType *_dynamicType;

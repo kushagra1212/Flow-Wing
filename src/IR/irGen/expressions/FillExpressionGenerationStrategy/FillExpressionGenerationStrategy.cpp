@@ -83,8 +83,8 @@ llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
   for (uint64_t i = 0; i < _sizeToFill; i++) {
 
     llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
-    llvm::Value *updatedValue = Builder->CreateInsertValue(
-        loadedValue, llvm::dyn_cast<llvm::Constant>(_elementToFill), (uint)i);
+    llvm::Value *updatedValue =
+        Builder->CreateInsertValue(loadedValue, _elementToFill, (uint)i);
 
     Builder->CreateStore(updatedValue, _globalVariable);
   }
@@ -109,12 +109,9 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   _sizeToFill = 0;
 
   if (sizeToFillVal) {
-    if (_codeGenerationContext->getMapper()->isInt32Type(
-            sizeToFillVal->getType()) ||
-        _codeGenerationContext->getMapper()->isInt64Type(
-            sizeToFillVal->getType())) {
-      _sizeToFill =
-          llvm::cast<llvm::ConstantInt>(sizeToFillVal)->getZExtValue();
+    if (llvm::ConstantInt *constInt =
+            llvm::dyn_cast<llvm::ConstantInt>(sizeToFillVal)) {
+      _sizeToFill = constInt->getZExtValue();
     } else {
       _codeGenerationContext->getLogger()->LogError(
           "Size to fill must be a integer value.");

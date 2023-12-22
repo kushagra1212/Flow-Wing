@@ -140,8 +140,8 @@ llvm::Value *ContainerExpressionGenerationStrategy::createGlobalExpression(
     }
 
     llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
-    llvm::Value *updatedValue = Builder->CreateInsertValue(
-        loadedValue, llvm::dyn_cast<llvm::Constant>(itemValue), (uint)i);
+    llvm::Value *updatedValue =
+        Builder->CreateInsertValue(loadedValue, itemValue, (uint)i);
 
     Builder->CreateStore(updatedValue, _globalVariable);
   }

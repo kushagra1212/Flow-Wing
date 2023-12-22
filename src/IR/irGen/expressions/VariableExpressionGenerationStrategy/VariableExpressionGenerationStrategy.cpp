@@ -54,12 +54,8 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
   // When Local Variable is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
 
-    return Builder->CreateLoad(
-        variableValue->getType(),
-        Builder->CreateStructGEP(
-            _codeGenerationContext->getDynamicType()->get(), v,
-            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-                variableValue->getType())));
+    return _codeGenerationContext->getDynamicType()->getMemberValueOfDynlcVar(
+        v, variableValue);
   }
 
   // When Local Variable is a struct type
@@ -91,14 +87,9 @@ llvm::Value *VariableExpressionGenerationStrategy::handleGlobalDeclaredVariable(
   // when Global Variable (Value) is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(variable->getValueType(), variable, variableName);
 
-    // Extract the  value from the structure
-    llvm::Value *innerValue = Builder->CreateExtractValue(
-        loadedValue, _codeGenerationContext->getGlobalTypeMap()[variableName]);
-
-    return innerValue;
+    return _codeGenerationContext->getDynamicType()->getMemberValueofDynGlVar(
+        variable, variableName);
   }
 
   // When Global Variable (Value) is a struct type

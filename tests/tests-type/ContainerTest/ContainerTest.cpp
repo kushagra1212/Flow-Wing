@@ -1101,4 +1101,154 @@ print(a)
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest,
+       BasicContainerInitilizationWithVariableInsideScopeAccess) {
+  std::string input = R"(var y = 10
+    var a:int[5] = [1, 2, 3, 4, y]
+    print(a)
+  )";
+
+  std::string expected_output = "[1, 2, 3, 4, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerInitilizationWithVariableInsideScopeUpdate) {
+  std::string input = R"(
+    var y = 10
+    var a:int[5] = [1, 2, 3, 4, y]
+    a[0] = 100
+    print(a)
+  )";
+
+  std::string expected_output = "[100, 2, 3, 4, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialStringDeclarationGlobalInsideScopeAccess) {
+
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  var res = "hello"
+  a = [5 fill res]
+print(a)
+       }
+)";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialBoolDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+{
+
+  var isBool:bool = false
+  var isbool = true
+  a = [isBool, isbool, isBool]
+print(a)
+       }
+)";
+
+  std::string expected_output = "[false, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialDeciDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+{
+  var res = 10.10
+  a = [2 fill res]
+
+print(a)
+       }
+
+)";
+
+  std::string expected_output =
+      "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, Complex) {
+  std::string input = R"(var res = "hello"
+var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  a = [2 fill res]
+  print(a)
+  a = ["b"]
+  print(a)
+  a = [1 fill "u"]
+  print(a)
+}
+a = ["t"]
+print(a)
+a = [1 fill res]
+print(a)
+var res2:str = "val"
+a = [res2,res2]
+print(a)
+)";
+
+  std::string expected_output =
+      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e])";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, Complex2) {
+  std::string input = R"({
+    var res = "hello"
+var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  a = [2 fill res]
+  print(a)
+  a = ["b"]
+  print(a)
+  a = [1 fill "u"]
+  print(a)
+}
+a = ["t"]
+print(a)
+a = [1 fill res]
+print(a)
+var res2:str = "val"
+a = [res2,res2]
+print(a)
+{ 
+    a = ["balls"]
+    print(a)
+}
+}
+)";
+
+  std::string expected_output =
+      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e][balls, val, c, d, e])";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 #endif // JIT_TEST_MODE
