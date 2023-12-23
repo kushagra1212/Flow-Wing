@@ -18,31 +18,25 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
   // Fill the array with default values
-  llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
+  llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  for (uint64_t i = 0; i < _actualSize; i++) {
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                          arrayAlloca);
+  createExpression(
+      arrayType, arrayAlloca, _defaultVal,
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), _actualSize));
 
-    // Store the items in the allocated memory
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(defaultVal, elementPtr);
-  }
-
-  return createExpression(arrayType, arrayAlloca);
+  return createExpression(arrayType, arrayAlloca, _elementToFill,
+                          _sizeToFillVal);
 }
 
-llvm::Value *FillExpressionGenerationStrategy::createExpression(
+llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
     llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
   // Get And Set Default Value
 
-  for (uint64_t i = 0; i < _sizeToFill; i++) {
-
-    // Store the items in the allocated memory
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(_elementToFill, elementPtr);
-  }
+  this->createExpression(arrayType, arrayAlloca, _elementToFill,
+                         _sizeToFillVal);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           arrayAlloca);
@@ -73,23 +67,53 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
       defaultArray, _containerName);
 
   return createGlobalExpression(arrayType, _globalVariable);
+}
+llvm::Value *FillExpressionGenerationStrategy::createExpression(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
+    llvm::Value *sizeToFillVal) {
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  // Create blocks
+  llvm::BasicBlock *loopStart = llvm::BasicBlock::Create(
+      *TheContext, "FillExpr::loopStart", currentBlock->getParent());
+  llvm::BasicBlock *loopBody = llvm::BasicBlock::Create(
+      *TheContext, "FillExpr::loopBody", currentBlock->getParent());
+  llvm::BasicBlock *loopEnd = llvm::BasicBlock::Create(
+      *TheContext, "FillExpr::loopEnd", currentBlock->getParent());
+
+  // Initialize counter
+  llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
+  Builder->CreateStore(Builder->getInt32(0), i);
+
+  // Jump to the loop start block
+  Builder->CreateBr(loopStart);
+
+  // Loop start block
+  Builder->SetInsertPoint(loopStart);
+  llvm::Value *iVal =
+      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
+  llvm::Value *cond = Builder->CreateICmpSLT(iVal, sizeToFillVal);
+  Builder->CreateCondBr(cond, loopBody, loopEnd);
+
+  // Loop body block
+  Builder->SetInsertPoint(loopBody);
+  llvm::Value *elementPtr =
+      Builder->CreateGEP(arrayType, v, {Builder->getInt32(0), iVal});
+
+  Builder->CreateStore(elementToFill, elementPtr);
+  llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
+  Builder->CreateStore(iNext, i);
+  Builder->CreateBr(loopStart);
+
+  // Loop end block
+  Builder->SetInsertPoint(loopEnd);
 
   return nullptr;
 }
 
 llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
     llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable) {
-
-  for (uint64_t i = 0; i < _sizeToFill; i++) {
-
-    llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
-    llvm::Value *updatedValue =
-        Builder->CreateInsertValue(loadedValue, _elementToFill, (uint)i);
-
-    Builder->CreateStore(updatedValue, _globalVariable);
-  }
-
-  return nullptr;
+  return this->createExpression(arrayType, _globalVariable, _elementToFill,
+                                _sizeToFillVal);
 }
 
 bool FillExpressionGenerationStrategy::canGenerateExpression(
@@ -106,17 +130,41 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
             ->createStrategy(fillExpression->getSizeToFillRef()->getKind())
             ->generateExpression(fillExpression->getSizeToFillRef().get());
 
-  _sizeToFill = 0;
-
   if (sizeToFillVal) {
-    if (llvm::ConstantInt *constInt =
-            llvm::dyn_cast<llvm::ConstantInt>(sizeToFillVal)) {
-      _sizeToFill = constInt->getZExtValue();
-    } else {
-      _codeGenerationContext->getLogger()->LogError(
-          "Size to fill must be a integer value.");
-      return false;
-    }
+    _sizeToFillVal = _int32TypeConverter->convertExplicit(sizeToFillVal);
+
+    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+
+    llvm::BasicBlock *outOfBoundBlock = llvm::BasicBlock::Create(
+        *TheContext, "FillExpr::outOfBound", currentBlock->getParent());
+
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        *TheContext, "FillExpr::merge", currentBlock->getParent());
+    llvm::Value *isGreaterThanEqual =
+        Builder->CreateICmpSGT(_sizeToFillVal, Builder->getInt32(_actualSize));
+
+    llvm::Value *isLessThan =
+        Builder->CreateICmpSLE(_sizeToFillVal, Builder->getInt32(0));
+
+    llvm::Value *isOutOfBound =
+        Builder->CreateOr(isGreaterThanEqual, isLessThan);
+
+    Builder->CreateCondBr(isOutOfBound, outOfBoundBlock, mergeBlock);
+
+    Builder->SetInsertPoint(outOfBoundBlock);
+
+    _codeGenerationContext->callREF("Element to fill is out of bound.  Size to "
+                                    "fill must be less than to the "
+                                    "actual size of the container and greater "
+                                    "than or equal to zero:" +
+                                    _containerName);
+
+    Builder->CreateBr(mergeBlock);
+
+    Builder->SetInsertPoint(mergeBlock);
+
+  } else {
+    sizeToFillVal = Builder->getInt32(_actualSize);
   }
 
   _elementToFill =
@@ -143,23 +191,6 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
         elementTypeName + " but got " + itemValueTypeName);
 
     return false;
-  }
-
-  if (sizeToFillVal) {
-    if (_sizeToFill > _actualSize) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Size to fill must be less than or equal to the actual size of the "
-          "container.");
-      return false;
-    }
-
-    if (_sizeToFill < 1) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Size to fill must be greater than 0.");
-      return false;
-    }
-  } else {
-    _sizeToFill = _actualSize;
   }
 
   return true;

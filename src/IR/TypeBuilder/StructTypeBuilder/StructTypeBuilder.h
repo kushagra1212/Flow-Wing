@@ -14,6 +14,8 @@ public:
 
   const uint64_t getIndexofMemberType(llvm::Type *type) const;
 
+  llvm::Type *getMemberTypeofDynGlVar(const std::string &variableName) const;
+
   const bool isDyn(llvm::Type *type) const;
 
   llvm::Value *getMemberValueofDynGlVar(llvm::Value *structValue,

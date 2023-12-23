@@ -214,7 +214,13 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 
 #ifdef DEBUG
+
+  std::cout << BLUE << ".............." << YELLOW << "Tree Start" << BLUE
+            << ".............." << RESET << std::endl;
   Utils::prettyPrint(globalScope->globalStatement.get());
+  std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
+            << " .............." << RESET << std::endl;
+
 #endif
 
   try {

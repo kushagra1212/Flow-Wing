@@ -249,3 +249,15 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "NotDefined";
   }
 }
+
+bool SyntaxKindUtils::isType(SyntaxKind kind) {
+  switch (kind) {
+  case SyntaxKind::BoolKeyword:
+  case SyntaxKind::Int32Keyword:
+  case SyntaxKind::DeciKeyword:
+  case SyntaxKind::StrKeyword:
+    return true;
+  default:
+    return false;
+  }
+}

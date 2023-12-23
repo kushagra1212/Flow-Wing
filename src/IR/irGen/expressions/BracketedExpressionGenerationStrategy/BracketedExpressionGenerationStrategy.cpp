@@ -89,8 +89,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
       return nullptr;
     }
 
-    return fillExpressionGenerationStrategy->createExpression(arrayType,
-                                                              _allocaInst);
+    return fillExpressionGenerationStrategy->createLocalExpression(arrayType,
+                                                                   _allocaInst);
   }
 
   default:

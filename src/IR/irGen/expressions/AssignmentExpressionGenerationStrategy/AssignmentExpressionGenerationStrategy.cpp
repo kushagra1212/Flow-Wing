@@ -36,19 +36,16 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
         llvm::GlobalVariable *variable, const std::string &variableName,
         llvm::Value *rhsValue) {
 
-  llvm::Value *loadedValue =
-      Builder->CreateLoad(variable->getValueType(), variable, variableName);
-
-  llvm::Value *updatedValue = Builder->CreateInsertValue(
-      loadedValue, rhsValue,
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          rhsValue->getType()));
-
   _codeGenerationContext->getGlobalTypeMap()[variableName] =
       _codeGenerationContext->getDynamicType()->getIndexofMemberType(
           rhsValue->getType());
 
-  Builder->CreateStore(updatedValue, variable);
+  llvm::Value *elementPtr = Builder->CreateStructGEP(
+      _codeGenerationContext->getDynamicType()->get(), variable,
+      _codeGenerationContext->getGlobalTypeMap()[variableName]);
+
+  Builder->CreateStore(rhsValue, elementPtr);
+
   return nullptr;
 }
 
@@ -357,9 +354,6 @@ AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
     llvm::Type *elementType = arrayType->getElementType();
     const uint64_t size = arrayType->getNumElements();
 
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(variable->getValueType(), variable, variableName);
-
     llvm::Function *function = Builder->GetInsertBlock()->getParent();
     llvm::BasicBlock *thenBB =
         llvm::BasicBlock::Create(*TheContext, "then", function);
@@ -468,7 +462,7 @@ bool AssignmentExpressionGenerationStrategy::
     if (_allocaInst) {
       return true;
     }
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Variable not found in assignment expression , " + _variableName);
 
     return false;

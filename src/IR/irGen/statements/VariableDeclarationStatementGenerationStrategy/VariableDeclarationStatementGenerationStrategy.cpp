@@ -109,19 +109,17 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           _codeGenerationContext->getDynamicType()->get()),
       _variableName);
 
-  llvm::Value *loadedValue = Builder->CreateLoad(
-      _codeGenerationContext->getDynamicType()->get(), _globalVariable);
-
   const uint64_t memberIndex =
       _codeGenerationContext->getDynamicType()->getIndexofMemberType(
           _rhsValue->getType());
 
-  llvm::Value *updatedValue =
-      Builder->CreateInsertValue(loadedValue, _rhsValue, memberIndex);
-
   _codeGenerationContext->getGlobalTypeMap()[_variableName] = memberIndex;
 
-  Builder->CreateStore(updatedValue, _globalVariable);
+  llvm::Value *elementPtr =
+      Builder->CreateStructGEP(_codeGenerationContext->getDynamicType()->get(),
+                               _globalVariable, memberIndex);
+
+  Builder->CreateStore(_rhsValue, elementPtr);
 
   return _rhsValue;
 }

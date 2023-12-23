@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

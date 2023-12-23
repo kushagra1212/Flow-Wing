@@ -63,16 +63,13 @@ llvm::Value *StructTypeBuilder::getMemberValueofDynGlVar(
     llvm::GlobalVariable *variable =
         llvm::cast<llvm::GlobalVariable>(structValue);
 
-    llvm::Value *loadedValue = _codeGenerationContext->getBuilder()->CreateLoad(
-        variable->getValueType(), variable, variableName);
-
-    // Extract the  value from the structure
-    llvm::Value *innerValue =
-        _codeGenerationContext->getBuilder()->CreateExtractValue(
-            loadedValue,
+    llvm::Value *elementPtr =
+        _codeGenerationContext->getBuilder()->CreateStructGEP(
+            this->_dynamicType, variable,
             _codeGenerationContext->getGlobalTypeMap()[variableName]);
 
-    return innerValue;
+    return _codeGenerationContext->getBuilder()->CreateLoad(
+        this->getMemberTypeofDynGlVar(variableName), elementPtr);
   }
   _codeGenerationContext->getLogger()->LogError("value is not a "
                                                 "GlobalVariable");
@@ -90,4 +87,11 @@ StructTypeBuilder::getMemberValueOfDynlcVar(llvm::AllocaInst *v,
           _codeGenerationContext->getDynamicType()->get(), v,
           _codeGenerationContext->getDynamicType()->getIndexofMemberType(
               variableValue->getType())));
+}
+
+llvm::Type *StructTypeBuilder::getMemberTypeofDynGlVar(
+    const std::string &variableName) const {
+
+  return this->getMemberTypes()[_codeGenerationContext
+                                    ->getGlobalTypeMap()[variableName]];
 }

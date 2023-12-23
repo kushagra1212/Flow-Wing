@@ -124,6 +124,8 @@ bool isInt64(const std::string &str);
 bool isDouble(const std::string &str);
 
 std::string to_string(SyntaxKind kind);
+
+bool isType(SyntaxKind kind);
 } // namespace SyntaxKindUtils
 
 #endif // SYNTAXKINDUTILS_H

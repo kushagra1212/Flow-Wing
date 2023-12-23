@@ -16,8 +16,12 @@ public:
   llvm::Value *createGlobalExpression(llvm::Type *arrayType,
                                       llvm::GlobalVariable *_globalVariable);
 
-  llvm::Value *createExpression(llvm::Type *arrayType,
-                                llvm::AllocaInst *arrayAlloca);
+  llvm::Value *createLocalExpression(llvm::Type *arrayType,
+                                     llvm::AllocaInst *arrayAlloca);
+
+  llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
+                                llvm::Value *elementToFill,
+                                llvm::Value *sizeToFillVal);
 
   bool canGenerateExpression(BoundExpression *expression);
 
@@ -27,7 +31,7 @@ private:
   std::string _containerName;
 
   //  Variables for the fill expression
-  uint64_t _sizeToFill;
+  llvm::Value *_sizeToFillVal;
   llvm::Value *_elementToFill;
   llvm::AllocaInst *_allocaInst;
 };

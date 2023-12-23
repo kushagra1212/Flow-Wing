@@ -68,16 +68,17 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
 
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
-  const Utils::type &containerType = containerStatement->getContainerTypeRef();
+  const Utils::type &containerElementType =
+      containerStatement->getContainerTypeRef();
   uint64_t actualSize = this->getActualContainerSize(containerStatement);
   const std::string &containerName = containerStatement->getVariableNameRef();
 
-  llvm::Type *elementType = nullptr;
+  llvm::Type *elementType = _codeGenerationContext->getDynamicType()->get();
 
-  if (containerType != Utils::type::UNKNOWN_CONTAINER) {
+  if (containerElementType != Utils::type::UNKNOWN_CONTAINER) {
 
     elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        Utils::toNonContainerType(containerType));
+        Utils::toNonContainerType(containerElementType));
   }
 
   BoundBracketedExpression *bracketedExpression =

@@ -65,7 +65,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           llvm::Type *elementType = arrayType->getElementType();
 
           if (!elementType->isIntegerTy(8)) {
-            return printArray(v);
+            return printArray(arrayType, elementType, v);
           }
         }
 
@@ -88,7 +88,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           llvm::Type *elementType = arrayType->getElementType();
 
           if (!elementType->isIntegerTy(8)) {
-            return printGlobalArray(v);
+            return printArray(arrayType, elementType, v);
           }
         }
       }
@@ -268,12 +268,11 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
   return this->generateExpression(expression);
 }
 
-llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
+llvm::Value *CallExpressionGenerationStrategy::printArray(
+    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v) {
 
-  llvm::ArrayType *arrayType =
-      llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType());
-  llvm::Type *elementType = arrayType->getElementType();
-  const uint64_t size = arrayType->getNumElements();
+  llvm::Value *size = llvm::ConstantInt::get(
+      llvm::Type::getInt32Ty(*TheContext), arrayType->getNumElements());
 
   llvm::Value *arrayPtr = v;
 
@@ -285,66 +284,56 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(llvm::AllocaInst *v) {
                            Builder->CreateGlobalStringPtr("[")),
                        Builder->getInt1(false)});
 
+  llvm::Function *TheFunction = Builder->GetInsertBlock()->getParent();
+
+  // Create blocks
+  llvm::BasicBlock *loopStart =
+      llvm::BasicBlock::Create(*TheContext, "loopStart", TheFunction);
+  llvm::BasicBlock *loopBody =
+      llvm::BasicBlock::Create(*TheContext, "loopBody", TheFunction);
+  llvm::BasicBlock *loopEnd =
+      llvm::BasicBlock::Create(*TheContext, "loopEnd", TheFunction);
+
+  // Initialize counter
+  llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
+  Builder->CreateStore(Builder->getInt32(0), i);
+
+  // Jump to the loop start block
+  Builder->CreateBr(loopStart);
   // Iterate over each element of the array
-  for (uint64_t i = 0; i < size; ++i) {
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayPtr, {Builder->getInt32(0), Builder->getInt32(i)});
-    llvm::Value *elementValue = Builder->CreateLoad(elementType, elementPtr);
 
-    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                        {_stringTypeConverter->convertExplicit(elementValue),
-                         Builder->getInt1(false)});
+  // Loop start block
+  Builder->SetInsertPoint(loopStart);
+  llvm::Value *iVal =
+      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
+  llvm::Value *cond = Builder->CreateICmpSLT(iVal, size);
+  Builder->CreateCondBr(cond, loopBody, loopEnd);
 
-    if (i < size - 1) {
-      // Print a comma and a space for all elements except the last one
-
-      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {commaPtr, Builder->getInt1(false)});
-    }
-  }
-  // Print the closing bracket
+  // Loop body block
+  Builder->SetInsertPoint(loopBody);
+  llvm::Value *elementPtr =
+      Builder->CreateGEP(arrayType, v, {Builder->getInt32(0), iVal});
+  llvm::Value *innerValue = Builder->CreateLoad(elementType, elementPtr);
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                      {_stringTypeConverter->convertExplicit(
-                           Builder->CreateGlobalStringPtr("]")),
+                      {_stringTypeConverter->convertExplicit(innerValue),
                        Builder->getInt1(false)});
 
-  return nullptr;
-}
+  llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
+  Builder->CreateStore(iNext, i);
+  llvm::Value *isNotLast = Builder->CreateICmpSLT(iNext, size);
+  llvm::BasicBlock *ifBlock =
+      llvm::BasicBlock::Create(*TheContext, "ifBlock", TheFunction);
 
-llvm::Value *CallExpressionGenerationStrategy::printGlobalArray(
-    llvm::GlobalVariable *variable) {
-  llvm::ArrayType *arrayType =
-      llvm::dyn_cast<llvm::ArrayType>(variable->getValueType());
-  llvm::Type *elementType = arrayType->getElementType();
-  const uint64_t size = arrayType->getNumElements();
+  Builder->CreateCondBr(isNotLast, ifBlock, loopStart);
 
-  llvm::Value *loadedValue =
-      Builder->CreateLoad(variable->getValueType(), variable);
-
-  llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
-      Builder->CreateGlobalStringPtr(", "));
-
+  Builder->SetInsertPoint(ifBlock);
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                      {_stringTypeConverter->convertExplicit(
-                           Builder->CreateGlobalStringPtr("[")),
-                       Builder->getInt1(false)});
+                      {commaPtr, Builder->getInt1(false)});
 
-  // Iterate over each element of the array
-  for (uint64_t i = 0; i < size; ++i) {
-    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, i);
+  Builder->CreateBr(loopStart);
 
-    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                        {_stringTypeConverter->convertExplicit(innerValue),
-                         Builder->getInt1(false)});
-    if (i < size - 1) {
-      // Print a comma and a space for all elements except the last one
-
-      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {commaPtr, Builder->getInt1(false)});
-    }
-  }
-
-  // Print the closing bracket
+  // Loop end block
+  Builder->SetInsertPoint(loopEnd);
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                       {_stringTypeConverter->convertExplicit(
                            Builder->CreateGlobalStringPtr("]")),

@@ -130,4 +130,6 @@
   },
   "clang-format.executable": "/usr/local/llvm-17/bin/clang-format",
   "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
+   "editor.codeActionsOnSave": {
+  },
 }

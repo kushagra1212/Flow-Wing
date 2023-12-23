@@ -399,7 +399,6 @@ std::unique_ptr<ContainerStatementSyntax> Parser::parseContainerStatement() {
       std::move(containerSizeExpression));
 
   this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-
   this->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
 
   std::unique_ptr<ExpressionSyntax> containerExpression =
@@ -660,7 +659,9 @@ std::unique_ptr<StatementSyntax> Parser::parseVariableDeclaration() {
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ColonToken) {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-    type = this->parseType();
+
+    if (SyntaxKindUtils::isType(this->getCurrent()->getKind()))
+      type = this->parseType();
   }
 
   if (this->getCurrent()->getKind() ==

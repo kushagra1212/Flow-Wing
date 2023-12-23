@@ -1,8 +1,15 @@
-var x:int = 5
-var a:int[5] = [1,2,3,4,5]
-
-for(var i:int = 0  to 4:2) {
-    a[i] = 9
-    print(a[i]+"\n")
-    print(a[i]+"\n")
+/;var x:int[5] = [1,2,3,4,5]
+/;print(x)
+var y = 8
+{
+    var x:int[1000000] = [1,2,3,4,5,5]
+    print(x)
 }
+
+
+/#
+var x = 2
+print(x)
+x="Hel"
+print(x)
+#/

@@ -25,13 +25,15 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   llvm::Constant *defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  for (uint64_t i = 0; i < _actualSize; i++) {
+  std::unique_ptr<FillExpressionGenerationStrategy>
+      fillExpressionGenerationStrategy =
+          std::make_unique<FillExpressionGenerationStrategy>(
+              _codeGenerationContext, _actualSize, _elementType,
+              _containerName);
 
-    // Store the items in the allocated memory
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, arrayAlloca, {Builder->getInt32(0), Builder->getInt32(i)});
-    Builder->CreateStore(defaultVal, elementPtr);
-  }
+  fillExpressionGenerationStrategy->createExpression(
+      arrayType, arrayAlloca, defaultVal,
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), _actualSize));
 
   return createExpression(arrayType, arrayAlloca, containerExpression);
 }
@@ -101,7 +103,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
 
     // Store the items in the allocated memory
     llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, _allocaInst, {Builder->getInt32(0), Builder->getInt32(i)});
+        arrayType, _allocaInst, {Builder->getInt32(0), Builder->getInt64(i)});
     Builder->CreateStore(itemValue, elementPtr);
   }
 
@@ -138,12 +140,13 @@ llvm::Value *ContainerExpressionGenerationStrategy::createGlobalExpression(
 
       return nullptr;
     }
+    // Compute the address of the i-th element
 
-    llvm::Value *loadedValue = Builder->CreateLoad(arrayType, _globalVariable);
-    llvm::Value *updatedValue =
-        Builder->CreateInsertValue(loadedValue, itemValue, (uint)i);
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(arrayType, _globalVariable,
+                           {Builder->getInt32(0), Builder->getInt64(i)});
 
-    Builder->CreateStore(updatedValue, _globalVariable);
+    Builder->CreateStore(itemValue, elementPtr);
   }
   return nullptr;
 }

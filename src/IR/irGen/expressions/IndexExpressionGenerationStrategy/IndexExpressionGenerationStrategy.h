@@ -14,6 +14,11 @@ public:
   llvm::Value *handleGlobalVariable(llvm::GlobalVariable *variable,
                                     llvm::Value *indexValue,
                                     std::string variableName);
+
+  llvm::Value *handleArrayTypeIndexing(const std::string &variableName,
+                                       llvm::Value *variable,
+                                       llvm::Value *indexValue,
+                                       llvm::ArrayType *arrayType);
 };
 
 #endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
