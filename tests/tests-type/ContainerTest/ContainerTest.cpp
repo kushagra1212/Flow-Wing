@@ -1251,4 +1251,257 @@ print(a)
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest, IndexingWithVariable) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+var b = 0
+print(a[b])
+)";
+
+  std::string expected_output = "1";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable2) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b] = 10
+print(a[b])
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable3) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b+1] = 10
+
+print(a[b+1])
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable4) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b+1] = 10
+
+print(a)
+)";
+
+  std::string expected_output = "[1, 10, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  print(a[b])
+}
+)";
+
+  std::string expected_output = "1";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope2) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b] = 10
+  print(a[b])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope3) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a[b+1])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope4) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a)
+}
+)";
+
+  std::string expected_output = "[1, 10, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope5) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a[b+1])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+for(var i = 0  to 4:2) {
+    print(a[i]+"\n")
+})";
+
+  std::string expected_output = "9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest2) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+
+for(var i = 0  to 4:2) {
+    a[i] = 9
+    print(a[i]+"\n")
+})";
+
+  std::string expected_output = "9\n9\n9\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest3) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+
+for(var i:int = 0  to 4:2) {
+    a[i] = 9
+    print(a[i]+"\n")
+    print(a[i]+"\n")
+}
+)";
+
+  std::string expected_output = "9\n9\n9\n9\n9\n9\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForWhileLoopTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+})";
+
+  std::string expected_output = "9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+}
+{
+    var i = 0
+    while(i < 5) {
+        print(a[i]+"\n")
+        i = i + 2
+    }
+})";
+
+  std::string expected_output = "9\n3\n5\n9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTestLocalScopeContainer) {
+  std::string input = R"(var x:int = 5
+{var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+}
+{
+    var i = 0
+    while(i < 5) {
+        print(a[i]+"\n")
+        i = i + 2
+    }
+}})";
+
+  std::string expected_output = "9\n3\n5\n9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 #endif // JIT_TEST_MODE

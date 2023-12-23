@@ -84,7 +84,7 @@ private:
   /*
     EXPRESSIONS
   */
-  std::unique_ptr<IndexExpressionSyntax> parseIndexExpression();
+  std::unique_ptr<ExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed);

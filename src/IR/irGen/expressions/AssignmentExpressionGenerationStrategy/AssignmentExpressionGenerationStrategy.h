@@ -32,6 +32,37 @@ public:
   bool canGenerateLiteralExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
+  // Primitve Local Variable Assignment
+
+  llvm::Value *
+  handleTypedPrmitiveLocalVariableAssignment(const std::string &variableName,
+                                             const Utils::type &variableType,
+                                             llvm::Value *rhsValue);
+
+  llvm::Value *
+  handleUnTypedPrmitiveLocalVariableAssignment(const std::string &variableName,
+                                               llvm::Value *rhsValue);
+
+  llvm::Value *
+  handlePrimitiveLocalVariableAssignment(const std::string &variableName,
+                                         const Utils::type &variableType,
+                                         llvm::Value *rhsValue);
+
+  // Primitive Global Variable Assignment
+
+  llvm::Value *handleTypedPrmitiveGlobalVariableAssignment(
+      llvm::GlobalVariable *variable, const std::string &variableName,
+      const Utils::type &variableType, llvm::Value *rhsValue);
+
+  llvm::Value *
+  handleUnTypedPrmitiveGlobalVariableAssignment(llvm::GlobalVariable *variable,
+                                                const std::string &variableName,
+                                                llvm::Value *rhsValue);
+
+  llvm::Value *handlePrimitiveGlobalVariableAssignment(
+      llvm::GlobalVariable *variable, const std::string &variableName,
+      const Utils::type &variableType, llvm::Value *rhsValue);
+
 private:
   std::string _variableName;
   llvm::AllocaInst *_allocaInst;

@@ -17,6 +17,22 @@ public:
 
   bool canGenerateStatement(BoundStatement *statement);
 
+  // Local Primitive Variable Declaration
+
+  llvm::Value *
+  handleTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
+                                         const Utils::type &variableType,
+                                         llvm::Value *rhsValue);
+
+  llvm::Value *
+  handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
+                                           llvm::Value *rhsValue);
+
+  llvm::Value *
+  handlePrimitiveLocalVariableDeclr(const std::string &variableName,
+                                    const Utils::type &variableType,
+                                    llvm::Value *rhsValue);
+
 private:
   std::string _variableName;
   llvm::Value *_rhsValue;

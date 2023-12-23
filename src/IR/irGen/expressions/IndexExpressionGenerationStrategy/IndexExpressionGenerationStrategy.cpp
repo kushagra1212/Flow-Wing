@@ -22,7 +22,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   if (!_codeGenerationContext->getMapper()->isInt32Type(
           indexValue->getType())) {
     _codeGenerationContext->getLogger()->LogError(
-        "Index value must be of type int32");
+        "Index value must be of type int");
     return nullptr;
   }
 
@@ -92,14 +92,10 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
                           indexOutOfBoundsBlock);
 
     Builder->SetInsertPoint(indexOutOfBoundsBlock);
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(
-            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
-                "Index out of bounds of '" + variableName +
-                    "' in index expression, array size is " +
-                    std::to_string(size),
-                indexExpression->getLocation()))});
+
+    _codeGenerationContext->callREF("Index out of bounds of '" + variableName +
+                                    "' in index expression, array size is " +
+                                    std::to_string(size));
 
     Builder->CreateBr(indexInBoundsBlock);
 
@@ -132,40 +128,37 @@ llvm::Value *IndexExpressionGenerationStrategy::handleGlobalVariable(
       _codeGenerationContext->callREF("Array size must be greater than 0");
       return nullptr;
     }
-    llvm::Value *innerValue = nullptr;
 
     llvm::Function *function = Builder->GetInsertBlock()->getParent();
-    llvm::BasicBlock *thenBB =
-        llvm::BasicBlock::Create(*TheContext, "then", function);
-    llvm::BasicBlock *elseBB =
-        llvm::BasicBlock::Create(*TheContext, "else", function);
-    llvm::BasicBlock *mergeBB =
-        llvm::BasicBlock::Create(*TheContext, "merge", function);
+    llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(
+        *TheContext, "GlobalIndexExpr::then", function);
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(
+        *TheContext, "GlobalIndexExpr::else", function);
+    llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(
+        *TheContext, "GlobalIndexExpr::merge", function);
 
     // TODO: TO 64 Bit
     llvm::Value *isLessThan = Builder->CreateICmpSLT(
         indexValue,
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), size, true),
-        "isLessThan");
+        "GlobalIndexExpr::isLessThan");
 
     llvm::Value *isGreaterThan = Builder->CreateICmpSGE(
         indexValue,
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true),
-        "isGreaterThan");
+        "GlobalIndexExpr::isGreaterThan");
 
-    llvm::Value *isWithinBounds =
-        Builder->CreateAnd(isLessThan, isGreaterThan, "isWithinBounds");
+    llvm::Value *isWithinBounds = Builder->CreateAnd(
+        isLessThan, isGreaterThan, "GlobalIndexExpr::isWithinBounds");
+    llvm::Value *ptr = Builder->CreateGEP(elementType, variable, indexValue);
 
+    llvm::Value *innerValue = nullptr;
+    innerValue = Builder->CreateLoad(elementType, ptr);
     // Create the conditional branch
     Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
 
     // In the then block, you can continue with the array access
     Builder->SetInsertPoint(thenBB);
-
-    llvm::Value *ptr =
-        Builder->CreateGEP(elementType, variable, indexValue, "x[i]_ptr");
-
-    innerValue = Builder->CreateLoad(elementType, ptr, "x[i]");
 
     Builder->CreateBr(mergeBB);
 

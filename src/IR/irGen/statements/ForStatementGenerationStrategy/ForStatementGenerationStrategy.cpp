@@ -57,24 +57,27 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     // Loop Variable
 
-    variableName = "loopVariable";
+    variableName = "ForLoop::loopVariable";
 
-    llvm::AllocaInst *variable = Builder->CreateAlloca(
-        llvm::Type::getInt32Ty(*TheContext), nullptr, variableName.c_str());
+    std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+        variableDeclarationStatementGenerationStrategy =
+            std::make_unique<VariableDeclarationStatementGenerationStrategy>(
+                _codeGenerationContext);
 
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
-                                                            variable);
     BoundStatement *initializationStat =
         forStatement->getInitializationPtr().get();
 
-    llvm::Value *result = _statementGenerationFactory
-                              ->createStrategy(initializationStat->getKind())
-                              ->generateStatement(initializationStat);
+    llvm::Value *initializationStatResult =
+        _statementGenerationFactory
+            ->createStrategy(initializationStat->getKind())
+            ->generateStatement(initializationStat);
 
-    Builder->CreateStore(result, variable);
-
-    _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
-                                                                result);
+    variableDeclarationStatementGenerationStrategy
+        ->handlePrimitiveLocalVariableDeclr(
+            variableName,
+            _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+                initializationStatResult->getType()),
+            initializationStatResult);
   }
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -87,19 +90,28 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     return nullptr;
   }
+  std::unique_ptr<VariableExpressionGenerationStrategy>
+      variableExpressionGenerationStrategy =
+          std::make_unique<VariableExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy>
+      assignmentExpressionGenerationStrategy =
+          std::make_unique<AssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   llvm::Function *function = currentBlock->getParent();
   llvm::Value *exitValue = nullptr;
   llvm::BasicBlock *loopCondition =
-      llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
+      llvm::BasicBlock::Create(*TheContext, "ForLoop::loopCondition", function);
   llvm::BasicBlock *loopBody =
-      llvm::BasicBlock::Create(*TheContext, "loopBody", function);
+      llvm::BasicBlock::Create(*TheContext, "ForLoop::loopBody", function);
   llvm::BasicBlock *afterLoop =
-      llvm::BasicBlock::Create(*TheContext, "afterLoop", function);
+      llvm::BasicBlock::Create(*TheContext, "ForLoop::afterLoop", function);
 
   llvm::BasicBlock *breakLoop =
-      llvm::BasicBlock::Create(*TheContext, "breakLoop", function);
+      llvm::BasicBlock::Create(*TheContext, "ForLoop::breakLoop", function);
 
   Builder->CreateBr(loopCondition);
 
@@ -110,13 +122,8 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   _codeGenerationContext->decrementCountIfNotZero(
       _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
 
-  llvm::Value *variableValue =
-      _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
-
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
-
-  llvm::Value *value = Builder->CreateLoad(variableValue->getType(), v);
+  llvm::Value *value =
+      variableExpressionGenerationStrategy->getVariableValue(variableName);
 
   llvm::PHINode *conditionPHI =
       generateLoopCondition(stepValue, value, upperBound);
@@ -153,10 +160,9 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
-  _codeGenerationContext->getNamedValueChain()->updateNamedValue(
-      variableName, incrementedValue);
-
-  Builder->CreateStore(incrementedValue, v);
+  assignmentExpressionGenerationStrategy
+      ->handlePrimitiveLocalVariableAssignment(variableName, Utils::type::INT32,
+                                               incrementedValue);
 
   Builder->CreateBr(loopCondition);
 
@@ -182,13 +188,14 @@ llvm::PHINode *ForStatementGenerationStrategy::generateLoopCondition(
       Builder->CreateICmpSLT(stepValue, Builder->getInt32(0));
 
   llvm::BasicBlock *trueBlock = llvm::BasicBlock::Create(
-      value->getContext(), "trueBlock", Builder->GetInsertBlock()->getParent());
-  llvm::BasicBlock *falseBlock =
-      llvm::BasicBlock::Create(value->getContext(), "falseBlock",
-                               Builder->GetInsertBlock()->getParent());
-  llvm::BasicBlock *mergeBlock =
-      llvm::BasicBlock::Create(value->getContext(), "mergeBlock",
-                               Builder->GetInsertBlock()->getParent());
+      value->getContext(), "ForLoop::Conditon::trueBlock",
+      Builder->GetInsertBlock()->getParent());
+  llvm::BasicBlock *falseBlock = llvm::BasicBlock::Create(
+      value->getContext(), "ForLoop::Conditon::falseBlock",
+      Builder->GetInsertBlock()->getParent());
+  llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+      value->getContext(), "ForLoop::Conditon::mergeBlock",
+      Builder->GetInsertBlock()->getParent());
 
   Builder->CreateCondBr(isStepNegative, trueBlock, falseBlock);
 
