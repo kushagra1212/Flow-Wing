@@ -224,7 +224,7 @@ void Compiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-    // _evaluator->printIR();
+    _evaluator->printIR();
     // _evaluator->executeGeneratedCode();
 
     //_evaluator->getIRParserPtr()->printIR();

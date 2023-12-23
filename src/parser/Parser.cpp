@@ -839,15 +839,11 @@ std::unique_ptr<IndexExpressionSyntax> Parser::parseIndexExpression() {
   std::unique_ptr<SyntaxToken<std::any>> openBracketToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
 
-  std::unique_ptr<SyntaxToken<std::any>> numberToken =
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+  std::unique_ptr<ExpressionSyntax> indexExpression =
+      std::move(this->parseVariableExpression());
 
   std::unique_ptr<SyntaxToken<std::any>> closeBracketToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
-
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> indexExpression =
-      std::make_unique<LiteralExpressionSyntax<std::any>>(
-          std::move(numberToken), numberToken->getValue());
 
   return std::make_unique<IndexExpressionSyntax>(
       std::make_unique<LiteralExpressionSyntax<std::any>>(

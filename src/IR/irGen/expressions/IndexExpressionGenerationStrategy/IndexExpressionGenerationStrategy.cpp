@@ -41,11 +41,10 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
 
       if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
 
-        llvm::ConstantInt *constantInt =
-            llvm::dyn_cast<llvm::ConstantInt>(indexValue);
+        // llvm::ConstantInt *constantInt =
+        //     llvm::dyn_cast<llvm::ConstantInt>(indexValue);
 
-        return this->handleGlobalVariable(variable, constantInt->getSExtValue(),
-                                          indexValue, variableName);
+        return this->handleGlobalVariable(variable, indexValue, variableName);
       }
 
       _codeGenerationContext->getLogger()->LogError(
@@ -68,11 +67,19 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
           "Array size must be greater than 0");
       return nullptr;
     }
+    // TODO: TO 64 Bit
+    llvm::Value *isLessThan = Builder->CreateICmpSLT(
+        indexValue,
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), size, true),
+        "isLessThan");
 
-    // check if index is out of bounds
-    llvm::Value *indexOutOfBounds = Builder->CreateICmpSGE(
-        indexValue, llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext),
-                                           size, true));
+    llvm::Value *isGreaterThan = Builder->CreateICmpSGE(
+        indexValue,
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true),
+        "isGreaterThan");
+
+    llvm::Value *isWithinBounds =
+        Builder->CreateAnd(isLessThan, isGreaterThan, "isWithinBounds");
 
     llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
     llvm::BasicBlock *indexOutOfBoundsBlock = llvm::BasicBlock::Create(
@@ -81,8 +88,8 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
     llvm::BasicBlock *indexInBoundsBlock = llvm::BasicBlock::Create(
         *TheContext, "indexInBounds", currentBlock->getParent());
 
-    Builder->CreateCondBr(indexOutOfBounds, indexOutOfBoundsBlock,
-                          indexInBoundsBlock);
+    Builder->CreateCondBr(isWithinBounds, indexInBoundsBlock,
+                          indexOutOfBoundsBlock);
 
     Builder->SetInsertPoint(indexOutOfBoundsBlock);
     Builder->CreateCall(
@@ -114,7 +121,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
 }
 
 llvm::Value *IndexExpressionGenerationStrategy::handleGlobalVariable(
-    llvm::GlobalVariable *variable, int index, llvm::Value *indexValue,
+    llvm::GlobalVariable *variable, llvm::Value *indexValue,
     std::string variableName) {
   if (llvm::ArrayType *arrayType =
           llvm::dyn_cast<llvm::ArrayType>(variable->getValueType())) {
@@ -125,25 +132,54 @@ llvm::Value *IndexExpressionGenerationStrategy::handleGlobalVariable(
       _codeGenerationContext->callREF("Array size must be greater than 0");
       return nullptr;
     }
+    llvm::Value *innerValue = nullptr;
 
-    if (index < 0) {
-      _codeGenerationContext->callREF(
-          "Index out of bounds of '" + variableName +
-          "' in index expression, array size is " + std::to_string(size));
-      return nullptr;
-    }
+    llvm::Function *function = Builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock *thenBB =
+        llvm::BasicBlock::Create(*TheContext, "then", function);
+    llvm::BasicBlock *elseBB =
+        llvm::BasicBlock::Create(*TheContext, "else", function);
+    llvm::BasicBlock *mergeBB =
+        llvm::BasicBlock::Create(*TheContext, "merge", function);
 
-    if (index >= size) {
-      _codeGenerationContext->callREF(
-          "Index out of bounds of '" + variableName +
-          "' in index expression, array size is " + std::to_string(size));
-      return nullptr;
-    }
+    // TODO: TO 64 Bit
+    llvm::Value *isLessThan = Builder->CreateICmpSLT(
+        indexValue,
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), size, true),
+        "isLessThan");
 
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(variable->getValueType(), variable);
+    llvm::Value *isGreaterThan = Builder->CreateICmpSGE(
+        indexValue,
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true),
+        "isGreaterThan");
 
-    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, index);
+    llvm::Value *isWithinBounds =
+        Builder->CreateAnd(isLessThan, isGreaterThan, "isWithinBounds");
+
+    // Create the conditional branch
+    Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
+
+    // In the then block, you can continue with the array access
+    Builder->SetInsertPoint(thenBB);
+
+    llvm::Value *ptr =
+        Builder->CreateGEP(elementType, variable, indexValue, "x[i]_ptr");
+
+    innerValue = Builder->CreateLoad(elementType, ptr, "x[i]");
+
+    Builder->CreateBr(mergeBB);
+
+    Builder->SetInsertPoint(elseBB);
+
+    _codeGenerationContext->callREF("Index out of bounds of '" + variableName +
+                                    "' in index expression, array size is " +
+                                    std::to_string(size));
+
+    Builder->CreateBr(mergeBB);
+
+    // Continue from the merge block
+    Builder->SetInsertPoint(mergeBB);
+
     // Builder->CreateLoad(elementType, innerValue);
     return innerValue;
   }

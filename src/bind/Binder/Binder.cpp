@@ -496,14 +496,12 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
           indexExpression->getIndexIdentifierExpressionPtr().get())
           .release());
 
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexLiteral(
-      (BoundLiteralExpression<std::any> *)bindExpression(
-          indexExpression->getIndexEpressionPtr().get())
-          .release());
+  std::unique_ptr<BoundExpression> boundExpression =
+      std::move(bindExpression(indexExpression->getIndexEpressionPtr().get()));
 
   return std::make_unique<BoundIndexExpression>(
       indexExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression), std::move(boundIndexLiteral));
+      std::move(boundIdentifierExpression), std::move(boundExpression));
 }
 
 std::unique_ptr<BoundExpression>

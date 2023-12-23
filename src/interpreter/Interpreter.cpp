@@ -671,7 +671,7 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
   std::any value = this->evaluateVariableExpression<std::any>(
       (BoundExpression *)indexExpression->getBoundIdentifierExpression().get());
 
-  std::any index = this->evaluateLiteralExpression<std::any>(
+  std::any index = this->evaluate<std::any>(
       indexExpression->getBoundIndexExpression().get());
 
   int index_value = std::any_cast<int>(index);

@@ -7,26 +7,11 @@ var x :int[1000] = [2 fill 1]
 print(x)
 }
 #/
+
+
+var x:int = 3
+var a:int[5] = [1,2,3,4,5]
+print(a[x])  
 {
-    var res = "hello"
-var a:str[5] = ["a", "b", "c", "d", "e"]
-{ 
-  a = [2 fill res]
-  print(a)
-  a = ["b"]
-  print(a)
-  a = [1 fill "u"]
-  print(a)
-}
-a = ["t"]
-print(a)
-a = [1 fill res]
-print(a)
-var res2:str = "val"
-a = [res2,res2]
-print(a)
-{ 
-    a = ["balls"]
-    print(a)
-}
+   
 }

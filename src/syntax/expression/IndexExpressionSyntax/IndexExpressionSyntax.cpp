@@ -2,16 +2,16 @@
 
 IndexExpressionSyntax::IndexExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> indexToken) {
+    std::unique_ptr<ExpressionSyntax> indexExpression) {
   this->_identifierExpression = std::move(identifierExpression);
-  this->_indexExpression = std::move(indexToken);
+  this->_indexExpression = std::move(indexExpression);
 }
 
 std::unique_ptr<LiteralExpressionSyntax<std::any>> &
 IndexExpressionSyntax::getIndexIdentifierExpressionPtr() {
   return this->_identifierExpression;
 }
-std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+std::unique_ptr<ExpressionSyntax> &
 IndexExpressionSyntax::getIndexEpressionPtr() {
   return this->_indexExpression;
 }
