@@ -110,8 +110,14 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing(
   // UnTyped Container
   if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
 
-    llvm::ConstantInt *constantInt =
-        llvm::dyn_cast<llvm::ConstantInt>(indexValue);
+    llvm::ConstantInt *constantInt = llvm::dyn_cast<llvm::ConstantInt>(
+        _codeGenerationContext->createConstantFromValue(indexValue));
+
+    if (!constantInt) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Index value must be a constant integer");
+      return nullptr;
+    }
 
     innerValue =
         _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(

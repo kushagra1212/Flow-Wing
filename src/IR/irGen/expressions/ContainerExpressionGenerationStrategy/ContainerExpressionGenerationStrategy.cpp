@@ -32,8 +32,6 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   if (!_codeGenerationContext->getDynamicType()->isDyn(_elementType)) {
     defaultVal = llvm::cast<llvm::Constant>(
         _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-  } else {
-    defaultVal = llvm::Constant::getNullValue(_elementType);
   }
 
   std::unique_ptr<FillExpressionGenerationStrategy>

@@ -1,4 +1,6 @@
+var x:[5] = [1,2,3]
 
+    var y = 2
+x[2]=2
 
-    var xstr:int[5] = []
-    print(x[2])
+print(x[y])
