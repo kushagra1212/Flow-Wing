@@ -478,6 +478,20 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
   std::string variableName = std::any_cast<std::string>(
       indexExpression->getIndexIdentifierExpressionPtr()->getValue());
 
+  if (!root->tryLookupVariable(variableName)) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Variable " + variableName + " Does Not Exist",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   Utils::getSourceLocation(
+                       indexExpression->getIndexIdentifierExpressionPtr()
+                           ->getTokenPtr()
+                           .get())));
+
+    return std::move(
+        bindExpression(indexExpression->getIndexEpressionPtr().get()));
+  }
+
   Utils::Variable variable = root->tryGetVariable(variableName);
 
   if (!Utils::isContainerType(variable.type)) {

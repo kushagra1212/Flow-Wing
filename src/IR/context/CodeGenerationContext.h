@@ -37,7 +37,7 @@ public:
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
 
-  std::unique_ptr<StructTypeBuilder> &getDynamicType();
+  const std::unique_ptr<StructTypeBuilder> &getDynamicType();
 
   DiagnosticHandler *getDiagnosticHandler() const;
 

@@ -22,8 +22,11 @@ public:
                          llvm::GlobalVariable *_globalVariable,
                          BoundContainerExpression *containerExpression);
 
-  llvm::Value *createExpression(llvm::Type *arrayType,
-                                llvm::AllocaInst *_allocaInst,
+  llvm::Value *
+  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+                        BoundContainerExpression *containerExpression);
+
+  llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
                                 BoundContainerExpression *containerExpression);
 
   const bool
@@ -34,6 +37,7 @@ private:
   llvm::Type *_elementType;
   std::string _containerName;
   uint64_t _sizeToFill;
+  bool _isGlobal;
 };
 
 #endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

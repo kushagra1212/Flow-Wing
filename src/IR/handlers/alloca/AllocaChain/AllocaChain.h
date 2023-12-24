@@ -2,14 +2,16 @@
 #define FLOWWING_ALLOCACHAIN_H
 
 #include "../../../../Common.h"
-#include "../AllocaHandler.h"
+#include "../AllocaTable/AllocaTable.h"
 
 class AllocaChain {
 private:
-  std::stack<AllocaHandler *> handlers;
+  std::stack<AllocaTable *> handlers;
+  std::unique_ptr<AllocaTable> _globalTable;
 
 public:
-  void addHandler(AllocaHandler *handler);
+  AllocaChain();
+  void addHandler(AllocaTable *handler);
 
   void removeHandler();
 
@@ -18,6 +20,14 @@ public:
   bool updateAllocaInst(const std::string &name, llvm::AllocaInst *value);
 
   void setAllocaInst(const std::string &name, llvm::AllocaInst *value);
+
+  void setTypeIndex(const std::string &name, uint64_t index);
+  uint64_t getTypeIndex(const std::string &name);
+
+  bool hasTypeIndex(const std::string &name);
+
+  void setGlobalTypeIndex(const std::string &name, uint64_t index);
+  uint64_t getGlobalTypeIndex(const std::string &name);
 };
 
 #endif // FLOWWING_ALLOCACHAIN_H

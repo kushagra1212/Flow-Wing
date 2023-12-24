@@ -13,10 +13,11 @@ VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
-    llvm::Value *variableValue, llvm::AllocaInst *v) {
+    llvm::Value *variableValue, llvm::AllocaInst *v,
+    const std::string &variableName) {
 
-  return _codeGenerationContext->getDynamicType()->getMemberValueOfDynlcVar(
-      v, variableValue);
+  return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+      v, variableName);
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
@@ -39,7 +40,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
 
   // When Local Variable is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
-    return this->getUnTypedLocalVariableValue(variableValue, v);
+    return this->getUnTypedLocalVariableValue(variableValue, v, variableName);
   }
 
   // When Local Variable is a struct type
@@ -100,8 +101,9 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
 
-    return _codeGenerationContext->getDynamicType()->getMemberValueofDynGlVar(
-        variable, variableName);
+    return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+        variable,
+        FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
   }
 
   // Typed Global Variables

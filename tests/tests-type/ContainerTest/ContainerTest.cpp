@@ -1504,4 +1504,60 @@ while(i < 5) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest, IndexingLocalScopeTestLocalScopeContainerComplex) {
+  std::string input = R"(var y = 8
+{
+    var x:int[10] = [1,2,3,4,5,5]
+    for(var i = 0 to 10:y){
+        print(x[i])
+        print("\n")
+    }
+    x = [y fill 10]
+    print(x)
+    y = y + 8
+    x = [y,y]
+    print(x)
+    y = y - 6
+    x = [y fill y]
+    print(x)
+})";
+
+  std::string expected_output =
+      "1\n0\n[10, 10, 10, 10, 10, 10, 10, 10, 0, 0][16, 16, 10, 10, 10, 10, "
+      "10, "
+      "10, 0, 0][10, 10, 10, 10, 10, 10, 10, 10, 10, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTestContainerComplex) {
+  std::string input = R"(var y = 8
+
+    var x:int[10] = [1,2,3,4,5,5]
+    for(var i = 0 to 10:y){
+        print(x[i])
+        print("\n")
+    }
+    x = [y fill 10]
+    print(x)
+    y = y + 8
+    x = [y,y]
+    print(x)
+    y = y - 6
+    x = [y fill y]
+    print(x)
+)";
+
+  std::string expected_output =
+      "1\n0\n[10, 10, 10, 10, 10, 10, 10, 10, 0, 0][16, 16, 10, 10, 10, 10, "
+      "10, "
+      "10, 0, 0][10, 10, 10, 10, 10, 10, 10, 10, 10, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 #endif // JIT_TEST_MODE

@@ -75,7 +75,8 @@ std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
   return _allocaChain;
 }
 
-std::unique_ptr<StructTypeBuilder> &CodeGenerationContext::getDynamicType() {
+const std::unique_ptr<StructTypeBuilder> &
+CodeGenerationContext::getDynamicType() {
   return _dynamicType;
 }
 

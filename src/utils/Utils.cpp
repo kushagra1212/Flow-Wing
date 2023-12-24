@@ -376,11 +376,38 @@ auto Utils::typeToString(Utils::type type) -> std::string {
     return "Boolean";
   case Utils::type::NOTHING:
     return "Nothing";
+  case Utils::type::UNKNOWN:
+    return "Unknown";
+  case Utils::type::INT8:
+    return "Int8";
+  case Utils::type::INT16:
+    return "Int16";
+  case Utils::type::INT64:
+    return "Int64";
+
+  case Utils::type::INT8_CONTAINER:
+    return "Int8[]";
+  case Utils::type::INT16_CONTAINER:
+    return "Int16[]";
+
+  case Utils::type::INT32_CONTAINER:
+    return "Int32[]";
+  case Utils::type::INT64_CONTAINER:
+    return "Int64[]";
+  case Utils::type::DECIMAL_CONTAINER:
+    return "Decimal[]";
+  case Utils::type::BOOL_CONTAINER:
+    return "Boolean[]";
+
+  case Utils::type::STRING_CONTAINER:
+    return "String[]";
+  case Utils::type::UNKNOWN_CONTAINER:
+    return "Unknown[]";
+
   default:
     break;
   }
-
-  return "Unknown";
+  return "Not a type";
 }
 
 std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {

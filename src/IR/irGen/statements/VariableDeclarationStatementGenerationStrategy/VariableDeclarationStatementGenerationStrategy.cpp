@@ -35,12 +35,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
                                                           variable);
 
-  Builder->CreateStore(
-      rhsValue,
-      Builder->CreateStructGEP(
-          _codeGenerationContext->getDynamicType()->get(), variable,
-          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              rhsValue->getType())));
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      variable, rhsValue, rhsValue->getType(), variableName);
 
   return rhsValue;
 }
@@ -109,17 +105,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           _codeGenerationContext->getDynamicType()->get()),
       _variableName);
 
-  const uint64_t memberIndex =
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          _rhsValue->getType());
-
-  _codeGenerationContext->getGlobalTypeMap()[_variableName] = memberIndex;
-
-  llvm::Value *elementPtr =
-      Builder->CreateStructGEP(_codeGenerationContext->getDynamicType()->get(),
-                               _globalVariable, memberIndex);
-
-  Builder->CreateStore(_rhsValue, elementPtr);
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      _globalVariable, _rhsValue, _rhsValue->getType(),
+      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + _variableName);
 
   return _rhsValue;
 }

@@ -70,7 +70,7 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
       return nullptr;
     }
 
-    return containerExpressionGenerationStrategy->createExpression(
+    return containerExpressionGenerationStrategy->createLocalExpression(
         arrayType, _allocaInst, containerExpression);
   }
 

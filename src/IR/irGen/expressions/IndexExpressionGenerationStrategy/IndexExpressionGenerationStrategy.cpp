@@ -103,10 +103,27 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing(
 
   llvm::Value *isWithinBounds = Builder->CreateAnd(
       isLessThan, isGreaterThan, "GlobalIndexExpr::isWithinBounds");
-  llvm::Value *ptr = Builder->CreateGEP(elementType, variable, indexValue);
+  llvm::Value *elementPtr =
+      Builder->CreateGEP(elementType, variable, indexValue);
 
   llvm::Value *innerValue = nullptr;
-  innerValue = Builder->CreateLoad(elementType, ptr);
+  // UnTyped Container
+  if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
+
+    llvm::ConstantInt *constantInt =
+        llvm::dyn_cast<llvm::ConstantInt>(indexValue);
+
+    innerValue =
+        _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+            elementPtr, variableName +
+                            FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
+                            "_" + std::to_string(constantInt->getSExtValue()));
+  } else {
+
+    // Typed Container
+    innerValue = Builder->CreateLoad(elementType, elementPtr);
+  }
+
   // Create the conditional branch
   Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
 

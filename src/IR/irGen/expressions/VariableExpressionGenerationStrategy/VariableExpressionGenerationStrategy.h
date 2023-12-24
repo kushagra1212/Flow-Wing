@@ -25,7 +25,8 @@ public:
                                       llvm::AllocaInst *v);
 
   llvm::Value *getUnTypedLocalVariableValue(llvm::Value *variableValue,
-                                            llvm::AllocaInst *v);
+                                            llvm::AllocaInst *v,
+                                            const std::string &variableName);
 
   llvm::Value *getLocalVariableValue(const std::string &variableName,
                                      llvm::Value *variableValue,

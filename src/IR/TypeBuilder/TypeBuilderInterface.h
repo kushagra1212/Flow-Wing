@@ -2,9 +2,10 @@
 #ifndef __FLOWWING_TYPE_BUILDER_INTERFACE_H__
 #define __FLOWWING_TYPE_BUILDER_INTERFACE_H__
 
-class CodeGenerationContext;
-
+#include "llvm/IR/Instructions.h"
 #include <llvm/IR/DerivedTypes.h>
+
+class CodeGenerationContext;
 
 class TypeBuilderInterface {
 public:

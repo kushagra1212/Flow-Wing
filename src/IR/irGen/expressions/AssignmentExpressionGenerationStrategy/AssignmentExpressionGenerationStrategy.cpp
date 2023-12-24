@@ -36,15 +36,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
         llvm::GlobalVariable *variable, const std::string &variableName,
         llvm::Value *rhsValue) {
 
-  _codeGenerationContext->getGlobalTypeMap()[variableName] =
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          rhsValue->getType());
-
-  llvm::Value *elementPtr = Builder->CreateStructGEP(
-      _codeGenerationContext->getDynamicType()->get(), variable,
-      _codeGenerationContext->getGlobalTypeMap()[variableName]);
-
-  Builder->CreateStore(rhsValue, elementPtr);
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      variable, rhsValue, rhsValue->getType(),
+      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
 
   return nullptr;
 }
@@ -153,13 +147,8 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
   _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
                                                                  rhsValue);
 
-  Builder->CreateStore(
-      rhsValue,
-      Builder->CreateStructGEP(
-          _codeGenerationContext->getDynamicType()->get(), v,
-          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              rhsValue->getType())));
-
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      v, rhsValue, rhsValue->getType(), variableName);
   return rhsValue;
 }
 

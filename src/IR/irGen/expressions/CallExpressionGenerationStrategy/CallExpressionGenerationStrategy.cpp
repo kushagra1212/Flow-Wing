@@ -276,6 +276,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(
 
   llvm::Value *arrayPtr = v;
 
+  std::string arrayName = v->getName().str();
+
   llvm::Value *commaPtr = _stringTypeConverter->convertExplicit(
       Builder->CreateGlobalStringPtr(", "));
 
@@ -313,7 +315,22 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(
   Builder->SetInsertPoint(loopBody);
   llvm::Value *elementPtr =
       Builder->CreateGEP(arrayType, v, {Builder->getInt32(0), iVal});
-  llvm::Value *innerValue = Builder->CreateLoad(elementType, elementPtr);
+
+  llvm::Value *innerValue = nullptr;
+
+  // Untyped Container Element
+  if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
+    llvm::ConstantInt *index = llvm::cast<llvm::ConstantInt>(iVal);
+
+    innerValue =
+        _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+            elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
+                            arrayName + "_" +
+                            std::to_string(index->getSExtValue()));
+  } else {
+    // Typed Container Element
+    innerValue = Builder->CreateLoad(elementType, elementPtr);
+  }
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                       {_stringTypeConverter->convertExplicit(innerValue),
                        Builder->getInt1(false)});

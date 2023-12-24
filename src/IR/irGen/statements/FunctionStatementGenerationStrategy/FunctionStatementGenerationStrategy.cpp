@@ -74,12 +74,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
                                                             variable);
 
-    Builder->CreateStore(
-        argValue,
-        Builder->CreateStructGEP(
-            _codeGenerationContext->getDynamicType()->get(), variable,
-            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-                argValue->getType())));
+    _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+        variable, argValue, argValue->getType(), parameterNames[i]);
 
     _codeGenerationContext->getNamedValueChain()->setNamedValue(
         parameterNames[i], argValue);
@@ -170,12 +166,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
     _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
                                                             variable);
 
-    Builder->CreateStore(
-        argValue,
-        Builder->CreateStructGEP(
-            _codeGenerationContext->getDynamicType()->get(), variable,
-            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-                argValue->getType())));
+    _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+        variable, argValue, argValue->getType(), parameterNames[i]);
+
     _codeGenerationContext->getNamedValueChain()->setNamedValue(
         parameterNames[i], argValue);
   }
