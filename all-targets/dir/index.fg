@@ -1,4 +1,2 @@
 
-
-    var xstr:int[5] = []
-    print(x[2])
+print(false+true)
