@@ -68,14 +68,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     }
 
     llvm::AllocaInst *variable =
-        Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                              nullptr, parameterNames[i]);
+        Builder->CreateAlloca(argValue->getType(), nullptr, parameterNames[i]);
+
+    Builder->CreateStore(argValue, variable);
 
     _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
                                                             variable);
-
-    _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-        variable, argValue, argValue->getType(), parameterNames[i]);
 
     _codeGenerationContext->getNamedValueChain()->setNamedValue(
         parameterNames[i], argValue);

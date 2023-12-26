@@ -74,20 +74,20 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
     if (assignmentExpression->getRightPtr().get()->getKind() ==
         BinderKindUtils::VariableExpression) {
 
-      auto strategy =
+      auto assignStrategy =
           std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
               _codeGenerationContext);
 
-      strategy->setVariable(_previousGlobalVariable);
-      strategy->setContainerName(_variableName);
+      assignStrategy->setVariable(_previousGlobalVariable);
+      assignStrategy->setContainerName(_variableName);
 
-      return strategy->generateGlobalExpression(
+      return assignStrategy->generateGlobalExpression(
           assignmentExpression->getRightPtr().get());
     }
 
     auto strategy = _expressionGenerationFactory->createStrategy(
         assignmentExpression->getRightPtr().get()->getKind());
-    return nullptr;
+
     auto bracketdStrategy =
         dynamic_cast<BracketedExpressionGenerationStrategy *>(strategy.get());
 
@@ -195,6 +195,20 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
 
   // Handle Static Container local Variable (TYPED)
   if (Utils::isStaticTypedContainerType(_variableType)) {
+    // Container Copy
+    if (assignmentExpression->getRightPtr().get()->getKind() ==
+        BinderKindUtils::VariableExpression) {
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(_allocaInst);
+      assignStrategy->setContainerName(_variableName);
+
+      return assignStrategy->generateExpression(
+          assignmentExpression->getRightPtr().get());
+    }
 
     auto strategy = _expressionGenerationFactory->createStrategy(
         assignmentExpression->getRightPtr().get()->getKind());

@@ -1,6 +1,7 @@
-
-var arr:int[5] = [1,2,3,4,5]
-var arr2:int[10] = [3 fill 100]
-print(arr2)
-arr2 = arr
-print(arr2)
+    {
+        var arr:int[5] = [1,2,3,4,5]
+        var arr2:int[10] = [3 fill 100]
+        print(arr2)
+        arr2 = arr
+        print(arr2)
+    }

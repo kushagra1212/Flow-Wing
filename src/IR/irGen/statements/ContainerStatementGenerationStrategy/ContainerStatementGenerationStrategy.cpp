@@ -84,7 +84,7 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
   if (containerElementType == Utils::type::UNKNOWN_CONTAINER) {
     _codeGenerationContext->getLogger()->LogError(
         "Container of dynamic type is not supported");
-    elementType = _codeGenerationContext->getDynamicType()->get();
+    return nullptr;
   }
 
   BoundBracketedExpression *bracketedExpression =

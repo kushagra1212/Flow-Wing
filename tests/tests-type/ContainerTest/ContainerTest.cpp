@@ -1577,4 +1577,66 @@ print(arr2)
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest, ContainerAssignmentScopeTest) {
+  std::string input = R"(
+var arr:int[5] = [1,2,3,4,5]
+var arr2:int[10] = [3 fill 100]
+print(arr2)
+{
+    arr2 = arr
+    print(arr2)
+}
+print(arr2)
+arr[0]=20
+print(arr)
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0][1, "
+      "2, 3, 4, 5, 0, 0, 0, 0, 0][20, 2, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentScopeTest2) {
+  std::string input = R"(
+var arr:int[5] = [1,2,3,4,5]
+{
+    var arr2:int[10] = [3 fill 100]
+    print(arr2)
+    arr2 = arr
+    print(arr2)
+}
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentScopeTest3) {
+  std::string input = R"(
+    {
+        var arr:int[5] = [1,2,3,4,5]
+        var arr2:int[10] = [3 fill 100]
+        print(arr2)
+        arr2 = arr
+        print(arr2)
+    }
+
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 #endif // JIT_TEST_MODE
