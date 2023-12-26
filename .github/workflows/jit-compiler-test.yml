@@ -1,38 +1,22 @@
-name: JIT TESTS
+name: JIT_TEST
 
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
-        id:   cpu-cores
-      
-      - name: Setup CMake and Build Tools
-        run: |
-          sudo apt update
-          sudo apt install -y cmake libgtest-dev llvm-dev llvm g++ gdb wget lsb-release software-properties-common zlib1g-dev libzstd-dev libcurl4-openssl-dev 
-          apt-get clean && rm -rf /var/lib/apt/lists/* && rm -rf /usr/lib/llvm-15
-          sudo wget https://apt.llvm.org/llvm.sh
-          sudo chmod +x llvm.sh
-          sudo ./llvm.sh 16
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Configure and build
-        run: |
-          cd all-targets/jit-compiler
-          sudo rm -rf build
-          mkdir build
-          cd build
-          cmake -DTESTS_ENABLED=ON ..        
-          make -j${{ steps.cpu-cores.outputs.count }}
-
-      - name: Run tests
-        run: |
-          cd all-targets/jit-compiler/build
-          ./FlowWing
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile.JITCompilerTest
+          load: true
+          tags: your-image-name:your-tag
