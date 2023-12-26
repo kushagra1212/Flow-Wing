@@ -222,7 +222,7 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
 
   BoundIndexExpression *indexExpression = static_cast<BoundIndexExpression *>(
       assignmentExpression->getLeftPtr().get());
-
+  _variableType = assignmentExpression->getVariable().type;
   llvm::Value *rhsValue =
       _expressionGenerationFactory
           ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
@@ -231,7 +231,7 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
 
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Right hand side value not found in assignment expression ");
 
     return nullptr;
@@ -246,7 +246,7 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
 
   if (!indexValue) {
 
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Index value not found in assignment expression");
 
     return nullptr;
@@ -257,13 +257,16 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
           ->generateExpression(indexExpression);
 
   if (!loadedElementValue) {
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Index value not found in assignment expression");
 
     return nullptr;
   }
 
-  if (rhsValue->getType() != loadedElementValue->getType()) {
+  // Typed Container
+
+  if (!Utils::isDynamicTypedContainerType(_variableType) &&
+      rhsValue->getType() != loadedElementValue->getType()) {
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in assignment expression, expected " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(
@@ -301,6 +304,13 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   llvm::Value *elementPtr = Builder->CreateGEP(
       v->getAllocatedType(), v,
       {Builder->getInt32(0), _int32TypeConverter->convertExplicit(indexValue)});
+
+  // Untyped Container
+  if (Utils::isDynamicTypedContainerType(_variableType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Dynamic typed container not supported in assignment expression");
+    return nullptr;
+  }
 
   Builder->CreateStore(rhsValue, elementPtr);
 
@@ -368,12 +378,22 @@ AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
     // Create the conditional branch
     Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
 
-    // In the then block, you can continue with the array access
+    // In the then block,  can continue with the array access
     Builder->SetInsertPoint(thenBB);
 
-    llvm::Value *ptr = Builder->CreateGEP(elementType, variable, indexValue);
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(elementType, variable, indexValue);
 
-    Builder->CreateStore(rhs, ptr);
+    // Untyped Container
+    if (Utils::isDynamicTypedContainerType(_variableType)) {
+
+      _codeGenerationContext->getLogger()->LogError(
+          "Dynamic typed container not supported in assignment expression");
+
+      return rhs;
+    } else {
+      Builder->CreateStore(rhs, elementPtr);
+    }
 
     Builder->CreateBr(mergeBB);
 
@@ -403,7 +423,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
-
+  _isGlobal = true;
   if (auto boundLiteralExpression =
           dynamic_cast<BoundLiteralExpression<std::any> *>(
               assignmentExpression->getLeftPtr().get())) {

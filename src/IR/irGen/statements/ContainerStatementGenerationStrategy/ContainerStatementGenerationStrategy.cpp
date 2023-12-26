@@ -23,6 +23,9 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
           Utils::toNonContainerType(containerElementType));
 
   if (containerElementType == Utils::type::UNKNOWN_CONTAINER) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Container of dynamic type is not supported");
+
     elementType = _codeGenerationContext->getDynamicType()->get();
   }
 
@@ -79,6 +82,8 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
           Utils::toNonContainerType(containerElementType));
 
   if (containerElementType == Utils::type::UNKNOWN_CONTAINER) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Container of dynamic type is not supported");
     elementType = _codeGenerationContext->getDynamicType()->get();
   }
 

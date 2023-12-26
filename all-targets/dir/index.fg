@@ -1,2 +1,5 @@
 
-print(false+true)
+var x = 2.0
+print(x)
+x = "Hello"
+print(x)

@@ -6,10 +6,10 @@
                 "${workspaceFolder}/**",
                 "/usr/include/gtest/internal",
                 "/usr/include/gtest",
-                "/usr/local/llvm-17/**"
+                "/usr/local/llvm-16/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/local/llvm-17/bin/clang",
+            "compilerPath": "/usr/local/llvm-16/clang+llvm/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"

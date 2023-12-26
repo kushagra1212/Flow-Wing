@@ -109,15 +109,9 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing(
   llvm::Value *innerValue = nullptr;
   // UnTyped Container
   if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Dynamic type not supported in index expression");
 
-    llvm::ConstantInt *constantInt =
-        llvm::dyn_cast<llvm::ConstantInt>(indexValue);
-
-    innerValue =
-        _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-            elementPtr, variableName +
-                            FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
-                            "_" + std::to_string(constantInt->getSExtValue()));
   } else {
 
     // Typed Container
