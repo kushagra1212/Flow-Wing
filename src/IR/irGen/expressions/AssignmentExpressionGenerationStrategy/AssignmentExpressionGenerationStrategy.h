@@ -5,7 +5,9 @@
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
 public:

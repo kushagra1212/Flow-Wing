@@ -119,7 +119,10 @@
     "valarray": "cpp",
     "stdfloat": "cpp",
     "__verbose_abort": "cpp",
-    "complex": "cpp"
+    "complex": "cpp",
+    "__debug": "cpp",
+    "__mutex_base": "cpp",
+    "__threading_support": "cpp"
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
