@@ -233,7 +233,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Integer is expected but String is found)";
+      R"(Return Type Mismatch Int32 is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -260,7 +260,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Integer is expected but Boolean is found)";
+      R"(Return Type Mismatch Int32 is expected but Bool is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -288,7 +288,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Integer is expected but Boolean is found)";
+      R"(Return Type Mismatch Int32 is expected but Bool is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -314,7 +314,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Integer is expected but Decimal is found)";
+      R"(Return Type Mismatch Int32 is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -343,7 +343,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Boolean is expected but Integer is found)";
+      R"(Return Type Mismatch Bool is expected but Int32 is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -424,7 +424,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Boolean is expected but String is found)";
+      R"(Return Type Mismatch Bool is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -487,7 +487,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch Boolean is expected but Decimal is found)";
+      R"(Return Type Mismatch Bool is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -516,7 +516,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch String is expected but Integer is found)";
+      R"(Return Type Mismatch String is expected but Int32 is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -597,7 +597,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch String is expected but Boolean is found)";
+      R"(Return Type Mismatch String is expected but Bool is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
@@ -624,7 +624,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      R"(Return Type Mismatch String is expected but Boolean is found)";
+      R"(Return Type Mismatch String is expected but Bool is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 #ifdef JIT_TEST_MODE
