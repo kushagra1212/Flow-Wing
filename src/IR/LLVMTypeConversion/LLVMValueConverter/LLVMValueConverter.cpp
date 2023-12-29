@@ -17,6 +17,7 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
   } else if (value.type() == typeid(bool)) {
     return boolToLLVMValue(std::any_cast<bool>(value));
   } else if (value.type() == typeid(std::string)) {
+
     return stringToLLVMValue(std::any_cast<std::string>(value), kind);
   } else {
     return nullptr;

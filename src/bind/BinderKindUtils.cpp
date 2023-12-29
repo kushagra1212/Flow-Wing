@@ -53,6 +53,10 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "BringStatement";
   case ContainerStatement:
     return "ContainerStatement";
+
+  case ArrayVariableExpression:
+    return "ArrayVariableExpression";
+
   default:
     return "NotDefined";
   }

@@ -26,7 +26,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
 
   auto errorMarker = [&]() {
     std::string marker = "";
-    marker += GREEN_TEXT;
+    marker += GREEN;
     marker += BOLD;
     for (int i = 0; i < columnNumber; i++) {
       marker += " ";
@@ -34,7 +34,11 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
     marker += "\n";
     marker += "   ";
     for (int i = 0; i < columnNumber; i++) {
-      marker += "^";
+      if (i == columnNumber - 1) {
+        marker += "^";
+      } else {
+        marker += "~";
+      }
     }
     marker += RESET;
     marker += "\n";
@@ -46,7 +50,8 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
         currentLineNumber >= lineNumber - 4) {
       snippet += YELLOW + std::to_string(currentLineNumber) + "| " + RESET;
       if (currentLineNumber <= lineNumber && currentLineNumber >= lineNumber) {
-        snippet += PINK_TEXT;
+        snippet += RED;
+        snippet += BOLD;
       } else {
         snippet += RESET;
       }
@@ -104,11 +109,7 @@ const void DiagnosticHandler::logDiagnostics(
   for (auto &diagnostic : this->diagnostics) {
     if (filter(diagnostic)) {
       printDiagnostic(outputStream, diagnostic);
-      if (_filePath != "") {
-        std::string fileOut = YELLOW;
-        fileOut += "Location: " + this->_filePath + "\n" + RESET;
-        outputStream << fileOut;
-      }
+
       break;
     }
   }
@@ -143,7 +144,7 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   std::string line = "Line " + lineNumber + ":" + columnNumber;
   std::string logString = "";
   std::string fileName = "";
-
+  std::string fileOut = "";
   if (diagnostic.getType() == DiagnosticUtils::DiagnosticType::Linker) {
     line = "";
   } else {
@@ -155,6 +156,11 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
         this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
                               ? diagnostic.getLocation().absoluteFilePath
                               : this->_filePath);
+
+    if (_filePath != "") {
+      fileOut = YELLOW;
+      fileOut += "Location: " + this->_filePath + "\n" + RESET;
+    }
   }
 
   if (diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error) {
@@ -172,6 +178,7 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     logString += GREEN + fileName + " [" + level + "] : " + GREEN_TEXT + line +
                  GREEN + " \"" + message + "\"" + RESET + "\n";
   }
+  logString += fileOut;
 
   return logString;
 }

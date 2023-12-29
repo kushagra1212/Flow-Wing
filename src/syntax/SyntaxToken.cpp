@@ -65,7 +65,6 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   case SyntaxKindUtils::SyntaxKind::PlusToken:
   case SyntaxKindUtils::SyntaxKind::MinusToken:
     return 8;
-
   case SyntaxKindUtils::SyntaxKind::LessToken:
   case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
   case SyntaxKindUtils::SyntaxKind::GreaterToken:
@@ -80,7 +79,6 @@ template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
     return 4;
   case SyntaxKindUtils::SyntaxKind::PipeToken:
     return 3;
-
   case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
     return 2;
   case SyntaxKindUtils::SyntaxKind::PipePipeToken:

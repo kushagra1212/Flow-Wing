@@ -1,24 +1,39 @@
 #pragma once
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
+#include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundVariableExpression : public BoundExpression,
                                 public BoundSourceLocation {
-private:
-  std::unique_ptr<BoundExpression> _identiferExpression;
 
 public:
-  BoundVariableExpression(const DiagnosticUtils::SourceLocation &location,
-                          std::unique_ptr<BoundExpression> identiferExpression);
+  BoundVariableExpression(
+      const DiagnosticUtils::SourceLocation &location,
+      std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
+      const bool &isConstant, const Utils::type &variableType);
 
-  const std::type_info &getType() override;
+  virtual const std::type_info &getType() override;
+  virtual BinderKindUtils::BoundNodeKind getKind() const override;
+  virtual std::vector<BoundNode *> getChildren() override;
 
-  std::unique_ptr<BoundExpression> getIdentifierExpression();
+  const std::unique_ptr<BoundLiteralExpression<std::any>> &
+  getIdentifierExpressionPtr() const {
+    return this->_identiferExpression;
+  }
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  inline auto getVariableNameRef() const -> const std::string {
+    return std::any_cast<std::string>(_identiferExpression->getValue());
+  }
 
-  std::vector<BoundNode *> getChildren() override;
+  inline auto getVariableTypeRef() const -> const Utils::type & {
+    return _variableType;
+  }
 
-  std::unique_ptr<BoundExpression> &getIdentifierExpressionPtr();
+  inline auto isConstant() const -> const bool { return _isConstant; }
+
+private:
+  std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
+  bool _isConstant;
+  Utils::type _variableType;
 };

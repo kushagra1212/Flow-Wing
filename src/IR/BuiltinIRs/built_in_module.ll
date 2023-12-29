@@ -19,6 +19,7 @@ declare i32 @scanf(i8*, ...)
 declare i64 @atoll(i8*)
 declare i32 @puts(i8*)
 declare void @exit(i32)
+
 define  void @print(i8* %0, i1 %1) {
  entry:
    br i1 %1, label %newline, label %withoutnewline

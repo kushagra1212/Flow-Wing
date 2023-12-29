@@ -14,7 +14,8 @@
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
-#include "../syntax/expression/VariableExpressionSyntax.h"
+#include "../syntax/expression/VariableExpressionSyntax/ArrayVariableExpressionSyntax/ArrayVariableExpressionSyntax.h"
+#include "../syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
@@ -88,10 +89,12 @@ private:
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed);
+  std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
+      std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
-  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
+  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
 

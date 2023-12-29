@@ -74,13 +74,9 @@ std::unique_ptr<SyntaxToken<std::any>> &
 FunctionDeclarationSyntax::getOpenParenthesisTokenPtr() {
   return _openParenthesisToken;
 }
-std::vector<std::unique_ptr<ParameterSyntax>> &
+std::vector<std::unique_ptr<VariableExpressionSyntax>> &
 FunctionDeclarationSyntax::getParametersPtr() {
   return _parameters;
-}
-
-std::vector<Utils::type> &FunctionDeclarationSyntax::getParameterTypesPtr() {
-  return _parameterTypes;
 }
 
 std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
@@ -112,12 +108,8 @@ void FunctionDeclarationSyntax::setOpenParenthesisToken(
 }
 
 void FunctionDeclarationSyntax::addParameter(
-    std::unique_ptr<ParameterSyntax> parameter) {
+    std::unique_ptr<VariableExpressionSyntax> parameter) {
   _parameters.push_back(std::move(parameter));
-}
-
-void FunctionDeclarationSyntax::addParameterType(Utils::type parameterType) {
-  _parameterTypes.push_back(parameterType);
 }
 
 void FunctionDeclarationSyntax::setCloseParenthesisToken(

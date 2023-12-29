@@ -438,7 +438,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
           bringStatement->getDiagnosticHandlerPtr().get()));
 
   for (auto &function : globalScope->functions) {
-    if (!this->root->tryDeclareFunction(function.first, function.second)) {
+    if (!this->root->tryDeclareFunction(function.second)) {
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Function " + function.first + " Already Declared",
                      DiagnosticUtils::DiagnosticLevel::Error,
@@ -464,9 +464,14 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
       bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope));
 }
 
-std::unique_ptr<BoundExpression> Binder::bindLiteralExpression(
-    LiteralExpressionSyntax<std::any> *literalSyntax) {
+std::unique_ptr<BoundLiteralExpression<std::any>>
+Binder::bindLiteralExpression(ExpressionSyntax *syntax) {
+
+  LiteralExpressionSyntax<std::any> *literalSyntax =
+      static_cast<LiteralExpressionSyntax<std::any> *>(syntax);
+
   std::any value = literalSyntax->getValue();
+
   return std::make_unique<BoundLiteralExpression<std::any>>(
       literalSyntax->getSourceLocation(), value,
       literalSyntax->getSyntaxKind());
@@ -609,64 +614,30 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
 }
 
 std::unique_ptr<BoundExpression>
-Binder::bindVariableExpression(VariableExpressionSyntax *variableExpression) {
-
-  std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
-      (BoundLiteralExpression<std::any>
-           *)(bindExpression(variableExpression->getIdentifierPtr().get())
-                  .release()));
-
-  std::string variable_str = InterpreterConversion::explicitConvertAnyToString(
-      boundIdentifierExpression->getValue());
-
-  if (!root->tryLookupVariable(variable_str)) {
-
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Variable " + variable_str + " Does Not Exist",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(
-            variableExpression->getIdentifierPtr()->getTokenPtr().get())));
-
-    return std::move(boundIdentifierExpression);
-  }
-  return std::make_unique<BoundVariableExpression>(
-      variableExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression));
-}
-
-std::unique_ptr<BoundExpression>
 Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifier(
       (BoundLiteralExpression<std::any> *)bindExpression(
           (callExpression->getIdentifierPtr().get()))
           .release());
 
-  Utils::FunctionSymbol functionSymbol =
-      Utils::BuiltInFunctions::getFunctionSymbol(
-          InterpreterConversion::explicitConvertAnyToString(
-              boundIdentifier->getValue()));
+  const std::string functionName =
+      std::any_cast<std::string>(boundIdentifier->getValue());
 
-  if (functionSymbol.name == "") {
-    std::vector<Utils::FunctionParameterSymbol> parameters;
+  if (BuiltInFunction::isBuiltInFunction(functionName)) {
 
-    for (int i = 0; i < callExpression->getArguments().size(); i++) {
-      parameters.push_back(
-          Utils::FunctionParameterSymbol(std::to_string(i), false));
-    }
+    const std::unique_ptr<BoundFunctionDeclaration> &boundBuiltinFunction =
+        BuiltInFunction::getBuiltInFunction(functionName);
 
-    functionSymbol =
-        Utils::FunctionSymbol(InterpreterConversion::explicitConvertAnyToString(
-                                  boundIdentifier->getValue()),
-                              parameters);
-  }
-
-  if (functionSymbol.name != "") {
     if (callExpression->getArguments().size() !=
-        functionSymbol.parameters.size()) {
+        boundBuiltinFunction->getParametersRef().size()) {
+
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
-          "Function " + functionSymbol.name + " requires " +
-              std::to_string(functionSymbol.parameters.size()) + " arguments",
+          "Function " + boundBuiltinFunction->getFunctionNameRef() +
+              " requires " +
+              std::to_string(boundBuiltinFunction->getParametersRef().size()) +
+              " arguments but " +
+              std::to_string(callExpression->getArguments().size()) +
+              " arguments were given",
           DiagnosticUtils::DiagnosticLevel::Error,
           DiagnosticUtils::DiagnosticType::Semantic,
           Utils::getSourceLocation(
@@ -675,9 +646,10 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
-      std::make_unique<BoundCallExpression>(callExpression->getSourceLocation(),
-                                            std::move(boundIdentifier),
-                                            functionSymbol);
+      std::make_unique<BoundCallExpression>(
+          callExpression->getSourceLocation());
+
+  boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
   for (int i = 0; i < callExpression->getArguments().size(); i++) {
     boundCallExpression->addArgument(
@@ -711,6 +683,7 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
 
   switch (syntax->getKind()) {
   case SyntaxKindUtils::SyntaxKind::LiteralExpression: {
+
     return std::move(
         bindLiteralExpression((LiteralExpressionSyntax<std::any> *)syntax));
   }
@@ -724,9 +697,13 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
     return std::move(
         bindAssignmentExpression((AssignmentExpressionSyntax *)syntax));
   }
-  case SyntaxKindUtils::SyntaxKind::VariableExpression: {
+  case SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax: {
     return std::move(
         bindVariableExpression((VariableExpressionSyntax *)syntax));
+  }
+  case SyntaxKindUtils::SyntaxKind::ArrayVariableExpressionSyntax: {
+    return std::move(
+        bindArrayVariableExpression((ArrayVariableExpressionSyntax *)syntax));
   }
   case SyntaxKindUtils::SyntaxKind::ParenthesizedExpression: {
     ParenthesizedExpressionSyntax *parenthesizedExpression =
@@ -750,15 +727,47 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   return nullptr;
 }
 
+std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
+    VariableExpressionSyntax *variableExpressionSyntax) {
+  std::string variable_str = variableExpressionSyntax->getVariableName();
+
+  return std::make_unique<BoundVariableExpression>(
+      variableExpressionSyntax->getSourceLocation(),
+      std::move(bindLiteralExpression(
+          variableExpressionSyntax->getIdentifierTokenRef().get())),
+      variableExpressionSyntax->isConstant(),
+      variableExpressionSyntax->getVariableType());
+}
+
+std::unique_ptr<BoundVariableExpression>
+Binder::bindArrayVariableExpression(ArrayVariableExpressionSyntax *arrayExpr) {
+
+  std::string variable_str = arrayExpr->getVariableName();
+
+  std::unique_ptr<BoundArrayVariableExpression> boundArrayExp =
+      std::make_unique<BoundArrayVariableExpression>(
+          arrayExpr->getSourceLocation(),
+          std::move(
+              bindLiteralExpression(arrayExpr->getIdentifierTokenRef().get())),
+          arrayExpr->isConstant(), arrayExpr->getVariableType());
+
+  for (const auto &size : arrayExpr->getSizeExpresionsRef()) {
+
+    boundArrayExp->addSizeExpression(
+        std::move(bindLiteralExpression(size.get())));
+  }
+
+  return std::move(boundArrayExp);
+}
+
 std::unique_ptr<BoundStatement>
 Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
-  std::vector<Utils::FunctionParameterSymbol> parameters;
 
   this->root = std::make_unique<BoundScope>(std::move(this->root));
 
   std::string function_name = syntax->getIdentifierTokenPtr()->getText();
 
-  if (Utils::BuiltInFunctions::getFunctionSymbol(function_name).name != "") {
+  if (BuiltInFunction::isBuiltInFunction(function_name)) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Function " + function_name + " Already Exists",
         DiagnosticUtils::DiagnosticLevel::Error,
@@ -766,46 +775,54 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
         Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
   }
 
+  std::unique_ptr<BoundFunctionDeclaration> fd =
+      std::make_unique<BoundFunctionDeclaration>(syntax->getSourceLocation());
+
+  fd->setFunctionName(function_name);
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
-    std::string variable_str =
-        syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText();
-    if (!this->root->tryDeclareVariable(variable_str,
-                                        Utils::Variable(nullptr, false))) {
+    const std::string &variable_str =
+        syntax->getParametersPtr()[i]->getVariableName();
 
-      this->_diagnosticHandler->addDiagnostic(Diagnostic(
-          "Parameter " + variable_str + " Already Declared",
-          DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
-          Utils::getSourceLocation(
-              syntax->getParametersPtr()[i]->getIdentifierTokenPtr().get())));
+    if (!this->root->tryDeclareVariable(
+            variable_str,
+            Utils::Variable(
+                nullptr, false,
+                syntax->getParametersPtr()[i]->getVariableType()))) {
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Parameter " + variable_str + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     syntax->getParametersPtr()[i]->getSourceLocation()));
     }
-    Utils::type parameterType = Utils::type::UNKNOWN;
-    if (i < syntax->getParameterTypesPtr().size()) {
-      parameterType = syntax->getParameterTypesPtr()[i];
+
+    if (syntax->getParametersPtr()[i]->getKind() ==
+        SyntaxKindUtils::SyntaxKind::ArrayVariableExpressionSyntax) {
+
+      fd->addParameter(std::move(this->bindArrayVariableExpression(
+          static_cast<ArrayVariableExpressionSyntax *>(
+              syntax->getParametersPtr()[i].release()))));
+    } else {
+      fd->addParameter(std::move(this->bindVariableExpression(
+          syntax->getParametersPtr()[i].release())));
     }
-    parameters.push_back(Utils::FunctionParameterSymbol(
-        syntax->getParametersPtr()[i]->getIdentifierTokenPtr()->getText(),
-        false, parameterType));
   }
-
-  Utils::FunctionSymbol functionSymbol =
-      Utils::FunctionSymbol(function_name, parameters, syntax->getReturnType());
+  fd->setReturnType(syntax->getReturnType());
 
   this->root->incrementFunctionCount();
 
   std::unique_ptr<BoundBlockStatement> boundBody(
       (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
           .release());
-  std::unique_ptr<BoundFunctionDeclaration> fd =
-      std::make_unique<BoundFunctionDeclaration>(
-          syntax->getSourceLocation(), functionSymbol, std::move(boundBody));
+
+  fd->setFunctionBody(std::move(boundBody));
 
   this->root->decrementFunctionCount();
 
-  if (!this->root->tryDeclareFunction(functionSymbol.name, fd.get())) {
+  if (!this->root->tryDeclareFunction(fd.get())) {
 
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + functionSymbol.name + " Already Declared",
+        "Function " + function_name + " Already Declared",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
@@ -821,6 +838,9 @@ Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 
 Binder::Binder(std::unique_ptr<BoundScope> parent,
                DiagnosticHandler *diagnosticHandler) {
+
+  BuiltInFunction::setupBuiltInFunctions();
+
   this->root = std::make_unique<BoundScope>(std::move(parent));
   this->_diagnosticHandler = diagnosticHandler;
 }
@@ -830,54 +850,47 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
   std::vector<BoundFunctionDeclaration *> functions =
       binder->root->getAllFunctions();
 
-  std::unordered_map<std::string, Utils::FunctionSymbol> functionDefinitionMap;
+  std::unordered_map<std::string, BoundFunctionDeclaration *>
+      functionDefinitionMap;
 
-  for (auto &function : functions) {
-
-    functionDefinitionMap[function->getFunctionSymbol().name] =
-        function->getFunctionSymbol();
+  for (const auto &function : functions) {
+    functionDefinitionMap[function->getFunctionNameRef()] = function;
   }
 
-  for (auto &function : binder->dependencyFunctions) {
-    functionDefinitionMap[function.second->getFunctionSymbol().name] =
-        function.second->getFunctionSymbol();
+  for (const auto &[name, function] : binder->dependencyFunctions) {
+    functionDefinitionMap[name] = function;
   }
 
-  std::vector<Utils::FunctionSymbol> builtInFunctions =
-      Utils::BuiltInFunctions::getAllFunctions();
-
-  for (auto &function : builtInFunctions) {
-    functionDefinitionMap[function.name] = function;
+  for (const auto &function : BuiltInFunction::getBuiltInFunctions()) {
+    functionDefinitionMap[function->getFunctionNameRef()] = function.get();
   }
 
   for (BoundCallExpression *callExpression : binder->_callExpressions) {
-    Utils::FunctionSymbol functionSymbol = callExpression->getFunctionSymbol();
 
-    if (functionDefinitionMap.find(functionSymbol.name) ==
+    if (functionDefinitionMap.find(callExpression->getCallerNameRef()) ==
         functionDefinitionMap.end()) {
 
-      binder->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Function " + functionSymbol.name + " does not exist",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     callExpression->getCallerIdentifierPtr()->getLocation()));
+      binder->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + callExpression->getCallerNameRef() + " does not exist",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          callExpression->getCallerIdentifierPtr()->getLocation()));
 
       continue;
     }
 
-    Utils::FunctionSymbol functionDefinition =
-        functionDefinitionMap.at(functionSymbol.name);
+    BoundFunctionDeclaration *fd =
+        functionDefinitionMap.at(callExpression->getCallerNameRef());
 
-    if (functionSymbol.parameters.size() !=
-        functionDefinition.parameters.size()) {
+    if (callExpression->getArgumentsRef().size() !=
+        fd->getParametersRef().size()) {
 
-      binder->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Function " + functionSymbol.name + " requires " +
-                         std::to_string(functionDefinition.parameters.size()) +
-                         " arguments",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     callExpression->getCallerIdentifierPtr()->getLocation()));
+      binder->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + callExpression->getCallerNameRef() + " requires " +
+              std::to_string(fd->getParametersRef().size()) + " arguments",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          callExpression->getCallerIdentifierPtr()->getLocation()));
 
       continue;
     }

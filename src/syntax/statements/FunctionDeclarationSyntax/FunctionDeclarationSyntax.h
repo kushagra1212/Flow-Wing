@@ -6,6 +6,7 @@
 
 #include "../../../utils/Utils.h"
 #include "../../SyntaxToken.h"
+#include "../../expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../ParameterSyntax/ParameterSyntax.h"
 #include "../StatementSyntax.h"
@@ -15,8 +16,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _functionKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
-  std::vector<std::unique_ptr<ParameterSyntax>> _parameters;
-  std::vector<Utils::type> _parameterTypes;
+  std::vector<std::unique_ptr<VariableExpressionSyntax>> _parameters;
+
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
@@ -38,8 +39,8 @@ public:
   setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
   void setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
-  void addParameter(std::unique_ptr<ParameterSyntax> parameter);
-  void addParameterType(Utils::type parameterType);
+  void addParameter(std::unique_ptr<VariableExpressionSyntax> parameter);
+
   void addSeparator(std::unique_ptr<SyntaxToken<std::any>> separator);
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
@@ -53,8 +54,8 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getFunctionKeywordPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
-  std::vector<std::unique_ptr<ParameterSyntax>> &getParametersPtr();
-  std::vector<Utils::type> &getParameterTypesPtr();
+  std::vector<std::unique_ptr<VariableExpressionSyntax>> &getParametersPtr();
+
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparatorsPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
   std::unique_ptr<BlockStatementSyntax> &getBodyPtr();

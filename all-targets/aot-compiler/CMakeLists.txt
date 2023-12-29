@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-set(LLVM_DIR "/usr/include/llvm-17/llvm/cmake")
 
 # Find the LLVM libraries statically
 find_package(LLVM REQUIRED CONFIG)

@@ -1,7 +1,19 @@
-    {
-        var arr:int[5] = [1,2,3,4,5]
-        var arr2:int[10] = [3 fill 100]
-        print(arr2)
-        arr2 = arr
-        print(arr2)
-    }
+fun getConactString(b:str,a:str)-> str {
+
+    return a + b
+}
+
+print(getConactString("Hello","World"))
+/#fun main(arr:int[5]) -> nthg {
+    var x:int[5] = [5 fill 100]
+    x = arr
+    x[3] = 10
+    print(x)
+    
+}
+var x:int[10] = [10 fill 2]
+main(x)
+x[4]  = 7
+main(x)
+
+

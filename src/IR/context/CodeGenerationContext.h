@@ -1,11 +1,13 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+#include "../../utils/BuiltInFunction/BuiltInFunction.h"
 #include "../TypeBuilder/StructTypeBuilder/StructTypeBuilder.h"
 #include "../handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../handlers/alloca/AllocaTable/AllocaTable.h"
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
+#include "../irGen/Types/ArgsTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "llvm/Support/TargetSelect.h"
@@ -27,6 +29,7 @@ public:
   std::unique_ptr<LLVMLogger> &getLogger();
   std::unique_ptr<ValueChain> &getNamedValueChain();
   std::unique_ptr<AllocaChain> &getAllocaChain();
+  std::unique_ptr<ArgsTypeHandler> &getArgsTypeHandler();
 
   // TODO: Refactor this to a better place
   std::stack<std::pair<Utils::type, int8_t>> &getReturnAllocaStack();
@@ -64,8 +67,8 @@ private:
 
   std::unique_ptr<ValueChain> _namedValueChain;
   std::unique_ptr<AllocaChain> _allocaChain;
+  std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;
-
   DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 

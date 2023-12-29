@@ -114,8 +114,7 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "TildeToken";
   case SyntaxKind::PercentToken:
     return "PercentToken";
-  case SyntaxKind::VariableExpression:
-    return "VariableExpression";
+
   case SyntaxKind::AssignmentExpression:
     return "AssignmentExpression";
   case SyntaxKind::EndOfLineToken:
@@ -245,6 +244,12 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::ContainerStatement:
     return "ContainerStatement";
+  case SyntaxKind::VariableExpressionSyntax:
+    return "VariableExpressionSyntax";
+
+  case SyntaxKind::ArrayVariableExpressionSyntax:
+    return "ArrayVariableExpressionSyntax";
+
   default:
     return "NotDefined";
   }

@@ -15,8 +15,16 @@ public:
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
+  void handleArrayArgs(const std::vector<llvm::Type *> &paramTypes,
+                       const int &i, const std::vector<llvm::Value *> &args,
+                       BoundCallExpression *callExpression, int &retFlag);
+
   llvm::Value *printArray(llvm::ArrayType *arrayType, llvm::Type *elementType,
                           llvm::Value *v);
+
+  llvm::Type *isGlobalArray(llvm::Value *value);
+
+  llvm::Type *isLocalArray(llvm::Value *value);
 };
 
 #endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

@@ -491,16 +491,20 @@ bool AssignmentExpressionGenerationStrategy::
   if (!val) {
     // Variable not found locally, handle error
 
-    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
     _allocaInst =
         _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+
+    if (_allocaInst) {
+      return true;
+    }
+
+    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
+
     if (_previousGlobalVariable) {
       _isGlobal = true;
       return true;
     }
-    if (_allocaInst) {
-      return true;
-    }
+
     _codeGenerationContext->getLogger()->LogError(
         "Variable not found in assignment expression , " + _variableName);
 

@@ -66,6 +66,11 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
   // Get Local Variable Value
   if (!variableValue) {
 
+    if (v) {
+
+      return this->getLocalVariableValue(variableName, variableValue, v);
+    }
+
     llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
 
     if (variable) {

@@ -14,7 +14,7 @@ BoundAssignmentExpression::BoundAssignmentExpression(
 }
 
 const std::type_info &BoundAssignmentExpression::getType() {
-  return _right->getType();
+  return typeid(BoundAssignmentExpression);
 }
 
 BinderKindUtils::BoundBinaryOperatorKind

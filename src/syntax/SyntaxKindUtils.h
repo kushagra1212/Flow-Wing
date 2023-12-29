@@ -93,7 +93,6 @@ enum SyntaxKind {
   BinaryExpression,
   ParenthesizedExpression,
   AssignmentExpression,
-  VariableExpression,
   CompilationUnit,
   CallExpression,
   IndexExpression,
@@ -113,9 +112,12 @@ enum SyntaxKind {
   CommentStatement,
   FunctionDeclarationSyntax,
   ParameterSyntax,
+  ArrayParameterSyntax,
   EmptyStatement,
   BringStatementSyntax,
-  ContainerStatement
+  ContainerStatement,
+  VariableExpressionSyntax,
+  ArrayVariableExpressionSyntax,
 };
 bool isInt32(const std::string &str);
 

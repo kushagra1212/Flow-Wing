@@ -19,7 +19,10 @@ public:
   void setVariable(llvm::Value *var);
   void setContainerName(const std::string &containerName);
 
-  llvm::Value *createExpression();
+  llvm::Value *createExpression(llvm::ArrayType *arrayType,
+                                llvm::Value *variable, llvm::Value *size,
+                                llvm::Value *rhsSize, llvm::Value *rhsVariable,
+                                llvm::ArrayType *rhsArrayType);
 
 private:
   // LHS

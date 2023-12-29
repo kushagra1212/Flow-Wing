@@ -18,7 +18,7 @@ BoundBinaryExpression::BoundBinaryExpression(
 }
 
 const std::type_info &BoundBinaryExpression::getType() {
-  return _left->getType();
+  return typeid(BoundBinaryExpression);
 }
 
 BinderKindUtils::BoundBinaryOperatorKind BoundBinaryExpression::getOperator() {

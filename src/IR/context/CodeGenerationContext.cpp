@@ -30,6 +30,9 @@ CodeGenerationContext ::CodeGenerationContext(
   _allocaChain = std::make_unique<AllocaChain>();
   _allocaChain->addHandler(new AllocaTable());
 
+  // initialize the ArgsTypeHandler
+  _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
+
   // Initialize the dynamic type
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
@@ -65,6 +68,10 @@ const std::string &CodeGenerationContext::getSourceFileName() const {
 
 DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler() const {
   return _diagnosticHandler;
+}
+
+std::unique_ptr<ArgsTypeHandler> &CodeGenerationContext::getArgsTypeHandler() {
+  return _argsTypeHandler;
 }
 
 std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {

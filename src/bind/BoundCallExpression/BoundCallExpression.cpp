@@ -1,35 +1,17 @@
 #include "BoundCallExpression.h"
 
 BoundCallExpression::BoundCallExpression(
-    const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier,
-    Utils::FunctionSymbol functionalSymbol)
-    : BoundSourceLocation(location) {
-  this->_functionalSymbol = functionalSymbol;
-  this->_callerIdentifier = std::move(callerIdentifier);
-}
-
-const std::string &BoundCallExpression::getName() const {
-  return _functionalSymbol.name;
-}
-
-Utils::FunctionSymbol BoundCallExpression::getFunctionSymbol() const {
-  return _functionalSymbol;
-}
+    const DiagnosticUtils::SourceLocation &location)
+    : BoundSourceLocation(location) {}
 
 void BoundCallExpression::addArgument(
     std::unique_ptr<BoundExpression> argument) {
   _arguments.push_back(std::move(argument));
 }
 
-std::vector<std::unique_ptr<BoundExpression>> &
-BoundCallExpression::getArguments() {
+const std::vector<std::unique_ptr<BoundExpression>> &
+BoundCallExpression::getArgumentsRef() const {
   return _arguments;
-}
-
-std::unique_ptr<BoundLiteralExpression<std::any>>
-BoundCallExpression::getCallerIdentifier() {
-  return std::move(_callerIdentifier);
 }
 
 const std::type_info &BoundCallExpression::getType() {
@@ -56,4 +38,10 @@ std::vector<BoundNode *> BoundCallExpression::getChildren() {
 std::unique_ptr<BoundLiteralExpression<std::any>> &
 BoundCallExpression::getCallerIdentifierPtr() {
   return _callerIdentifier;
+}
+
+void BoundCallExpression::setCallerIdentifier(
+    std::unique_ptr<BoundLiteralExpression<std::any>> callerIdentifier) {
+  _callerIdentifier = std::move(callerIdentifier);
+  _callerName = std::any_cast<std::string>(_callerIdentifier->getValue());
 }

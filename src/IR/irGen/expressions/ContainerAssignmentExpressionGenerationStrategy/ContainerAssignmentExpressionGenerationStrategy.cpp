@@ -42,7 +42,15 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 
   bool hasError = false;
 
-  if (llvm::isa<llvm::GlobalVariable>(_rhsVariable)) {
+  if (llvm::isa<llvm::AllocaInst>(_rhsVariable)) {
+    llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_rhsVariable);
+
+    if (llvm::isa<llvm::ArrayType>(allocaInst->getAllocatedType())) {
+
+      _rhsArrayType =
+          llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
+    }
+  } else if (llvm::isa<llvm::GlobalVariable>(_rhsVariable)) {
     llvm::GlobalVariable *rhsGlobalVariable =
         llvm::cast<llvm::GlobalVariable>(_rhsVariable);
 
@@ -50,14 +58,6 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 
       _rhsArrayType =
           llvm::cast<llvm::ArrayType>(rhsGlobalVariable->getValueType());
-    }
-  } else if (llvm::isa<llvm::AllocaInst>(_rhsVariable)) {
-    llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_rhsVariable);
-
-    if (llvm::isa<llvm::ArrayType>(allocaInst->getAllocatedType())) {
-
-      _rhsArrayType =
-          llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
     }
   } else {
     hasError = true;
@@ -141,7 +141,8 @@ ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
     return nullptr;
   }
 
-  return createExpression();
+  return createExpression(_arrayType, _variable, _size, _rhsSize, _rhsVariable,
+                          _rhsArrayType);
 }
 
 llvm::Value *
@@ -164,11 +165,14 @@ ContainerAssignmentExpressionGenerationStrategy::generateExpression(
     return nullptr;
   }
 
-  return createExpression();
+  return createExpression(_arrayType, _variable, _size, _rhsSize, _rhsVariable,
+                          _rhsArrayType);
 }
 
-llvm::Value *
-ContainerAssignmentExpressionGenerationStrategy::createExpression() {
+llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
+    llvm::ArrayType *arrayType, llvm::Value *variable, llvm::Value *size,
+    llvm::Value *rhsSize, llvm::Value *rhsVariable,
+    llvm::ArrayType *rhsArrayType) {
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   // Create blocks
   llvm::BasicBlock *loopStart = llvm::BasicBlock::Create(
@@ -189,20 +193,20 @@ ContainerAssignmentExpressionGenerationStrategy::createExpression() {
   Builder->SetInsertPoint(loopStart);
   llvm::Value *iVal =
       Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
-  llvm::Value *cond = Builder->CreateICmpSLT(iVal, _rhsSize);
+  llvm::Value *cond = Builder->CreateICmpSLT(iVal, rhsSize);
   Builder->CreateCondBr(cond, loopBody, loopEnd);
 
   // Loop body block
   Builder->SetInsertPoint(loopBody);
   llvm::Value *elementPtr =
-      Builder->CreateGEP(_arrayType, _variable, {Builder->getInt32(0), iVal});
+      Builder->CreateGEP(arrayType, variable, {Builder->getInt32(0), iVal});
 
   // Load element to fill from rhs array
-  llvm::Value *rhsElementPtr = Builder->CreateGEP(_rhsArrayType, _rhsVariable,
+  llvm::Value *rhsElementPtr = Builder->CreateGEP(rhsArrayType, rhsVariable,
                                                   {Builder->getInt32(0), iVal});
 
   llvm::Value *elementToFill =
-      Builder->CreateLoad(_rhsArrayType->getElementType(), rhsElementPtr);
+      Builder->CreateLoad(rhsArrayType->getElementType(), rhsElementPtr);
 
   Builder->CreateStore(elementToFill, elementPtr);
 

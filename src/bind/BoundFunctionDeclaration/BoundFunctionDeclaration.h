@@ -5,27 +5,41 @@
 #include "../BoundBlockStatement/BoundBlockStatement.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundVariableExpression/BoundVariableExpression.h"
+
 class BoundFunctionDeclaration : public BoundStatement,
                                  public BoundSourceLocation {
-public:
+
   std::unique_ptr<BoundBlockStatement> _body;
-  Utils::FunctionSymbol _functionSymbol;
+  std::vector<std::unique_ptr<BoundVariableExpression>> _parameters;
+  std::string _functionName;
+  Utils::type _returnType;
 
-  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
-                           Utils::FunctionSymbol functionSymbol,
-                           std::unique_ptr<BoundBlockStatement> body);
+public:
+  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location);
 
-  std::unique_ptr<BoundBlockStatement> getBody();
-
-  BinderKindUtils::BoundNodeKind getKind() const;
-
+  BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 
-  Utils::FunctionSymbol getFunctionSymbol() const;
+  void addParameter(std::unique_ptr<BoundVariableExpression> parameter);
+  void setFunctionName(const std::string &functionName);
+  void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
+  void setReturnType(Utils::type returnType);
 
-  std::unique_ptr<BoundBlockStatement> &getBodyPtr();
-
-  const bool hasParameterTypes() const;
+  inline auto getParametersRef() const
+      -> const std::vector<std::unique_ptr<BoundVariableExpression>> & {
+    return _parameters;
+  }
+  inline auto getFunctionNameRef() const -> const std::string & {
+    return _functionName;
+  }
+  inline auto getBodyRef() const
+      -> const std::unique_ptr<BoundBlockStatement> & {
+    return _body;
+  }
+  inline auto getReturnType() const -> const Utils::type & {
+    return _returnType;
+  }
 };
 
 #endif

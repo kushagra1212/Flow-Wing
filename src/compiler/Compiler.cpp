@@ -196,6 +196,16 @@ void Compiler::compile(std::vector<std::string> &text,
     return;
   }
 
+#ifdef DEBUG
+
+  std::cout << BLUE << ".............." << YELLOW << "Tree Start" << BLUE
+            << ".............." << RESET << std::endl;
+  Utils::prettyPrint(compilationUnit.get());
+  std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
+            << " .............." << RESET << std::endl;
+
+#endif
+
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
                                         currentDiagnosticHandler.get()));

@@ -16,6 +16,7 @@ enum BoundNodeKind {
   BoundContainerExpression,
   BoundFillExpression,
   BoundBracketedExpression,
+  ArrayVariableExpression,
 
   // Statements
   BoundStatementKind,
@@ -34,7 +35,10 @@ enum BoundNodeKind {
   // declarations
 
   VariableDeclaration,
-  FunctionDeclaration
+  FunctionDeclaration,
+
+  // Symbols
+  BoundFunctionSymbol,
 };
 
 enum BoundUnaryOperatorKind {
@@ -64,6 +68,7 @@ enum BoundBinaryOperatorKind {
   Modulus,
   IntegerDivision
 };
+
 std::string to_string(BoundNodeKind kind);
 
 std::string to_string(BoundUnaryOperatorKind kind);

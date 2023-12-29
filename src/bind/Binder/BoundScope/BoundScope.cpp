@@ -93,18 +93,18 @@ bool BoundScope::tryAssignVariable(std::string name,
   return this->parent->tryAssignVariable(name, value);
 }
 
-bool BoundScope::tryDeclareFunction(std::string name,
-                                    BoundFunctionDeclaration *function) {
-  if (this->functions.find(name) != this->functions.end()) {
+bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
+  if (this->functions.find(function->getFunctionNameRef()) !=
+      this->functions.end()) {
 
     return false;
   }
 
   if (this->parent) {
-    return this->parent->tryDeclareFunction(name, function);
+    return this->parent->tryDeclareFunction(function);
   }
 
-  this->functions[name] = function;
+  this->functions[function->getFunctionNameRef()] = function;
   return true;
 }
 
