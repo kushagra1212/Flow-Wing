@@ -1,11 +1,15 @@
 #include "ContainerExpressionGenerationStrategy.h"
 
 ContainerExpressionGenerationStrategy::ContainerExpressionGenerationStrategy(
-    CodeGenerationContext *context, uint64_t actualSize,
+    CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
     llvm::Type *elementType, const std::string &containerName)
-    : ExpressionGenerationStrategy(context), _actualSize(actualSize),
+    : ExpressionGenerationStrategy(context), _actualSizes(actualSizes),
       _elementType(elementType), _containerName(containerName),
-      _isGlobal(false) {}
+      _isGlobal(false) {
+
+  _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
+                               std::multiplies<uint64_t>());
+}
 
 llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
@@ -16,37 +20,37 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   if (!canGenerateExpression(containerExpression))
     return nullptr;
 
-  // Allocate memory on the stack for the array
-  llvm::Type *arrayType = llvm::ArrayType::get(_elementType, _actualSize);
+  llvm::ArrayType *arrayType = nullptr;
+
+  llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
+      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
+                                            _actualSizes, _elementType);
 
   llvm::AllocaInst *arrayAlloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
+  // Fill the array with default values
+
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           arrayAlloca);
-
-  // Fill the array with default values
-  llvm::Constant *defaultVal =
-      llvm::Constant::getNullValue(Builder->getInt32Ty());
-
-  if (!_codeGenerationContext->getDynamicType()->isDyn(_elementType)) {
-    defaultVal = llvm::cast<llvm::Constant>(
-        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-  } else {
-    _codeGenerationContext->getLogger()->LogError(
-        "Container of dynamic type is not supported");
-  }
 
   std::unique_ptr<FillExpressionGenerationStrategy>
       fillExpressionGenerationStrategy =
           std::make_unique<FillExpressionGenerationStrategy>(
-              _codeGenerationContext, _actualSize, _elementType,
+              _codeGenerationContext, _actualSizes, _elementType,
               _containerName);
 
   fillExpressionGenerationStrategy->createExpression(
-      arrayType, arrayAlloca, defaultVal,
-      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), _actualSize));
+      arrayType, arrayAlloca,
+      llvm::cast<llvm::Constant>(
+          _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
+      _totalSize);
 
+  _codeGenerationContext->setArraySizeMetadata(arrayAlloca, _actualSizes);
+  _codeGenerationContext->setArrayElementTypeMetadata(arrayAlloca,
+                                                      _elementType);
   return createExpression(arrayType, arrayAlloca, containerExpression);
 }
 
@@ -55,11 +59,10 @@ const bool ContainerExpressionGenerationStrategy::canGenerateExpression(
 
   _sizeToFill = containerExpression->getElementsRef().size();
 
-  if (_sizeToFill > _actualSize) {
+  if (_sizeToFill > _totalSize) {
     _codeGenerationContext->getLogger()->LogError(
         "Container " + _containerName + " size mismatch. Expected " +
-        std::to_string(_actualSize) + " but got " +
-        std::to_string(_sizeToFill));
+        std::to_string(_totalSize) + " but got " + std::to_string(_sizeToFill));
     return false;
   }
 
@@ -79,11 +82,22 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
 
   _isGlobal = true;
 
-  llvm::ArrayType *arrayType = llvm::ArrayType::get(_elementType, _actualSize);
+  llvm::ArrayType *arrayType = nullptr;
 
+  // Create a default value for the array
+
+  llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
+      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
+                                            _actualSizes, _elementType);
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
-      llvm::Constant::getNullValue(arrayType), _containerName);
+      _defaultVal, _containerName);
+
+  _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);
+  _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
+                                                      _elementType);
 
   return createGlobalExpression(arrayType, _globalVariable,
                                 containerExpression);
@@ -99,39 +113,45 @@ llvm::Value *ContainerExpressionGenerationStrategy::createLocalExpression(
   return createExpression(arrayType, _allocaInst, containerExpression);
 }
 
-llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
-    llvm::Type *arrayType, llvm::Value *v,
-    BoundContainerExpression *containerExpression) {
+llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
+    llvm::Type *&arrayType, llvm::Value *&v,
+    BoundContainerExpression *containerExpression,
+    std::vector<llvm::Value *> &indices, uint64_t index) {
 
-  for (uint64_t i = 0; i < _sizeToFill; i++) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      containerExpression->getLocation());
 
-    llvm::Value *itemValue =
-        _expressionGenerationFactory
-            ->createStrategy(
-                containerExpression->getElementsRef()[i].get()->getKind())
-            ->generateExpression(
-                containerExpression->getElementsRef()[i].get());
+  if (_actualSizes[index] < containerExpression->getElementsRef().size()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Container " + _containerName + " size mismatch. Expected " +
+        std::to_string(_actualSizes[index]) + " but got " +
+        std::to_string(containerExpression->getElementsRef().size()));
 
-    // Compute the address of the i-th element
+    return nullptr;
+  }
 
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        arrayType, v, {Builder->getInt32(0), Builder->getInt64(i)});
+  for (uint64_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
+    indices.push_back(Builder->getInt32(i));
 
-    // UnTyped Container
-    if (_codeGenerationContext->getDynamicType()->isDyn(_elementType)) {
-
-      std::string containerName = "";
-
-      if (_isGlobal) {
-        containerName += FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX;
-      }
-
-      containerName += _containerName + "_" + std::to_string(i);
-
-      _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-          elementPtr, itemValue, itemValue->getType(), containerName);
+    if (containerExpression->getElementsRef()[i].get()->getKind() ==
+        BinderKindUtils::BoundContainerExpression) {
+      createExpressionAtom(
+          arrayType, v,
+          (BoundContainerExpression *)containerExpression->getElementsRef()[i]
+              .get(),
+          indices, index + 1);
 
     } else {
+      llvm::Value *itemValue =
+          _expressionGenerationFactory
+              ->createStrategy(
+                  containerExpression->getElementsRef()[i].get()->getKind())
+              ->generateExpression(
+                  containerExpression->getElementsRef()[i].get());
+
+      // Compute the address of the i-th element
+
+      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
 
       if (_elementType != itemValue->getType()) {
         std::string elementTypeName =
@@ -147,11 +167,42 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
 
         return nullptr;
       }
-
       // Typed Container
       Builder->CreateStore(itemValue, elementPtr);
     }
+    indices.pop_back();
   }
+
+  return nullptr;
+}
+
+llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
+    llvm::Type *arrayType, llvm::Value *v,
+    BoundContainerExpression *containerExpression) {
+  // UnTyped Container
+  if (_codeGenerationContext->getDynamicType()->isDyn(_elementType)) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Container of dynamic type is not supported");
+
+    return nullptr;
+
+    // std::string containerName = "";
+
+    // if (_isGlobal) {
+    //   containerName += FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX;
+    // }
+
+    // containerName += _containerName + "_" + std::to_string(i);
+
+    // _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+    //     elementPtr, itemValue, itemValue->getType(), containerName);
+  }
+
+  std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+
+  createExpressionAtom(arrayType, v, containerExpression, indices, 0);
+
   return v;
 }
 

@@ -58,6 +58,24 @@ public:
 
   void callREF(const std::string &error);
 
+  void setArraySizeMetadata(llvm::Value *array,
+                            const std::vector<std::size_t> &sizes);
+
+  void getArraySizeMetadata(llvm::Value *array,
+                            std::vector<std::size_t> &sizes);
+
+  void setArrayElementTypeMetadata(llvm::Value *array, llvm::Type *elementType);
+
+  void setMetadata(const std::string kind, llvm::Value *array,
+                   const std::string &metaData);
+
+  void getMetaData(const std::string kind, llvm::Value *array,
+                   std::string &metaData);
+  llvm::Type *getArrayElementTypeMetadata(llvm::Value *array);
+  void getMultiArrayType(llvm::ArrayType *&arrayType, llvm::Constant *&def,
+                         const std::vector<uint64_t> &actualSizes,
+                         llvm::Type *elementType);
+
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;

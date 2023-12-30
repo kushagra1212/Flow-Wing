@@ -14,8 +14,8 @@ class ContainerStatementSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
-  std::unique_ptr<ExpressionSyntax> _containerSizeExpression;
   std::unique_ptr<ExpressionSyntax> _containerExpression;
+  std::vector<std::unique_ptr<ExpressionSyntax>> _containerSizeExpressions;
 
   Utils::type _type;
 
@@ -35,15 +35,19 @@ public:
   setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken)
       -> void;
   auto setType(Utils::type type) -> void;
-  auto setContainerSizeExpression(std::unique_ptr<ExpressionSyntax> item)
+  auto addContainerSizeExpression(std::unique_ptr<ExpressionSyntax> item)
       -> void;
   auto setKeyword(std::unique_ptr<SyntaxToken<std::any>> keyword) -> void;
 
   // Getters
   const std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenRef() const;
   const std::unique_ptr<ExpressionSyntax> &getContainerExpressionRef() const;
-  const std::unique_ptr<ExpressionSyntax> &
-  getContainerSizeExpressionRef() const;
+
+  inline const std::vector<std::unique_ptr<ExpressionSyntax>> &
+  getContainerSizeExpressionsRef() const {
+    return this->_containerSizeExpressions;
+  }
+
   const Utils::type &getType() const;
 };
 

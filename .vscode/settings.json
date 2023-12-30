@@ -133,7 +133,7 @@
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "clang-format.executable": "/usr/local/llvm-17/clang+llvm/bin/clang-format",
-  "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
+  "workbench.colorTheme": "Default Dark Modern",
    "editor.codeActionsOnSave": {
   },
 }

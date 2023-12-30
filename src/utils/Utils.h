@@ -81,7 +81,8 @@ auto getSourceCodeFromFilePath(const std::string &filePath)
 std::string getAbsoluteFilePath(std::string relativeFilePath);
 std::vector<std::string> readLines(std::string absoluteFilePath);
 
-std::vector<std::string> split(const std::string &s, const std::string &delim);
+void split(const std::string &s, const std::string &delim,
+           std::vector<std::string> &tokens);
 
 bool isInteger(const std::string &str);
 

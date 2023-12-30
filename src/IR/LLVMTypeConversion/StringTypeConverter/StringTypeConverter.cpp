@@ -5,6 +5,10 @@ StringTypeConverter::StringTypeConverter(CodeGenerationContext *context)
 
 llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
 
+  if (llvm::isa<llvm::PointerType>(value->getType())) {
+    return value;
+  }
+
   if (auto globalString = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);

@@ -20,7 +20,7 @@ void JITCompiler::execute() {
   std::string errorMessage;
   executionEngine = llvm::EngineBuilder(std::move(TheModule))
                         .setErrorStr(&errorMessage)
-                        .setEngineKind(llvm::EngineKind::JIT)
+                        .setEngineKind(llvm::EngineKind::Kind::JIT)
                         .setOptLevel(llvm::CodeGenOpt::Less)
                         .create();
 

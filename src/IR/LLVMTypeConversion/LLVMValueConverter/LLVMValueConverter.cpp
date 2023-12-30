@@ -65,21 +65,25 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
     }
   }
 
-  llvm::Constant *strConstant =
-      llvm::ConstantDataArray::getString(*_llvmContext, value);
+  return _builder->CreateGlobalStringPtr(value);
 
-  llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
-      *_module, strConstant->getType(),
-      true, // isConstant
-      llvm::GlobalValue::ExternalLinkage, strConstant, value + ".str");
+  // llvm::Constant *strConstant =
+  //     llvm::ConstantDataArray::getString(*_llvmContext, value);
 
-  llvm::Value *zero =
-      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*_llvmContext), 0);
-  llvm::Value *indices[] = {zero, zero};
-  llvm::Value *strPtr = _builder->CreateInBoundsGEP(strConstant->getType(),
-                                                    strVar, indices, "str_ptr");
+  // llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
+  //     *_module, strConstant->getType(),
+  //     true, // isConstant
+  //     llvm::GlobalValue::ExternalLinkage, strConstant, value + ".str");
 
-  llvm::Value *elementPtr = _builder->CreateBitCast(
-      strPtr, llvm::IntegerType::getInt8PtrTy((*_llvmContext)), "element_ptr");
-  return elementPtr;
+  // llvm::Value *zero =
+  //     llvm::ConstantInt::get(llvm::Type::getInt32Ty(*_llvmContext), 0);
+  // llvm::Value *indices[] = {zero, zero};
+  // llvm::Value *strPtr = _builder->CreateInBoundsGEP(strConstant->getType(),
+  //                                                   strVar, indices,
+  //                                                   "str_ptr");
+
+  // llvm::Value *elementPtr = _builder->CreateBitCast(
+  //     strPtr, llvm::IntegerType::getInt8PtrTy((*_llvmContext)),
+  //     "element_ptr");
+  // return strPtr;
 }

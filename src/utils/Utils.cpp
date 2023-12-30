@@ -1,8 +1,8 @@
 #include "Utils.h"
 
-std::vector<std::string> Utils::split(const std::string &str,
-                                      const std::string &delim) {
-  std::vector<std::string> tokens;
+void Utils::split(const std::string &str, const std::string &delim,
+                  std::vector<std::string> &tokens) {
+
   size_t prev = 0, pos = 0;
   do {
     pos = str.find(delim, prev);
@@ -14,8 +14,6 @@ std::vector<std::string> Utils::split(const std::string &str,
 
     prev = pos + delim.length();
   } while (pos < str.length() && prev < str.length());
-
-  return tokens;
 
   // std::vector<std::string> tokens;
 }

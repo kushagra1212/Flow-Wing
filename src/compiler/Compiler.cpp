@@ -156,7 +156,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
   // TheModule->print(llvm::outs(), nullptr);
 
-  // llFileSaveStrategy->saveToFile("my_module.ll", TheModule.get());
+  llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
 
 #endif
 

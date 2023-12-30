@@ -12,13 +12,21 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   llvm::Value *handleGlobalVariable(llvm::GlobalVariable *variable,
-                                    llvm::Value *indexValue,
                                     std::string variableName);
 
-  llvm::Value *handleArrayTypeIndexing(const std::string &variableName,
-                                       llvm::Value *variable,
-                                       llvm::Value *indexValue,
-                                       llvm::ArrayType *arrayType);
+  llvm::Value *handleArrayTypeIndexing();
+
+  void verifyBounds(llvm::Value *index, llvm::ConstantInt *actualSize);
+
+  const bool canGenerateExpression(const std::string &variableName);
+
+private:
+  std::vector<llvm::Value *> _indices;
+  std::vector<llvm::ConstantInt *> _actualSizes;
+  std::string _variableName;
+  llvm::Type *_arrayElementType;
+  llvm::Value *_variable;
+  llvm::ArrayType *_arrayType;
 };
 
 #endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__

@@ -15,7 +15,8 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
   const Utils::type &containerElementType =
       containerStatement->getContainerTypeRef();
-  uint64_t actualSize = this->getActualContainerSize(containerStatement);
+  std::vector<uint64_t> actualSizes =
+      this->getActualContainerSize(containerStatement);
   const std::string &containerName = containerStatement->getVariableNameRef();
 
   llvm::Type *elementType =
@@ -41,7 +42,7 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
 
     std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
         std::make_unique<ContainerExpressionGenerationStrategy>(
-            _codeGenerationContext, actualSize, elementType, containerName);
+            _codeGenerationContext, actualSizes, elementType, containerName);
 
     return specificStrategy->generateExpression(
         bracketedExpression->getExpressionRef().get());
@@ -51,7 +52,7 @@ llvm::Value *ContainerStatementGenerationStrategy::generateStatement(
 
     std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
         std::make_unique<FillExpressionGenerationStrategy>(
-            _codeGenerationContext, actualSize, elementType, containerName);
+            _codeGenerationContext, actualSizes, elementType, containerName);
 
     return specificStrategy->generateExpression(
         bracketedExpression->getExpressionRef().get());
@@ -73,7 +74,8 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
   auto containerStatement = static_cast<BoundContainerStatement *>(statement);
   const Utils::type &containerElementType =
       containerStatement->getContainerTypeRef();
-  uint64_t actualSize = this->getActualContainerSize(containerStatement);
+  std::vector<uint64_t> actualSizes =
+      this->getActualContainerSize(containerStatement);
   const std::string &containerName = containerStatement->getVariableNameRef();
 
   llvm::Type *elementType =
@@ -99,7 +101,7 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
 
     std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
         std::make_unique<ContainerExpressionGenerationStrategy>(
-            _codeGenerationContext, actualSize, elementType, containerName);
+            _codeGenerationContext, actualSizes, elementType, containerName);
 
     return specificStrategy->generateGlobalExpression(
         bracketedExpression->getExpressionRef().get());
@@ -109,7 +111,7 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
 
     std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
         std::make_unique<FillExpressionGenerationStrategy>(
-            _codeGenerationContext, actualSize, elementType, containerName);
+            _codeGenerationContext, actualSizes, elementType, containerName);
 
     return specificStrategy->generateGlobalExpression(
         bracketedExpression->getExpressionRef().get());
@@ -125,24 +127,33 @@ llvm::Value *ContainerStatementGenerationStrategy::generateGlobalStatement(
   return nullptr;
 }
 
-size_t ContainerStatementGenerationStrategy::getActualContainerSize(
+std::vector<uint64_t>
+ContainerStatementGenerationStrategy::getActualContainerSize(
     BoundContainerStatement *containerStatement) {
 
-  llvm::Value *sizeValue =
-      _expressionGenerationFactory
-          ->createStrategy(containerStatement->getContainerSizeExpressionRef()
-                               .get()
-                               ->getKind())
-          ->generateExpression(
-              containerStatement->getContainerSizeExpressionRef().get());
+  std::vector<uint64_t> actualSizes;
 
-  llvm::ConstantInt *sizeConstInt =
-      llvm::dyn_cast<llvm::ConstantInt>(sizeValue);
-  if (!sizeConstInt) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Container size must be an integer");
-    return 0;
+  for (uint64_t i = 0;
+       i < containerStatement->getContainerSizeExpressions().size(); i++) {
+    llvm::Value *sizeValue =
+        _expressionGenerationFactory
+            ->createStrategy(
+                containerStatement->getContainerSizeExpressions()[i]
+                    .get()
+                    ->getKind())
+            ->generateExpression(
+                containerStatement->getContainerSizeExpressions()[i].get());
+
+    llvm::ConstantInt *sizeConstInt =
+        llvm::dyn_cast<llvm::ConstantInt>(sizeValue);
+    if (!sizeConstInt) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Container size must be an integer");
+      return {};
+    }
+
+    actualSizes.push_back(sizeConstInt->getZExtValue());
   }
 
-  return sizeConstInt->getZExtValue();
+  return actualSizes;
 }

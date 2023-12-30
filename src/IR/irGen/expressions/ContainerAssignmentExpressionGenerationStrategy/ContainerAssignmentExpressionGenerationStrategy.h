@@ -24,6 +24,12 @@ public:
                                 llvm::Value *rhsSize, llvm::Value *rhsVariable,
                                 llvm::ArrayType *rhsArrayType);
 
+  void assignArray(llvm::ArrayType *&arrayType, llvm::Value *&variable,
+                   llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
+                   llvm::Type *&rhsArrayElementType,
+                   std::vector<llvm::Value *> &indices,
+                   const std::vector<size_t> &rhsSizes, uint64_t index);
+
 private:
   // LHS
   std::string _containerName;

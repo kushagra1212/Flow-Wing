@@ -1,33 +1,39 @@
-fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
-    
-      a = [2 fill 10]
-      b = [2 fill false]
-      c = [2 fill "hello"]
-      d = [2 fill 10.10]
-    
-    print(a)
-    print(b)
-    print(c)
-    print(d)
-    a[0] = 100
-    b[0] = true
-    c[0] = "hello world"
-    d[0] = 100.10
-    print(a)
-    print(b)
-    print(c)
-    print(d)
-}
 
-{
-    var a:int[5] = [1, 2, 3, 4, 5]
-    var b:bool[5] = [true, false, true, false, true]
-    var c:str[5] = ["a", "b", "c", "d", "e"]
-    var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
 
-    test(a, b, c, d)
-    print(a)
-    print(b)
-    print(c)
-    print(d)
-}
+
+/#var x:int[5][5] = [3 fill 10]
+var y:int[2][5] = [10 fill 1]
+/;y = [10 fill 20]
+print(x[1][2])
+x[2][3] = 11
+var i = 2
+print("\ny ")
+print(y)
+print("\nx Before")
+print(x)
+print("\nx After")
+x = y
+print(x)
+print("\n")
+print(y)
+
+
+
+
+
+
+
+
+
+
+
+/#
+
+TODO:
+
+THIS IS LEFT
+      print(x)
+     ->   x = [ 2 fill 5 ]
+     -> container passing to function
+     -> returning container from function
+     -> Containers of Containers

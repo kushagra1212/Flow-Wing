@@ -9,11 +9,12 @@ class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
 public:
   ContainerExpressionGenerationStrategy(CodeGenerationContext *context,
-                                        uint64_t actualSize,
+                                        std::vector<uint64_t> actualSizes,
                                         llvm::Type *elementType,
                                         const std::string &containerName);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
+
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   // Specialized for BoundContainerExpression
@@ -32,8 +33,14 @@ public:
   const bool
   canGenerateExpression(BoundContainerExpression *containerExpression);
 
+  llvm::Value *
+  createExpressionAtom(llvm::Type *&arrayType, llvm::Value *&v,
+                       BoundContainerExpression *containerExpression,
+                       std::vector<llvm::Value *> &indices, uint64_t index);
+
 private:
-  uint64_t _actualSize;
+  uint64_t _totalSize;
+  std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
   std::string _containerName;
   uint64_t _sizeToFill;

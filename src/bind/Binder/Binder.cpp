@@ -261,8 +261,18 @@ std::unique_ptr<BoundExpression> Binder::bindContainerExpression(
           containerExpression->getSourceLocation());
 
   for (int i = 0; i < containerExpression->getElementsRef().size(); i++) {
-    std::unique_ptr<BoundExpression> boundExpression = std::move(
-        bindExpression(containerExpression->getElementsRef()[i].get()));
+    std::unique_ptr<BoundExpression> boundExpression = nullptr;
+
+    if (containerExpression->getElementsRef()[i]->getKind() ==
+        SyntaxKindUtils::SyntaxKind::ContainerExpression) {
+      boundExpression = std::move(bindContainerExpression(
+          (ContainerExpressionSyntax *)containerExpression->getElementsRef()[i]
+              .get()));
+    } else {
+      boundExpression = std::move(
+          bindExpression(containerExpression->getElementsRef()[i].get()));
+    }
+
     boundContainerExpression->setElement(std::move(boundExpression));
   }
 
@@ -331,11 +341,10 @@ Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
           containerSyntax->getSourceLocation(), containerSyntax->getType(),
           std::move(variable_str));
 
-  std::unique_ptr<BoundExpression> boundContainerSizeExpression = std::move(
-      bindExpression(containerSyntax->getContainerSizeExpressionRef().get()));
-
-  boundContainerStatement->setContainerSizeExpression(
-      std::move(boundContainerSizeExpression));
+  for (const auto &exp : containerSyntax->getContainerSizeExpressionsRef()) {
+    boundContainerStatement->addContainerSizeExpression(
+        std::move(bindExpression(exp.get())));
+  }
 
   BracketedExpressionSyntax *bracketedExpression =
       (BracketedExpressionSyntax *)containerSyntax->getContainerExpressionRef()
@@ -493,8 +502,8 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
                            ->getTokenPtr()
                            .get())));
 
-    return std::move(
-        bindExpression(indexExpression->getIndexEpressionPtr().get()));
+    return std::move(bindExpression(
+        indexExpression->getIndexIdentifierExpressionPtr().get()));
   }
 
   Utils::Variable variable = root->tryGetVariable(variableName);
@@ -509,18 +518,22 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
                            ->getTokenPtr()
                            .get())));
   }
-
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
       (BoundLiteralExpression<std::any> *)bindExpression(
           indexExpression->getIndexIdentifierExpressionPtr().get())
           .release());
 
-  std::unique_ptr<BoundExpression> boundExpression =
-      std::move(bindExpression(indexExpression->getIndexEpressionPtr().get()));
+  std::unique_ptr<BoundIndexExpression> boundIndexExp =
+      std::make_unique<BoundIndexExpression>(
+          indexExpression->getSourceLocation(),
+          std::move(boundIdentifierExpression));
 
-  return std::make_unique<BoundIndexExpression>(
-      indexExpression->getSourceLocation(),
-      std::move(boundIdentifierExpression), std::move(boundExpression));
+  for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
+    boundIndexExp->addBoundIndexExpression(
+        std::move(bindExpression(indexExp.get())));
+  }
+
+  return std::move(boundIndexExp);
 }
 
 std::unique_ptr<BoundExpression>

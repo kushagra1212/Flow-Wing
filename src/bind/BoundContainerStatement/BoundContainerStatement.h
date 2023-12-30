@@ -12,7 +12,7 @@ class BoundContainerStatement : public BoundStatement,
 private:
   Utils::type _type;
   std::string _variableName;
-  std::unique_ptr<BoundExpression> _containerSizeExpression;
+  std::vector<std::unique_ptr<BoundExpression>> _containerSizeExpressions;
   std::unique_ptr<BoundExpression> _containerExpression;
 
 public:
@@ -28,8 +28,11 @@ public:
   /*
     Setters
   */
-  void setContainerSizeExpression(
-      std::unique_ptr<BoundExpression> containerSizeExpression);
+  inline void addContainerSizeExpression(
+      std::unique_ptr<BoundExpression> containerSizeExpression) {
+    this->_containerSizeExpressions.push_back(
+        std::move(containerSizeExpression));
+  }
 
   void
   setBracketedExpression(std::unique_ptr<BoundExpression> containerExpression);
@@ -41,8 +44,16 @@ public:
   auto getContainerTypeRef() const -> const Utils::type &;
   auto getBracketedExpressionRef() const
       -> const std::unique_ptr<BoundExpression> &;
-  auto getContainerSizeExpressionRef() const
-      -> const std::unique_ptr<BoundExpression> &;
+
+  inline auto getContainerSizeExpressions() const
+      -> const std::vector<std::unique_ptr<BoundExpression>> & {
+    return this->_containerSizeExpressions;
+  }
+
+  inline const std::vector<std::unique_ptr<BoundExpression>> &
+  getContainerSizeExpressionsRef() const {
+    return this->_containerSizeExpressions;
+  }
 };
 
 #endif //  __BOUND_CONTAINER_STATEMENT_H__

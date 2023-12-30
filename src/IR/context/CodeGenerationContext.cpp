@@ -206,3 +206,105 @@ void CodeGenerationContext::callREF(const std::string &error) {
       {_builder->CreateGlobalStringPtr(this->getLogger()->getLLVMErrorMsg(
           error, this->getLogger()->getCurrentSourceLocation()))});
 }
+
+void CodeGenerationContext::setMetadata(const std::string kind, llvm::Value *v,
+                                        const std::string &metaData) {
+
+  llvm::MDNode *metaNode = llvm::MDNode::get(
+      *this->getContext(), llvm::MDString::get(*this->getContext(), metaData));
+
+  // Add metadata to the instruction
+
+  if (llvm::isa<llvm::GlobalVariable>(v)) {
+    llvm::cast<llvm::GlobalVariable>(v)->setMetadata(kind, metaNode);
+  } else if (llvm::isa<llvm::AllocaInst>(v)) {
+    llvm::cast<llvm::AllocaInst>(v)->setMetadata(kind, metaNode);
+  } else {
+    this->getLogger()->LogError("Could not set metadata for " +
+                                v->getName().str());
+  }
+}
+
+void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
+                                        std::string &metaData) {
+
+  llvm::MDNode *metaNode = nullptr;
+
+  if (llvm::isa<llvm::GlobalVariable>(v)) {
+    metaNode = llvm::cast<llvm::GlobalVariable>(v)->getMetadata(kind);
+
+  } else if (llvm::isa<llvm::AllocaInst>(v)) {
+    metaNode = llvm::cast<llvm::AllocaInst>(v)->getMetadata(kind);
+  }
+  if (!metaNode) {
+
+    this->getLogger()->LogError("Could not find metadata for " +
+                                v->getName().str());
+
+    return;
+  }
+
+  metaData = llvm::cast<llvm::MDString>(metaNode->getOperand(0))->getString();
+}
+
+void CodeGenerationContext::setArraySizeMetadata(
+    llvm::Value *array, const std::vector<std::size_t> &sizes) {
+  std::string metaData = "";
+
+  for (const auto &size : sizes) {
+    metaData += std::to_string(size) + ":";
+  }
+
+  setMetadata("I", array, metaData);
+}
+void CodeGenerationContext::getArraySizeMetadata(
+    llvm::Value *array, std::vector<std::size_t> &sizes) {
+
+  std::string metaData = "";
+
+  getMetaData("I", array, metaData);
+
+  std::vector<std::string> sizesStr;
+  Utils::split(metaData, ":", sizesStr);
+
+  for (const auto &sizeStr : sizesStr) {
+    sizes.push_back(std::stoll(sizeStr));
+  }
+}
+
+void CodeGenerationContext::setArrayElementTypeMetadata(
+    llvm::Value *array, llvm::Type *elementType) {
+  std::string metaData =
+      std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
+  setMetadata("ET", array, metaData);
+}
+llvm::Type *
+CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
+  std::string metaData = "";
+  getMetaData("ET", array, metaData);
+  std::vector<std::string> sizesStr;
+  Utils::split(metaData, ":", sizesStr);
+
+  if (sizesStr.size() != 1) {
+    this->getLogger()->LogError("Invalid metadata for array element type");
+    return nullptr;
+  }
+
+  return getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(sizesStr[0]));
+}
+
+void CodeGenerationContext::getMultiArrayType(
+    llvm::ArrayType *&arrayType, llvm::Constant *&def,
+    const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
+
+  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+    if (arrayType == nullptr) {
+      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+    } else {
+      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+    }
+
+    def = llvm::ConstantArray::get(
+        arrayType, std::vector<llvm::Constant *>(actualSizes[i], def));
+  }
+}

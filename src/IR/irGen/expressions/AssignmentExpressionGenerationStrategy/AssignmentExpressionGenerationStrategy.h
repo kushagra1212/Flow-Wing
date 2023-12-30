@@ -27,10 +27,6 @@ public:
   llvm::Value *handleGlobalLiteralExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
-  llvm::Value *handleGlobalIndexExpressionAssignment(
-      llvm::GlobalVariable *variable, llvm::Value *indexValue, llvm::Value *rhs,
-      const std::string &variableName);
-
   bool canGenerateLiteralExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
@@ -71,6 +67,7 @@ private:
   llvm::GlobalVariable *_previousGlobalVariable;
   Utils::type _variableType;
   bool _isGlobal;
+  std::vector<llvm::Value *> _indices;
 };
 
 #endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

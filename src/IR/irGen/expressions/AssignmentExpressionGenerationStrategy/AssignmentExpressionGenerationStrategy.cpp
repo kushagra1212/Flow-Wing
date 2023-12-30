@@ -24,9 +24,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
     return nullptr;
   }
 
-  llvm::Value *loadedValue =
-      Builder->CreateLoad(variable->getValueType(), variable, variableName);
-
   Builder->CreateStore(rhsValue, variable);
   return nullptr;
 }
@@ -244,6 +241,9 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
   return handlePrimitiveLocalVariableAssignment(_variableName, _variableType,
                                                 rhsValue);
 }
+
+// CONTAINER ASSIGNMENT EXPRESSION GENERATION STRATEGY
+
 llvm::Value *
 AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     BoundAssignmentExpression *assignmentExpression) {
@@ -267,19 +267,22 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     return nullptr;
   }
 
-  llvm::Value *indexValue =
-      _expressionGenerationFactory
-          ->createStrategy(
-              indexExpression->getBoundIndexExpression().get()->getKind())
-          ->generateExpression(
-              indexExpression->getBoundIndexExpression().get());
+  for (const auto &index : indexExpression->getBoundIndexExpressions()) {
+    llvm::Value *indexValue =
+        _expressionGenerationFactory->createStrategy(index.get()->getKind())
+            ->generateExpression(index.get());
 
-  if (!indexValue) {
+    indexValue = _int32TypeConverter->convertExplicit(indexValue);
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Index value not found in assignment expression");
-
-    return nullptr;
+    if (!_codeGenerationContext->getMapper()->isInt32Type(
+            indexValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected index value to be of type int but got " +
+          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+              indexValue->getType())));
+      return nullptr;
+    }
+    _indices.push_back(indexValue);
   }
 
   llvm::Value *loadedElementValue =
@@ -312,28 +315,33 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   std::string variableName = std::any_cast<std::string>(
       (indexExpression->getBoundIdentifierExpression().get())->getValue());
 
-  llvm::AllocaInst *v =
+  llvm::AllocaInst *alloca =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+  llvm::Type *arrayType = nullptr;
 
-  if (!v) {
-    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+  llvm::Value *v = nullptr;
 
-    if (variable) {
+  if (!alloca) { // Error Already Handled Look at the index
+                 // expression Up :)
+    llvm::GlobalVariable *gv = TheModule->getGlobalVariable(
+        variableName); // Error was handled before
+                       // in the index expression (var loadedElementValue)
 
-      return this->handleGlobalIndexExpressionAssignment(
-          variable, indexValue, rhsValue, variableName);
-    }
+    arrayType = llvm::cast<llvm::ArrayType>(gv->getValueType());
+    v = gv;
+  } else {
+    arrayType = llvm::cast<llvm::ArrayType>(alloca->getAllocatedType());
+    v = alloca;
+  }
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression , " + variableName);
+  std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-    return nullptr;
+  for (auto index : _indices) {
+    indexList.push_back(index);
   }
 
   // Get Element pointer
-  llvm::Value *elementPtr = Builder->CreateGEP(
-      v->getAllocatedType(), v,
-      {Builder->getInt32(0), _int32TypeConverter->convertExplicit(indexValue)});
+  llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
 
   // Untyped Container
   if (Utils::isDynamicTypedContainerType(_variableType)) {
@@ -370,82 +378,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
   return nullptr;
 }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
-    llvm::GlobalVariable *variable, llvm::Value *indexValue, llvm::Value *rhs,
-    const std::string &variableName) {
-
-  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-
-    llvm::ArrayType *arrayType =
-        llvm::dyn_cast<llvm::ArrayType>(variable->getValueType());
-
-    llvm::Type *elementType = arrayType->getElementType();
-    const uint64_t size = arrayType->getNumElements();
-
-    llvm::Function *function = Builder->GetInsertBlock()->getParent();
-    llvm::BasicBlock *thenBB =
-        llvm::BasicBlock::Create(*TheContext, "then", function);
-    llvm::BasicBlock *elseBB =
-        llvm::BasicBlock::Create(*TheContext, "else", function);
-    llvm::BasicBlock *mergeBB =
-        llvm::BasicBlock::Create(*TheContext, "merge", function);
-
-    // TODO: TO 64 Bit
-    llvm::Value *isLessThan = Builder->CreateICmpSLT(
-        indexValue,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), size, true),
-        "isLessThan");
-
-    llvm::Value *isGreaterThan = Builder->CreateICmpSGE(
-        indexValue,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true),
-        "isGreaterThan");
-
-    llvm::Value *isWithinBounds =
-        Builder->CreateAnd(isLessThan, isGreaterThan, "isWithinBounds");
-
-    // Create the conditional branch
-    Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
-
-    // In the then block,  can continue with the array access
-    Builder->SetInsertPoint(thenBB);
-
-    llvm::Value *elementPtr =
-        Builder->CreateGEP(elementType, variable, indexValue);
-
-    // Untyped Container
-    if (Utils::isDynamicTypedContainerType(_variableType)) {
-
-      _codeGenerationContext->getLogger()->LogError(
-          "Dynamic typed container not supported in assignment expression");
-
-      return rhs;
-    } else {
-      Builder->CreateStore(rhs, elementPtr);
-    }
-
-    Builder->CreateBr(mergeBB);
-
-    Builder->SetInsertPoint(elseBB);
-
-    _codeGenerationContext->callREF("Index out of bounds of '" + variableName +
-                                    "' in index expression, array size is " +
-                                    std::to_string(size));
-
-    Builder->CreateBr(mergeBB);
-
-    // Continue from the merge block
-    Builder->SetInsertPoint(mergeBB);
-
-    return rhs;
-  }
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable not found in assignment expression ");
-
-  return nullptr;
-}
 llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =

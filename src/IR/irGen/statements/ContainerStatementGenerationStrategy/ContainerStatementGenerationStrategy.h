@@ -7,7 +7,8 @@
 class ContainerStatementGenerationStrategy
     : public StatementGenerationStrategy {
 
-  size_t getActualContainerSize(BoundContainerStatement *containerStatement);
+  std::vector<uint64_t>
+  getActualContainerSize(BoundContainerStatement *containerStatement);
 
 public:
   ContainerStatementGenerationStrategy(CodeGenerationContext *context);

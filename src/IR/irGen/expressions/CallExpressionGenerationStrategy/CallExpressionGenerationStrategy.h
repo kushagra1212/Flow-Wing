@@ -22,9 +22,16 @@ public:
   llvm::Value *printArray(llvm::ArrayType *arrayType, llvm::Type *elementType,
                           llvm::Value *v);
 
+  llvm::Value *printArrayAtom(llvm::ArrayType *&arrayType, llvm::Value *&v,
+                              const std::vector<size_t> &sizes,
+                              std::vector<llvm::Value *> &indices, int64_t i,
+                              llvm::Type *&elementType);
   llvm::Type *isGlobalArray(llvm::Value *value);
 
   llvm::Type *isLocalArray(llvm::Value *value);
+  void printUnit(const std::string &unit, const std::string &unitName);
+
+  llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
 };
 
 #endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

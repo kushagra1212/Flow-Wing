@@ -62,7 +62,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
     std::unique_ptr<ContainerExpressionGenerationStrategy>
         containerExpressionGenerationStrategy =
             std::make_unique<ContainerExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
+                _codeGenerationContext,
+                std::vector<uint64_t>({arrayType->getNumElements()}),
                 elementType, _containerName);
 
     if (!containerExpressionGenerationStrategy->canGenerateExpression(
@@ -81,7 +82,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
     std::unique_ptr<FillExpressionGenerationStrategy>
         fillExpressionGenerationStrategy =
             std::make_unique<FillExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
+                _codeGenerationContext,
+                std::vector<uint64_t>({arrayType->getNumElements()}),
                 elementType, _containerName);
 
     if (!fillExpressionGenerationStrategy->canGenerateExpression(
@@ -153,7 +155,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
     std::unique_ptr<ContainerExpressionGenerationStrategy>
         containerExpressionGenerationStrategy =
             std::make_unique<ContainerExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
+                _codeGenerationContext,
+                std::vector<uint64_t>({arrayType->getNumElements()}),
                 elementType, _containerName);
 
     if (!containerExpressionGenerationStrategy->canGenerateExpression(
@@ -172,7 +175,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
     std::unique_ptr<FillExpressionGenerationStrategy>
         fillExpressionGenerationStrategy =
             std::make_unique<FillExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
+                _codeGenerationContext,
+                std::vector<uint64_t>({arrayType->getNumElements()}),
                 elementType, _containerName);
 
     if (!fillExpressionGenerationStrategy->canGenerateExpression(

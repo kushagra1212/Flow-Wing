@@ -87,6 +87,17 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         return nullptr;
       }
 
+      if (llvm::isa<llvm::ArrayType>(value->getType())) {
+
+        llvm::ArrayType *arrayType =
+            llvm::cast<llvm::ArrayType>(value->getType());
+        llvm::Type *elementType = arrayType->getElementType();
+
+        if (!elementType->isIntegerTy(8)) {
+          return printArray(arrayType, elementType, value);
+        }
+      }
+
       // check if value is element pointer
       if (llvm::isa<llvm::GetElementPtrInst>(value)) {
         auto v = static_cast<llvm::GetElementPtrInst *>(value);
@@ -290,11 +301,11 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     // Get the metadata
     llvm::MDNode *metadata = calleeFunction->getMetadata(argKey);
     if (metadata) {
-      // If the metadata exists, print it
+      // If the metadata exists,
       llvm::MDString *argInfoMD =
           llvm::cast<llvm::MDString>(metadata->getOperand(0));
-      std::vector<std::string> vars =
-          Utils::split(argInfoMD->getString().str(), ":");
+      std::vector<std::string> vars;
+      Utils::split(argInfoMD->getString().str(), ":", vars);
 
       if (vars[2] == "Array") {
 
@@ -342,44 +353,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     }
     // END
   }
-  for (int i = 0; i < paramTypes.size(); i++) {
 
-    // if (_codeGenerationContext->getDynamicType()->isDyn(paramTypes[i])) {
-    //   _codeGenerationContext->getLogger()->LogError(
-    //       "Dynamic Type is not supported in function call expression ");
-
-    //   return nullptr;
-    // }
-
-    // // Array Type
-    // if (llvm::isa<llvm::ArrayType>(paramTypes[i])) {
-    //   int retFlag;
-    //   handleArrayArgs(paramTypes, i, args, callExpression, retFlag);
-    //   if (retFlag == 3)
-    //     continue;
-    //   return nullptr;
-    // }
-
-    // if (paramTypes[i] != args[i]->getType()) {
-
-    //   const std::string parameterName =
-    //       definedFunction->getParametersRef()[i]->getVariableNameRef();
-    //   const std::string argumentType =
-    //       _codeGenerationContext->getMapper()->getLLVMTypeName(
-    //           args[i]->getType());
-
-    //   const std::string parameterType =
-    //       _codeGenerationContext->getMapper()->getLLVMTypeName(paramTypes[i]);
-
-    //   const std::string errorMessage = "Argument Type " + argumentType +
-    //                                    " does not match with " +
-    //                                    parameterType + " for parameter " +
-    //                                    parameterName;
-
-    //   _codeGenerationContext->getLogger()->LogError(errorMessage);
-    //   return nullptr;
-    // }
-  }
   return Builder->CreateCall(calleeFunction, args);
 }
 
@@ -443,63 +417,63 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
   return this->generateExpression(expression);
 }
 
-llvm::Value *CallExpressionGenerationStrategy::printArray(
-    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v) {
+void CallExpressionGenerationStrategy::printUnit(const std::string &unit,
+                                                 const std::string &unitName) {
 
-  llvm::Value *size = llvm::ConstantInt::get(
-      llvm::Type::getInt32Ty(*TheContext), arrayType->getNumElements());
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                      {getUnit(unit, unitName), Builder->getInt1(false)});
+}
 
-  llvm::Value *arrayPtr = v;
+llvm::Value *
+CallExpressionGenerationStrategy::getUnit(const std::string &unit,
+                                          const std::string &unitName) {
+  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(unitName);
+  if (!variable) {
+    // The global variable doesn't exist, so create it
+    llvm::Constant *initializer = Builder->CreateGlobalStringPtr(unit);
+    variable = new llvm::GlobalVariable(
+        /*Module=*/*TheModule,
+        /*Type=*/initializer->getType(),
+        /*isConstant=*/true,
+        /*Linkage=*/llvm::GlobalValue::ExternalLinkage,
+        /*Initializer=*/initializer,
+        /*Name=*/unitName);
+  }
 
-  std::string arrayName = v->getName().str();
+  return Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), variable);
+}
 
-  llvm::Value *commaPtr = Builder->CreateGlobalStringPtr(", ");
+llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
+    llvm::ArrayType *&arrayType, llvm::Value *&v,
+    const std::vector<size_t> &sizes, std::vector<llvm::Value *> &indices,
+    int64_t index, llvm::Type *&elementType) {
 
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {Builder->CreateGlobalStringPtr("["), Builder->getInt1(false)});
+  if (index < sizes.size()) {
 
-  llvm::Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    printUnit("[", "openBracket");
+    for (int64_t i = 0; i < sizes[index]; i++) {
+      indices.push_back(Builder->getInt32(i));
 
-  // Create blocks
-  llvm::BasicBlock *loopStart =
-      llvm::BasicBlock::Create(*TheContext, "loopStart", TheFunction);
-  llvm::BasicBlock *loopBody =
-      llvm::BasicBlock::Create(*TheContext, "loopBody", TheFunction);
-  llvm::BasicBlock *loopEnd =
-      llvm::BasicBlock::Create(*TheContext, "loopEnd", TheFunction);
+      printArrayAtom(arrayType, v, sizes, indices, index + 1, elementType);
 
-  // Initialize counter
-  llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
-  Builder->CreateStore(Builder->getInt32(0), i);
+      if (i != sizes[index] - 1)
+        printUnit(", ", "comma");
+      indices.pop_back();
+    }
+    printUnit("]", "closeBracket");
+    return nullptr;
+  }
 
-  // Jump to the loop start block
-  Builder->CreateBr(loopStart);
-  // Iterate over each element of the array
-
-  // Loop start block
-  Builder->SetInsertPoint(loopStart);
-  llvm::Value *iVal =
-      Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
-  llvm::Value *cond = Builder->CreateICmpSLT(iVal, size);
-  Builder->CreateCondBr(cond, loopBody, loopEnd);
-
-  // Loop body block
-  Builder->SetInsertPoint(loopBody);
-  llvm::Value *elementPtr =
-      Builder->CreateGEP(arrayType, v, {Builder->getInt32(0), iVal});
-
+  llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
   llvm::Value *innerValue = nullptr;
 
   // Untyped Container Element
   if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
-    llvm::ConstantInt *index = llvm::cast<llvm::ConstantInt>(iVal);
 
     innerValue =
         _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
             elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
-                            arrayName + "_" +
-                            std::to_string(index->getSExtValue()));
+                            v->getName().str() + "_" + std::to_string(index));
   } else {
     // Typed Container Element
     innerValue = Builder->CreateLoad(elementType, elementPtr);
@@ -508,25 +482,97 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(
                       {_stringTypeConverter->convertExplicit(innerValue),
                        Builder->getInt1(false)});
 
-  llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
-  Builder->CreateStore(iNext, i);
-  llvm::Value *isNotLast = Builder->CreateICmpSLT(iNext, size);
-  llvm::BasicBlock *ifBlock =
-      llvm::BasicBlock::Create(*TheContext, "ifBlock", TheFunction);
+  // llvm::Value *size = Builder->getInt32(sizes[index]);
 
-  Builder->CreateCondBr(isNotLast, ifBlock, loopStart);
+  // llvm::Value *arrayPtr = v;
 
-  Builder->SetInsertPoint(ifBlock);
-  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                      {commaPtr, Builder->getInt1(false)});
+  // std::string arrayName = v->getName().str();
 
-  Builder->CreateBr(loopStart);
+  // llvm::Value *commaPtr = Builder->CreateGlobalStringPtr(", ");
 
-  // Loop end block
-  Builder->SetInsertPoint(loopEnd);
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {Builder->CreateGlobalStringPtr("]"), Builder->getInt1(false)});
+  // Builder->CreateCall(
+  //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+  //     {Builder->CreateGlobalStringPtr("["), Builder->getInt1(false)});
+
+  // llvm::Function *TheFunction = Builder->GetInsertBlock()->getParent();
+
+  // // Create blocks
+  // llvm::BasicBlock *loopStart =
+  //     llvm::BasicBlock::Create(*TheContext, "loopStart", TheFunction);
+  // llvm::BasicBlock *loopBody =
+  //     llvm::BasicBlock::Create(*TheContext, "loopBody", TheFunction);
+  // llvm::BasicBlock *loopEnd =
+  //     llvm::BasicBlock::Create(*TheContext, "loopEnd", TheFunction);
+
+  // // Initialize counter
+  // llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
+  // Builder->CreateStore(Builder->getInt32(0), i);
+
+  // // Jump to the loop start block
+  // Builder->CreateBr(loopStart);
+  // // Iterate over each element of the array
+
+  // // Loop start block
+  // Builder->SetInsertPoint(loopStart);
+  // llvm::Value *iVal =
+  //     Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
+  // llvm::Value *cond = Builder->CreateICmpSLT(iVal, size);
+  // Builder->CreateCondBr(cond, loopBody, loopEnd);
+
+  // // Loop body block
+  // Builder->SetInsertPoint(loopBody);
+  // llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
+
+  // llvm::Value *innerValue = nullptr;
+
+  // // Untyped Container Element
+  // if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
+  //   llvm::ConstantInt *index = llvm::cast<llvm::ConstantInt>(iVal);
+
+  //   innerValue =
+  //       _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+  //           elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
+  //                           arrayName + "_" +
+  //                           std::to_string(index->getSExtValue()));
+  // } else {
+  //   // Typed Container Element
+  //   innerValue = Builder->CreateLoad(elementType, elementPtr);
+  // }
+  // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+  //                     {_stringTypeConverter->convertExplicit(innerValue),
+  //                      Builder->getInt1(false)});
+
+  // llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
+  // Builder->CreateStore(iNext, i);
+  // llvm::Value *isNotLast = Builder->CreateICmpSLT(iNext, size);
+  // llvm::BasicBlock *ifBlock =
+  //     llvm::BasicBlock::Create(*TheContext, "ifBlock", TheFunction);
+
+  // Builder->CreateCondBr(isNotLast, ifBlock, loopStart);
+
+  // Builder->SetInsertPoint(ifBlock);
+  // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+  //                     {commaPtr, Builder->getInt1(false)});
+
+  // Builder->CreateBr(loopStart);
+
+  // // Loop end block
+  // Builder->SetInsertPoint(loopEnd);
+  // Builder->CreateCall(
+  //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+  //     {Builder->CreateGlobalStringPtr("]"), Builder->getInt1(true)});
+
+  return nullptr;
+}
+
+llvm::Value *CallExpressionGenerationStrategy::printArray(
+    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v) {
+  std::vector<size_t> sizes;
+  _codeGenerationContext->getArraySizeMetadata(v, sizes);
+  std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+
+  llvm::Type *elt = _codeGenerationContext->getArrayElementTypeMetadata(v);
+  printArrayAtom(arrayType, v, sizes, indices, 0, elt);
 
   return nullptr;
 }
