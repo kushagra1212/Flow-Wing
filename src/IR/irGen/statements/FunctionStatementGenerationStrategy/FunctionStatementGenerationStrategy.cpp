@@ -85,15 +85,21 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       llvm::ArrayType *arrayType =
           llvm::cast<llvm::ArrayType>(llvmArrayPtrType->getElementType());
 
-      llvm::AllocaInst *variable =
+      llvm::Value *variable =
           Builder->CreateAlloca(arrayType, nullptr, parameterNames[i]);
 
-      containerAssignmentExpressionGenerationStrategy->createExpression(
-          arrayType, variable, Builder->getInt32(arrayType->getNumElements()),
-          Builder->getInt32(arrayType->getNumElements()), argValue, arrayType);
+      _codeGenerationContext->setArrayElementTypeMetadata(
+          variable, llvmArrayPtrType->getArrayElementType());
+      _codeGenerationContext->setArraySizeMetadata(
+          variable, llvmArrayPtrType->getDimensions());
 
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
-                                                              variable);
+      containerAssignmentExpressionGenerationStrategy->createExpression(
+          arrayType, variable, argValue, arrayType,
+          llvmArrayPtrType->getArrayElementType(),
+          llvmArrayPtrType->getDimensions(), llvmArrayPtrType->getDimensions());
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(
+          parameterNames[i], (llvm::AllocaInst *)variable);
 
     } else {
 

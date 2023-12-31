@@ -66,6 +66,7 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
             literalExpressionGenerationStrategy =
                 std::make_unique<LiteralExpressionGenerationStrategy>(
                     _codeGenerationContext);
+        std::vector<uint64_t> dimensions(multiDimSize, 0);
         for (int64_t k = multiDimSize - 1; k >= 0; k--) {
 
           llvm::Value *arraySize =
@@ -77,11 +78,10 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
                 "Array size must be a constant integer");
           }
 
-          llvm::ConstantInt *arraySizeConst =
-              llvm::cast<llvm::ConstantInt>(arraySize);
+          dimensions[k] =
+              llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
 
-          parmType =
-              llvm::ArrayType::get(parmType, arraySizeConst->getSExtValue());
+          parmType = llvm::ArrayType::get(parmType, dimensions[k]);
         }
 
         llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
@@ -89,7 +89,11 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
             fd->getFunctionNameRef(),
-            std::make_unique<LLVMArrayType>(parmTypePointer, parmType));
+            std::make_unique<LLVMArrayType>(
+                parmTypePointer, parmType,
+                _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+                    containerElementType),
+                dimensions));
 
       } else {
 
@@ -134,8 +138,11 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
         argInfo = fd->getParametersRef()[i]->getVariableNameRef() + ":" +
                   std::to_string(i) + ":Array:" +
                   _codeGenerationContext->getMapper()->getLLVMTypeName(
-                      arrayType->getElementType()) +
-                  ":size:" + std::to_string(arraySize);
+                      llvmArrayType->getArrayElementType()) +
+                  ":size:";
+        for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++) {
+          argInfo += std::to_string(llvmArrayType->getDimensions()[k]) + ":";
+        }
       } else {
 
         arg->setName("arg" + std::to_string(i));

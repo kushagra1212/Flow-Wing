@@ -1979,4 +1979,39 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill22GL) {
     "false]]truefalsefalsefalsetruetruefalsefalsetrue");
 }
 
+TEST_F(MultiDimContainer, 2DContainerAssignmentWithFill) {
+  I(R"(
+    var y:int[2][5] = [10 fill 1+2]
+    print(y)
+    y = [2 fill 5]
+   print(y)
+        
+    )");
+
+  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+}
+
+TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilLOCAL) {
+  I(R"(
+{    var y:int[2][5] = [10 fill 1+2]
+    print(y)
+    y = [2 fill 5]
+  print(y)
+        }
+    )");
+
+  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+}
+TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilGL) {
+  I(R"(
+  var y:int[2][5] = [10 fill 1+2]
+    print(y)
+  {    y = [2 fill 5]
+   print(y)
+        }
+    )");
+
+  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+}
+
 #endif

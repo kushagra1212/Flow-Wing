@@ -183,38 +183,51 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     llvm::ConstantInt *c = llvm::cast<llvm::ConstantInt>(sizeToFillVal);
 
     _sizeToFillInt = c->getSExtValue();
-    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
-    llvm::BasicBlock *outOfBoundBlock = llvm::BasicBlock::Create(
-        *TheContext, "FillExpr::CHECK::outOfBound", currentBlock->getParent());
+    if (_sizeToFillInt > _totalSize || _sizeToFillInt < 0) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Element to fill is out of bound.  Size to "
+          "fill must be less than to the "
+          "actual size of the container and greater"
+          "than or equal to zero in " +
+          _containerName);
 
-    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-        *TheContext, "FillExpr::CHECK::merge", currentBlock->getParent());
-    llvm::Value *isGreaterThanEqual =
-        Builder->CreateICmpSGT(sizeToFillVal, Builder->getInt32(_totalSize));
+      return false;
+    }
 
-    llvm::Value *isLessThan =
-        Builder->CreateICmpSLE(sizeToFillVal, Builder->getInt32(0));
+    // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
-    llvm::Value *isOutOfBound =
-        Builder->CreateOr(isGreaterThanEqual, isLessThan);
+    // llvm::BasicBlock *outOfBoundBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "FillExpr::CHECK::outOfBound",
+    //     currentBlock->getParent());
 
-    Builder->CreateCondBr(isOutOfBound, outOfBoundBlock, mergeBlock);
+    // llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "FillExpr::CHECK::merge", currentBlock->getParent());
+    // llvm::Value *isGreaterThanEqual =
+    //     Builder->CreateICmpSGT(sizeToFillVal, Builder->getInt32(_totalSize));
 
-    Builder->SetInsertPoint(outOfBoundBlock);
+    // llvm::Value *isLessThan =
+    //     Builder->CreateICmpSLE(sizeToFillVal, Builder->getInt32(0));
 
-    _codeGenerationContext->callREF("Element to fill is out of bound.  Size to "
-                                    "fill must be less than to the "
-                                    "actual size of the container and greater "
-                                    "than or equal to zero:" +
-                                    _containerName);
+    // llvm::Value *isOutOfBound =
+    //     Builder->CreateOr(isGreaterThanEqual, isLessThan);
 
-    Builder->CreateBr(mergeBlock);
+    // Builder->CreateCondBr(isOutOfBound, outOfBoundBlock, mergeBlock);
 
-    Builder->SetInsertPoint(mergeBlock);
+    // Builder->SetInsertPoint(outOfBoundBlock);
+
+    // _codeGenerationContext->callREF("Element to fill is out of bound.  Size
+    // to "
+    //                                 "fill must be less than to the "
+    //                                 "actual size of the container and greater
+    //                                 " "than or equal to zero:" +
+    //                                 _containerName);
+
+    // Builder->CreateBr(mergeBlock);
+
+    // Builder->SetInsertPoint(mergeBlock);
 
   } else {
-    sizeToFillVal = Builder->getInt32(_totalSize);
     _sizeToFillInt = _totalSize;
   }
 

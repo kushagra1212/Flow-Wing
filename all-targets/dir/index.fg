@@ -1,24 +1,17 @@
 
 
+fun main(arr:int[2][2],arr2:int[2][4]) -> nthg {
 
-/#var x:int[5][5] = [3 fill 10]
-var y:int[2][5] = [10 fill 1]
-/;y = [10 fill 20]
-print(x[1][2])
-x[2][3] = 11
-var i = 2
-print("\ny ")
-print(y)
-print("\nx Before")
-print(x)
-print("\nx After")
-x = y
-print(x)
-print("\n")
-print(y)
-
-
-
+     arr = [2 fill 10]
+      print(arr)
+      print(arr2)      
+}
+var arr:int[2][2] =  [ 2 fill 2]
+var arr2:int[2][4] =  [2 fill 3]
+arr2 = arr
+print(arr2)
+print(arr)
+main(arr,arr2)
 
 
 

@@ -30,6 +30,12 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
   if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
     return v;
   }
+  if (!v) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Variable " + variableName + " not found in variable expression ");
+
+    return nullptr;
+  }
 
   // When Primitive Local Variable is not a dynamic type
   if (!_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
@@ -101,6 +107,13 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 
 llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
     const std::string &variableName, llvm::GlobalVariable *variable) {
+
+  if (!variable) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Variable " + variableName + " not found in variable expression ");
+
+    return nullptr;
+  }
 
   // when Global Variable (Value) is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(

@@ -19,14 +19,17 @@ public:
   void setVariable(llvm::Value *var);
   void setContainerName(const std::string &containerName);
 
-  llvm::Value *createExpression(llvm::ArrayType *arrayType,
-                                llvm::Value *variable, llvm::Value *size,
-                                llvm::Value *rhsSize, llvm::Value *rhsVariable,
-                                llvm::ArrayType *rhsArrayType);
+  llvm::Value *createExpression(llvm::ArrayType *&arrayType,
+                                llvm::Value *&variable,
+                                llvm::Value *&rhsVariable,
+                                llvm::ArrayType *&rhsArrayType,
+                                llvm::Type *arrayElementType,
+                                const std::vector<size_t> &lhsSizes,
+                                const std::vector<size_t> &rhsSizes);
 
   void assignArray(llvm::ArrayType *&arrayType, llvm::Value *&variable,
                    llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
-                   llvm::Type *&rhsArrayElementType,
+                   llvm::Type *rhsArrayElementType,
                    std::vector<llvm::Value *> &indices,
                    const std::vector<size_t> &rhsSizes, uint64_t index);
 
@@ -41,6 +44,9 @@ private:
   llvm::Value *_rhsVariable;
   llvm::ArrayType *_rhsArrayType;
   llvm::Value *_rhsSize;
+
+  std::vector<size_t> _lhsSizes, _rhsSizes;
+  llvm::Type *_rhsArrayElementType, *_lhsArrayElementType;
 };
 
 #endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

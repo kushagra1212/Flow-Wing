@@ -324,15 +324,53 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         }
         llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(_res);
 
+        llvm::Type *argArrayElementType =
+            _codeGenerationContext->getArrayElementTypeMetadata(args[i]);
+
+        std::vector<size_t> argArraySizes;
+        _codeGenerationContext->getArraySizeMetadata(args[i], argArraySizes);
+
+        std::vector<size_t> paramArraySizes;
+
+        for (int j = 5; j < vars.size(); j++) {
+          paramArraySizes.push_back(std::stoll(vars[j]));
+        }
+
+        if (paramArraySizes.size() != argArraySizes.size()) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Expected Array of Dimension " +
+              std::to_string(paramArraySizes.size()) +
+              " in function call expression " +
+              Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+              Utils::CE(vars[0]) + ", but found Array of Dimension " +
+              std::to_string(argArraySizes.size()));
+
+          return nullptr;
+        }
+
+        for (int j = 0; j < paramArraySizes.size(); j++) {
+          if (paramArraySizes[j] != argArraySizes[j]) {
+            _codeGenerationContext->getLogger()->LogError(
+                "Expected Array's Dimension " + std::to_string(j) +
+                " size to be " + std::to_string(paramArraySizes[j]) +
+                " in function call expression " +
+                Utils::CE(callExpression->getCallerNameRef()) +
+                " as parameter " + Utils::CE(vars[0]) + ", but found " +
+                std::to_string(argArraySizes[j]));
+
+            return nullptr;
+          }
+        }
+
         if (vars[3] != _codeGenerationContext->getMapper()->getLLVMTypeName(
-                           arrayType->getElementType())) {
+                           argArrayElementType)) {
           _codeGenerationContext->getLogger()->LogError(
               "Expected Array of " + Utils::CE(vars[3]) +
               " in function call expression " +
               Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
               Utils::CE(vars[0]) + ", but found Array of " +
               Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                  arrayType->getElementType())));
+                  argArrayElementType)));
 
           return nullptr;
         }
@@ -481,86 +519,6 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                       {_stringTypeConverter->convertExplicit(innerValue),
                        Builder->getInt1(false)});
-
-  // llvm::Value *size = Builder->getInt32(sizes[index]);
-
-  // llvm::Value *arrayPtr = v;
-
-  // std::string arrayName = v->getName().str();
-
-  // llvm::Value *commaPtr = Builder->CreateGlobalStringPtr(", ");
-
-  // Builder->CreateCall(
-  //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-  //     {Builder->CreateGlobalStringPtr("["), Builder->getInt1(false)});
-
-  // llvm::Function *TheFunction = Builder->GetInsertBlock()->getParent();
-
-  // // Create blocks
-  // llvm::BasicBlock *loopStart =
-  //     llvm::BasicBlock::Create(*TheContext, "loopStart", TheFunction);
-  // llvm::BasicBlock *loopBody =
-  //     llvm::BasicBlock::Create(*TheContext, "loopBody", TheFunction);
-  // llvm::BasicBlock *loopEnd =
-  //     llvm::BasicBlock::Create(*TheContext, "loopEnd", TheFunction);
-
-  // // Initialize counter
-  // llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
-  // Builder->CreateStore(Builder->getInt32(0), i);
-
-  // // Jump to the loop start block
-  // Builder->CreateBr(loopStart);
-  // // Iterate over each element of the array
-
-  // // Loop start block
-  // Builder->SetInsertPoint(loopStart);
-  // llvm::Value *iVal =
-  //     Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
-  // llvm::Value *cond = Builder->CreateICmpSLT(iVal, size);
-  // Builder->CreateCondBr(cond, loopBody, loopEnd);
-
-  // // Loop body block
-  // Builder->SetInsertPoint(loopBody);
-  // llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
-
-  // llvm::Value *innerValue = nullptr;
-
-  // // Untyped Container Element
-  // if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
-  //   llvm::ConstantInt *index = llvm::cast<llvm::ConstantInt>(iVal);
-
-  //   innerValue =
-  //       _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-  //           elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
-  //                           arrayName + "_" +
-  //                           std::to_string(index->getSExtValue()));
-  // } else {
-  //   // Typed Container Element
-  //   innerValue = Builder->CreateLoad(elementType, elementPtr);
-  // }
-  // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-  //                     {_stringTypeConverter->convertExplicit(innerValue),
-  //                      Builder->getInt1(false)});
-
-  // llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
-  // Builder->CreateStore(iNext, i);
-  // llvm::Value *isNotLast = Builder->CreateICmpSLT(iNext, size);
-  // llvm::BasicBlock *ifBlock =
-  //     llvm::BasicBlock::Create(*TheContext, "ifBlock", TheFunction);
-
-  // Builder->CreateCondBr(isNotLast, ifBlock, loopStart);
-
-  // Builder->SetInsertPoint(ifBlock);
-  // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-  //                     {commaPtr, Builder->getInt1(false)});
-
-  // Builder->CreateBr(loopStart);
-
-  // // Loop end block
-  // Builder->SetInsertPoint(loopEnd);
-  // Builder->CreateCall(
-  //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-  //     {Builder->CreateGlobalStringPtr("]"), Builder->getInt1(true)});
 
   return nullptr;
 }

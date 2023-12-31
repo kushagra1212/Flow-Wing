@@ -588,7 +588,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
   }
 
   std::unique_ptr<BoundExpression> boundIdentifierExpression(
-      bindExpression(assignmentExpression->getLeftPtr().get()).release());
+      bindExpression(assignmentExpression->getLeftPtr().get()));
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
