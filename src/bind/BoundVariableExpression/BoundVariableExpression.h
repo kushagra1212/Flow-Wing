@@ -4,8 +4,7 @@
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundVariableExpression : public BoundExpression,
-                                public BoundSourceLocation {
+class BoundVariableExpression : public BoundExpression {
 
 public:
   BoundVariableExpression(

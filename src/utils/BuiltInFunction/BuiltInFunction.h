@@ -2,7 +2,7 @@
 #define __BUILT_IN_FUNCTION_H__
 
 #include "../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
-
+#include "../../bind/BoundTypeExpression/BoundTypeExpression.h"
 class BuiltInFunction {
 
   static std::vector<std::unique_ptr<BoundFunctionDeclaration>> _functions;

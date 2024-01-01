@@ -19,10 +19,6 @@ std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
   return this->_children;
 }
 
-void BoundFunctionDeclaration::setReturnType(Utils::type returnType) {
-  this->_returnType = returnType;
-}
-
 void BoundFunctionDeclaration::addParameter(
     std::unique_ptr<BoundVariableExpression> parameter) {
   this->_parameters.push_back(std::move(parameter));

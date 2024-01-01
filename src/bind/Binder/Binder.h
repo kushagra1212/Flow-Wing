@@ -14,6 +14,8 @@
 #include "../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../../syntax/expression/LiteralExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
@@ -53,10 +55,13 @@
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../BoundTypeExpression/BoundTypeExpression.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "../BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../BoundVariableExpression/BoundVariableExpression.h"
+
 #include "../BoundWhileStatement/BoundWhileStatement.h"
 #include "BoundScope/BoundScope.h"
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
@@ -161,8 +166,13 @@ public:
 
   std::unique_ptr<BoundVariableExpression>
   bindVariableExpression(VariableExpressionSyntax *variableExpressionSyntax);
+
   std::unique_ptr<BoundVariableExpression> bindArrayVariableExpression(
       ArrayVariableExpressionSyntax *variableExpressionSyntax);
+
+  std::unique_ptr<BoundExpression>
+  bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax);
+
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
                     CompilationUnitSyntax *nestedCompilationUnit)

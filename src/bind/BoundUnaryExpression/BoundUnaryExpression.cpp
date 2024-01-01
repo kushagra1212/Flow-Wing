@@ -5,7 +5,7 @@ BoundUnaryExpression::BoundUnaryExpression(
     const DiagnosticUtils::SourceLocation &location,
     BinderKindUtils::BoundUnaryOperatorKind op,
     std::unique_ptr<BoundExpression> operand)
-    : BoundSourceLocation(location) {
+    : BoundExpression(location) {
   this->_op = op;
   this->_operand = std::move(operand);
 

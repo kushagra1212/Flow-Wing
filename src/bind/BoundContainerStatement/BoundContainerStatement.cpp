@@ -30,11 +30,6 @@ std::vector<BoundNode *> BoundContainerStatement::getChildren() {
   Setters
 */
 
-void BoundContainerStatement::setBracketedExpression(
-    std::unique_ptr<BoundExpression> containerExpression) {
-  this->_containerExpression = std::move(containerExpression);
-}
-
 /*
   Getters
 */
@@ -46,9 +41,4 @@ auto BoundContainerStatement::getVariableNameRef() const
 auto BoundContainerStatement::getContainerTypeRef() const
     -> const Utils::type & {
   return this->_type;
-}
-
-auto BoundContainerStatement::getBracketedExpressionRef() const
-    -> const std::unique_ptr<BoundExpression> & {
-  return this->_containerExpression;
 }

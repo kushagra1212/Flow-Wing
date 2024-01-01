@@ -250,6 +250,12 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ArrayVariableExpressionSyntax:
     return "ArrayVariableExpressionSyntax";
 
+  case SyntaxKind::PrimitiveTypeExpression:
+    return "PrimitiveTypeExpression";
+
+  case SyntaxKind::ArrayTypeExpression:
+    return "ArrayTypeExpression";
+
   default:
     return "NotDefined";
   }

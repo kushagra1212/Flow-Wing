@@ -86,6 +86,27 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       if (!value) {
         return nullptr;
       }
+      if (llvm::isa<llvm::CallInst>(value)) {
+        llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
+        auto *calledFunction = calledInst->getCalledFunction();
+        llvm::ArrayType *arrayType = nullptr;
+        llvm::Type *elementType = nullptr;
+        std::vector<size_t> actualSizes;
+        _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
+                                                     elementType, actualSizes);
+
+        llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
+        llvm::Value *localVariable = Builder->CreateAlloca(arrayType, nullptr);
+
+        // Store the result of the call in the local variable
+        Builder->CreateStore(loaded, localVariable);
+
+        std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+
+        printArrayAtom(arrayType, localVariable, actualSizes, indices, 0,
+                       elementType);
+        return nullptr;
+      }
 
       if (llvm::isa<llvm::ArrayType>(value->getType())) {
 
@@ -152,9 +173,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                              Builder->getInt1(false)});
         return nullptr;
       }
-      // _codeGenerationContext->getLogger()->LogError("Something went wrong in
-      // "
-      //                                               "print function call ");
 
       return nullptr;
     }
@@ -289,8 +307,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()] = 0;
 
   llvm::FunctionType *functionType = calleeFunction->getFunctionType();
-  std::vector<llvm::Type *> paramTypes(functionType->param_begin(),
-                                       functionType->param_end());
 
   // Callefunction param types and args check for type are same or not
   // Meata data

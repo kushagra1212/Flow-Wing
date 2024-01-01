@@ -30,8 +30,6 @@ std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
   return std::move(_body);
 }
 
-Utils::type FunctionDeclarationSyntax::getReturnType() { return _returnType; }
-
 SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
@@ -57,6 +55,11 @@ std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
     }
 
     _children.push_back(_closeParenthesisToken.get());
+
+    if (_returnExpression != nullptr) {
+      _children.push_back(_returnExpression.get());
+    }
+
     _children.push_back(_body.get());
   }
   return this->_children;
@@ -122,8 +125,9 @@ void FunctionDeclarationSyntax::setBody(
   _body = std::move(body);
 }
 
-void FunctionDeclarationSyntax::setReturnType(Utils::type returnType) {
-  _returnType = returnType;
+void FunctionDeclarationSyntax::setReturnType(
+    std::unique_ptr<ExpressionSyntax> returnExpression) {
+  _returnExpression = std::move(returnExpression);
 }
 
 void FunctionDeclarationSyntax::addSeparator(

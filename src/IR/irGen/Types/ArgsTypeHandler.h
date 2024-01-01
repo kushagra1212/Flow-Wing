@@ -16,8 +16,8 @@ public:
   }
 
   inline const std::vector<std::unique_ptr<LLVMType>> &
-  getArgsType(const std::string &funcName) const {
-    return _argsTypeMap.at(funcName);
+  getArgsType(const std::string &funcName) {
+    return _argsTypeMap[(funcName)];
   }
 };
 

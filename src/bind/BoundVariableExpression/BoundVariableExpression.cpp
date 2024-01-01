@@ -4,7 +4,7 @@ BoundVariableExpression::BoundVariableExpression(
     const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
     const bool &isConstant, const Utils::type &variableType)
-    : BoundSourceLocation(location),
+    : BoundExpression(location),
       _identiferExpression(std::move(identiferExpression)),
       _isConstant(isConstant), _variableType(variableType) {}
 

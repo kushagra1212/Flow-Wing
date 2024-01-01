@@ -33,7 +33,8 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   Int32Func->setFunctionName(FW::BI::FUNCTION::Int32);
-  Int32Func->setReturnType(Utils::INT32);
+  Int32Func->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::INT32)));
   Int32Func->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(
@@ -47,7 +48,9 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   DecimalFunc->setFunctionName(FW::BI::FUNCTION::Decimal);
-  DecimalFunc->setReturnType(Utils::DECIMAL);
+
+  DecimalFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::DECIMAL)));
   DecimalFunc->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(
@@ -61,7 +64,9 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   StringFunc->setFunctionName(FW::BI::FUNCTION::String);
-  StringFunc->setReturnType(Utils::STRING);
+
+  StringFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::STRING)));
   StringFunc->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(
@@ -75,7 +80,8 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   BoolFunc->setFunctionName(FW::BI::FUNCTION::Bool);
-  BoolFunc->setReturnType(Utils::BOOL);
+  BoolFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::BOOL)));
   BoolFunc->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(
@@ -89,7 +95,8 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   InputFunc->setFunctionName(FW::BI::FUNCTION::Input);
-  InputFunc->setReturnType(Utils::STRING);
+  InputFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::STRING)));
   InputFunc->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(
@@ -103,7 +110,8 @@ void BuiltInFunction::setupBuiltInFunctions() {
       std::make_unique<BoundFunctionDeclaration>(
           DiagnosticUtils::SourceLocation());
   PrintFunc->setFunctionName(FW::BI::FUNCTION::Print);
-  PrintFunc->setReturnType(Utils::NOTHING);
+  PrintFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+      DiagnosticUtils::SourceLocation(), Utils::NOTHING)));
   PrintFunc->addParameter(std::make_unique<BoundVariableExpression>(
       DiagnosticUtils::SourceLocation(),
       std::make_unique<BoundLiteralExpression<std::any>>(

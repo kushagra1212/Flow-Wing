@@ -57,6 +57,12 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
   case ArrayVariableExpression:
     return "ArrayVariableExpression";
 
+  case BoundTypeExpression:
+    return "BoundTypeExpression";
+
+  case BoundArrayTypeExpression:
+    return "BoundArrayTypeExpression";
+
   default:
     return "NotDefined";
   }

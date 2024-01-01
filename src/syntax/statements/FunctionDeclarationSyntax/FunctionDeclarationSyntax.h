@@ -21,7 +21,7 @@ private:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
-  Utils::type _returnType;
+  std::unique_ptr<ExpressionSyntax> _returnExpression;
 
 public:
   FunctionDeclarationSyntax(const bool &isExposed);
@@ -31,7 +31,6 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
   std::unique_ptr<BlockStatementSyntax> getBody();
-  Utils::type getReturnType();
 
   void
   setFunctionKeyword(std::unique_ptr<SyntaxToken<std::any>> functionKeyword);
@@ -45,7 +44,7 @@ public:
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
-  void setReturnType(Utils::type returnType);
+  void setReturnType(std::unique_ptr<ExpressionSyntax> returnExpression);
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;
@@ -59,6 +58,11 @@ public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparatorsPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
   std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
+
+  inline auto getReturnExpression() const
+      -> const std::unique_ptr<ExpressionSyntax> & {
+    return _returnExpression;
+  }
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

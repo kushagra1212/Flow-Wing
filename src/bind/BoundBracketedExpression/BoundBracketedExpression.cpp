@@ -2,7 +2,7 @@
 
 BoundBracketedExpression::BoundBracketedExpression(
     const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    : BoundExpression(location) {}
 /*
     OVERRIDES
 */

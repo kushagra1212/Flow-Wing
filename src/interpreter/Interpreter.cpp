@@ -754,7 +754,10 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
       }
       std::map<std::string, Utils::Variable> function_Variables;
 
-      this->return_type_stack.push({functionDefination->getReturnType(), 0});
+      BoundTypeExpression *returnTypeExpression =
+          (BoundTypeExpression *)functionDefination->getReturnType().get();
+
+      this->return_type_stack.push({returnTypeExpression->getUtilsType(), 0});
 
       for (int i = 0; i < arguments_size; i++) {
         std::any value = this->evaluate<std::any>(
@@ -773,7 +776,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
       this->evaluateStatement(functionDefination->getBodyRef().get());
 
       if (this->return_type_stack.top().second == 0 &&
-          Utils::type::NOTHING != functionDefination->getReturnType()) {
+          Utils::type::NOTHING != returnTypeExpression->getUtilsType()) {
         this->_interpreterUtils->logError(
             "Function return type is not Nothing, return expression is not "
             "found");

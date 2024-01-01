@@ -5,8 +5,7 @@
 #include "../BoundExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
-class BoundIndexExpression : public BoundExpression,
-                             public BoundSourceLocation {
+class BoundIndexExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _boundIdentifierExpression;
   std::vector<std::unique_ptr<BoundExpression>> _boundIndexExpressions;

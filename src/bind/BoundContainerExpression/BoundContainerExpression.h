@@ -5,8 +5,7 @@
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundContainerExpression : public BoundExpression,
-                                 public BoundSourceLocation {
+class BoundContainerExpression : public BoundExpression {
 private:
   std::vector<std::unique_ptr<BoundExpression>> _elements;
 

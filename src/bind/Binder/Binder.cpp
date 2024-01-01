@@ -346,26 +346,22 @@ Binder::bindContainerStatement(ContainerStatementSyntax *containerSyntax) {
         std::move(bindExpression(exp.get())));
   }
 
-  BracketedExpressionSyntax *bracketedExpression =
-      (BracketedExpressionSyntax *)containerSyntax->getContainerExpressionRef()
-          .get();
-
   SyntaxKindUtils::SyntaxKind containerExpressionKind =
-      bracketedExpression->getKind();
+      containerSyntax->getContainerExpressionRef()->getKind();
 
-  if (containerExpressionKind !=
-      SyntaxKindUtils::SyntaxKind::BracketedExpression) {
-    this->_diagnosticHandler->addDiagnostic(
-        Diagnostic("Invalid BracketedExpression Expression",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   bracketedExpression->getSourceLocation()));
+  // if (containerExpressionKind !=
+  //     SyntaxKindUtils::SyntaxKind::BracketedExpression) {
+  //   this->_diagnosticHandler->addDiagnostic(Diagnostic(
+  //       "Invalid BracketedExpression Expression",
+  //       DiagnosticUtils::DiagnosticLevel::Error,
+  //       DiagnosticUtils::DiagnosticType::Semantic,
+  //       containerSyntax->getContainerExpressionRef()->getSourceLocation()));
 
-    return std::move(boundContainerStatement);
-  }
+  //   return std::move(boundContainerStatement);
+  // }
 
-  boundContainerStatement->setBracketedExpression(
-      std::move(bindBracketedExpression(bracketedExpression)));
+  boundContainerStatement->setRHSExpression(std::move(
+      bindExpression(containerSyntax->getContainerExpressionRef().get())));
 
   return std::move(boundContainerStatement);
 }
@@ -820,7 +816,8 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
           syntax->getParametersPtr()[i].release())));
     }
   }
-  fd->setReturnType(syntax->getReturnType());
+  fd->setReturnType(std::move(bindTypeExpression(
+      (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
 
   this->root->incrementFunctionCount();
 
@@ -840,8 +837,43 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
   }
+
   this->root = std::move(this->root->parent);
   return std::move(fd);
+}
+
+std::unique_ptr<BoundExpression>
+Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
+  Utils::type type = typeExpressionSyntax->getType();
+  switch (typeExpressionSyntax->getKind()) {
+  case SyntaxKindUtils::SyntaxKind::ArrayTypeExpression: {
+    std::unique_ptr<BoundArrayTypeExpression> boundArrayTypeExpression =
+        std::make_unique<BoundArrayTypeExpression>(
+            typeExpressionSyntax->getSourceLocation(), type);
+
+    for (const auto &size :
+         ((ArrayTypeExpressionSyntax *)typeExpressionSyntax)->getDimensions()) {
+      boundArrayTypeExpression->addDimension(
+          std::move(bindExpression(size.get())));
+    }
+
+    return std::move(boundArrayTypeExpression);
+  }
+  case SyntaxKindUtils::SyntaxKind::PrimitiveTypeExpression: {
+    return std::move(std::make_unique<BoundTypeExpression>(
+        typeExpressionSyntax->getSourceLocation(), type));
+  }
+  default: {
+    break;
+  }
+  }
+
+  this->_diagnosticHandler->addDiagnostic(Diagnostic(
+      "Invalid Type Expression", DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Semantic,
+      typeExpressionSyntax->getSourceLocation()));
+
+  return nullptr;
 }
 
 std::unique_ptr<BoundStatement>

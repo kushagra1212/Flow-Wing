@@ -34,14 +34,21 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
   std::string errorMessage = "";
   BoundExpression *returnStat = returnStatement->getReturnExpressionPtr().get();
 
-  if (_codeGenerationContext->getReturnAllocaStack().top().first !=
-          Utils::type::NOTHING &&
-      returnStat == nullptr) {
+  llvm::Function *currentFunction = Builder->GetInsertBlock()->getParent();
+
+  std::string functionName = currentFunction->getName().str();
+
+  LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
+                             ->getReturnType(functionName)
+                             .get();
+  Utils::type returnTypeCustomType =
+      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          returnType->getType());
+  if (returnTypeCustomType != Utils::type::NOTHING && returnStat == nullptr) {
 
     errorMessage = "Function return type is not Nothing, return "
                    "expression is not found";
-  } else if (_codeGenerationContext->getReturnAllocaStack().top().first ==
-                 Utils::type::NOTHING &&
+  } else if (returnTypeCustomType == Utils::type::NOTHING &&
              returnStat != nullptr) {
 
     errorMessage = "Function return type is Nothing, return "
@@ -51,18 +58,16 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);
 
-    if (_codeGenerationContext->getReturnAllocaStack().top().first !=
+    if (returnTypeCustomType !=
         _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
             returnValue->getType())) {
 
-      errorMessage =
-          "Return Type Mismatch " +
-          Utils::typeToString(
-              _codeGenerationContext->getReturnAllocaStack().top().first) +
-          " is expected but " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              returnValue->getType()) +
-          " is found";
+      errorMessage = "Return Type Mismatch " +
+                     Utils::typeToString(returnTypeCustomType) +
+                     " is expected but " +
+                     _codeGenerationContext->getMapper()->getLLVMTypeName(
+                         returnValue->getType()) +
+                     " is found";
     }
   }
 
@@ -70,22 +75,21 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     _codeGenerationContext->getLogger()->LogError(errorMessage);
   }
 
-  if (returnStat != nullptr &&
-      _codeGenerationContext->getReturnAllocaStack().top().first !=
-          Utils::type::NOTHING) {
+  if (returnStat != nullptr && returnTypeCustomType != Utils::type::NOTHING) {
 
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);
 
-    _codeGenerationContext->getReturnAllocaStack().top().second += 1;
-
     // create alloca for return value
 
     Builder->CreateRet(returnValue);
+
   } else {
     Builder->CreateRetVoid();
   }
+
+  _codeGenerationContext->getReturnAllocaStack().top() = 1;
 
   Builder->SetInsertPoint(mergeBlock);
 

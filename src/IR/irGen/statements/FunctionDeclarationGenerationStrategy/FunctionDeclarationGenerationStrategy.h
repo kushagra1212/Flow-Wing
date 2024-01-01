@@ -2,6 +2,8 @@
 #define __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__
 
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../bind/BoundTypeExpression/BoundTypeExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"

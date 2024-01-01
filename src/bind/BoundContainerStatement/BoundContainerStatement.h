@@ -34,16 +34,20 @@ public:
         std::move(containerSizeExpression));
   }
 
-  void
-  setBracketedExpression(std::unique_ptr<BoundExpression> containerExpression);
+  inline void
+  setRHSExpression(std::unique_ptr<BoundExpression> containerExpression) {
+    _containerExpression = std::move(containerExpression);
+  }
 
   /*
     Getters
   */
   auto getVariableNameRef() const -> const std::string &;
   auto getContainerTypeRef() const -> const Utils::type &;
-  auto getBracketedExpressionRef() const
-      -> const std::unique_ptr<BoundExpression> &;
+  inline auto getRHSExpressionRef() const
+      -> const std::unique_ptr<BoundExpression> & {
+    return _containerExpression;
+  }
 
   inline auto getContainerSizeExpressions() const
       -> const std::vector<std::unique_ptr<BoundExpression>> & {

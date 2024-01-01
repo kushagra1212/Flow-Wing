@@ -3,7 +3,7 @@
 BoundIndexExpression::BoundIndexExpression(
     const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression)
-    : BoundSourceLocation(location),
+    : BoundExpression(location),
       _boundIdentifierExpression(std::move(boundIdentifierExpression)) {}
 
 const std::type_info &BoundIndexExpression::getType() {

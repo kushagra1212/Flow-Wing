@@ -2,7 +2,7 @@
 
 BoundCallExpression::BoundCallExpression(
     const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    : BoundExpression(location) {}
 
 void BoundCallExpression::addArgument(
     std::unique_ptr<BoundExpression> argument) {

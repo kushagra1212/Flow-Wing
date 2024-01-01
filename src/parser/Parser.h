@@ -13,6 +13,8 @@
 #include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax/ArrayVariableExpressionSyntax/ArrayVariableExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
@@ -97,6 +99,7 @@ private:
   std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
+  std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();
 
   Utils::type parseType();
 

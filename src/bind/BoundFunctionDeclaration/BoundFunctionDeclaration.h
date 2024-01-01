@@ -13,7 +13,8 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::unique_ptr<BoundBlockStatement> _body;
   std::vector<std::unique_ptr<BoundVariableExpression>> _parameters;
   std::string _functionName;
-  Utils::type _returnType;
+
+  std::unique_ptr<BoundExpression> _returnType;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location);
@@ -24,7 +25,9 @@ public:
   void addParameter(std::unique_ptr<BoundVariableExpression> parameter);
   void setFunctionName(const std::string &functionName);
   void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
-  void setReturnType(Utils::type returnType);
+  inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
+    _returnType = std::move(returnType);
+  }
 
   inline auto getParametersRef() const
       -> const std::vector<std::unique_ptr<BoundVariableExpression>> & {
@@ -37,7 +40,8 @@ public:
       -> const std::unique_ptr<BoundBlockStatement> & {
     return _body;
   }
-  inline auto getReturnType() const -> const Utils::type & {
+  inline auto getReturnType() const
+      -> const std::unique_ptr<BoundExpression> & {
     return _returnType;
   }
 };

@@ -5,7 +5,7 @@ BoundBinaryExpression::BoundBinaryExpression(
     std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
     std::unique_ptr<BoundExpression> right)
-    : BoundSourceLocation(location) {
+    : BoundExpression(location) {
   this->_op = op;
 
   this->_left = std::move(left);

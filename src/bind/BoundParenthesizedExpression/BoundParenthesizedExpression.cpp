@@ -3,7 +3,7 @@
 BoundParenthesizedExpression::BoundParenthesizedExpression(
     const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundExpression> expression)
-    : BoundSourceLocation(location) {
+    : BoundExpression(location) {
   this->_expression = std::move(expression);
 
   this->_children.push_back(this->_expression.get());

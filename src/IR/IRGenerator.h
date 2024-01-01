@@ -12,6 +12,7 @@
 #include "../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../IR/handlers/value/ValueHandler.h"
 #include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
+#include "../IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
 #include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"

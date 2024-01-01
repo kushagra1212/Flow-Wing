@@ -33,6 +33,9 @@ CodeGenerationContext ::CodeGenerationContext(
   // initialize the ArgsTypeHandler
   _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
 
+  // initialize the ReturnTypeHandler
+  _returnTypeHandler = std::make_unique<ReturnTypeHandler>();
+
   // Initialize the dynamic type
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
@@ -74,6 +77,11 @@ std::unique_ptr<ArgsTypeHandler> &CodeGenerationContext::getArgsTypeHandler() {
   return _argsTypeHandler;
 }
 
+std::unique_ptr<ReturnTypeHandler> &
+CodeGenerationContext::getReturnTypeHandler() {
+  return _returnTypeHandler;
+}
+
 std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
   return _namedValueChain;
 }
@@ -87,11 +95,9 @@ CodeGenerationContext::getDynamicType() {
   return _dynamicType;
 }
 
-std::stack<std::pair<Utils::type, int8_t>> &
-CodeGenerationContext::getReturnAllocaStack() {
+std::stack<int8_t> &CodeGenerationContext::getReturnAllocaStack() {
   return _returnAllocaStack;
 }
-
 std::map<std::string, BoundFunctionDeclaration *> &
 CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
@@ -235,7 +241,10 @@ void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
 
   } else if (llvm::isa<llvm::AllocaInst>(v)) {
     metaNode = llvm::cast<llvm::AllocaInst>(v)->getMetadata(kind);
+  } else if (llvm::isa<llvm::Function>(v)) {
+    metaNode = llvm::cast<llvm::Function>(v)->getMetadata(kind);
   }
+
   if (!metaNode) {
 
     this->getLogger()->LogError("Could not find metadata for " +
@@ -306,5 +315,33 @@ void CodeGenerationContext::getMultiArrayType(
 
     def = llvm::ConstantArray::get(
         arrayType, std::vector<llvm::Constant *>(actualSizes[i], def));
+  }
+}
+
+void CodeGenerationContext::getRetrunedArrayType(
+    llvm::Function *F, llvm::ArrayType *&arrayType,
+    llvm::Type *&arrayElementType, std::vector<uint64_t> &actualSizes) {
+
+  llvm::MDNode *metaNode = F->getMetadata("rt");
+  std::string metaData =
+      llvm::cast<llvm::MDString>(metaNode->getOperand(0))->getString().str();
+  std::vector<std::string> strs;
+
+  Utils::split(metaData, ":", strs);
+  if (strs[2] == "ay") {
+
+    arrayElementType =
+        getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(strs[3]));
+
+    for (int64_t i = 5; i < strs.size(); i++) {
+      actualSizes.push_back(stoi(strs[i]));
+    }
+
+    llvm::Constant *def = llvm::cast<llvm::Constant>(
+        this->getMapper()->getDefaultValue(arrayElementType));
+
+    getMultiArrayType(arrayType, def, actualSizes, arrayElementType);
+  } else {
+    this->getLogger()->LogError("Not an Array Type Can Not load the metadata");
   }
 }

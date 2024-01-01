@@ -124,44 +124,6 @@ struct Variable {
   }
 };
 
-// struct FunctionParameterSymbol {
-//   std::string name;
-//   bool isConst;
-//   SymbolKind kind;
-//   Utils::type type;
-//   FunctionParameterSymbol() = default;
-//   FunctionParameterSymbol(std::string name, bool isConst,
-//                           Utils::type type = Utils::type::UNKNOWN) {
-//     this->name = name;
-//     this->isConst = isConst;
-//     this->kind = SymbolKind::Parameter;
-//     this->type = type;
-//   }
-// };
-
-// struct FunctionSymbol {
-//   std::string name;
-//   std::vector<FunctionParameterSymbol> parameters;
-//   type return_type;
-//   SymbolKind kind;
-//   FunctionSymbol() {
-//     this->kind = SymbolKind::Function;
-//     this->return_type = Utils::type::NOTHING;
-//   }
-//   FunctionSymbol(std::string name,
-//                  std::vector<FunctionParameterSymbol> parameters,
-//                  type return_type = Utils::type::NOTHING) {
-//     this->name = name;
-//     this->parameters = parameters;
-//     this->kind = SymbolKind::Function;
-//     this->return_type = return_type;
-//   }
-
-//   type getReturnType() { return return_type; }
-
-//   int arity() { return (int)parameters.size(); }
-// };
-
 class Node {
   static std::unordered_map<std::string, int> fileMap;
   static std::unordered_map<std::string, int> visitedMap;

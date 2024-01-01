@@ -118,6 +118,8 @@ enum SyntaxKind {
   ContainerStatement,
   VariableExpressionSyntax,
   ArrayVariableExpressionSyntax,
+  PrimitiveTypeExpression,
+  ArrayTypeExpression,
 };
 bool isInt32(const std::string &str);
 

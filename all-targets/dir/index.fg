@@ -1,23 +1,10 @@
-
-
-fun main(arr:int[2][2],arr2:int[2][4]) -> nthg {
-
-     arr = [2 fill 10]
-      print(arr)
-      print(arr2)      
+fun main()-> int[2][5] {
+    var x:int[2][5] = [3 fill 5]
+    return x
 }
-var arr:int[2][2] =  [ 2 fill 2]
-var arr2:int[2][4] =  [2 fill 3]
-arr2 = arr
-print(arr2)
-print(arr)
-main(arr,arr2)
 
-
-
-
-
-
+var x:int[2][5] = main()
+print(x)
 
 
 /#

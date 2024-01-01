@@ -4,8 +4,7 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include <typeinfo>
 
-class BoundParenthesizedExpression : public BoundExpression,
-                                     public BoundSourceLocation {
+class BoundParenthesizedExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundExpression> _expression;
 

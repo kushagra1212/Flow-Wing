@@ -297,11 +297,44 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
   this->match(SyntaxKindUtils::SyntaxKind::MinusToken);
   this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
 
-  functionDeclaration->setReturnType(this->parseType());
+  functionDeclaration->setReturnType(this->parseTypeExpression());
 
   functionDeclaration->setBody(std::move(this->parseBlockStatement()));
 
   return std::move(functionDeclaration);
+}
+
+std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
+  Utils::type type = this->parseType();
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+
+    std::unique_ptr<ArrayTypeExpressionSyntax> arrayTypeExpression =
+        std::make_unique<ArrayTypeExpressionSyntax>(
+            Utils::toContainerType(type));
+
+    arrayTypeExpression->setType(type);
+    while (this->getCurrent()->getKind() ==
+           SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+
+      std::unique_ptr<SyntaxToken<std::any>> numToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+
+      std::any value = numToken->getValue();
+
+      arrayTypeExpression->addDimension(
+          std::make_unique<LiteralExpressionSyntax<std::any>>(
+              std::move(numToken), value));
+
+      this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
+    }
+
+    return std::move(arrayTypeExpression);
+  }
+
+  return std::make_unique<TypeExpressionSyntax>(type);
 }
 
 std::unique_ptr<FunctionDeclarationSyntax> Parser::handleOptionalType(

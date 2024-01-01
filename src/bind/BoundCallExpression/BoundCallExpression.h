@@ -8,7 +8,7 @@
 #include "../BoundNode.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundCallExpression : public BoundExpression, public BoundSourceLocation {
+class BoundCallExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
