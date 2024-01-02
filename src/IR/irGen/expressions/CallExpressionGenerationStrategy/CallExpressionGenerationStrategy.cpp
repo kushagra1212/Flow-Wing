@@ -95,17 +95,20 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
                                                      elementType, actualSizes);
 
-        llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
-        llvm::Value *localVariable = Builder->CreateAlloca(arrayType, nullptr);
+        if (arrayType != nullptr) {
+          llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
+          llvm::Value *localVariable =
+              Builder->CreateAlloca(arrayType, nullptr);
 
-        // Store the result of the call in the local variable
-        Builder->CreateStore(loaded, localVariable);
+          // Store the result of the call in the local variable
+          Builder->CreateStore(loaded, localVariable);
 
-        std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+          std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
-        printArrayAtom(arrayType, localVariable, actualSizes, indices, 0,
-                       elementType);
-        return nullptr;
+          printArrayAtom(arrayType, localVariable, actualSizes, indices, 0,
+                         elementType);
+          return nullptr;
+        }
       }
 
       if (llvm::isa<llvm::ArrayType>(value->getType())) {

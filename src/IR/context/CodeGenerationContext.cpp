@@ -247,8 +247,8 @@ void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
 
   if (!metaNode) {
 
-    this->getLogger()->LogError("Could not find metadata for " +
-                                v->getName().str());
+    // this->getLogger()->LogError("Could not find metadata for " +
+    //                             v->getName().str());
 
     return;
   }
@@ -322,11 +322,12 @@ void CodeGenerationContext::getRetrunedArrayType(
     llvm::Function *F, llvm::ArrayType *&arrayType,
     llvm::Type *&arrayElementType, std::vector<uint64_t> &actualSizes) {
 
-  llvm::MDNode *metaNode = F->getMetadata("rt");
-  std::string metaData =
-      llvm::cast<llvm::MDString>(metaNode->getOperand(0))->getString().str();
+  std::string metaData = "";
   std::vector<std::string> strs;
-
+  getMetaData("rt", F, metaData);
+  if (metaData == "") {
+    return;
+  }
   Utils::split(metaData, ":", strs);
   if (strs[2] == "ay") {
 
@@ -341,6 +342,10 @@ void CodeGenerationContext::getRetrunedArrayType(
         this->getMapper()->getDefaultValue(arrayElementType));
 
     getMultiArrayType(arrayType, def, actualSizes, arrayElementType);
+  } else if (strs[2] == "pr") {
+
+    arrayElementType =
+        getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(strs[3]));
   } else {
     this->getLogger()->LogError("Not an Array Type Can Not load the metadata");
   }

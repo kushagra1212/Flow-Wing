@@ -1,10 +1,5 @@
-fun main()-> int[2][5] {
-    var x:int[2][5] = [3 fill 5]
-    return x
-}
 
-var x:int[2][5] = main()
-print(x)
+print(2+"Hello")
 
 
 /#
