@@ -13,8 +13,7 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
-  const bool
-  canGenerateExpressionAssignment(BoundVariableExpression *variableExpression);
+  const bool canGenerateExpressionAssignment(BoundExpression *expr);
 
   void setVariable(llvm::Value *var);
   void setContainerName(const std::string &containerName);

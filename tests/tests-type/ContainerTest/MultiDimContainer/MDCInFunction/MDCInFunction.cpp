@@ -453,4 +453,169 @@ print(arr)
   O("[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, 10], [0, 0]][[2, 2, 0, "
     "0], [0, 0, 0, 0]]");
 }
+
+TEST_F(MDCInFunction, ReturnContainerFromFunction) {
+
+  I(R"(
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [6 fill 10]
+      return x
+}
+print(main())
+        )");
+
+  O("[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
+}
+
+// Test case for main() function
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArray) {
+  I(R"(
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [10 fill 10]
+      return x
+    }
+
+    var result:int[2][5] = main()
+    print(result)
+  )");
+
+  O("[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]]");
+}
+
+// Test case for checking that main() and main2() have different outputs
+TEST_F(MDCInFunction, MainAndMain2HaveDifferentOutputs) {
+  I(R"(
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [10 fill 10]
+      return x
+    }
+
+    fun main2() -> int[2][5] {
+      var x:int[2][5] = [10 fill 11]
+      return x
+    }
+
+    var result1:int[2][5] = main()
+    var result2:int[2][5] = main2()
+    print(result1)
+    print(result2)
+  )");
+
+  O("[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]][[11, 11, 11, 11, 11], [11, "
+    "11, 11, 11, 11]]");
+}
+
+// Test case for main() function Str
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStr) {
+  I(R"(
+   fun main() -> str[2][5] {
+      var x:str[2][5] = [6 fill "Hello"]
+      return x
+    }
+
+    var result:str[2][5] = main()
+    print(result)
+  )");
+
+  O("[[Hello, Hello, Hello, Hello, Hello], [Hello, , , , ]]");
+}
+
+// Test case for main() function bool
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayBool) {
+  I(R"(
+   fun main() -> bool[2][5] {
+      var x:bool[2][5] = [6 fill true]
+      return x
+    }
+
+    var result:bool[2][5] = main()
+    print(result)
+  )");
+
+  O("[[true, true, true, true, true], [true, false, false, false, false]]");
+}
+
+// Test case for main() function deci
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayDeci) {
+  I(R"(
+   fun main() -> deci[2][5] {
+      var x:deci[2][5] = [6 fill 1.23]
+      return x
+    }
+
+    var result:deci[2][5] = main()
+    print(result)
+  )");
+
+  O("[[1.23000000000000, 1.23000000000000, 1.23000000000000, 1.23000000000000, "
+    "1.23000000000000], [1.23000000000000, 0.00000000000000, 0.00000000000000, "
+    "0.00000000000000, 0.00000000000000]]");
+}
+
+// Test case for main() function
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayAssign) {
+  I(R"(
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [6 fill 10]
+      return x
+    }
+
+    var result:int[2][5] = [7 fill 1]
+    result = main()
+    print(result)
+  )");
+
+  O("[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
+}
+
+// Test case for main() function Str
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStrAssign) {
+  I(R"(
+   fun main() -> str[2][5] {
+      var x:str[2][5] = [6 fill "Hello"]
+      return x
+    }
+
+    var result:str[2][5] =[7 fill "Hi"]
+    result = main()
+    print(result)
+  )");
+
+  O("[[Hello, Hello, Hello, Hello, Hello], [Hello, , , , ]]");
+}
+
+// Test case for main() function bool
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayBoolAssign) {
+  I(R"(
+   fun main() -> bool[2][5] {
+      var x:bool[2][5] = [6 fill true]
+      return x
+    }
+
+    var result:bool[2][5] = [7 fill true]
+    result = main()
+    print(result)
+  )");
+
+  O("[[true, true, true, true, true], [true, false, false, false, false]]");
+}
+
+// Test case for main() function deci
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayDeciAssign) {
+  I(R"(
+   fun main() -> deci[2][5] {
+      var x:deci[2][5] = [6 fill 1.23]
+      return x
+    }
+
+    var result:deci[2][5] = [7 fill 1.5]
+    result = main()
+    print(result)
+  )");
+
+  O("[[1.23000000000000, 1.23000000000000, 1.23000000000000, 1.23000000000000, "
+    "1.23000000000000], [1.23000000000000, 0.00000000000000, 0.00000000000000, "
+    "0.00000000000000, 0.00000000000000]]");
+}
+
 #endif // JIT_TEST_MODE

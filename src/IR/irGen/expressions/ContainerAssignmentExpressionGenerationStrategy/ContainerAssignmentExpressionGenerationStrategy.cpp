@@ -16,8 +16,7 @@ void ContainerAssignmentExpressionGenerationStrategy::setContainerName(
 }
 
 const bool ContainerAssignmentExpressionGenerationStrategy::
-    canGenerateExpressionAssignment(
-        BoundVariableExpression *variableExpression) {
+    canGenerateExpressionAssignment(BoundExpression *expr) {
 
   if (!_arrayType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -32,11 +31,10 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
   }
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      variableExpression->getLocation());
+      expr->getLocation());
 
-  _rhsVariable = _expressionGenerationFactory
-                     ->createStrategy(variableExpression->getKind())
-                     ->generateExpression(variableExpression);
+  _rhsVariable = _expressionGenerationFactory->createStrategy(expr->getKind())
+                     ->generateExpression(expr);
 
   _rhsArrayType = nullptr;
 
@@ -50,6 +48,7 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
       _rhsArrayType =
           llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
     }
+
   } else if (llvm::isa<llvm::GlobalVariable>(_rhsVariable)) {
     llvm::GlobalVariable *rhsGlobalVariable =
         llvm::cast<llvm::GlobalVariable>(_rhsVariable);
@@ -59,12 +58,33 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
       _rhsArrayType =
           llvm::cast<llvm::ArrayType>(rhsGlobalVariable->getValueType());
     }
+
+  } else if (llvm::isa<llvm::CallInst>(_rhsVariable)) {
+    llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(_rhsVariable);
+    auto *calledFunction = calledInst->getCalledFunction();
+    _codeGenerationContext->getRetrunedArrayType(
+        calledFunction, _rhsArrayType, _rhsArrayElementType, _rhsSizes);
+
+    if (_rhsArrayType == nullptr) {
+      hasError = true;
+    }
   } else {
     hasError = true;
   }
 
   if (!_rhsArrayType) {
     hasError = true;
+  }
+
+  _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
+  _lhsArrayElementType =
+      _codeGenerationContext->getArrayElementTypeMetadata(_variable);
+
+  if (_rhsSizes.size() == 0) {
+    _codeGenerationContext->getArraySizeMetadata(_rhsVariable, _rhsSizes);
+
+    _rhsArrayElementType =
+        _codeGenerationContext->getArrayElementTypeMetadata(_rhsVariable);
   }
 
   if (_rhsArrayType->getElementType()->isIntegerTy(8)) {
@@ -75,22 +95,6 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
         "Variable " + _containerName + " not found in assignment expression ");
     return false;
   }
-
-  // if (_arrayType->getElementType() !=
-  //     (llvm::Type *)_rhsArrayType->getElementType()) {
-  //   _codeGenerationContext->getLogger()->LogError(
-  //       "Type mismatch in assignment expression in " + _containerName);
-
-  //   return false;
-  // }
-
-  _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
-  _codeGenerationContext->getArraySizeMetadata(_rhsVariable, _rhsSizes);
-
-  _rhsArrayElementType =
-      _codeGenerationContext->getArrayElementTypeMetadata(_rhsVariable);
-  _lhsArrayElementType =
-      _codeGenerationContext->getArrayElementTypeMetadata(_variable);
 
   if (_rhsArrayElementType != _lhsArrayElementType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -138,9 +142,7 @@ ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
     }
   }
 
-  auto variableExpression = dynamic_cast<BoundVariableExpression *>(expression);
-
-  if (!canGenerateExpressionAssignment(variableExpression)) {
+  if (!canGenerateExpressionAssignment(expression)) {
     return nullptr;
   }
 
@@ -162,9 +164,7 @@ ContainerAssignmentExpressionGenerationStrategy::generateExpression(
     }
   }
 
-  auto variableExpression = dynamic_cast<BoundVariableExpression *>(expression);
-
-  if (!canGenerateExpressionAssignment(variableExpression)) {
+  if (!canGenerateExpressionAssignment(expression)) {
     return nullptr;
   }
 
@@ -208,8 +208,9 @@ llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
 
   std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
-  assignArray(arrayType, variable, rhsVariable, rhsArrayType, arrayElementType,
-              indices, rhsSizes, 0);
+  llvm::LoadInst *loaded = Builder->CreateLoad(rhsArrayType, rhsVariable);
+
+  Builder->CreateStore(loaded, variable);
 
   return nullptr;
 }

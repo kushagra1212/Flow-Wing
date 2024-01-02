@@ -1,5 +1,25 @@
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [6 fill 10]
+      return x
+    }
 
-print(2+"Hello")
+    var result:int[2][5] = [7 fill 1]
+    result = main()
+    print(result)
+/#
+fun main() -> int[20][5] {
+      var x:int[20][5] = [10 fill 10]
+      return x
+}
+fun main2() -> int[20][5] {
+      var x:int[20][5] = [10 fill 11]
+      return x
+}
+var x:int[20][5] = main()
+print(x)
+x = main2()
+print(x)
+
 
 
 /#
@@ -7,8 +27,3 @@ print(2+"Hello")
 TODO:
 
 THIS IS LEFT
-      print(x)
-     ->   x = [ 2 fill 5 ]
-     -> container passing to function
-     -> returning container from function
-     -> Containers of Containers

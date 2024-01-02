@@ -69,7 +69,9 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
   if (Utils::isStaticTypedContainerType(_variableType)) {
 
     if (assignmentExpression->getRightPtr().get()->getKind() ==
-        BinderKindUtils::VariableExpression) {
+            BinderKindUtils::VariableExpression ||
+        assignmentExpression->getRightPtr().get()->getKind() ==
+            BinderKindUtils::CallExpression) {
 
       auto assignStrategy =
           std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
