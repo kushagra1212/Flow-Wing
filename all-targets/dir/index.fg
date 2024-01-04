@@ -1,24 +1,22 @@
-    fun main() -> int[2][5] {
-      var x:int[2][5] = [6 fill 10]
-      return x
-    }
+fun printThis(x:int[100][200]) -> nthg {
+      for(var i:int = 0 to 100-1) {
+      print("[ ")
+      for(var j:int = 0 to 200 - 1) {
+            if(j == 0){
+                  print(x[i][j] + ", ")
+            }else{
+                  print(x[i][j])
+            }
 
-    var result:int[2][5] = [7 fill 1]
-    result = main()
-    print(result)
-/#
-fun main() -> int[20][5] {
-      var x:int[20][5] = [10 fill 10]
-      return x
+      }
+      print(" ]")
 }
-fun main2() -> int[20][5] {
-      var x:int[20][5] = [10 fill 11]
-      return x
 }
-var x:int[20][5] = main()
-print(x)
-x = main2()
-print(x)
+
+
+var x:int[100][200] = [5 fill 2]
+
+printThis(x)
 
 
 

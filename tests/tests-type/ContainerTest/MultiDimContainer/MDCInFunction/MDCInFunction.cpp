@@ -618,4 +618,22 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayDeciAssign) {
     "0.00000000000000, 0.00000000000000]]");
 }
 
+TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayAssign2) {
+  I(R"(
+    fun main() -> int[2][5] {
+      var x:int[2][5] = [6 fill 1]
+
+      x = [7 fill 10]
+
+      return x
+    }
+
+    var result:int[2][5] = main()
+
+    print(result)
+)");
+
+  O("[[10, 10, 10, 10, 10], [10, 10, 0, 0, 0]]");
+}
+
 #endif // JIT_TEST_MODE
