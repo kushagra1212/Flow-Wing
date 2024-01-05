@@ -117,6 +117,9 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
+  // TODO: Change the triple to x86_64-unknown-linux-gnu
+  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
 
@@ -240,7 +243,11 @@ void Compiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
+
+#ifdef DEBUG
     _evaluator->printIR();
+#endif
+
     // _evaluator->executeGeneratedCode();
 
     //_evaluator->getIRParserPtr()->printIR();
