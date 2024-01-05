@@ -34,7 +34,7 @@ public:
 
   bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
 
-  bool tryDeclareFunction(std::string name, BoundFunctionDeclaration *function);
+  bool tryDeclareFunction(BoundFunctionDeclaration *function);
 
   bool tryLookupFunction(std::string name);
 

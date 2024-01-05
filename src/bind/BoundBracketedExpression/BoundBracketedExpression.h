@@ -5,8 +5,7 @@
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundBracketedExpression : public BoundExpression,
-                                 public BoundSourceLocation {
+class BoundBracketedExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundExpression> _expression;
 

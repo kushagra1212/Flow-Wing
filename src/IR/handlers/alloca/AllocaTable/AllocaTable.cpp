@@ -19,3 +19,14 @@ bool AllocaTable::updateAlloca(const std::string &name,
 void AllocaTable::setAlloca(const std::string &name, llvm::AllocaInst *alloca) {
   _allocas[name] = alloca;
 }
+
+void AllocaTable::setTypeIndex(const std::string &name, uint64_t index) {
+  _typeMap[name] = index;
+}
+uint64_t AllocaTable::getTypeIndex(const std::string &name) {
+  return _typeMap[name];
+}
+
+bool AllocaTable::hasTypeIndex(const std::string &name) {
+  return _typeMap.find(name) != _typeMap.end();
+}

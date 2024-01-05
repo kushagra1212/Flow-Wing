@@ -20,6 +20,9 @@ IRGenerator::IRGenerator(
   _environment = environment;
   _irParser = std::make_unique<IRParser>();
 
+  // LLVM - 16 bit
+  // TheContext->setOpaquePointers(false);
+
   this->declareDependencyFunctions();
   this->initializeGlobalVariables();
 

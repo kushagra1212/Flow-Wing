@@ -4,6 +4,59 @@ AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
+llvm::Value *AssignmentExpressionGenerationStrategy::
+    handleTypedPrmitiveGlobalVariableAssignment(llvm::GlobalVariable *variable,
+                                                const std::string &variableName,
+                                                const Utils::type &variableType,
+                                                llvm::Value *rhsValue) {
+
+  if (!_codeGenerationContext->getMapper()->isEquivalentType(
+          variableType, rhsValue->getType())) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in variable Assignment " + variableName +
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
+
+    return nullptr;
+  }
+
+  Builder->CreateStore(rhsValue, variable);
+  return nullptr;
+}
+
+llvm::Value *AssignmentExpressionGenerationStrategy::
+    handleUnTypedPrmitiveGlobalVariableAssignment(
+        llvm::GlobalVariable *variable, const std::string &variableName,
+        llvm::Value *rhsValue) {
+
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      variable, rhsValue, rhsValue->getType(),
+      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
+
+  return nullptr;
+}
+
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handlePrimitiveGlobalVariableAssignment(
+    llvm::GlobalVariable *variable, const std::string &variableName,
+    const Utils::type &variableType, llvm::Value *rhsValue) {
+
+  // Handle Static Primitive Global Variable (TYPED)
+  if (Utils::isStaticTypedPrimitiveType(variableType)) {
+    return handleTypedPrmitiveGlobalVariableAssignment(variable, variableName,
+                                                       variableType, rhsValue);
+  }
+
+  // Handle Dynamic Primitive Global Variable (DYNAMIC)
+
+  return handleUnTypedPrmitiveGlobalVariableAssignment(variable, variableName,
+                                                       rhsValue);
+}
+
 llvm::Value *
 AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
     BoundAssignmentExpression *assignmentExpression) {
@@ -14,6 +67,23 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
 
   // Handle Static Container Global Variable (TYPED)
   if (Utils::isStaticTypedContainerType(_variableType)) {
+
+    if (assignmentExpression->getRightPtr().get()->getKind() ==
+            BinderKindUtils::VariableExpression ||
+        assignmentExpression->getRightPtr().get()->getKind() ==
+            BinderKindUtils::CallExpression) {
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(_previousGlobalVariable);
+      assignStrategy->setContainerName(_variableName);
+
+      return assignStrategy->generateGlobalExpression(
+          assignmentExpression->getRightPtr().get());
+    }
+
     auto strategy = _expressionGenerationFactory->createStrategy(
         assignmentExpression->getRightPtr().get()->getKind());
 
@@ -48,48 +118,67 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
 
     return nullptr;
   }
+  return handlePrimitiveGlobalVariableAssignment(
+      _previousGlobalVariable, _variableName, _variableType, rhsValue);
+}
 
-  // Handle Static Primitive Global Variable (TYPED)
-  if (Utils::isStaticTypedPrimitiveType(_variableType)) {
+llvm::Value *AssignmentExpressionGenerationStrategy::
+    handleTypedPrmitiveLocalVariableAssignment(const std::string &variableName,
+                                               const Utils::type &variableType,
+                                               llvm::Value *rhsValue) {
+  if (!_codeGenerationContext->getMapper()->isEquivalentType(
+          variableType, rhsValue->getType())) {
 
-    if (!_codeGenerationContext->getMapper()->isEquivalentType(
-            _variableType, rhsValue->getType())) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in variable Assignment " + variableName +
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            rhsValue->getType()));
 
-      _codeGenerationContext->getLogger()->LogError(
-          "Type mismatch in variable Assignment " + _variableName +
-          " Expected type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(_variableType) +
-          " but got type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType()));
-
-      return nullptr;
-    }
-
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(_previousGlobalVariable->getValueType(),
-                            _previousGlobalVariable, _variableName);
-
-    Builder->CreateStore(rhsValue, _previousGlobalVariable);
     return nullptr;
   }
 
-  // Handle Dynamic Primitive Global Variable (DYNAMIC)
-  llvm::Value *loadedValue =
-      Builder->CreateLoad(_previousGlobalVariable->getValueType(),
-                          _previousGlobalVariable, _variableName);
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
-  llvm::Value *updatedValue = Builder->CreateInsertValue(
-      loadedValue, rhsValue,
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          rhsValue->getType()));
+  _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
+                                                                 rhsValue);
 
-  _codeGenerationContext->getGlobalTypeMap()[_variableName] =
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          rhsValue->getType());
+  Builder->CreateStore(rhsValue, v);
 
-  Builder->CreateStore(updatedValue, _previousGlobalVariable);
-  return nullptr;
+  return rhsValue;
+}
+
+llvm::Value *AssignmentExpressionGenerationStrategy::
+    handleUnTypedPrmitiveLocalVariableAssignment(
+        const std::string &variableName, llvm::Value *rhsValue) {
+
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+
+  _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
+                                                                 rhsValue);
+
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      v, rhsValue, rhsValue->getType(), variableName);
+  return rhsValue;
+}
+
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handlePrimitiveLocalVariableAssignment(
+    const std::string &variableName, const Utils::type &variableType,
+    llvm::Value *rhsValue) {
+
+  // Handle Static Primitive Local Variable (TYPED)
+  if (Utils::isStaticTypedPrimitiveType(variableType)) {
+    return handleTypedPrmitiveLocalVariableAssignment(variableName,
+                                                      variableType, rhsValue);
+  }
+
+  // Handle Dynamic Primitive Local Variable (DYNAMIC)
+  return handleUnTypedPrmitiveLocalVariableAssignment(variableName, rhsValue);
 }
 
 llvm::Value *
@@ -105,6 +194,21 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
 
   // Handle Static Container local Variable (TYPED)
   if (Utils::isStaticTypedContainerType(_variableType)) {
+    // Container Copy
+    if (assignmentExpression->getRightPtr().get()->getKind() ==
+        BinderKindUtils::VariableExpression) {
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(_allocaInst);
+      assignStrategy->setContainerName(_variableName);
+
+      return assignStrategy->generateExpression(
+          assignmentExpression->getRightPtr().get());
+    }
+
     auto strategy = _expressionGenerationFactory->createStrategy(
         assignmentExpression->getRightPtr().get()->getKind());
 
@@ -136,50 +240,12 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
     return nullptr;
   }
 
-  // Handle Static Primitive Local Variable (TYPED)
-  if (Utils::isStaticTypedPrimitiveType(_variableType)) {
-
-    if (!_codeGenerationContext->getMapper()->isEquivalentType(
-            _variableType, rhsValue->getType())) {
-
-      _codeGenerationContext->getLogger()->LogError(
-          "Type mismatch in variable Assignment " + _variableName +
-          " Expected type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(_variableType) +
-          " but got type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType()));
-
-      return nullptr;
-    }
-
-    llvm::AllocaInst *v =
-        _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
-
-    _codeGenerationContext->getNamedValueChain()->updateNamedValue(
-        _variableName, rhsValue);
-
-    Builder->CreateStore(rhsValue, v);
-
-    return rhsValue;
-  }
-
-  // Handle Dynamic Primitive Local Variable (DYNAMIC)
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
-
-  _codeGenerationContext->getNamedValueChain()->updateNamedValue(_variableName,
-                                                                 rhsValue);
-
-  Builder->CreateStore(
-      rhsValue,
-      Builder->CreateStructGEP(
-          _codeGenerationContext->getDynamicType()->get(), v,
-          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              rhsValue->getType())));
-
-  return rhsValue;
+  return handlePrimitiveLocalVariableAssignment(_variableName, _variableType,
+                                                rhsValue);
 }
+
+// CONTAINER ASSIGNMENT EXPRESSION GENERATION STRATEGY
+
 llvm::Value *
 AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     BoundAssignmentExpression *assignmentExpression) {
@@ -188,7 +254,7 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
 
   BoundIndexExpression *indexExpression = static_cast<BoundIndexExpression *>(
       assignmentExpression->getLeftPtr().get());
-
+  _variableType = assignmentExpression->getVariable().type;
   llvm::Value *rhsValue =
       _expressionGenerationFactory
           ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
@@ -197,25 +263,28 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   if (!rhsValue) {
     // Error generating IR for the right-hand side expression
 
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Right hand side value not found in assignment expression ");
 
     return nullptr;
   }
 
-  llvm::Value *indexValue =
-      _expressionGenerationFactory
-          ->createStrategy(
-              indexExpression->getBoundIndexExpression().get()->getKind())
-          ->generateExpression(
-              indexExpression->getBoundIndexExpression().get());
+  for (const auto &index : indexExpression->getBoundIndexExpressions()) {
+    llvm::Value *indexValue =
+        _expressionGenerationFactory->createStrategy(index.get()->getKind())
+            ->generateExpression(index.get());
 
-  if (!indexValue) {
+    indexValue = _int32TypeConverter->convertExplicit(indexValue);
 
-    _codeGenerationContext->callREF(
-        "Index value not found in assignment expression");
-
-    return nullptr;
+    if (!_codeGenerationContext->getMapper()->isInt32Type(
+            indexValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected index value to be of type int but got " +
+          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+              indexValue->getType())));
+      return nullptr;
+    }
+    _indices.push_back(indexValue);
   }
 
   llvm::Value *loadedElementValue =
@@ -223,13 +292,16 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
           ->generateExpression(indexExpression);
 
   if (!loadedElementValue) {
-    _codeGenerationContext->callREF(
+    _codeGenerationContext->getLogger()->LogError(
         "Index value not found in assignment expression");
 
     return nullptr;
   }
 
-  if (rhsValue->getType() != loadedElementValue->getType()) {
+  // Typed Container
+
+  if (!Utils::isDynamicTypedContainerType(_variableType) &&
+      rhsValue->getType() != loadedElementValue->getType()) {
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in assignment expression, expected " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(
@@ -245,28 +317,40 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   std::string variableName = std::any_cast<std::string>(
       (indexExpression->getBoundIdentifierExpression().get())->getValue());
 
-  llvm::AllocaInst *v =
+  llvm::AllocaInst *alloca =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+  llvm::Type *arrayType = nullptr;
 
-  if (!v) {
-    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+  llvm::Value *v = nullptr;
 
-    if (variable) {
+  if (!alloca) { // Error Already Handled Look at the index
+                 // expression Up :)
+    llvm::GlobalVariable *gv = TheModule->getGlobalVariable(
+        variableName); // Error was handled before
+                       // in the index expression (var loadedElementValue)
 
-      return this->handleGlobalIndexExpressionAssignment(
-          variable, indexValue, rhsValue, variableName);
-    }
+    arrayType = llvm::cast<llvm::ArrayType>(gv->getValueType());
+    v = gv;
+  } else {
+    arrayType = llvm::cast<llvm::ArrayType>(alloca->getAllocatedType());
+    v = alloca;
+  }
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression , " + variableName);
+  std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-    return nullptr;
+  for (auto index : _indices) {
+    indexList.push_back(index);
   }
 
   // Get Element pointer
-  llvm::Value *elementPtr = Builder->CreateGEP(
-      v->getAllocatedType(), v,
-      {Builder->getInt32(0), _int32TypeConverter->convertExplicit(indexValue)});
+  llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
+
+  // Untyped Container
+  if (Utils::isDynamicTypedContainerType(_variableType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Dynamic typed container not supported in assignment expression");
+    return nullptr;
+  }
 
   Builder->CreateStore(rhsValue, elementPtr);
 
@@ -296,51 +380,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
   return nullptr;
 }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handleGlobalIndexExpressionAssignment(
-    llvm::GlobalVariable *variable, llvm::Value *indexValue, llvm::Value *rhs,
-    const std::string &variableName) {
-
-  if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-    int index = 0;
-
-    if (llvm::ConstantInt *constantInt =
-            llvm::dyn_cast<llvm::ConstantInt>(indexValue)) {
-      index = constantInt->getSExtValue();
-    } else {
-      _codeGenerationContext->getLogger()->LogError(
-          "Index value must be of type int32");
-      return nullptr;
-    }
-    if (index < 0) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Index value must be greater than or equal to 0");
-      return nullptr;
-    }
-
-    if (index >= variable->getValueType()->getArrayNumElements()) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Index value must be less than or equal to " +
-          std::to_string(variable->getValueType()->getArrayNumElements() - 1));
-      return nullptr;
-    }
-
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(variable->getValueType(), variable, variableName);
-
-    llvm::Value *updatedValue =
-        Builder->CreateInsertValue(loadedValue, rhs, index);
-
-    Builder->CreateStore(updatedValue, variable);
-
-    return rhs;
-  }
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable not found in assignment expression ");
-
-  return nullptr;
-}
 llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =
@@ -348,7 +387,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
-
+  _isGlobal = true;
   if (auto boundLiteralExpression =
           dynamic_cast<BoundLiteralExpression<std::any> *>(
               assignmentExpression->getLeftPtr().get())) {
@@ -386,17 +425,21 @@ bool AssignmentExpressionGenerationStrategy::
   if (!val) {
     // Variable not found locally, handle error
 
-    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
     _allocaInst =
         _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+
+    if (_allocaInst) {
+      return true;
+    }
+
+    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
+
     if (_previousGlobalVariable) {
       _isGlobal = true;
       return true;
     }
-    if (_allocaInst) {
-      return true;
-    }
-    _codeGenerationContext->callREF(
+
+    _codeGenerationContext->getLogger()->LogError(
         "Variable not found in assignment expression , " + _variableName);
 
     return false;

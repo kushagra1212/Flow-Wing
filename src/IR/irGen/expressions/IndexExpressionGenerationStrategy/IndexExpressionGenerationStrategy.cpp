@@ -4,6 +4,61 @@ IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
+const bool IndexExpressionGenerationStrategy::canGenerateExpression(
+    const std::string &variableName) {
+  llvm::AllocaInst *v =
+      _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+
+  if (v && !(llvm::isa<llvm::ArrayType>(v->getAllocatedType()))) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "variable " + _variableName + " Expected to be of type array of " +
+        Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+            _arrayElementType)) +
+        " but got " +
+        Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+            v->getAllocatedType())));
+    return false;
+  }
+
+  if (!v) {
+    // Variable not found, handle error
+    llvm::GlobalVariable *variable =
+        TheModule->getGlobalVariable(_variableName);
+
+    if (!variable) {
+      _codeGenerationContext->getLogger()->LogError(
+          "variable " + _variableName + " not found in variable expression");
+
+      return false;
+    }
+
+    if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+
+      _codeGenerationContext->getLogger()->LogError(
+          "variable " + _variableName + " Expected to be of type array of " +
+          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+              _arrayElementType)) +
+          " but got " +
+          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+              variable->getValueType())));
+
+      return false;
+    }
+    _arrayElementType =
+        _codeGenerationContext->getArrayElementTypeMetadata(variable);
+    _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
+    _variable = variable;
+
+    return true;
+  }
+  _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
+  _arrayType = llvm::cast<llvm::ArrayType>(v->getAllocatedType());
+  _variable = v;
+
+  return true;
+}
+
 llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   BoundIndexExpression *indexExpression =
@@ -12,146 +67,115 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       indexExpression->getLocation());
 
-  llvm::Value *indexValue =
-      _expressionGenerationFactory
-          ->createStrategy(
-              indexExpression->getBoundIndexExpression().get()->getKind())
-          ->generateExpression(
-              indexExpression->getBoundIndexExpression().get());
+  for (auto &index : indexExpression->getBoundIndexExpressions()) {
+    llvm::Value *indexValue =
+        _expressionGenerationFactory->createStrategy(index.get()->getKind())
+            ->generateExpression(index.get());
 
-  if (!_codeGenerationContext->getMapper()->isInt32Type(
-          indexValue->getType())) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Index value must be of type int32");
-    return nullptr;
+    if (!_codeGenerationContext->getMapper()->isInt32Type(
+            indexValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Index value must be of type int");
+      return nullptr;
+    }
+
+    indexValue = _int32TypeConverter->convertExplicit(indexValue);
+
+    if (!_codeGenerationContext->getMapper()->isInt32Type(
+            indexValue->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected index value to be of type int but got " +
+          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+              indexValue->getType())));
+      return nullptr;
+    }
+    _indices.push_back(indexValue);
   }
 
-  std::string variableName = std::any_cast<std::string>(
+  _variableName = std::any_cast<std::string>(
       (indexExpression->getBoundIdentifierExpression().get())->getValue());
 
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
-
-  if (!v) {
-    // Variable not found, handle error
-
-    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
-
-    if (variable) {
-
-      if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-
-        llvm::ConstantInt *constantInt =
-            llvm::dyn_cast<llvm::ConstantInt>(indexValue);
-
-        return this->handleGlobalVariable(variable, constantInt->getSExtValue(),
-                                          indexValue, variableName);
-      }
-
-      _codeGenerationContext->getLogger()->LogError(
-          "Variable not found in assignment expression ");
-    }
-
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression ");
-
+  if (!this->canGenerateExpression(_variableName)) {
     return nullptr;
   }
 
-  if (llvm::ArrayType *arrayType =
-          llvm::dyn_cast<llvm::ArrayType>(v->getAllocatedType())) {
-    llvm::Type *elementType = arrayType->getElementType();
-    const uint64_t size = arrayType->getNumElements();
+  std::vector<uint64_t> sizes;
+  _codeGenerationContext->getArraySizeMetadata(_variable, sizes);
 
-    if (size <= 0) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Array size must be greater than 0");
-      return nullptr;
-    }
-
-    // check if index is out of bounds
-    llvm::Value *indexOutOfBounds = Builder->CreateICmpSGE(
-        indexValue, llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext),
-                                           size, true));
-
-    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-    llvm::BasicBlock *indexOutOfBoundsBlock = llvm::BasicBlock::Create(
-        *TheContext, "indexOutOfBounds", currentBlock->getParent());
-
-    llvm::BasicBlock *indexInBoundsBlock = llvm::BasicBlock::Create(
-        *TheContext, "indexInBounds", currentBlock->getParent());
-
-    Builder->CreateCondBr(indexOutOfBounds, indexOutOfBoundsBlock,
-                          indexInBoundsBlock);
-
-    Builder->SetInsertPoint(indexOutOfBoundsBlock);
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
-        {Builder->CreateGlobalStringPtr(
-            _codeGenerationContext->getLogger()->getLLVMErrorMsg(
-                "Index out of bounds of '" + variableName +
-                    "' in index expression, array size is " +
-                    std::to_string(size),
-                indexExpression->getLocation()))});
-
-    Builder->CreateBr(indexInBoundsBlock);
-
-    Builder->SetInsertPoint(indexInBoundsBlock);
-
-    llvm::Value *arrayPtr = v;
-    llvm::Value *elementPtr =
-        Builder->CreateGEP(arrayType, arrayPtr,
-                           {Builder->getInt32(0),
-                            _int32TypeConverter->convertExplicit(indexValue)});
-
-    return Builder->CreateLoad(elementType, elementPtr);
+  for (int i = 0; i < sizes.size(); i++) {
+    _actualSizes.push_back(Builder->getInt32(sizes[i]));
   }
 
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable" + variableName + " not found in variable expression ");
-
-  return nullptr;
+  return this->handleArrayTypeIndexing();
 }
 
-llvm::Value *IndexExpressionGenerationStrategy::handleGlobalVariable(
-    llvm::GlobalVariable *variable, int index, llvm::Value *indexValue,
-    std::string variableName) {
-  if (llvm::ArrayType *arrayType =
-          llvm::dyn_cast<llvm::ArrayType>(variable->getValueType())) {
-    llvm::Type *elementType = arrayType->getElementType();
-    const uint64_t size = arrayType->getNumElements();
+void IndexExpressionGenerationStrategy::verifyBounds(
+    llvm::Value *indexValue, llvm::ConstantInt *actualSize) {
+  llvm::Function *function = Builder->GetInsertBlock()->getParent();
+  llvm::BasicBlock *thenBB =
+      llvm::BasicBlock::Create(*TheContext, "GlobalIndexExpr::then", function);
+  llvm::BasicBlock *elseBB =
+      llvm::BasicBlock::Create(*TheContext, "GlobalIndexExpr::else", function);
+  llvm::BasicBlock *mergeBB =
+      llvm::BasicBlock::Create(*TheContext, "GlobalIndexExpr::merge", function);
 
-    if (size <= 0) {
-      _codeGenerationContext->callREF("Array size must be greater than 0");
-      return nullptr;
-    }
+  // TODO: TO 64 Bit
+  llvm::Value *isLessThan = Builder->CreateICmpSLT(
+      indexValue, actualSize, "GlobalIndexExpr::isLessThan");
 
-    if (index < 0) {
-      _codeGenerationContext->callREF(
-          "Index out of bounds of '" + variableName +
-          "' in index expression, array size is " + std::to_string(size));
-      return nullptr;
-    }
+  llvm::Value *isGreaterThan = Builder->CreateICmpSGE(
+      indexValue,
+      llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true),
+      "GlobalIndexExpr::isGreaterThan");
 
-    if (index >= size) {
-      _codeGenerationContext->callREF(
-          "Index out of bounds of '" + variableName +
-          "' in index expression, array size is " + std::to_string(size));
-      return nullptr;
-    }
+  llvm::Value *isWithinBounds = Builder->CreateAnd(
+      isLessThan, isGreaterThan, "GlobalIndexExpr::isWithinBounds");
 
-    llvm::Value *loadedValue =
-        Builder->CreateLoad(variable->getValueType(), variable);
+  // Create the conditional branch
+  Builder->CreateCondBr(isWithinBounds, thenBB, elseBB);
 
-    llvm::Value *innerValue = Builder->CreateExtractValue(loadedValue, index);
-    // Builder->CreateLoad(elementType, innerValue);
-    return innerValue;
+  // In the then block, you can continue with the array access
+  Builder->SetInsertPoint(thenBB);
+
+  Builder->CreateBr(mergeBB);
+
+  Builder->SetInsertPoint(elseBB);
+
+  _codeGenerationContext->callREF(
+      "Index out of bounds of '" + _variableName +
+      "' in index expression, index value should be between 0 and " +
+      (std::to_string(actualSize->getSExtValue())));
+
+  Builder->CreateBr(mergeBB);
+
+  // Continue from the merge block
+  Builder->SetInsertPoint(mergeBB);
+}
+
+llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
+
+  if (_actualSizes.size() != _indices.size()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected " + std::to_string(_actualSizes.size()) +
+        " indices but got " + std::to_string(_indices.size()));
+    return nullptr;
   }
 
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable" + variableName + " not found in variable expression ");
+  int64_t n = _actualSizes.size();
 
-  return nullptr;
+  for (int64_t i = 0; i < n; i++) {
+    this->verifyBounds(_indices[i], _actualSizes[i]);
+  }
+
+  std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
+
+  for (int i = 0; i < n; i++) {
+    indexList.push_back(_indices[i]);
+  }
+
+  llvm::Value *elementPtr =
+      Builder->CreateGEP(_arrayType, _variable, indexList);
+  return Builder->CreateLoad(_arrayElementType, elementPtr);
 }
 
 llvm::Value *IndexExpressionGenerationStrategy::generateGlobalExpression(
@@ -162,7 +186,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateGlobalExpression(
       indexExpression->getLocation());
 
   _codeGenerationContext->getLogger()->LogError(
-      "TODO: Implement global index expression generation strategy");
+      "Index expression not allowed in global scope");
 
   return nullptr;
 }

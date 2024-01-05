@@ -5,27 +5,45 @@
 #include "../BoundBlockStatement/BoundBlockStatement.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundVariableExpression/BoundVariableExpression.h"
+
 class BoundFunctionDeclaration : public BoundStatement,
                                  public BoundSourceLocation {
-public:
+
   std::unique_ptr<BoundBlockStatement> _body;
-  Utils::FunctionSymbol _functionSymbol;
+  std::vector<std::unique_ptr<BoundVariableExpression>> _parameters;
+  std::string _functionName;
 
-  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
-                           Utils::FunctionSymbol functionSymbol,
-                           std::unique_ptr<BoundBlockStatement> body);
+  std::unique_ptr<BoundExpression> _returnType;
 
-  std::unique_ptr<BoundBlockStatement> getBody();
+public:
+  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
-
+  BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 
-  Utils::FunctionSymbol getFunctionSymbol() const;
+  void addParameter(std::unique_ptr<BoundVariableExpression> parameter);
+  void setFunctionName(const std::string &functionName);
+  void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
+  inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
+    _returnType = std::move(returnType);
+  }
 
-  std::unique_ptr<BoundBlockStatement> &getBodyPtr();
-
-  const bool hasParameterTypes() const;
+  inline auto getParametersRef() const
+      -> const std::vector<std::unique_ptr<BoundVariableExpression>> & {
+    return _parameters;
+  }
+  inline auto getFunctionNameRef() const -> const std::string & {
+    return _functionName;
+  }
+  inline auto getBodyRef() const
+      -> const std::unique_ptr<BoundBlockStatement> & {
+    return _body;
+  }
+  inline auto getReturnType() const
+      -> const std::unique_ptr<BoundExpression> & {
+    return _returnType;
+  }
 };
 
 #endif

@@ -10,30 +10,24 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
   BoundFunctionDeclaration *functionDeclaration =
       static_cast<BoundFunctionDeclaration *>(statement);
 
-  if (!functionDeclaration->hasParameterTypes()) {
-    return nullptr;
-  }
+  //   if (!functionDeclaration->getParametersRef().size()) {
+  //     return nullptr;
+  //   }
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       functionDeclaration->getLocation());
 
-  std::string functionName = functionDeclaration->getFunctionSymbol().name;
+  _codeGenerationContext->getReturnAllocaStack().push(0);
+  llvm::Function *F =
+      TheModule->getFunction(functionDeclaration->getFunctionNameRef());
 
-  std::vector<llvm::Type *> argTypes;
-  for (int i = 0;
-       i < functionDeclaration->getFunctionSymbol().parameters.size(); i++) {
-    llvm::Type *type =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            functionDeclaration->getFunctionSymbol().parameters[i].type);
-    argTypes.push_back(type);
+  if (!F) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Function " + functionDeclaration->getFunctionNameRef() +
+        " is not declared");
+
+    return nullptr;
   }
-  llvm::Type *returnType =
-      _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-          functionDeclaration->getFunctionSymbol().getReturnType());
 
-  _codeGenerationContext->getReturnAllocaStack().push(
-      {functionDeclaration->getFunctionSymbol().getReturnType(), 0});
-
-  llvm::Function *F = TheModule->getFunction(functionName);
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
 
@@ -46,102 +40,154 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
 
   std::vector<std::string> parameterNames;
 
-  for (int i = 0;
-       i < functionDeclaration->getFunctionSymbol().parameters.size(); i++) {
+  for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
     parameterNames.push_back(
-        functionDeclaration->getFunctionSymbol().parameters[i].name);
+        functionDeclaration->getParametersRef()[i]->getVariableNameRef());
   }
+  std::unique_ptr<ContainerAssignmentExpressionGenerationStrategy>
+      containerAssignmentExpressionGenerationStrategy(
+          new ContainerAssignmentExpressionGenerationStrategy(
+              _codeGenerationContext));
+  llvm::LLVMContext *TheContext = _codeGenerationContext->getContext().get();
 
-  for (int i = 0;
-       i < functionDeclaration->getFunctionSymbol().parameters.size(); i++) {
+  const std::vector<std::unique_ptr<LLVMType>> &llvmArgsTypes =
+      _codeGenerationContext->getArgsTypeHandler()->getArgsType(
+          functionDeclaration->getFunctionNameRef());
+
+  for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        functionDeclaration->getParametersRef()[i]
+            ->getIdentifierExpressionPtr()
+            ->getLocation());
+
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
-    if (argValue->getType() != argTypes[i]) {
+    if (llvmArgsTypes[i]->isPointer() &&
+        !llvm::isa<llvm::PointerType>(argValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
-          "Argument type mismatch in function " + functionName +
-          " for parameter " + parameterNames[i] + " expected " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(argTypes[i]) +
-          " but found " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              argValue->getType()));
+          "Type mismatch in function parameter " + parameterNames[i]);
     }
 
-    llvm::AllocaInst *variable =
-        Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                              nullptr, parameterNames[i]);
+    if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
+        llvmArgsTypes[i]->isPointerToArray()) {
 
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
-                                                            variable);
+      LLVMArrayType *llvmArrayPtrType =
+          static_cast<LLVMArrayType *>(llvmArgsTypes[i].get());
 
-    Builder->CreateStore(
-        argValue,
-        Builder->CreateStructGEP(
-            _codeGenerationContext->getDynamicType()->get(), variable,
-            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-                argValue->getType())));
+      llvm::ArrayType *arrayType =
+          llvm::cast<llvm::ArrayType>(llvmArrayPtrType->getElementType());
 
-    _codeGenerationContext->getNamedValueChain()->setNamedValue(
-        parameterNames[i], argValue);
+      llvm::Value *variable =
+          Builder->CreateAlloca(arrayType, nullptr, parameterNames[i]);
+
+      _codeGenerationContext->setArrayElementTypeMetadata(
+          variable, llvmArrayPtrType->getArrayElementType());
+      _codeGenerationContext->setArraySizeMetadata(
+          variable, llvmArrayPtrType->getDimensions());
+
+      containerAssignmentExpressionGenerationStrategy->createExpression(
+          arrayType, variable, argValue, arrayType,
+          llvmArrayPtrType->getArrayElementType(),
+          llvmArrayPtrType->getDimensions(), llvmArrayPtrType->getDimensions());
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(
+          parameterNames[i], (llvm::AllocaInst *)variable);
+
+    } else {
+
+      llvm::AllocaInst *variable = Builder->CreateAlloca(
+          argValue->getType(), nullptr, parameterNames[i]);
+      Builder->CreateStore(argValue, variable);
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
+                                                              variable);
+      _codeGenerationContext->getNamedValueChain()->setNamedValue(
+          parameterNames[i], argValue);
+    }
   }
 
   _statementGenerationFactory
-      ->createStrategy(functionDeclaration->getBodyPtr().get()->getKind())
-      ->generateStatement(functionDeclaration->getBodyPtr().get());
+      ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
+      ->generateStatement(functionDeclaration->getBodyRef().get());
 
-  if (_codeGenerationContext->getReturnAllocaStack().top().first !=
-          Utils::type::NOTHING &&
-      _codeGenerationContext->getReturnAllocaStack().top().second == 0) {
+  //   if (_codeGenerationContext->getReturnTypeHandler()
+  //           ->getReturnType(functionDeclaration->getFunctionNameRef())
+  //           ->getType() != llvm::Type::getVoidTy(*TheContext)) {
+  //     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+  //         functionDeclaration->getReturnType()->getLocation());
+
+  //     _codeGenerationContext->getLogger()->LogError(
+  //         "Function return type is not Nothing, return expression not found
+  //         in " "function " + functionDeclaration->getFunctionNameRef());
+  //     return nullptr;
+  //   }
+  llvm::Type *returnType =
+      _codeGenerationContext->getReturnTypeHandler()
+          ->getReturnType(functionDeclaration->getFunctionNameRef())
+          ->getType();
+  if (returnType != llvm::Type::getVoidTy(*TheContext) &&
+      _codeGenerationContext->getReturnAllocaStack().top() == 0) {
 
     _codeGenerationContext->getLogger()->LogError(
         "Function return type is not Nothing, return expression not found");
+
+    return nullptr;
   }
 
-  if (functionDeclaration->getFunctionSymbol().getReturnType() ==
-      Utils::type::NOTHING) {
+  //   if (functionDeclaration->getReturnType() == Utils::type::NOTHING) {
+  //     Builder->CreateRetVoid();
+  //   } else {
+  //     Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
+  //         functionDeclaration->getReturnType()));
+  //   }
+
+  if (returnType == llvm::Type::getVoidTy(*TheContext)) {
     Builder->CreateRetVoid();
   } else {
-    Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
-        functionDeclaration->getFunctionSymbol().getReturnType()));
+    Builder->CreateRet(
+        _codeGenerationContext->getMapper()->getDefaultValue(returnType));
   }
-
-  _codeGenerationContext->getReturnAllocaStack().pop();
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
 
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(functionName, F);
+  _codeGenerationContext->getReturnAllocaStack().pop();
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(functionName,
-                                                          nullptr);
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(
+      functionDeclaration->getFunctionNameRef(), F);
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(
+      functionDeclaration->getFunctionNameRef(), nullptr);
 
   return nullptr;
 }
 
 llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
-    BoundFunctionDeclaration *node, std::vector<llvm::Value *> callArgs) {
-
-  std::string functionName = node->_functionSymbol.name;
+    BoundFunctionDeclaration *fd, std::vector<llvm::Value *> callArgs) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      node->getLocation());
+      fd->getLocation());
 
   std::vector<llvm::Type *> argTypes;
   for (int i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
-  llvm::Type *returnType =
-      _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-          node->_functionSymbol.getReturnType());
+  //   llvm::Type *returnType =
+  //       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+  //           fd->getReturnType());
 
-  _codeGenerationContext->getReturnAllocaStack().push(
-      {node->getFunctionSymbol().getReturnType(), 0});
+  //   _codeGenerationContext->getReturnAllocaStack().push({fd->getReturnType(),
+  //   0});
+
+  llvm::Type *returnType = nullptr;
 
   llvm::FunctionType *FT = llvm::FunctionType::get(returnType, argTypes, false);
 
-  llvm::Function *F = llvm::Function::Create(
-      FT, llvm::Function::ExternalLinkage, functionName, *TheModule);
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                             fd->getFunctionNameRef(), *TheModule);
 
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
@@ -155,11 +201,11 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   std::vector<std::string> parameterNames;
 
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
-    parameterNames.push_back(node->_functionSymbol.parameters[i].name);
+  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+    parameterNames.push_back(fd->getParametersRef()[i]->getVariableNameRef());
   }
 
-  for (int i = 0; i < node->_functionSymbol.parameters.size(); i++) {
+  for (int i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 
@@ -170,39 +216,37 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
     _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
                                                             variable);
 
-    Builder->CreateStore(
-        argValue,
-        Builder->CreateStructGEP(
-            _codeGenerationContext->getDynamicType()->get(), variable,
-            _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-                argValue->getType())));
+    _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+        variable, argValue, argValue->getType(), parameterNames[i]);
+
     _codeGenerationContext->getNamedValueChain()->setNamedValue(
         parameterNames[i], argValue);
   }
 
-  _statementGenerationFactory
-      ->createStrategy(node->getBodyPtr().get()->getKind())
-      ->generateStatement(node->getBodyPtr().get());
+  _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
+      ->generateStatement(fd->getBodyRef().get());
 
-  if (_codeGenerationContext->getReturnAllocaStack().top().first !=
-          Utils::type::NOTHING &&
-      _codeGenerationContext->getReturnAllocaStack().top().second == 0) {
+  //   if (_codeGenerationContext->getReturnAllocaStack().top().first !=
+  //           Utils::type::NOTHING &&
+  //       _codeGenerationContext->getReturnAllocaStack().top().second == 0) {
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Function return type is not Nothing, return expression is not found");
+  //     _codeGenerationContext->getLogger()->LogError(
+  //         "Function return type is not Nothing, return expression is not
+  //         found");
 
-    return nullptr;
-  }
+  //     return nullptr;
+  //   }
 
-  Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
-      node->_functionSymbol.return_type));
+  //   Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
+  //       fd->getReturnType()));
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(functionName, F);
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(functionName,
-                                                          nullptr);
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(
+      fd->getFunctionNameRef(), F);
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(
+      fd->getFunctionNameRef(), nullptr);
 
   return nullptr;
 }

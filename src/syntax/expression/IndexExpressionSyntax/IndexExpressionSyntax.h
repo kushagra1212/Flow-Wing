@@ -8,16 +8,24 @@
 class IndexExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> _indexExpression;
+  std::vector<std::unique_ptr<ExpressionSyntax>> _indexExpressions;
 
 public:
   IndexExpressionSyntax(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> indexExpression);
+      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression);
+
+  inline auto addIndexExpression(std::unique_ptr<ExpressionSyntax> item)
+      -> void {
+    this->_indexExpressions.push_back(std::move(item));
+  }
+
+  inline auto getIndexExpressionsRef() const
+      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
+    return this->_indexExpressions;
+  }
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &
   getIndexIdentifierExpressionPtr();
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getIndexEpressionPtr();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;

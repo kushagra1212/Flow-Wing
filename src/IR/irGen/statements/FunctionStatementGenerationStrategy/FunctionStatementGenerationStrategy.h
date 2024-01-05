@@ -2,6 +2,7 @@
 #define __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {

@@ -1,12 +1,8 @@
 
-/# PENDDING
-var y = 1
-var x :int[1] = [y]
-{
-var x :int[1000] = [2 fill 1]
-print(x)
-}
-#/
 
 
-print(40.40)
+
+/#
+
+TODO:
+

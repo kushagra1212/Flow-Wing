@@ -14,8 +14,9 @@
 #include "../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../../syntax/expression/LiteralExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
-#include "../../syntax/expression/VariableExpressionSyntax.h"
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
@@ -30,6 +31,7 @@
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
+#include "../../utils/BuiltInFunction/BuiltInFunction.h"
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
@@ -53,9 +55,13 @@
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../BoundTypeExpression/BoundTypeExpression.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../BoundVariableExpression/BoundVariableExpression.h"
+
 #include "../BoundWhileStatement/BoundWhileStatement.h"
 #include "BoundScope/BoundScope.h"
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
@@ -131,8 +137,8 @@ public:
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
 
-  std::unique_ptr<BoundExpression>
-  bindLiteralExpression(LiteralExpressionSyntax<std::any> *literalSyntax);
+  std::unique_ptr<BoundLiteralExpression<std::any>>
+  bindLiteralExpression(ExpressionSyntax *syntax);
 
   std::unique_ptr<BoundExpression>
   bindunaryExpression(UnaryExpressionSyntax *unaryExpression);
@@ -142,9 +148,6 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindAssignmentExpression(AssignmentExpressionSyntax *assignmentExpression);
-
-  std::unique_ptr<BoundExpression>
-  bindVariableExpression(VariableExpressionSyntax *variableExpression);
 
   std::unique_ptr<BoundExpression>
   bindCallExpression(CallExpressionSyntax *callExpression);
@@ -160,6 +163,15 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindBracketedExpression(BracketedExpressionSyntax *bracketedExpression);
+
+  std::unique_ptr<BoundVariableExpression>
+  bindVariableExpression(VariableExpressionSyntax *variableExpressionSyntax);
+
+  std::unique_ptr<BoundVariableExpression> bindArrayVariableExpression(
+      ArrayVariableExpressionSyntax *variableExpressionSyntax);
+
+  std::unique_ptr<BoundExpression>
+  bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax);
 
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,

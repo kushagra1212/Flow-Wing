@@ -20,7 +20,7 @@ void JITCompiler::execute() {
   std::string errorMessage;
   executionEngine = llvm::EngineBuilder(std::move(TheModule))
                         .setErrorStr(&errorMessage)
-                        .setEngineKind(llvm::EngineKind::JIT)
+                        .setEngineKind(llvm::EngineKind::Kind::JIT)
                         .setOptLevel(llvm::CodeGenOpt::Less)
                         .create();
 
@@ -29,7 +29,7 @@ void JITCompiler::execute() {
         std::cout,
         Diagnostic("Failed to create Execution Engine: " + errorMessage,
                    DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Runtime,
+                   DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, "")));
     return;
   }
@@ -38,7 +38,7 @@ void JITCompiler::execute() {
     _currentDiagnosticHandler->printDiagnostic(
         std::cout, Diagnostic("Function not found in module.",
                               DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Runtime,
+                              DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
     return;
   }
@@ -58,7 +58,7 @@ void JITCompiler::execute() {
     _currentDiagnosticHandler->printDiagnostic(
         std::cout, Diagnostic("Error executing function.",
                               DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Runtime,
+                              DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(
                                   0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
   }

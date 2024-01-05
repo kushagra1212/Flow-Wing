@@ -26,6 +26,7 @@ TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
 }
 
 llvm::Type *TypeMapper::mapCustomTypeToLLVMType(Utils::type type) const {
+
   auto it = _reverseTypeMappings.find(type);
   if (it != _reverseTypeMappings.end()) {
     return it->second;

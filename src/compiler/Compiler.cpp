@@ -117,6 +117,9 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
+  // TODO: Change the triple to x86_64-unknown-linux-gnu
+  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
 
@@ -156,7 +159,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
   // TheModule->print(llvm::outs(), nullptr);
 
-  // llFileSaveStrategy->saveToFile("my_module.ll", TheModule.get());
+  llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
 
 #endif
 
@@ -196,6 +199,16 @@ void Compiler::compile(std::vector<std::string> &text,
     return;
   }
 
+#ifdef DEBUG
+
+  std::cout << BLUE << ".............." << YELLOW << "Tree Start" << BLUE
+            << ".............." << RESET << std::endl;
+  Utils::prettyPrint(compilationUnit.get());
+  std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
+            << " .............." << RESET << std::endl;
+
+#endif
+
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
                                         currentDiagnosticHandler.get()));
@@ -214,7 +227,13 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 
 #ifdef DEBUG
+
+  std::cout << BLUE << ".............." << YELLOW << "Tree Start" << BLUE
+            << ".............." << RESET << std::endl;
   Utils::prettyPrint(globalScope->globalStatement.get());
+  std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
+            << " .............." << RESET << std::endl;
+
 #endif
 
   try {
@@ -224,7 +243,11 @@ void Compiler::compile(std::vector<std::string> &text,
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
-    // _evaluator->printIR();
+
+#ifdef DEBUG
+    _evaluator->printIR();
+#endif
+
     // _evaluator->executeGeneratedCode();
 
     //_evaluator->getIRParserPtr()->printIR();

@@ -3,8 +3,7 @@
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundUnaryExpression : public BoundExpression,
-                             public BoundSourceLocation {
+class BoundUnaryExpression : public BoundExpression {
 private:
   BinderKindUtils::BoundUnaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _operand;

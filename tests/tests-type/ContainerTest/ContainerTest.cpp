@@ -606,7 +606,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialIntDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[10, 20, 30, 0, 0]";
+  std::string expected_output = "[10, 20, 30, 4, 5]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -618,7 +618,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, world, this, , ]";
+  std::string expected_output = "[hello, world, this, d, e]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -631,7 +631,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialBoolDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[false, true, false, false, false]";
+  std::string expected_output = "[false, true, false, false, true]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -643,9 +643,9 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialDeciDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[10.0999999999999996, 20.1999999999999993, "
-                                "30.2999999999999972, 0.00000000000000, "
-                                "0.00000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 20.20000000000000, 30.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -907,9 +907,9 @@ TEST_F(ContainerTest, BasicContainerFillAssignmentDeciDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[10.1000000000000005, 10.1000000000000005, "
-                                "3.2999999999999998, 4.4000000000000004, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -984,9 +984,9 @@ TEST_F(ContainerTest, BasicContainerFillAssignmentDeciDeclarationGlobal) {
 
 print(a))";
 
-  std::string expected_output = "[10.0999999999999996, 10.0999999999999996, "
-                                "3.2999999999999998, 4.4000000000000004, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1076,9 +1076,9 @@ print(a)
 
 )";
 
-  std::string expected_output = "[10.0999999999999996, 10.0999999999999996, "
-                                "3.2999999999999998, 4.4000000000000004, "
-                                "5.5000000000000000]";
+  std::string expected_output =
+      "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1101,4 +1101,1452 @@ print(a)
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(ContainerTest,
+       BasicContainerInitilizationWithVariableInsideScopeAccess) {
+  std::string input = R"(var y = 10
+    var a:int[5] = [1, 2, 3, 4, y]
+    print(a)
+  )";
+
+  std::string expected_output = "[1, 2, 3, 4, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest,
+       BasicContainerInitilizationWithVariableInsideScopeUpdate) {
+  std::string input = R"(
+    var y = 10
+    var a:int[5] = [1, 2, 3, 4, y]
+    a[0] = 100
+    print(a)
+  )";
+
+  std::string expected_output = "[100, 2, 3, 4, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialStringDeclarationGlobalInsideScopeAccess) {
+
+  std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  var res = "hello"
+  a = [5 fill res]
+print(a)
+       }
+)";
+
+  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialBoolDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:bool[5] = [true, false, true, false, true]
+{
+
+  var isBool:bool = false
+  var isbool = true
+  a = [isBool, isbool, isBool]
+print(a)
+       }
+)";
+
+  std::string expected_output = "[false, true, false, false, true]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentPartialDeciDeclarationGlobalInsideScopeAccess) {
+  std::string input = R"(var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+{
+  var res = 10.10
+  a = [2 fill res]
+
+print(a)
+       }
+
+)";
+
+  std::string expected_output =
+      "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+      "4.40000000000000, 5.50000000000000]";
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, Complex) {
+  std::string input = R"(var res = "hello"
+var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  a = [2 fill res]
+  print(a)
+  a = ["b"]
+  print(a)
+  a = [1 fill "u"]
+  print(a)
+}
+a = ["t"]
+print(a)
+a = [1 fill res]
+print(a)
+var res2:str = "val"
+a = [res2,res2]
+print(a)
+)";
+
+  std::string expected_output =
+      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e])";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, Complex2) {
+  std::string input = R"({
+    var res = "hello"
+var a:str[5] = ["a", "b", "c", "d", "e"]
+{ 
+  a = [2 fill res]
+  print(a)
+  a = ["b"]
+  print(a)
+  a = [1 fill "u"]
+  print(a)
+}
+a = ["t"]
+print(a)
+a = [1 fill res]
+print(a)
+var res2:str = "val"
+a = [res2,res2]
+print(a)
+{ 
+    a = ["balls"]
+    print(a)
+}
+}
+)";
+
+  std::string expected_output =
+      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e][balls, val, c, d, e])";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+var b = 0
+print(a[b])
+)";
+
+  std::string expected_output = "1";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable2) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b] = 10
+print(a[b])
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable3) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b+1] = 10
+
+print(a[b+1])
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariable4) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+
+var b = 0
+a[b+1] = 10
+
+print(a)
+)";
+
+  std::string expected_output = "[1, 10, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  print(a[b])
+}
+)";
+
+  std::string expected_output = "1";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope2) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b] = 10
+  print(a[b])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope3) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a[b+1])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope4) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a)
+}
+)";
+
+  std::string expected_output = "[1, 10, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingWithVariableWithScope5) {
+  std::string input = R"(var a:int[5] = [1, 2, 3, 4, 5]
+{
+  var b = 0
+  a[b+1] = 10
+  print(a[b+1])
+}
+)";
+
+  std::string expected_output = "10";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+for(var i = 0  to 4:2) {
+    print(a[i]+"\n")
+})";
+
+  std::string expected_output = "9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest2) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+
+for(var i = 0  to 4:2) {
+    a[i] = 9
+    print(a[i]+"\n")
+})";
+
+  std::string expected_output = "9\n9\n9\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForLoopTest3) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+
+for(var i:int = 0  to 4:2) {
+    a[i] = 9
+    print(a[i]+"\n")
+    print(a[i]+"\n")
+}
+)";
+
+  std::string expected_output = "9\n9\n9\n9\n9\n9\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingForWhileLoopTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+})";
+
+  std::string expected_output = "9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTest) {
+  std::string input = R"(var x:int = 5
+var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+}
+{
+    var i = 0
+    while(i < 5) {
+        print(a[i]+"\n")
+        i = i + 2
+    }
+})";
+
+  std::string expected_output = "9\n3\n5\n9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTestLocalScopeContainer) {
+  std::string input = R"(var x:int = 5
+{var a:int[5] = [1,2,3,4,5]
+a[x-5] = 9
+var i = 0
+while(i < 5) {
+    print(a[i]+"\n")
+    i = i + 2
+}
+{
+    var i = 0
+    while(i < 5) {
+        print(a[i]+"\n")
+        i = i + 2
+    }
+}})";
+
+  std::string expected_output = "9\n3\n5\n9\n3\n5\n";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTestLocalScopeContainerComplex) {
+  std::string input = R"(var y = 8
+{
+    var x:int[10] = [1,2,3,4,5,5]
+    for(var i = 0 to 10:y){
+        print(x[i])
+        print("\n")
+    }
+    x = [10 fill 10]
+    print(x)
+    y = y + 8
+    x = [y,y]
+    print(x)
+    y = y - 6
+    x = [10 fill y]
+    print(x)
+})";
+
+  std::string expected_output =
+      "1\n0\n[10, 10, 10, 10, 10, 10, 10, 10, 10, 10][16, 16, 10, 10, 10, 10, "
+      "10, 10, 10, 10][10, 10, 10, 10, 10, 10, 10, 10, 10, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, IndexingLocalScopeTestContainerComplex) {
+  std::string input = R"(var y = 8
+
+    var x:int[10] = [1,2,3,4,5,5]
+    for(var i = 0 to 10:y){
+        print(x[i])
+        print("\n")
+    }
+    x = [10 fill 10]
+    print(x)
+    y = y + 8
+    x = [y,y]
+    print(x)
+    y = y - 6
+    x = [10 fill y]
+    print(x)
+)";
+
+  std::string expected_output =
+      "1\n0\n[10, 10, 10, 10, 10, 10, 10, 10, 10, 10][16, 16, 10, 10, 10, 10, "
+      "10, 10, 10, 10][10, 10, 10, 10, 10, 10, 10, 10, 10, 10]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentTest) {
+  std::string input = R"(
+var arr:int[5] = [1,2,3,4,5]
+var arr2:int[10] = [3 fill 100]
+print(arr2)
+arr2 = arr
+print(arr2)
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentScopeTest) {
+  std::string input = R"(
+var arr:int[5] = [1,2,3,4,5]
+var arr2:int[10] = [3 fill 100]
+print(arr2)
+{
+    arr2 = arr
+    print(arr2)
+}
+print(arr2)
+arr[0]=20
+print(arr)
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0][1, "
+      "2, 3, 4, 5, 0, 0, 0, 0, 0][20, 2, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentScopeTest2) {
+  std::string input = R"(
+var arr:int[5] = [1,2,3,4,5]
+{
+    var arr2:int[10] = [3 fill 100]
+    print(arr2)
+    arr2 = arr
+    print(arr2)
+}
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerAssignmentScopeTest3) {
+  std::string input = R"(
+    {
+        var arr:int[5] = [1,2,3,4,5]
+        var arr2:int[10] = [3 fill 100]
+        print(arr2)
+        arr2 = arr
+        print(arr2)
+    }
+
+)";
+
+  std::string expected_output =
+      "[100, 100, 100, 0, 0, 0, 0, 0, 0, 0][1, 2, 3, 4, 5, 0, 0, 0, 0, 0]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// With Scope Fill Assignment Function Tests
+
+TEST_F(
+    ContainerTest,
+    BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunction) {
+  std::string input = R"(fun test()-> nthg {
+    var a:int[5] = [1, 2, 3, 4, 5]
+    {
+      a = [2 fill 10]
+    
+    print(a)
+    }
+}
+
+test()
+)";
+
+  std::string expected_output = "[10, 10, 3, 4, 5]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2D) {
+  std::string input = R"(
+var x:int[2][3] = [[1,2,3],[4,5,6]]
+print(x)
+    )";
+
+  std::string expected_output = "[[1, 2, 3], [4, 5, 6]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2DWithFill) {
+  std::string input = R"(
+var x:int[2][3] = [2 fill 5]
+print(x)
+    )";
+
+  std::string expected_output = "[[5, 5, 0], [0, 0, 0]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2DWithFillScope) {
+  std::string input = R"(
+{var x:int[2][3] = [2 fill 5]
+print(x)}
+    )";
+
+  std::string expected_output = "[[5, 5, 0], [0, 0, 0]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2DScope) {
+  std::string input = R"(
+{var x:int[2][3] = [[1,2,3],[4,5,6]]
+print(x)}
+    )";
+
+  std::string expected_output = "[[1, 2, 3], [4, 5, 6]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2DWithFillScopeBoth) {
+  std::string input = R"(
+var x:int[2][3] = [2 fill 5]
+print(x)
+    )";
+
+  std::string expected_output = "[[5, 5, 0], [0, 0, 0]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(ContainerTest, ContainerTest2DScopeBoth) {
+  std::string input = R"(
+var x:int[2][3] = [[1,2,3],[4,5,6]]
+print(x)
+    )";
+
+  std::string expected_output = "[[1, 2, 3], [4, 5, 6]]";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+// LATER
+//  TEST_F(ContainerTest, ContainerAsParameterTest) {
+//    std::string input = R"(
+//      fun test(arr:int[5]) -> nthg{
+//          print(arr)
+//      }
+//      var arr:int[5] = [1,2,3,4,5]
+//      test(arr)
+//      )";
+
+//   std::string expected_output = "[1, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// TEST_F(ContainerTest, ContainerAsParameterTestAssignment) {
+//   std::string input = R"(
+//     fun test(arr:int[5])-> nthg{
+//         print(arr)
+//         arr[0] = 10
+//         print(arr)
+//     }
+//     var arr:int[5] = [1,2,3,4,5]
+//     test(arr)
+//     )";
+
+//   std::string expected_output = "[1, 2, 3, 4, 5][10, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// TEST_F(ContainerTest, ContainerAsParameterTestAssignmentWithScope) {
+//   std::string input = R"(
+//     fun test(arr:int[5])-> nthg{
+//         print(arr)
+//         arr[0] = 10
+//         print(arr)
+//     }
+//     var arr:int[5] = [1,2,3,4,5]
+//     {
+//         test(arr)
+//     }
+//     )";
+
+//   std::string expected_output = "[1, 2, 3, 4, 5][10, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// TEST_F(ContainerTest, ContainerAsParameterTestAssignmentWholeContainer) {
+//   std::string input = R"(
+//     fun test(arr:int[5])-> nthg{
+//         print(arr)
+//         arr = [10,10,10,10,10]
+//         print(arr)
+//     }
+//     var arr:int[5] = [1,2,3,4,5]
+//     {
+//         test(arr)
+//     }
+//     )";
+
+//   std::string expected_output = "[1, 2, 3, 4, 5][10, 10, 10, 10, 10]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// TEST_F(ContainerTest,
+//        ContainerAsParameterTestAssignmentWholeContainerWithFill) {
+//   std::string input = R"(
+//     fun test(arr:int[5])-> nthg{
+//         print(arr)
+//         arr = [2 fill 10]
+//         print(arr)
+//     }
+//     var arr:int[5] = [1,2,3,4,5]
+//     {
+//         test(arr)
+//     }
+//     )";
+
+//   std::string expected_output = "[1, 2, 3, 4, 5][10, 10, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+//// passng local array as parameter and updating index and printing
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex)
+//     {
+//   std::string input = R"(fun test(a:int[5])-> nthg{
+
+//       a = [2 fill 10]
+
+//     print(a)
+//     a[0] = 100
+//     print(a)
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][100, 10, 3, 4, 5][1, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // FOr String
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentStringDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex)
+//     {
+//   std::string input = R"(fun test(a:str[5])-> nthg{
+
+//       a = [2 fill "hello"]
+
+//     print(a)
+//     a[0] = "hello world"
+//     print(a)
+// }
+
+// {
+//     var a:str[5] = ["a", "b", "c", "d", "e"]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[hello, hello, c, d, e][hello world, hello, c, d, e][a, b, c, d, e]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Bool
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentBoolDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex)
+//     {
+//   std::string input = R"(fun test(a:bool[5])-> nthg{
+
+//       a = [2 fill false]
+
+//     print(a)
+//     a[0] = true
+//     print(a)
+// }
+
+// {
+//     var a:bool[5] = [true, false, true, false, true]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[false, false, true, false, true][true, false, true, false,
+//       true][true, " "false, true, false, true]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Deci
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex)
+//     {
+//   std::string input = R"(fun test(a:deci[5])-> nthg{
+
+//       a = [2 fill 10.10]
+
+//     print(a)
+//     a[0] = 100.10
+//     print(a)
+// }
+
+// {
+//     var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[10.10000000000000, 10.10000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100.09999999999999, "
+//       "10.10000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1.10000000000000, 2.20000000000000, 3.30000000000000,
+//       " "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex2)
+//     {
+//   std::string input = R"(fun test(a:int[5])-> nthg{
+
+//       a = [2 fill 10]
+
+//     print(a)
+//     a[0] = 100
+//     print(a)
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][100, 10, 3, 4, 5][1, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call global scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+
+//       a = [2 fill 10]
+//       b = [2 fill false]
+//       c = [2 fill "hello"]
+//       d = [2 fill 10.10]
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][false, false, true, false, true][hello, hello, c, d,
+//       " "e][10.10000000000000, 10.10000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 10, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, hello, c, d, e][100.09999999999999, "
+//       "10.10000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndex2)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+
+//       a = [2 fill 10]
+//       b = [2 fill false]
+//       c = [2 fill "hello"]
+//       d = [2 fill 10.10]
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][false, false, true, false, true][hello, hello, c, d,
+//       " "e][10.10000000000000, 10.10000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 10, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, hello, c, d, e][100.09999999999999, "
+//       "10.10000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call local scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+//     {
+//       a = [2 fill 10]
+//       b = [2 fill false]
+//       c = [2 fill "hello"]
+//       d = [2 fill 10.10]
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     }
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+// }
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][false, false, true, false, true][hello, hello, c, d,
+//       " "e][10.10000000000000, 10.10000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 10, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, hello, c, d, e][100.09999999999999, "
+//       "10.10000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call local scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope2)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+//     {
+//       a = [2 fill 10]
+//       b = [2 fill false]
+//       c = [2 fill "hello"]
+//       d = [2 fill 10.10]
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     }
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[10, 10, 3, 4, 5][false, false, true, false, true][hello, hello, c, d,
+//       " "e][10.10000000000000, 10.10000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 10, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, hello, c, d, e][100.09999999999999, "
+//       "10.10000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call do not Update array
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope3)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[1, 2, 3, 4, 5][true, false, true, false, true][a, b, c, d, "
+//       "e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 2, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, b, c, d, e][100.09999999999999, "
+//       "2.20000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call do not Update array local
+// scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope4)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+//     {
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     }
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[1, 2, 3, 4, 5][true, false, true, false, true][a, b, c, d, "
+//       "e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 2, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, b, c, d, e][100.09999999999999, "
+//       "2.20000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call do not Update array local
+// scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope5)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+//     {
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     }
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[1, 2, 3, 4, 5][true, false, true, false, true][a, b, c, d, "
+//       "e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 2, 3, 4, 5][true, false, "
+//       "true, false, true][hello world, b, c, d, e][100.09999999999999, "
+//       "2.20000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // For Int Bool String Deci in one function call do not Update array Global
+// // scope
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntBoolStringDeciDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdateIndexLocalScope6)
+//     {
+//   std::string input =
+//       R"(fun test(a:int[5], b:bool[5], c:str[5], d:deci[5])-> nthg{
+
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+//     a[0] = 100
+//     b[0] = true
+//     c[0] = "hello world"
+//     d[0] = 100.10
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+// }
+
+//     var a:int[5] = [1, 2, 3, 4, 5]
+//     var b:bool[5] = [true, false, true, false, true]
+//     var c:str[5] = ["a", "b", "c", "d", "e"]
+//     var d:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+
+//     test(a, b, c, d)
+//     print(a)
+//     print(b)
+//     print(c)
+//     print(d)
+
+// )";
+
+//   std::string expected_output =
+//       "[1, 2, 3, 4, 5][true, false, true, false, true][a, b, c, d, "
+//       "e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000][100, 2, 3, 4, 5][true, false,
+//       true, " "false, true][hello world, b, c, d, e][100.09999999999999, "
+//       "2.20000000000000, 3.30000000000000, 4.40000000000000, "
+//       "5.50000000000000][1, 2, 3, 4, 5][true, false, true, false, true][a, b,
+//       " "c, d, e][1.10000000000000, 2.20000000000000, 3.30000000000000, "
+//       "4.40000000000000, 5.50000000000000]";
+
+//   setInput(input);
+
+//   runEvaluator();
+
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// //Passing as parameter with scope local
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunctionParameter)
+//     {
+//   std::string input = R"(fun test(a:int[5])-> nthg{
+//     {
+//       a = [2 fill 10]
+
+//     print(a)
+//     }
+// }
+
+// var a:int[5] = [1, 2, 3, 4, 5]
+
+// test(a)
+// )";
+
+//   std::string expected_output = "[10, 10, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // Pssing local array as parameter
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunctionParameterLocal)
+//     {
+//   std::string input = R"(fun test(a:int[5])-> nthg{
+//     {
+//       a = [2 fill 10]
+
+//     print(a)
+//     }
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+
+//     test(a)
+// }
+// )";
+
+//   std::string expected_output = "[10, 10, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+
+// // passng local array as parameter and updating and printing
+
+// TEST_F(
+//     ContainerTest,
+//     BasicContainerFillAssignmentIntDeclarationGlobalInsideScopeAccessFunctionParameterLocalUpdate)
+//     {
+//   std::string input = R"(fun test(a:int[5])-> nthg{
+
+//       a = [2 fill 10]
+
+//     print(a)
+
+// }
+
+// {
+//     var a:int[5] = [1, 2, 3, 4, 5]
+
+//     test(a)
+//     print(a)
+// }
+// )";
+
+//   std::string expected_output = "[10, 10, 3, 4, 5][1, 2, 3, 4, 5]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
+// TEST_F(ContainerTest, ContainerTestComplexWithFunctionCall) {
+//   std::string input = R"(
+// fun main(arr:int[5]) -> nthg {
+//     var x:int[5] = [5 fill 100]
+//     x = arr
+//     x[3] = 10
+//     print(x)
+
+// }
+// var x:int[10] = [10 fill 2]
+// main(x)
+// x[4]  = 7
+// main(x)
+
+//     )";
+
+//   std::string expected_output = "[2, 2, 2, 10, 2][2, 2, 2, 10, 7]";
+
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
 #endif // JIT_TEST_MODE

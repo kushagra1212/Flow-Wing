@@ -8,9 +8,7 @@
 #include <iostream>
 #include <typeinfo>
 
-template <typename T>
-class BoundLiteralExpression : public BoundExpression,
-                               public BoundSourceLocation {
+template <typename T> class BoundLiteralExpression : public BoundExpression {
 private:
   T value;
   SyntaxKindUtils::SyntaxKind _syntaxKind;

@@ -367,7 +367,7 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
     BoundFunctionDeclaration *functionDeclaration =
         (BoundFunctionDeclaration *)node;
 
-    this->defineFunction(functionDeclaration->getFunctionSymbol().name,
+    this->defineFunction(functionDeclaration->getFunctionNameRef(),
                          functionDeclaration);
 
     break;
@@ -565,98 +565,97 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
 std::any
 Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
 
-  Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
+  std::size_t arguments_size = callExpression->getArgumentsRef().size();
+  const std::unique_ptr<BoundFunctionDeclaration> &fd =
+      BuiltInFunction::getBuiltInFunction(callExpression->getCallerNameRef());
 
-  std::size_t arguments_size = callExpression->getArguments().size();
-  if (function.name == Utils::BuiltInFunctions::input.name) {
-
+  if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Input) {
     if (arguments_size == 0) {
       std::string input;
       std::getline(std::cin, input);
       return input;
     } else if (arguments_size == 1) {
       std::cout << InterpreterConversion::explicitConvertAnyToString(
-          this->evaluate<std::any>(callExpression->getArguments()[0].get()));
+          this->evaluate<std::any>(callExpression->getArgumentsRef()[0].get()));
       std::string input;
       std::getline(std::cin, input);
       return input;
     } else {
 
       this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
+                                        FW::BI::FUNCTION::Int32 +
                                         "Arguments Does  Not Match");
 
       return nullptr;
     }
-  } else if (function.name == Utils::BuiltInFunctions::print.name) {
-
+  } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Print) {
     if (arguments_size != 1) {
 
       this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name +
+                                        FW::BI::FUNCTION::Print +
                                         "Arguments Does  Not Match");
 
       return nullptr;
     } else {
 
       std::any value = (this->evaluate<std::any>(
-          (BoundExpression *)callExpression->getArguments()[0].get()));
+          (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
 
       try {
         std::cout << InterpreterConversion::explicitConvertAnyToString(value);
       } catch (const std::exception &e) {
 
         this->_interpreterUtils->logError(
-            "Unexpected Function Call" + function.name +
+            "Unexpected Function Call" + FW::BI::FUNCTION::Print +
             "Arguments Does  Not Match" + e.what());
       }
       return nullptr;
     }
     return nullptr;
-  } else if (function.name == Utils::BuiltInFunctions::String.name) {
+  } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::String) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
-          (BoundExpression *)callExpression->getArguments()[0].get()));
+          (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
       return InterpreterConversion::explicitConvertAnyToString(value);
     }
 
     this->_interpreterUtils->logError("Unexpected Function Call" +
-                                      function.name +
+                                      FW::BI::FUNCTION::String +
                                       "Arguments Does  Not Match");
     return nullptr;
-  } else if (function.name == Utils::BuiltInFunctions::Int32.name) {
+  } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Int32) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
-          (BoundExpression *)callExpression->getArguments()[0].get()));
+          (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
       return InterpreterConversion::explicitConvertAnyToInt(value);
     }
 
     this->_interpreterUtils->logError("Unexpected Function Call" +
-                                      function.name +
+                                      FW::BI::FUNCTION::Int32 +
                                       "Arguments Does  Not Match");
 
     return nullptr;
-  } else if (function.name == Utils::BuiltInFunctions::Decimal.name) {
+  } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Decimal) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
-          (BoundExpression *)callExpression->getArguments()[0].get()));
+          (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
       return InterpreterConversion::explicitConvertToAnyToDouble(value);
     }
 
     this->_interpreterUtils->logError("Unexpected Function Call" +
-                                      function.name +
+                                      FW::BI::FUNCTION::Decimal +
                                       "Arguments Does  Not Match");
 
     return nullptr;
-  } else if (function.name == Utils::BuiltInFunctions::Bool.name) {
+  } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Bool) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
-          (BoundExpression *)callExpression->getArguments()[0].get()));
+          (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
       return InterpreterConversion::explicitConvertAnyToBool(value);
     }
 
     this->_interpreterUtils->logError("Unexpected Function Call" +
-                                      function.name +
+                                      FW::BI::FUNCTION::Bool +
                                       "Arguments Does  Not Match");
     return nullptr;
   }
@@ -671,8 +670,8 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
   std::any value = this->evaluateVariableExpression<std::any>(
       (BoundExpression *)indexExpression->getBoundIdentifierExpression().get());
 
-  std::any index = this->evaluateLiteralExpression<std::any>(
-      indexExpression->getBoundIndexExpression().get());
+  std::any index = this->evaluate<std::any>(
+      indexExpression->getBoundIndexExpressions()[0].get());
 
   int index_value = std::any_cast<int>(index);
 
@@ -728,58 +727,56 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
     this->_interpreterUtils->setCurrentSourceLocation(
         callExpression->getLocation());
 
-    Utils::FunctionSymbol function = callExpression->getFunctionSymbol();
-
-    std::size_t arguments_size = callExpression->getArguments().size();
+    std::size_t arguments_size = callExpression->getArgumentsRef().size();
 
     // Built In Functions
-    if (Utils::BuiltInFunctions::isBuiltInFunction(function.name)) {
+    if (BuiltInFunction::isBuiltInFunction(
+            callExpression->getCallerNameRef())) {
       return this->handleBuiltInFunction(callExpression);
     }
 
     BoundFunctionDeclaration *functionDefination =
-        this->getFunction(function.name);
+        this->getFunction(callExpression->getCallerNameRef());
 
     if (functionDefination != nullptr) {
 
       this->_interpreterUtils->setCurrentSourceLocation(
           callExpression->getCallerIdentifierPtr().get()->getLocation());
 
-      if (functionDefination->getFunctionSymbol().parameters.size() !=
-          arguments_size) {
+      if (functionDefination->getParametersRef().size() != arguments_size) {
 
-        this->_interpreterUtils->logError("Unexpected Function Call" +
-                                          function.name +
-                                          "Arguments Does  Not Match");
+        this->_interpreterUtils->logError(
+            "Unexpected Function Call" +
+            functionDefination->getFunctionNameRef() +
+            "Arguments Does  Not Match");
 
         return nullptr;
       }
       std::map<std::string, Utils::Variable> function_Variables;
 
-      this->return_type_stack.push(
-          {functionDefination->getFunctionSymbol().getReturnType(), 0});
+      BoundTypeExpression *returnTypeExpression =
+          (BoundTypeExpression *)functionDefination->getReturnType().get();
+
+      this->return_type_stack.push({returnTypeExpression->getUtilsType(), 0});
 
       for (int i = 0; i < arguments_size; i++) {
-        std::any value =
-            this->evaluate<std::any>(callExpression->getArguments()[i].get());
+        std::any value = this->evaluate<std::any>(
+            callExpression->getArgumentsRef()[i].get());
 
-        function_Variables[functionDefination->getFunctionSymbol()
-                               .parameters[i]
-                               .name] =
+        function_Variables[functionDefination->getParametersRef()[i]
+                               ->getVariableNameRef()] =
             Utils::Variable(
-                value,
-                functionDefination->getFunctionSymbol().parameters[i].isConst);
+                value, functionDefination->getParametersRef()[i]->isConstant());
         if (this->_interpreterUtils->getDiagnosticHandler()->hasError(
                 DiagnosticUtils::DiagnosticType::Runtime))
           break;
       }
       this->variable_stack.push(function_Variables);
 
-      this->evaluateStatement(functionDefination->getBodyPtr().get());
+      this->evaluateStatement(functionDefination->getBodyRef().get());
 
       if (this->return_type_stack.top().second == 0 &&
-          Utils::type::NOTHING !=
-              functionDefination->getFunctionSymbol().getReturnType()) {
+          Utils::type::NOTHING != returnTypeExpression->getUtilsType()) {
         this->_interpreterUtils->logError(
             "Function return type is not Nothing, return expression is not "
             "found");
@@ -792,8 +789,9 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
       return this->last_value;
     } else {
 
-      this->_interpreterUtils->logError("Unexpected Function Call" +
-                                        function.name + "Not Found");
+      this->_interpreterUtils->logError(
+          "Unexpected Function Call" +
+          functionDefination->getFunctionNameRef() + "Not Found");
 
       return nullptr;
     }

@@ -19,6 +19,7 @@ declare i32 @scanf(i8*, ...)
 declare i64 @atoll(i8*)
 declare i32 @puts(i8*)
 declare void @exit(i32)
+
 define  void @print(i8* %0, i1 %1) {
  entry:
    br i1 %1, label %newline, label %withoutnewline
@@ -40,9 +41,10 @@ define   i8* @concat_strings(i8* %str1, i8* %str2) {
     %len1 = call i32 @strlen(i8* %str1)
     %len2 = call i32 @strlen(i8* %str2)
     
-    ; Allocate memory for the concatenated string
+    ; Allocate memory for the concatenated string (including space for null terminator)
     %totalLen = add i32 %len1, %len2
-    %concatStr = call i8* @malloc(i32 %totalLen)
+    %totalLenPlusOne = add i32 %totalLen, 1
+    %concatStr = call i8* @malloc(i32 %totalLenPlusOne)
     
     ; Copy characters from the first string to the concatenated string
     %ptr1 = bitcast i8* %concatStr to i8*

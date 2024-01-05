@@ -11,10 +11,6 @@ ParameterSyntax::ParameterSyntax(
   _children.push_back(_identifierToken.get());
 }
 
-std::unique_ptr<SyntaxToken<std::any>> ParameterSyntax::getIdentifierToken() {
-  return std::move(_identifierToken);
-}
-
 SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }

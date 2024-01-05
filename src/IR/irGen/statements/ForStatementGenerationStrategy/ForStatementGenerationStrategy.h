@@ -2,8 +2,10 @@
 #define __FLOWWING_FOR_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundForStatement/BoundForStatement.h"
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-
 class ForStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
   ForStatementGenerationStrategy(CodeGenerationContext *context);

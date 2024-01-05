@@ -3,16 +3,18 @@
 
 #include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
 public:
   ContainerExpressionGenerationStrategy(CodeGenerationContext *context,
-                                        uint64_t actualSize,
+                                        std::vector<uint64_t> actualSizes,
                                         llvm::Type *elementType,
                                         const std::string &containerName);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
+
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   // Specialized for BoundContainerExpression
@@ -21,18 +23,28 @@ public:
                          llvm::GlobalVariable *_globalVariable,
                          BoundContainerExpression *containerExpression);
 
-  llvm::Value *createExpression(llvm::Type *arrayType,
-                                llvm::AllocaInst *_allocaInst,
+  llvm::Value *
+  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+                        BoundContainerExpression *containerExpression);
+
+  llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
                                 BoundContainerExpression *containerExpression);
 
   const bool
   canGenerateExpression(BoundContainerExpression *containerExpression);
 
+  llvm::Value *
+  createExpressionAtom(llvm::Type *&arrayType, llvm::Value *&v,
+                       BoundContainerExpression *containerExpression,
+                       std::vector<llvm::Value *> &indices, uint64_t index);
+
 private:
-  uint64_t _actualSize;
+  uint64_t _totalSize;
+  std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
   std::string _containerName;
   uint64_t _sizeToFill;
+  bool _isGlobal;
 };
 
 #endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

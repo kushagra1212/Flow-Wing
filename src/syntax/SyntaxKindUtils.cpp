@@ -114,8 +114,7 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "TildeToken";
   case SyntaxKind::PercentToken:
     return "PercentToken";
-  case SyntaxKind::VariableExpression:
-    return "VariableExpression";
+
   case SyntaxKind::AssignmentExpression:
     return "AssignmentExpression";
   case SyntaxKind::EndOfLineToken:
@@ -245,7 +244,31 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::ContainerStatement:
     return "ContainerStatement";
+  case SyntaxKind::VariableExpressionSyntax:
+    return "VariableExpressionSyntax";
+
+  case SyntaxKind::ArrayVariableExpressionSyntax:
+    return "ArrayVariableExpressionSyntax";
+
+  case SyntaxKind::PrimitiveTypeExpression:
+    return "PrimitiveTypeExpression";
+
+  case SyntaxKind::ArrayTypeExpression:
+    return "ArrayTypeExpression";
+
   default:
     return "NotDefined";
+  }
+}
+
+bool SyntaxKindUtils::isType(SyntaxKind kind) {
+  switch (kind) {
+  case SyntaxKind::BoolKeyword:
+  case SyntaxKind::Int32Keyword:
+  case SyntaxKind::DeciKeyword:
+  case SyntaxKind::StrKeyword:
+    return true;
+  default:
+    return false;
   }
 }

@@ -1,30 +1,68 @@
 #include "Utils.h"
 
+void Utils::split(const std::string &str, const std::string &delim,
+                  std::vector<std::string> &tokens) {
+
+  size_t prev = 0, pos = 0;
+  do {
+    pos = str.find(delim, prev);
+    if (pos == std::string::npos)
+      pos = str.length();
+    std::string token = str.substr(prev, pos - prev);
+    if (!token.empty())
+      tokens.push_back(token);
+
+    prev = pos + delim.length();
+  } while (pos < str.length() && prev < str.length());
+
+  // std::vector<std::string> tokens;
+}
+
+std::string Utils::CE(const std::string &str) {
+  std::string res = "";
+
+  res += YELLOW + str + RESET + RED_TEXT;
+  res += "";
+  return res;
+}
+
 void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
   if (!node) {
-    // std::cout << "null\n";
+    std::cout << "Node is null\n";
     return;
   }
   std::cout << indent;
+  std::string prevIndent = indent;
   if (isLast) {
-    std::cout << RED_TEXT << "\\-" << RESET;
-    indent += "  ";
+    std::cout << RED_TEXT << "└──" << RESET;
+    indent += "    ";
   } else {
-    std::cout << GREEN_TEXT << "|-" << RESET;
-    indent += "| ";
+    std::cout << GREEN_TEXT << "├──" << RESET;
+    indent += GREEN_TEXT;
+    indent += "├   ";
+    indent += RESET;
   }
 
-  std::cout << SyntaxKindUtils::to_string(node->getKind());
-  if (node->getKind() == SyntaxKindUtils::LiteralExpression) {
-
-    std::any value = ((LiteralExpressionSyntax<std::any> *)node)->getValue();
-
-    std::cout << " "
-              << InterpreterConversion::explicitConvertAnyToString(value);
+  std::cout << "Node kind: " << SyntaxKindUtils::to_string(node->getKind());
+  if (Utils::isSyntaxToken(node)) {
+    std::any value = ((SyntaxToken<std::any> *)node)->getText();
+    std::cout << " { Node value: '" << PINK_TEXT
+              << std::any_cast<std::string>(value) << RESET << "' }";
   }
-  std::cout << "\n";
   std::vector<SyntaxNode *> children = node->getChildren();
+
+  std::string GRAY_TEXT = "\033[1;30m";
+  std::cout << GRAY_TEXT;
+
+  if (children.size())
+    std::cout << " { Childrens = [ " << children.size() << " ] } ";
   for (int i = 0; i < children.size(); i++) {
+    // std::cout << "\n"
+    //           << prevIndent << "    "
+    //           << "├"
+    //           << "Printing child " << i;
+    std::cout << "\n";
+    std::cout << RESET;
     Utils::prettyPrint(children[i], indent, i == children.size() - 1);
   }
 }
@@ -32,23 +70,35 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
                         std::string indent, bool isLast) {
   if (!compilationUnit) {
-    // std::cout << "null\n";
+    std::cout << "Compilation unit is null\n";
     return;
   }
   std::cout << indent;
+  std::string prevIndent = indent;
   if (isLast) {
-    std::cout << RED_TEXT << "\\-" << RESET;
-    indent += "  ";
+    std::cout << RED_TEXT << "└──" << RESET;
+    indent += "    ";
   } else {
-    std::cout << GREEN_TEXT << "|-" << RESET;
-    indent += "| ";
+    std::cout << GREEN_TEXT << "├──" << RESET;
+    indent += "|   ";
   }
+  std::string GRAY_TEXT = "\033[1;30m";
 
-  std::cout << SyntaxKindUtils::to_string(compilationUnit->getKind()) << '\n';
+  std::cout << "Compilation unit kind: "
+            << SyntaxKindUtils::to_string(compilationUnit->getKind()) << '\n';
+  std::cout << GRAY_TEXT;
+  std::cout << prevIndent << "    "
+            << "Number of children in compilation unit: "
+            << compilationUnit->getChildren().size() << "\n";
   for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+    std::cout << prevIndent << "    "
+              << " { Printing child [ " << i << " ] of compilation unit }\n";
 
+    std::cout << RESET;
     Utils::prettyPrint(compilationUnit->getChildren()[i], indent, true);
   }
+
+  std::cout << "\n";
 }
 
 void Utils::prettyPrint(BoundNode *node, std::string indent, bool isLast) {
@@ -58,11 +108,11 @@ void Utils::prettyPrint(BoundNode *node, std::string indent, bool isLast) {
   }
   std::cout << indent;
   if (isLast) {
-    std::cout << RED_TEXT << "\\-" << RESET;
-    indent += "  ";
+    std::cout << RED_TEXT << "└──" << RESET;
+    indent += "    ";
   } else {
-    std::cout << GREEN_TEXT << "|-" << RESET;
-    indent += "| ";
+    std::cout << GREEN_TEXT << "├──" << RESET;
+    indent += "├   ";
   }
 
   std::cout << BinderKindUtils::to_string(node->getKind());
@@ -97,7 +147,8 @@ void Utils::prettyPrint(BoundStatement *statement, std::string indent,
     indent += "| ";
   }
 
-  std::cout << BinderKindUtils::to_string(statement->getKind()) << '\n';
+  std::cout << BLUE_TEXT << indent << RESET
+            << BinderKindUtils::to_string(statement->getKind()) << '\n';
   for (int i = 0; i < statement->getChildren().size(); i++) {
 
     Utils::prettyPrint(statement->getChildren()[i], indent,
@@ -279,7 +330,7 @@ Utils::type Utils::toContainerType(Utils::type basicType) {
   }
 }
 
-Utils::type Utils::toNonContainerType(Utils::type containerType) {
+Utils::type Utils::toContainerElementType(Utils::type containerType) {
   switch (containerType) {
   case Utils::type::INT8_CONTAINER:
     return Utils::type::INT8;
@@ -345,6 +396,7 @@ auto Utils::isStaticTypedContainerType(Utils::type type) -> const bool {
   default:
     return false;
   }
+  return false;
 }
 
 auto Utils::isDynamicTypedContainerType(Utils::type type) -> const bool {
@@ -367,20 +419,47 @@ bool Utils::isDouble(const std::string &str) {
 auto Utils::typeToString(Utils::type type) -> std::string {
   switch (type) {
   case Utils::type::INT32:
-    return "Integer";
+    return "Int32";
   case Utils::type::DECIMAL:
     return "Decimal";
   case Utils::type::STRING:
     return "String";
   case Utils::type::BOOL:
-    return "Boolean";
+    return "Bool";
   case Utils::type::NOTHING:
     return "Nothing";
+  case Utils::type::UNKNOWN:
+    return "Unknown";
+  case Utils::type::INT8:
+    return "Int8";
+  case Utils::type::INT16:
+    return "Int16";
+  case Utils::type::INT64:
+    return "Int64";
+
+  case Utils::type::INT8_CONTAINER:
+    return "Int8[]";
+  case Utils::type::INT16_CONTAINER:
+    return "Int16[]";
+
+  case Utils::type::INT32_CONTAINER:
+    return "Int32[]";
+  case Utils::type::INT64_CONTAINER:
+    return "Int64[]";
+  case Utils::type::DECIMAL_CONTAINER:
+    return "Decimal[]";
+  case Utils::type::BOOL_CONTAINER:
+    return "Boolean[]";
+
+  case Utils::type::STRING_CONTAINER:
+    return "String[]";
+  case Utils::type::UNKNOWN_CONTAINER:
+    return "Unknown[]";
+
   default:
     break;
   }
-
-  return "Unknown";
+  return "Not a type";
 }
 
 std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {

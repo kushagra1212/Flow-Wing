@@ -7,6 +7,57 @@ VariableDeclarationStatementGenerationStrategy::
         CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
 
+llvm::Value *VariableDeclarationStatementGenerationStrategy::
+    handleTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
+                                           const Utils::type &variableType,
+                                           llvm::Value *rhsValue) {
+  llvm::Type *llvmType =
+      _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+          variableType);
+
+  llvm::AllocaInst *v =
+      Builder->CreateAlloca(llvmType, nullptr, variableName.c_str());
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName, v);
+
+  Builder->CreateStore(rhsValue, v);
+
+  return rhsValue;
+}
+
+llvm::Value *VariableDeclarationStatementGenerationStrategy::
+    handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
+                                             llvm::Value *rhsValue) {
+  llvm::AllocaInst *variable =
+      Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
+                            nullptr, variableName.c_str());
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
+                                                          variable);
+
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      variable, rhsValue, rhsValue->getType(), variableName);
+
+  return rhsValue;
+}
+
+llvm::Value *VariableDeclarationStatementGenerationStrategy::
+    handlePrimitiveLocalVariableDeclr(const std::string &variableName,
+                                      const Utils::type &variableType,
+                                      llvm::Value *rhsValue) {
+
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
+                                                              rhsValue);
+  // Handle Local Static Typed Variable
+  if (Utils::isStaticTypedPrimitiveType(variableType)) {
+    return handleTypedPrimitiveLocalVariableDeclr(variableName, variableType,
+                                                  rhsValue);
+  }
+
+  // Handle Local Dynamic Typed Variable
+  return handleUnTypedPrimitiveLocalVariableDeclr(variableName, rhsValue);
+}
+
 llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
 
@@ -17,39 +68,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
                                                               _rhsValue);
 
-  // Handle Local Static Typed Variable
-  if (Utils::isStaticTypedPrimitiveType(_variableType)) {
-
-    llvm::Type *llvmType =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            _variableType);
-
-    llvm::AllocaInst *v =
-        Builder->CreateAlloca(llvmType, nullptr, _variableName.c_str());
-
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, v);
-
-    Builder->CreateStore(_rhsValue, v);
-
-    return _rhsValue;
-  }
-
-  // Handle Local Dynamic Typed Variable
-  llvm::AllocaInst *variable =
-      Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                            nullptr, _variableName.c_str());
-
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName,
-                                                          variable);
-
-  Builder->CreateStore(
-      _rhsValue,
-      Builder->CreateStructGEP(
-          _codeGenerationContext->getDynamicType()->get(), variable,
-          _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-              _rhsValue->getType())));
-
-  return _rhsValue;
+  // Handle Primitive Local Variable
+  return handlePrimitiveLocalVariableDeclr(_variableName, _variableType,
+                                           _rhsValue);
 }
 
 llvm::Value *
@@ -84,19 +105,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           _codeGenerationContext->getDynamicType()->get()),
       _variableName);
 
-  llvm::Value *loadedValue = Builder->CreateLoad(
-      _codeGenerationContext->getDynamicType()->get(), _globalVariable);
-
-  const uint64_t memberIndex =
-      _codeGenerationContext->getDynamicType()->getIndexofMemberType(
-          _rhsValue->getType());
-
-  llvm::Value *updatedValue =
-      Builder->CreateInsertValue(loadedValue, _rhsValue, memberIndex);
-
-  _codeGenerationContext->getGlobalTypeMap()[_variableName] = memberIndex;
-
-  Builder->CreateStore(updatedValue, _globalVariable);
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      _globalVariable, _rhsValue, _rhsValue->getType(),
+      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + _variableName);
 
   return _rhsValue;
 }

@@ -62,9 +62,10 @@ std::string getTypeString(const std::any &value);
 Utils::type getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
+std::string CE(const std::string &str);
 
 Utils::type toContainerType(Utils::type type);
-Utils::type toNonContainerType(Utils::type type);
+Utils::type toContainerElementType(Utils::type type);
 auto isContainerType(Utils::type type) -> const bool;
 auto isStaticTypedContainerType(Utils::type type) -> const bool;
 auto isDynamicTypedContainerType(Utils::type type) -> const bool;
@@ -79,6 +80,10 @@ auto getSourceCodeFromFilePath(const std::string &filePath)
     -> std::vector<std::string>;
 std::string getAbsoluteFilePath(std::string relativeFilePath);
 std::vector<std::string> readLines(std::string absoluteFilePath);
+
+void split(const std::string &s, const std::string &delim,
+           std::vector<std::string> &tokens);
+
 bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
@@ -117,65 +122,6 @@ struct Variable {
     this->kind = SymbolKind::Variable;
     this->type = type;
   }
-};
-
-struct FunctionParameterSymbol {
-  std::string name;
-  bool isConst;
-  SymbolKind kind;
-  Utils::type type;
-  FunctionParameterSymbol() = default;
-  FunctionParameterSymbol(std::string name, bool isConst,
-                          Utils::type type = Utils::type::UNKNOWN) {
-    this->name = name;
-    this->isConst = isConst;
-    this->kind = SymbolKind::Parameter;
-    this->type = type;
-  }
-};
-
-struct FunctionSymbol {
-  std::string name;
-  std::vector<FunctionParameterSymbol> parameters;
-  type return_type;
-  SymbolKind kind;
-  FunctionSymbol() {
-    this->kind = SymbolKind::Function;
-    this->return_type = Utils::type::NOTHING;
-  }
-  FunctionSymbol(std::string name,
-                 std::vector<FunctionParameterSymbol> parameters,
-                 type return_type = Utils::type::NOTHING) {
-    this->name = name;
-    this->parameters = parameters;
-    this->kind = SymbolKind::Function;
-    this->return_type = return_type;
-  }
-
-  type getReturnType() { return return_type; }
-
-  int arity() { return (int)parameters.size(); }
-};
-
-class BuiltInFunctions {
-public:
-  static FunctionSymbol print;
-  static FunctionSymbol input;
-  static FunctionSymbol random;
-
-  // Conversations
-
-  static FunctionSymbol String;
-  static FunctionSymbol Int32;
-  static FunctionSymbol Decimal;
-  static FunctionSymbol Bool;
-  static FunctionSymbol Nothing;
-
-  static std::vector<FunctionSymbol> getAllFunctions();
-
-  static FunctionSymbol getFunctionSymbol(std::string name);
-
-  static auto isBuiltInFunction(std::string name) -> bool;
 };
 
 class Node {

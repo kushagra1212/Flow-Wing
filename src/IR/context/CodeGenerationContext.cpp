@@ -30,6 +30,12 @@ CodeGenerationContext ::CodeGenerationContext(
   _allocaChain = std::make_unique<AllocaChain>();
   _allocaChain->addHandler(new AllocaTable());
 
+  // initialize the ArgsTypeHandler
+  _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
+
+  // initialize the ReturnTypeHandler
+  _returnTypeHandler = std::make_unique<ReturnTypeHandler>();
+
   // Initialize the dynamic type
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
@@ -67,6 +73,15 @@ DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler() const {
   return _diagnosticHandler;
 }
 
+std::unique_ptr<ArgsTypeHandler> &CodeGenerationContext::getArgsTypeHandler() {
+  return _argsTypeHandler;
+}
+
+std::unique_ptr<ReturnTypeHandler> &
+CodeGenerationContext::getReturnTypeHandler() {
+  return _returnTypeHandler;
+}
+
 std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
   return _namedValueChain;
 }
@@ -75,15 +90,14 @@ std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
   return _allocaChain;
 }
 
-std::unique_ptr<StructTypeBuilder> &CodeGenerationContext::getDynamicType() {
+const std::unique_ptr<StructTypeBuilder> &
+CodeGenerationContext::getDynamicType() {
   return _dynamicType;
 }
 
-std::stack<std::pair<Utils::type, int8_t>> &
-CodeGenerationContext::getReturnAllocaStack() {
+std::stack<int8_t> &CodeGenerationContext::getReturnAllocaStack() {
   return _returnAllocaStack;
 }
-
 std::map<std::string, BoundFunctionDeclaration *> &
 CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
@@ -197,4 +211,142 @@ void CodeGenerationContext::callREF(const std::string &error) {
       _module->getFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION),
       {_builder->CreateGlobalStringPtr(this->getLogger()->getLLVMErrorMsg(
           error, this->getLogger()->getCurrentSourceLocation()))});
+}
+
+void CodeGenerationContext::setMetadata(const std::string kind, llvm::Value *v,
+                                        const std::string &metaData) {
+
+  llvm::MDNode *metaNode = llvm::MDNode::get(
+      *this->getContext(), llvm::MDString::get(*this->getContext(), metaData));
+
+  // Add metadata to the instruction
+
+  if (llvm::isa<llvm::GlobalVariable>(v)) {
+    llvm::cast<llvm::GlobalVariable>(v)->setMetadata(kind, metaNode);
+  } else if (llvm::isa<llvm::AllocaInst>(v)) {
+    llvm::cast<llvm::AllocaInst>(v)->setMetadata(kind, metaNode);
+  } else {
+    this->getLogger()->LogError("Could not set metadata for " +
+                                v->getName().str());
+  }
+}
+
+void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
+                                        std::string &metaData) {
+
+  llvm::MDNode *metaNode = nullptr;
+
+  if (llvm::isa<llvm::GlobalVariable>(v)) {
+    metaNode = llvm::cast<llvm::GlobalVariable>(v)->getMetadata(kind);
+
+  } else if (llvm::isa<llvm::AllocaInst>(v)) {
+    metaNode = llvm::cast<llvm::AllocaInst>(v)->getMetadata(kind);
+  } else if (llvm::isa<llvm::Function>(v)) {
+    metaNode = llvm::cast<llvm::Function>(v)->getMetadata(kind);
+  }
+
+  if (!metaNode) {
+
+    // this->getLogger()->LogError("Could not find metadata for " +
+    //                             v->getName().str());
+
+    return;
+  }
+
+  metaData = llvm::cast<llvm::MDString>(metaNode->getOperand(0))->getString();
+}
+
+void CodeGenerationContext::setArraySizeMetadata(
+    llvm::Value *array, const std::vector<std::size_t> &sizes) {
+  std::string metaData = "";
+
+  for (const auto &size : sizes) {
+    metaData += std::to_string(size) + ":";
+  }
+
+  setMetadata("I", array, metaData);
+}
+void CodeGenerationContext::getArraySizeMetadata(
+    llvm::Value *array, std::vector<std::size_t> &sizes) {
+
+  std::string metaData = "";
+
+  getMetaData("I", array, metaData);
+
+  std::vector<std::string> sizesStr;
+  Utils::split(metaData, ":", sizesStr);
+
+  for (const auto &sizeStr : sizesStr) {
+    sizes.push_back(std::stoll(sizeStr));
+  }
+}
+
+void CodeGenerationContext::setArrayElementTypeMetadata(
+    llvm::Value *array, llvm::Type *elementType) {
+  std::string metaData =
+      std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
+  setMetadata("ET", array, metaData);
+}
+llvm::Type *
+CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
+  std::string metaData = "";
+  getMetaData("ET", array, metaData);
+  std::vector<std::string> sizesStr;
+  Utils::split(metaData, ":", sizesStr);
+
+  if (sizesStr.size() != 1) {
+    this->getLogger()->LogError("Invalid metadata for array element type");
+    return nullptr;
+  }
+
+  return getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(sizesStr[0]));
+}
+
+void CodeGenerationContext::getMultiArrayType(
+    llvm::ArrayType *&arrayType, llvm::Constant *&def,
+    const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
+
+  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+    if (arrayType == nullptr) {
+      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+    } else {
+      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+    }
+
+    def = llvm::ConstantArray::get(
+        arrayType, std::vector<llvm::Constant *>(actualSizes[i], def));
+  }
+}
+
+void CodeGenerationContext::getRetrunedArrayType(
+    llvm::Function *F, llvm::ArrayType *&arrayType,
+    llvm::Type *&arrayElementType, std::vector<uint64_t> &actualSizes) {
+
+  std::string metaData = "";
+  std::vector<std::string> strs;
+  getMetaData("rt", F, metaData);
+  if (metaData == "") {
+    return;
+  }
+  Utils::split(metaData, ":", strs);
+  if (strs[2] == "ay") {
+
+    arrayElementType =
+        getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(strs[3]));
+
+    for (int64_t i = 5; i < strs.size(); i++) {
+      actualSizes.push_back(stoi(strs[i]));
+    }
+
+    llvm::Constant *def = llvm::cast<llvm::Constant>(
+        this->getMapper()->getDefaultValue(arrayElementType));
+
+    getMultiArrayType(arrayType, def, actualSizes, arrayElementType);
+  } else if (strs[2] == "pr") {
+
+    arrayElementType =
+        getMapper()->mapCustomTypeToLLVMType((Utils::type)stoi(strs[3]));
+  } else {
+    this->getLogger()->LogError("Not an Array Type Can Not load the metadata");
+  }
 }

@@ -123,8 +123,6 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
   }
   }
 
-  this->_codeGenerationContext->getLogger()->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(), errorMessage));
-
+  this->_codeGenerationContext->callREF(errorMessage);
   return nullptr;
 }

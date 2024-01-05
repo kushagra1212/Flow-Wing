@@ -40,11 +40,13 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
 
   llvm::ArrayType *arrayType = nullptr;
   llvm::Type *elementType = nullptr;
+  std::vector<uint64_t> dimensions;
   if (llvm::isa<llvm::ArrayType>(_allocaInst->getAllocatedType())) {
 
     arrayType = llvm::cast<llvm::ArrayType>(_allocaInst->getAllocatedType());
-    elementType = arrayType->getElementType();
-
+    elementType =
+        _codeGenerationContext->getArrayElementTypeMetadata(_allocaInst);
+    _codeGenerationContext->getArraySizeMetadata(_allocaInst, dimensions);
     if (elementType->isIntegerTy(8)) {
       _codeGenerationContext->getLogger()->LogError(
           "Variable " + _containerName +
@@ -62,15 +64,15 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
     std::unique_ptr<ContainerExpressionGenerationStrategy>
         containerExpressionGenerationStrategy =
             std::make_unique<ContainerExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
-                elementType, _containerName);
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
     if (!containerExpressionGenerationStrategy->canGenerateExpression(
             containerExpression)) {
       return nullptr;
     }
 
-    return containerExpressionGenerationStrategy->createExpression(
+    return containerExpressionGenerationStrategy->createLocalExpression(
         arrayType, _allocaInst, containerExpression);
   }
 
@@ -81,16 +83,16 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
     std::unique_ptr<FillExpressionGenerationStrategy>
         fillExpressionGenerationStrategy =
             std::make_unique<FillExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
-                elementType, _containerName);
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
     if (!fillExpressionGenerationStrategy->canGenerateExpression(
             fillExpression)) {
       return nullptr;
     }
 
-    return fillExpressionGenerationStrategy->createExpression(arrayType,
-                                                              _allocaInst);
+    return fillExpressionGenerationStrategy->createLocalExpression(arrayType,
+                                                                   _allocaInst);
   }
 
   default:
@@ -128,13 +130,17 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
 
   llvm::ArrayType *arrayType = nullptr;
   llvm::Type *elementType = nullptr;
+  std::vector<uint64_t> dimensions;
   if (llvm::isa<llvm::GlobalVariable>(_previousGlobalVariable)) {
 
     if (llvm::isa<llvm::ArrayType>(_previousGlobalVariable->getValueType())) {
 
       arrayType =
           llvm::cast<llvm::ArrayType>(_previousGlobalVariable->getValueType());
-      elementType = arrayType->getElementType();
+      elementType = _codeGenerationContext->getArrayElementTypeMetadata(
+          _previousGlobalVariable);
+      _codeGenerationContext->getArraySizeMetadata(_previousGlobalVariable,
+                                                   dimensions);
       if (elementType->isIntegerTy(8)) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + _containerName +
@@ -153,8 +159,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
     std::unique_ptr<ContainerExpressionGenerationStrategy>
         containerExpressionGenerationStrategy =
             std::make_unique<ContainerExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
-                elementType, _containerName);
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
     if (!containerExpressionGenerationStrategy->canGenerateExpression(
             containerExpression)) {
@@ -172,8 +178,8 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
     std::unique_ptr<FillExpressionGenerationStrategy>
         fillExpressionGenerationStrategy =
             std::make_unique<FillExpressionGenerationStrategy>(
-                _codeGenerationContext, arrayType->getNumElements(),
-                elementType, _containerName);
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
     if (!fillExpressionGenerationStrategy->canGenerateExpression(
             fillExpression)) {

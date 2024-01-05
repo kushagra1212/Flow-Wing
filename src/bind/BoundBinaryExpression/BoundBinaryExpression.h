@@ -4,8 +4,7 @@
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-class BoundBinaryExpression : public BoundExpression,
-                              public BoundSourceLocation {
+class BoundBinaryExpression : public BoundExpression {
 private:
   BinderKindUtils::BoundBinaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _left;

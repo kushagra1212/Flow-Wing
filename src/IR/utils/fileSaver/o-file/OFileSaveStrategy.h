@@ -13,6 +13,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
+#include <optional>
 
 class OFileSaveStrategy
     : public FileSaveStrategy<llvm::Module *, LLVMLogger *> {

@@ -119,7 +119,11 @@
     "valarray": "cpp",
     "stdfloat": "cpp",
     "__verbose_abort": "cpp",
-    "complex": "cpp"
+    "complex": "cpp",
+    "__debug": "cpp",
+    "__mutex_base": "cpp",
+    "__threading_support": "cpp",
+    "__errc": "cpp"
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
@@ -128,6 +132,8 @@
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
-  "clang-format.executable": "/usr/local/llvm-17/bin/clang-format",
-  "workbench.colorTheme": "Deepdark Material Theme | Full Black Version",
+  "clang-format.executable": "/usr/local/llvm-17/clang+llvm/bin/clang-format",
+  "workbench.colorTheme": "Default Dark Modern",
+   "editor.codeActionsOnSave": {
+  },
 }

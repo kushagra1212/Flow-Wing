@@ -12,15 +12,14 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
 
 public:
+  ParameterSyntax() = default;
   ParameterSyntax(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
 
-  std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();
+  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  virtual std::vector<SyntaxNode *> getChildren() override;
+  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
+  virtual std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };
 
 #endif // PARAMETER_SYNTAX_H

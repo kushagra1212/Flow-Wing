@@ -9,7 +9,7 @@
                 "/usr/local/llvm-17/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/local/llvm-17/bin/clang",
+            "compilerPath": "/usr/local/llvm-17/clang+llvm/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"

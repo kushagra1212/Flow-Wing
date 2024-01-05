@@ -5,16 +5,15 @@ BoundAssignmentExpression::BoundAssignmentExpression(
     std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
     std::unique_ptr<BoundExpression> right)
-    : BoundSourceLocation(location) {
+    : BoundExpression(location) {
   this->_op = op;
   this->_left = std::move(left);
   this->_right = std::move(right);
   this->_variable = variable;
-  _children.push_back(_left.get());
 }
 
 const std::type_info &BoundAssignmentExpression::getType() {
-  return _right->getType();
+  return typeid(BoundAssignmentExpression);
 }
 
 BinderKindUtils::BoundBinaryOperatorKind
@@ -34,7 +33,12 @@ BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
 }
 
 std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
-  return this->_children;
+  if (_children.size() == 0) {
+    _children.push_back(_left.get());
+    _children.push_back(_right.get());
+  }
+
+  return _children;
 }
 
 BinderKindUtils::BoundBinaryOperatorKind &

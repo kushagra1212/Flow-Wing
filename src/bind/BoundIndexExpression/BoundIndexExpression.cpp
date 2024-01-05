@@ -2,13 +2,9 @@
 
 BoundIndexExpression::BoundIndexExpression(
     const DiagnosticUtils::SourceLocation &location,
-    std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression,
-    std::unique_ptr<BoundLiteralExpression<std::any>> boundIndexExpression)
-    : BoundSourceLocation(location) {
-
-  _boundIdentifierExpression = std::move(boundIdentifierExpression);
-  _boundIndexExpression = std::move(boundIndexExpression);
-}
+    std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression)
+    : BoundExpression(location),
+      _boundIdentifierExpression(std::move(boundIdentifierExpression)) {}
 
 const std::type_info &BoundIndexExpression::getType() {
   return _boundIdentifierExpression->getType();
@@ -21,7 +17,10 @@ BinderKindUtils::BoundNodeKind BoundIndexExpression::getKind() const {
 std::vector<BoundNode *> BoundIndexExpression::getChildren() {
   if (_children.size() == 0) {
     _children.push_back(_boundIdentifierExpression.get());
-    _children.push_back(_boundIndexExpression.get());
+
+    for (const auto &item : _boundIndexExpressions) {
+      _children.push_back(item.get());
+    }
   }
 
   return _children;
@@ -30,9 +29,4 @@ std::vector<BoundNode *> BoundIndexExpression::getChildren() {
 std::unique_ptr<BoundLiteralExpression<std::any>> &
 BoundIndexExpression::getBoundIdentifierExpression() {
   return _boundIdentifierExpression;
-}
-
-std::unique_ptr<BoundLiteralExpression<std::any>> &
-BoundIndexExpression::getBoundIndexExpression() {
-  return _boundIndexExpression;
 }

@@ -10,7 +10,7 @@ template class BoundLiteralExpression<char>;
 template <typename T>
 BoundLiteralExpression<T>::BoundLiteralExpression(
     const DiagnosticUtils::SourceLocation &location, T value)
-    : BoundSourceLocation(location) {
+    : BoundExpression(location) {
   this->value = value;
 }
 template <typename T>

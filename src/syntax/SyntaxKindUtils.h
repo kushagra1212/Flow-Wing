@@ -93,7 +93,6 @@ enum SyntaxKind {
   BinaryExpression,
   ParenthesizedExpression,
   AssignmentExpression,
-  VariableExpression,
   CompilationUnit,
   CallExpression,
   IndexExpression,
@@ -113,9 +112,14 @@ enum SyntaxKind {
   CommentStatement,
   FunctionDeclarationSyntax,
   ParameterSyntax,
+  ArrayParameterSyntax,
   EmptyStatement,
   BringStatementSyntax,
-  ContainerStatement
+  ContainerStatement,
+  VariableExpressionSyntax,
+  ArrayVariableExpressionSyntax,
+  PrimitiveTypeExpression,
+  ArrayTypeExpression,
 };
 bool isInt32(const std::string &str);
 
@@ -124,6 +128,8 @@ bool isInt64(const std::string &str);
 bool isDouble(const std::string &str);
 
 std::string to_string(SyntaxKind kind);
+
+bool isType(SyntaxKind kind);
 } // namespace SyntaxKindUtils
 
 #endif // SYNTAXKINDUTILS_H
