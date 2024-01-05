@@ -77,10 +77,32 @@ a[0] = 11  /; a will become [11, 9, 10, 10, 10]
 ```
 
 
+##### Function with 2D String Array Parameter and Normal String Parameter
+
+```Flow-Wing
+fun foo(a:str[2][3], x:str) -> nthg {
+    a[0][1] = x
+    print(a)
+}
+
+var x:str = "a"
+var a:str[2][3] = [["a","b","c"],["d","e","f"]]
+foo(a, x) /; output [[a, a, c], [d, e, f]]
+
+```
+
+This example defines a function foo that takes a 2D string array a and a string x as parameters. It modifies the element at [0][1] in the array a with the value of x and prints the modified array. Then, it declares a string variable x with the value "a" and a 2D string array a, calling the function foo with these variables.
 
 
+##### 2D Container Indexing with Fill Expression
 
+```
+var x : int[2][2] = [2 fill 5]
+var y : int = 1
+print(x[y][y]) /; 0
+```
 
+This example initializes a 2D integer container x with dimensions [2][2] using the fill expression 2 fill 5. It then indexes into the container using the variable y and prints the corresponding value.
 ## Control Flow
 
 Flow-Wing supports conditional statements and loops:
@@ -177,7 +199,7 @@ while(x < 5) {
 
 ### Getting Started
 
-To run Flow-Wing programs, you'll need an `Flow-Wing compiler` and if you want to use the Flow-Wing REPL, you'll need the Flow-Wing interpreter.
+To run Flow-Wing programs, you'll need an `Flow-Wing AOT-compiler or JIT-Compiler` and if you want to use the Flow-Wing REPL, you'll need the Flow-Wing interpreter.
 
 
 
