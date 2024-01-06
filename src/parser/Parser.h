@@ -14,6 +14,7 @@
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax/ArrayVariableExpressionSyntax/ArrayVariableExpressionSyntax.h"
@@ -23,6 +24,7 @@
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
+#include "../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "../syntax/statements/EmptyStatementSyntax/EmptyStatementSyntax.h"
 #include "../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
@@ -80,6 +82,7 @@ private:
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();
+  std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
   std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
@@ -100,7 +103,7 @@ private:
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();
-
+  std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
   Utils::type parseType();
 
   std::unique_ptr<MemberSyntax> parseMember();

@@ -20,7 +20,7 @@ public:
 
   const std::string &getAbsoluteFilePath() const;
 
-  std::string getText();
+  const std::string &getText();
 
   T getValue();
 

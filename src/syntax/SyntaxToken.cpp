@@ -31,7 +31,7 @@ template <typename T> int SyntaxToken<T>::getLineNumber() {
   return this->lineNumber;
 }
 
-template <typename T> std::string SyntaxToken<T>::getText() {
+template <typename T> const std::string &SyntaxToken<T>::getText() {
   return this->text;
 }
 

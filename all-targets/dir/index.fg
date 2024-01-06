@@ -1,4 +1,18 @@
+type parentType = {
+      parName : str
+}
 
+type childType = {
+      name : str,
+      count : int,
+      isA : bool,
+      price : deci,
+      it : childType
+}
+
+var x:childType = {
+      name:"kush"
+}
 
 
 

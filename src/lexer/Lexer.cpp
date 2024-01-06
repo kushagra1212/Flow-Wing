@@ -204,23 +204,35 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
   }
 
   else if (text == "bring") {
-
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::BringKeyword, start, text, text);
-  } else if (text == "expose") {
+  }
+
+  else if (text == "expose") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::ExposeKeyword, start, text, "expose");
-  } else if (text == "from") {
+  }
+
+  else if (text == "from") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::FromKeyword, start, text, "from");
-  } else if (text == "fill") {
+  }
+
+  else if (text == "fill") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::FillKeyword, start, text, "fill");
   }
+
+  else if (text == "type") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::TypeKeyword, start, text, "type");
+  }
+
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
       SyntaxKindUtils::SyntaxKind::IdentifierToken, start, text, text);

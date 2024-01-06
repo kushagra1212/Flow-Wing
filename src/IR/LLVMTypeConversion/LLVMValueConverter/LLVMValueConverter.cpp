@@ -12,14 +12,21 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
                                        SyntaxKindUtils::SyntaxKind kind) {
   if (value.type() == typeid(int)) {
     return int32ToLLVMValue(std::any_cast<int32_t>(value));
-  } else if (value.type() == typeid(double)) {
-    return doubleToLLVMValue(std::any_cast<double>(value));
-  } else if (value.type() == typeid(bool)) {
-    return boolToLLVMValue(std::any_cast<bool>(value));
-  } else if (value.type() == typeid(std::string)) {
+  }
 
+  else if (value.type() == typeid(double)) {
+    return doubleToLLVMValue(std::any_cast<double>(value));
+  }
+
+  else if (value.type() == typeid(bool)) {
+    return boolToLLVMValue(std::any_cast<bool>(value));
+  }
+
+  else if (value.type() == typeid(std::string)) {
     return stringToLLVMValue(std::any_cast<std::string>(value), kind);
-  } else {
+  }
+
+  else {
     return nullptr;
   }
 }

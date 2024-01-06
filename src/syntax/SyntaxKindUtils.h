@@ -82,6 +82,7 @@ enum SyntaxKind {
   FromKeyword,
   ElseClause,
   FillKeyword,
+  TypeKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -102,6 +103,7 @@ enum SyntaxKind {
   // Statements
   GlobalStatement,
   ExpressionStatement,
+  CustomTypeStatement,
   BlockStatement,
   VariableDeclaration,
   IfStatement,
@@ -120,6 +122,7 @@ enum SyntaxKind {
   ArrayVariableExpressionSyntax,
   PrimitiveTypeExpression,
   ArrayTypeExpression,
+  ObjectTypeExpression
 };
 bool isInt32(const std::string &str);
 

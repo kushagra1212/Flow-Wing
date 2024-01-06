@@ -19,6 +19,7 @@ enum BoundNodeKind {
   ArrayVariableExpression,
   BoundTypeExpression,
   BoundArrayTypeExpression,
+  BoundObjectTypeExpression,
 
   // Statements
   BoundStatementKind,
@@ -33,6 +34,7 @@ enum BoundNodeKind {
   ReturnStatement,
   BringStatement,
   ContainerStatement,
+  CustomTypeStatement,
 
   // declarations
 

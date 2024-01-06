@@ -22,6 +22,7 @@
 #include "../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 #include "../../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
+#include "../../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "../../syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
 #include "../../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include "../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
@@ -44,6 +45,7 @@
 #include "../BoundContainerExpression/BoundContainerExpression.h"
 #include "../BoundContainerStatement/BoundContainerStatement.h"
 #include "../BoundContinueStatement/BoundContinueStatement.h"
+#include "../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "../BoundExpression.h"
 #include "../BoundExpressionStatement/BoundExpressionStatement.h"
 #include "../BoundFillExpression/BoundFillExpression.h"
@@ -56,12 +58,12 @@
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../BoundTypeExpression/BoundTypeExpression.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "../BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../BoundVariableExpression/BoundVariableExpression.h"
-
 #include "../BoundWhileStatement/BoundWhileStatement.h"
 #include "BoundScope/BoundScope.h"
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
@@ -133,6 +135,9 @@ public:
   std::unique_ptr<BoundStatement>
   bindContainerStatement(ContainerStatementSyntax *containerSyntax);
 
+  std::unique_ptr<BoundStatement>
+  bindCustomTypeStatement(CustomTypeStatementSyntax *customTypeStatement);
+
   // BoundExpressions
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
@@ -170,7 +175,7 @@ public:
   std::unique_ptr<BoundVariableExpression> bindArrayVariableExpression(
       ArrayVariableExpressionSyntax *variableExpressionSyntax);
 
-  std::unique_ptr<BoundExpression>
+  std::unique_ptr<BoundTypeExpression>
   bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax);
 
   // Utils

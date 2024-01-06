@@ -45,9 +45,8 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 
   std::cout << "Node kind: " << SyntaxKindUtils::to_string(node->getKind());
   if (Utils::isSyntaxToken(node)) {
-    std::any value = ((SyntaxToken<std::any> *)node)->getText();
-    std::cout << " { Node value: '" << PINK_TEXT
-              << std::any_cast<std::string>(value) << RESET << "' }";
+    std::string value = ((SyntaxToken<std::any> *)node)->getText();
+    std::cout << " { Node value: '" << PINK_TEXT << value << RESET << "' }";
   }
   std::vector<SyntaxNode *> children = node->getChildren();
 

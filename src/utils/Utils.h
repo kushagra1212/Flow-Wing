@@ -27,6 +27,7 @@ enum type {
   BOOL,
   STRING,
   NOTHING,
+  OBJECT,
   UNKNOWN,
 
   // Container Types

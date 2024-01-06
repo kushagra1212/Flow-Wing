@@ -54,7 +54,7 @@ bool BoundScope::isContinuable() {
 }
 
 bool BoundScope::tryDeclareVariable(
-    std::string name, const struct Utils::Variable &initialValue) {
+    const std::string &name, const struct Utils::Variable &initialValue) {
   if (this->variables.find(name) == this->variables.end()) {
 
     this->variables[name] = initialValue;
@@ -64,7 +64,7 @@ bool BoundScope::tryDeclareVariable(
   return false;
 }
 
-bool BoundScope::tryLookupVariable(std::string name) {
+bool BoundScope::tryLookupVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return true;
   }
@@ -74,14 +74,14 @@ bool BoundScope::tryLookupVariable(std::string name) {
   return this->parent->tryLookupVariable(name);
 }
 
-Utils::Variable BoundScope::tryGetVariable(std::string name) {
+Utils::Variable BoundScope::tryGetVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return this->variables[name];
   }
   return this->parent->tryGetVariable(name);
 }
 
-bool BoundScope::tryAssignVariable(std::string name,
+bool BoundScope::tryAssignVariable(const std::string &name,
                                    const struct Utils::Variable &value) {
   if (this->variables.find(name) != this->variables.end()) {
     this->variables[name] = value;
@@ -108,7 +108,7 @@ bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
   return true;
 }
 
-bool BoundScope::tryLookupFunction(std::string name) {
+bool BoundScope::tryLookupFunction(const std::string &name) {
   if (this->functions.find(name) != this->functions.end()) {
     return true;
   }
@@ -127,4 +127,29 @@ std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
     result.push_back(function.second);
   }
   return result;
+}
+
+bool BoundScope::tryLookupCustomType(const std::string &name) {
+  if (this->customTypes.find(name) != this->customTypes.end()) {
+    return true;
+  }
+  if (this->parent == nullptr) {
+    return false;
+  }
+  return this->parent->tryLookupCustomType(name);
+}
+
+bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
+  if (this->customTypes.find(customType->getTypeNameAsString()) !=
+      this->customTypes.end()) {
+
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareCustomType(customType);
+  }
+
+  this->customTypes[customType->getTypeNameAsString()] = customType;
+  return true;
 }

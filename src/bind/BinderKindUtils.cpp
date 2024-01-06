@@ -24,6 +24,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "BoundFillExpression";
   case BoundBracketedExpression:
     return "BoundBracketedExpression";
+  case BoundObjectTypeExpression:
+    return "BoundObjectTypeExpression";
   case BoundStatementKind:
     return "BoundStatementKind";
   case ExpressionStatement:
@@ -53,10 +55,11 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "BringStatement";
   case ContainerStatement:
     return "ContainerStatement";
+  case CustomTypeStatement:
+    return "CustomTypeStatement";
 
   case ArrayVariableExpression:
     return "ArrayVariableExpression";
-
   case BoundTypeExpression:
     return "BoundTypeExpression";
 

@@ -256,6 +256,14 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ArrayTypeExpression:
     return "ArrayTypeExpression";
 
+  case SyntaxKind::TypeKeyword:
+    return "TypeKeyword";
+
+  case SyntaxKind::ObjectTypeExpression:
+    return "ObjectTypeExpression";
+
+  case SyntaxKind::CustomTypeStatement:
+    return "CustomTypeStatement";
   default:
     return "NotDefined";
   }
