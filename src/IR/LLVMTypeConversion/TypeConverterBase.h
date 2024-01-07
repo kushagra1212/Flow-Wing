@@ -1,6 +1,8 @@
 #ifndef __TYPE_CONVERTER_BASE_H__
 #define __TYPE_CONVERTER_BASE_H__
 
+#include <llvm/IR/LLVMContext.h>
+
 #include "../constants/FlowWingIRConstants.h"
 #include "../context/CodeGenerationContext.h"
 #include "../logger/LLVMLogger.h"
@@ -8,11 +10,10 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
-#include <llvm/IR/LLVMContext.h>
 using namespace FLOWWING::IR::CONSTANTS;
 
 class TypeConverterBase {
-public:
+ public:
   CodeGenerationContext *_codeGenerationContext;
   llvm::IRBuilder<> *_builder;
   llvm::Module *_module;
@@ -33,4 +34,4 @@ public:
   virtual llvm::Value *convertImplicit(llvm::Value *value) = 0;
 };
 
-#endif // __TYPE_CONVERTER_BASE_H__
+#endif  // __TYPE_CONVERTER_BASE_H__

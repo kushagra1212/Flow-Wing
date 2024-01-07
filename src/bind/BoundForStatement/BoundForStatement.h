@@ -9,8 +9,7 @@
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundForStatement : public BoundStatement, public BoundSourceLocation {
-
-private:
+ private:
   std::unique_ptr<BoundStatement> _initialization;
 
   std::unique_ptr<BoundStatement> _statement;
@@ -19,7 +18,7 @@ private:
 
   std::unique_ptr<BoundExpression> _boundStepExpression;
 
-public:
+ public:
   BoundForStatement(const DiagnosticUtils::SourceLocation &location,
                     std::unique_ptr<BoundStatement> initialization,
                     std::unique_ptr<BoundExpression> upperBound,
@@ -47,4 +46,4 @@ public:
   std::unique_ptr<BoundExpression> &getStepExpressionPtr();
 };
 
-#endif // BOUND_FOR_STATEMENT_H
+#endif  // BOUND_FOR_STATEMENT_H

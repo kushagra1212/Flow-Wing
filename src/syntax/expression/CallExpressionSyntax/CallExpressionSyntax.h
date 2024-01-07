@@ -8,14 +8,14 @@
 #include "../LiteralExpressionSyntax.h"
 
 class CallExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifier;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::vector<std::unique_ptr<ExpressionSyntax>> _arguments;
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
-public:
+ public:
   CallExpressionSyntax(
       std::unique_ptr<LiteralExpressionSyntax<std::any>> identifier);
 
@@ -41,4 +41,4 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
 
-#endif // CALL_EXPRESSION_SYNTAX_H
+#endif  // CALL_EXPRESSION_SYNTAX_H

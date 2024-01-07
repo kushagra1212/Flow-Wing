@@ -7,7 +7,7 @@
 class TypeBuilderInterface;
 
 class ReferenceTypeBuilder : public TypeBuilderInterface {
-public:
+ public:
   ReferenceTypeBuilder(CodeGenerationContext *context);
   void buildType() override;
   llvm::StructType *get() const override;
@@ -20,9 +20,9 @@ public:
 
   const std::vector<llvm::Type *> &getMemberTypes() const;
 
-private:
+ private:
   llvm::StructType *_referenceType;
   std::vector<llvm::Type *> _memberTypes;
 };
 
-#endif // __FLOWWING_REFERENCE_TYPE_BUILDER_H__
+#endif  // __FLOWWING_REFERENCE_TYPE_BUILDER_H__

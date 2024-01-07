@@ -3,15 +3,16 @@
 
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../../../../bind/BoundContainerStatement/BoundContainerStatement.h"
+#include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
-class ContainerStatementGenerationStrategy
+class ContainerDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
+  void calcActualContainerSize(BoundArrayTypeExpression *arrayTypeExpression);
 
-  void calcActualContainerSize(BoundContainerStatement *containerStatement);
-
-public:
-  ContainerStatementGenerationStrategy(CodeGenerationContext *context);
+ public:
+  ContainerDeclarationStatementGenerationStrategy(
+      CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
@@ -19,16 +20,16 @@ public:
   llvm::Value *generateBracketGlobalExpression(
       BoundBracketedExpression *bracketedExpression);
 
-  llvm::Value *
-  generateBracketLocalExpression(BoundBracketedExpression *bracketedExpression);
+  llvm::Value *generateBracketLocalExpression(
+      BoundBracketedExpression *bracketedExpression);
 
   const bool canGenerateCallExpression(BoundExpression *callExp);
 
-private:
+ private:
   std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
   std::string _containerName;
   llvm::LoadInst *_loadedValue;
 };
 
-#endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
+#endif  //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__

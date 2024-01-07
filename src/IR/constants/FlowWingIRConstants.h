@@ -51,9 +51,9 @@ extern const std::string STRING_TO_LONG;
 extern const std::string STRING_TO_DOUBLE;
 extern const std::string RAISE_EXCEPTION;
 
-}; // namespace FUNCTIONS
-}; // namespace INNERS
+};  // namespace FUNCTIONS
+};  // namespace INNERS
 
-}; // namespace FLOWWING::IR::CONSTANTS
+};  // namespace FLOWWING::IR::CONSTANTS
 
-#endif // FLOWWING_IR_CONSTANTS_H
+#endif  // FLOWWING_IR_CONSTANTS_H

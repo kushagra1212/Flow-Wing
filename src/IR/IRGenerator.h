@@ -42,8 +42,6 @@
 using namespace FLOWWING::IR::CONSTANTS;
 
 // LLVM Imports
-#include "llvm/IR/Type.h"
-#include "llvm/Pass.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -58,26 +56,17 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/Error.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
-#include <llvm/Support/Error.h>
-#include <llvm/Support/SourceMgr.h>
-
-#include <llvm/IRReader/IRReader.h>
 // ExecutionEngine
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/GenericValue.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/ManagedStatic.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/raw_ostream.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
@@ -85,27 +74,34 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Support/FileSystem.h>
 #include <llvm/Support/SourceMgr.h>
 
 #include "llvm//IR/Value.h"
-#include "llvm/IR/Constants.h"
-
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
-#include <llvm/Linker/Linker.h>
-#include <llvm/Support/FileSystem.h>
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/raw_ostream.h"
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
-
 #include <llvm/Support/raw_ostream.h>
+
 #include <sstream>
 
 class IRGenerator {
-
-public:
-  IRGenerator(
-      int environment, DiagnosticHandler *diagnosticHandler,
-      std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
-      const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
+ public:
+  IRGenerator(int environment, DiagnosticHandler *diagnosticHandler,
+              std::unordered_map<std::string, BoundFunctionDeclaration *>
+                  boundedUserFunctions,
+              const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
   void printIR();
 
   void mergeModules(llvm::Module *sourceFunction,
@@ -126,7 +122,7 @@ public:
   const int32_t hasErrors() const;
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
-private:
+ private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
@@ -155,4 +151,4 @@ private:
   std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
 };
 
-#endif // IRGENERATOR_H
+#endif  // IRGENERATOR_H

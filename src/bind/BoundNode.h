@@ -1,7 +1,7 @@
 #pragma once
 #include "BinderKindUtils.h"
 class BoundNode {
-public:
+ public:
   std::vector<BoundNode *> _children;
   virtual BinderKindUtils::BoundNodeKind getKind() const = 0;
 

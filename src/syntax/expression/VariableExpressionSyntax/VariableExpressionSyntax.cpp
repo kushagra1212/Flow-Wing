@@ -2,9 +2,10 @@
 
 VariableExpressionSyntax::VariableExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> identifierExpression,
-    const bool isConstant, const Utils::type &variableType)
+    const bool isConstant,
+    std::unique_ptr<TypeExpressionSyntax> variableTypeExpr)
     : _identifierExpression(std::move(identifierExpression)),
-      _variableType(variableType), _isConstant(isConstant) {}
+      _variableTypeExpr(std::move(variableTypeExpr)), _isConstant(isConstant) {}
 
 SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax;

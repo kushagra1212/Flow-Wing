@@ -4,12 +4,11 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class UnaryExpressionSyntax : public ExpressionSyntax {
-
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _operand;
 
-public:
+ public:
   UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
                         std::unique_ptr<ExpressionSyntax> operand);
 
@@ -24,4 +23,4 @@ public:
   std::unique_ptr<ExpressionSyntax> &getOperandPtr();
 };
 
-#endif // UnaryExpressionSyntax_h__
+#endif  // UnaryExpressionSyntax_h__

@@ -3,12 +3,12 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::unique_ptr<ExpressionSyntax> _expression;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
-public:
+ public:
   ParenthesizedExpressionSyntax(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
       std::unique_ptr<ExpressionSyntax> expression,

@@ -5,12 +5,12 @@
 #include "expression/ExpressionSyntax.h"
 #include "statements/StatementSyntax.h"
 class CompilationUnitSyntax {
-private:
+ private:
   std::vector<std::unique_ptr<MemberSyntax>> _members;
   std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
   std::vector<SyntaxNode *> _children;
 
-public:
+ public:
   SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<std::unique_ptr<MemberSyntax>> &getMembers();

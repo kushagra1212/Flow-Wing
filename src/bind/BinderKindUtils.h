@@ -83,4 +83,4 @@ BoundUnaryOperatorKind getUnaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
 BoundBinaryOperatorKind getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
-} // namespace BinderKindUtils
+}  // namespace BinderKindUtils

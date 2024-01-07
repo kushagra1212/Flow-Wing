@@ -5,11 +5,11 @@
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../StatementSyntax.h"
 class ElseClauseSyntax : public SyntaxNode {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _elseKeyword;
   std::unique_ptr<BlockStatementSyntax> _statement;
 
-public:
+ public:
   ElseClauseSyntax(std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
                    std::unique_ptr<BlockStatementSyntax> statement);
 

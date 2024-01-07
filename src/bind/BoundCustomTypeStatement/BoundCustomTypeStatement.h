@@ -13,22 +13,21 @@ class BoundCustomTypeStatement : public BoundStatement,
                         std::unique_ptr<BoundTypeExpression>>>
       _key_type_pairs;
 
-public:
+ public:
   BoundCustomTypeStatement(const DiagnosticUtils::SourceLocation &location);
 
   /*
     Setters
   */
 
-  inline auto
-  setTypeName(std::unique_ptr<BoundLiteralExpression<std::any>> typeName)
-      -> void {
+  inline auto setTypeName(
+      std::unique_ptr<BoundLiteralExpression<std::any>> typeName) -> void {
     this->_typeName = std::move(typeName);
   }
 
-  inline auto
-  addKeyTypePair(std::unique_ptr<BoundLiteralExpression<std::any>> key,
-                 std::unique_ptr<BoundTypeExpression> type) -> void {
+  inline auto addKeyTypePair(
+      std::unique_ptr<BoundLiteralExpression<std::any>> key,
+      std::unique_ptr<BoundTypeExpression> type) -> void {
     this->_key_type_pairs.push_back(
         std::make_pair(std::move(key), std::move(type)));
   }
@@ -51,9 +50,9 @@ public:
     return this->_key_type_pairs;
   }
 
-public:
+ public:
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 };
 
-#endif // __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
+#endif  // __FLOW_BOUNDCUSTOMTYPESTATEMENT_H

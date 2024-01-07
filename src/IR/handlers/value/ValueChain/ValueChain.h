@@ -5,10 +5,10 @@
 #include "../ValueHandler.h"
 
 class ValueChain {
-private:
+ private:
   std::stack<ValueHandler *> handlers;
 
-public:
+ public:
   void addHandler(ValueHandler *handler);
 
   void removeHandler();
@@ -20,4 +20,4 @@ public:
   void setNamedValue(const std::string &name, llvm::Value *value);
 };
 
-#endif // FLOWWING_VALUECHAIN_H
+#endif  // FLOWWING_VALUECHAIN_H

@@ -6,7 +6,7 @@
 #include "../../ReplTest/ReplTest.h"
 
 class VariableDeclaration : public ::testing::Test {
-protected:
+ protected:
   VariableDeclaration();
   void SetUp() override;
   void TearDown() override;
@@ -16,4 +16,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // VARIABLE_DECLARATION_H
+#endif  // VARIABLE_DECLARATION_H

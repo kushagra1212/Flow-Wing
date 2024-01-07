@@ -3,9 +3,10 @@
 BoundArrayVariableExpression::BoundArrayVariableExpression(
     const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
-    const bool &isConstant, const Utils::type &variableType)
+    const bool &isConstant,
+    std::unique_ptr<BoundTypeExpression> variableTypeExp)
     : BoundVariableExpression(location, std::move(identiferExpression),
-                              isConstant, variableType) {}
+                              isConstant, std::move(variableTypeExp)) {}
 
 const std::type_info &BoundArrayVariableExpression::getType() {
   return typeid(std::vector<std::any>);

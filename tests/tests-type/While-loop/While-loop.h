@@ -5,7 +5,7 @@
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
 class WhileLoop : public ::testing::Test {
-protected:
+ protected:
   WhileLoop();
 
   void SetUp() override;
@@ -16,4 +16,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // VARIABLE_DECLARATION_H
+#endif  // VARIABLE_DECLARATION_H

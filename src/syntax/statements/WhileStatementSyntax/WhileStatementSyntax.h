@@ -4,12 +4,12 @@
 #include "../../SyntaxToken.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 class WhileStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;
   std::unique_ptr<ExpressionSyntax> _condition;
   std::unique_ptr<BlockStatementSyntax> _body;
 
-public:
+ public:
   WhileStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
                        std::unique_ptr<ExpressionSyntax> condition,
                        std::unique_ptr<BlockStatementSyntax> body);

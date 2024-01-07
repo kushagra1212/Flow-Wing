@@ -2,18 +2,16 @@
 #define RETURNSTATEMENTSYNTAX_H
 
 #include "../../SyntaxNode.h"
-
 #include "../../SyntaxToken.h"
+#include "../../expression/ExpressionSyntax.h"
 #include "../StatementSyntax.h"
 
-#include "../../expression/ExpressionSyntax.h"
-
 class ReturnStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _returnKeyword;
   std::unique_ptr<ExpressionSyntax> _expression;
 
-public:
+ public:
   ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword,
                         std::unique_ptr<ExpressionSyntax> expression);
 
@@ -28,4 +26,4 @@ public:
   std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
 };
 
-#endif // RETURNSTATEMENTSYNTAX_H
+#endif  // RETURNSTATEMENTSYNTAX_H

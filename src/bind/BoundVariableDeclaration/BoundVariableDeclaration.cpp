@@ -1,24 +1,16 @@
 #include "BoundVariableDeclaration.h"
 
 BoundVariableDeclaration::BoundVariableDeclaration(
-
-    const DiagnosticUtils::SourceLocation &location, std::string variable,
-    bool isConst, Utils::type type,
-    std::unique_ptr<BoundExpression> initializer)
-    : BoundSourceLocation(location) {
-  this->_variable = variable;
-  this->_isConst = isConst;
-  this->_initializer = std::move(initializer);
-  this->_type = type;
-
-  this->_children.push_back(this->_initializer.get());
-}
-
-std::string BoundVariableDeclaration::getVariable() const { return _variable; }
+    const DiagnosticUtils::SourceLocation &location,
+    const std::string &variableName, bool isConst)
+    : BoundSourceLocation(location),
+      _variableName(variableName),
+      _isConst(isConst) {}
 
 std::unique_ptr<BoundExpression> BoundVariableDeclaration::getInitializer() {
   return std::move(_initializer);
 }
+
 BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
   return BinderKindUtils::BoundNodeKind::VariableDeclaration;
 }
@@ -26,6 +18,11 @@ BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
 bool BoundVariableDeclaration::isConst() const { return _isConst; }
 
 std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {
+  if (_children.empty()) {
+    if (_typeExp) _children.push_back(this->_typeExp.get());
+    if (_initializer) _children.push_back(this->_initializer.get());
+  }
+
   return this->_children;
 }
 
@@ -34,4 +31,6 @@ BoundVariableDeclaration::getInitializerPtr() {
   return this->_initializer;
 }
 
-Utils::type BoundVariableDeclaration::getType() const { return _type; }
+const std::string &BoundVariableDeclaration::getVariableName() const {
+  return _variableName;
+}

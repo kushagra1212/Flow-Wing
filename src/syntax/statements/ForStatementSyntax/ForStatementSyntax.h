@@ -8,14 +8,13 @@
 #include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 
 class ForStatementSyntax : public StatementSyntax {
-
-private:
+ private:
   std::unique_ptr<StatementSyntax> _initialization;
   std::unique_ptr<BlockStatementSyntax> _statement;
   std::unique_ptr<ExpressionSyntax> _upperBound;
   std::unique_ptr<ExpressionSyntax> _stepExpression;
 
-public:
+ public:
   ForStatementSyntax(std::unique_ptr<StatementSyntax> initialization,
                      std::unique_ptr<ExpressionSyntax> upperBound,
                      std::unique_ptr<BlockStatementSyntax> statement,
@@ -36,4 +35,4 @@ public:
   std::unique_ptr<ExpressionSyntax> &getStepExpressionPtr();
 };
 
-#endif // FOR_STATEMENT_SYNTAX_H
+#endif  // FOR_STATEMENT_SYNTAX_H

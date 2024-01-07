@@ -10,7 +10,7 @@
 
 class BracketedExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   BracketedExpressionGenerationStrategy(CodeGenerationContext *context);
 
   void setPreviousGlobalVariable(llvm::GlobalVariable *previousGlobalVariable);
@@ -22,10 +22,10 @@ public:
 
   // Specialized for BoundBracketedExpression
 
-private:
+ private:
   llvm::GlobalVariable *_previousGlobalVariable;
   std::string _containerName;
   llvm::AllocaInst *_allocaInst;
 };
 
-#endif // __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__

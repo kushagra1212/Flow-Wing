@@ -6,8 +6,7 @@
 #include "../StatementSyntax.h"
 
 class EmptyStatementSyntax : public StatementSyntax {
-
-public:
+ public:
   EmptyStatementSyntax();
 
   SyntaxKindUtils::SyntaxKind getKind() const override;
@@ -15,4 +14,4 @@ public:
   DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };
 
-#endif // EMPTY_STATEMENT_SYNTAX_H
+#endif  // EMPTY_STATEMENT_SYNTAX_H

@@ -5,11 +5,11 @@
 #include "../AllocaTable/AllocaTable.h"
 
 class AllocaChain {
-private:
+ private:
   std::stack<AllocaTable *> handlers;
   std::unique_ptr<AllocaTable> _globalTable;
 
-public:
+ public:
   AllocaChain();
   void addHandler(AllocaTable *handler);
 
@@ -30,4 +30,4 @@ public:
   uint64_t getGlobalTypeIndex(const std::string &name);
 };
 
-#endif // FLOWWING_ALLOCACHAIN_H
+#endif  // FLOWWING_ALLOCACHAIN_H

@@ -264,6 +264,19 @@ std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::CustomTypeStatement:
     return "CustomTypeStatement";
+
+  case SyntaxKind::ObjectExpression:
+    return "ObjectExpression";
+
+  case SyntaxKind::NBU_ARRAY_TYPE:
+    return "NBU_ARRAY_TYPE";
+
+  case SyntaxKind::NBU_OBJECT_TYPE:
+    return "NBU_OBJECT_TYPE";
+
+  case SyntaxKind::NBU_UNKNOWN_TYPE:
+    return "NBU_UNKNOWN_TYPE";
+
   default:
     return "NotDefined";
   }

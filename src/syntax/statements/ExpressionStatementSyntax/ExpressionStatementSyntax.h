@@ -3,10 +3,10 @@
 #include "../StatementSyntax.h"
 
 class ExpressionStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _expression;
 
-public:
+ public:
   ExpressionStatementSyntax(std::unique_ptr<ExpressionSyntax> expression);
 
   std::unique_ptr<ExpressionSyntax> getExpression();

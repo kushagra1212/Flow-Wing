@@ -5,11 +5,11 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundWhileStatement : public BoundStatement, public BoundSourceLocation {
-private:
+ private:
   std::unique_ptr<BoundExpression> _condition;
   std::unique_ptr<BoundStatement> _body;
 
-public:
+ public:
   BoundWhileStatement(const DiagnosticUtils::SourceLocation &location,
                       std::unique_ptr<BoundExpression> condition,
                       std::unique_ptr<BoundStatement> body);

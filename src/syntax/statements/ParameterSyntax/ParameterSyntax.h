@@ -2,16 +2,15 @@
 #define PARAMETER_SYNTAX_H
 
 #include "../../../Common.h"
-
 #include "../../SyntaxKindUtils.h"
 #include "../../SyntaxNode.h"
 #include "../../SyntaxToken.h"
 
 class ParameterSyntax : public SyntaxNode {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
 
-public:
+ public:
   ParameterSyntax() = default;
   ParameterSyntax(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
 
@@ -22,4 +21,4 @@ public:
   virtual std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };
 
-#endif // PARAMETER_SYNTAX_H
+#endif  // PARAMETER_SYNTAX_H

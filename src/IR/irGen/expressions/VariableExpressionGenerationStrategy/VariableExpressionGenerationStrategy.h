@@ -6,7 +6,7 @@
 
 class VariableExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   VariableExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -19,10 +19,9 @@ public:
 
   // Get Primitive Local Variable Value
 
-  llvm::Value *
-  getTypedPrimitiveLocalVariableValue(const std::string &variableName,
-                                      llvm::Value *variableValue,
-                                      llvm::AllocaInst *v);
+  llvm::Value *getTypedPrimitiveLocalVariableValue(
+      const std::string &variableName, llvm::Value *variableValue,
+      llvm::AllocaInst *v);
 
   llvm::Value *getUnTypedLocalVariableValue(llvm::Value *variableValue,
                                             llvm::AllocaInst *v,
@@ -33,4 +32,4 @@ public:
                                      llvm::AllocaInst *v);
 };
 
-#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

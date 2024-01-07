@@ -5,12 +5,14 @@
 #include "../../../utils/Utils.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
+#include "../TypeExpressionSyntax/TypeExpressionSyntax.h"
 
 class VariableExpressionSyntax : public ExpressionSyntax {
-public:
+ public:
   VariableExpressionSyntax(
       std::unique_ptr<ExpressionSyntax> identifierExpression,
-      const bool isConstant, const Utils::type &variableType);
+      const bool isConstant,
+      std::unique_ptr<TypeExpressionSyntax> variableTypeExpr);
 
   virtual SyntaxKindUtils::SyntaxKind getKind() const override;
   virtual std::vector<SyntaxNode *> getChildren() override;
@@ -21,8 +23,9 @@ public:
     return _identifierExpression;
   }
 
-  inline auto getVariableType() const -> const Utils::type & {
-    return _variableType;
+  inline auto getVariableTypeExprRef() const
+      -> const std::unique_ptr<TypeExpressionSyntax> & {
+    return _variableTypeExpr;
   }
 
   inline auto isConstant() const -> const bool & { return _isConstant; }
@@ -35,11 +38,11 @@ public:
         literalExpressionSyntax->getTokenPtr()->getText());
   }
 
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _identifierExpression;
-  Utils::type _variableType;
+  std::unique_ptr<TypeExpressionSyntax> _variableTypeExpr;
   bool _isConstant;
   std::string _variableName;
 };
 
-#endif // __FLOW__WING__VARIABLE_H__
+#endif  // __FLOW__WING__VARIABLE_H__

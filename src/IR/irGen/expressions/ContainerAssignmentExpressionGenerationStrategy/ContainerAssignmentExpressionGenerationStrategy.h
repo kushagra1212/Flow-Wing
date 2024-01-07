@@ -6,7 +6,7 @@
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   ContainerAssignmentExpressionGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -32,7 +32,7 @@ public:
                    std::vector<llvm::Value *> &indices,
                    const std::vector<size_t> &rhsSizes, uint64_t index);
 
-private:
+ private:
   // LHS
   std::string _containerName;
   llvm::Value *_variable;
@@ -48,4 +48,4 @@ private:
   llvm::Type *_rhsArrayElementType, *_lhsArrayElementType;
 };
 
-#endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

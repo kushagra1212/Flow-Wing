@@ -5,7 +5,7 @@
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
 class CommentTest : public ::testing::Test {
-protected:
+ protected:
   CommentTest();
 
   void SetUp() override;
@@ -16,4 +16,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // FOR_LOOP_H
+#endif  // FOR_LOOP_H

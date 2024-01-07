@@ -6,7 +6,7 @@
 #include "../../../../ReplTest/ReplTest.h"
 
 class MDCInFunction : public ::testing::Test {
-protected:
+ protected:
   MDCInFunction();
 
   void SetUp() override;
@@ -26,4 +26,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // __MDC_FUNCTION_TEST_H__
+#endif  // __MDC_FUNCTION_TEST_H__

@@ -4,11 +4,11 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundUnaryExpression : public BoundExpression {
-private:
+ private:
   BinderKindUtils::BoundUnaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _operand;
 
-public:
+ public:
   BoundUnaryExpression(const DiagnosticUtils::SourceLocation &location,
                        BinderKindUtils::BoundUnaryOperatorKind op,
                        std::unique_ptr<BoundExpression> operand);

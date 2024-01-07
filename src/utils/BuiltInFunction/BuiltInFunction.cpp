@@ -24,100 +24,50 @@ std::vector<std::unique_ptr<BoundFunctionDeclaration>>
     BuiltInFunction::_functions = {};
 
 void BuiltInFunction::setupBuiltInFunctions() {
-
   std::any par = ("value");
 
   // Int32
 
-  std::unique_ptr<BoundFunctionDeclaration> Int32Func =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  Int32Func->setFunctionName(FW::BI::FUNCTION::Int32);
-  Int32Func->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::INT32)));
-  Int32Func->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(Int32Func));
+  auto create = [](std::string funName, SyntaxKindUtils::SyntaxKind rt) {
+    std::unique_ptr<BoundFunctionDeclaration> func =
+        std::make_unique<BoundFunctionDeclaration>(
+            DiagnosticUtils::SourceLocation());
+    func->setFunctionName(funName);
+    func->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+        DiagnosticUtils::SourceLocation(), rt)));
+
+    std::unique_ptr<BoundVariableDeclaration> varDec =
+        std::make_unique<BoundVariableDeclaration>(
+            DiagnosticUtils::SourceLocation(), "par", false);
+
+    varDec->setTypeExpression(std::make_unique<BoundTypeExpression>(
+        DiagnosticUtils::SourceLocation(),
+        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
+    func->addParameter(std::move(varDec));
+    _functions.push_back(std::move(func));
+  };
+
+  create(FW::BI::FUNCTION::Int32, SyntaxKindUtils::SyntaxKind::Int32Keyword);
 
   // Decimal
 
-  std::unique_ptr<BoundFunctionDeclaration> DecimalFunc =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  DecimalFunc->setFunctionName(FW::BI::FUNCTION::Decimal);
-
-  DecimalFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::DECIMAL)));
-  DecimalFunc->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(DecimalFunc));
+  create(FW::BI::FUNCTION::Decimal, SyntaxKindUtils::SyntaxKind::DeciKeyword);
 
   // String
 
-  std::unique_ptr<BoundFunctionDeclaration> StringFunc =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  StringFunc->setFunctionName(FW::BI::FUNCTION::String);
-
-  StringFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::STRING)));
-  StringFunc->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(StringFunc));
+  create(FW::BI::FUNCTION::String, SyntaxKindUtils::SyntaxKind::StrKeyword);
 
   // Bool
 
-  std::unique_ptr<BoundFunctionDeclaration> BoolFunc =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  BoolFunc->setFunctionName(FW::BI::FUNCTION::Bool);
-  BoolFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::BOOL)));
-  BoolFunc->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(BoolFunc));
+  create(FW::BI::FUNCTION::Bool, SyntaxKindUtils::SyntaxKind::BoolKeyword);
 
   // Input
 
-  std::unique_ptr<BoundFunctionDeclaration> InputFunc =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  InputFunc->setFunctionName(FW::BI::FUNCTION::Input);
-  InputFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::STRING)));
-  InputFunc->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(InputFunc));
+  create(FW::BI::FUNCTION::Input, SyntaxKindUtils::SyntaxKind::StrKeyword);
 
   // Print
 
-  std::unique_ptr<BoundFunctionDeclaration> PrintFunc =
-      std::make_unique<BoundFunctionDeclaration>(
-          DiagnosticUtils::SourceLocation());
-  PrintFunc->setFunctionName(FW::BI::FUNCTION::Print);
-  PrintFunc->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
-      DiagnosticUtils::SourceLocation(), Utils::NOTHING)));
-  PrintFunc->addParameter(std::make_unique<BoundVariableExpression>(
-      DiagnosticUtils::SourceLocation(),
-      std::make_unique<BoundLiteralExpression<std::any>>(
-          DiagnosticUtils::SourceLocation(), par),
-      false, Utils::type::UNKNOWN));
-  _functions.push_back(std::move(PrintFunc));
+  create(FW::BI::FUNCTION::Print, SyntaxKindUtils::SyntaxKind::NthgKeyword);
 }
 
 namespace FW::BI::FUNCTION {
@@ -131,4 +81,4 @@ const std::string Bool = "Bool";
 const std::string Print = "print";
 const std::string Input = "input";
 
-}; // namespace FW::BI::FUNCTION
+};  // namespace FW::BI::FUNCTION

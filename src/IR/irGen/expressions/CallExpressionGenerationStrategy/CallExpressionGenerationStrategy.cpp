@@ -21,8 +21,8 @@ llvm::Value *CallExpressionGenerationStrategy::generateExpression(
   return this->userDefinedFunctionCall(callExpression);
 }
 
-llvm::Type *
-CallExpressionGenerationStrategy::isGlobalArray(llvm::Value *value) {
+llvm::Type *CallExpressionGenerationStrategy::isGlobalArray(
+    llvm::Value *value) {
   if (!llvm::isa<llvm::GlobalVariable>(value)) {
     return nullptr;
   }
@@ -67,7 +67,6 @@ llvm::Type *CallExpressionGenerationStrategy::isLocalArray(llvm::Value *value) {
 
 llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     BoundCallExpression *callExpression) {
-
   std::size_t arguments_size = callExpression->getArgumentsRef().size();
 
   const std::string errorMessage =
@@ -76,7 +75,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
   if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Print) {
     if (arguments_size == 1) {
-
       llvm::Value *value =
           _expressionGenerationFactory
               ->createStrategy(
@@ -112,7 +110,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       }
 
       if (llvm::isa<llvm::ArrayType>(value->getType())) {
-
         llvm::ArrayType *arrayType =
             llvm::cast<llvm::ArrayType>(value->getType());
         llvm::Type *elementType = arrayType->getElementType();
@@ -130,12 +127,10 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
       // check if value is alloca inst
       if (llvm::isa<llvm::AllocaInst>(value)) {
-
         auto v = static_cast<llvm::AllocaInst *>(value);
 
         // local array
         if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
-
           llvm::ArrayType *arrayType =
               llvm::cast<llvm::ArrayType>(v->getAllocatedType());
           llvm::Type *elementType = arrayType->getElementType();
@@ -158,7 +153,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
         // global array
         if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
-
           llvm::ArrayType *arrayType =
               llvm::cast<llvm::ArrayType>(v->getValueType());
           llvm::Type *elementType = arrayType->getElementType();
@@ -170,7 +164,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       }
 
       if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-              value->getType()) != Utils::type::NOTHING) {
+              value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                             {_stringTypeConverter->convertExplicit(value),
                              Builder->getInt1(false)});
@@ -181,7 +175,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Input) {
     if (arguments_size == 0) {
-
       llvm::ArrayRef<llvm::Value *> Args = {};
 
       llvm::CallInst *callInst = Builder->CreateCall(
@@ -189,7 +182,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
       return callInst;
     } else if (arguments_size == 1) {
-
       llvm::Value *val =
           _expressionGenerationFactory
               ->createStrategy(
@@ -218,7 +210,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
     if (arguments_size == 1) {
-
       llvm::Value *res = nullptr;
       llvm::Value *val =
           _expressionGenerationFactory
@@ -264,7 +255,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   std::vector<llvm::Value *> args;
 
   for (int i = 0; i < arguments_size; i++) {
-
     llvm::Value *arg = nullptr;
 
     arg = _expressionGenerationFactory
@@ -291,7 +281,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   if (!calleeFunction &&
       !_codeGenerationContext
            ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()]) {
-
     _codeGenerationContext
         ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()] = 1;
 
@@ -327,7 +316,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       Utils::split(argInfoMD->getString().str(), ":", vars);
 
       if (vars[2] == "Array") {
-
         llvm::Type *_res = isGlobalArray(args[i]);
         _res = _res ? _res : isLocalArray(args[i]);
 
@@ -476,14 +464,12 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
 
 void CallExpressionGenerationStrategy::printUnit(const std::string &unit,
                                                  const std::string &unitName) {
-
   Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                       {getUnit(unit, unitName), Builder->getInt1(false)});
 }
 
-llvm::Value *
-CallExpressionGenerationStrategy::getUnit(const std::string &unit,
-                                          const std::string &unitName) {
+llvm::Value *CallExpressionGenerationStrategy::getUnit(
+    const std::string &unit, const std::string &unitName) {
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(unitName);
   if (!variable) {
     // The global variable doesn't exist, so create it
@@ -504,17 +490,14 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     llvm::ArrayType *&arrayType, llvm::Value *&v,
     const std::vector<size_t> &sizes, std::vector<llvm::Value *> &indices,
     int64_t index, llvm::Type *&elementType) {
-
   if (index < sizes.size()) {
-
     printUnit("[", "openBracket");
     for (int64_t i = 0; i < sizes[index]; i++) {
       indices.push_back(Builder->getInt32(i));
 
       printArrayAtom(arrayType, v, sizes, indices, index + 1, elementType);
 
-      if (i != sizes[index] - 1)
-        printUnit(", ", "comma");
+      if (i != sizes[index] - 1) printUnit(", ", "comma");
       indices.pop_back();
     }
     printUnit("]", "closeBracket");
@@ -526,7 +509,6 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
 
   // Untyped Container Element
   if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
-
     innerValue =
         _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
             elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +

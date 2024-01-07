@@ -1,7 +1,6 @@
 #include "Parser.h"
 Parser::Parser(std::vector<std::string> souceCode,
                DiagnosticHandler *diagnosticHandler) {
-
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
 
@@ -11,7 +10,6 @@ Parser::Parser(std::vector<std::string> souceCode,
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
 
   do {
-
     std::unique_ptr<SyntaxToken<std::any>> token =
         std::move(lexer->nextToken());
     _kind = token->getKind();
@@ -20,7 +18,6 @@ Parser::Parser(std::vector<std::string> souceCode,
     // std::cout << SyntaxKindUtils::to_string(_kind) << std::endl;
 
     if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
-
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Unexpected Character <" + token->getText() + ">",
                      DiagnosticUtils::DiagnosticLevel::Error,
@@ -41,7 +38,6 @@ Parser::Parser(std::vector<std::string> souceCode,
 }
 
 Parser::~Parser() {
-
   for (auto &token : this->tokens) {
     token.reset();
   }
@@ -53,7 +49,6 @@ Parser::~Parser() {
 SyntaxToken<std::any> *Parser::peek(int offset) {
   int index = this->position + offset;
   if (index >= this->tokens.size()) {
-
     return this->tokens[this->tokens.size() - 1].get();
   }
   return this->tokens[index].get();
@@ -62,7 +57,6 @@ SyntaxToken<std::any> *Parser::peek(int offset) {
 SyntaxToken<std::any> *Parser::getCurrent() { return this->peek(0); }
 
 std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
-
   if (this->position == this->tokens.size()) {
     return std::unique_ptr<SyntaxToken<std::any>>(
         this->tokens[this->tokens.size() - 1].release());
@@ -72,9 +66,8 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
   }
 }
 
-std::unique_ptr<SyntaxToken<std::any>>
-Parser::match(SyntaxKindUtils::SyntaxKind kind) {
-
+std::unique_ptr<SyntaxToken<std::any>> Parser::match(
+    SyntaxKindUtils::SyntaxKind kind) {
   if (this->getCurrent()->getKind() == kind) {
     return std::move(this->nextToken());
   }
@@ -104,7 +97,6 @@ bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
   return this->getCurrent()->getKind() == kind;
 }
 std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {
-
   this->position = 0;
 
   while (this->getCurrent()->getKind() !=
@@ -135,7 +127,6 @@ std::unique_ptr<MemberSyntax> Parser::parseMember() {
     if (!(kind == SyntaxKindUtils::SyntaxKind::FunctionKeyword ||
           kind == SyntaxKindUtils::SyntaxKind::VarKeyword ||
           kind == SyntaxKindUtils::SyntaxKind::ConstKeyword)) {
-
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
           "Unexpected Token <" +
               SyntaxKindUtils::to_string(this->getCurrent()->getKind()) +
@@ -162,35 +153,30 @@ std::unique_ptr<MemberSyntax> Parser::parseMember() {
   return std::move(this->parseGlobalStatement(isExposed));
 }
 
-Utils::type Parser::parseType() {
+std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
   switch (this->getCurrent()->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    this->match(SyntaxKindUtils::SyntaxKind::Int32Keyword);
-    return Utils::type::INT32;
-  }
+    case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+      return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int32Keyword));
+    }
 
-  case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    this->match(SyntaxKindUtils::SyntaxKind::DeciKeyword);
-    return Utils::type::DECIMAL;
-  }
+    case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+      return std::move(this->match(SyntaxKindUtils::SyntaxKind::DeciKeyword));
+    }
 
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    this->match(SyntaxKindUtils::SyntaxKind::StrKeyword);
-    return Utils::type::STRING;
-  }
+    case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+      return std::move(this->match(SyntaxKindUtils::SyntaxKind::StrKeyword));
+    }
 
-  case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
-    this->match(SyntaxKindUtils::SyntaxKind::BoolKeyword);
-    return Utils::type::BOOL;
-  }
+    case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
+      return std::move(this->match(SyntaxKindUtils::SyntaxKind::BoolKeyword));
+    }
 
-  case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
-    this->match(SyntaxKindUtils::SyntaxKind::NthgKeyword);
-    return Utils::type::NOTHING;
-  }
+    case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
+      return std::move(this->match(SyntaxKindUtils::SyntaxKind::NthgKeyword));
+    }
 
-  default:
-    break;
+    default:
+      break;
   }
 
   this->_diagnosticHandler->addDiagnostic(Diagnostic(
@@ -212,12 +198,11 @@ Utils::type Parser::parseType() {
       DiagnosticUtils::DiagnosticType::Syntactic,
       Utils::getSourceLocation(this->getCurrent())));
 
-  return Utils::type::UNKNOWN;
+  return nullptr;
 }
 
-std::unique_ptr<FunctionDeclarationSyntax>
-Parser::parseFunctionDeclaration(const bool &isExposed) {
-
+std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration(
+    const bool &isExposed) {
   std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
       std::make_unique<FunctionDeclarationSyntax>(isExposed);
 
@@ -236,60 +221,15 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
              SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
     if (functionDeclaration->getParametersPtr().size() > 0) {
       functionDeclaration->addSeparator(
           std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
     }
 
-    auto iden =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+    std::unique_ptr<VariableDeclarationSyntax> parameter =
+        std::move(this->parseVariableDeclaration());
 
-    std::unique_ptr<ExpressionSyntax> identifierExpression =
-        std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(iden),
-                                                            iden->getValue());
-
-    if (this->getCurrent()->getKind() ==
-        SyntaxKindUtils::SyntaxKind::ColonToken) {
-      this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-
-      Utils::type type = this->parseType();
-
-      if (this->getCurrent()->getKind() ==
-          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
-        type = Utils::toContainerType(type);
-        std::unique_ptr<ArrayVariableExpressionSyntax> parameter =
-            std::make_unique<ArrayVariableExpressionSyntax>(
-                std::move(identifierExpression), false, type);
-
-        while (this->getCurrent()->getKind() ==
-               SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-          this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
-
-          std::unique_ptr<SyntaxToken<std::any>> numToken =
-              std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
-
-          std::any value = numToken->getValue();
-          parameter->addSizeExpression(
-              std::make_unique<LiteralExpressionSyntax<std::any>>(
-                  std::move(numToken), value));
-
-          this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-        }
-        functionDeclaration->addParameter(std::move(parameter));
-      } else {
-        std::unique_ptr<VariableExpressionSyntax> parameter =
-            std::make_unique<VariableExpressionSyntax>(
-                std::move(identifierExpression), false, type);
-        functionDeclaration->addParameter(std::move(parameter));
-      }
-    } else {
-      std::unique_ptr<VariableExpressionSyntax> parameter =
-          std::make_unique<VariableExpressionSyntax>(
-              std::move(identifierExpression), false, Utils::type::UNKNOWN);
-      functionDeclaration->addParameter(std::move(parameter));
-    }
+    functionDeclaration->addParameter(std::move(parameter));
   }
 
   functionDeclaration->setCloseParenthesisToken(std::move(
@@ -305,49 +245,57 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
   return std::move(functionDeclaration);
 }
 
-std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
+std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
+  std::unique_ptr<ArrayTypeExpressionSyntax> arrayTypeExpression =
+      std::make_unique<ArrayTypeExpressionSyntax>(
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE, 0, "NBU_ARRAY_TYPE",
+              "NBU_ARRAY_TYPE"));
 
+  arrayTypeExpression->setElementType(std::move(this->parsePrimitiveType()));
+
+  while (this->getCurrent()->getKind() ==
+         SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+
+    std::unique_ptr<SyntaxToken<std::any>> numToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+
+    std::any value = numToken->getValue();
+
+    arrayTypeExpression->addDimension(
+        std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(numToken),
+                                                            value));
+
+    this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
+  }
+
+  return std::move(arrayTypeExpression);
+}
+
+std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
   if (this->peek(1)->getKind() ==
       SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-    Utils::type type = this->parseType();
-    std::unique_ptr<ArrayTypeExpressionSyntax> arrayTypeExpression =
-        std::make_unique<ArrayTypeExpressionSyntax>(
-            Utils::toContainerType(type));
-
-    arrayTypeExpression->setType(type);
-    while (this->getCurrent()->getKind() ==
-           SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-      this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
-
-      std::unique_ptr<SyntaxToken<std::any>> numToken =
-          std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
-
-      std::any value = numToken->getValue();
-
-      arrayTypeExpression->addDimension(
-          std::make_unique<LiteralExpressionSyntax<std::any>>(
-              std::move(numToken), value));
-
-      this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-    }
-
-    return std::move(arrayTypeExpression);
+    return std::move(this->parseArrayTypeExpression());
   }
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-
     return std::move(this->parseObjectTypeExpression());
   }
 
-  return std::make_unique<TypeExpressionSyntax>(this->parseType());
+  return std::make_unique<TypeExpressionSyntax>(this->parsePrimitiveType());
 }
 
 std::unique_ptr<ObjectTypeExpressionSyntax>
 Parser::parseObjectTypeExpression() {
-
   std::unique_ptr<ObjectTypeExpressionSyntax> objectTypeExpression =
-      std::make_unique<ObjectTypeExpressionSyntax>(Utils::type::OBJECT);
+      std::make_unique<ObjectTypeExpressionSyntax>(
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+              SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE, 0,
+              "NBU_OBJECT_TYPE", "NBU_OBJECT_TYPE"));
 
   std::unique_ptr<SyntaxToken<std::any>> iden =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
@@ -377,8 +325,8 @@ std::unique_ptr<FunctionDeclarationSyntax> Parser::handleOptionalType(
   return std::move(functionDeclaration);
 }
 
-std::unique_ptr<GlobalStatementSyntax>
-Parser::parseGlobalStatement(const bool &isExposed) {
+std::unique_ptr<GlobalStatementSyntax> Parser::parseGlobalStatement(
+    const bool &isExposed) {
   std::unique_ptr<StatementSyntax> statement =
       std::move(this->parseStatement());
   return std::make_unique<GlobalStatementSyntax>(isExposed,
@@ -386,7 +334,6 @@ Parser::parseGlobalStatement(const bool &isExposed) {
 }
 
 std::unique_ptr<BlockStatementSyntax> Parser::parseBlockStatement() {
-
   std::unique_ptr<BlockStatementSyntax> blockStatement =
       std::make_unique<BlockStatementSyntax>();
 
@@ -419,29 +366,29 @@ std::unique_ptr<ExpressionStatementSyntax> Parser::parseExpressionStatement() {
 
 std::unique_ptr<StatementSyntax> Parser::parseStatement() {
   switch (this->getCurrent()->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
-    return std::move(this->parseBlockStatement());
-  case SyntaxKindUtils::SyntaxKind::VarKeyword:
-  case SyntaxKindUtils::SyntaxKind::ConstKeyword:
-    return std::move(this->parseVariableDeclaration());
-  case SyntaxKindUtils::SyntaxKind::IfKeyword:
-    return std::move(this->parseIfStatement());
-  case SyntaxKindUtils::SyntaxKind::WhileKeyword:
-    return std::move(this->parseWhileStatement());
-  case SyntaxKindUtils::SyntaxKind::ForKeyword:
-    return std::move(this->parseForStatement());
-  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
-    return std::move(this->parseBreakStatement());
-  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
-    return std::move(this->parseContinueStatement());
-  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
-    return std::move(this->parseReturnStatement());
-  case SyntaxKindUtils::SyntaxKind::BringKeyword:
-    return std::move(this->parseBringStatement());
-  case SyntaxKindUtils::SyntaxKind::TypeKeyword:
-    return std::move(this->parseCustomTypeStatement());
-  default:
-    return std::move(this->parseExpressionStatement());
+    case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
+      return std::move(this->parseBlockStatement());
+    case SyntaxKindUtils::SyntaxKind::VarKeyword:
+    case SyntaxKindUtils::SyntaxKind::ConstKeyword:
+      return std::move(this->parseVariableDeclaration());
+    case SyntaxKindUtils::SyntaxKind::IfKeyword:
+      return std::move(this->parseIfStatement());
+    case SyntaxKindUtils::SyntaxKind::WhileKeyword:
+      return std::move(this->parseWhileStatement());
+    case SyntaxKindUtils::SyntaxKind::ForKeyword:
+      return std::move(this->parseForStatement());
+    case SyntaxKindUtils::SyntaxKind::BreakKeyword:
+      return std::move(this->parseBreakStatement());
+    case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
+      return std::move(this->parseContinueStatement());
+    case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
+      return std::move(this->parseReturnStatement());
+    case SyntaxKindUtils::SyntaxKind::BringKeyword:
+      return std::move(this->parseBringStatement());
+    case SyntaxKindUtils::SyntaxKind::TypeKeyword:
+      return std::move(this->parseCustomTypeStatement());
+    default:
+      return std::move(this->parseExpressionStatement());
   }
 }
 
@@ -461,7 +408,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseBracketedExpression() {
 }
 
 std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
-
   std::unique_ptr<CustomTypeStatementSyntax> customTypeStatement =
       std::make_unique<CustomTypeStatementSyntax>();
 
@@ -485,7 +431,6 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
              SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
     std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
@@ -510,12 +455,10 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
   }
 
   this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
-
   return std::move(customTypeStatement);
 }
 
 std::unique_ptr<ContainerExpressionSyntax> Parser::parseContainerExpression() {
-
   std::unique_ptr<ContainerExpressionSyntax> containerExpression =
       std::make_unique<ContainerExpressionSyntax>();
 
@@ -524,7 +467,6 @@ std::unique_ptr<ContainerExpressionSyntax> Parser::parseContainerExpression() {
              SyntaxKindUtils::SyntaxKind::CloseBracketToken &&
          this->getCurrent()->getKind() !=
              SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
     std::unique_ptr<ExpressionSyntax> expression = nullptr;
 
     if (this->getCurrent()->getKind() ==
@@ -547,36 +489,6 @@ std::unique_ptr<ContainerExpressionSyntax> Parser::parseContainerExpression() {
   return std::move(containerExpression);
 }
 
-std::unique_ptr<ContainerStatementSyntax> Parser::parseContainerStatement() {
-
-  std::unique_ptr<ContainerStatementSyntax> containerStatement =
-      std::make_unique<ContainerStatementSyntax>();
-
-  while (this->getCurrent()->getKind() ==
-         SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
-    this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
-    std::unique_ptr<SyntaxToken<std::any>> numToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
-
-    std::any value = numToken->getValue();
-    containerStatement->addContainerSizeExpression(
-        std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(numToken),
-                                                            value));
-
-    this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-  }
-
-  this->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
-
-  std::unique_ptr<ExpressionSyntax> containerExpression =
-      std::move(this->parseExpression());
-
-  containerStatement->setContainerExpression(std::move(containerExpression));
-
-  return std::move(containerStatement);
-}
-
 std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::BringKeyword));
@@ -591,7 +503,6 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
     this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
     while (this->getCurrent()->getKind() !=
            SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
-
       std::unique_ptr<SyntaxToken<std::any>> identifier =
           std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
       bringStatement->addExpression(std::move(identifier));
@@ -686,7 +597,6 @@ std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {
     return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
                                                    std::move(expression));
   } else {
-
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
   }
 
@@ -759,7 +669,6 @@ std::unique_ptr<ElseClauseSyntax> Parser::parseElseStatement() {
 }
 
 std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
-
   std::unique_ptr<IfStatementSyntax> ifStatement =
       std::make_unique<IfStatementSyntax>();
 
@@ -814,51 +723,58 @@ std::unique_ptr<WhileStatementSyntax> Parser::parseWhileStatement() {
       std::move(keyword), std::move(condition), std::move(statement));
 }
 
-std::unique_ptr<StatementSyntax> Parser::parseVariableDeclaration() {
+std::unique_ptr<VariableDeclarationSyntax> Parser::parseVariableDeclaration(
+    bool isFuncDec) {
+  std::unique_ptr<VariableDeclarationSyntax> varDec =
+      std::make_unique<VariableDeclarationSyntax>();
 
-  std::unique_ptr<SyntaxToken<std::any>> keyword = std::move(this->match(
-      SyntaxKindUtils::SyntaxKind::VarKeyword == this->getCurrent()->getKind()
-          ? SyntaxKindUtils::SyntaxKind::VarKeyword
-          : SyntaxKindUtils::SyntaxKind::ConstKeyword));
+  std::unique_ptr<SyntaxToken<std::any>> keyword = nullptr;
+
+  if (isFuncDec && SyntaxKindUtils::SyntaxKind::ConstKeyword ==
+                       this->getCurrent()->getKind()) {
+    keyword = std::move(this->match(SyntaxKindUtils::SyntaxKind::ConstKeyword));
+    varDec->setKeyword(std::move(keyword));
+  } else if (!isFuncDec) {
+    keyword = std::move(this->match(
+        SyntaxKindUtils::SyntaxKind::VarKeyword == this->getCurrent()->getKind()
+            ? SyntaxKindUtils::SyntaxKind::VarKeyword
+            : SyntaxKindUtils::SyntaxKind::ConstKeyword));
+    varDec->setKeyword(std::move(keyword));
+  }
 
   std::unique_ptr<SyntaxToken<std::any>> identifier =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+  varDec->setIdentifier(std::move(identifier));
 
-  Utils::type type = Utils::type::UNKNOWN;
+  std::unique_ptr<TypeExpressionSyntax> typeExpr =
+      std::make_unique<TypeExpressionSyntax>(
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+              SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
+              "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
+
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::ColonToken) {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
-
-    if (SyntaxKindUtils::isType(this->getCurrent()->getKind()))
-      type = this->parseType();
+    typeExpr = std::move(this->parseTypeExpression());
   }
+  varDec->setTypeExpr(std::move(typeExpr));
 
   if (this->getCurrent()->getKind() ==
-      SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+      SyntaxKindUtils::SyntaxKind::EqualsToken) {
+    std::unique_ptr<SyntaxToken<std::any>> equalsToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
 
-    type = Utils::toContainerType(type);
-
-    std::unique_ptr<ContainerStatementSyntax> containerStat =
-        std::move(this->parseContainerStatement());
-
-    containerStat->setIdentifierToken(std::move(identifier));
-    containerStat->setType(type);
-    containerStat->setKeyword(std::move(keyword));
-    return std::move(containerStat);
+    std::unique_ptr<ExpressionSyntax> initializer =
+        std::move(this->parseExpression());
+    varDec->setInitializer(std::move(initializer));
   }
 
-  std::unique_ptr<SyntaxToken<std::any>> equalsToken =
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
-  std::unique_ptr<ExpressionSyntax> initializer =
-      std::move(this->parseExpression());
-  return std::make_unique<VariableDeclarationSyntax>(
-      std::move(keyword), std::move(identifier), std::move(equalsToken),
-      std::move(initializer), type);
+  return std::move(varDec);
 }
 
-std::unique_ptr<ExpressionSyntax>
-Parser::parseExpression(int parentPrecedence) {
-
+std::unique_ptr<ExpressionSyntax> Parser::parseExpression(
+    int parentPrecedence) {
   std::unique_ptr<ExpressionSyntax> left = nullptr;
   int unaryOperatorPrecedence =
       this->getCurrent()->getUnaryOperatorPrecedence();
@@ -895,7 +811,6 @@ Parser::parseExpression(int parentPrecedence) {
 }
 
 std::unique_ptr<FillExpressionSyntax> Parser::parseFillExpression() {
-
   std::unique_ptr<FillExpressionSyntax> fillExpression =
       std::make_unique<FillExpressionSyntax>();
 
@@ -926,68 +841,66 @@ std::unique_ptr<FillExpressionSyntax> Parser::parseFillExpression() {
 
 std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
   switch (this->getCurrent()->getKind()) {
-  case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken: {
+    case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken: {
+      std::unique_ptr<SyntaxToken<std::any>> left = std::move(
+          this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
 
-    std::unique_ptr<SyntaxToken<std::any>> left = std::move(
-        this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
+      std::unique_ptr<ExpressionSyntax> expression =
+          std::move(this->parseExpression());
 
-    std::unique_ptr<ExpressionSyntax> expression =
-        std::move(this->parseExpression());
+      std::unique_ptr<SyntaxToken<std::any>> right = std::move(
+          this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
 
-    std::unique_ptr<SyntaxToken<std::any>> right = std::move(
-        this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
+      return std::make_unique<ParenthesizedExpressionSyntax>(
+          std::move(left), std::move(expression), std::move(right));
+    }
+    case SyntaxKindUtils::SyntaxKind::NumberToken: {
+      std::unique_ptr<SyntaxToken<std::any>> numberToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
 
-    return std::make_unique<ParenthesizedExpressionSyntax>(
-        std::move(left), std::move(expression), std::move(right));
-  }
-  case SyntaxKindUtils::SyntaxKind::NumberToken: {
-    std::unique_ptr<SyntaxToken<std::any>> numberToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+      std::any value = numberToken->getValue();
 
-    std::any value = numberToken->getValue();
+      return std::make_unique<LiteralExpressionSyntax<std::any>>(
+          std::move(numberToken), value);
+    }
 
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(numberToken), value);
-  }
+    case SyntaxKindUtils::SyntaxKind::StringToken: {
+      std::unique_ptr<SyntaxToken<std::any>> stringToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::StringToken));
 
-  case SyntaxKindUtils::SyntaxKind::StringToken: {
-    std::unique_ptr<SyntaxToken<std::any>> stringToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::StringToken));
+      std::any value = stringToken->getValue();
+      return std::make_unique<LiteralExpressionSyntax<std::any>>(
+          std::move(stringToken), value);
+    }
+    case SyntaxKindUtils::SyntaxKind::TrueKeyword: {
+      std::unique_ptr<SyntaxToken<std::any>> trueKeywordToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::TrueKeyword));
 
-    std::any value = stringToken->getValue();
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(stringToken), value);
-  }
-  case SyntaxKindUtils::SyntaxKind::TrueKeyword: {
-    std::unique_ptr<SyntaxToken<std::any>> trueKeywordToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::TrueKeyword));
+      return std::make_unique<LiteralExpressionSyntax<std::any>>(
+          std::move(trueKeywordToken), true);
+    }
+    case SyntaxKindUtils::SyntaxKind::FalseKeyword: {
+      std::unique_ptr<SyntaxToken<std::any>> falseKeywordToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::FalseKeyword));
 
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(trueKeywordToken), true);
-  }
-  case SyntaxKindUtils::SyntaxKind::FalseKeyword: {
-    std::unique_ptr<SyntaxToken<std::any>> falseKeywordToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::FalseKeyword));
+      return std::make_unique<LiteralExpressionSyntax<std::any>>(
+          std::move(falseKeywordToken), false);
+    }
+    case SyntaxKindUtils::SyntaxKind::CommaToken: {
+      std::unique_ptr<SyntaxToken<std::any>> commaToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken));
 
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(falseKeywordToken), false);
-  }
-  case SyntaxKindUtils::SyntaxKind::CommaToken: {
-
-    std::unique_ptr<SyntaxToken<std::any>> commaToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken));
-
-    return std::make_unique<LiteralExpressionSyntax<std::any>>(
-        std::move(commaToken), ",");
-  }
-  case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-    return std::move(this->parseNameorCallExpression());
-  }
-  case SyntaxKindUtils::SyntaxKind::OpenBracketToken: {
-    return std::move(this->parseBracketedExpression());
-  }
-  default:
-    break;
+      return std::make_unique<LiteralExpressionSyntax<std::any>>(
+          std::move(commaToken), ",");
+    }
+    case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
+      return std::move(this->parseNameorCallExpression());
+    }
+    case SyntaxKindUtils::SyntaxKind::OpenBracketToken: {
+      return std::move(this->parseBracketedExpression());
+    }
+    default:
+      break;
   }
 
   std::unique_ptr<SyntaxToken<std::any>> expressionToken =
@@ -1002,13 +915,19 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
 
   std::any value = identifierToken->getValue();
 
+  std::unique_ptr<TypeExpressionSyntax> typeExpression =
+      std::make_unique<TypeExpressionSyntax>(
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+              SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
+              "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
+
   return std::make_unique<VariableExpressionSyntax>(
       std::make_unique<LiteralExpressionSyntax<std::any>>(
           std::move(identifierToken), value),
-      false, Utils::type::UNKNOWN);
+      false, std::move(typeExpression));
 }
 std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
-
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
@@ -1020,7 +939,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
 
   while (this->getCurrent()->getKind() ==
          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
     this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
     indexExpression->addIndexExpression(std::move(this->parseExpression()));
@@ -1030,7 +948,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::EqualsToken) {
-
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
 
@@ -1060,7 +977,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
         std::move(operatorToken), std::move(right));
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-
     return std::move(this->parseIndexExpression());
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
@@ -1098,7 +1014,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
 
     return std::move(callExpression);
   } else {
-
     return std::move(parseVariableExpression());
   }
 }

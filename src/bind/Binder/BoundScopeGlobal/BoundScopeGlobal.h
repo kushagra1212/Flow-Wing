@@ -5,22 +5,25 @@
 #include "../../BoundExpression.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../BoundStatement/BoundStatement.h"
+#include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
+
 class BoundScopeGlobal {
-public:
-  BoundScopeGlobal(std::unique_ptr<BoundScopeGlobal> previous,
-                   std::map<std::string, Utils::Variable> variables,
-                   std::map<std::string, BoundFunctionDeclaration *> functions,
-                   DiagnosticHandler *diagnosticHandler,
-                   std::unique_ptr<BoundBlockStatement> statement);
+ public:
+  BoundScopeGlobal(
+      std::unique_ptr<BoundScopeGlobal> previous,
+      std::unordered_map<std::string, BoundVariableDeclaration *> variables,
+      std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
+      DiagnosticHandler *diagnosticHandler,
+      std::unique_ptr<BoundBlockStatement> statement);
 
   bool tryLookupVariable(std::string name);
-  bool tryAssignVariable(std::string name, const struct Utils::Variable &value);
-  Utils::Variable getVariable(std::string name);
+  bool tryAssignVariable(std::string name, BoundVariableDeclaration *value);
+  BoundVariableDeclaration *getVariable(std::string name);
 
-public:
+ public:
   std::unique_ptr<BoundScopeGlobal> previous;
-  std::map<std::string, Utils::Variable> variables;
-  std::map<std::string, BoundFunctionDeclaration *> functions;
+  std::unordered_map<std::string, BoundVariableDeclaration *> variables;
+  std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundBlockStatement> globalStatement;
 };

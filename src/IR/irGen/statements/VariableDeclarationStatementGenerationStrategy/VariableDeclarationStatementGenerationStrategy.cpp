@@ -1,6 +1,7 @@
 #include "VariableDeclarationStatementGenerationStrategy.h"
 
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
 
 VariableDeclarationStatementGenerationStrategy::
     VariableDeclarationStatementGenerationStrategy(
@@ -8,9 +9,10 @@ VariableDeclarationStatementGenerationStrategy::
     : StatementGenerationStrategy(context) {}
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handleTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                           const Utils::type &variableType,
-                                           llvm::Value *rhsValue) {
+    handleTypedPrimitiveLocalVariableDeclr(
+        const std::string &variableName,
+        const SyntaxKindUtils::SyntaxKind &variableType,
+        llvm::Value *rhsValue) {
   llvm::Type *llvmType =
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           variableType);
@@ -42,14 +44,15 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 }
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handlePrimitiveLocalVariableDeclr(const std::string &variableName,
-                                      const Utils::type &variableType,
-                                      llvm::Value *rhsValue) {
-
+    handlePrimitiveLocalVariableDeclr(
+        const std::string &variableName,
+        const SyntaxKindUtils::SyntaxKind &variableType,
+        llvm::Value *rhsValue) {
   _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
                                                               rhsValue);
+
   // Handle Local Static Typed Variable
-  if (Utils::isStaticTypedPrimitiveType(variableType)) {
+  if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
     return handleTypedPrimitiveLocalVariableDeclr(variableName, variableType,
                                                   rhsValue);
   }
@@ -60,9 +63,17 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
-
   if (!canGenerateStatement(statement)) {
     return nullptr;
+  }
+
+  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+    std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+        contDecGenStrat =
+            std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+                _codeGenerationContext);
+
+    return contDecGenStrat->generateStatement(statement);
   }
 
   _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
@@ -76,14 +87,21 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-
   if (!canGenerateStatement(statement)) {
     return nullptr;
   }
 
-  // Handle Global Static Typed Variable
-  if (Utils::isStaticTypedPrimitiveType(_variableType)) {
+  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+    std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+        contDecGenStrat =
+            std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+                _codeGenerationContext);
 
+    return contDecGenStrat->generateGlobalStatement(statement);
+  }
+
+  // Handle Global Static Typed Variable
+  if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
     llvm::Type *llvmType =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
             _variableType);
@@ -114,11 +132,10 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 
 bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     BoundStatement *statement) {
-
   BoundVariableDeclaration *variableDeclaration =
       static_cast<BoundVariableDeclaration *>(statement);
 
-  _variableName = variableDeclaration->getVariable();
+  _variableName = variableDeclaration->getVariableName();
 
   BoundExpression *initializerExp =
       variableDeclaration->getInitializerPtr().get();
@@ -139,35 +156,25 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     return false;
   }
 
-  _variableType = variableDeclaration->getType();
+  _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
 
-  if (Utils::isStaticTypedPrimitiveType(_variableType)) {
-    if (!_codeGenerationContext->getMapper()->isEquivalentType(
-            _variableType, _rhsValue->getType())) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Type mismatch in variable declaration " + _variableName +
-          " Expected type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(_variableType) +
-          " but got type " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              _rhsValue->getType()));
-      return false;
-    }
-
+  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
+      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
+      _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
     return true;
   }
 
-  if (Utils::isDynamicTypedPrimitiveType(_variableType)) {
-    return true;
+  if (!_codeGenerationContext->getMapper()->isEquivalentType(
+          _variableType, _rhsValue->getType())) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Type mismatch in variable declaration " + _variableName +
+        " Expected type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(_variableType) +
+        " but got type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(
+            _rhsValue->getType()));
+    return false;
   }
 
-  _codeGenerationContext->getLogger()->LogError(
-      "Type mismatch in variable declaration " + _variableName +
-      " Expected type " +
-      _codeGenerationContext->getMapper()->getLLVMTypeName(_variableType) +
-      " but got type " +
-      _codeGenerationContext->getMapper()->getLLVMTypeName(
-          _rhsValue->getType()));
-
-  return false;
+  return true;
 }

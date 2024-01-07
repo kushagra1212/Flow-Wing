@@ -6,7 +6,7 @@
 
 class VariableDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
-public:
+ public:
   VariableDeclarationStatementGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -19,24 +19,21 @@ public:
 
   // Local Primitive Variable Declaration
 
-  llvm::Value *
-  handleTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                         const Utils::type &variableType,
-                                         llvm::Value *rhsValue);
+  llvm::Value *handleTypedPrimitiveLocalVariableDeclr(
+      const std::string &variableName,
+      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
-  llvm::Value *
-  handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                           llvm::Value *rhsValue);
+  llvm::Value *handleUnTypedPrimitiveLocalVariableDeclr(
+      const std::string &variableName, llvm::Value *rhsValue);
 
-  llvm::Value *
-  handlePrimitiveLocalVariableDeclr(const std::string &variableName,
-                                    const Utils::type &variableType,
-                                    llvm::Value *rhsValue);
+  llvm::Value *handlePrimitiveLocalVariableDeclr(
+      const std::string &variableName,
+      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
-private:
+ private:
   std::string _variableName;
   llvm::Value *_rhsValue;
-  Utils::type _variableType;
+  SyntaxKindUtils::SyntaxKind _variableType;
 };
 
-#endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
+#endif  // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

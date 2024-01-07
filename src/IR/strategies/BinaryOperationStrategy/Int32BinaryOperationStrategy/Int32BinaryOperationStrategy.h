@@ -4,11 +4,11 @@
 #include "../BinaryOperationStrategy.h"
 
 class Int32BinaryOperationStrategy : public BinaryOperationStrategy {
-public:
+ public:
   Int32BinaryOperationStrategy(CodeGenerationContext *context);
-  llvm::Value *
-  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
-                   BoundBinaryExpression *binaryExpression) override;
+  llvm::Value *performOperation(
+      llvm::Value *lhsValue, llvm::Value *rhsValue,
+      BoundBinaryExpression *binaryExpression) override;
 };
 
-#endif // __INT_BINARY_OPERATION_STRATEGY_H__
+#endif  // __INT_BINARY_OPERATION_STRATEGY_H__

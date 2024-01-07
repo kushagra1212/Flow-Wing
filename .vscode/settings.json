@@ -136,4 +136,6 @@
   "workbench.colorTheme": "Default Dark Modern",
    "editor.codeActionsOnSave": {
   },
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active"
 }

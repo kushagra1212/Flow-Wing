@@ -3,13 +3,12 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class BinaryExpressionSyntax : public ExpressionSyntax {
-
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _left;
   std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _right;
 
-public:
+ public:
   BinaryExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
                          std::unique_ptr<SyntaxToken<std::any>> operatorToken,
                          std::unique_ptr<ExpressionSyntax> right);

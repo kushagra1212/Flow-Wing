@@ -9,13 +9,13 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 class BoundContainerStatement : public BoundStatement,
                                 public BoundSourceLocation {
-private:
+ private:
   Utils::type _type;
   std::string _variableName;
   std::vector<std::unique_ptr<BoundExpression>> _containerSizeExpressions;
   std::unique_ptr<BoundExpression> _containerExpression;
 
-public:
+ public:
   BoundContainerStatement(const DiagnosticUtils::SourceLocation &location,
                           const Utils::type &type, std::string variableName);
 
@@ -34,8 +34,8 @@ public:
         std::move(containerSizeExpression));
   }
 
-  inline void
-  setRHSExpression(std::unique_ptr<BoundExpression> containerExpression) {
+  inline void setRHSExpression(
+      std::unique_ptr<BoundExpression> containerExpression) {
     _containerExpression = std::move(containerExpression);
   }
 
@@ -60,4 +60,4 @@ public:
   }
 };
 
-#endif //  __BOUND_CONTAINER_STATEMENT_H__
+#endif  //  __BOUND_CONTAINER_STATEMENT_H__

@@ -77,7 +77,7 @@ std::unique_ptr<SyntaxToken<std::any>> &
 FunctionDeclarationSyntax::getOpenParenthesisTokenPtr() {
   return _openParenthesisToken;
 }
-std::vector<std::unique_ptr<VariableExpressionSyntax>> &
+std::vector<std::unique_ptr<VariableDeclarationSyntax>> &
 FunctionDeclarationSyntax::getParametersPtr() {
   return _parameters;
 }
@@ -111,7 +111,7 @@ void FunctionDeclarationSyntax::setOpenParenthesisToken(
 }
 
 void FunctionDeclarationSyntax::addParameter(
-    std::unique_ptr<VariableExpressionSyntax> parameter) {
+    std::unique_ptr<VariableDeclarationSyntax> parameter) {
   _parameters.push_back(std::move(parameter));
 }
 

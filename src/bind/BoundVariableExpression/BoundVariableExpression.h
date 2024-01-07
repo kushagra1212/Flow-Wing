@@ -3,14 +3,15 @@
 #include "../BoundExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
+#include "../BoundTypeExpression/BoundTypeExpression.h"
 
 class BoundVariableExpression : public BoundExpression {
-
-public:
+ public:
   BoundVariableExpression(
       const DiagnosticUtils::SourceLocation &location,
       std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
-      const bool &isConstant, const Utils::type &variableType);
+      const bool &isConstant,
+      std::unique_ptr<BoundTypeExpression> variableTypeExp);
 
   virtual const std::type_info &getType() override;
   virtual BinderKindUtils::BoundNodeKind getKind() const override;
@@ -25,14 +26,15 @@ public:
     return std::any_cast<std::string>(_identiferExpression->getValue());
   }
 
-  inline auto getVariableTypeRef() const -> const Utils::type & {
-    return _variableType;
+  inline auto getVariableTypeRef() const
+      -> const std::unique_ptr<BoundTypeExpression> & {
+    return _variableTypeExp;
   }
 
   inline auto isConstant() const -> const bool { return _isConstant; }
 
-private:
+ private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
   bool _isConstant;
-  Utils::type _variableType;
+  std::unique_ptr<BoundTypeExpression> _variableTypeExp;
 };

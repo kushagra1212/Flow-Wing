@@ -4,12 +4,12 @@
 #include "../BoundTypeExpression.h"
 
 class BoundObjectTypeExpression : public BoundTypeExpression {
-private:
+ private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _objectTypeIdentifier;
 
-public:
+ public:
   BoundObjectTypeExpression(const DiagnosticUtils::SourceLocation &location,
-                            Utils::type type);
+                            const SyntaxKindUtils::SyntaxKind &type);
 
   virtual std::vector<BoundNode *> getChildren() override;
   virtual BinderKindUtils::BoundNodeKind getKind() const override;
@@ -26,4 +26,4 @@ public:
   }
 };
 
-#endif // __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__
+#endif  // __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__

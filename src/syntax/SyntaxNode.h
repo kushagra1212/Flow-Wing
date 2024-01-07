@@ -5,8 +5,7 @@
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "SyntaxKindUtils.h"
 class SyntaxNode {
-
-public:
+ public:
   int lineNumber;
   int columnNumber;
   std::string absoluteFilePath;

@@ -6,13 +6,13 @@ class CodeGenerationContext;
 #include "../../../bind/BinderKindUtils.h"
 
 class StatementGenerationFactory {
-public:
+ public:
   CodeGenerationContext *_codeGenerationContext;
 
   StatementGenerationFactory(CodeGenerationContext *context);
 
-  std::unique_ptr<StatementGenerationStrategy>
-  createStrategy(BinderKindUtils::BoundNodeKind kind);
+  std::unique_ptr<StatementGenerationStrategy> createStrategy(
+      BinderKindUtils::BoundNodeKind kind);
 };
 
-#endif // __FLOWWING_STATEMENT_GENERATION_FACTORY_STRATEGY_H__
+#endif  // __FLOWWING_STATEMENT_GENERATION_FACTORY_STRATEGY_H__

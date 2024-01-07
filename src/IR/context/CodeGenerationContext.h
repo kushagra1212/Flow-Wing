@@ -1,6 +1,11 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
+
 #include "../../utils/BuiltInFunction/BuiltInFunction.h"
 #include "../TypeBuilder/StructTypeBuilder/StructTypeBuilder.h"
 #include "../handlers/alloca/AllocaChain/AllocaChain.h"
@@ -12,14 +17,10 @@
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "llvm/Support/TargetSelect.h"
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
 
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
-public:
+ public:
   CodeGenerationContext(DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
@@ -36,7 +37,8 @@ public:
   // TODO: Refactor this to a better place
   std::stack<int8_t> &getReturnAllocaStack();
   std::unordered_map<std::string, int8_t> &getRecursiveFunctionsMap();
-  std::map<std::string, BoundFunctionDeclaration *> &getBoundedUserFunctions();
+  std::unordered_map<std::string, BoundFunctionDeclaration *> &
+  getBoundedUserFunctions();
   std::unordered_map<std::string, uint64_t> &getGlobalTypeMap();
 
   std::string getPrefixedName(std::string name);
@@ -82,7 +84,7 @@ public:
                             llvm::Type *&arrayElementType,
                             std::vector<uint64_t> &actualSizes);
 
-private:
+ private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -100,8 +102,9 @@ private:
   std::stack<int8_t> _returnAllocaStack;
   std::unordered_map<std::string, int8_t> _recursiveFunctionsMap;
 
-  std::map<std::string, BoundFunctionDeclaration *> _boundedUserFunctions;
+  std::unordered_map<std::string, BoundFunctionDeclaration *>
+      _boundedUserFunctions;
   std::unordered_map<std::string, uint64_t> _globalTypeMap;
 };
 
-#endif // CODEGENERATIONCONTEXT_H
+#endif  // CODEGENERATIONCONTEXT_H

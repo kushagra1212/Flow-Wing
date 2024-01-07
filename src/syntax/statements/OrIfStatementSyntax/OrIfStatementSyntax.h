@@ -6,13 +6,13 @@
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../StatementSyntax.h"
 class OrIfStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> orKeyword;
   std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
   std::unique_ptr<ExpressionSyntax> condition;
   std::unique_ptr<BlockStatementSyntax> statement;
 
-public:
+ public:
   OrIfStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> orKeyword,
                       std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
                       std::unique_ptr<ExpressionSyntax> condition,

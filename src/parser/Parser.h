@@ -1,5 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include <typeindex>
+
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
@@ -17,7 +19,6 @@
 #include "../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
-#include "../syntax/expression/VariableExpressionSyntax/ArrayVariableExpressionSyntax/ArrayVariableExpressionSyntax.h"
 #include "../syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
@@ -38,11 +39,8 @@
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
-
-#include <typeindex>
 class Parser {
-
-public:
+ public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
 
   std::unique_ptr<Lexer> lexer;
@@ -53,7 +51,7 @@ public:
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
-private:
+ private:
   DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
@@ -61,8 +59,8 @@ private:
   bool matchKind(SyntaxKindUtils::SyntaxKind kind);
   void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
 
-  std::unique_ptr<SyntaxToken<std::any>>
-  match(SyntaxKindUtils::SyntaxKind kind);
+  std::unique_ptr<SyntaxToken<std::any>> match(
+      SyntaxKindUtils::SyntaxKind kind);
   SyntaxToken<std::any> *peek(int offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
@@ -76,24 +74,24 @@ private:
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::unique_ptr<StatementSyntax> parseVariableDeclaration();
+  std::unique_ptr<VariableDeclarationSyntax> parseVariableDeclaration(
+      bool isFuncDec = false);
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
-  std::unique_ptr<ContainerStatementSyntax> parseContainerStatement();
-  std::unique_ptr<GlobalStatementSyntax>
-  parseGlobalStatement(const bool &isExposed);
+  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement(
+      const bool &isExposed);
 
   /*
     EXPRESSIONS
   */
   std::unique_ptr<ExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
-  std::unique_ptr<FunctionDeclarationSyntax>
-  parseFunctionDeclaration(const bool &isExposed);
+  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration(
+      const bool &isExposed);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
@@ -103,8 +101,9 @@ private:
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();
+  std::unique_ptr<ArrayTypeExpressionSyntax> parseArrayTypeExpression();
   std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
-  Utils::type parseType();
+  std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
 
   std::unique_ptr<MemberSyntax> parseMember();
 };

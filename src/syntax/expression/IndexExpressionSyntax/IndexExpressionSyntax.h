@@ -6,11 +6,11 @@
 #include "../LiteralExpressionSyntax.h"
 
 class IndexExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
   std::vector<std::unique_ptr<ExpressionSyntax>> _indexExpressions;
 
-public:
+ public:
   IndexExpressionSyntax(
       std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression);
 
@@ -32,4 +32,4 @@ public:
   DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };
 
-#endif // INDEXEXPRESSIONSYNTAX_H
+#endif  // INDEXEXPRESSIONSYNTAX_H

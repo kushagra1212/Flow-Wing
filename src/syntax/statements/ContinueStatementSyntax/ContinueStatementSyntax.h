@@ -6,10 +6,10 @@
 #include "../StatementSyntax.h"
 
 class ContinueStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _continueKeyword;
 
-public:
+ public:
   ContinueStatementSyntax(
       std::unique_ptr<SyntaxToken<std::any>> continueKeyword);
 
@@ -22,4 +22,4 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };
 
-#endif // CONTINUESTATEMENTSYNTAX_H
+#endif  // CONTINUESTATEMENTSYNTAX_H

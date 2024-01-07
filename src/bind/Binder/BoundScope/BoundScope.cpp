@@ -53,11 +53,11 @@ bool BoundScope::isContinuable() {
   return this->parent->isContinuable();
 }
 
-bool BoundScope::tryDeclareVariable(
-    const std::string &name, const struct Utils::Variable &initialValue) {
+bool BoundScope::tryDeclareVariable(const std::string &name,
+                                    BoundVariableDeclaration *variable) {
   if (this->variables.find(name) == this->variables.end()) {
 
-    this->variables[name] = initialValue;
+    this->variables[name] = variable;
     return true;
   }
 
@@ -74,7 +74,7 @@ bool BoundScope::tryLookupVariable(const std::string &name) {
   return this->parent->tryLookupVariable(name);
 }
 
-Utils::Variable BoundScope::tryGetVariable(const std::string &name) {
+BoundVariableDeclaration *BoundScope::tryGetVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return this->variables[name];
   }
@@ -82,15 +82,15 @@ Utils::Variable BoundScope::tryGetVariable(const std::string &name) {
 }
 
 bool BoundScope::tryAssignVariable(const std::string &name,
-                                   const struct Utils::Variable &value) {
+                                   BoundVariableDeclaration *variable) {
   if (this->variables.find(name) != this->variables.end()) {
-    this->variables[name] = value;
+    this->variables[name] = variable;
     return true;
   }
   if (this->parent == nullptr) {
     return false;
   }
-  return this->parent->tryAssignVariable(name, value);
+  return this->parent->tryAssignVariable(name, variable);
 }
 
 bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {

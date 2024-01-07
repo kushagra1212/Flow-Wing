@@ -122,7 +122,13 @@ enum SyntaxKind {
   ArrayVariableExpressionSyntax,
   PrimitiveTypeExpression,
   ArrayTypeExpression,
-  ObjectTypeExpression
+  ObjectTypeExpression,
+  ObjectExpression,
+
+  // Types (Tokens) Which are not created by the User
+  NBU_ARRAY_TYPE,
+  NBU_OBJECT_TYPE,
+  NBU_UNKNOWN_TYPE,
 };
 bool isInt32(const std::string &str);
 
@@ -133,6 +139,6 @@ bool isDouble(const std::string &str);
 std::string to_string(SyntaxKind kind);
 
 bool isType(SyntaxKind kind);
-} // namespace SyntaxKindUtils
+}  // namespace SyntaxKindUtils
 
-#endif // SYNTAXKINDUTILS_H
+#endif  // SYNTAXKINDUTILS_H

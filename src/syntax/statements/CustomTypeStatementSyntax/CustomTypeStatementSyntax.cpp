@@ -15,9 +15,8 @@ std::vector<SyntaxNode *> CustomTypeStatementSyntax::getChildren() {
 
   _children.push_back(this->_typeName.get());
 
-  for (const auto &element : this->_key_type_pairs) {
-    _children.push_back(element.first.get());
-    _children.push_back(element.second.get());
+  for (const auto &keyTypePair : this->_key_type_pairs) {
+    _children.push_back(keyTypePair.get());
   }
 
   return _children;

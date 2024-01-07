@@ -7,7 +7,7 @@
 #include "../OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "../StatementSyntax.h"
 class IfStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
   std::unique_ptr<ExpressionSyntax> condition;
   std::unique_ptr<BlockStatementSyntax> statement;
@@ -15,7 +15,7 @@ private:
 
   std::vector<std::unique_ptr<OrIfStatementSyntax>> orIfStatements;
 
-public:
+ public:
   IfStatementSyntax();
 
   std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();

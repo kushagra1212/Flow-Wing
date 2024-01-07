@@ -4,14 +4,15 @@
 #include "../TypeExpressionSyntax.h"
 
 class ObjectTypeExpressionSyntax : public TypeExpressionSyntax {
-private:
+ private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _objectTypeIdentifier;
 
-public:
-  ObjectTypeExpressionSyntax(Utils::type type);
+ public:
+  ObjectTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
 
   virtual SyntaxKindUtils::SyntaxKind getKind() const override;
   virtual std::vector<SyntaxNode *> getChildren() override;
+  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   inline auto setObjectTypeIdentifier(
       std::unique_ptr<LiteralExpressionSyntax<std::any>> objectTypeIdentifier)
@@ -25,4 +26,4 @@ public:
   }
 };
 
-#endif // __FLOW__WING__OBJECT_TYPEEXPRESSIONSYNTAX_H__
+#endif  // __FLOW__WING__OBJECT_TYPEEXPRESSIONSYNTAX_H__

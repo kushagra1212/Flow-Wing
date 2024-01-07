@@ -23,7 +23,6 @@ BinderKindUtils::BoundNodeKind BoundCallExpression::getKind() const {
 }
 
 std::vector<BoundNode *> BoundCallExpression::getChildren() {
-
   if (_callerIdentifier != nullptr) {
     this->_children.push_back(_callerIdentifier.get());
     for (auto &argument : _arguments) {

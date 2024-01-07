@@ -12,9 +12,11 @@ class LLVMLogger {
   DiagnosticHandler *_diagnosticHandler;
   int32_t errorCount;
 
-public:
+ public:
   LLVMLogger(DiagnosticHandler *diagnosticHandler)
-      : _sourceMgr(), _errs(llvm::errs()), _llvmErrorMsg("FlowWing Error: "),
+      : _sourceMgr(),
+        _errs(llvm::errs()),
+        _llvmErrorMsg("FlowWing Error: "),
         _llvmWarningMsg("FlowWing Warning: "),
         _diagnosticHandler(diagnosticHandler) {}
 
@@ -26,12 +28,12 @@ public:
 
   void LogError(const std::string &errorMessage);
 
-  const std::string
-  getLLVMErrorMsg(const std::string &errorMessage,
-                  const DiagnosticUtils::SourceLocation &location);
+  const std::string getLLVMErrorMsg(
+      const std::string &errorMessage,
+      const DiagnosticUtils::SourceLocation &location);
 
-  void
-  setCurrentSourceLocation(const DiagnosticUtils::SourceLocation &location);
+  void setCurrentSourceLocation(
+      const DiagnosticUtils::SourceLocation &location);
 
   DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
 
@@ -39,7 +41,7 @@ public:
 
   auto increaseErrorCount() -> void;
 
-private:
+ private:
   llvm::SourceMgr _sourceMgr;
   llvm::raw_ostream &_errs;
   std::string _llvmErrorMsg;
@@ -47,4 +49,4 @@ private:
   DiagnosticUtils::SourceLocation _location;
 };
 
-#endif // LLVMLOGGER_H
+#endif  // LLVMLOGGER_H

@@ -1,7 +1,8 @@
 #include "BoundArrayTypeExpression.h"
 
 BoundArrayTypeExpression::BoundArrayTypeExpression(
-    const DiagnosticUtils::SourceLocation &location, Utils::type type)
+    const DiagnosticUtils::SourceLocation &location,
+    const SyntaxKindUtils::SyntaxKind &type)
     : BoundTypeExpression(location, type) {}
 
 std::vector<BoundNode *> BoundArrayTypeExpression::getChildren() {

@@ -6,7 +6,7 @@
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
-public:
+ public:
   CallExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -34,4 +34,4 @@ public:
   llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
 };
 
-#endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

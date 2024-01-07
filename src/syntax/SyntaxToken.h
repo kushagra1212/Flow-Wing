@@ -3,13 +3,14 @@
 #define SYNTAXTOKEN_H
 #include "SyntaxNode.h"
 
-template <typename T> class SyntaxToken : public SyntaxNode {
-private:
+template <typename T>
+class SyntaxToken : public SyntaxNode {
+ private:
   SyntaxKindUtils::SyntaxKind kind;
   std::string text;
   T value;
 
-public:
+ public:
   SyntaxToken(const std::string absoluteFilePath, int lineNumber,
               SyntaxKindUtils::SyntaxKind kind, int columnNumber,
               std::string text, T value);

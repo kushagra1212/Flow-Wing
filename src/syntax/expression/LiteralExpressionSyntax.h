@@ -1,16 +1,17 @@
 #pragma once
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
 #include <any>
 #include <string>
 
-template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
+#include "../SyntaxToken.h"
+#include "ExpressionSyntax.h"
 
-private:
+template <typename T>
+class LiteralExpressionSyntax : public ExpressionSyntax {
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _token;
   T _value;
 
-public:
+ public:
   LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
                           T value);
   std::string getKindText();

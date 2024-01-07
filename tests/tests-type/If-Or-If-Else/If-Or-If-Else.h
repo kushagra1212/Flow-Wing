@@ -6,7 +6,7 @@
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
 class IfORIFELSEReplTest : public ::testing::Test {
-protected:
+ protected:
   IfORIFELSEReplTest();
 
   void SetUp() override;
@@ -18,4 +18,4 @@ protected:
   std::unique_ptr<BaseTest> _test;
 };
 
-#endif // VARIABLE_DECLARATION_H
+#endif  // VARIABLE_DECLARATION_H

@@ -6,7 +6,6 @@
 #include "../../statements/StatementSyntax.h"
 
 class BringStatementSyntax : public StatementSyntax {
-
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> expressions;
   std::unique_ptr<DiagnosticHandler> diagnosticHandler;
   std::string absoluteFilePath;
@@ -14,15 +13,15 @@ class BringStatementSyntax : public StatementSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
   std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
 
-public:
+ public:
   void addExpression(std::unique_ptr<SyntaxToken<std::any>> expression);
   void addBringKeyword(std::unique_ptr<SyntaxToken<std::any>> bringKeyword);
   void setAbsoluteFilePath(const std::string &absoluteFilePath);
-  void
-  setDiagnosticHandler(std::unique_ptr<DiagnosticHandler> diagnosticHandler);
+  void setDiagnosticHandler(
+      std::unique_ptr<DiagnosticHandler> diagnosticHandler);
   void setRelativeFilePath(const std::string &relativeFilePath);
-  void
-  setCompilationUnit(std::unique_ptr<CompilationUnitSyntax> compilationUnit);
+  void setCompilationUnit(
+      std::unique_ptr<CompilationUnitSyntax> compilationUnit);
 
   const std::string &getAbsoluteFilePath() const;
 
@@ -41,4 +40,4 @@ public:
   const std::unique_ptr<SyntaxToken<std::any>> &getBringKeywordPtr();
 };
 
-#endif // BRING_STATEMENT_SYNTAX_H
+#endif  // BRING_STATEMENT_SYNTAX_H

@@ -6,7 +6,7 @@
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {
-public:
+ public:
   FunctionStatementGenerationStrategy(CodeGenerationContext *context);
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
@@ -15,4 +15,4 @@ public:
                                       std::vector<llvm::Value *> callArgs);
 };
 
-#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

@@ -8,7 +8,6 @@ ReturnStatementGenerationStrategy::ReturnStatementGenerationStrategy(
 
 llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
-
   BoundReturnStatement *returnStatement =
       static_cast<BoundReturnStatement *>(statement);
 
@@ -28,7 +27,7 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(returnBlock);
 
-  llvm::Value *returnValue = nullptr; // default return value
+  llvm::Value *returnValue = nullptr;  // default return value
 
   llvm::Value *hasError = Builder->getFalse();
   std::string errorMessage = "";
@@ -41,18 +40,19 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
   LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
                              ->getReturnType(functionName)
                              .get();
-  Utils::type returnTypeCustomType =
+  SyntaxKindUtils::SyntaxKind returnTypeCustomType =
       _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
           returnType->getType());
-  if (returnTypeCustomType != Utils::type::NOTHING && returnStat == nullptr) {
-
-    errorMessage = "Function return type is not Nothing, return "
-                   "expression is not found";
-  } else if (returnTypeCustomType == Utils::type::NOTHING &&
+  if (returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
+      returnStat == nullptr) {
+    errorMessage =
+        "Function return type is not Nothing, return "
+        "expression is not found";
+  } else if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword &&
              returnStat != nullptr) {
-
-    errorMessage = "Function return type is Nothing, return "
-                   "expression is found";
+    errorMessage =
+        "Function return type is Nothing, return "
+        "expression is found";
   } else if (returnStat != nullptr) {
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
@@ -61,9 +61,9 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     if (returnTypeCustomType !=
         _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
             returnValue->getType())) {
-
       errorMessage = "Return Type Mismatch " +
-                     Utils::typeToString(returnTypeCustomType) +
+                     _codeGenerationContext->getMapper()->getLLVMTypeName(
+                         returnTypeCustomType) +
                      " is expected but " +
                      _codeGenerationContext->getMapper()->getLLVMTypeName(
                          returnValue->getType()) +
@@ -75,8 +75,8 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     _codeGenerationContext->getLogger()->LogError(errorMessage);
   }
 
-  if (returnStat != nullptr && returnTypeCustomType != Utils::type::NOTHING) {
-
+  if (returnStat != nullptr &&
+      returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);

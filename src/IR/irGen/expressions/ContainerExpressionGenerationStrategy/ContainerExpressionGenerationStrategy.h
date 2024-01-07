@@ -7,7 +7,7 @@
 
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   ContainerExpressionGenerationStrategy(CodeGenerationContext *context,
                                         std::vector<uint64_t> actualSizes,
                                         llvm::Type *elementType,
@@ -18,27 +18,26 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   // Specialized for BoundContainerExpression
-  llvm::Value *
-  createGlobalExpression(llvm::Type *arrayType,
-                         llvm::GlobalVariable *_globalVariable,
-                         BoundContainerExpression *containerExpression);
+  llvm::Value *createGlobalExpression(
+      llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable,
+      BoundContainerExpression *containerExpression);
 
-  llvm::Value *
-  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
-                        BoundContainerExpression *containerExpression);
+  llvm::Value *createLocalExpression(
+      llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+      BoundContainerExpression *containerExpression);
 
   llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
                                 BoundContainerExpression *containerExpression);
 
-  const bool
-  canGenerateExpression(BoundContainerExpression *containerExpression);
+  const bool canGenerateExpression(
+      BoundContainerExpression *containerExpression);
 
-  llvm::Value *
-  createExpressionAtom(llvm::Type *&arrayType, llvm::Value *&v,
-                       BoundContainerExpression *containerExpression,
-                       std::vector<llvm::Value *> &indices, uint64_t index);
+  llvm::Value *createExpressionAtom(
+      llvm::Type *&arrayType, llvm::Value *&v,
+      BoundContainerExpression *containerExpression,
+      std::vector<llvm::Value *> &indices, uint64_t index);
 
-private:
+ private:
   uint64_t _totalSize;
   std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
@@ -47,4 +46,4 @@ private:
   bool _isGlobal;
 };
 
-#endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

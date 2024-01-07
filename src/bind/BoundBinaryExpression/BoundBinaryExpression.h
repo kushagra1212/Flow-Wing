@@ -5,12 +5,12 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundBinaryExpression : public BoundExpression {
-private:
+ private:
   BinderKindUtils::BoundBinaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
 
-public:
+ public:
   BoundBinaryExpression(const DiagnosticUtils::SourceLocation &location,
                         std::unique_ptr<BoundExpression> left,
                         BinderKindUtils::BoundBinaryOperatorKind op,

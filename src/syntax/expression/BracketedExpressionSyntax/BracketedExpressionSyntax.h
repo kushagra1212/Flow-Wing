@@ -5,10 +5,10 @@
 #include "../ExpressionSyntax.h"
 
 class BracketedExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _expression;
 
-public:
+ public:
   // Overrides
   SyntaxKindUtils::SyntaxKind getKind() const override;
   std::vector<SyntaxNode *> getChildren() override;
@@ -21,4 +21,4 @@ public:
   auto getExpressionRef() const -> const std::unique_ptr<ExpressionSyntax> &;
 };
 
-#endif // __FLOWWING_BRACKETED_EXPRESSION_SYNTAX_H__
+#endif  // __FLOWWING_BRACKETED_EXPRESSION_SYNTAX_H__

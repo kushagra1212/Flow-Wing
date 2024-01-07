@@ -6,11 +6,11 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundBlockStatement : public BoundStatement, public BoundSourceLocation {
-private:
+ private:
   std::vector<std::unique_ptr<BoundStatement>> _statements;
   bool _global;
 
-public:
+ public:
   BoundBlockStatement(const DiagnosticUtils::SourceLocation &location,
                       bool global);
   BoundBlockStatement(const DiagnosticUtils::SourceLocation &location);

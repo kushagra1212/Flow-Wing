@@ -48,8 +48,8 @@ std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
-BlockStatementSyntax::getSourceLocation() const {
+DiagnosticUtils::SourceLocation BlockStatementSyntax::getSourceLocation()
+    const {
   return this->_openBraceToken->getSourceLocation();
 }
 

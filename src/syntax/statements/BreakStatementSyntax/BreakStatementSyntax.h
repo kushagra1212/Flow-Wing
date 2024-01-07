@@ -6,10 +6,10 @@
 #include "../StatementSyntax.h"
 
 class BreakStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _breakKeyword;
 
-public:
+ public:
   BreakStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> breakKeyword);
 
   std::unique_ptr<SyntaxToken<std::any>> getBreakKeyword();
@@ -21,4 +21,4 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getBreakKeywordPtr();
 };
 
-#endif // BREAKSTATEMENTSYNTAX_H
+#endif  // BREAKSTATEMENTSYNTAX_H

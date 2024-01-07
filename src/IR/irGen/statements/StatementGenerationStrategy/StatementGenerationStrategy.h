@@ -3,7 +3,7 @@
 #include "../../GenerationStrategy.h"
 
 class StatementGenerationStrategy : public GenerationStrategy {
-public:
+ public:
   StatementGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 
@@ -11,4 +11,4 @@ public:
   virtual llvm::Value *generateGlobalStatement(BoundStatement *statement) = 0;
 };
 
-#endif // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
