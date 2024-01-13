@@ -11,3 +11,12 @@ void ReplTest::setInput(const std::string &input) { input_stream.str(input); }
 
 std::string ReplTest::getOutput() const { return output_stream.str(); }
 void ReplTest::runEvaluator() { repl->runTests(input_stream, output_stream); }
+
+#ifdef REPL_TEST_MODE
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
+#endif
