@@ -1,9 +1,9 @@
 #ifndef WHILE_LOOP_H
 #define WHILE_LOOP_H
-#include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
+
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
+
 class WhileLoop : public ::testing::Test {
  protected:
   WhileLoop();

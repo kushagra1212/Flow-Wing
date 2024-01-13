@@ -19,9 +19,9 @@ class AssignmentExpressionSyntax : public ExpressionSyntax {
   std::unique_ptr<ExpressionSyntax> getRight();
   std::unique_ptr<ExpressionSyntax> getLeft();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
   std::unique_ptr<ExpressionSyntax> &getRightPtr();

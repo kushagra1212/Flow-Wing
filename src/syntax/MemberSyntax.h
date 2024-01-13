@@ -8,7 +8,7 @@ class MemberSyntax : public SyntaxNode {
  public:
   MemberSyntax(const bool &isExposed) : isExposed(isExposed) {}
 
-  bool getIsExposed() const { return isExposed; }
+  const bool &getIsExposed() const { return isExposed; }
 };
 
 #endif  // MEMBER_SYNTAX_H

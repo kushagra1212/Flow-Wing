@@ -25,9 +25,9 @@ class ForStatementSyntax : public StatementSyntax {
   std::unique_ptr<ExpressionSyntax> getUpperBound();
   std::unique_ptr<ExpressionSyntax> getStepExpression();
 
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
   std::unique_ptr<StatementSyntax> &getInitializationPtr();

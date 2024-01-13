@@ -1,7 +1,6 @@
 
 #ifndef REPL_H
 #define REPL_H
-#include <gtest/gtest.h>
 
 #include "../Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"

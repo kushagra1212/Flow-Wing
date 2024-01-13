@@ -13,38 +13,38 @@ LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
   this->_value = value;
 
   // Add children
-
-  this->_children.push_back(_token.get());
 }
 
 template <typename T>
-SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getSyntaxKind() {
+const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getSyntaxKind() {
   return this->_token->getKind();
 }
 
-template <typename T> std::string LiteralExpressionSyntax<T>::getKindText() {
+template <typename T>
+const std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->getKind());
 }
-template <typename T>
-std::unique_ptr<SyntaxToken<std::any>> LiteralExpressionSyntax<T>::getToken() {
-  return std::move(this->_token);
-}
 
-template <typename T> T LiteralExpressionSyntax<T>::getValue() {
+template <typename T>
+const T &LiteralExpressionSyntax<T>::getValue() {
   return this->_value;
 }
 
 template <typename T>
-SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
+const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
   return SyntaxKindUtils::SyntaxKind::LiteralExpression;
 }
 template <typename T>
-std::vector<SyntaxNode *> LiteralExpressionSyntax<T>::getChildren() {
+const std::vector<SyntaxNode *> &LiteralExpressionSyntax<T>::getChildren() {
+  if (_children.empty()) {
+    this->_children.push_back(_token.get());
+  }
+
   return this->_children;
 }
 
 template <typename T>
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 LiteralExpressionSyntax<T>::getSourceLocation() const {
   return this->_token->getSourceLocation();
 }

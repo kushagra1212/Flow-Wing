@@ -23,9 +23,9 @@ class OrIfStatementSyntax : public StatementSyntax {
   std::unique_ptr<ExpressionSyntax> getCondition();
   std::unique_ptr<BlockStatementSyntax> getStatement();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOrKeywordPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();

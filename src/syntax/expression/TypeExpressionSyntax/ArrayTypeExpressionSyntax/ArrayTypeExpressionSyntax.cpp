@@ -4,7 +4,7 @@ ArrayTypeExpressionSyntax::ArrayTypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
     : TypeExpressionSyntax(std::move(type)) {}
 
-std::vector<SyntaxNode *> ArrayTypeExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ArrayTypeExpressionSyntax::getChildren() {
   if (this->_children.empty()) {
     _children.push_back(this->getTypeRef().get());
     _children.push_back(this->_elementType.get());
@@ -16,10 +16,10 @@ std::vector<SyntaxNode *> ArrayTypeExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::ArrayTypeExpression;
 }
-DiagnosticUtils::SourceLocation ArrayTypeExpressionSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+ArrayTypeExpressionSyntax::getSourceLocation() const {
   return this->_elementType->getSourceLocation();
 }

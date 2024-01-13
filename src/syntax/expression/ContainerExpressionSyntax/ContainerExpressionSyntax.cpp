@@ -4,25 +4,21 @@
   OVERRIDES
 */
 
-SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContainerExpression;
 }
 
-std::vector<SyntaxNode *> ContainerExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
+const std::vector<SyntaxNode *> &ContainerExpressionSyntax::getChildren() {
+  if (_children.size() > 0) return _children;
 
-  for (auto &element : this->_elements)
-    _children.push_back(element.get());
+  for (auto &element : this->_elements) _children.push_back(element.get());
 
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 ContainerExpressionSyntax::getSourceLocation() const {
-
-  if (this->_elements.size() == 0)
-    return DiagnosticUtils::SourceLocation();
+  if (this->_elements.size() == 0) return DiagnosticUtils::SourceLocation();
 
   return this->_elements[0]->getSourceLocation();
 }

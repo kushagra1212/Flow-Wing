@@ -19,9 +19,9 @@ class BlockStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<StatementSyntax>> &getStatements();
   std::unique_ptr<SyntaxToken<std::any>> getCloseBraceToken();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getOpenBraceTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseBraceTokenPtr();

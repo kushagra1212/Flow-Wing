@@ -9,7 +9,7 @@
 class Lexer {
  public:
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
-  Lexer(std::vector<std::string> sourceCode,
+  Lexer(const std::vector<std::string> &sourceCode,
         DiagnosticHandler *diagnosticHandler);
 
  private:

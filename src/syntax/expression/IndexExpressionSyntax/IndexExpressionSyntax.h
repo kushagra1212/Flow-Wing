@@ -27,9 +27,9 @@ class IndexExpressionSyntax : public ExpressionSyntax {
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &
   getIndexIdentifierExpressionPtr();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };
 
 #endif  // INDEXEXPRESSIONSYNTAX_H

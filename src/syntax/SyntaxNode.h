@@ -11,10 +11,10 @@ class SyntaxNode {
   std::string absoluteFilePath;
   std::vector<SyntaxNode *> _children;
 
-  virtual SyntaxKindUtils::SyntaxKind getKind() const = 0;
+  virtual const SyntaxKindUtils::SyntaxKind getKind() const = 0;
 
-  virtual std::vector<SyntaxNode *> getChildren() = 0;
+  virtual const std::vector<SyntaxNode *> &getChildren() = 0;
 
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const = 0;
+  virtual const DiagnosticUtils::SourceLocation getSourceLocation() const = 0;
 };
 #endif

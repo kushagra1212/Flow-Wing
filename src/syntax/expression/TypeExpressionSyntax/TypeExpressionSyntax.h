@@ -12,9 +12,10 @@ class TypeExpressionSyntax : public ExpressionSyntax {
 
  public:
   TypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
+      const override;
 
   inline auto getTypeRef() const
       -> const std::unique_ptr<SyntaxToken<std::any>> & {

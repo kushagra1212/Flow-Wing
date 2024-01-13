@@ -22,9 +22,9 @@ class ContainerStatementSyntax : public StatementSyntax {
   ContainerStatementSyntax() = default;
 
   // Overrides
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
   auto setContainerExpression(

@@ -4,12 +4,11 @@
     OVERIDES
 */
 
-SyntaxKindUtils::SyntaxKind AttributeExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind AttributeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::BracketedExpression;
 }
 
-std::vector<SyntaxNode *> AttributeExpressionSyntax::getChildren() {
-
+const std::vector<SyntaxNode *> &AttributeExpressionSyntax::getChildren() {
   if (_children.empty()) {
     _children.push_back(_key.get());
     _children.push_back(_value.get());
@@ -18,7 +17,7 @@ std::vector<SyntaxNode *> AttributeExpressionSyntax::getChildren() {
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 AttributeExpressionSyntax::getSourceLocation() const {
   return this->_key->getSourceLocation();
 }

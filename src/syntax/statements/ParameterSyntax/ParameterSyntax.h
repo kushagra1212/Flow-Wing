@@ -14,9 +14,10 @@ class ParameterSyntax : public SyntaxNode {
   ParameterSyntax() = default;
   ParameterSyntax(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
 
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
+      const override;
 
   virtual std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };

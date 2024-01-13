@@ -1,7 +1,6 @@
 #ifndef VARIABLE_DECLARATION_H
 #define VARIABLE_DECLARATION_H
-#include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
+
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
 

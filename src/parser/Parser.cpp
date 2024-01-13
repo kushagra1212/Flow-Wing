@@ -1,5 +1,5 @@
 #include "Parser.h"
-Parser::Parser(std::vector<std::string> souceCode,
+Parser::Parser(const std::vector<std::string> &souceCode,
                DiagnosticHandler *diagnosticHandler) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
@@ -46,8 +46,8 @@ Parser::~Parser() {
   this->tokens.clear();
 }
 
-SyntaxToken<std::any> *Parser::peek(int offset) {
-  int index = this->position + offset;
+SyntaxToken<std::any> *Parser::peek(const int &offset) {
+  const int index = this->position + offset;
   if (index >= this->tokens.size()) {
     return this->tokens[this->tokens.size() - 1].get();
   }
@@ -67,7 +67,7 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Parser::match(
-    SyntaxKindUtils::SyntaxKind kind) {
+    const SyntaxKindUtils::SyntaxKind &kind) {
   if (this->getCurrent()->getKind() == kind) {
     return std::move(this->nextToken());
   }
@@ -93,7 +93,7 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::match(
   }
 }
 
-bool Parser::matchKind(SyntaxKindUtils::SyntaxKind kind) {
+bool Parser::matchKind(const SyntaxKindUtils::SyntaxKind &kind) {
   return this->getCurrent()->getKind() == kind;
 }
 std::unique_ptr<CompilationUnitSyntax> Parser::parseCompilationUnit() {

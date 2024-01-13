@@ -29,9 +29,9 @@ class IfStatementSyntax : public StatementSyntax {
   void addOrIfStatement(std::unique_ptr<OrIfStatementSyntax> orIfStatement);
   void addElseClause(std::unique_ptr<ElseClauseSyntax> elseClause);
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
   std::unique_ptr<ExpressionSyntax> &getConditionPtr();

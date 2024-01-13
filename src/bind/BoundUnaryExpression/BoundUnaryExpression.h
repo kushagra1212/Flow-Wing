@@ -15,10 +15,6 @@ class BoundUnaryExpression : public BoundExpression {
 
   const std::type_info &getType() override;
 
-  std::unique_ptr<BoundExpression> getOperand();
-
-  BinderKindUtils::BoundUnaryOperatorKind getOperator();
-
   BinderKindUtils::BoundNodeKind getKind() const;
 
   std::vector<BoundNode *> getChildren() override;

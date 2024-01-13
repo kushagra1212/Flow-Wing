@@ -11,30 +11,30 @@ class SyntaxToken : public SyntaxNode {
   T value;
 
  public:
-  SyntaxToken(const std::string absoluteFilePath, int lineNumber,
-              SyntaxKindUtils::SyntaxKind kind, int columnNumber,
-              std::string text, T value);
+  SyntaxToken(const std::string &absoluteFilePath, const int &lineNumber,
+              const SyntaxKindUtils::SyntaxKind &kind, const int &columnNumber,
+              const std::string &text, const T &value);
 
-  int getColumnNumber();
+  const int &getColumnNumber();
 
-  int getLineNumber();
+  const int &getLineNumber();
 
   const std::string &getAbsoluteFilePath() const;
 
   const std::string &getText();
 
-  T getValue();
+  const T &getValue();
 
   std::string getKindText();
 
-  int getUnaryOperatorPrecedence();
+  const int getUnaryOperatorPrecedence();
 
-  int getBinaryOperatorPrecedence();
+  const int getBinaryOperatorPrecedence();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
 
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::vector<SyntaxNode *> getChildren() override;
+  const std::vector<SyntaxNode *> &getChildren() override;
 };
 #endif

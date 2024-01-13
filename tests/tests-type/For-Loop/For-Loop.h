@@ -1,9 +1,9 @@
 #ifndef FOR_LOOP_TEST_H
 #define FOR_LOOP_TEST_H
-#include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
+
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
+
 class ForLoopReplTest : public ::testing::Test {
  protected:
   ForLoopReplTest();

@@ -9,9 +9,10 @@ class ArrayTypeExpressionSyntax : public TypeExpressionSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _elementType;
 
  public:
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
+      const override;
 
   ArrayTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
 

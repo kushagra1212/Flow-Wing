@@ -25,9 +25,9 @@ class BringStatementSyntax : public StatementSyntax {
 
   const std::string &getAbsoluteFilePath() const;
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
   getExpressionsPtr();

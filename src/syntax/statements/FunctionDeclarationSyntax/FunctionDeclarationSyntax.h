@@ -44,9 +44,9 @@ class FunctionDeclarationSyntax : public MemberSyntax {
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
   void setReturnType(std::unique_ptr<ExpressionSyntax> returnExpression);
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getFunctionKeywordPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();

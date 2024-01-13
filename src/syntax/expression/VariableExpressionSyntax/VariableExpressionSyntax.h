@@ -14,9 +14,10 @@ class VariableExpressionSyntax : public ExpressionSyntax {
       const bool isConstant,
       std::unique_ptr<TypeExpressionSyntax> variableTypeExpr);
 
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
+      const override;
 
   inline auto getIdentifierTokenRef() const
       -> const std::unique_ptr<ExpressionSyntax> & {

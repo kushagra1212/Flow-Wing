@@ -8,7 +8,6 @@ void JITCompilerTest::SetUp() { testing::internal::CaptureStdout(); }
 void JITCompilerTest::TearDown() {}
 
 void JITCompilerTest::setInput(const std::string &input) {
-
   jit_compiler->text.push_back(input);
 }
 

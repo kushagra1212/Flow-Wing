@@ -4,9 +4,8 @@
   OVERRIDES
 */
 
-std::vector<SyntaxNode *> ContainerStatementSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
+const std::vector<SyntaxNode *> &ContainerStatementSyntax::getChildren() {
+  if (_children.size() > 0) return _children;
 
   _children.push_back(this->_identifierToken.get());
 
@@ -18,11 +17,11 @@ std::vector<SyntaxNode *> ContainerStatementSyntax::getChildren() {
   return _children;
 }
 
-SyntaxKindUtils::SyntaxKind ContainerStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ContainerStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContainerStatement;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 ContainerStatementSyntax::getSourceLocation() const {
   return this->_identifierToken->getSourceLocation();
 }

@@ -5,13 +5,12 @@
 
 */
 
-SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::CustomTypeStatement;
 }
 
-std::vector<SyntaxNode *> CustomTypeStatementSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
+const std::vector<SyntaxNode *> &CustomTypeStatementSyntax::getChildren() {
+  if (_children.size() > 0) return _children;
 
   _children.push_back(this->_typeName.get());
 
@@ -22,8 +21,7 @@ std::vector<SyntaxNode *> CustomTypeStatementSyntax::getChildren() {
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 CustomTypeStatementSyntax::getSourceLocation() const {
-
   return this->_typeName->getSourceLocation();
 }

@@ -1,7 +1,6 @@
 #ifndef __JIT__FUNCTION_TEST_H__
 #define __JIT__FUNCTION_TEST_H__
-#include "../../../../src/REPL/Repl.h"
-#include "../../../BaseTest/BaseTest.h"
+
 #include "../../../JITCompilerTest/JITCompilerTest.h"
 #include "../../../ReplTest/ReplTest.h"
 

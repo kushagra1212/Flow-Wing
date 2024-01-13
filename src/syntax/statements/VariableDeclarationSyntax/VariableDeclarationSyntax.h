@@ -15,9 +15,9 @@ class VariableDeclarationSyntax : public StatementSyntax {
   std::unique_ptr<TypeExpressionSyntax> _typeExpr;
 
  public:
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
   inline void setKeyword(std::unique_ptr<SyntaxToken<std::any>> keyword) {

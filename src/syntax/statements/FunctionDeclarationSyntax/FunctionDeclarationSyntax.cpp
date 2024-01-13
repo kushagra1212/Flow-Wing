@@ -1,10 +1,7 @@
 #include "FunctionDeclarationSyntax.h"
 
 FunctionDeclarationSyntax::FunctionDeclarationSyntax(const bool &isExposed)
-    : MemberSyntax(isExposed) {
-
-  // Add children
-}
+    : MemberSyntax(isExposed) {}
 
 std::unique_ptr<SyntaxToken<std::any>>
 FunctionDeclarationSyntax::getFunctionKeyword() {
@@ -30,19 +27,18 @@ std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
   return std::move(_body);
 }
 
-SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 FunctionDeclarationSyntax::getSourceLocation() const {
   return _functionKeyword->getSourceLocation();
 }
 
-std::vector<SyntaxNode *> FunctionDeclarationSyntax::getChildren() {
-
-  if (this->_children.size() == 0) {
-
+const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
+  if (this->_children.empty()) {
+    // Add children
     _children.push_back(_functionKeyword.get());
     _children.push_back(_identifierToken.get());
     _children.push_back(_openParenthesisToken.get());

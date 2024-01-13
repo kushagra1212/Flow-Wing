@@ -45,7 +45,7 @@ class Parser {
 
   std::unique_ptr<Lexer> lexer;
 
-  Parser(std::vector<std::string> souceCode,
+  Parser(const std::vector<std::string> &souceCode,
          DiagnosticHandler *diagnosticHandler);
   ~Parser();
 
@@ -56,12 +56,12 @@ class Parser {
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
 
-  bool matchKind(SyntaxKindUtils::SyntaxKind kind);
+  bool matchKind(const SyntaxKindUtils::SyntaxKind &kind);
   void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
 
   std::unique_ptr<SyntaxToken<std::any>> match(
-      SyntaxKindUtils::SyntaxKind kind);
-  SyntaxToken<std::any> *peek(int offset);
+      const SyntaxKindUtils::SyntaxKind &kind);
+  SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
 

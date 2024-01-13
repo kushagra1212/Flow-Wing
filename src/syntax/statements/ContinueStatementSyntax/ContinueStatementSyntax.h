@@ -15,9 +15,9 @@ class ContinueStatementSyntax : public StatementSyntax {
 
   std::unique_ptr<SyntaxToken<std::any>> getContinueKeyword();
 
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };

@@ -1,6 +1,10 @@
 #ifndef BASE_TEST_H
 #define BASE_TEST_H
 
+#include <gtest/gtest.h>
+
+#include <cstdio>
+#include <iostream>
 #include <sstream>
 #include <string>
 

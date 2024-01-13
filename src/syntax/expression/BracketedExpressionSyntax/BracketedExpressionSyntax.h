@@ -10,9 +10,9 @@ class BracketedExpressionSyntax : public ExpressionSyntax {
 
  public:
   // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
   auto setExpression(std::unique_ptr<ExpressionSyntax> expression) -> void;

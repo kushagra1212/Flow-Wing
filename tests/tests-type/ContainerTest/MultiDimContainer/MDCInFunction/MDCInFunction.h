@@ -1,7 +1,6 @@
 #ifndef __MDC_FUNCTION_TEST_H__
 #define __MDC_FUNCTION_TEST_H__
-#include "../../../../../src/REPL/Repl.h"
-#include "../../../../BaseTest/BaseTest.h"
+
 #include "../../../../JITCompilerTest/JITCompilerTest.h"
 #include "../../../../ReplTest/ReplTest.h"
 

@@ -30,9 +30,9 @@ class CallExpressionSyntax : public ExpressionSyntax {
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::vector<std::unique_ptr<ExpressionSyntax>> &getArguments();
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getSeparators();

@@ -1,10 +1,10 @@
 #include "VariableDeclarationSyntax.h"
 
-SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableDeclaration;
 }
 
-std::vector<SyntaxNode *> VariableDeclarationSyntax::getChildren() {
+const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
   if (_children.size()) return this->_children;
 
   if (_keyword) _children.push_back(_keyword.get());
@@ -20,8 +20,8 @@ std::vector<SyntaxNode *> VariableDeclarationSyntax::getChildren() {
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation VariableDeclarationSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+VariableDeclarationSyntax::getSourceLocation() const {
   if (_keyword) this->_keyword->getSourceLocation();
   if (_identifier) this->_identifier->getSourceLocation();
   if (_typeExpr) this->_typeExpr->getSourceLocation();

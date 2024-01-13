@@ -14,9 +14,9 @@ class CustomTypeStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<AttributeExpressionSyntax>> _key_type_pairs;
 
  public:
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   /*
       Setters

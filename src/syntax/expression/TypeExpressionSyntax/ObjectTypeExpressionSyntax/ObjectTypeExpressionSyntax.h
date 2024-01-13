@@ -10,9 +10,10 @@ class ObjectTypeExpressionSyntax : public TypeExpressionSyntax {
  public:
   ObjectTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
 
-  virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  virtual std::vector<SyntaxNode *> getChildren() override;
-  virtual DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
+  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
+      const override;
 
   inline auto setObjectTypeIdentifier(
       std::unique_ptr<LiteralExpressionSyntax<std::any>> objectTypeIdentifier)

@@ -4,11 +4,11 @@ TypeExpressionSyntax::TypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
     : _type(std::move(type)) {}
 
-SyntaxKindUtils::SyntaxKind TypeExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind TypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::PrimitiveTypeExpression;
 }
 
-std::vector<SyntaxNode *> TypeExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &TypeExpressionSyntax::getChildren() {
   if (_children.empty()) {
     _children.push_back(_type.get());
   }
@@ -16,7 +16,7 @@ std::vector<SyntaxNode *> TypeExpressionSyntax::getChildren() {
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
-TypeExpressionSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation TypeExpressionSyntax::getSourceLocation()
+    const {
   return {};
 }
