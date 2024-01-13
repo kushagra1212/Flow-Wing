@@ -6,12 +6,12 @@
 
 class AllocaChain {
  private:
-  std::stack<AllocaTable *> handlers;
+  std::stack<std::unique_ptr<AllocaTable>> handlers;
   std::unique_ptr<AllocaTable> _globalTable;
 
  public:
   AllocaChain();
-  void addHandler(AllocaTable *handler);
+  void addHandler(std::unique_ptr<AllocaTable> handler);
 
   void removeHandler();
 

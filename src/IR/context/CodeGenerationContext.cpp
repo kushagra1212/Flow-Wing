@@ -28,7 +28,7 @@ CodeGenerationContext ::CodeGenerationContext(
 
   // Initialize the alloca chain
   _allocaChain = std::make_unique<AllocaChain>();
-  _allocaChain->addHandler(new AllocaTable());
+  _allocaChain->addHandler(std::make_unique<AllocaTable>());
 
   // initialize the ArgsTypeHandler
   _argsTypeHandler = std::make_unique<ArgsTypeHandler>();

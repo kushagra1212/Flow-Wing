@@ -1,3 +1,12 @@
+fun sum(n:int) -> int {
+  if (n == 0) {
+    return 0
+  }
+  return n + sum(n - 1)
+}
+print(sum(10))
+/#
+
 type parentType = {
       parName : str
 }
@@ -10,9 +19,6 @@ type childType = {
       it : childType
 }
 
-var x:childType = {
-      name:"kush"
-}
 
 
 

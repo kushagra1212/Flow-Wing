@@ -27,6 +27,17 @@
 #include "InterpreterUtils/InterpreterUtils.h"
 
 class Interpreter {
+ private:
+  struct Variable {
+    std::string name;
+    std::any value;
+    Variable() = default;
+    Variable(std::string name, std::any value) {
+      this->name = name;
+      this->value = value;
+    }
+  };
+
  public:
   Interpreter(BoundScopeGlobal *globalScope,
               DiagnosticHandler *diagnosticHandler);
@@ -40,6 +51,8 @@ class Interpreter {
   Interpreter *previous = nullptr;
   std::stack<std::unordered_map<std::string, BoundVariableDeclaration *>>
       variable_stack;
+  std::stack<std::unordered_map<std::string, Variable>> value_stack;
+
   std::stack<std::unordered_map<std::string, BoundFunctionDeclaration *>>
       function_stack;
   std::stack<std::pair<SyntaxKindUtils::SyntaxKind, int>> return_type_stack;
@@ -60,7 +73,7 @@ class Interpreter {
                       BoundFunctionDeclaration *functionDeclaration);
 
   BoundFunctionDeclaration *getFunction(std::string name);
-  BoundVariableDeclaration *getVariable(std::string name);
+  Variable getVariable(const std::string &name);
   template <typename T>
   T evaluateLiteralExpression(BoundExpression *node);
   template <typename T>

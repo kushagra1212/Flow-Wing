@@ -6,7 +6,6 @@ BlockStatementGenerationStrategy::BlockStatementGenerationStrategy(
 
 llvm::Value *BlockStatementGenerationStrategy::generateStatement(
     BoundStatement *expression) {
-
   BoundBlockStatement *blockStatement =
       static_cast<BoundBlockStatement *>(expression);
 
@@ -15,7 +14,8 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
 
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
-  _codeGenerationContext->getAllocaChain()->addHandler(new AllocaTable());
+  _codeGenerationContext->getAllocaChain()->addHandler(
+      std::make_unique<AllocaTable>());
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   // create and load variable
 
@@ -28,7 +28,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   int indexForStatements = 0;
 
   while (indexForStatements < statementSize) {
-
     llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
         *TheContext, "nestedBlock", currentBlock->getParent());
     nestedBlocks.push_back(nestedBlock);
@@ -50,7 +49,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   }
 
   for (int i = 0; i < statementSize; i++) {
-
     // i th nested block
 
     Builder->SetInsertPoint(nestedBlocks[i]);

@@ -61,7 +61,8 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
   }
 
   // Handle Static Container Global Variable (TYPED)
-  if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+  if (_variableType != SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE &&
+      !_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
     if (assignmentExpression->getRightPtr().get()->getKind() ==
             BinderKindUtils::VariableExpression ||
         assignmentExpression->getRightPtr().get()->getKind() ==
@@ -180,7 +181,6 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
   if (_isGlobal) {
     return handleGlobalLiteralExpressionAssignment(assignmentExpression);
   }
-
   // Handle Static Container local Variable (TYPED)
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     // Container Copy

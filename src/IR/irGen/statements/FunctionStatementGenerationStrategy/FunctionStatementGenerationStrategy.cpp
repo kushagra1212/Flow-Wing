@@ -35,7 +35,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
 
-  _codeGenerationContext->getAllocaChain()->addHandler(new AllocaTable());
+  _codeGenerationContext->getAllocaChain()->addHandler(
+      std::make_unique<AllocaTable>());
 
   std::vector<std::string> parameterNames;
 
@@ -184,7 +185,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
 
-  _codeGenerationContext->getAllocaChain()->addHandler(new AllocaTable());
+  _codeGenerationContext->getAllocaChain()->addHandler(
+      std::make_unique<AllocaTable>());
 
   std::vector<std::string> parameterNames;
 

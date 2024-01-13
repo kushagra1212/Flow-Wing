@@ -227,7 +227,7 @@ std::unique_ptr<FunctionDeclarationSyntax> Parser::parseFunctionDeclaration(
     }
 
     std::unique_ptr<VariableDeclarationSyntax> parameter =
-        std::move(this->parseVariableDeclaration());
+        std::move(this->parseVariableDeclaration(true));
 
     functionDeclaration->addParameter(std::move(parameter));
   }

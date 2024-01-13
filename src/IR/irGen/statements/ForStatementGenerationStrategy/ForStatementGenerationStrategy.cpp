@@ -16,7 +16,8 @@ llvm::Value *ForStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
 
-  _codeGenerationContext->getAllocaChain()->addHandler(new AllocaTable());
+  _codeGenerationContext->getAllocaChain()->addHandler(
+      std::make_unique<AllocaTable>());
 
   std::string variableName = "";
 

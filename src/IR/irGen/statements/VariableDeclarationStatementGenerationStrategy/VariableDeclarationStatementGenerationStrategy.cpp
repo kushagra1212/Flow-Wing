@@ -145,6 +145,12 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
         "Rhs of variable " + _variableName + " is not an expression");
     return false;
   }
+  _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
+
+  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
+      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    return true;
+  }
 
   _rhsValue =
       _expressionGenerationFactory->createStrategy(initializerExp->getKind())
@@ -156,15 +162,8 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     return false;
   }
 
-  _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
-
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
-      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
-      _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-    return true;
-  }
-
-  if (!_codeGenerationContext->getMapper()->isEquivalentType(
+  if (_variableType != SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE &&
+      !_codeGenerationContext->getMapper()->isEquivalentType(
           _variableType, _rhsValue->getType())) {
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable declaration " + _variableName +

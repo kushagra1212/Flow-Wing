@@ -129,11 +129,12 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
         break;
       }
       case BinderKindUtils::BoundArrayTypeExpression: {
+        BoundArrayTypeExpression *boundArrayTypeExpression =
+            static_cast<BoundArrayTypeExpression *>(fd->getReturnType().get());
+
         llvm::Type *elementType =
             _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                bTE->getSyntaxType());
-        BoundArrayTypeExpression *boundArrayTypeExpression =
-            static_cast<BoundArrayTypeExpression *>(bTE);
+                boundArrayTypeExpression->getElementType());
 
         llvm::Type *arrayType = elementType;
         llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(

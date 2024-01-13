@@ -769,16 +769,6 @@ std::unique_ptr<BoundStatement> Binder::bindFunctionDeclaration(
     std::unique_ptr<BoundVariableDeclaration> varDeclaration =
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
 
-    if (!this->root->tryDeclareVariable(
-            variable_str,
-            static_cast<BoundVariableDeclaration *>(varDeclaration.get()))) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Parameter " + variable_str + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     syntax->getParametersPtr()[i]->getSourceLocation()));
-    }
-
     fd->addParameter(std::move(varDeclaration));
   }
   fd->setReturnType(std::move(bindTypeExpression(

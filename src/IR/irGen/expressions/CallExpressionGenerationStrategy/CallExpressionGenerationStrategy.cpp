@@ -315,7 +315,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       std::vector<std::string> vars;
       Utils::split(argInfoMD->getString().str(), ":", vars);
 
-      if (vars[2] == "Array") {
+      if (vars.size() >= 4 && vars[2] == "Array") {
         llvm::Type *_res = isGlobalArray(args[i]);
         _res = _res ? _res : isLocalArray(args[i]);
 
