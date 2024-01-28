@@ -30,6 +30,15 @@ CodeGenerationContext ::CodeGenerationContext(
   _allocaChain = std::make_unique<AllocaChain>();
   _allocaChain->addHandler(std::make_unique<AllocaTable>());
 
+  // Initialize the Type chain
+  _typeChain = std::make_unique<TypeChain>();
+  _typeChain->addHandler(std::make_unique<TypeTable>());
+
+  // Initialize the ObjectTypeExpression chain
+  _customTypeExpressionChain = std::make_unique<CustomTypeStatementChain>();
+  _customTypeExpressionChain->addHandler(
+      std::make_unique<CustomTypeStatementTable>());
+
   // initialize the ArgsTypeHandler
   _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
 
@@ -88,6 +97,15 @@ std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
 
 std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
   return _allocaChain;
+}
+
+std::unique_ptr<TypeChain> &CodeGenerationContext::getTypeChain() {
+  return _typeChain;
+}
+
+std::unique_ptr<CustomTypeStatementChain> &
+CodeGenerationContext::getCustomTypeChain() {
+  return _customTypeExpressionChain;
 }
 
 const std::unique_ptr<StructTypeBuilder> &

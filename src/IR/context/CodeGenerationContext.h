@@ -8,8 +8,12 @@
 
 #include "../../utils/BuiltInFunction/BuiltInFunction.h"
 #include "../TypeBuilder/StructTypeBuilder/StructTypeBuilder.h"
+#include "../handlers/CustomTypeStatement/CustomTypeStatementChain/CustomTypeStatementChain.h"
+#include "../handlers/CustomTypeStatement/CustomTypeStatementTable/CustomTypeStatementTable.h"
 #include "../handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../handlers/alloca/AllocaTable/AllocaTable.h"
+#include "../handlers/type/TypeChain/TypeChain.h"
+#include "../handlers/type/TypeTable/TypeTable.h"
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
@@ -29,8 +33,12 @@ class CodeGenerationContext {
   std::unique_ptr<llvm::LLVMContext> &getContext();
   std::unique_ptr<TypeMapper> &getMapper();
   std::unique_ptr<LLVMLogger> &getLogger();
+
   std::unique_ptr<ValueChain> &getNamedValueChain();
   std::unique_ptr<AllocaChain> &getAllocaChain();
+  std::unique_ptr<TypeChain> &getTypeChain();
+  std::unique_ptr<CustomTypeStatementChain> &getCustomTypeChain();
+
   std::unique_ptr<ArgsTypeHandler> &getArgsTypeHandler();
   std::unique_ptr<ReturnTypeHandler> &getReturnTypeHandler();
 
@@ -93,6 +101,9 @@ class CodeGenerationContext {
 
   std::unique_ptr<ValueChain> _namedValueChain;
   std::unique_ptr<AllocaChain> _allocaChain;
+  std::unique_ptr<TypeChain> _typeChain;
+  std::unique_ptr<CustomTypeStatementChain> _customTypeExpressionChain;
+
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;

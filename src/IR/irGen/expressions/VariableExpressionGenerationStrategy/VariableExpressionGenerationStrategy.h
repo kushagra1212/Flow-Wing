@@ -1,6 +1,7 @@
 #ifndef __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 
+#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
@@ -30,6 +31,14 @@ class VariableExpressionGenerationStrategy
   llvm::Value *getLocalVariableValue(const std::string &variableName,
                                      llvm::Value *variableValue,
                                      llvm::AllocaInst *v);
+
+  llvm::Value *getObjectValue(BoundTypeExpression *bTE, llvm::Value *elementPtr,
+                              size_t listIndex,
+                              const std::string &variableName);
+
+ private:
+  BoundVariableExpression *_variableExpression;
+  BoundTypeExpression *_typeExpression;
 };
 
 #endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

@@ -14,6 +14,7 @@
 #include "../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
+#include "../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
@@ -104,6 +105,7 @@ class Parser {
   std::unique_ptr<ArrayTypeExpressionSyntax> parseArrayTypeExpression();
   std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
   std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
+  std::unique_ptr<ObjectExpressionSyntax> parseObjectExpression();
 
   std::unique_ptr<MemberSyntax> parseMember();
 };

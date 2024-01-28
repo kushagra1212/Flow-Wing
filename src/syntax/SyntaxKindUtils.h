@@ -41,6 +41,7 @@ enum SyntaxKind {
   BoolKeyword,
   BringKeyword,
   SlashSlashToken,
+  DotToken,
 
   // Bitwise
 

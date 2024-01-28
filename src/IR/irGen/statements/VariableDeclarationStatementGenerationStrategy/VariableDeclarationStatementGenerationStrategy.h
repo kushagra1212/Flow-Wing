@@ -2,6 +2,7 @@
 #define __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class VariableDeclarationStatementGenerationStrategy

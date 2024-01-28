@@ -398,6 +398,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
           SyntaxKindUtils::SyntaxKind::ColonToken, this->position++, ":",
           nullptr);
 
+    case '.':
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::DotToken, this->position++, ".",
+          nullptr);
     case '&': {
       if (this->peek(1) == '&') {
         this->next();

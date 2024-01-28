@@ -721,11 +721,28 @@ std::unique_ptr<BoundExpression> Binder::bindExpression(
       return std::move(
           bindBracketedExpression((BracketedExpressionSyntax *)syntax));
     }
-
+    case SyntaxKindUtils::SyntaxKind::ObjectExpression: {
+      return std::move(bindObjectExpression((ObjectExpressionSyntax *)syntax));
+    }
     default:
       throw "Unexpected syntax";
   }
   return nullptr;
+}
+
+std::unique_ptr<BoundExpression> Binder::bindObjectExpression(
+    ObjectExpressionSyntax *objectExpressionSyntax) {
+  std::unique_ptr<BoundObjectExpression> boundObjectExpression =
+      std::make_unique<BoundObjectExpression>(
+          objectExpressionSyntax->getSourceLocation());
+
+  for (const auto &attribute : objectExpressionSyntax->getAttributes()) {
+    boundObjectExpression->addKeyValuePair(
+        std::move(bindLiteralExpression(attribute->getKey().get())),
+        std::move(bindExpression(attribute->getValue().get())));
+  }
+
+  return std::move(boundObjectExpression);
 }
 
 std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
@@ -736,12 +753,21 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
   std::unique_ptr<BoundTypeExpression> boundTypeExpression =
       std::move(bindTypeExpression(typeExp));
 
-  return std::make_unique<BoundVariableExpression>(
-      variableExpressionSyntax->getSourceLocation(),
-      std::move(bindLiteralExpression(
-          variableExpressionSyntax->getIdentifierTokenRef().get())),
-      variableExpressionSyntax->isConstant(),
-      std::move(std::move(boundTypeExpression)));
+  std::unique_ptr<BoundVariableExpression> boundVariableExpression =
+      std::make_unique<BoundVariableExpression>(
+          variableExpressionSyntax->getSourceLocation(),
+          std::move(bindLiteralExpression(
+              variableExpressionSyntax->getIdentifierTokenRef().get())),
+          variableExpressionSyntax->isConstant(),
+          std::move(boundTypeExpression));
+
+  for (const auto &dotExpression :
+       variableExpressionSyntax->getDotExpressionList()) {
+    boundVariableExpression->addDotExpression(
+        std::move(bindLiteralExpression(dotExpression.get())));
+  }
+
+  return std::move(boundVariableExpression);
 }
 
 std::unique_ptr<BoundStatement> Binder::bindFunctionDeclaration(
@@ -836,6 +862,8 @@ std::unique_ptr<BoundTypeExpression> Binder::bindTypeExpression(
           objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
               ->getTokenPtr()
               ->getText();
+
+      boundObjectTypeExpression->setTypeName(name);
 
       if (!this->root->tryLookupCustomType(name)) {
         this->_diagnosticHandler->addDiagnostic(

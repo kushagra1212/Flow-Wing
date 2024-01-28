@@ -1,15 +1,24 @@
-fun sum(n:int) -> int {
-  if (n == 0) {
-    return 0
-  }
-  return n + sum(n - 1)
+{
+type my = {
+      num:int
 }
-print(sum(10))
+
+type parentType = {
+      par : str,
+      a : parentType,
+      x:my
+}
+
+var x:parentType = {par:"ss",x: {num:22} ,a:{par:"s",x:{num:1}}}
+print(x.x.num)}
 /#
 
 type parentType = {
-      parName : str
+      parName : str,
+      par: parentType
 }
+
+
 
 type childType = {
       name : str,
@@ -18,8 +27,6 @@ type childType = {
       price : deci,
       it : childType
 }
-
-
 
 
 /#

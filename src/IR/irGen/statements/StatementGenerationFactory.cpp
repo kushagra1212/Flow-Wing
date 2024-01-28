@@ -4,6 +4,7 @@
 #include "BreakStatementGenerationStrategy/BreakStatementGenerationStrategy.h"
 #include "BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "ContinueStatementGenerationStrategy/ContinueStatementGenerationStrategy.h"
+#include "CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "ExpressionStatementGenerationStrategy/ExpressionStatementGenerationStrategy.h"
 #include "ForStatementGenerationStrategy/ForStatementGenerationStrategy.h"
 #include "FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
@@ -52,6 +53,9 @@ StatementGenerationFactory::createStrategy(
           _codeGenerationContext);
     case BinderKindUtils::BoundNodeKind::BringStatement:
       return std::make_unique<BringStatementGenerationStrategy>(
+          _codeGenerationContext);
+    case BinderKindUtils::BoundNodeKind::CustomTypeStatement:
+      return std::make_unique<CustomTypeStatementGenerationStrategy>(
           _codeGenerationContext);
     default: {
       _codeGenerationContext->getLogger()->LogError(

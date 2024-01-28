@@ -3,7 +3,6 @@
 AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
 void AOTCompiler::execute() {
-
   std::unique_ptr<llvm::LLVMContext> TheContext =
       std::make_unique<llvm::LLVMContext>();
   std::unique_ptr<llvm::IRBuilder<>> Builder =
@@ -29,7 +28,6 @@ void AOTCompiler::execute() {
   // check For Clang
 
   if (system((CLANG_PATH + " --version > /dev/null 2>&1").c_str()) != 0) {
-
     _currentDiagnosticHandler->printDiagnostic(
         std::cout,
         Diagnostic("Clang not found.", DiagnosticUtils::DiagnosticLevel::Error,
@@ -54,7 +52,7 @@ void signalHandler(int signal) {
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
             << ") received." << RESET << std::endl;
 
-  exit(1); // Exit with a non-zero status to indicate an error.
+  exit(1);  // Exit with a non-zero status to indicate an error.
 }
 
 #endif
@@ -72,7 +70,6 @@ int main(int argc, char **argv) {
 #ifdef AOT_MODE
 
 int main(int argc, char *argv[]) {
-
   signal(SIGSEGV, signalHandler);
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
@@ -91,7 +88,6 @@ int main(int argc, char *argv[]) {
   file.open(argv[1]);
 
   if (!file.is_open()) {
-
     Utils::printErrors({"Unable to open file: " + std::string(argv[1]),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);

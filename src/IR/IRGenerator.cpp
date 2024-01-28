@@ -137,6 +137,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
     BinderKindUtils::BoundNodeKind kind = statement->getKind();
+
     _statementGenerationFactory->createStrategy(kind)->generateGlobalStatement(
         statement);
   }

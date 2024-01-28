@@ -6,6 +6,7 @@
 class BoundObjectTypeExpression : public BoundTypeExpression {
  private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _objectTypeIdentifier;
+  std::string _typeName;
 
  public:
   BoundObjectTypeExpression(const DiagnosticUtils::SourceLocation &location,
@@ -19,6 +20,12 @@ class BoundObjectTypeExpression : public BoundTypeExpression {
       -> void {
     this->_objectTypeIdentifier = std::move(objectTypeIdentifier);
   }
+
+  inline auto setTypeName(const std::string &typeName) -> void {
+    this->_typeName = typeName;
+  }
+
+  inline auto getTypeName() -> const std::string & { return this->_typeName; }
 
   inline auto getObjectTypeIdentifier()
       -> const std::unique_ptr<BoundLiteralExpression<std::any>> & {

@@ -19,6 +19,12 @@ llvm::Value *ForStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
+  _codeGenerationContext->getTypeChain()->addHandler(
+      std::make_unique<TypeTable>());
+
+  _codeGenerationContext->getCustomTypeChain()->addHandler(
+      std::make_unique<CustomTypeStatementTable>());
+
   std::string variableName = "";
 
   // Step Value
@@ -170,9 +176,12 @@ llvm::Value *ForStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->decrementCountIfNotZero(
       _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
-  _codeGenerationContext->getAllocaChain()->removeHandler();
+  // Exit
 
+  _codeGenerationContext->getAllocaChain()->removeHandler();
   _codeGenerationContext->getNamedValueChain()->removeHandler();
+  _codeGenerationContext->getTypeChain()->removeHandler();
+  _codeGenerationContext->getCustomTypeChain()->removeHandler();
   return exitValue;
 }
 

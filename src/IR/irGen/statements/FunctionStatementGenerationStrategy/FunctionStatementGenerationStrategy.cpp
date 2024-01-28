@@ -34,10 +34,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
 
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
-
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
-
+  _codeGenerationContext->getTypeChain()->addHandler(
+      std::make_unique<TypeTable>());
+  _codeGenerationContext->getCustomTypeChain()->addHandler(
+      std::make_unique<CustomTypeStatementTable>());
   std::vector<std::string> parameterNames;
 
   for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
@@ -139,8 +141,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
   }
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
-
   _codeGenerationContext->getAllocaChain()->removeHandler();
+  _codeGenerationContext->getTypeChain()->removeHandler();
 
   _codeGenerationContext->getReturnAllocaStack().pop();
 
@@ -188,6 +190,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
+  _codeGenerationContext->getTypeChain()->addHandler(
+      std::make_unique<TypeTable>());
+
   std::vector<std::string> parameterNames;
 
   for (int i = 0; i < fd->getParametersRef().size(); i++) {
@@ -231,6 +236,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
+  _codeGenerationContext->getTypeChain()->removeHandler();
+  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
   _codeGenerationContext->getNamedValueChain()->setNamedValue(
       fd->getFunctionNameRef(), F);

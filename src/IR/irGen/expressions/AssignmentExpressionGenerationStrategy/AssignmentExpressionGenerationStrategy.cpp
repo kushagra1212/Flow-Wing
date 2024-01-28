@@ -56,6 +56,8 @@ AssignmentExpressionGenerationStrategy::handlePrimitiveGlobalVariableAssignment(
 llvm::Value *
 AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
     BoundAssignmentExpression *assignmentExpression) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
   if (!canGenerateLiteralExpressionAssignment(assignmentExpression)) {
     return nullptr;
   }

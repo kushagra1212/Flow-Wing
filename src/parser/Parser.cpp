@@ -899,6 +899,9 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
     case SyntaxKindUtils::SyntaxKind::OpenBracketToken: {
       return std::move(this->parseBracketedExpression());
     }
+    case SyntaxKindUtils::SyntaxKind::OpenBraceToken: {
+      return std::move(this->parseObjectExpression());
+    }
     default:
       break;
   }
@@ -909,6 +912,44 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
   return std::make_unique<LiteralExpressionSyntax<std::any>>(
       std::move(expressionToken), nullptr);
 }
+
+std::unique_ptr<ObjectExpressionSyntax> Parser::parseObjectExpression() {
+  std::unique_ptr<ObjectExpressionSyntax> objES =
+      std::make_unique<ObjectExpressionSyntax>();
+
+  this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+
+  while (this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+
+    std::any val = idenfierToken->getValue();
+
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> idenfierExp =
+        std::make_unique<LiteralExpressionSyntax<std::any>>(
+            std::move(idenfierToken), val);
+
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+
+    std::unique_ptr<ExpressionSyntax> expression =
+        std::move(this->parseExpression());
+
+    objES->addAttribute(std::move(idenfierExp), std::move(expression));
+
+    if (this->getCurrent()->getKind() !=
+        SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+    }
+  }
+
+  this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
+
+  return std::move(objES);
+}
+
 std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
@@ -922,10 +963,26 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
               "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
 
-  return std::make_unique<VariableExpressionSyntax>(
-      std::make_unique<LiteralExpressionSyntax<std::any>>(
-          std::move(identifierToken), value),
-      false, std::move(typeExpression));
+  std::unique_ptr<VariableExpressionSyntax> variExp =
+      std::make_unique<VariableExpressionSyntax>(
+          std::make_unique<LiteralExpressionSyntax<std::any>>(
+              std::move(identifierToken), value),
+          false, std::move(typeExpression));
+
+  while (this->getCurrent()->getKind() ==
+         SyntaxKindUtils::SyntaxKind::DotToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::DotToken);
+
+    std::unique_ptr<SyntaxToken<std::any>> identifierToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+    std::any value = identifierToken->getValue();
+
+    variExp->addDotExpression(
+        std::make_unique<LiteralExpressionSyntax<std::any>>(
+            std::move(identifierToken), value));
+  }
+
+  return std::move(variExp);
 }
 std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =

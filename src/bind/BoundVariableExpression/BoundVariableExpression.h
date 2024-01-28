@@ -33,8 +33,20 @@ class BoundVariableExpression : public BoundExpression {
 
   inline auto isConstant() const -> const bool { return _isConstant; }
 
+  inline auto getDotExpressionList() const -> const
+      std::vector<std::unique_ptr<BoundLiteralExpression<std::any>>> & {
+    return _dotExpressionList;
+  }
+
+  inline void addDotExpression(
+      std::unique_ptr<BoundLiteralExpression<std::any>> dotExpression) {
+    _dotExpressionList.push_back(std::move(dotExpression));
+  }
+
  private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
+  std::vector<std::unique_ptr<BoundLiteralExpression<std::any>>>
+      _dotExpressionList;
   bool _isConstant;
   std::unique_ptr<BoundTypeExpression> _variableTypeExp;
 };

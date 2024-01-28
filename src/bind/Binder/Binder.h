@@ -15,6 +15,7 @@
 #include "../../syntax/expression/ExpressionSyntax.h"
 #include "../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../../syntax/expression/LiteralExpressionSyntax.h"
+#include "../../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
@@ -56,6 +57,7 @@
 #include "../BoundIfStatement/BoundIfStatement.h"
 #include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../BoundObjectExpression/BoundObjectExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
@@ -172,6 +174,9 @@ class Binder {
 
   std::unique_ptr<BoundTypeExpression> bindTypeExpression(
       TypeExpressionSyntax *typeExpressionSyntax);
+
+  std::unique_ptr<BoundExpression> bindObjectExpression(
+      ObjectExpressionSyntax *objectExpressionSyntax);
 
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,

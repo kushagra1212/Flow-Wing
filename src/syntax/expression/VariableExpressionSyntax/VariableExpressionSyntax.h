@@ -19,6 +19,16 @@ class VariableExpressionSyntax : public ExpressionSyntax {
   const virtual DiagnosticUtils::SourceLocation getSourceLocation()
       const override;
 
+  inline void addDotExpression(
+      std::unique_ptr<ExpressionSyntax> dotExpression) {
+    _dotExpressionList.push_back(std::move(dotExpression));
+  }
+
+  inline auto getDotExpressionList() const
+      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
+    return _dotExpressionList;
+  }
+
   inline auto getIdentifierTokenRef() const
       -> const std::unique_ptr<ExpressionSyntax> & {
     return _identifierExpression;
@@ -42,6 +52,7 @@ class VariableExpressionSyntax : public ExpressionSyntax {
  private:
   std::unique_ptr<ExpressionSyntax> _identifierExpression;
   std::unique_ptr<TypeExpressionSyntax> _variableTypeExpr;
+  std::vector<std::unique_ptr<ExpressionSyntax>> _dotExpressionList;
   bool _isConstant;
   std::string _variableName;
 };

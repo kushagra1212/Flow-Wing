@@ -186,6 +186,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     case SyntaxKind::HashSlashToken:
       return "HashSlashToken";
 
+    case SyntaxKind::DotToken: {
+      return "DotToken";
+    }
+
     case SyntaxKind::CommentStatement:
       return "CommentStatement";
 
