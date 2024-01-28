@@ -8,6 +8,11 @@ llvm::Value *
 VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
     const std::string &variableName, llvm::Value *variableValue,
     llvm::AllocaInst *v) {
+  // When Local Variable is a struct type
+  if (v && llvm::isa<llvm::StructType>(v->getAllocatedType())) {
+    return getObjectValue(_typeExpression, v, 0, variableName);
+  }
+
   return Builder->CreateLoad(variableValue->getType(), v, variableName);
 }
 
@@ -23,10 +28,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
     llvm::AllocaInst *v) {
   // Typed Local Variables
 
-  // When Local Variable is an array type
-  if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
-    return v;
-  }
   if (!v) {
     _codeGenerationContext->getLogger()->LogError(
         "Variable " + variableName + " not found in variable expression");
@@ -34,9 +35,9 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
     return nullptr;
   }
 
-  // When Local Variable is a struct type
-  if (v && llvm::isa<llvm::StructType>(v->getAllocatedType())) {
-    return getObjectValue(_typeExpression, v, 0, variableName);
+  // When Local Variable is an array type
+  if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+    return v;
   }
 
   // When Primitive Local Variable is not a dynamic type
