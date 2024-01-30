@@ -425,4 +425,74 @@ TEST_F(ObjectTest, SelfTypeScoped) {
     ": 'Rathore', age : 0, height : 0.00000000000000, type1 :  } }");
 }
 
+TEST_F(ObjectTest, MultipleCustomTypesPrintSubobjectScoped) {
+  I(R"(
+       {
+         type obj = {
+            height: deci,
+            weight: deci,
+            isEmployed: bool,
+        }
+
+        type my2 = {
+            name: str,
+            age: int,
+            obj: obj,
+        }
+
+        var a:my2 = {
+            name: "Kushagra",
+            age: 30,
+            obj: {
+                height: 5.10,
+                weight: 50.5,
+                isEmployed: true
+            }
+        }
+
+        print(a)
+        print(a.obj)
+       }
+
+    )");
+
+  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
+    ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
+    "weight : 50.50000000000000, isEmployed : true }");
+}
+
+TEST_F(ObjectTest, MultipleCustomTypesPrintSubobject) {
+  I(R"(
+         type obj = {
+            height: deci,
+            weight: deci,
+            isEmployed: bool,
+        }
+
+        type my2 = {
+            name: str,
+            age: int,
+            obj: obj,
+        }
+
+        var a:my2 = {
+            name: "Kushagra",
+            age: 30,
+            obj: {
+                height: 5.10,
+                weight: 50.5,
+                isEmployed: true
+            }
+        }
+
+        print(a)
+        print(a.obj)
+
+    )");
+
+  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
+    ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
+    "weight : 50.50000000000000, isEmployed : true }");
+}
+
 #endif

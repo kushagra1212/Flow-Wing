@@ -1,20 +1,29 @@
-        type type1 = {
-            name: str,
-            age: int,
+       {
+         type obj = {
             height: deci,
-            type1: type1,
+            weight: deci,
+            isEmployed: bool,
         }
 
-        var a:type1 = {
+        type my2 = {
+            name: str,
+            age: int,
+            obj: obj,
+        }
+
+        var a:my2 = {
             name: "Kushagra",
             age: 30,
-            height: 5.10,
-            type1: {
-                name: "Rathore",
+            obj: {
+                height: 5.10,
+                weight: 50.5,
+                isEmployed: true
             }
         }
 
         print(a)
+        print(a.obj)
+       }
 /#{
 type my = {
       num:int,
