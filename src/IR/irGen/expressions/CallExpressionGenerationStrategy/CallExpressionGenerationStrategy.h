@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
@@ -26,6 +27,10 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                               const std::vector<size_t> &sizes,
                               std::vector<llvm::Value *> &indices, int64_t i,
                               llvm::Type *&elementType);
+
+  llvm::Value *printObject(llvm::Value *variableElementPtr,
+                           const std::string &parPropertyKey);
+
   llvm::Type *isGlobalArray(llvm::Value *value);
 
   llvm::Type *isLocalArray(llvm::Value *value);

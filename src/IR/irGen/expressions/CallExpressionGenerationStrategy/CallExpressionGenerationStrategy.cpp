@@ -140,6 +140,17 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           }
         }
 
+        if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
+          llvm::StructType *structType =
+              llvm::cast<llvm::StructType>(v->getAllocatedType());
+
+          auto metaData = v->getMetadata(v->getName());
+          llvm::MDString *nameMetadata =
+              llvm::cast<llvm::MDString>(metaData->getOperand(0));
+          std::string typeName = nameMetadata->getString().str();
+          return printObject(value, value->getName().str());
+        }
+
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                             {_stringTypeConverter->convertExplicit(value),
                              Builder->getInt1(false)});
@@ -160,6 +171,16 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           if (!elementType->isIntegerTy(8)) {
             return printArray(arrayType, elementType, v);
           }
+        }
+        if (llvm::isa<llvm::StructType>(v->getValueType())) {
+          llvm::StructType *structType =
+              llvm::cast<llvm::StructType>(v->getValueType());
+
+          auto metaData = v->getMetadata(v->getName());
+          llvm::MDString *nameMetadata =
+              llvm::cast<llvm::MDString>(metaData->getOperand(0));
+          std::string typeName = nameMetadata->getString().str();
+          return printObject(value, value->getName().str());
         }
       }
 
@@ -472,7 +493,7 @@ llvm::Value *CallExpressionGenerationStrategy::getUnit(
     const std::string &unit, const std::string &unitName) {
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(unitName);
   if (!variable) {
-    // The global variable doesn't exist, so create it
+    // The global variable doesn't exist
     llvm::Constant *initializer = Builder->CreateGlobalStringPtr(unit);
     variable = new llvm::GlobalVariable(
         /*Module=*/*TheModule,
@@ -532,6 +553,117 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(
 
   llvm::Type *elt = _codeGenerationContext->getArrayElementTypeMetadata(v);
   printArrayAtom(arrayType, v, sizes, indices, 0, elt);
+
+  return nullptr;
+}
+
+llvm::Value *CallExpressionGenerationStrategy::printObject(
+    llvm::Value *variableElementPtr, const std::string &parPropertyKey) {
+  llvm::StructType *objTypeType = nullptr;
+
+  printUnit("{ ", "{ ");
+
+  if (llvm::isa<llvm::GlobalVariable>(variableElementPtr)) {
+    objTypeType = llvm::cast<llvm::StructType>(
+        (llvm::cast<llvm::GlobalVariable>(variableElementPtr))->getValueType());
+  } else if (llvm::isa<llvm::AllocaInst>(variableElementPtr)) {
+    objTypeType = llvm::cast<llvm::StructType>(
+        (llvm::cast<llvm::AllocaInst>(variableElementPtr))->getAllocatedType());
+  }
+
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          objTypeType->getStructName().str());
+
+  uint64_t i = 0;
+
+  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
+    std::string typeName = std::any_cast<std::string>(bLE->getValue());
+    std::string propertyKey = std::any_cast<std::string>(bLE->getValue());
+
+    Builder->CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+        {Builder->CreateGlobalStringPtr(propertyKey), Builder->getInt1(false)});
+    printUnit(" : ", " : ");
+    std::string key = boundCustomTypeStatement->getTypeNameAsString() + ".";
+
+    key += propertyKey;
+    size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
+
+    if (index == -1) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Variable " + key + " not found in variable expression ");
+
+      return nullptr;
+    }
+
+    llvm::Value *elementPtr =
+        Builder->CreateStructGEP(objTypeType, variableElementPtr, index);
+    if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      const std::string var_name =
+          variableElementPtr->getName().str() + "." + propertyKey;
+
+      llvm::GlobalVariable *globalVariable =
+          TheModule->getGlobalVariable(var_name);
+      llvm::AllocaInst *allocaInst =
+          _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
+      if (allocaInst &&
+          llvm::isa<llvm::StructType>(allocaInst->getAllocatedType())) {
+        printObject(allocaInst, propertyKey);
+      } else if (globalVariable &&
+                 llvm::isa<llvm::StructType>(globalVariable->getValueType())) {
+        printObject(globalVariable, propertyKey);
+      }
+    } else {
+      llvm::Type *type = objTypeType->getElementType(index);
+      llvm::LoadInst *loaded = Builder->CreateLoad(type, elementPtr);
+
+      if (loaded->getType()->isPointerTy()) {
+        printUnit("'", "'");
+        llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+        llvm::BasicBlock *isNullBlock = llvm::BasicBlock::Create(
+            *TheContext, "IsNull", currentBlock->getParent());
+        llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
+            *TheContext, "End", currentBlock->getParent());
+        llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+            *TheContext, "Merge", currentBlock->getParent());
+
+        // Create a null pointer constant of the same type as yourValue
+        llvm::Constant *nullPtr = llvm::Constant::getNullValue(type);
+
+        // Compare yourValue with the null pointer constant
+        llvm::Value *isNullValue = Builder->CreateICmpNE(loaded, nullPtr);
+
+        Builder->CreateCondBr(isNullValue, endBlock, isNullBlock);
+
+        Builder->SetInsertPoint(isNullBlock);
+
+        Builder->CreateBr(mergeBlock);
+
+        Builder->SetInsertPoint(endBlock);
+
+        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                            {_stringTypeConverter->convertExplicit(loaded),
+                             Builder->getInt1(false)});
+
+        Builder->CreateBr(mergeBlock);
+
+        Builder->SetInsertPoint(mergeBlock);
+        printUnit("'", "'");
+
+      } else {
+        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                            {_stringTypeConverter->convertExplicit(loaded),
+                             Builder->getInt1(false)});
+      }
+    }
+    if (i != boundCustomTypeStatement->getKeyPairs().size() - 1)
+      printUnit(", ", " , ");
+
+    i++;
+  }
+
+  printUnit(" }", "}");
 
   return nullptr;
 }

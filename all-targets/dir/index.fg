@@ -1,6 +1,24 @@
-{
+        type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        print(a)
+/#{
 type my = {
-      num:int
+      num:int,
+      mum: deci
 }
 
 type parentType = {
@@ -9,8 +27,9 @@ type parentType = {
       x:my
 }
 
-var x:parentType = {par:"ss",x: {num:22} ,a:{par:"s",x:{num:1}}}
-print(x.x.num)}
+var x:parentType = {par:"ss",x: {mum:22.0} ,a:{par:"Him",x:{}}}
+print(x.x)
+}
 /#
 
 type parentType = {

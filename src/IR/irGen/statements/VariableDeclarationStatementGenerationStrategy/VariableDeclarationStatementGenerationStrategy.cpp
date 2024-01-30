@@ -94,10 +94,11 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 
     llvm::AllocaInst *var =
         Builder->CreateAlloca(structType, nullptr, _variableName);
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
 
-    objExpGenStrat->setGlobalVariable(var);
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+    objExpGenStrat->setVariable(var);
     objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
+
     return objExpGenStrat->generateExpression(
         variableDeclaration->getInitializerPtr().get());
   }
@@ -146,7 +147,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
         *TheModule, structType, false, llvm::GlobalValue::ExternalLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
 
-    objExpGenStrat->setGlobalVariable(_globalVariable);
+    objExpGenStrat->setVariable(_globalVariable);
     objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
 
     return objExpGenStrat->generateGlobalExpression(

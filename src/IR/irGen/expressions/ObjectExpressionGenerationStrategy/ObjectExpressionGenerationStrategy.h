@@ -11,17 +11,18 @@ class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
   llvm::Value *generateExpression(BoundExpression *expression) override;
 
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
-  llvm::Value *createExpression(BoundExpression *expression);
+  llvm::Value *createExpression(BoundExpression *expression,
+                                llvm::Value *variable,
+                                const std::string &typeName);
 
-  inline auto setGlobalVariable(llvm::Value *globalVariable) {
-    _globalVariable = globalVariable;
-  }
+  inline auto setVariable(llvm::Value *variable) { _variable = variable; }
 
   inline auto setTypeName(std::string typeName) { _typeName = typeName; }
 
  private:
-  llvm::Value *_globalVariable;
+  llvm::Value *_variable;
   std::string _typeName;
+  bool _variableIsGlobal = false;
 };
 
 #endif  // __FLOWWING_OBJECT_EXPRESSION_STRATEGY_H__

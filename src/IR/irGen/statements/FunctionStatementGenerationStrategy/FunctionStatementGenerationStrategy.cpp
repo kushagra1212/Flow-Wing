@@ -108,17 +108,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
       ->generateStatement(functionDeclaration->getBodyRef().get());
 
-  //   if (_codeGenerationContext->getReturnTypeHandler()
-  //           ->getReturnType(functionDeclaration->getFunctionNameRef())
-  //           ->getType() != llvm::Type::getVoidTy(*TheContext)) {
-  //     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-  //         functionDeclaration->getReturnType()->getLocation());
-
-  //     _codeGenerationContext->getLogger()->LogError(
-  //         "Function return type is not Nothing, return expression not found
-  //         in " "function " + functionDeclaration->getFunctionNameRef());
-  //     return nullptr;
-  //   }
   llvm::Type *returnType =
       _codeGenerationContext->getReturnTypeHandler()
           ->getReturnType(functionDeclaration->getFunctionNameRef())
@@ -164,12 +153,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   for (int i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
-  //   llvm::Type *returnType =
-  //       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-  //           fd->getReturnType());
-
-  //   _codeGenerationContext->getReturnAllocaStack().push({fd->getReturnType(),
-  //   0});
 
   llvm::Type *returnType = nullptr;
 
@@ -219,20 +202,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
       ->generateStatement(fd->getBodyRef().get());
-
-  //   if (_codeGenerationContext->getReturnAllocaStack().top().first !=
-  //           Utils::type::NOTHING &&
-  //       _codeGenerationContext->getReturnAllocaStack().top().second == 0) {
-
-  //     _codeGenerationContext->getLogger()->LogError(
-  //         "Function return type is not Nothing, return expression is not
-  //         found");
-
-  //     return nullptr;
-  //   }
-
-  //   Builder->CreateRet(_codeGenerationContext->getMapper()->getDefaultValue(
-  //       fd->getReturnType()));
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();

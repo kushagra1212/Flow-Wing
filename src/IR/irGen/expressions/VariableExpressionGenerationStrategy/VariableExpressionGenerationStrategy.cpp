@@ -9,8 +9,12 @@ VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
     const std::string &variableName, llvm::Value *variableValue,
     llvm::AllocaInst *v) {
   // When Local Variable is a struct type
-  if (v && llvm::isa<llvm::StructType>(v->getAllocatedType())) {
-    return getObjectValue(_typeExpression, v, 0, variableName);
+  // When Global Variable (Value) is a struct type
+  if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
+    if (_variableExpression->getDotExpressionList().size() == 0) {
+      return v;
+    }
+    return getObjectValue(v, 0, variableName);
   }
 
   return Builder->CreateLoad(variableValue->getType(), v, variableName);
@@ -103,11 +107,8 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
-    BoundTypeExpression *bTE, llvm::Value *variableElementPtr, size_t listIndex,
+    llvm::Value *variableElementPtr, size_t listIndex,
     const std::string &parPropertyKey) {
-  BoundObjectTypeExpression *objType =
-      static_cast<BoundObjectTypeExpression *>(bTE);
-
   llvm::StructType *objTypeType = nullptr;
 
   if (llvm::isa<llvm::GlobalVariable>(variableElementPtr)) {
@@ -116,9 +117,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
   } else if (llvm::isa<llvm::AllocaInst>(variableElementPtr)) {
     objTypeType = llvm::cast<llvm::StructType>(
         (llvm::cast<llvm::AllocaInst>(variableElementPtr))->getAllocatedType());
-  } else {
-    objTypeType =
-        _codeGenerationContext->getTypeChain()->getType(objType->getTypeName());
   }
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
@@ -128,11 +126,11 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
   std::unordered_map<std::string, BoundTypeExpression *> boundTypeExpressionMap;
 
   for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-    std::string typeName = std::any_cast<std::string>(bLE->getValue());
-    boundTypeExpressionMap[typeName] = bTE.get();
+    std::string propertyName = std::any_cast<std::string>(bLE->getValue());
+    boundTypeExpressionMap[propertyName] = bTE.get();
   }
 
-  std::string key = boundCustomTypeStatement->getTypeNameAsString() + ":";
+  std::string key = boundCustomTypeStatement->getTypeNameAsString() + ".";
 
   std::string propertyKey = std::any_cast<std::string>(
       _variableExpression->getDotExpressionList()[listIndex]->getValue());
@@ -143,7 +141,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
   if (boundTypeExpressionMap.find(propertyKey) ==
       boundTypeExpressionMap.end()) {
     _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " not found in Property " + parPropertyKey);
+        "Property " + propertyKey + " not found in variable " + parPropertyKey +
+        " of type " + objTypeType->getStructName().str());
 
     return nullptr;
   }
@@ -154,27 +153,65 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
 
   if (index == -1) {
     _codeGenerationContext->getLogger()->LogError(
-        "Variable " + key + " not found in variable expression ");
+        "Property " + propertyKey + " not found in variable " + parPropertyKey +
+        " of type " + objTypeType->getStructName().str());
 
     return nullptr;
   }
-
-  if (_variableExpression->getDotExpressionList().size() > listIndex + 1 &&
-      boundTypeExpressionMap[propertyKey]->getSyntaxType() !=
-          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+  auto logError = [&]() {
     _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " is not an object type in variable " +
-        parPropertyKey);
+        "Property " + propertyKey + " is not an object in variable " +
+        parPropertyKey + " of Type " + objTypeType->getStructName().str());
+
     return nullptr;
+  };
+
+  const bool isNested =
+      _variableExpression->getDotExpressionList().size() > listIndex + 1;
+
+  if (isNested && boundTypeExpressionMap[propertyKey]->getSyntaxType() !=
+                      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    return logError();
   }
   llvm::Value *elementPtr =
       Builder->CreateStructGEP(objTypeType, variableElementPtr, index);
 
-  if (_variableExpression->getDotExpressionList().size() > listIndex + 1 &&
-      boundTypeExpressionMap[propertyKey]->getSyntaxType() ==
-          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    return getObjectValue(boundTypeExpressionMap[propertyKey], elementPtr,
-                          listIndex + 1, propertyKey);
+  if (boundTypeExpressionMap[propertyKey]->getSyntaxType() ==
+      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    const std::string var_name =
+        variableElementPtr->getName().str() + "." + propertyKey;
+
+    llvm::GlobalVariable *globalVariable =
+        TheModule->getGlobalVariable(var_name);
+
+    llvm::AllocaInst *allocaInst =
+        _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
+
+    if (allocaInst) {
+      const bool isStruct =
+          llvm::isa<llvm::StructType>(allocaInst->getAllocatedType());
+
+      if (!isStruct) return logError();
+
+      if (isNested)
+        return getObjectValue(allocaInst, listIndex + 1, propertyKey);
+
+      return allocaInst;
+    }
+
+    if (globalVariable) {
+      const bool isStruct =
+          llvm::isa<llvm::StructType>(globalVariable->getValueType());
+
+      if (!isStruct) return logError();
+
+      if (isNested)
+        return getObjectValue(globalVariable, listIndex + 1, propertyKey);
+
+      return globalVariable;
+    }
+
+    return logError();
   }
 
   llvm::LoadInst *loaded = Builder->CreateLoad(type, elementPtr);
@@ -211,7 +248,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
     if (_variableExpression->getDotExpressionList().size() == 0) {
       return variable;
     }
-    return getObjectValue(_typeExpression, variable, 0, variableName);
+    return getObjectValue(variable, 0, variableName);
   }
 
   // when Primitive Typed Global Variable (Value)

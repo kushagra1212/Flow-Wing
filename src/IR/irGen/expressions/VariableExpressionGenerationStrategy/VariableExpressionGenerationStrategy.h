@@ -32,8 +32,7 @@ class VariableExpressionGenerationStrategy
                                      llvm::Value *variableValue,
                                      llvm::AllocaInst *v);
 
-  llvm::Value *getObjectValue(BoundTypeExpression *bTE, llvm::Value *elementPtr,
-                              size_t listIndex,
+  llvm::Value *getObjectValue(llvm::Value *elementPtr, size_t listIndex,
                               const std::string &variableName);
 
  private:

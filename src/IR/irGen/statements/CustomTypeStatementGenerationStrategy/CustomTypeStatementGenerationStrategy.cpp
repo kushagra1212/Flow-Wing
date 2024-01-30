@@ -55,16 +55,18 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
     }
 
     const std::string key =
-        boundCustomTypeStatement->getTypeNameAsString() + ":" + propertyName;
+        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
 
     structElements.push_back(type);
     _codeGenerationContext->getTypeChain()->setIndex(key, index);
     _codeGenerationContext->getTypeChain()->setElementType(key, type);
+
     index++;
   }
   structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
+
   _codeGenerationContext->getTypeChain()->setType(
       boundCustomTypeStatement->getTypeNameAsString(), structType);
 
