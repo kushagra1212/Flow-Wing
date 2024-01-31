@@ -1,30 +1,33 @@
-       {
+        type Parent = {
+          a:int
+        }
+
          type obj = {
-            height: deci,
-            weight: deci,
-            isEmployed: bool,
+          a:int,
+          b:deci,
+          c:bool,
+          d:str,
+          p:Parent
         }
-
-        type my2 = {
-            name: str,
-            age: int,
-            obj: obj,
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello",
+          p:{ a : 100 }
         }
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        x.p = { a : 400 }
+        print(x)
 
-        var a:my2 = {
-            name: "Kushagra",
-            age: 30,
-            obj: {
-                height: 5.10,
-                weight: 50.5,
-                isEmployed: true
-            }
-        }
 
-        print(a)
-        print(a.obj)
-       }
-/#{
+
+
+/#
 type my = {
       num:int,
       mum: deci
@@ -36,9 +39,11 @@ type parentType = {
       x:my
 }
 
-var x:parentType = {par:"ss",x: {mum:22.0} ,a:{par:"Him",x:{}}}
+var x:parentType = {par:"ss",x: {mum:22.0,num:2} ,a:{par:"Him",x:{}}}
 print(x.x)
-}
+x.x.num = 100
+print(x.x)
+
 /#
 
 type parentType = {

@@ -100,7 +100,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
       return nullptr;
     }
 
-    std::string key = typeName + "." + propertyName;
+    std::string key =
+        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
     const size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
     if (index == -1) {

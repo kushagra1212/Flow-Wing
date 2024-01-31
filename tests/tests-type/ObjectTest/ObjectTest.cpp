@@ -495,4 +495,306 @@ TEST_F(ObjectTest, MultipleCustomTypesPrintSubobject) {
     "weight : 50.50000000000000, isEmployed : true }");
 }
 
+TEST_F(ObjectTest, AssignObjectSimple) {
+  I(R"(
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+        print(x)
+        x = {
+          a:100,
+          b:200.0,
+          c:false,
+          d:"world"
+        }
+
+        print(x)
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignObjectSimpleNested1) {
+  I(R"(
+{
+
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+        print(x)
+        x = {
+          a:100,
+          b:200.0,
+          c:false,
+          d:"world"
+        }
+
+        print(x)
+
+}
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignObjectSimpleNested2) {
+  I(R"(
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+
+{
+
+
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+        print(x)
+        x = {
+          a:100,
+          b:200.0,
+          c:false,
+          d:"world"
+        }
+
+        print(x)
+
+}
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignObjectSimpleNested3) {
+  I(R"(
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+{
+
+
+
+        print(x)
+        x = {
+          a:100,
+          b:200.0,
+          c:false,
+          d:"world"
+        }
+
+        print(x)
+
+}
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignObjectSimpleNested4) {
+  I(R"(
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+{
+
+
+
+        print(x)
+        x = {
+          a:100,
+          b:200.0,
+          c:false,
+          d:"world"
+        }
+
+
+}
+        print(x)
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignValueSimple) {
+  I(R"(
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+
+
+
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        print(x)
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignValueSimpleScope) {
+  I(R"(
+{         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello"
+        }
+
+
+
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        print(x)
+        
+      }
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+    "200.00000000000000, c : false, d : 'world' }")
+}
+
+TEST_F(ObjectTest, AssignValueSimpleObject) {
+  I(R"(
+        type Parent = {
+          a:int
+        }
+
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str,
+          p:Parent
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello",
+          p:{ a : 100 }
+        }
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        x.p.a = 400
+        print(x)
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
+    "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
+    "}")
+}
+TEST_F(ObjectTest, AssignValueSimpleObject2) {
+  I(R"(
+        type Parent = {
+          a:int
+        }
+
+         type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str,
+          p:Parent
+        }
+        var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello",
+          p:{ a : 100 }
+        }
+        print(x)
+        x.a = 100
+        x.b = 200.0
+        x.c = false
+        x.d = "world"
+        x.p = { a : 400 }
+        print(x)
+
+    )");
+
+  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
+    "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
+    "}")
+}
 #endif

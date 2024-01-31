@@ -585,9 +585,8 @@ llvm::Value *CallExpressionGenerationStrategy::printObject(
         TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
         {Builder->CreateGlobalStringPtr(propertyKey), Builder->getInt1(false)});
     printUnit(" : ", " : ");
-    std::string key = boundCustomTypeStatement->getTypeNameAsString() + ".";
-
-    key += propertyKey;
+    std::string key =
+        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
     size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
     if (index == -1) {

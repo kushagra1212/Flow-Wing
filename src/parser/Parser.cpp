@@ -1019,19 +1019,25 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
-  if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-    std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+  if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken ||
+      this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
+    std::unique_ptr<VariableExpressionSyntax> variableExpression =
+        std::move(this->parseVariableExpression());
+
+    if (this->getCurrent()->getKind() !=
+        SyntaxKindUtils::SyntaxKind::EqualsToken) {
+      return std::move(variableExpression);
+    }
+
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
     std::unique_ptr<ExpressionSyntax> right =
         std::move(this->parseExpression());
 
-    std::any value = identifierToken->getValue();
     return std::make_unique<AssignmentExpressionSyntax>(
-        std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(identifierToken), value),
-        std::move(operatorToken), std::move(right));
+        std::move(variableExpression), std::move(operatorToken),
+        std::move(right));
+
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
     return std::move(this->parseIndexExpression());

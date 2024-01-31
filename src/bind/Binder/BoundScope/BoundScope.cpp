@@ -1,7 +1,9 @@
 #include "BoundScope.h"
 
 BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
-    : parent(std::move(parent)), breakable(false), continuable(false),
+    : parent(std::move(parent)),
+      breakable(false),
+      continuable(false),
       functionCounted(0) {}
 
 bool BoundScope::isInFunction() {
@@ -56,7 +58,6 @@ bool BoundScope::isContinuable() {
 bool BoundScope::tryDeclareVariable(const std::string &name,
                                     BoundVariableDeclaration *variable) {
   if (this->variables.find(name) == this->variables.end()) {
-
     this->variables[name] = variable;
     return true;
   }
@@ -96,7 +97,6 @@ bool BoundScope::tryAssignVariable(const std::string &name,
 bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
   if (this->functions.find(function->getFunctionNameRef()) !=
       this->functions.end()) {
-
     return false;
   }
 
@@ -139,10 +139,20 @@ bool BoundScope::tryLookupCustomType(const std::string &name) {
   return this->parent->tryLookupCustomType(name);
 }
 
+BoundCustomTypeStatement *BoundScope::tryGetCustomType(
+    const std::string &name) {
+  if (this->customTypes.find(name) != this->customTypes.end()) {
+    return this->customTypes[name];
+  }
+  if (this->parent == nullptr) {
+    return nullptr;
+  }
+  return this->parent->tryGetCustomType(name);
+}
+
 bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
   if (this->customTypes.find(customType->getTypeNameAsString()) !=
       this->customTypes.end()) {
-
     return false;
   }
 

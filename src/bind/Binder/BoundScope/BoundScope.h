@@ -50,4 +50,5 @@ class BoundScope {
 
   bool tryDeclareCustomType(BoundCustomTypeStatement *customType);
   bool tryLookupCustomType(const std::string &name);
+  BoundCustomTypeStatement *tryGetCustomType(const std::string &name);
 };

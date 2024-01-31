@@ -130,8 +130,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
     boundTypeExpressionMap[propertyName] = bTE.get();
   }
 
-  std::string key = boundCustomTypeStatement->getTypeNameAsString() + ".";
-
   std::string propertyKey = std::any_cast<std::string>(
       _variableExpression->getDotExpressionList()[listIndex]->getValue());
 
@@ -146,7 +144,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
 
     return nullptr;
   }
-  key += propertyKey;
+  std::string key =
+      boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
   size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
   llvm::Type *type = objTypeType->getElementType(index);

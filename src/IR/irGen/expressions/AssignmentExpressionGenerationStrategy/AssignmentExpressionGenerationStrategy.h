@@ -7,6 +7,7 @@
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -57,6 +58,9 @@ class AssignmentExpressionGenerationStrategy
       llvm::GlobalVariable *variable, const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
+  llvm::Value *assignObject(llvm::Value *variableElementPtr, size_t listIndex,
+                            const std::string &parPropertyKey);
+
  private:
   std::string _variableName;
   llvm::AllocaInst *_allocaInst;
@@ -64,6 +68,8 @@ class AssignmentExpressionGenerationStrategy
   SyntaxKindUtils::SyntaxKind _variableType;
   bool _isGlobal;
   std::vector<llvm::Value *> _indices;
+  BoundVariableExpression *_variableExpression;
+  BoundExpression *_rhsExpression;
 };
 
 #endif  // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

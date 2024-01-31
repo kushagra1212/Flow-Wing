@@ -17,7 +17,6 @@ void ContainerAssignmentExpressionGenerationStrategy::setContainerName(
 
 const bool ContainerAssignmentExpressionGenerationStrategy::
     canGenerateExpressionAssignment(BoundExpression *expr) {
-
   if (!_arrayType) {
     _codeGenerationContext->getLogger()->LogError(
         "Variable " + _containerName + " not found in assignment expression ");
@@ -44,7 +43,6 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
     llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_rhsVariable);
 
     if (llvm::isa<llvm::ArrayType>(allocaInst->getAllocatedType())) {
-
       _rhsArrayType =
           llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
     }
@@ -54,7 +52,6 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
         llvm::cast<llvm::GlobalVariable>(_rhsVariable);
 
     if (llvm::isa<llvm::ArrayType>(rhsGlobalVariable->getValueType())) {
-
       _rhsArrayType =
           llvm::cast<llvm::ArrayType>(rhsGlobalVariable->getValueType());
     }
@@ -67,6 +64,13 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 
     if (_rhsArrayType == nullptr) {
       hasError = true;
+    }
+
+    if (hasError) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Function Call " + calledFunction->getName().str() +
+          " is not returning an array in assignment expression ");
+      return false;
     }
   } else {
     hasError = true;
@@ -132,12 +136,10 @@ ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
   _arrayType = nullptr;
 
   if (llvm::isa<llvm::GlobalVariable>(_variable)) {
-
     llvm::GlobalVariable *globalVariable =
         llvm::cast<llvm::GlobalVariable>(_variable);
 
     if (llvm::isa<llvm::ArrayType>(globalVariable->getValueType())) {
-
       _arrayType = llvm::cast<llvm::ArrayType>(globalVariable->getValueType());
     }
   }
@@ -159,7 +161,6 @@ ContainerAssignmentExpressionGenerationStrategy::generateExpression(
     llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_variable);
 
     if (llvm::isa<llvm::ArrayType>(allocaInst->getAllocatedType())) {
-
       _arrayType = llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
     }
   }
@@ -176,7 +177,6 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
     llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
     llvm::Type *rhsArrayElementType, std::vector<llvm::Value *> &indices,
     const std::vector<size_t> &rhsSizes, uint64_t index) {
-
   if (index < rhsSizes.size()) {
     for (int64_t i = 0; i < rhsSizes[index]; i++) {
       indices.push_back(Builder->getInt32(i));
@@ -205,7 +205,6 @@ llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
     llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
     llvm::Type *arrayElementType, const std::vector<size_t> &lhsSizes,
     const std::vector<size_t> &rhsSizes) {
-
   std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
   llvm::LoadInst *loaded = Builder->CreateLoad(rhsArrayType, rhsVariable);

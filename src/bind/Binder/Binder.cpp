@@ -566,10 +566,9 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     AssignmentExpressionSyntax *assignmentExpression) {
   std::string variable_str = "";
 
-  if (auto literalExpression =
-          dynamic_cast<LiteralExpressionSyntax<std::any> *>(
-              assignmentExpression->getLeftPtr().get())) {
-    variable_str = std::any_cast<std::string>(literalExpression->getValue());
+  if (auto variableExpression = dynamic_cast<VariableExpressionSyntax *>(
+          assignmentExpression->getLeftPtr().get())) {
+    variable_str = variableExpression->getVariableName();
   } else if (auto indexExpression = dynamic_cast<IndexExpressionSyntax *>(
                  assignmentExpression->getLeftPtr().get())) {
     variable_str = std::any_cast<std::string>(
