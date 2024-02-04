@@ -10,8 +10,7 @@ class BoundVariableExpression : public BoundExpression {
   BoundVariableExpression(
       const DiagnosticUtils::SourceLocation &location,
       std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
-      const bool &isConstant,
-      std::unique_ptr<BoundTypeExpression> variableTypeExp);
+      const bool &isConstant, BoundTypeExpression *variableTypeExp);
 
   virtual const std::type_info &getType() override;
   virtual BinderKindUtils::BoundNodeKind getKind() const override;
@@ -26,8 +25,7 @@ class BoundVariableExpression : public BoundExpression {
     return std::any_cast<std::string>(_identiferExpression->getValue());
   }
 
-  inline auto getVariableTypeRef() const
-      -> const std::unique_ptr<BoundTypeExpression> & {
+  inline auto getVariableTypeRef() -> BoundTypeExpression * {
     return _variableTypeExp;
   }
 
@@ -48,5 +46,5 @@ class BoundVariableExpression : public BoundExpression {
   std::vector<std::unique_ptr<BoundLiteralExpression<std::any>>>
       _dotExpressionList;
   bool _isConstant;
-  std::unique_ptr<BoundTypeExpression> _variableTypeExp;
+  BoundTypeExpression *_variableTypeExp;
 };

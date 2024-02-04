@@ -194,6 +194,9 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   BoundExpression *initializerExp =
       variableDeclaration->getInitializerPtr().get();
 
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      variableDeclaration->getLocation());
+
   if (!initializerExp) {
     _codeGenerationContext->getLogger()->LogError(
         "Rhs of variable " + _variableName + " is not an expression");

@@ -3,18 +3,17 @@
 FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
     llvm::Type *elementType, const std::string &containerName)
-    : ExpressionGenerationStrategy(context), _actualSizes(actualSizes),
-      _elementType(elementType), _containerName(containerName) {
-
+    : ExpressionGenerationStrategy(context),
+      _actualSizes(actualSizes),
+      _elementType(elementType),
+      _containerName(containerName) {
   _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
                                std::multiplies<uint64_t>());
 }
 
 llvm::Value *FillExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
-
-  if (!canGenerateExpression(expression))
-    return nullptr;
+  if (!canGenerateExpression(expression)) return nullptr;
 
   // Allocate memory on the stack for the array
   llvm::ArrayType *arrayType = nullptr;
@@ -61,9 +60,7 @@ llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
 
 llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
-
-  if (!canGenerateExpression(expression))
-    return nullptr;
+  if (!canGenerateExpression(expression)) return nullptr;
 
   // Load and Store the items in the allocated memory
 
@@ -83,6 +80,10 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
   _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);
   _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
                                                       _elementType);
+
+  // Builder->CreateMemSet(_globalVariable, _elementToFill,
+  // Builder->getInt32(2),
+  //                       (llvm::Align)4);
   return createGlobalExpression(arrayType, _globalVariable);
 }
 
@@ -90,9 +91,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
     llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
     uint64_t &sizeToFillVal, std::vector<llvm::Value *> &indices,
     uint64_t index) {
-
-  if (sizeToFillVal == 0)
-    return nullptr;
+  if (sizeToFillVal == 0) return nullptr;
 
   if (index < (_actualSizes.size())) {
     for (int64_t i = 0; i < _actualSizes[index]; i++) {
@@ -100,12 +99,10 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
       createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices,
                            index + 1);
       indices.pop_back();
-      if (sizeToFillVal == 0)
-        return nullptr;
+      if (sizeToFillVal == 0) return nullptr;
     }
     return nullptr;
   }
-
   llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
 
   Builder->CreateStore(elementToFill, elementPtr);
@@ -151,7 +148,6 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
 llvm::Value *FillExpressionGenerationStrategy::createExpression(
     llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
     uint64_t sizeToFillVal) {
-
   std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
   createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices, 0);
@@ -167,7 +163,6 @@ llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
 
 bool FillExpressionGenerationStrategy::canGenerateExpression(
     BoundExpression *expression) {
-
   BoundFillExpression *fillExpression =
       static_cast<BoundFillExpression *>(expression);
 

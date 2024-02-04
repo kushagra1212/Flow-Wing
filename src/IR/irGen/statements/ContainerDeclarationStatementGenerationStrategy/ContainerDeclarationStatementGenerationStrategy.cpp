@@ -18,25 +18,33 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
       static_cast<BoundArrayTypeExpression *>(
           contVarDec->getTypeExpression().get());
 
+  return generateCommonStatement(arrayTypeExpression,
+                                 contVarDec->getVariableName(),
+                                 contVarDec->getInitializerPtr().get());
+}
+
+llvm::Value *
+ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
+    BoundArrayTypeExpression *arrayTypeExpression,
+    const std::string &containerName, BoundExpression *initializer) {
   const SyntaxKindUtils::SyntaxKind &containerElementType =
       arrayTypeExpression->getElementType();
 
   this->calcActualContainerSize(arrayTypeExpression);
-  _containerName = contVarDec->getVariableName();
+  _containerName = containerName;
 
   _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
       arrayTypeExpression->getElementType());
 
-  BinderKindUtils::BoundNodeKind kind =
-      contVarDec->getInitializerPtr()->getKind();
+  BinderKindUtils::BoundNodeKind kind = initializer->getKind();
 
   switch (kind) {
     case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
       return generateBracketLocalExpression(
-          (BoundBracketedExpression *)contVarDec->getInitializerPtr().get());
+          (BoundBracketedExpression *)initializer);
     }
     case BinderKindUtils::BoundNodeKind::CallExpression: {
-      if (!canGenerateCallExpression(contVarDec->getInitializerPtr().get())) {
+      if (!canGenerateCallExpression(initializer)) {
         return nullptr;
       }
       llvm::ArrayType *arrayType = nullptr;

@@ -63,7 +63,11 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
   }
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    return assignObject(_previousGlobalVariable, 0, _variableName);
+    auto assignStrategy =
+        std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+            _codeGenerationContext);
+
+    return assignStrategy->generateGlobalExpression(assignmentExpression);
   }
 
   // Handle Static Container Global Variable (TYPED)
@@ -189,7 +193,11 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
   }
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    return assignObject(_allocaInst, 0, _variableName);
+    auto assignStrategy =
+        std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+            _codeGenerationContext);
+
+    return assignStrategy->generateExpression(assignmentExpression);
   }
   // Handle Static Container local Variable (TYPED)
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
@@ -390,6 +398,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
       assignmentExpression->getLocation());
 
   _rhsExpression = assignmentExpression->getRightPtr().get();
+
   _isGlobal = true;
   if (auto boundLiteralExpression = dynamic_cast<BoundVariableExpression *>(
           assignmentExpression->getLeftPtr().get())) {
@@ -447,153 +456,4 @@ bool AssignmentExpressionGenerationStrategy::
   }
 
   return true;
-}
-
-llvm::Value *AssignmentExpressionGenerationStrategy::assignObject(
-    llvm::Value *variableElementPtr, size_t listIndex,
-    const std::string &parPropertyKey) {
-  llvm::StructType *objTypeType = nullptr;
-
-  if (llvm::isa<llvm::GlobalVariable>(variableElementPtr)) {
-    objTypeType = llvm::cast<llvm::StructType>(
-        (llvm::cast<llvm::GlobalVariable>(variableElementPtr))->getValueType());
-  } else if (llvm::isa<llvm::AllocaInst>(variableElementPtr)) {
-    objTypeType = llvm::cast<llvm::StructType>(
-        (llvm::cast<llvm::AllocaInst>(variableElementPtr))->getAllocatedType());
-  }
-  if (_variableExpression->getDotExpressionList().size() == 0) {
-    std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-        std::make_unique<ObjectExpressionGenerationStrategy>(
-            _codeGenerationContext);
-    objExpGenStrat->setVariable(variableElementPtr);
-    objExpGenStrat->setTypeName(objTypeType->getName().str());
-
-    return objExpGenStrat->generateGlobalExpression(_rhsExpression);
-  }
-
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(
-          objTypeType->getStructName().str());
-
-  std::unordered_map<std::string, BoundTypeExpression *> boundTypeExpressionMap;
-
-  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-    std::string propertyName = std::any_cast<std::string>(bLE->getValue());
-    boundTypeExpressionMap[propertyName] = bTE.get();
-  }
-
-  std::string propertyKey = std::any_cast<std::string>(
-      _variableExpression->getDotExpressionList()[listIndex]->getValue());
-
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      _variableExpression->getDotExpressionList()[listIndex]->getLocation());
-
-  if (boundTypeExpressionMap.find(propertyKey) ==
-      boundTypeExpressionMap.end()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " not found in variable " + parPropertyKey +
-        " of type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  }
-  std::string key =
-      boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
-  size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
-
-  llvm::Type *type = objTypeType->getElementType(index);
-
-  if (index == -1) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " not found in variable " + parPropertyKey +
-        " of type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  }
-  auto logError = [&]() {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " is not an object in variable " +
-        parPropertyKey + " of Type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  };
-
-  const bool isNested =
-      _variableExpression->getDotExpressionList().size() > listIndex + 1;
-
-  if (isNested && boundTypeExpressionMap[propertyKey]->getSyntaxType() !=
-                      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    return logError();
-  }
-  llvm::Value *elementPtr =
-      Builder->CreateStructGEP(objTypeType, variableElementPtr, index);
-
-  if (boundTypeExpressionMap[propertyKey]->getSyntaxType() ==
-      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-        std::make_unique<ObjectExpressionGenerationStrategy>(
-            _codeGenerationContext);
-
-    const std::string var_name =
-        variableElementPtr->getName().str() + "." + propertyKey;
-
-    llvm::GlobalVariable *globalVariable =
-        TheModule->getGlobalVariable(var_name);
-
-    llvm::AllocaInst *allocaInst =
-        _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
-
-    llvm::StructType *structType = nullptr;
-    if (allocaInst) {
-      const bool isStruct =
-          llvm::isa<llvm::StructType>(allocaInst->getAllocatedType());
-
-      if (!isStruct) return logError();
-      structType = llvm::cast<llvm::StructType>(allocaInst->getAllocatedType());
-      if (isNested) return assignObject(allocaInst, listIndex + 1, propertyKey);
-
-      objExpGenStrat->setVariable(allocaInst);
-
-    } else if (globalVariable) {
-      const bool isStruct =
-          llvm::isa<llvm::StructType>(globalVariable->getValueType());
-
-      if (!isStruct) return logError();
-
-      structType = llvm::cast<llvm::StructType>(globalVariable->getValueType());
-      if (isNested)
-        return assignObject(globalVariable, listIndex + 1, propertyKey);
-
-      objExpGenStrat->setVariable(globalVariable);
-    } else {
-      return logError();
-    }
-
-    if (_rhsExpression->getKind() != BinderKindUtils::BoundObjectExpression) {
-      return logError();
-    }
-
-    objExpGenStrat->setTypeName(structType->getName().str());
-
-    return objExpGenStrat->generateGlobalExpression(_rhsExpression);
-  }
-
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory->createStrategy(_rhsExpression->getKind())
-          ->generateExpression(_rhsExpression);
-
-  if (rhsValue->getType() != type) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type mismatch in assignment expression, expected " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(type) +
-        " but found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            rhsValue->getType()) +
-        " ");
-
-    return nullptr;
-  }
-
-  Builder->CreateStore(rhsValue, elementPtr);
-
-  return rhsValue;
 }

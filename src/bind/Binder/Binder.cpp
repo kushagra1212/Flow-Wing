@@ -746,11 +746,34 @@ std::unique_ptr<BoundExpression> Binder::bindObjectExpression(
 
 std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
     VariableExpressionSyntax *variableExpressionSyntax) {
-  TypeExpressionSyntax *typeExp = static_cast<TypeExpressionSyntax *>(
-      variableExpressionSyntax->getVariableTypeExprRef().get());
+  BoundVariableDeclaration *variable =
+      this->root->tryGetVariable(variableExpressionSyntax->getVariableName());
 
-  std::unique_ptr<BoundTypeExpression> boundTypeExpression =
-      std::move(bindTypeExpression(typeExp));
+  if (!variable) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
+                       " Not Found",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   variableExpressionSyntax->getSourceLocation()));
+    return nullptr;
+  }
+
+  if (variable->getTypeExpression()->getKind() ==
+      BinderKindUtils::BoundObjectExpression) {
+    BoundObjectTypeExpression *boundObjTypeExp =
+        static_cast<BoundObjectTypeExpression *>(
+            variable->getTypeExpression().get());
+
+    BoundCustomTypeStatement *boundCustomType =
+        this->root->tryGetCustomType(boundObjTypeExp->getTypeName());
+
+    std::unordered_map<std::string, int8_t> boundAttributes;
+
+    for (const auto &[bLE, bTE] : boundCustomType->getKeyPairs()) {
+      boundAttributes[std::any_cast<std::string>(bLE->getValue())] = 1;
+    }
+  }
 
   std::unique_ptr<BoundVariableExpression> boundVariableExpression =
       std::make_unique<BoundVariableExpression>(
@@ -758,7 +781,7 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
           std::move(bindLiteralExpression(
               variableExpressionSyntax->getIdentifierTokenRef().get())),
           variableExpressionSyntax->isConstant(),
-          std::move(boundTypeExpression));
+          variable->getTypeExpression().get());
 
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
@@ -856,7 +879,6 @@ std::unique_ptr<BoundTypeExpression> Binder::bindTypeExpression(
           std::make_unique<BoundObjectTypeExpression>(
               objectTypeExpressionSyntax->getSourceLocation(),
               objectTypeExpressionSyntax->getTypeRef()->getKind());
-
       const std::string &name =
           objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
               ->getTokenPtr()
@@ -866,7 +888,7 @@ std::unique_ptr<BoundTypeExpression> Binder::bindTypeExpression(
 
       if (!this->root->tryLookupCustomType(name)) {
         this->_diagnosticHandler->addDiagnostic(
-            Diagnostic("Custom Type " + name + " Not Found",
+            Diagnostic("Type " + name + " Not Found",
                        DiagnosticUtils::DiagnosticLevel::Error,
                        DiagnosticUtils::DiagnosticType::Semantic,
                        objectTypeExpressionSyntax->getObjectTypeIdentifierRef()

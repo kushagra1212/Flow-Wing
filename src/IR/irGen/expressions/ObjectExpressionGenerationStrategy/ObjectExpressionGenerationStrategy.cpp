@@ -8,28 +8,29 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   llvm::Value *res = this->createExpression(expression, _variable, _typeName);
 
-  if (llvm::isa<llvm::AllocaInst>(_variable)) {
-    llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_variable);
-    llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext, _typeName);
-    llvm::StringRef Kind = allocaInst->getName();
-    allocaInst->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
-  }
+  //   if (llvm::isa<llvm::AllocaInst>(_variable)) {
+  //     llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_variable);
+  //     llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext,
+  //     _typeName); llvm::StringRef Kind = "TN"; allocaInst->setMetadata(Kind,
+  //     llvm::MDNode::get(*TheContext, argInfoMD));
+  //   }
   return res;
 }
 
 llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   this->_variableIsGlobal = true;
+
   llvm::Value *res = this->createExpression(expression, _variable, _typeName);
 
-  if (llvm::isa<llvm::GlobalVariable>(_variable)) {
-    llvm::GlobalVariable *globalVariable =
-        llvm::cast<llvm::GlobalVariable>(_variable);
-    llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext, _typeName);
-    llvm::StringRef Kind = globalVariable->getName();
-    globalVariable->setMetadata(Kind,
-                                llvm::MDNode::get(*TheContext, argInfoMD));
-  }
+  //   if (llvm::isa<llvm::GlobalVariable>(_variable)) {
+  //     llvm::GlobalVariable *globalVariable =
+  //         llvm::cast<llvm::GlobalVariable>(_variable);
+  //     llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext,
+  //     _typeName); llvm::StringRef Kind = "TN";
+  //     globalVariable->setMetadata(Kind,
+  //                                 llvm::MDNode::get(*TheContext, argInfoMD));
+  //   }
 
   return res;
 }
@@ -37,42 +38,40 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
 llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
     BoundExpression *expression, llvm::Value *variable,
     const std::string &typeName) {
-  BoundObjectExpression *objectExpression =
+  BoundObjectExpression *parObjectExpression =
       static_cast<BoundObjectExpression *>(expression);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
 
-  llvm::StructType *structType =
+  llvm::StructType *parStructType =
       _codeGenerationContext->getTypeChain()->getType(typeName);
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
       _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
-
   uint64_t index = 0;
   for (const auto &[bLitExpr, bExpr] :
        boundCustomTypeStatement->getKeyPairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
     propertiesMap[propertyName] = bExpr.get();
-
-    if (bExpr->getSyntaxType() !=
+    if (propertiesMap[propertyName]->getSyntaxType() !=
         SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
       llvm::Constant *defaultValue =
-          llvm::Constant::getNullValue(structType->getElementType(index));
+          llvm::Constant::getNullValue(parStructType->getElementType(index));
 
       llvm::Value *elementPtr =
-          Builder->CreateGEP(structType, variable,
+          Builder->CreateGEP(parStructType, variable,
                              {Builder->getInt32(0), Builder->getInt32(index)});
 
       Builder->CreateStore(defaultValue, elementPtr);
+      index++;
     }
-
-    index++;
   }
 
-  for (const auto &[bLitExpr, bExpr] : objectExpression->getKeyValuePairs()) {
+  for (const auto &[bLitExpr, bExpr] :
+       parObjectExpression->getKeyValuePairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -113,27 +112,20 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
 
     llvm::Value *rhs = nullptr;
 
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        structType, variable, {Builder->getInt32(0), Builder->getInt32(index)});
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(parStructType, variable,
+                           {Builder->getInt32(0), Builder->getInt32(index)});
 
     if (bExpr->getKind() == BinderKindUtils::BoundObjectExpression) {
-      BoundObjectExpression *objectExpression =
+      BoundObjectExpression *innerObjectExpression =
           static_cast<BoundObjectExpression *>(bExpr.get());
 
       BoundObjectTypeExpression *boundObjectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(propertiesMap[propertyName]);
 
-      std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-          std::make_unique<ObjectExpressionGenerationStrategy>(
-              _codeGenerationContext);
-
       llvm::StructType *elementType =
           (_codeGenerationContext->getTypeChain()->getType(
               boundObjectTypeExpression->getTypeName()));
-
-      objExpGenStrat->setTypeName(elementType->getStructName().str());
-
-      //  Types in metaData
 
       std::string var_name = variable->getName().str() + "." + propertyName;
       llvm::Value *var = nullptr;
@@ -142,17 +134,17 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
         var = new llvm::GlobalVariable(
             *TheModule, elementType, false, llvm::GlobalValue::ExternalLinkage,
             llvm::Constant::getNullValue(elementType), var_name);
-        objExpGenStrat->setVariable(var);
-        objExpGenStrat->generateGlobalExpression(objectExpression);
+
       } else {
         var = Builder->CreateAlloca(elementType, nullptr, var_name);
         _codeGenerationContext->getAllocaChain()->setAllocaInst(
             var_name, llvm::cast<llvm::AllocaInst>(var));
-        objExpGenStrat->setVariable(var);
-        objExpGenStrat->generateExpression(objectExpression);
       }
 
+      this->createExpression(innerObjectExpression, var,
+                             elementType->getName().str());
       Builder->CreateStore(var, elementPtr);
+
     } else {
       rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
                 ->generateExpression(bExpr.get());
@@ -167,28 +159,14 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
       if (_codeGenerationContext->getMapper()->isPrimitiveType(
               rhs->getType()) &&
           _codeGenerationContext->getMapper()->isPrimitiveType(
-              structType->getElementType(index)) &&
-          rhs->getType() != structType->getElementType(index)) {
+              parStructType->getElementType(index)) &&
+          rhs->getType() != parStructType->getElementType(index)) {
         _codeGenerationContext->getLogger()->LogError(
             "Type of property " +
             std::any_cast<std::string>(bLitExpr->getValue()) +
             " does not match type in type " + typeName + " Expected " +
             Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                structType->getElementType(index))) +
-            " but got " +
-            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                rhs->getType())));
-
-        return nullptr;
-      }
-
-      if (rhs->getType() != structType->getElementType(index)) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Type of property " +
-            std::any_cast<std::string>(bLitExpr->getValue()) +
-            " does not match type in type " + typeName + "Expected " +
-            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                structType->getElementType(index))) +
+                parStructType->getElementType(index))) +
             " but got " +
             Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
                 rhs->getType())));
@@ -199,6 +177,89 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
       Builder->CreateStore(rhs, elementPtr);
     }
   }
+
+  return nullptr;
+}
+
+llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
+    llvm::Value *variable, const std::string &typeName, llvm::Value *fromVar,
+    const bool isGlobal) {
+  llvm::StructType *structType =
+      _codeGenerationContext->getTypeChain()->getType(typeName);
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+
+  uint64_t index = 0;
+
+  for (const auto &[bLitExpr, bExpr] :
+       boundCustomTypeStatement->getKeyPairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+
+    llvm::Value *elementPtr = Builder->CreateGEP(
+        structType, variable, {Builder->getInt32(0), Builder->getInt32(index)});
+
+    llvm::Value *toValue = nullptr;
+
+    llvm::Value *fromElementPtr = Builder->CreateGEP(
+        structType, fromVar, {Builder->getInt32(0), Builder->getInt32(index)});
+
+    if (bExpr->getSyntaxType() ==
+        SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      BoundObjectTypeExpression *bOT =
+          static_cast<BoundObjectTypeExpression *>(bExpr.get());
+
+      llvm::StructType *elementType =
+          (_codeGenerationContext->getTypeChain()->getType(bOT->getTypeName()));
+
+      std::string var_name = variable->getName().str() + "." + propertyName;
+
+      llvm::Value *fromVarLoaded =
+          _codeGenerationContext->getAllocaChain()->getAllocaInst(
+              fromVar->getName().str() + "." + propertyName);
+
+      if (!fromVarLoaded) {
+        fromVarLoaded = TheModule->getGlobalVariable(fromVar->getName().str() +
+                                                     "." + propertyName);
+      }
+      if (!fromVarLoaded) {
+        index++;
+        continue;
+      }
+
+      if (isGlobal) {
+        toValue = TheModule->getGlobalVariable(var_name);
+        if (!toValue) {
+          toValue = new llvm::GlobalVariable(
+              *TheModule, elementType, false,
+              llvm::GlobalValue::ExternalLinkage,
+              llvm::Constant::getNullValue(elementType), var_name);
+        }
+      } else {
+        toValue =
+            _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
+        if (!toValue) {
+          toValue = Builder->CreateAlloca(elementType, nullptr, var_name);
+          _codeGenerationContext->getAllocaChain()->setAllocaInst(
+              var_name, llvm::cast<llvm::AllocaInst>(toValue));
+        }
+      }
+
+      this->generateVariable(toValue, bOT->getTypeName(), fromVarLoaded,
+                             isGlobal);
+    } else {
+      toValue = Builder->CreateLoad(structType->getElementType(index),
+                                    fromElementPtr);
+      Builder->CreateStore(toValue, elementPtr);
+    }
+
+    index++;
+  }
+
+  // Set the metadata
+  //   llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(variable);
+  //   llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext, typeName);
+  //   llvm::StringRef Kind = "TN";  // TypeName
+  //   allocaInst->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
 
   return nullptr;
 }

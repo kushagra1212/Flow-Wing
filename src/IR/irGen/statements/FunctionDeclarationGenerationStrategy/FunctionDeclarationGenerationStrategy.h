@@ -3,8 +3,10 @@
 
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundTypeExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
+#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionDeclarationGenerationStrategy

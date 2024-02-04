@@ -89,7 +89,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   _variableExpression = static_cast<BoundVariableExpression *>(expression);
 
-  _typeExpression = _variableExpression->getVariableTypeRef().get();
+  _typeExpression = _variableExpression->getVariableTypeRef();
 
   BoundObjectTypeExpression *objType =
       static_cast<BoundObjectTypeExpression *>(_typeExpression);

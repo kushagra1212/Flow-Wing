@@ -35,6 +35,7 @@ class BoundScope {
                           BoundVariableDeclaration *variable);
 
   bool tryLookupVariable(const std::string &name);
+
   BoundVariableDeclaration *tryGetVariable(const std::string &name);
 
   bool tryAssignVariable(const std::string &name,

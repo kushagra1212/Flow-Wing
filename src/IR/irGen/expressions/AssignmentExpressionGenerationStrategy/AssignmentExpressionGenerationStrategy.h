@@ -7,6 +7,7 @@
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
 #include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 class AssignmentExpressionGenerationStrategy
@@ -57,9 +58,6 @@ class AssignmentExpressionGenerationStrategy
   llvm::Value *handlePrimitiveGlobalVariableAssignment(
       llvm::GlobalVariable *variable, const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
-
-  llvm::Value *assignObject(llvm::Value *variableElementPtr, size_t listIndex,
-                            const std::string &parPropertyKey);
 
  private:
   std::string _variableName;

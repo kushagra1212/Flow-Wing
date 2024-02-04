@@ -22,9 +22,9 @@ const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
 
 const DiagnosticUtils::SourceLocation
 VariableDeclarationSyntax::getSourceLocation() const {
-  if (_keyword) this->_keyword->getSourceLocation();
-  if (_identifier) this->_identifier->getSourceLocation();
-  if (_typeExpr) this->_typeExpr->getSourceLocation();
-  if (_initializer) this->_initializer->getSourceLocation();
+  if (_keyword) return this->_keyword->getSourceLocation();
+  if (_identifier) return this->_identifier->getSourceLocation();
+  if (_typeExpr) return this->_typeExpr->getSourceLocation();
+  if (_initializer) return this->_initializer->getSourceLocation();
   return DiagnosticUtils::SourceLocation();
 }

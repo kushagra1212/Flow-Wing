@@ -3,9 +3,11 @@
 
 #include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-
+#include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
  public:
   CallExpressionGenerationStrategy(CodeGenerationContext *context);
@@ -37,6 +39,9 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
   void printUnit(const std::string &unit, const std::string &unitName);
 
   llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
+
+ private:
+  bool _isGlobal = false;
 };
 
 #endif  // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

@@ -8,8 +8,7 @@ class BoundArrayVariableExpression : public BoundVariableExpression {
   BoundArrayVariableExpression(
       const DiagnosticUtils::SourceLocation &location,
       std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
-      const bool &isConstant,
-      std::unique_ptr<BoundTypeExpression> variableTypeExp);
+      const bool &isConstant, BoundTypeExpression *variableTypeExp);
 
   virtual const std::type_info &getType() override;
   virtual BinderKindUtils::BoundNodeKind getKind() const override;

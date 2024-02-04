@@ -39,6 +39,11 @@ class VariableExpressionSyntax : public ExpressionSyntax {
     return _variableTypeExpr;
   }
 
+  inline auto setVariableTypeExprRef(
+      std::unique_ptr<TypeExpressionSyntax> variableTypeExpr) -> void {
+    _variableTypeExpr = std::move(variableTypeExpr);
+  }
+
   inline auto isConstant() const -> const bool & { return _isConstant; }
 
   inline auto getVariableName() const -> std::string {

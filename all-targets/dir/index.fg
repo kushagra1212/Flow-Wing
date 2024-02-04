@@ -1,4 +1,63 @@
-        type Parent = {
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        fun pass(x:type1) -> nthg {
+            print(x)
+            print("\n")
+        }
+        print(a)
+        print("\n")
+        var x:type1 = {}
+        pass(a)
+        x = a
+        print(x)
+        
+
+
+
+
+
+
+
+        /#      
+           type Parent = {
+          a:int
+        }
+      
+    type obj = {
+          a:int,
+          b:deci,
+          c:bool,
+          d:str,
+          p:Parent
+      }
+var x:obj = { 
+          a:1,
+          b:2.0,
+          c:true,
+          d:"hello",
+          p:{ a : 100 }
+        }
+        var z:obj = {}
+        print(z)
+    
+    /#
+      type Parent = {
           a:int
         }
 
@@ -9,6 +68,11 @@
           d:str,
           p:Parent
         }
+        fun main(y:obj) -> nthg {
+          print(y)
+        }
+
+  
         var x:obj = { 
           a:1,
           b:2.0,
@@ -16,17 +80,52 @@
           d:"hello",
           p:{ a : 100 }
         }
+        var z:obj = {}
+        z = x
         print(x)
+        main(x)
         x.a = 100
         x.b = 200.0
         x.c = false
         x.d = "world"
         x.p = { a : 400 }
-        print(x)
+        main(x)
+/#
+type my = {
+      a:int,
+      b:deci
+}
+fun main(y:my) -> nthg {
+      print(y)
+      y.b = 2.2
+      print(y)
+}
+main({a:2})
+
+/#
+fun main(x:int[2][5]) -> nthg {
+      print(x)
+}
+var y:int[2][5] = [10 fill 5]
+
+main([[2,3,5],[2,5,6]])
 
 
-
-
+/#
+type my = {
+      a:int,
+      b:deci
+}
+fun main(y:my) -> nthg {
+      print(y)
+      y.b = 2.2
+      print(y)
+}
+type guy  = {
+      c:int
+}
+var x:guy = {c:3}
+main(x)
 /#
 type my = {
       num:int,
@@ -66,3 +165,12 @@ type childType = {
 
 TODO:
 
+
+returning object from function
+declaring object with return value from function call
+assigning object with return value from function call
+Array inside Object
+assigning array to object element
+passing called function in the function call and assigning Object
+passing called function in the function call and assigning Array
+Creation of array of objects

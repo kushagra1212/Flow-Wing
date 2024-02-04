@@ -25,6 +25,10 @@ class ContainerDeclarationStatementGenerationStrategy
 
   const bool canGenerateCallExpression(BoundExpression *callExp);
 
+  llvm::Value *generateCommonStatement(
+      BoundArrayTypeExpression *arrayTypeExpression,
+      const std::string &containerName, BoundExpression *initializer);
+
  private:
   std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;

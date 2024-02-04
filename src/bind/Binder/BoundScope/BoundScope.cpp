@@ -79,7 +79,10 @@ BoundVariableDeclaration *BoundScope::tryGetVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return this->variables[name];
   }
-  return this->parent->tryGetVariable(name);
+
+  if (this->parent) return this->parent->tryGetVariable(name);
+
+  return nullptr;
 }
 
 bool BoundScope::tryAssignVariable(const std::string &name,

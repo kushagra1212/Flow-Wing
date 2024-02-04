@@ -21,6 +21,8 @@ class LLVMType {
 
   virtual inline const bool isPointerToArray() const { return false; }
 
+  virtual inline const bool isPointerToObject() const { return false; }
+
  private:
   llvm::Type *_type;
 };

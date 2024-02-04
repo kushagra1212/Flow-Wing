@@ -2,7 +2,9 @@
 #define __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {

@@ -3,11 +3,11 @@
 BoundVariableExpression::BoundVariableExpression(
     const DiagnosticUtils::SourceLocation &location,
     std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
-    const bool &isConstant,
-    std::unique_ptr<BoundTypeExpression> variableTypeExp)
+    const bool &isConstant, BoundTypeExpression *variableTypeExp)
     : BoundExpression(location),
       _identiferExpression(std::move(identiferExpression)),
-      _isConstant(isConstant), _variableTypeExp(std::move(variableTypeExp)) {}
+      _isConstant(isConstant),
+      _variableTypeExp(variableTypeExp) {}
 
 const std::type_info &BoundVariableExpression::getType() {
   return this->_identiferExpression->getType();

@@ -522,7 +522,7 @@ TEST_F(ObjectTest, AssignObjectSimple) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested1) {
@@ -556,7 +556,7 @@ TEST_F(ObjectTest, AssignObjectSimpleNested1) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested2) {
@@ -592,7 +592,7 @@ TEST_F(ObjectTest, AssignObjectSimpleNested2) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested3) {
@@ -628,7 +628,7 @@ TEST_F(ObjectTest, AssignObjectSimpleNested3) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested4) {
@@ -664,7 +664,7 @@ TEST_F(ObjectTest, AssignObjectSimpleNested4) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimple) {
@@ -694,7 +694,7 @@ TEST_F(ObjectTest, AssignValueSimple) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimpleScope) {
@@ -726,7 +726,7 @@ TEST_F(ObjectTest, AssignValueSimpleScope) {
     )");
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }")
+    "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimpleObject) {
@@ -761,7 +761,7 @@ TEST_F(ObjectTest, AssignValueSimpleObject) {
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
     "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
-    "}")
+    "}");
 }
 TEST_F(ObjectTest, AssignValueSimpleObject2) {
   I(R"(
@@ -795,6 +795,628 @@ TEST_F(ObjectTest, AssignValueSimpleObject2) {
 
   O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
     "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
-    "}")
+    "}");
+}
+
+TEST_F(ObjectTest, AssignCompleteObject) {
+  I(R"(
+        type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:true,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        print(b)
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectScope) {
+  I(R"(
+{
+          type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:true,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        print(b)
+}
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectScopeInnerandOuter) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+      {  
+              b = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:true,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        print(b)}
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectScopeInnerandOuter2) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+      {  
+              b = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:true,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        }
+        
+        print(b)
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectPartial) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b.type1 = {
+            name: "Rathore",
+        }
+        print(b)
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : '', age : 0, height : 0.00000000000000, is : false, type1 : { name "
+    ": 'Rathore', age : 0, height : 0.00000000000000, is : false, type1 :  } "
+    "}");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectPartialScoped) {
+  I(R"(
+{      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b.type1 = {
+            name: "Rathore",
+        }
+        print(b)}
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : '', age : 0, height : 0.00000000000000, is : false, type1 : { name "
+    ": 'Rathore', age : 0, height : 0.00000000000000, is : false, type1 :  } "
+    "}");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectPartialScopedInnerandouter) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        {
+        b.type1 = {
+            name: "Rathore",
+        }
+        }
+        print(b)
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : '', age : 0, height : 0.00000000000000, is : false, type1 : { name "
+    ": 'Rathore', age : 0, height : 0.00000000000000, is : false, type1 :  } "
+    "}");
+}
+
+TEST_F(ObjectTest, AssignCompleteObjectPartialScopedInnerandouter2) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        {
+        b.type1 = {
+            name: "Rathore",
+        }
+        
+        print(b)
+        }
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : '', age : 0, height : 0.00000000000000, is : false, type1 : { name "
+    ": 'Rathore', age : 0, height : 0.00000000000000, is : false, type1 :  } "
+    "}");
+}
+
+TEST_F(ObjectTest, AssignFromVariableComplete) {
+  I(R"(
+      type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b = a
+        print(b)
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariableCompleteScoped) {
+  I(R"(
+{
+        type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+        var b:type1 = {}
+        print(b)
+        b = a
+        print(b)
+}
+
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariableCompleteScopedInnerOuter) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+{
+        var b:type1 = {}
+        print(b)
+        b = a
+        print(b)
+}
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+TEST_F(ObjectTest, AssignFromVariableCompleteScopedInnerOuter2) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+{
+          b = a
+        print(b)
+}
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+TEST_F(ObjectTest, AssignFromVariableCompleteScopedInnerOuter3) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+{
+          b = a
+}
+        print(b)
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariablePartialCompleteScopedInnerOuter) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+          b.name = a.name
+          b.age = a.age
+          b.height = a.height
+          b.is = a.is
+          b.type1 = a.type1
+        print(b)
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariablePartialCompleteScopedInnerOuter2) {
+  I(R"(
+{
+              type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+          b.name = a.name
+          b.age = a.age
+          b.height = a.height
+          b.is = a.is
+          b.type1 = a.type1
+        print(b)
+}
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariablePartialCompleteScopedInnerOuter3) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+{
+                b.name = a.name
+          b.age = a.age
+          b.height = a.height
+          b.is = a.is
+          b.type1 = a.type1
+}
+        print(b)
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
+}
+
+TEST_F(ObjectTest, AssignFromVariablePartialCompleteScopedInnerOuter4) {
+  I(R"(
+            type type1 = {
+            name: str,
+            age: int,
+            height: deci,
+            is:bool,
+            type1: type1,
+        }
+
+        var a:type1 = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            is:false,
+            type1: {
+                name: "Rathore",
+            }
+        }
+
+        var b:type1 = {}
+        print(b)
+{
+                b.name = a.name
+          b.age = a.age
+          b.height = a.height
+          b.is = a.is
+          b.type1 = a.type1
+        print(b)
+}
+    )");
+
+  O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{ "
+    "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false, type1 "
+    ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
+    "type1 :  } }");
 }
 #endif

@@ -61,7 +61,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
         functionDeclaration->getParametersRef()[i]->getLocation());
 
     llvm::Value *argValue = F->arg_begin() + i;
-    argValue->setName(parameterNames[i]);
 
     if (llvmArgsTypes[i]->isPointer() &&
         !llvm::isa<llvm::PointerType>(argValue->getType())) {
@@ -82,6 +81,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
 
       _codeGenerationContext->setArrayElementTypeMetadata(
           variable, llvmArrayPtrType->getArrayElementType());
+
       _codeGenerationContext->setArraySizeMetadata(
           variable, llvmArrayPtrType->getDimensions());
 
@@ -93,6 +93,32 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getAllocaChain()->setAllocaInst(
           parameterNames[i], (llvm::AllocaInst *)variable);
 
+    } else if (llvmArgsTypes[i]->isPointerToObject()) {
+      LLVMObjectType *llvmObjectType =
+          static_cast<LLVMObjectType *>(llvmArgsTypes[i].get());
+
+      llvm::StructType *structType =
+          llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
+
+      std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
+          std::make_unique<ObjectExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      llvm::Value *structPtr =
+          Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(
+          parameterNames[i], (llvm::AllocaInst *)structPtr);
+
+      objExpGenStrat->generateVariable(structPtr, structType->getName().str(),
+                                       argValue, false);
+
+    } else if (_codeGenerationContext->getDynamicType()->isDyn(
+                   llvmArgsTypes[i]->getType())) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Dynamic type is not supported in function parameter " +
+          parameterNames[i].substr(0, parameterNames[i].find_first_of("[")));
+      return nullptr;
     } else {
       llvm::AllocaInst *variable = Builder->CreateAlloca(
           argValue->getType(), nullptr, parameterNames[i]);
