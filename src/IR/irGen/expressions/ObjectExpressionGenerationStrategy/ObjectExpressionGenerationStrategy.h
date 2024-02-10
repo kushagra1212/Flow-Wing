@@ -19,6 +19,10 @@ class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                                 const std::string &typeName,
                                 llvm::Value *fromVar, const bool isGlobal);
 
+  llvm::Value *generateVariableAccessThroughPtr(llvm::Value *variable,
+                                                const std::string &typeName,
+                                                llvm::Value *fromVar);
+
   inline auto setVariable(llvm::Value *variable) { _variable = variable; }
 
   inline auto setTypeName(std::string typeName) { _typeName = typeName; }

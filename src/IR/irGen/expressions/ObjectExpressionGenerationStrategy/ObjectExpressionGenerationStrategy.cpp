@@ -135,16 +135,26 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
             *TheModule, elementType, false, llvm::GlobalValue::ExternalLinkage,
             llvm::Constant::getNullValue(elementType), var_name);
 
+        llvm::GlobalVariable *g = llvm::cast<llvm::GlobalVariable>(var);
+
+        g->setMetadata(FLOWWING::IR::CONSTANTS::IS_EXISTS,
+                       llvm::MDNode::get(
+                           *TheContext, llvm::MDString::get(*TheContext, "-")));
+
       } else {
         var = Builder->CreateAlloca(elementType, nullptr, var_name);
-        _codeGenerationContext->getAllocaChain()->setAllocaInst(
-            var_name, llvm::cast<llvm::AllocaInst>(var));
+        llvm::AllocaInst *v = llvm::cast<llvm::AllocaInst>(var);
+
+        v->setMetadata(FLOWWING::IR::CONSTANTS::IS_EXISTS,
+                       llvm::MDNode::get(
+                           *TheContext, llvm::MDString::get(*TheContext, "-")));
+
+        _codeGenerationContext->getAllocaChain()->setAllocaInst(var_name, v);
       }
 
       this->createExpression(innerObjectExpression, var,
                              elementType->getName().str());
       Builder->CreateStore(var, elementPtr);
-
     } else {
       rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
                 ->generateExpression(bExpr.get());
@@ -246,12 +256,87 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
 
       this->generateVariable(toValue, bOT->getTypeName(), fromVarLoaded,
                              isGlobal);
+      Builder->CreateStore(toValue, elementPtr);
+
     } else {
       toValue = Builder->CreateLoad(structType->getElementType(index),
                                     fromElementPtr);
       Builder->CreateStore(toValue, elementPtr);
     }
 
+    index++;
+  }
+
+  // Set the metadata
+  //   llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(variable);
+  //   llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext, typeName);
+  //   llvm::StringRef Kind = "TN";  // TypeName
+  //   allocaInst->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
+
+  return nullptr;
+}
+
+llvm::Value *
+ObjectExpressionGenerationStrategy::generateVariableAccessThroughPtr(
+    llvm::Value *LOADED_VARIABLE, const std::string &typeName,
+    llvm::Value *LOADED) {
+  llvm::StructType *structType =
+      _codeGenerationContext->getTypeChain()->getType(typeName);
+
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+
+  uint64_t index = 0;
+
+  for (const auto &[bLitExpr, bExpr] :
+       boundCustomTypeStatement->getKeyPairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(structType, LOADED_VARIABLE,
+                           {Builder->getInt32(0), Builder->getInt32(index)});
+
+    llvm::Value *fromElementPtr = Builder->CreateGEP(
+        structType, LOADED, {Builder->getInt32(0), Builder->getInt32(index)});
+
+    if (bExpr->getSyntaxType() ==
+        SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      BoundObjectTypeExpression *bOT =
+          static_cast<BoundObjectTypeExpression *>(bExpr.get());
+
+      llvm::StructType *innerStructType =
+          (_codeGenerationContext->getTypeChain()->getType(bOT->getTypeName()));
+
+      std::string var_name =
+          LOADED_VARIABLE->getName().str() + "." + propertyName;
+      llvm::LoadInst *inst = Builder->CreateLoad(
+          structType->getElementType(index), fromElementPtr);
+
+      if (inst->getMetadata(FLOWWING::IR::CONSTANTS::IS_EXISTS)) {
+        llvm::Value *alloca =
+            Builder->CreateAlloca(innerStructType, nullptr, var_name);
+
+        (llvm::cast<llvm::AllocaInst>(alloca))
+            ->setMetadata(
+                FLOWWING::IR::CONSTANTS::IS_EXISTS,
+                llvm::MDNode::get(*TheContext,
+                                  llvm::MDString::get(*TheContext, "-")));
+
+        _codeGenerationContext->getAllocaChain()->setAllocaInst(
+            var_name, llvm::cast<llvm::AllocaInst>(alloca));
+
+        this->generateVariableAccessThroughPtr(alloca, bOT->getTypeName(),
+                                               inst);
+
+        Builder->CreateStore(alloca, elementPtr);
+      }
+
+    } else {
+      Builder->CreateStore(
+          Builder->CreateLoad(structType->getElementType(index),
+                              fromElementPtr),
+          elementPtr);
+    }
     index++;
   }
 

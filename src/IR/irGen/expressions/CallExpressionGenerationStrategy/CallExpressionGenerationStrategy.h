@@ -18,6 +18,34 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
+  llvm::Value *handleExpression(
+      llvm::Function *calleeFunction, uint64_t i,
+      BoundCallExpression *callExpression, llvm::Value *&rhsValue,
+      llvm::FunctionType *functionType,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      bool &retFlag);
+
+  llvm::Value *handlePremitive(
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      llvm::Argument *arg, bool &retFlag);
+
+  llvm::Value *handleBracketExpression(
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
+      BoundCallExpression *callExpression, llvm::Argument *arg,
+      llvm::Value *&rhsValue, bool &retFlag);
+
+  llvm::Value *handleObjectExpression(
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
+      BoundCallExpression *callExpression, llvm::Argument *arg,
+      llvm::Value *&rhsValue, bool &retFlag);
+
+  llvm::Value *handleVariableExpression(
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+      llvm::FunctionType *functionType,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      llvm::Argument *arg, bool &retFlag);
+
   void handleArrayArgs(const std::vector<llvm::Type *> &paramTypes,
                        const int &i, const std::vector<llvm::Value *> &args,
                        BoundCallExpression *callExpression, int &retFlag);

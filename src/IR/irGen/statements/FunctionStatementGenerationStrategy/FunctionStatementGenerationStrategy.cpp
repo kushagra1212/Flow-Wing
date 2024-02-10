@@ -110,8 +110,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getAllocaChain()->setAllocaInst(
           parameterNames[i], (llvm::AllocaInst *)structPtr);
 
-      objExpGenStrat->generateVariable(structPtr, structType->getName().str(),
-                                       argValue, false);
+      objExpGenStrat->generateVariableAccessThroughPtr(
+          structPtr, structType->getName().str(), argValue);
 
     } else if (_codeGenerationContext->getDynamicType()->isDyn(
                    llvmArgsTypes[i]->getType())) {

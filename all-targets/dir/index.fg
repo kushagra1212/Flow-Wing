@@ -1,4 +1,17 @@
-            type type1 = {
+       type t1 = {
+            a:int,
+            b:t1
+       }
+       fun pass(y:t1) -> nthg {
+            print("\n")
+            print(y)
+        }
+        var x:t1 = {a:2,b:{a:3}}
+        print(x)
+        pass(x)
+       
+       /#
+        type type1 = {
             name: str,
             age: int,
             height: deci,
@@ -7,33 +20,28 @@
         }
 
         var a:type1 = {
-            name: "Kushagra",
+            name: "Random",
             age: 30,
             height: 5.10,
             is:false,
             type1: {
-                name: "Rathore",
+                name: "test"
             }
         }
 
-        fun pass(x:type1) -> nthg {
-            print(x)
-            print("\n")
-        }
+     
+
         print(a)
         print("\n")
         var x:type1 = {}
+           fun pass(x:type1) -> nthg {
+            print("\n")
+            print(x)
+        }
         pass(a)
         x = a
         print(x)
         
-
-
-
-
-
-
-
         /#      
            type Parent = {
           a:int

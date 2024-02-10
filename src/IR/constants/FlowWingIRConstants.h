@@ -54,6 +54,8 @@ extern const std::string RAISE_EXCEPTION;
 };  // namespace FUNCTIONS
 };  // namespace INNERS
 
+extern const std::string IS_EXISTS;
+
 };  // namespace FLOWWING::IR::CONSTANTS
 
 #endif  // FLOWWING_IR_CONSTANTS_H
