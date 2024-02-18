@@ -1,4 +1,4 @@
-# Elang Programming Language ( AKA Flow-Wing )
+# Flow-Wing Programming Language
 
 Flow-Wing is a modern and flexible programming language that uniquely combines dynamic and static typing paradigms, providing developers with the versatility to choose between runtime adaptability and compile-time type safety. With intuitive syntax for variable and constant declarations, function definitions, and robust container support, Flow-Wing facilitates clean and efficient code writing. Whether initializing containers, implementing control flow structures like 'if' and 'for', or utilizing a set of built-in functions for common tasks. This language empowers developers, catering to both beginners and seasoned programmers, with a seamless balance between dynamic and static typing. To harness its full potential, Flow-Wing requires a dedicated AOT or JIT compiler, ensuring a powerful and adaptable development experience.
 
