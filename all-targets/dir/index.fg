@@ -1,6 +1,3 @@
-       
-       
-       
        type t1 = {
             a:int,
             b:t1
