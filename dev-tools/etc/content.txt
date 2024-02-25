@@ -8,3 +8,8 @@ em++ my_module.ll \                                                             
 --bind -o build/main.js
 
 
+# converting .ll to wasm
+
+ llc-17 -mtriple=wasm32-unknown-wasm -O3 -filetype=obj my_module.ll -o main.o
+wasm-ld-17 main.o -o main.wasm --no-entry -allow-undefined --export-all
+
