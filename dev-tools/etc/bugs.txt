@@ -1,0 +1,27 @@
+1. DEBUG Bug -> BreakKeyword is used in the BreakKeywordStatement and similary for some other keyword as well same issue
+
+2. Fix While Loop Implementation
+  
+3. Fix the global Variable In case of large value of Int
+
+var prime:bool[1001] = [1001 fill true] 
+var n:int = 100
+var p:int = 2
+while (p*p < n) { 
+      if(p*p < n) {
+                  if(prime[p] == true) { 
+            for (var i:int = p*p  to  n:p){
+                   prime[i] = false 
+            } 
+      } 
+      }else{
+            break
+      }
+    p = p + 1
+} 
+
+for(var p = 2 to n) {
+      if(prime[p]) { 
+            print(p+" \n") 
+      } 
+} 
