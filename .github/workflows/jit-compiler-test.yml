@@ -19,4 +19,4 @@ jobs:
           context: .
           file: ./Dockerfile.JITCompilerTest
           load: true
-          tags: ${{ github.repository }}:JITCompilerTest
+          tags: ${{ github.repository_owner }}:JITCompilerTest
