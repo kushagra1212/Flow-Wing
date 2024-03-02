@@ -21,6 +21,7 @@
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "llvm/Support/TargetSelect.h"
+#include "utils/ValueStack/ValueStackHandler.h"
 
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
@@ -54,6 +55,10 @@ class CodeGenerationContext {
 
   const std::unique_ptr<StructTypeBuilder> &getDynamicType();
 
+  inline std::unique_ptr<ValueStackHandler> &getValueStackHandler() {
+    return _valueStackHandler;
+  }
+
   DiagnosticHandler *getDiagnosticHandler() const;
 
   void addBoundedUserFunction(std::string name,
@@ -71,10 +76,9 @@ class CodeGenerationContext {
   void callREF(const std::string &error);
 
   void setArraySizeMetadata(llvm::Value *array,
-                            const std::vector<std::size_t> &sizes);
+                            const std::vector<uint64_t> &sizes);
 
-  void getArraySizeMetadata(llvm::Value *array,
-                            std::vector<std::size_t> &sizes);
+  void getArraySizeMetadata(llvm::Value *array, std::vector<uint64_t> &sizes);
 
   void setArrayElementTypeMetadata(llvm::Value *array, llvm::Type *elementType);
 
@@ -103,6 +107,7 @@ class CodeGenerationContext {
   std::unique_ptr<AllocaChain> _allocaChain;
   std::unique_ptr<TypeChain> _typeChain;
   std::unique_ptr<CustomTypeStatementChain> _customTypeExpressionChain;
+  std::unique_ptr<ValueStackHandler> _valueStackHandler;
 
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;

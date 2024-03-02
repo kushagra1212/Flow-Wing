@@ -37,7 +37,7 @@ class BoundObjectExpression : public BoundExpression {
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 
-  inline virtual const std::type_info &getType() {
+  inline virtual const std::type_info &getType() override {
     return typeid(BoundObjectExpression);
   }
 };

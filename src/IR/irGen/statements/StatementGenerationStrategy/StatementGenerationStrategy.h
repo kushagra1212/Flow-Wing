@@ -9,6 +9,7 @@ class StatementGenerationStrategy : public GenerationStrategy {
 
   virtual llvm::Value *generateStatement(BoundStatement *statement) = 0;
   virtual llvm::Value *generateGlobalStatement(BoundStatement *statement) = 0;
+  virtual ~StatementGenerationStrategy() = default;
 };
 
 #endif  // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__

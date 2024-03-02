@@ -4,6 +4,7 @@
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
 
 class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
  public:
@@ -11,9 +12,14 @@ class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
   llvm::Value *generateExpression(BoundExpression *expression) override;
 
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
+  llvm::Value *generateVariableExp(BoundExpression *expression);
   llvm::Value *createExpression(BoundExpression *expression,
                                 llvm::Value *variable,
                                 const std::string &typeName);
+
+  llvm::Value *createExpressionNP(BoundExpression *expression,
+                                  llvm::Value *variable,
+                                  const std::string &typeName);
 
   llvm::Value *generateVariable(llvm::Value *variable,
                                 const std::string &typeName,

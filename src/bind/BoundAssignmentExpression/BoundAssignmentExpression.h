@@ -27,7 +27,7 @@ class BoundAssignmentExpression : public BoundExpression {
 
   std::unique_ptr<BoundExpression> getRight();
 
-  const std::type_info &getType();
+  const std::type_info &getType() override;
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 

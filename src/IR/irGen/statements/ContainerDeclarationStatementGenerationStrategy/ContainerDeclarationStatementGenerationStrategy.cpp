@@ -89,7 +89,7 @@ ContainerDeclarationStatementGenerationStrategy::canGenerateCallExpression(
   auto *calledFunction = calledInst->getCalledFunction();
   llvm::ArrayType *arrayType = nullptr;
   llvm::Type *elementType = nullptr;
-  std::vector<size_t> actualSizes;
+  std::vector<uint64_t> actualSizes;
   _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
                                                elementType, actualSizes);
 

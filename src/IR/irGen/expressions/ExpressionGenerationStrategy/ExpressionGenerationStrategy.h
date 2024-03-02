@@ -9,6 +9,8 @@ class ExpressionGenerationStrategy : public GenerationStrategy {
   virtual llvm::Value *generateExpression(BoundExpression *expression) = 0;
   virtual llvm::Value *generateGlobalExpression(
       BoundExpression *expression) = 0;
+
+  virtual ~ExpressionGenerationStrategy() = default;
 };
 
 #endif  // __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__

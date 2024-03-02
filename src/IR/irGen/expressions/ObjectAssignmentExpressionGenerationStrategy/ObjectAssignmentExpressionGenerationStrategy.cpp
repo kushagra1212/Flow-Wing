@@ -11,14 +11,178 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
     return nullptr;
   }
 
-  return this->assignObject(_lhsVar, 0, _lhsVarExpr->getVariableNameRef(),
-                            _lhsVarExpr->getDotExpressionList().size() == 0);
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+  llvm::Value *lshValue =
+      _expressionGenerationFactory
+          ->createStrategy(assignmentExpression->getLeftPtr()->getKind())
+          ->generateExpression(assignmentExpression->getLeftPtr().get());
+
+  if (!lshValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Left hand side value not found in assignment expression " +
+        assignmentExpression->getVariable()->getVariableName());
+    return nullptr;
+  }
+
+  if (assignmentExpression->getRightPtr().get()->getKind() ==
+      BinderKindUtils::VariableExpression) {
+    if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+      // return assignStruct();
+      lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+      if (!lshValue) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Left hand side value not found in assignment expression " +
+            assignmentExpression->getVariable()->getVariableName());
+        return nullptr;
+      }
+
+      llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+      _codeGenerationContext->getValueStackHandler()->popAll();
+
+      llvm::Value *rhsValue =
+          _expressionGenerationFactory
+              ->createStrategy(assignmentExpression->getRightPtr()->getKind())
+              ->generateExpression(assignmentExpression->getRightPtr().get());
+
+      if (!rhsValue) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Right hand side value not found in assignment expression ");
+        return nullptr;
+      }
+
+      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+          assignmentExpression->getRightPtr()->getLocation());
+
+      if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Right hand side value expected to be an object of type " +
+            lhsStructType->getStructName().str());
+        return nullptr;
+      }
+
+      llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+      rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+      if (lhsStructType->getStructName() != rhsStructType->getStructName()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Right hand side value expected to be an object of type " +
+            lhsStructType->getStructName().str());
+        return nullptr;
+      }
+      _codeGenerationContext->getValueStackHandler()->popAll();
+
+      return copyOject(lhsStructType, lshValue, rhsValue);
+    }
+    lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
+    llvm::Type *lhsType =
+        _codeGenerationContext->getValueStackHandler()->getLLVMType();
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    llvm::Value *rhsValue =
+        _expressionGenerationFactory
+            ->createStrategy(assignmentExpression->getRightPtr()->getKind())
+            ->generateExpression(assignmentExpression->getRightPtr().get());
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        assignmentExpression->getRightPtr()->getLocation());
+
+    if (!rhsValue) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Right hand side value not found in assignment expression ");
+      return nullptr;
+    }
+
+    if (rhsValue->getType() != lhsType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Type mismatch in assignment expression, expected " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(lhsType) +
+          " but found " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              rhsValue->getType()) +
+          " ");
+
+      return nullptr;
+    }
+
+    return Builder->CreateStore(rhsValue, lshValue);
+  } else if (assignmentExpression->getRightPtr().get()->getKind() ==
+             BinderKindUtils::BoundObjectExpression) {
+    if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Left hand side value expected to be an object of type ");
+      return nullptr;
+    }
+
+    lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+    llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+    if (!lshValue) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Left hand side value not found in assignment expression " +
+          assignmentExpression->getVariable()->getVariableName());
+      return nullptr;
+    }
+
+    std::unique_ptr<ObjectExpressionGenerationStrategy>
+        objectExpressionGenerationStrategy =
+            std::make_unique<ObjectExpressionGenerationStrategy>(
+                _codeGenerationContext);
+    return objectExpressionGenerationStrategy->createExpressionNP(
+        assignmentExpression->getRightPtr().get(), lshValue,
+        lhsStructType->getStructName().str());
+  } else {
+    _codeGenerationContext->getLogger()->LogError(
+        "Left hand side value " +
+        assignmentExpression->getVariable()->getVariableName() +
+        " expected to be an object ");
+    return nullptr;
+  }
+
+  // return this->assignObject(_lhsVar, 0, _lhsVarExpr->getVariableNameRef(),
+  //                           _lhsVarExpr->getDotExpressionList().size() == 0);
 }
 
 llvm::Value *
 ObjectAssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   return this->generateExpression(expression);
+}
+
+llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
+    llvm::StructType *parStructType, llvm::Value *lshPtr, llvm::Value *rhsPtr) {
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          parStructType->getStructName().str());
+  uint64_t i = 0;
+  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLE->getValue());
+    llvm::Value *LHSinnerElementPtr =
+        Builder->CreateStructGEP(parStructType, lshPtr, i);
+    llvm::Value *RHSinnerElementPtr =
+        Builder->CreateStructGEP(parStructType, rhsPtr, i);
+    llvm::Type *innerElementType = parStructType->getElementType(i);
+    if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      copyOject(llvm::cast<llvm::StructType>(innerElementType),
+                LHSinnerElementPtr, RHSinnerElementPtr);
+    } else {
+      llvm::Value *loadedRHS =
+          Builder->CreateLoad(innerElementType, RHSinnerElementPtr);
+
+      Builder->CreateStore(loadedRHS, LHSinnerElementPtr);
+    }
+    i++;
+  }
+  return nullptr;
 }
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(

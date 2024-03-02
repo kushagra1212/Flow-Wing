@@ -18,14 +18,11 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
   llvm::Function *function = currentBlock->getParent();
   llvm::Value *exitValue = nullptr;
   llvm::BasicBlock *loopCondition =
-      llvm::BasicBlock::Create(*TheContext, "loopCondition", function);
+      llvm::BasicBlock::Create(*TheContext, "while:conditon", function);
   llvm::BasicBlock *loopBody =
-      llvm::BasicBlock::Create(*TheContext, "loopBody", function);
-  llvm::BasicBlock *afterLoop =
-      llvm::BasicBlock::Create(*TheContext, "afterLoop", function);
-
-  llvm::BasicBlock *breakLoop =
-      llvm::BasicBlock::Create(*TheContext, "breakLoop", function);
+      llvm::BasicBlock::Create(*TheContext, "while:body", function);
+  llvm::BasicBlock *endLoop =
+      llvm::BasicBlock::Create(*TheContext, "while.end", function);
 
   Builder->CreateBr(loopCondition);
 
@@ -36,44 +33,39 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->decrementCountIfNotZero(
       _codeGenerationContext->getPrefixedName(FLOWWING_CONTINUE_COUNT));
 
-  BoundExpression *condExp = whileStatement->getConditionPtr().get();
   llvm::Value *conditionValue =
-      _expressionGenerationFactory->createStrategy(condExp->getKind())
-          ->generateExpression(condExp);
+      _expressionGenerationFactory
+          ->createStrategy(whileStatement->getConditionPtr().get()->getKind())
+          ->generateExpression(whileStatement->getConditionPtr().get());
 
   // Load the condition
 
   if (conditionValue == nullptr) {
-
     _codeGenerationContext->getLogger()->LogError(
         "Condition value is not found in while statement");
 
     return nullptr;
   }
 
-  Builder->CreateCondBr(conditionValue, breakLoop, afterLoop);
+  Builder->CreateCondBr(conditionValue, loopBody, endLoop);
 
-  Builder->SetInsertPoint(breakLoop);
+  // Loop Body
+
+  Builder->SetInsertPoint(loopBody);
+  llvm::Value *result =
+      _statementGenerationFactory
+          ->createStrategy(whileStatement->getBodyPtr().get()->getKind())
+          ->generateStatement(whileStatement->getBodyPtr().get());
 
   Builder->CreateCondBr(
       _codeGenerationContext->isCountZero(
           _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),
           llvm::Type::getInt32Ty(*TheContext)),
-      loopBody, afterLoop);
-
-  // Loop Body
-
-  Builder->SetInsertPoint(loopBody);
-  BoundStatement *loopBodyStat = whileStatement->getBodyPtr().get();
-  llvm::Value *result =
-      _statementGenerationFactory->createStrategy(loopBodyStat->getKind())
-          ->generateStatement(loopBodyStat);
-
-  Builder->CreateBr(loopCondition);
+      loopCondition, endLoop);
 
   // After Loop
 
-  Builder->SetInsertPoint(afterLoop);
+  Builder->SetInsertPoint(endLoop);
 
   _codeGenerationContext->decrementCountIfNotZero(
       _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));

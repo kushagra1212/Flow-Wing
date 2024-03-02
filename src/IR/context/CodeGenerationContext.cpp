@@ -45,6 +45,10 @@ CodeGenerationContext ::CodeGenerationContext(
   // initialize the ReturnTypeHandler
   _returnTypeHandler = std::make_unique<ReturnTypeHandler>();
 
+  //! Refactor this to a better place in future
+  // Initialize the value stack handler
+  _valueStackHandler = std::make_unique<ValueStackHandler>();
+
   // Initialize the dynamic type
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
@@ -257,6 +261,8 @@ void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
     metaNode = llvm::cast<llvm::AllocaInst>(v)->getMetadata(kind);
   } else if (llvm::isa<llvm::Function>(v)) {
     metaNode = llvm::cast<llvm::Function>(v)->getMetadata(kind);
+  } else if (llvm::isa<llvm::LoadInst>(v)) {
+    metaNode = llvm::cast<llvm::LoadInst>(v)->getMetadata(kind);
   }
 
   if (!metaNode) {
@@ -270,7 +276,7 @@ void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
 }
 
 void CodeGenerationContext::setArraySizeMetadata(
-    llvm::Value *array, const std::vector<std::size_t> &sizes) {
+    llvm::Value *array, const std::vector<uint64_t> &sizes) {
   std::string metaData = "";
 
   for (const auto &size : sizes) {
@@ -279,8 +285,8 @@ void CodeGenerationContext::setArraySizeMetadata(
 
   setMetadata("I", array, metaData);
 }
-void CodeGenerationContext::getArraySizeMetadata(
-    llvm::Value *array, std::vector<std::size_t> &sizes) {
+void CodeGenerationContext::getArraySizeMetadata(llvm::Value *array,
+                                                 std::vector<uint64_t> &sizes) {
   std::string metaData = "";
 
   getMetaData("I", array, metaData);

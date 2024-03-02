@@ -33,7 +33,7 @@ class BoundForStatement : public BoundStatement, public BoundSourceLocation {
 
   std::unique_ptr<BoundExpression> getStepExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

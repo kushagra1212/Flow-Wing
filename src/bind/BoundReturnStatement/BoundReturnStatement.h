@@ -15,7 +15,7 @@ class BoundReturnStatement : public BoundStatement, public BoundSourceLocation {
 
   std::unique_ptr<BoundExpression> getReturnExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

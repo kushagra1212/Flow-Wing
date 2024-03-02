@@ -8,7 +8,7 @@ class BoundBreakStatement : public BoundStatement, public BoundSourceLocation {
  public:
   BoundBreakStatement(const DiagnosticUtils::SourceLocation &location);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 };

@@ -25,7 +25,7 @@ class BoundIfStatement : public BoundStatement, public BoundSourceLocation {
   void addOrIfStatement(std::unique_ptr<BoundOrIfStatement> orIfStatement);
   void addElseStatement(std::unique_ptr<BoundStatement> elseStatement);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

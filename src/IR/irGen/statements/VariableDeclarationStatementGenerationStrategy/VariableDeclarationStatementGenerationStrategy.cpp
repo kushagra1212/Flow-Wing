@@ -98,6 +98,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
     objExpGenStrat->setVariable(var);
     objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
+    _codeGenerationContext->getValueStackHandler()->push(
+        structType->getStructName().str(), var, "struct", structType);
 
     return objExpGenStrat->generateExpression(
         variableDeclaration->getInitializerPtr().get());
@@ -149,6 +151,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 
     objExpGenStrat->setVariable(_globalVariable);
     objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
+    _codeGenerationContext->getValueStackHandler()->push(
+        structType->getStructName().str(), _globalVariable, "struct",
+        structType);
 
     return objExpGenStrat->generateGlobalExpression(
         variableDeclaration->getInitializerPtr().get());

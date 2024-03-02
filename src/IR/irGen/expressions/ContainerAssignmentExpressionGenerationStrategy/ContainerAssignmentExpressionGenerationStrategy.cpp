@@ -176,7 +176,7 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
     llvm::ArrayType *&arrayType, llvm::Value *&variable,
     llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
     llvm::Type *rhsArrayElementType, std::vector<llvm::Value *> &indices,
-    const std::vector<size_t> &rhsSizes, uint64_t index) {
+    const std::vector<uint64_t> &rhsSizes, uint64_t index) {
   if (index < rhsSizes.size()) {
     for (int64_t i = 0; i < rhsSizes[index]; i++) {
       indices.push_back(Builder->getInt32(i));
@@ -203,8 +203,8 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
 llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
     llvm::ArrayType *&arrayType, llvm::Value *&variable,
     llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
-    llvm::Type *arrayElementType, const std::vector<size_t> &lhsSizes,
-    const std::vector<size_t> &rhsSizes) {
+    llvm::Type *arrayElementType, const std::vector<uint64_t> &lhsSizes,
+    const std::vector<uint64_t> &rhsSizes) {
   std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
   llvm::LoadInst *loaded = Builder->CreateLoad(rhsArrayType, rhsVariable);

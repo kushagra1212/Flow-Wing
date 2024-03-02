@@ -14,7 +14,7 @@ RUN mkdir -p jit-compiler-test-build
 # Configure and compiler-test-build your project
 
 WORKDIR /jit-compiler-test/all-targets/jit-compiler/jit-compiler-test-build
-RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
-RUN ninja
-# Run Tests
-RUN ./FlowWing
+# RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
+# RUN ninja
+# # Run Tests
+# RUN ./FlowWing

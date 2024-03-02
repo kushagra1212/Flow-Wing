@@ -269,13 +269,6 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
 
   boundCustomTypeStatement->setTypeName(std::move(boundLiteralExpression));
 
-  if (!this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Duplicate Custom Type" + name, DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        customTypeStatement->getTypeNameRef()->getSourceLocation()));
-  }
-
   std::unordered_map<std::string, int8_t> attributes;
 
   for (int i = 0; i < customTypeStatement->getKeyTypePairsRef().size(); i++) {
@@ -305,6 +298,13 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
 
     boundCustomTypeStatement->addKeyTypePair(std::move(boundLiteralExpression),
                                              std::move(boundTypeExpression));
+  }
+
+  if (!this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Duplicate Custom Type" + name, DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        customTypeStatement->getTypeNameRef()->getSourceLocation()));
   }
 
   return std::move(boundCustomTypeStatement);

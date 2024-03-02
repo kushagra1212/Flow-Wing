@@ -8,4 +8,6 @@ class BoundExpression : public BoundNode, public BoundSourceLocation {
       : BoundSourceLocation(location){};
 
   virtual const std::type_info &getType() = 0;
+
+  virtual ~BoundExpression() = default;
 };

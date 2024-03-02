@@ -17,7 +17,7 @@ class BoundWhileStatement : public BoundStatement, public BoundSourceLocation {
   std::unique_ptr<BoundExpression> getCondition();
   std::unique_ptr<BoundStatement> getBody();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 
   std::unique_ptr<BoundExpression> &getConditionPtr();

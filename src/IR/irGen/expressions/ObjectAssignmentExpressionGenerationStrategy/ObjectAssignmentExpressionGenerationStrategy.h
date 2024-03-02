@@ -20,6 +20,9 @@ class ObjectAssignmentExpressionGenerationStrategy
   bool canGenerateAssignmentExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
+  llvm::Value *copyOject(llvm::StructType *parStructType, llvm::Value *lshPtr,
+                         llvm::Value *rhsPtr);
+
  private:
   BoundAssignmentExpression *_assignmentExp;
   llvm::Value *_lhsVar;

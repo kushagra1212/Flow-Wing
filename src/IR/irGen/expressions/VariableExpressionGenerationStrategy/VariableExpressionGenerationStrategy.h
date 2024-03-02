@@ -35,9 +35,16 @@ class VariableExpressionGenerationStrategy
   llvm::Value *getObjectValue(llvm::Value *elementPtr, size_t listIndex,
                               const std::string &variableName);
 
+  llvm::Value *getObjectValueNF(llvm::Value *variableElementPtr,
+                                size_t listIndex,
+                                const std::string &parPropertyKey,
+                                std::vector<llvm::Value *> indices,
+                                llvm::StructType *type);
+
  private:
   BoundVariableExpression *_variableExpression;
   BoundTypeExpression *_typeExpression;
+  llvm::StructType *parObjTypeType = nullptr;
 };
 
 #endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

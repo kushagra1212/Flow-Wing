@@ -13,7 +13,7 @@ class BoundTypeExpression : public BoundExpression {
                       const SyntaxKindUtils::SyntaxKind &type);
 
   const std::type_info &getType() override;
-  virtual BinderKindUtils::BoundNodeKind getKind() const;
+  virtual BinderKindUtils::BoundNodeKind getKind() const override;
   virtual std::vector<BoundNode *> getChildren() override;
 
   inline auto getSyntaxType() const -> const SyntaxKindUtils::SyntaxKind & {

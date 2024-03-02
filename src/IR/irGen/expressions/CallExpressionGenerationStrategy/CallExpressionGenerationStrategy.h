@@ -54,12 +54,12 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                           llvm::Value *v);
 
   llvm::Value *printArrayAtom(llvm::ArrayType *&arrayType, llvm::Value *&v,
-                              const std::vector<size_t> &sizes,
+                              const std::vector<uint64_t> &sizes,
                               std::vector<llvm::Value *> &indices, int64_t i,
                               llvm::Type *&elementType);
 
-  llvm::Value *printObject(llvm::Value *variableElementPtr,
-                           const std::string &parPropertyKey);
+  llvm::Value *printObject(llvm::Value *outerElementPtr,
+                           llvm::StructType *parObjType);
 
   llvm::Type *isGlobalArray(llvm::Value *value);
 

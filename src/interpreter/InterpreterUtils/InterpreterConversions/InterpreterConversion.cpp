@@ -1,5 +1,7 @@
 #include "InterpreterConversion.h"
 
+#include <sstream>
+
 std::string InterpreterConversion::explicitConvertAnyToString(
     const std::any value) {
   if (value.type() == typeid(int)) {

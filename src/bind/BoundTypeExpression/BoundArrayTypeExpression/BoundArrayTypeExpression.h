@@ -12,7 +12,7 @@ class BoundArrayTypeExpression : public BoundTypeExpression {
 
   std::vector<BoundNode *> getChildren() override;
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   // Setters
   inline void setElementType(const SyntaxKindUtils::SyntaxKind &type) {

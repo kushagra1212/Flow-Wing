@@ -24,7 +24,7 @@ class BoundVariableDeclaration : public BoundStatement,
 
   std::vector<BoundNode *> getChildren() override;
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   bool isConst() const;
 

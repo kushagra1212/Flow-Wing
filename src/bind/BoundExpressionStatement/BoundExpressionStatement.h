@@ -16,7 +16,7 @@ class BoundExpressionStatement : public BoundStatement,
 
   std::unique_ptr<BoundExpression> getExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

@@ -35,15 +35,16 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
         return nullptr;
       }
       case BinderKindUtils::BoundObjectTypeExpression: {
-        // BoundObjectTypeExpression *bOT =
-        //     static_cast<BoundObjectTypeExpression *>(bTE.get());
+        BoundObjectTypeExpression *bOT =
+            static_cast<BoundObjectTypeExpression *>(bTE.get());
 
-        // BoundLiteralExpression<std::any> *bLE =
-        //     bOT->getObjectTypeIdentifier().get();
+        BoundLiteralExpression<std::any> *bLE =
+            bOT->getObjectTypeIdentifier().get();
 
-        // const std::string typeName =
-        //     std::any_cast<std::string>(bLE->getValue());
-        type = llvm::PointerType::get(*TheContext, 0);
+        const std::string typeName =
+            std::any_cast<std::string>(bLE->getValue());
+
+        type = _codeGenerationContext->getTypeChain()->getType(typeName);
         break;
       }
       default: {

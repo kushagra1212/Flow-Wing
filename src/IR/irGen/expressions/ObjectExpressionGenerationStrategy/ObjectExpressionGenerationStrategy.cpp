@@ -6,7 +6,12 @@ ObjectExpressionGenerationStrategy::ObjectExpressionGenerationStrategy(
 
 llvm::Value *ObjectExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
-  llvm::Value *res = this->createExpression(expression, _variable, _typeName);
+  _codeGenerationContext->getValueStackHandler()->popAll();
+  if (expression->getKind() == BinderKindUtils::VariableExpression) {
+    return generateVariableExp(expression);
+  }
+
+  llvm::Value *res = this->createExpressionNP(expression, _variable, _typeName);
 
   //   if (llvm::isa<llvm::AllocaInst>(_variable)) {
   //     llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(_variable);
@@ -21,7 +26,12 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   this->_variableIsGlobal = true;
 
-  llvm::Value *res = this->createExpression(expression, _variable, _typeName);
+  _codeGenerationContext->getValueStackHandler()->popAll();
+  if (expression->getKind() == BinderKindUtils::VariableExpression) {
+    return generateVariableExp(expression);
+  }
+
+  llvm::Value *res = this->createExpressionNP(expression, _variable, _typeName);
 
   //   if (llvm::isa<llvm::GlobalVariable>(_variable)) {
   //     llvm::GlobalVariable *globalVariable =
@@ -33,6 +43,234 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   //   }
 
   return res;
+}
+
+llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
+    BoundExpression *expression) {
+  std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
+      std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
+  llvm::Value *rhsValue =
+      _expressionGenerationFactory->createStrategy(expression->getKind())
+          ->generateExpression(expression);
+
+  llvm::StructType *parStructType =
+      _codeGenerationContext->getTypeChain()->getType(_typeName);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      expression->getLocation());
+
+  if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
+    _codeGenerationContext->getLogger()->LogError("Expected a object of type " +
+                                                  _typeName);
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    return nullptr;
+  }
+
+  if (_codeGenerationContext->getValueStackHandler()->getTypeName() !=
+      _typeName) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected a object of type " + _typeName + " but got " +
+        _codeGenerationContext->getValueStackHandler()->getTypeName());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    return nullptr;
+  }
+
+  llvm::Value *rhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  return strategy->copyOject(parStructType, _variable, rhsPtr);
+}
+
+llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
+    BoundExpression *expression, llvm::Value *variable,
+    const std::string &typeName) {
+  BoundObjectExpression *parObjectExpression =
+      static_cast<BoundObjectExpression *>(expression);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      expression->getLocation());
+
+  llvm::StructType *parStructType =
+      _codeGenerationContext->getTypeChain()->getType(typeName);
+
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+
+  std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
+
+  for (const auto &[bLitExpr, bExpr] :
+       boundCustomTypeStatement->getKeyPairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+    propertiesMap[propertyName] = bExpr.get();
+  }
+
+  uint64_t indexValue = 0;
+
+  for (const auto &[bLitExpr, bExpr] :
+       parObjectExpression->getKeyValuePairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        bLitExpr->getLocation());
+
+    if (propertiesMap.find(propertyName) == propertiesMap.end()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Property " + propertyName + " not found in type " + typeName);
+      return nullptr;
+    }
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        bExpr->getLocation());
+
+    // if ((propertiesMap[propertyName]->getSyntaxType() ==
+    //          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
+    //      bExpr->getKind() != BinderKindUtils::BoundObjectExpression) or
+    //     (bExpr->getKind() == BinderKindUtils::BoundObjectExpression &&
+    //      propertiesMap[propertyName]->getSyntaxType() !=
+    //          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE)) {
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Type of property '" + propertyName +
+    //       "' does not match type of property in type " + typeName);
+
+    //   return nullptr;
+    // }
+
+    std::string key =
+        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
+    const size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
+
+    if (index == -1) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Property " + std::any_cast<std::string>(bLitExpr->getValue()) +
+          " not found in type " + typeName);
+      return nullptr;
+    }
+
+    llvm::Value *rhs = nullptr;
+
+    llvm::Value *innerElementPtr =
+        Builder->CreateStructGEP(parStructType, variable, indexValue);
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    if (propertiesMap[propertyName]->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
+        bExpr->getKind() == BinderKindUtils::BoundObjectExpression) {
+      BoundObjectExpression *innerObjectExpression =
+          static_cast<BoundObjectExpression *>(bExpr.get());
+
+      BoundObjectTypeExpression *boundObjectTypeExpression =
+          static_cast<BoundObjectTypeExpression *>(propertiesMap[propertyName]);
+
+      llvm::StructType *innerElementType =
+          (_codeGenerationContext->getTypeChain()->getType(
+              boundObjectTypeExpression->getTypeName()));
+
+      std::string var_name = variable->getName().str() + "." + propertyName;
+      // llvm::Value *var = nullptr;
+
+      // if (_variableIsGlobal) {
+      // var = new llvm::GlobalVariable(
+      //     *TheModule, llvm::PointerType::get(*TheContext, 0), false,
+      //     llvm::GlobalValue::ExternalLinkage,
+      //     llvm::Constant::getNullValue(
+      //         llvm::PointerType::get(*TheContext, 0)),
+      //     var_name);
+
+      // Builder->CreateStore(elementPtr, var);
+
+      // } else {
+      // var = Builder->CreateAlloca(elementType, nullptr, var_name);
+      // llvm::AllocaInst *v = llvm::cast<llvm::AllocaInst>(var);
+
+      // v->setMetadata(FLOWWING::IR::CONSTANTS::IS_EXISTS,
+      //                llvm::MDNode::get(
+      //                    *TheContext, llvm::MDString::get(*TheContext,
+      //                    "-")));
+
+      // _codeGenerationContext->getAllocaChain()->setAllocaInst(var_name, v);
+      // }
+
+      this->createExpressionNP(innerObjectExpression, innerElementPtr,
+                               innerElementType->getName().str());
+    } else if (propertiesMap[propertyName]->getSyntaxType() ==
+                   SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
+               bExpr->getKind() == BinderKindUtils::VariableExpression) {
+      rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
+                ->generateExpression(bExpr.get());
+      if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Expected a object of type " + _typeName);
+        _codeGenerationContext->getValueStackHandler()->popAll();
+        return nullptr;
+      }
+      llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+      BoundObjectTypeExpression *boundObjectTypeExpression =
+          static_cast<BoundObjectTypeExpression *>(propertiesMap[propertyName]);
+
+      llvm::StructType *lshStructType =
+          (_codeGenerationContext->getTypeChain()->getType(
+              boundObjectTypeExpression->getTypeName()));
+
+      if (lshStructType->getStructName() != rhsStructType->getStructName()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Expected a object of type " +
+            Utils::CE(lshStructType->getStructName().str()) +
+            " but got object of type " +
+            Utils::CE(rhsStructType->getStructName().str()));
+        return nullptr;
+      }
+      std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
+          std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+      strategy->copyOject(
+          lshStructType, innerElementPtr,
+          _codeGenerationContext->getValueStackHandler()->getValue());
+
+      _codeGenerationContext->getValueStackHandler()->popAll();
+
+    } else if (propertiesMap[propertyName]->getSyntaxType() ==
+               SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected a object of type " + _typeName);
+      return nullptr;
+    } else {
+      rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
+                ->generateExpression(bExpr.get());
+
+      if (!rhs) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Property " + std::any_cast<std::string>(bLitExpr->getValue()) +
+            " not found in type " + typeName);
+        return nullptr;
+      }
+
+      if (_codeGenerationContext->getMapper()->isPrimitiveType(
+              rhs->getType()) &&
+          _codeGenerationContext->getMapper()->isPrimitiveType(
+              parStructType->getElementType(index)) &&
+          rhs->getType() != parStructType->getElementType(index)) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Type of property " +
+            std::any_cast<std::string>(bLitExpr->getValue()) +
+            " does not match type in type " + typeName + " Expected " +
+            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+                parStructType->getElementType(index))) +
+            " but got " +
+            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+                rhs->getType())));
+
+        return nullptr;
+      }
+
+      Builder->CreateStore(rhs, innerElementPtr);
+    }
+    indexValue++;
+  }
+
+  return nullptr;
 }
 
 llvm::Value *ObjectExpressionGenerationStrategy::createExpression(

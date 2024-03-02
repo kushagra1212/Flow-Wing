@@ -1,8 +1,37 @@
-       
-       type t1 = {
+   type t1 = {
             a:int,
-            b:t1
+            b:str
        }
+
+type t2 = {
+      c:int,
+      d:t1
+}
+{
+
+var x:t2 = {c:2,d:{a:3,b:"string"}}
+var y:t2= x
+y = {c:5,d:x.d}
+print(y)
+}
+
+/#
+   type t1 = {
+            a:int,
+            b:str
+       }
+
+type t2 = {
+      c:int,
+      d:t1
+}
+var x:t2 = {c:2,d:{a:3,b:"string"}}
+var y:t2= x
+y = {c:4,d: x.d}
+print(y)
+
+/#       
+    
        fun pass(y:t1) -> nthg {
             print("\n")
             print(y)
