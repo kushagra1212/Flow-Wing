@@ -6,10 +6,10 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundContainerExpression : public BoundExpression {
-private:
+ private:
   std::vector<std::unique_ptr<BoundExpression>> _elements;
 
-public:
+ public:
   BoundContainerExpression(const DiagnosticUtils::SourceLocation &location);
 
   // OVERRIDES
@@ -25,4 +25,4 @@ public:
       -> const std::vector<std::unique_ptr<BoundExpression>> &;
 };
 
-#endif // __BOUND_CONTAINER_EXPRESSION_H__
+#endif  // __BOUND_CONTAINER_EXPRESSION_H__

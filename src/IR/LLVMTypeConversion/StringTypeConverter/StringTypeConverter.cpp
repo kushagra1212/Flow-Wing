@@ -4,7 +4,6 @@ StringTypeConverter::StringTypeConverter(CodeGenerationContext *context)
     : TypeConverterBase(context){};
 
 llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
-
   if (llvm::isa<llvm::PointerType>(value->getType())) {
     return value;
   }
@@ -21,7 +20,6 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
   }
 
   if (auto dataArr = llvm::dyn_cast<llvm::ConstantDataArray>(value)) {
-
     // bitcast to i8*
     // Define a global variable for the string
     llvm::GlobalVariable *str = new llvm::GlobalVariable(
@@ -34,35 +32,34 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  SyntaxKindUtils::SyntaxKind type =
+      this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case Utils::type::INT32:
-  case Utils::type::INT16:
-  case Utils::type::INT64: {
-    return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::ITOS),
-                                {value});
-  }
-  case Utils::type::DECIMAL: {
-    return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
-                                {value});
-  }
-  case Utils::type::BOOL: {
-    llvm::Value *str = _builder->CreateSelect(
-        value,
-        _module->getGlobalVariable(
-            _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE)),
+    case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+      return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::ITOS),
+                                  {value});
+    }
+    case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+      return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
+                                  {value});
+    }
+    case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
+      llvm::Value *str = _builder->CreateSelect(
+          value,
+          _module->getGlobalVariable(
+              _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE)),
 
-        _module->getGlobalVariable(
-            _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE)));
+          _module->getGlobalVariable(
+              _codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE)));
 
-    return this->convertExplicit(str);
-  }
-  case Utils::type::STRING: {
-    return value;
-  }
-  default:
-    break;
+      return this->convertExplicit(str);
+    }
+    case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+      return value;
+    }
+    default:
+      break;
   }
 
   // Attempt to convert the value to string
@@ -81,7 +78,6 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *value) {
 }
 
 llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *value) {
-
   if (auto globalString = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);
@@ -90,7 +86,6 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *value) {
   }
 
   if (auto dataArr = llvm::dyn_cast<llvm::ConstantDataArray>(value)) {
-
     // bitcast to i8*
     // Define a global variable for the string
     llvm::GlobalVariable *str = new llvm::GlobalVariable(
@@ -103,42 +98,41 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *value) {
 
   llvm::Value *res = nullptr;
 
-  Utils::type type = this->_mapper->mapLLVMTypeToCustomType(value->getType());
+  SyntaxKindUtils::SyntaxKind type =
+      this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case Utils::type::INT16:
-  case Utils::type::INT32:
-  case Utils::type::INT64: {
-    _logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int to string is not "
-                                "supported for variable with predefined type"));
+    case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+      _logger->logLLVMError(llvm::createStringError(
+          llvm::inconvertibleErrorCode(),
+          "Implicit conversion from int to string is not "
+          "supported for variable with predefined type"));
 
-    return nullptr;
-  }
-  case Utils::type::DECIMAL: {
-    _logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from float/double to "
-                                "string is not supported for variable with "
-                                "predefined type"));
+      return nullptr;
+    }
+    case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+      _logger->logLLVMError(
+          llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                  "Implicit conversion from float/double to "
+                                  "string is not supported for variable with "
+                                  "predefined type"));
 
-    return nullptr;
-  }
-  case Utils::type::BOOL: {
-    _logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from bool to string is "
-                                "not supported for variable with predefined "
-                                "type"));
+      return nullptr;
+    }
+    case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
+      _logger->logLLVMError(
+          llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                  "Implicit conversion from bool to string is "
+                                  "not supported for variable with predefined "
+                                  "type"));
 
-    return nullptr;
-  }
-  case Utils::type::STRING: {
-    return value;
-  }
-  default:
-    break;
+      return nullptr;
+    }
+    case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+      return value;
+    }
+    default:
+      break;
   }
 
   _logger->logLLVMError(
@@ -148,8 +142,8 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *value) {
   return res;
 }
 
-llvm::Value *
-StringTypeConverter::convertStringToi8Ptr(std::string stringValue) {
+llvm::Value *StringTypeConverter::convertStringToi8Ptr(
+    std::string stringValue) {
   llvm::Constant *stringConstant =
       llvm::ConstantDataArray::getString(_builder->getContext(), stringValue);
   llvm::GlobalVariable *globalVar = new llvm::GlobalVariable(
@@ -163,12 +157,10 @@ StringTypeConverter::convertStringToi8Ptr(std::string stringValue) {
 }
 
 std::string StringTypeConverter::valueToString(llvm::Value *val) {
-  if (!val)
-    return "";
+  if (!val) return "";
 
   llvm::ConstantInt *constInt = llvm::dyn_cast<llvm::ConstantInt>(val);
   if (constInt) {
-
     if (constInt->getType()->isIntegerTy(32)) {
       return std::to_string(constInt->getSExtValue());
     } else if (constInt->getType()->isIntegerTy(64)) {
@@ -176,7 +168,6 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
     } else if (constInt->getType()->isIntegerTy(1)) {
       return constInt->getSExtValue() ? "true" : "false";
     } else {
-
       _logger->logLLVMError(llvm::createStringError(
           llvm::inconvertibleErrorCode(),
           "Unsupported integer type for conversion to string"));
@@ -190,7 +181,6 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
     if (constFP->getType()->isDoubleTy()) {
       return std::to_string(constFP->getValueAPF().convertToDouble());
     } else {
-
       _logger->logLLVMError(llvm::createStringError(
           llvm::inconvertibleErrorCode(),
           "Unsupported floating point type for conversion to string"));
@@ -216,7 +206,6 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
         return cmpResult == llvm::ConstantInt::get(i1Type, 1) ? "true"
                                                               : "false";
       } else {
-
         _logger->logLLVMError(llvm::createStringError(
             llvm::inconvertibleErrorCode(),
             "Unsupported type for conversion to string"));

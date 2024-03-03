@@ -5,16 +5,18 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundTypeExpression : public BoundExpression {
-private:
-  Utils::type _type;
+ private:
+  SyntaxKindUtils::SyntaxKind _type;
 
-public:
+ public:
   BoundTypeExpression(const DiagnosticUtils::SourceLocation &location,
-                      Utils::type type);
+                      const SyntaxKindUtils::SyntaxKind &type);
 
   const std::type_info &getType() override;
-  virtual BinderKindUtils::BoundNodeKind getKind() const;
+  virtual BinderKindUtils::BoundNodeKind getKind() const override;
   virtual std::vector<BoundNode *> getChildren() override;
 
-  inline auto getUtilsType() const -> const Utils::type & { return _type; }
+  inline auto getSyntaxType() const -> const SyntaxKindUtils::SyntaxKind & {
+    return _type;
+  }
 };

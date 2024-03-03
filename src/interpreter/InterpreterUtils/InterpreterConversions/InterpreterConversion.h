@@ -1,12 +1,12 @@
 #ifndef INTERPRETERCONVERSION_H
 #define INTERPRETERCONVERSION_H
-#include "../../../utils/Utils.h"
 #include <any>
 #include <string>
 
-class InterpreterConversion {
+#include "../../../utils/Utils.h"
 
-public:
+class InterpreterConversion {
+ public:
   static std::string explicitConvertAnyToString(const std::any value);
   static std::string explicitConvertIntToString(const int value);
   static std::string explicitConvertDoubleToString(const double value);
@@ -28,4 +28,4 @@ public:
   static bool explicitConvertStringToBool(const std::string value);
 };
 
-#endif // INTERPRETERCONVERSION_H
+#endif  // INTERPRETERCONVERSION_H

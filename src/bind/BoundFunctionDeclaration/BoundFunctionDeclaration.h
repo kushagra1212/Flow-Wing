@@ -5,24 +5,23 @@
 #include "../BoundBlockStatement/BoundBlockStatement.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
-#include "../BoundVariableExpression/BoundVariableExpression.h"
+#include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundFunctionDeclaration : public BoundStatement,
                                  public BoundSourceLocation {
-
   std::unique_ptr<BoundBlockStatement> _body;
-  std::vector<std::unique_ptr<BoundVariableExpression>> _parameters;
+  std::vector<std::unique_ptr<BoundVariableDeclaration>> _parameters;
   std::string _functionName;
 
   std::unique_ptr<BoundExpression> _returnType;
 
-public:
+ public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 
-  void addParameter(std::unique_ptr<BoundVariableExpression> parameter);
+  void addParameter(std::unique_ptr<BoundVariableDeclaration> parameter);
   void setFunctionName(const std::string &functionName);
   void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
@@ -30,7 +29,7 @@ public:
   }
 
   inline auto getParametersRef() const
-      -> const std::vector<std::unique_ptr<BoundVariableExpression>> & {
+      -> const std::vector<std::unique_ptr<BoundVariableDeclaration>> & {
     return _parameters;
   }
   inline auto getFunctionNameRef() const -> const std::string & {

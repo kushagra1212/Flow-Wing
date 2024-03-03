@@ -5,21 +5,23 @@
 ParameterSyntax::ParameterSyntax(
     std::unique_ptr<SyntaxToken<std::any>> identifierToken) {
   this->_identifierToken = std::move(identifierToken);
-
-  // Add children
-
-  _children.push_back(_identifierToken.get());
 }
 
-SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
-DiagnosticUtils::SourceLocation ParameterSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation ParameterSyntax::getSourceLocation()
+    const {
   return this->_identifierToken->getSourceLocation();
 }
 
-std::vector<SyntaxNode *> ParameterSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ParameterSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+    _children.push_back(_identifierToken.get());
+  }
+
   return this->_children;
 }
 

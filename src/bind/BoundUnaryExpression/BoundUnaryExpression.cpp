@@ -16,14 +16,6 @@ const std::type_info &BoundUnaryExpression::getType() {
   return this->_operand->getType();
 }
 
-BinderKindUtils::BoundUnaryOperatorKind BoundUnaryExpression::getOperator() {
-  return this->_op;
-}
-
-std::unique_ptr<BoundExpression> BoundUnaryExpression::getOperand() {
-  return std::move(this->_operand);
-}
-
 BinderKindUtils::BoundNodeKind BoundUnaryExpression::getKind() const {
   return BinderKindUtils::BoundNodeKind::UnaryExpression;
 }

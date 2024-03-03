@@ -1,12 +1,13 @@
 #include "ForStatementGenerationStrategy.h"
+
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ForStatementGenerationStrategy::ForStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
 
-llvm::Value *
-ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
+llvm::Value *ForStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
   BoundForStatement *forStatement = static_cast<BoundForStatement *>(statement);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -15,18 +16,24 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
 
-  _codeGenerationContext->getAllocaChain()->addHandler(new AllocaTable());
+  _codeGenerationContext->getAllocaChain()->addHandler(
+      std::make_unique<AllocaTable>());
+
+  _codeGenerationContext->getTypeChain()->addHandler(
+      std::make_unique<TypeTable>());
+
+  _codeGenerationContext->getCustomTypeChain()->addHandler(
+      std::make_unique<CustomTypeStatementTable>());
 
   std::string variableName = "";
 
   // Step Value
 
   llvm::Value *stepValue =
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)); // default
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true));  // default
 
   BoundExpression *forStepExp = forStatement->getStepExpressionPtr().get();
   if (forStepExp) {
-
     stepValue = _int32TypeConverter->convertImplicit(
         _expressionGenerationFactory->createStrategy(forStepExp->getKind())
             ->generateExpression(forStepExp));
@@ -49,12 +56,11 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         variableDeclaration->getLocation());
 
-    variableName = variableDeclaration->getVariable();
+    variableName = variableDeclaration->getVariableName();
 
     _statementGenerationFactory->createStrategy(variableDeclaration->getKind())
         ->generateStatement(variableDeclaration);
   } else {
-
     // Loop Variable
 
     variableName = "ForLoop::loopVariable";
@@ -84,7 +90,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
       forStatement->getLocation());
 
   if (variableName == "") {
-
     _codeGenerationContext->getLogger()->LogError(
         "Variable name is not found in for statement");
 
@@ -129,7 +134,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
       generateLoopCondition(stepValue, value, upperBound);
 
   if (conditionPHI == nullptr) {
-
     _codeGenerationContext->getLogger()->LogError(
         "Condition value is not found in for statement");
 
@@ -161,8 +165,9 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
   assignmentExpressionGenerationStrategy
-      ->handlePrimitiveLocalVariableAssignment(variableName, Utils::type::INT32,
-                                               incrementedValue);
+      ->handlePrimitiveLocalVariableAssignment(
+          variableName, SyntaxKindUtils::SyntaxKind::Int32Keyword,
+          incrementedValue);
 
   Builder->CreateBr(loopCondition);
 
@@ -171,9 +176,12 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   _codeGenerationContext->decrementCountIfNotZero(
       _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT));
 
-  _codeGenerationContext->getAllocaChain()->removeHandler();
+  // Exit
 
+  _codeGenerationContext->getAllocaChain()->removeHandler();
   _codeGenerationContext->getNamedValueChain()->removeHandler();
+  _codeGenerationContext->getTypeChain()->removeHandler();
+  _codeGenerationContext->getCustomTypeChain()->removeHandler();
   return exitValue;
 }
 

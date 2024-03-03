@@ -5,11 +5,11 @@
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ContinueStatementGenerationStrategy : public StatementGenerationStrategy {
-public:
+ public:
   ContinueStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
 
-#endif //__FLOWWING_CONTINUE_STATEMENT_STRATEGY_H__
+#endif  //__FLOWWING_CONTINUE_STATEMENT_STRATEGY_H__

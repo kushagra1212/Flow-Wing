@@ -5,7 +5,7 @@
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
-public:
+ public:
   FillExpressionGenerationStrategy(CodeGenerationContext *context,
                                    std::vector<uint64_t> actualSizes,
                                    llvm::Type *elementType,
@@ -31,7 +31,7 @@ public:
                                     std::vector<llvm::Value *> &indices,
                                     uint64_t index);
 
-private:
+ private:
   std::vector<uint64_t> _actualSizes;
 
   uint64_t _totalSize;
@@ -46,4 +46,4 @@ private:
   llvm::AllocaInst *_allocaInst;
 };
 
-#endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

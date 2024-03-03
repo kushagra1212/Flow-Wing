@@ -5,7 +5,7 @@
 #include "../TypeBuilderInterface.h"
 
 class ContainerTypeBuilder : public TypeBuilderInterface {
-public:
+ public:
   ContainerTypeBuilder(CodeGenerationContext *context);
   void buildType() override;
   llvm::StructType *get() const override;
@@ -13,9 +13,9 @@ public:
 
   const uint64_t getIndexofMemberType(llvm::Type *type) const;
 
-private:
+ private:
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _body;
 };
 
-#endif // __FLOWWING_CONTAINER_TYPE_BUILDER_H__
+#endif  // __FLOWWING_CONTAINER_TYPE_BUILDER_H__

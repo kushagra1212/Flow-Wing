@@ -2,13 +2,15 @@
 
 EmptyStatementSyntax::EmptyStatementSyntax() {}
 
-SyntaxKindUtils::SyntaxKind EmptyStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind EmptyStatementSyntax::getKind() const {
   return SyntaxKindUtils::EmptyStatement;
 }
 
-std::vector<SyntaxNode *> EmptyStatementSyntax::getChildren() { return {}; }
+const std::vector<SyntaxNode *> &EmptyStatementSyntax::getChildren() {
+  return _children;
+}
 
-DiagnosticUtils::SourceLocation
-EmptyStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation EmptyStatementSyntax::getSourceLocation()
+    const {
   return DiagnosticUtils::SourceLocation();
 }

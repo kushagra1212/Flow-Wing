@@ -376,8 +376,20 @@ TEST_F(
     ForLoopReplTest,
     NestedForAndWhileLoopWithStepWithLoopVariableAndContinueKeywordAndIfOrIfElseStatement) {
   std::string input =
-      R"(for var i = 0 to 5 : 2 { var j = 0 while j <= 5 { if j == 2 { j = j
-      + 2 continue } or if j == 2 { print(j) } else { print(j) } j = j + 2 }
+      R"(
+        for var i = 0 to 5 : 2 { 
+          var j = 0 
+          while j <= 5 { 
+            if j == 2 { 
+              j = j + 2 
+              continue 
+            } or if j == 2 { 
+              print(j) 
+            } else { 
+              print(j) 
+            } 
+            j = j + 2 
+          }
       })";
 
   std::string expected_output = "040404";

@@ -3,10 +3,6 @@
 ExpressionStatementSyntax::ExpressionStatementSyntax(
     std::unique_ptr<ExpressionSyntax> expression) {
   this->_expression = std::move(expression);
-
-  // Add children
-
-  _children.push_back(_expression.get());
 }
 
 std::unique_ptr<ExpressionSyntax> ExpressionStatementSyntax::getExpression() {
@@ -16,15 +12,20 @@ std::unique_ptr<ExpressionSyntax> &
 ExpressionStatementSyntax::getExpressionPtr() {
   return this->_expression;
 }
-SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
 }
 
-std::vector<SyntaxNode *> ExpressionStatementSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ExpressionStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+    _children.push_back(_expression.get());
+  }
+
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 ExpressionStatementSyntax::getSourceLocation() const {
   return this->_expression->getSourceLocation();
 }

@@ -26,11 +26,11 @@ const bool ReferenceTypeBuilder::isRef(llvm::Type *type) const {
   return type == this->_referenceType;
 }
 
-llvm::Value *
-ReferenceTypeBuilder::getReferencedValue(llvm::Value *refValue) const {
+llvm::Value *ReferenceTypeBuilder::getReferencedValue(
+    llvm::Value *refValue) const {
   return _codeGenerationContext->getBuilder()->CreateStructGEP(
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-          Utils::type::INT32),
+          SyntaxKindUtils::SyntaxKind::Int32Keyword),
       refValue, 0);
 }
 

@@ -1,5 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <filesystem>
+#include <regex>
+#include <typeinfo>
+
 #include "../Common.h"
 #include "../bind/BinderKindUtils.h"
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
@@ -12,10 +16,6 @@
 #include "../syntax/SyntaxNode.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include <regex>
-
-#include <filesystem>
-#include <typeinfo>
 
 namespace Utils {
 enum type {
@@ -27,6 +27,8 @@ enum type {
   BOOL,
   STRING,
   NOTHING,
+  ARRAY,
+  OBJECT,
   UNKNOWN,
 
   // Container Types
@@ -59,7 +61,7 @@ const std::string concatErrors(const std::vector<std::string> &errors,
                                bool isWarning = false);
 auto getStrongRandomString() -> std::string;
 std::string getTypeString(const std::any &value);
-Utils::type getTypeFromAny(const std::any &value);
+SyntaxKindUtils::SyntaxKind getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);
 std::string getSourceCode(SyntaxNode *node, bool include);
 std::string CE(const std::string &str);
@@ -88,7 +90,7 @@ bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
-auto typeToString(Utils::type type) -> std::string;
+auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,

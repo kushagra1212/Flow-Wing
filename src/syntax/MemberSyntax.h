@@ -5,10 +5,10 @@
 class MemberSyntax : public SyntaxNode {
   bool isExposed = false;
 
-public:
+ public:
   MemberSyntax(const bool &isExposed) : isExposed(isExposed) {}
 
-  bool getIsExposed() const { return isExposed; }
+  const bool &getIsExposed() const { return isExposed; }
 };
 
-#endif // MEMBER_SYNTAX_H
+#endif  // MEMBER_SYNTAX_H

@@ -2,22 +2,25 @@
 
 VariableExpressionSyntax::VariableExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> identifierExpression,
-    const bool isConstant, const Utils::type &variableType)
+    const bool isConstant,
+    std::unique_ptr<TypeExpressionSyntax> variableTypeExpr)
     : _identifierExpression(std::move(identifierExpression)),
-      _variableType(variableType), _isConstant(isConstant) {}
+      _variableTypeExpr(std::move(variableTypeExpr)),
+      _isConstant(isConstant) {}
 
-SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax;
 }
 
-std::vector<SyntaxNode *> VariableExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode*>& VariableExpressionSyntax::getChildren() {
   if (_children.empty()) {
     _children.push_back(_identifierExpression.get());
+    _children.push_back(_variableTypeExpr.get());
   }
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 VariableExpressionSyntax::getSourceLocation() const {
   return _identifierExpression->getSourceLocation();
 }

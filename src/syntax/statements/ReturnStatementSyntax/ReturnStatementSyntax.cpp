@@ -5,16 +5,10 @@ ReturnStatementSyntax::ReturnStatementSyntax(
     std::unique_ptr<ExpressionSyntax> expression) {
   this->_returnKeyword = std::move(returnKeyword);
   this->_expression = std::move(expression);
-
-  // Add children
-
-  _children.push_back(_returnKeyword.get());
-  _children.push_back(_expression.get());
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
 ReturnStatementSyntax::getReturnKeyword() {
-
   return std::move(_returnKeyword);
 }
 
@@ -22,16 +16,23 @@ std::unique_ptr<ExpressionSyntax> ReturnStatementSyntax::getExpression() {
   return std::move(_expression);
 }
 
-std::vector<SyntaxNode *> ReturnStatementSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ReturnStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+
+    _children.push_back(_returnKeyword.get());
+    _children.push_back(_expression.get());
+  }
+
   return this->_children;
 }
 
-SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ReturnStatement;
 }
 
-DiagnosticUtils::SourceLocation
-ReturnStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation ReturnStatementSyntax::getSourceLocation()
+    const {
   return _returnKeyword->getSourceLocation();
 }
 

@@ -7,4 +7,4 @@ namespace FLOWWING::UTILS::CONSTANTS {
 extern const std::string GLOBAL_VARIABLE_PREFIX;
 };
 
-#endif // __FLOWWING_UTILS_CONSTANTS_H__
+#endif  // __FLOWWING_UTILS_CONSTANTS_H__

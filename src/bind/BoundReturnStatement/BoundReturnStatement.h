@@ -6,21 +6,20 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundReturnStatement : public BoundStatement, public BoundSourceLocation {
-
-private:
+ private:
   std::unique_ptr<BoundExpression> _expression;
 
-public:
+ public:
   BoundReturnStatement(const DiagnosticUtils::SourceLocation &location,
                        std::unique_ptr<BoundExpression> expression);
 
   std::unique_ptr<BoundExpression> getReturnExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 
   std::unique_ptr<BoundExpression> &getReturnExpressionPtr();
 };
 
-#endif // BOUNDRETURNSTATEMENT_H
+#endif  // BOUNDRETURNSTATEMENT_H

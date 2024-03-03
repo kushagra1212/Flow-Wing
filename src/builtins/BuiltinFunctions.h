@@ -14,6 +14,6 @@ llvm::Function *createGetUserInputFunction(llvm::Module *module);
 
 // You can declare prototypes for other built-in functions here
 
-} // namespace Builtins
+}  // namespace Builtins
 
-#endif // BUILTIN_FUNCTIONS_H
+#endif  // BUILTIN_FUNCTIONS_H

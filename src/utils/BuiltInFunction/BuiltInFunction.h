@@ -4,10 +4,9 @@
 #include "../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../bind/BoundTypeExpression/BoundTypeExpression.h"
 class BuiltInFunction {
-
   static std::vector<std::unique_ptr<BoundFunctionDeclaration>> _functions;
 
-public:
+ public:
   static void setupBuiltInFunctions();
 
   static auto isBuiltInFunction(const std::string &functionName) -> const bool;
@@ -32,6 +31,6 @@ extern const std::string Bool;
 extern const std::string Print;
 extern const std::string Input;
 
-}; // namespace FW::BI::FUNCTION
+};  // namespace FW::BI::FUNCTION
 
-#endif // __BUILT_IN_FUNCTION_H__
+#endif  // __BUILT_IN_FUNCTION_H__

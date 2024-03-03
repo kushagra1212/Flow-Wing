@@ -26,7 +26,10 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
   return type1;
 }
 
-template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
+template <typename T>
+T BoundLiteralExpression<T>::getValue() {
+  return value;
+}
 
 template <typename T>
 BinderKindUtils::BoundNodeKind BoundLiteralExpression<T>::getKind() const {

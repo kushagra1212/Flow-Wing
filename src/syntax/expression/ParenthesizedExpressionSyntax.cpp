@@ -7,11 +7,6 @@ ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
   this->_openParenthesisToken = std::move(openParenthesisToken);
   this->_expression = std::move(expression);
   this->_closeParenthesisToken = std::move(closeParenthesisToken);
-
-  // Add children
-  this->_children.push_back(_openParenthesisToken.get());
-  this->_children.push_back(_expression.get());
-  this->_children.push_back(_closeParenthesisToken.get());
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
@@ -29,15 +24,22 @@ ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
   return std::move(this->_closeParenthesisToken);
 }
 
-SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind()
+    const {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
-std::vector<SyntaxNode *> ParenthesizedExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ParenthesizedExpressionSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+    this->_children.push_back(_openParenthesisToken.get());
+    this->_children.push_back(_expression.get());
+    this->_children.push_back(_closeParenthesisToken.get());
+  }
 
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 ParenthesizedExpressionSyntax::getSourceLocation() const {
   return this->_openParenthesisToken->getSourceLocation();
 }

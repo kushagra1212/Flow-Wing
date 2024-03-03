@@ -6,11 +6,11 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundFillExpression : public BoundExpression {
-private:
+ private:
   std::unique_ptr<BoundExpression> _elementToFill;
   std::unique_ptr<BoundExpression> _sizeToFill;
 
-public:
+ public:
   BoundFillExpression(const DiagnosticUtils::SourceLocation &location);
 
   // OVERRIDES
@@ -27,4 +27,4 @@ public:
   auto getSizeToFillRef() const -> const std::unique_ptr<BoundExpression> &;
 };
 
-#endif // __FLOWWING_BOUND_FILL_EXPRESSION_H__
+#endif  // __FLOWWING_BOUND_FILL_EXPRESSION_H__

@@ -5,13 +5,13 @@
 #include "../DiagnosticUtils/DiagnosticUtils.h"
 
 class Diagnostic {
-private:
+ private:
   std::string _message;
   DiagnosticUtils::DiagnosticLevel _level;
   DiagnosticUtils::DiagnosticType _type;
   DiagnosticUtils::SourceLocation _location;
 
-public:
+ public:
   Diagnostic(const std::string &message, DiagnosticUtils::DiagnosticLevel level,
              DiagnosticUtils::DiagnosticType type,
              const DiagnosticUtils::SourceLocation &location = {});
@@ -25,4 +25,4 @@ public:
   const DiagnosticUtils::SourceLocation &getLocation() const;
 };
 
-#endif // DIAGNOSTIC_H
+#endif  // DIAGNOSTIC_H

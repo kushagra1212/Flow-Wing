@@ -6,10 +6,10 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundBracketedExpression : public BoundExpression {
-private:
+ private:
   std::unique_ptr<BoundExpression> _expression;
 
-public:
+ public:
   BoundBracketedExpression(const DiagnosticUtils::SourceLocation &location);
   // OVERRIDES
   const std::type_info &getType() override;
@@ -23,4 +23,4 @@ public:
   auto getExpressionRef() const -> const std::unique_ptr<BoundExpression> &;
 };
 
-#endif // __FLOWWING_BOUND_BRACKETED_EXPRESSION_H__
+#endif  // __FLOWWING_BOUND_BRACKETED_EXPRESSION_H__

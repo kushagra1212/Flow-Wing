@@ -1,17 +1,18 @@
 #ifndef __FLOW__WING__COMPILER__H__
 #define __FLOW__WING__COMPILER__H__
 
+#include <gtest/gtest.h>
+
+#include <fstream>
+#include <iostream>
+
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
-#include <fstream>
-#include <gtest/gtest.h>
-#include <iostream>
 
 class Compiler {
-
-public:
+ public:
   Compiler(std::string filePath = "");
 
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
@@ -21,16 +22,16 @@ public:
   std::unique_ptr<llvm::MemoryBuffer> getMemoryBuffer(std::string filePath);
   std::vector<std::string> getIRFilePaths() const;
 
-  std::unique_ptr<llvm::Module>
-  getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext);
+  std::unique_ptr<llvm::Module> getLinkedModule(
+      std::unique_ptr<llvm::LLVMContext> &TheContext);
 
-  std::unique_ptr<llvm::Module>
-  createModuleFromBitcode(const std::string &filePath,
-                          std::unique_ptr<llvm::LLVMContext> &TheContext);
+  std::unique_ptr<llvm::Module> createModuleFromBitcode(
+      const std::string &filePath,
+      std::unique_ptr<llvm::LLVMContext> &TheContext);
 
-  std::unique_ptr<llvm::Module>
-  createModuleFromIR(const std::string &filePath,
-                     std::unique_ptr<llvm::LLVMContext> &TheContext);
+  std::unique_ptr<llvm::Module> createModuleFromIR(
+      const std::string &filePath,
+      std::unique_ptr<llvm::LLVMContext> &TheContext);
 
   virtual void execute() = 0;
 
@@ -42,4 +43,4 @@ public:
   llvm::ExecutionEngine *executionEngine;
 };
 
-#endif // __FLOW__WING__COMPILER__H__
+#endif  // __FLOW__WING__COMPILER__H__

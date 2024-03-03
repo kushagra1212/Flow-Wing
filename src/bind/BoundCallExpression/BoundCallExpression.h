@@ -9,12 +9,12 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundCallExpression : public BoundExpression {
-private:
+ private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
   std::string _callerName = "";
 
-public:
+ public:
   BoundCallExpression(const DiagnosticUtils::SourceLocation &location);
 
   const std::type_info &getType() override;
@@ -32,4 +32,4 @@ public:
   }
 };
 
-#endif // __BOUND_CALL_EXPRESSION_H__
+#endif  // __BOUND_CALL_EXPRESSION_H__

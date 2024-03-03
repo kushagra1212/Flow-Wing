@@ -1,19 +1,20 @@
 #ifndef INTERPRETERUTILS_H
 #define INTERPRETERUTILS_H
+#include <any>
+
 #include "../../Common.h"
 #include "../../bind/BinderKindUtils.h"
 #include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "InterpreterConversions/InterpreterConversion.h"
-#include <any>
 
 class InterpreterUtils {
-private:
+ private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
   DiagnosticHandler *_diagnosticHandler = nullptr;
 
-public:
+ public:
   InterpreterUtils(DiagnosticHandler *diagnosticHandler);
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
@@ -21,21 +22,18 @@ public:
   DiagnosticHandler *getDiagnosticHandler();
   void logError(const std::string message);
 
-  std::any
-  getResultFromBinaryOperationOnString(std::string lhsValue,
-                                       std::string rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
-  std::any
-  getResultFromBinaryOperationOnDouble(double lhsValue, double rhsValue,
-                                       BoundBinaryExpression *binaryExpression);
+  std::any getResultFromBinaryOperationOnString(
+      std::string lhsValue, std::string rhsValue,
+      BoundBinaryExpression *binaryExpression);
+  std::any getResultFromBinaryOperationOnDouble(
+      double lhsValue, double rhsValue,
+      BoundBinaryExpression *binaryExpression);
 
-  std::any
-  getResultFromBinaryOperationOnInt(int lhsValue, int rhsValue,
-                                    BoundBinaryExpression *binaryExpression);
+  std::any getResultFromBinaryOperationOnInt(
+      int lhsValue, int rhsValue, BoundBinaryExpression *binaryExpression);
 
-  std::any
-  getResultFromBinaryOperationOnBool(bool lhsValue, bool rhsValue,
-                                     BoundBinaryExpression *binaryExpression);
+  std::any getResultFromBinaryOperationOnBool(
+      bool lhsValue, bool rhsValue, BoundBinaryExpression *binaryExpression);
 
   template <typename T>
   std::any getResultFromUnaryExpressionEvaluatorHandler(
@@ -57,4 +55,4 @@ public:
       BinderKindUtils::BoundUnaryOperatorKind op, std::string operand);
 };
 
-#endif // INTERPRETERUTILS_H
+#endif  // INTERPRETERUTILS_H

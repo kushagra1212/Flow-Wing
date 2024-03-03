@@ -20,7 +20,7 @@
 #include "statements/StatementGenerationFactory.h"
 
 class GenerationStrategy {
-public:
+ public:
   CodeGenerationContext *_codeGenerationContext;
 
   llvm::Module *TheModule = nullptr;
@@ -53,7 +53,8 @@ public:
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
 
   GenerationStrategy(CodeGenerationContext *context)
-      : _codeGenerationContext(context), TheModule(context->getModule().get()),
+      : _codeGenerationContext(context),
+        TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()),
         _llvmValueConverter(std::make_unique<LLVMValueConverter>(context)),
@@ -89,4 +90,4 @@ public:
             std::make_unique<StatementGenerationFactory>(context)){};
 };
 
-#endif // __FLOWWING_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING_GENERATION_STRATEGY_H__

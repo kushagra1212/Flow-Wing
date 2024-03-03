@@ -19,6 +19,8 @@ enum BoundNodeKind {
   ArrayVariableExpression,
   BoundTypeExpression,
   BoundArrayTypeExpression,
+  BoundObjectTypeExpression,
+  BoundObjectExpression,
 
   // Statements
   BoundStatementKind,
@@ -33,6 +35,7 @@ enum BoundNodeKind {
   ReturnStatement,
   BringStatement,
   ContainerStatement,
+  CustomTypeStatement,
 
   // declarations
 
@@ -81,4 +84,4 @@ BoundUnaryOperatorKind getUnaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
 BoundBinaryOperatorKind getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
-} // namespace BinderKindUtils
+}  // namespace BinderKindUtils

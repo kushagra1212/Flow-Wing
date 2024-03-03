@@ -7,22 +7,25 @@ AssignmentExpressionSyntax::AssignmentExpressionSyntax(
   this->_left = std::move(left);
   this->_operatorToken = std::move(operatorToken);
   this->_right = std::move(right);
-
-  // Add children
-
-  this->_children.push_back(_left.get());
-  this->_children.push_back(_operatorToken.get());
-  this->_children.push_back(_right.get());
 }
 
-SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
-
+const SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
 }
 
-std::vector<SyntaxNode *> AssignmentExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &AssignmentExpressionSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+    this->_children.push_back(_left.get());
+    this->_children.push_back(_operatorToken.get());
+    this->_children.push_back(_right.get());
+  }
 
   return this->_children;
+}
+const DiagnosticUtils::SourceLocation
+AssignmentExpressionSyntax::getSourceLocation() const {
+  return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
@@ -36,11 +39,6 @@ std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
 
 std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getLeft() {
   return std::move(this->_left);
-}
-
-DiagnosticUtils::SourceLocation
-AssignmentExpressionSyntax::getSourceLocation() const {
-  return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &

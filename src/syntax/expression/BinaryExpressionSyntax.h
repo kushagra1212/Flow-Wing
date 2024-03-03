@@ -3,13 +3,12 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class BinaryExpressionSyntax : public ExpressionSyntax {
-
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _left;
   std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _right;
 
-public:
+ public:
   BinaryExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
                          std::unique_ptr<SyntaxToken<std::any>> operatorToken,
                          std::unique_ptr<ExpressionSyntax> right);
@@ -18,9 +17,9 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
   std::unique_ptr<ExpressionSyntax> getRight();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<ExpressionSyntax> &getLeftPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();

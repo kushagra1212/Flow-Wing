@@ -5,13 +5,12 @@
 
 */
 
-SyntaxKindUtils::SyntaxKind FillExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind FillExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FillExpression;
 }
 
-std::vector<SyntaxNode *> FillExpressionSyntax::getChildren() {
-  if (_children.size() > 0)
-    return _children;
+const std::vector<SyntaxNode *> &FillExpressionSyntax::getChildren() {
+  if (_children.size() > 0) return _children;
 
   _children.push_back(_sizeToFillExpression.get());
   _children.push_back(_elementExpression.get());
@@ -19,8 +18,8 @@ std::vector<SyntaxNode *> FillExpressionSyntax::getChildren() {
   return _children;
 }
 
-DiagnosticUtils::SourceLocation
-FillExpressionSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation FillExpressionSyntax::getSourceLocation()
+    const {
   if (this->_sizeToFillExpression)
     return this->_sizeToFillExpression->getSourceLocation();
 

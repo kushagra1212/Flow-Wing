@@ -11,7 +11,7 @@
 #include "llvm/IR/Value.h"
 
 class BinaryOperationStrategy {
-public:
+ public:
   std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
@@ -30,15 +30,16 @@ public:
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
-        _codeGenerationContext(context), TheModule(context->getModule().get()),
+        _codeGenerationContext(context),
+        TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()){};
 
-  virtual llvm::Value *
-  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
-                   BoundBinaryExpression *binaryExpression) = 0;
+  virtual llvm::Value *performOperation(
+      llvm::Value *lhsValue, llvm::Value *rhsValue,
+      BoundBinaryExpression *binaryExpression) = 0;
 
   virtual ~BinaryOperationStrategy() = default;
 };
 
-#endif // FLOWWING_BINARYOPERATIONSTRATEGY_H
+#endif  // FLOWWING_BINARYOPERATIONSTRATEGY_H

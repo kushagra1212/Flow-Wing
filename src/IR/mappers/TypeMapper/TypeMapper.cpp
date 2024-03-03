@@ -3,30 +3,34 @@
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
     : _context(context), _builder(builder) {
   _typeMappings = {
-      {(llvm::Type *)llvm::Type::getInt1Ty(*context), Utils::type::BOOL},
-      {(llvm::Type *)llvm::Type::getInt8Ty(*context), Utils::type::INT8},
-      {(llvm::Type *)llvm::Type::getInt16Ty(*context), Utils::type::INT16},
-      {(llvm::Type *)llvm::Type::getInt32Ty(*context), Utils::type::INT32},
-      {(llvm::Type *)llvm::Type::getInt64Ty(*context), Utils::type::INT64},
-      {(llvm::Type *)llvm::Type::getDoubleTy(*context), Utils::type::DECIMAL},
-      {(llvm::Type *)llvm::Type::getInt8PtrTy(*context), Utils::type::STRING},
-      {(llvm::Type *)llvm::Type::getVoidTy(*context), Utils::type::NOTHING},
+      {(llvm::Type *)llvm::Type::getInt1Ty(*context),
+       SyntaxKindUtils::SyntaxKind::BoolKeyword},
+      {(llvm::Type *)llvm::Type::getInt32Ty(*context),
+       SyntaxKindUtils::SyntaxKind::Int32Keyword},
+      {(llvm::Type *)llvm::Type::getDoubleTy(*context),
+       SyntaxKindUtils::SyntaxKind::DeciKeyword},
+      {(llvm::Type *)llvm::Type::getInt8PtrTy(*context),
+       SyntaxKindUtils::SyntaxKind::StrKeyword},
+      {(llvm::Type *)llvm::Type::getVoidTy(*context),
+       SyntaxKindUtils::SyntaxKind::NthgKeyword},
   };
 
   _reverseTypeMappings = {
-      {Utils::type::BOOL, (llvm::Type *)llvm::Type::getInt1Ty(*context)},
-      {Utils::type::INT8, (llvm::Type *)llvm::Type::getInt8Ty(*context)},
-      {Utils::type::INT16, (llvm::Type *)llvm::Type::getInt16Ty(*context)},
-      {Utils::type::INT32, (llvm::Type *)llvm::Type::getInt32Ty(*context)},
-      {Utils::type::INT64, (llvm::Type *)llvm::Type::getInt64Ty(*context)},
-      {Utils::type::DECIMAL, (llvm::Type *)llvm::Type::getDoubleTy(*context)},
-      {Utils::type::STRING, (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
-      {Utils::type::NOTHING, (llvm::Type *)llvm::Type::getVoidTy(*context)},
+      {SyntaxKindUtils::SyntaxKind::BoolKeyword,
+       (llvm::Type *)llvm::Type::getInt1Ty(*context)},
+      {SyntaxKindUtils::SyntaxKind::Int32Keyword,
+       (llvm::Type *)llvm::Type::getInt32Ty(*context)},
+      {SyntaxKindUtils::SyntaxKind::DeciKeyword,
+       (llvm::Type *)llvm::Type::getDoubleTy(*context)},
+      {SyntaxKindUtils::SyntaxKind::StrKeyword,
+       (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
+      {SyntaxKindUtils::SyntaxKind::NthgKeyword,
+       (llvm::Type *)llvm::Type::getVoidTy(*context)},
   };
 }
 
-llvm::Type *TypeMapper::mapCustomTypeToLLVMType(Utils::type type) const {
-
+llvm::Type *TypeMapper::mapCustomTypeToLLVMType(
+    SyntaxKindUtils::SyntaxKind type) const {
   auto it = _reverseTypeMappings.find(type);
   if (it != _reverseTypeMappings.end()) {
     return it->second;
@@ -35,94 +39,92 @@ llvm::Type *TypeMapper::mapCustomTypeToLLVMType(Utils::type type) const {
   }
 }
 
-Utils::type TypeMapper::mapLLVMTypeToCustomType(llvm::Type *type) const {
+SyntaxKindUtils::SyntaxKind TypeMapper::mapLLVMTypeToCustomType(
+    llvm::Type *type) const {
   auto it = _typeMappings.find(type);
   if (it != _typeMappings.end()) {
     return it->second;
   } else {
-    return Utils::type::UNKNOWN;
+    return SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE;
   }
 }
 
 const bool TypeMapper::isVoidType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::NOTHING;
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::NthgKeyword;
 }
 
 const bool TypeMapper::isStringType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::STRING;
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::StrKeyword;
 }
 
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::BOOL;
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::BoolKeyword;
 }
 
 const bool TypeMapper::isDoubleType(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::DECIMAL;
-}
-
-const bool TypeMapper::isInt64Type(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::INT64;
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::DeciKeyword;
 }
 
 const bool TypeMapper::isInt32Type(llvm::Type *type) const {
-  return mapLLVMTypeToCustomType(type) == Utils::type::INT32;
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::Int32Keyword;
 }
 
 const bool TypeMapper::isPtrType(llvm::Type *type) const {
   return type->isPointerTy();
 }
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
-
-  Utils::type customType = mapLLVMTypeToCustomType(type);
+  SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
 
   return getLLVMTypeName(customType);
 }
 
-std::string TypeMapper::getLLVMTypeName(Utils::type customType) const {
-
+std::string TypeMapper::getLLVMTypeName(
+    SyntaxKindUtils::SyntaxKind customType) const {
   switch (customType) {
-  case Utils::type::BOOL:
-    return "Boolean";
-  case Utils::type::INT8:
-  case Utils::type::INT16:
-  case Utils::type::INT32:
-  case Utils::type::INT64:
-    return "Integer";
-  case Utils::type::DECIMAL:
-    return "Decimal";
-  case Utils::type::STRING:
-    return "String";
-  case Utils::type::NOTHING:
-    return "Nothing";
-  default:
-    break;
+    case SyntaxKindUtils::SyntaxKind::BoolKeyword:
+      return "Boolean";
+    case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+      return "Integer32";
+    case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+      return "Decimal";
+    case SyntaxKindUtils::SyntaxKind::StrKeyword:
+      return "String";
+    case SyntaxKindUtils::SyntaxKind::NthgKeyword:
+      return "Nothing";
+    default:
+      break;
   }
 
   return "Unknown";
 }
 
-llvm::Value *TypeMapper::getDefaultValue(Utils::type type) {
+llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
   llvm::Value *_retVal = nullptr;
 
   switch (type) {
-  case Utils::type::INT32:
-    _retVal = _builder->getInt32(0);
-    break;
-  case Utils::type::DECIMAL:
-    _retVal = llvm::ConstantFP::get(*_context, llvm::APFloat(0.0));
-    break;
-  case Utils::type::BOOL:
-    _retVal = _builder->getInt1(false);
-    break;
-  case Utils::type::STRING:
-    _retVal = _builder->CreateGlobalStringPtr("");
-    break;
-  case Utils::type::NOTHING:
-    break;
-  case Utils::type::UNKNOWN:
-    break;
-  default:
-    break;
+    case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+      _retVal = _builder->getInt32(0);
+      break;
+    case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+      _retVal = llvm::ConstantFP::get(*_context, llvm::APFloat(0.0));
+      break;
+    case SyntaxKindUtils::SyntaxKind::BoolKeyword:
+      _retVal = _builder->getInt1(false);
+      break;
+    case SyntaxKindUtils::SyntaxKind::StrKeyword:
+      _retVal = _builder->CreateGlobalStringPtr("");
+      break;
+    case SyntaxKindUtils::SyntaxKind::NthgKeyword:
+      break;
+    case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
+      break;
+    default:
+      break;
   }
   return _retVal;
 }
@@ -132,20 +134,19 @@ llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
 }
 
 const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
-
   return isBoolType(type) || isDoubleType(type) || isInt32Type(type) ||
-         isInt64Type(type) || isStringType(type);
+         isStringType(type);
 }
 
-const bool TypeMapper::isPrimitiveType(Utils::type type) const {
+const bool TypeMapper::isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const {
   return isPrimitiveType(mapCustomTypeToLLVMType(type));
 }
 
-const bool TypeMapper::isEquivalentType(llvm::Type *type,
-                                        Utils::type customType) const {
+const bool TypeMapper::isEquivalentType(
+    llvm::Type *type, SyntaxKindUtils::SyntaxKind customType) const {
   return type == mapCustomTypeToLLVMType(customType);
 }
-const bool TypeMapper::isEquivalentType(Utils::type customType,
+const bool TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
                                         llvm::Type *type) const {
   return isEquivalentType(type, customType);
 }
@@ -153,7 +154,8 @@ const bool TypeMapper::isEquivalentType(llvm::Type *type1,
                                         llvm::Type *type2) const {
   return type1 == type2;
 }
-const bool TypeMapper::isEquivalentType(Utils::type type1,
-                                        Utils::type type2) const {
+const bool TypeMapper::isEquivalentType(
+    SyntaxKindUtils::SyntaxKind type1,
+    SyntaxKindUtils::SyntaxKind type2) const {
   return type1 == type2;
 }

@@ -7,12 +7,6 @@ BinaryExpressionSyntax::BinaryExpressionSyntax(
   this->_left = std::move(left);
   this->_operatorToken = std::move(operatorToken);
   this->_right = std::move(right);
-
-  // Add children
-
-  this->_children.push_back(_left.get());
-  this->_children.push_back(_operatorToken.get());
-  this->_children.push_back(_right.get());
 }
 
 std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getLeft() {
@@ -28,16 +22,23 @@ std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
   return std::move(this->_right);
 }
 
-SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BinaryExpression;
 }
 
-std::vector<SyntaxNode *> BinaryExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &BinaryExpressionSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+
+    this->_children.push_back(_left.get());
+    this->_children.push_back(_operatorToken.get());
+    this->_children.push_back(_right.get());
+  }
 
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
+const DiagnosticUtils::SourceLocation
 BinaryExpressionSyntax::getSourceLocation() const {
   return this->_operatorToken->getSourceLocation();
 }

@@ -5,22 +5,21 @@
 #include "expression/ExpressionSyntax.h"
 #include "statements/StatementSyntax.h"
 class CompilationUnitSyntax {
-private:
+ private:
   std::vector<std::unique_ptr<MemberSyntax>> _members;
   std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
   std::vector<SyntaxNode *> _children;
 
-public:
-  SyntaxKindUtils::SyntaxKind getKind();
+ public:
+  const SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<std::unique_ptr<MemberSyntax>> &getMembers();
 
-  std::unique_ptr<SyntaxToken<std::any>> getEndOfFileToken();
   void addMember(std::unique_ptr<MemberSyntax> member);
   void setEndOfFileToken(std::unique_ptr<SyntaxToken<std::any>> endOfFileToken);
 
-  std::vector<SyntaxNode *> getChildren();
+  const std::vector<SyntaxNode *> &getChildren();
 
-  std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenPtr();
+  const std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenRef();
 };
 #endif

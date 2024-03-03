@@ -1,8 +1,8 @@
 #include "BoundAssignmentExpression.h"
 
 BoundAssignmentExpression::BoundAssignmentExpression(
-    const DiagnosticUtils::SourceLocation &location, Utils::Variable variable,
-    std::unique_ptr<BoundExpression> left,
+    const DiagnosticUtils::SourceLocation &location,
+    BoundVariableDeclaration *variable, std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
     std::unique_ptr<BoundExpression> right)
     : BoundExpression(location) {
@@ -54,6 +54,6 @@ std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getRightPtr() {
   return this->_right;
 }
 
-const Utils::Variable BoundAssignmentExpression::getVariable() const {
+const BoundVariableDeclaration *BoundAssignmentExpression::getVariable() const {
   return _variable;
 }

@@ -1,32 +1,33 @@
 
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
-#include "../bind/Binder/Binder.h"
-#include "../bind/BoundIndexExpression/BoundIndexExpression.h"
-#include "../syntax/SyntaxKindUtils.h"
-#include "../syntax/expression/BinaryExpressionSyntax.h"
-#include "../syntax/expression/ExpressionSyntax.h"
-#include "../syntax/expression/LiteralExpressionSyntax.h"
-#include "../syntax/expression/ParenthesizedExpressionSyntax.h"
-#include "../syntax/expression/UnaryExpressionSyntax.h"
-#include "InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
-#include "InterpreterUtils/InterpreterUtils.h"
+#include <any>
+#include <map>
+#include <string>
 
+#include "../bind/Binder/Binder.h"
 #include "../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../bind/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../bind/BoundExpression.h"
+#include "../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
 #include "../diagnostics/Diagnostic/Diagnostic.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "../syntax/SyntaxKindUtils.h"
+#include "../syntax/expression/BinaryExpressionSyntax.h"
+#include "../syntax/expression/ExpressionSyntax.h"
+#include "../syntax/expression/LiteralExpressionSyntax.h"
+#include "../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../syntax/expression/UnaryExpressionSyntax.h"
 #include "../utils/Utils.h"
-#include <any>
-#include <map>
-#include <string>
+#include "InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
+#include "InterpreterUtils/InterpreterUtils.h"
 
 class Interpreter {
+private:
 public:
   Interpreter(BoundScopeGlobal *globalScope,
               DiagnosticHandler *diagnosticHandler);
@@ -38,9 +39,13 @@ private:
   std::any last_value = nullptr;
   CompilationUnitSyntax *compilation_unit = nullptr;
   Interpreter *previous = nullptr;
-  std::stack<std::map<std::string, Utils::Variable>> variable_stack;
-  std::stack<std::map<std::string, BoundFunctionDeclaration *>> function_stack;
-  std::stack<std::pair<Utils::type, int>> return_type_stack;
+  std::stack<std::unordered_map<std::string, BoundVariableDeclaration *>>
+      variable_stack;
+  std::stack<std::unordered_map<std::string, std::any>> value_stack;
+
+  std::stack<std::unordered_map<std::string, BoundFunctionDeclaration *>>
+      function_stack;
+  std::stack<std::pair<SyntaxKindUtils::SyntaxKind, int>> return_type_stack;
   BoundScopeGlobal *_globalScope = nullptr;
   std::unique_ptr<InterpreterUtils> _interpreterUtils;
   int break_count = 0, continue_count = 0, showResult = 1;
@@ -51,14 +56,14 @@ private:
   void evaluateIfStatement(BoundIfStatement *node);
   void evaluateWhileStatement(BoundWhileStatement *node);
   void evaluateForStatement(BoundForStatement *node);
-  void assignVariable(std::string name, Utils::Variable variable);
+  void assignVariable(std::string name, std::any val);
   void evaluateStatement(BoundStatement *node);
-  void declareVariable(std::string name, Utils::Variable variable);
+  void declareVariable(std::string name, BoundVariableDeclaration *variable);
   void defineFunction(std::string name,
                       BoundFunctionDeclaration *functionDeclaration);
 
   BoundFunctionDeclaration *getFunction(std::string name);
-  Utils::Variable getVariable(std::string name);
+  std::any getVariable(const std::string &name);
   template <typename T> T evaluateLiteralExpression(BoundExpression *node);
   template <typename T> T evaluateUnaryExpression(BoundExpression *node);
   template <typename T> T evaluateBinaryExpression(BoundExpression *node);

@@ -1,0 +1,26 @@
+# Use an Ubuntu base image
+FROM ubuntu:latest
+
+# Set environment variables to avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libgtest-dev \
+    llvm-dev \
+    g++ \
+    gdb \
+    wget \
+    lsb-release \
+    software-properties-common \
+    ninja-build \
+    zlib1g-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
+    lld \  
+    ccache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install LLVM 17
+RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17

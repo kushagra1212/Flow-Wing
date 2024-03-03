@@ -1,16 +1,11 @@
 #ifndef __CONTAINER_TEST_H__
 #define __CONTAINER_TEST_H__
-#include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
+
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
-#include <cstdio>
-#include <gtest/gtest.h>
-#include <iostream>
-#include <sstream>
-#include <string>
+
 class ContainerTest : public ::testing::Test {
-protected:
+ protected:
   ContainerTest();
 
   void SetUp() override;
@@ -21,4 +16,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // __CONTAINER_TEST_H__
+#endif  // __CONTAINER_TEST_H__

@@ -6,14 +6,13 @@
 
 class BoundContinueStatement : public BoundStatement,
                                public BoundSourceLocation {
-
-public:
+ public:
   BoundContinueStatement(const DiagnosticUtils::SourceLocation &location);
 
-public:
+ public:
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 };
 
-#endif // BOUNDCONTINUESTATEMENT_H
+#endif  // BOUNDCONTINUESTATEMENT_H

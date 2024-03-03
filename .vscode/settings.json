@@ -132,8 +132,10 @@
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
-  "clang-format.executable": "/usr/local/opt/llvm/bin/clang-format",
+  "clang-format.executable": "/usr/bin/clang-format",
   "workbench.colorTheme": "Default Dark Modern",
    "editor.codeActionsOnSave": {
   },
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active"
 }

@@ -4,11 +4,10 @@
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 
 class ReturnTypeHandler {
-
-private:
+ private:
   std::unordered_map<std::string, std::unique_ptr<LLVMType>> _returnTypeMap;
 
-public:
+ public:
   inline void addReturnType(const std::string &funcName,
                             std::unique_ptr<LLVMType> returnType) {
     _returnTypeMap[funcName] = (std::move(returnType));
@@ -19,4 +18,4 @@ public:
   }
 };
 
-#endif // __FLOWWING__RETURN__TYPE_HANLDER_H__
+#endif  // __FLOWWING__RETURN__TYPE_HANLDER_H__

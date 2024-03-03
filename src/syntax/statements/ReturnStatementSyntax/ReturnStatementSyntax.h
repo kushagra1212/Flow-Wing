@@ -2,30 +2,28 @@
 #define RETURNSTATEMENTSYNTAX_H
 
 #include "../../SyntaxNode.h"
-
 #include "../../SyntaxToken.h"
+#include "../../expression/ExpressionSyntax.h"
 #include "../StatementSyntax.h"
 
-#include "../../expression/ExpressionSyntax.h"
-
 class ReturnStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _returnKeyword;
   std::unique_ptr<ExpressionSyntax> _expression;
 
-public:
+ public:
   ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword,
                         std::unique_ptr<ExpressionSyntax> expression);
 
   std::unique_ptr<SyntaxToken<std::any>> getReturnKeyword();
   std::unique_ptr<ExpressionSyntax> getExpression();
 
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getReturnKeywordPtr();
   std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
 };
 
-#endif // RETURNSTATEMENTSYNTAX_H
+#endif  // RETURNSTATEMENTSYNTAX_H

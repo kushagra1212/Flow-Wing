@@ -9,14 +9,6 @@ ForStatementSyntax::ForStatementSyntax(
   this->_upperBound = std::move(upperBound);
   this->_statement = std::move(statement);
   this->_stepExpression = std::move(stepExpression);
-
-  // Add children
-
-  _children.push_back(_initialization.get());
-  _children.push_back(_upperBound.get());
-  if (_stepExpression != nullptr)
-    _children.push_back(_stepExpression.get());
-  _children.push_back(_statement.get());
 }
 
 std::unique_ptr<BlockStatementSyntax> ForStatementSyntax::getStatement() {
@@ -35,16 +27,24 @@ std::unique_ptr<StatementSyntax> ForStatementSyntax::getInitialization() {
   return std::move(this->_initialization);
 }
 
-SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ForStatement;
 }
 
-std::vector<SyntaxNode *> ForStatementSyntax::getChildren() {
+const std::vector<SyntaxNode *> &ForStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+    _children.push_back(_initialization.get());
+    _children.push_back(_upperBound.get());
+    if (_stepExpression) _children.push_back(_stepExpression.get());
+    _children.push_back(_statement.get());
+  }
 
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation ForStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation ForStatementSyntax::getSourceLocation()
+    const {
   return this->_initialization->getSourceLocation();
 }
 

@@ -8,11 +8,10 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
-
   DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _globalScope;
 
-public:
+ public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
                       DiagnosticHandler *diagnosticHandler,
                       std::unique_ptr<BoundScopeGlobal> globalScope);
@@ -24,4 +23,4 @@ public:
   const std::unique_ptr<BoundScopeGlobal> &getGlobalScopePtr() const;
 };
 
-#endif // BIND_BRING_STATEMENT_H
+#endif  // BIND_BRING_STATEMENT_H

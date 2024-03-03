@@ -3,12 +3,13 @@
 #include "../../GenerationStrategy.h"
 
 class StatementGenerationStrategy : public GenerationStrategy {
-public:
+ public:
   StatementGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 
   virtual llvm::Value *generateStatement(BoundStatement *statement) = 0;
   virtual llvm::Value *generateGlobalStatement(BoundStatement *statement) = 0;
+  virtual ~StatementGenerationStrategy() = default;
 };
 
-#endif // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__

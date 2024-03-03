@@ -6,7 +6,7 @@
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   ContainerAssignmentExpressionGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -23,16 +23,16 @@ public:
                                 llvm::Value *&rhsVariable,
                                 llvm::ArrayType *&rhsArrayType,
                                 llvm::Type *arrayElementType,
-                                const std::vector<size_t> &lhsSizes,
-                                const std::vector<size_t> &rhsSizes);
+                                const std::vector<uint64_t> &lhsSizes,
+                                const std::vector<uint64_t> &rhsSizes);
 
   void assignArray(llvm::ArrayType *&arrayType, llvm::Value *&variable,
                    llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
                    llvm::Type *rhsArrayElementType,
                    std::vector<llvm::Value *> &indices,
-                   const std::vector<size_t> &rhsSizes, uint64_t index);
+                   const std::vector<uint64_t> &rhsSizes, uint64_t index);
 
-private:
+ private:
   // LHS
   std::string _containerName;
   llvm::Value *_variable;
@@ -44,8 +44,8 @@ private:
   llvm::ArrayType *_rhsArrayType;
   llvm::Value *_rhsSize;
 
-  std::vector<size_t> _lhsSizes, _rhsSizes;
+  std::vector<uint64_t> _lhsSizes, _rhsSizes;
   llvm::Type *_rhsArrayElementType, *_lhsArrayElementType;
 };
 
-#endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

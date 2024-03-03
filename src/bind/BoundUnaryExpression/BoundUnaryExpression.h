@@ -4,22 +4,18 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundUnaryExpression : public BoundExpression {
-private:
+ private:
   BinderKindUtils::BoundUnaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _operand;
 
-public:
+ public:
   BoundUnaryExpression(const DiagnosticUtils::SourceLocation &location,
                        BinderKindUtils::BoundUnaryOperatorKind op,
                        std::unique_ptr<BoundExpression> operand);
 
   const std::type_info &getType() override;
 
-  std::unique_ptr<BoundExpression> getOperand();
-
-  BinderKindUtils::BoundUnaryOperatorKind getOperator();
-
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 
