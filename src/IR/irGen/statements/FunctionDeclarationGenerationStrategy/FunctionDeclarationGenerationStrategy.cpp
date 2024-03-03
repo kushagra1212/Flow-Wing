@@ -198,6 +198,29 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
         }
         break;
       }
+      case BinderKindUtils::BoundObjectTypeExpression: {
+        BoundObjectTypeExpression *boundObjectTypeExpression =
+            static_cast<BoundObjectTypeExpression *>(fd->getReturnType().get());
+
+        llvm::StructType *structType =
+            _codeGenerationContext->getTypeChain()->getType(
+                boundObjectTypeExpression->getTypeName());
+
+        llvm::Type *returnType = llvm::PointerType::get(structType, 0);
+
+        FT = llvm::FunctionType::get(returnType, argTypes, false);
+        F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                   fd->getFunctionNameRef(), *TheModule);
+
+        _codeGenerationContext->getReturnTypeHandler()->addReturnType(
+            fd->getFunctionNameRef(),
+            std::make_unique<LLVMObjectType>(returnType, structType));
+
+        returnInfo = fd->getFunctionNameRef() +
+                     ":rt:ob:" + boundObjectTypeExpression->getTypeName();
+
+        break;
+      }
       default: {
         _codeGenerationContext->getLogger()->LogError(
             "Invalid return type for function");

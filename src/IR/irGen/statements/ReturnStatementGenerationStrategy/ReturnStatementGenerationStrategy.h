@@ -2,6 +2,7 @@
 #define __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundReturnStatement/BoundReturnStatement.h"
+#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ReturnStatementGenerationStrategy : public StatementGenerationStrategy {

@@ -361,7 +361,19 @@ void CodeGenerationContext::getRetrunedArrayType(
   } else if (strs[2] == "pr") {
     arrayElementType = getMapper()->mapCustomTypeToLLVMType(
         (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
-  } else {
-    this->getLogger()->LogError("Not an Array Type Can Not load the metadata");
+  }
+}
+
+void CodeGenerationContext::getReturnedObjectType(
+    llvm::Function *F, llvm::StructType *&objectType) {
+  std::string metaData = "";
+  std::vector<std::string> strs;
+  getMetaData("rt", F, metaData);
+  if (metaData == "") {
+    return;
+  }
+  Utils::split(metaData, ":", strs);
+  if (strs[2] == "ob") {
+    objectType = this->getTypeChain()->getType(strs[3]);
   }
 }

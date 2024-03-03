@@ -84,15 +84,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       if (!value) {
         return nullptr;
       }
-      if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
-          llvm::isa<llvm::PointerType>(value->getType())) {
-        std::string typeName =
-            _codeGenerationContext->getValueStackHandler()->getTypeName();
-        _codeGenerationContext->getValueStackHandler()->pop();
-
-        return printObject(
-            value, _codeGenerationContext->getTypeChain()->getType(typeName));
-      }
 
       if (llvm::isa<llvm::CallInst>(value)) {
         llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
@@ -116,7 +107,33 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           printArrayAtom(arrayType, localVariable, actualSizes, indices, 0,
                          elementType);
           return nullptr;
+        } else {
+          llvm::StructType *structType = nullptr;
+          _codeGenerationContext->getReturnedObjectType(calledFunction,
+                                                        structType);
+
+          if (structType != nullptr) {
+            llvm::LoadInst *loaded =
+                Builder->CreateLoad(structType, calledInst);
+            llvm::Value *localVariable =
+                Builder->CreateAlloca(structType, nullptr);
+
+            // Store the result of the call in the local variable
+            Builder->CreateStore(loaded, localVariable);
+            return printObject(localVariable, structType);
+          }
+          return nullptr;
         }
+      }
+
+      if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+          llvm::isa<llvm::PointerType>(value->getType())) {
+        std::string typeName =
+            _codeGenerationContext->getValueStackHandler()->getTypeName();
+        _codeGenerationContext->getValueStackHandler()->popAll();
+
+        return printObject(
+            value, _codeGenerationContext->getTypeChain()->getType(typeName));
       }
 
       if (llvm::isa<llvm::ArrayType>(value->getType())) {
@@ -181,13 +198,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         if (llvm::isa<llvm::StructType>(v->getValueType())) {
           llvm::StructType *structType =
               llvm::cast<llvm::StructType>(v->getValueType());
-          // if (llvm::isa<llvm::GlobalVariable>(variableElementPtr)) {
-          //   objTypeType = llvm::cast<llvm::StructType>(
-          //       (llvm::cast<llvm::GlobalVariable>(variableElementPtr))->getValueType());
-          // } else if (llvm::isa<llvm::AllocaInst>(variableElementPtr)) {
-          //   objTypeType = llvm::cast<llvm::StructType>(
-          //       (llvm::cast<llvm::AllocaInst>(variableElementPtr))->getAllocatedType());
-          // }
 
           return printObject(value, structType);
         }
@@ -979,6 +989,7 @@ llvm::Value *CallExpressionGenerationStrategy::printObject(
     llvm::Type *type = parObjType->getElementType(i);
     if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+
       printObject(innerElementPtr, structType);
     } else {
       llvm::LoadInst *loaded = Builder->CreateLoad(type, innerElementPtr);

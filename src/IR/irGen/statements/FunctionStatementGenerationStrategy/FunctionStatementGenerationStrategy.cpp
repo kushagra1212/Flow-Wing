@@ -100,9 +100,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       llvm::StructType *structType =
           llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
 
-      std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-          std::make_unique<ObjectExpressionGenerationStrategy>(
-              _codeGenerationContext);
+      std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+          objAssignSt =
+              std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+                  _codeGenerationContext);
 
       llvm::Value *structPtr =
           Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
@@ -110,8 +111,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getAllocaChain()->setAllocaInst(
           parameterNames[i], (llvm::AllocaInst *)structPtr);
 
-      objExpGenStrat->generateVariableAccessThroughPtr(
-          structPtr, structType->getName().str(), argValue);
+      objAssignSt->copyOject(structType, structPtr, argValue);
 
     } else if (_codeGenerationContext->getDynamicType()->isDyn(
                    llvmArgsTypes[i]->getType())) {

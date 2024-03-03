@@ -2,7 +2,6 @@
 source_filename = "built_in_module"
 target triple = "x86_64-pc-linux-gnu"
 
-%DynamicType = type { i32, double, i1, ptr }
 %t2 = type { i32, %t1 }
 %t1 = type { i32, ptr }
 
@@ -16,7 +15,9 @@ target triple = "x86_64-pc-linux-gnu"
 @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT" = global i32 0
 @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT" = global i32 0
 @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_GLOBAL_ERROR_COUNT" = global i32 0
-@0 = private unnamed_addr constant [7 x i8] c"string\00", align 1
+@x = global %t2 zeroinitializer
+@0 = private unnamed_addr constant [2 x i8] c"x\00", align 1
+@y = global %t2 zeroinitializer
 @1 = private unnamed_addr constant [3 x i8] c"{ \00", align 1
 @"{ " = constant ptr @1
 @2 = private unnamed_addr constant [2 x i8] c"c\00", align 1
@@ -31,17 +32,8 @@ target triple = "x86_64-pc-linux-gnu"
 @"'" = constant ptr @8
 @9 = private unnamed_addr constant [3 x i8] c" }\00", align 1
 @"}" = constant ptr @9
-@main_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
-@main_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
-@main_FLOWWING_BREAK_COUNT = global i32 0
-@main_FLOWWING_CONTINUE_COUNT = global i32 0
-@main_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
-@staticVar = global i32 0
-@10 = private unnamed_addr constant [14 x i8] c"Hello, world!\00", align 1
-@dynamicVar = global %DynamicType zeroinitializer
-@11 = private unnamed_addr constant [24 x i8] c"Static variable value: \00", align 1
-@12 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
-@13 = private unnamed_addr constant [25 x i8] c"Dynamic variable value: \00", align 1
+@10 = private unnamed_addr constant [6 x i8] c"hello\00", align 1
+@11 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
 
 declare ptr @malloc(i32)
 
@@ -201,152 +193,178 @@ define void @raise_exception(ptr %errorMsg) {
 
 define i32 @"____##FLOWWING_GLOBAL_ENTRY_POINT____##"() {
 entry:
-  br label %nestedBlock
+  store i32 2, ptr @x, align 4
+  store i32 50, ptr getelementptr inbounds (%t2, ptr @x, i32 0, i32 1), align 4
+  store ptr @0, ptr getelementptr inbounds (%t2, ptr @x, i32 0, i32 1, i32 1), align 8
+  %0 = load i32, ptr @x, align 4
+  store i32 %0, ptr @y, align 4
+  %1 = load i32, ptr getelementptr inbounds (%t2, ptr @x, i32 0, i32 1), align 4
+  store i32 %1, ptr getelementptr inbounds (%t2, ptr @y, i32 0, i32 1), align 4
+  %2 = load ptr, ptr getelementptr inbounds (%t2, ptr @x, i32 0, i32 1, i32 1), align 8
+  store ptr %2, ptr getelementptr inbounds (%t2, ptr @y, i32 0, i32 1, i32 1), align 8
+  %3 = call ptr @main(ptr @x)
+  %4 = load %t2, ptr %3, align 8
+  store %t2 %4, ptr @y, align 8
+  %5 = load ptr, ptr @"{ ", align 8
+  call void @print(ptr %5, i1 false)
+  call void @print(ptr @2, i1 false)
+  %6 = load ptr, ptr @" : ", align 8
+  call void @print(ptr %6, i1 false)
+  %7 = load i32, ptr @y, align 4
+  %8 = call ptr @itos(i32 %7)
+  call void @print(ptr %8, i1 false)
+  %9 = load ptr, ptr @" , ", align 8
+  call void @print(ptr %9, i1 false)
+  call void @print(ptr @5, i1 false)
+  %10 = load ptr, ptr @" : ", align 8
+  call void @print(ptr %10, i1 false)
+  %11 = load ptr, ptr @"{ ", align 8
+  call void @print(ptr %11, i1 false)
+  call void @print(ptr @6, i1 false)
+  %12 = load ptr, ptr @" : ", align 8
+  call void @print(ptr %12, i1 false)
+  %13 = load i32, ptr getelementptr inbounds (%t2, ptr @y, i32 0, i32 1), align 4
+  %14 = call ptr @itos(i32 %13)
+  call void @print(ptr %14, i1 false)
+  %15 = load ptr, ptr @" , ", align 8
+  call void @print(ptr %15, i1 false)
+  call void @print(ptr @7, i1 false)
+  %16 = load ptr, ptr @" : ", align 8
+  call void @print(ptr %16, i1 false)
+  %17 = load ptr, ptr getelementptr inbounds (%t2, ptr @y, i32 0, i32 1, i32 1), align 8
+  %18 = load ptr, ptr @"'", align 8
+  call void @print(ptr %18, i1 false)
+  %19 = icmp ne ptr %17, null
+  br i1 %19, label %End, label %IsNull
 
-returnBlock:                                      ; preds = %afterNestedBlock
+returnBlock:                                      ; preds = %Merge
   ret i32 0
 
-afterNestedBlock:                                 ; preds = %Merge, %checkContinueBlock6, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
-  br label %returnBlock
-
-nestedBlock:                                      ; preds = %entry
-  %x = alloca %t2, align 8
-  %0 = getelementptr inbounds %t2, ptr %x, i32 0, i32 0
-  store i32 2, ptr %0, align 4
-  %1 = getelementptr inbounds %t2, ptr %x, i32 0, i32 1
-  %2 = getelementptr inbounds %t1, ptr %1, i32 0, i32 0
-  store i32 3, ptr %2, align 4
-  %3 = getelementptr inbounds %t1, ptr %1, i32 0, i32 1
-  store ptr @0, ptr %3, align 8
-  %4 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
-  %5 = icmp eq i32 %4, 0
-  br i1 %5, label %checkContinueBlock, label %afterNestedBlock
-
-checkContinueBlock:                               ; preds = %nestedBlock
-  %6 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
-  %7 = icmp eq i32 %6, 0
-  br i1 %7, label %nestedBlock1, label %afterNestedBlock
-
-nestedBlock1:                                     ; preds = %checkContinueBlock
-  %y = alloca %t2, align 8
-  %8 = getelementptr inbounds %t2, ptr %y, i32 0, i32 0
-  %9 = getelementptr inbounds %t2, ptr %x, i32 0, i32 0
-  %10 = load i32, ptr %9, align 4
-  store i32 %10, ptr %8, align 4
-  %11 = getelementptr inbounds %t2, ptr %y, i32 0, i32 1
-  %12 = getelementptr inbounds %t2, ptr %x, i32 0, i32 1
-  %13 = getelementptr inbounds %t1, ptr %11, i32 0, i32 0
-  %14 = getelementptr inbounds %t1, ptr %12, i32 0, i32 0
-  %15 = load i32, ptr %14, align 4
-  store i32 %15, ptr %13, align 4
-  %16 = getelementptr inbounds %t1, ptr %11, i32 0, i32 1
-  %17 = getelementptr inbounds %t1, ptr %12, i32 0, i32 1
-  %18 = load ptr, ptr %17, align 8
-  store ptr %18, ptr %16, align 8
-  %19 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
-  %20 = icmp eq i32 %19, 0
-  br i1 %20, label %checkContinueBlock2, label %afterNestedBlock
-
-checkContinueBlock2:                              ; preds = %nestedBlock1
-  %21 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
-  %22 = icmp eq i32 %21, 0
-  br i1 %22, label %nestedBlock3, label %afterNestedBlock
-
-nestedBlock3:                                     ; preds = %checkContinueBlock2
-  %23 = getelementptr inbounds %t2, ptr %y, i32 0, i32 0
-  store i32 5, ptr %23, align 4
-  %24 = getelementptr inbounds %t2, ptr %y, i32 0, i32 1
-  %25 = getelementptr inbounds %t2, ptr %x, i32 0, i32 1
-  %26 = getelementptr inbounds %t1, ptr %24, i32 0, i32 0
-  %27 = getelementptr inbounds %t1, ptr %25, i32 0, i32 0
-  %28 = load i32, ptr %27, align 4
-  store i32 %28, ptr %26, align 4
-  %29 = getelementptr inbounds %t1, ptr %24, i32 0, i32 1
-  %30 = getelementptr inbounds %t1, ptr %25, i32 0, i32 1
-  %31 = load ptr, ptr %30, align 8
-  store ptr %31, ptr %29, align 8
-  %32 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
-  %33 = icmp eq i32 %32, 0
-  br i1 %33, label %checkContinueBlock4, label %afterNestedBlock
-
-checkContinueBlock4:                              ; preds = %nestedBlock3
-  %34 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
-  %35 = icmp eq i32 %34, 0
-  br i1 %35, label %nestedBlock5, label %afterNestedBlock
-
-nestedBlock5:                                     ; preds = %checkContinueBlock4
-  %36 = load ptr, ptr @"{ ", align 8
-  call void @print(ptr %36, i1 false)
-  call void @print(ptr @2, i1 false)
-  %37 = load ptr, ptr @" : ", align 8
-  call void @print(ptr %37, i1 false)
-  %38 = getelementptr inbounds %t2, ptr %y, i32 0, i32 0
-  %39 = load i32, ptr %38, align 4
-  %40 = call ptr @itos(i32 %39)
-  call void @print(ptr %40, i1 false)
-  %41 = load ptr, ptr @" , ", align 8
-  call void @print(ptr %41, i1 false)
-  call void @print(ptr @5, i1 false)
-  %42 = load ptr, ptr @" : ", align 8
-  call void @print(ptr %42, i1 false)
-  %43 = getelementptr inbounds %t2, ptr %y, i32 0, i32 1
-  %44 = load ptr, ptr @"{ ", align 8
-  call void @print(ptr %44, i1 false)
-  call void @print(ptr @6, i1 false)
-  %45 = load ptr, ptr @" : ", align 8
-  call void @print(ptr %45, i1 false)
-  %46 = getelementptr inbounds %t1, ptr %43, i32 0, i32 0
-  %47 = load i32, ptr %46, align 4
-  %48 = call ptr @itos(i32 %47)
-  call void @print(ptr %48, i1 false)
-  %49 = load ptr, ptr @" , ", align 8
-  call void @print(ptr %49, i1 false)
-  call void @print(ptr @7, i1 false)
-  %50 = load ptr, ptr @" : ", align 8
-  call void @print(ptr %50, i1 false)
-  %51 = getelementptr inbounds %t1, ptr %43, i32 0, i32 1
-  %52 = load ptr, ptr %51, align 8
-  %53 = load ptr, ptr @"'", align 8
-  call void @print(ptr %53, i1 false)
-  %54 = icmp ne ptr %52, null
-  br i1 %54, label %End, label %IsNull
-
-checkContinueBlock6:                              ; preds = %Merge
-  br label %afterNestedBlock
-
-IsNull:                                           ; preds = %nestedBlock5
+IsNull:                                           ; preds = %entry
   br label %Merge
 
-End:                                              ; preds = %nestedBlock5
-  call void @print(ptr %52, i1 false)
+End:                                              ; preds = %entry
+  call void @print(ptr %17, i1 false)
   br label %Merge
 
 Merge:                                            ; preds = %End, %IsNull
-  %55 = load ptr, ptr @"'", align 8
-  call void @print(ptr %55, i1 false)
-  %56 = load ptr, ptr @"}", align 8
-  call void @print(ptr %56, i1 false)
-  %57 = load ptr, ptr @"}", align 8
-  call void @print(ptr %57, i1 false)
-  %58 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
-  %59 = icmp eq i32 %58, 0
-  br i1 %59, label %checkContinueBlock6, label %afterNestedBlock
+  %20 = load ptr, ptr @"'", align 8
+  call void @print(ptr %20, i1 false)
+  %21 = load ptr, ptr @"}", align 8
+  call void @print(ptr %21, i1 false)
+  %22 = load ptr, ptr @"}", align 8
+  call void @print(ptr %22, i1 false)
+  br label %returnBlock
 }
 
-define i32 @main() {
+define ptr @main(ptr %0) !rt !0 {
 entry:
-  store i32 10, ptr @staticVar, align 4
-  store ptr @10, ptr getelementptr inbounds (%DynamicType, ptr @dynamicVar, i32 0, i32 3), align 8
-  %staticVar = load i32, ptr @staticVar, align 4
-  %0 = call ptr @itos(i32 %staticVar)
-  %1 = call ptr @concat_strings(ptr @11, ptr %0)
-  call void @print(ptr %1, i1 false)
-  call void @print(ptr @12, i1 false)
-  %2 = load ptr, ptr getelementptr inbounds (%DynamicType, ptr @dynamicVar, i32 0, i32 3), align 8
-  %3 = call ptr @concat_strings(ptr @13, ptr %2)
-  call void @print(ptr %3, i1 false)
+  %v = alloca %t2, align 8
+  %1 = getelementptr inbounds %t2, ptr %v, i32 0, i32 0
+  %2 = getelementptr inbounds %t2, ptr %0, i32 0, i32 0
+  %3 = load i32, ptr %2, align 4
+  store i32 %3, ptr %1, align 4
+  %4 = getelementptr inbounds %t2, ptr %v, i32 0, i32 1
+  %5 = getelementptr inbounds %t2, ptr %0, i32 0, i32 1
+  %6 = getelementptr inbounds %t1, ptr %4, i32 0, i32 0
+  %7 = getelementptr inbounds %t1, ptr %5, i32 0, i32 0
+  %8 = load i32, ptr %7, align 4
+  store i32 %8, ptr %6, align 4
+  %9 = getelementptr inbounds %t1, ptr %4, i32 0, i32 1
+  %10 = getelementptr inbounds %t1, ptr %5, i32 0, i32 1
+  %11 = load ptr, ptr %10, align 8
+  store ptr %11, ptr %9, align 8
+  br label %nestedBlock
+
+afterNestedBlock:                                 ; preds = %mergeBlock, %checkContinueBlock8, %checkContinueBlock6, %nestedBlock5, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
+  ret ptr @11
+
+nestedBlock:                                      ; preds = %entry
+  %12 = getelementptr inbounds %t2, ptr %v, i32 0, i32 0
+  %13 = load i32, ptr %12, align 4
+  store i32 11, ptr %12, align 4
+  %14 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
+  %15 = icmp eq i32 %14, 0
+  br i1 %15, label %checkContinueBlock, label %afterNestedBlock
+
+checkContinueBlock:                               ; preds = %nestedBlock
+  %16 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
+  %17 = icmp eq i32 %16, 0
+  br i1 %17, label %nestedBlock1, label %afterNestedBlock
+
+nestedBlock1:                                     ; preds = %checkContinueBlock
+  %18 = getelementptr inbounds %t2, ptr %v, i32 0, i32 1
+  %19 = getelementptr inbounds %t1, ptr %18, i32 0, i32 0
+  store i32 100, ptr %19, align 4
+  %20 = getelementptr inbounds %t1, ptr %18, i32 0, i32 1
+  store ptr @10, ptr %20, align 8
+  %21 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
+  %22 = icmp eq i32 %21, 0
+  br i1 %22, label %checkContinueBlock2, label %afterNestedBlock
+
+checkContinueBlock2:                              ; preds = %nestedBlock1
+  %23 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
+  %24 = icmp eq i32 %23, 0
+  br i1 %24, label %nestedBlock3, label %afterNestedBlock
+
+nestedBlock3:                                     ; preds = %checkContinueBlock2
+  %e = alloca %t2, align 8
+  %25 = getelementptr inbounds %t2, ptr %e, i32 0, i32 0
+  %26 = getelementptr inbounds %t2, ptr %v, i32 0, i32 0
+  %27 = load i32, ptr %26, align 4
+  store i32 %27, ptr %25, align 4
+  %28 = getelementptr inbounds %t2, ptr %e, i32 0, i32 1
+  %29 = getelementptr inbounds %t2, ptr %v, i32 0, i32 1
+  %30 = getelementptr inbounds %t1, ptr %28, i32 0, i32 0
+  %31 = getelementptr inbounds %t1, ptr %29, i32 0, i32 0
+  %32 = load i32, ptr %31, align 4
+  store i32 %32, ptr %30, align 4
+  %33 = getelementptr inbounds %t1, ptr %28, i32 0, i32 1
+  %34 = getelementptr inbounds %t1, ptr %29, i32 0, i32 1
+  %35 = load ptr, ptr %34, align 8
+  store ptr %35, ptr %33, align 8
+  %36 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
+  %37 = icmp eq i32 %36, 0
+  br i1 %37, label %checkContinueBlock4, label %afterNestedBlock
+
+checkContinueBlock4:                              ; preds = %nestedBlock3
+  %38 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
+  %39 = icmp eq i32 %38, 0
+  br i1 %39, label %nestedBlock5, label %afterNestedBlock
+
+nestedBlock5:                                     ; preds = %checkContinueBlock4
+  %f = alloca %t1, align 8
+  %40 = getelementptr inbounds %t2, ptr %e, i32 0, i32 1
+  %41 = getelementptr inbounds %t1, ptr %f, i32 0, i32 0
+  %42 = getelementptr inbounds %t1, ptr %40, i32 0, i32 0
+  %43 = load i32, ptr %42, align 4
+  store i32 %43, ptr %41, align 4
+  %44 = getelementptr inbounds %t1, ptr %f, i32 0, i32 1
+  %45 = getelementptr inbounds %t1, ptr %40, i32 0, i32 1
+  %46 = load ptr, ptr %45, align 8
+  store ptr %46, ptr %44, align 8
+  %47 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
+  %48 = icmp eq i32 %47, 0
+  br i1 %48, label %checkContinueBlock6, label %afterNestedBlock
+
+checkContinueBlock6:                              ; preds = %nestedBlock5
+  %49 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_CONTINUE_COUNT", align 4
+  %50 = icmp eq i32 %49, 0
+  br i1 %50, label %nestedBlock7, label %afterNestedBlock
+
+nestedBlock7:                                     ; preds = %checkContinueBlock6
   br label %returnBlock
 
-returnBlock:                                      ; preds = %entry
-  ret i32 0
+checkContinueBlock8:                              ; preds = %mergeBlock
+  br label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock7
+  ret ptr %f
+
+mergeBlock:                                       ; No predecessors!
+  %51 = load i32, ptr @"____##FLOWWING_GLOBAL_ENTRY_POINT____##_FLOWWING_BREAK_COUNT", align 4
+  %52 = icmp eq i32 %51, 0
+  br i1 %52, label %checkContinueBlock8, label %afterNestedBlock
 }
+
+!0 = !{!"main:rt:ob:t2"}

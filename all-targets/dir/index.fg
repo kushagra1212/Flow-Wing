@@ -7,13 +7,21 @@ type t2 = {
       c:int,
       d:t1
 }
-{
 
-var x:t2 = {c:2,d:{a:3,b:"string"}}
-var y:t2= x
-y = {c:5,d:x.d}
-print(y)
+
+fun main(v:t2) -> t2 {
+      v.c =11
+      v.d =  {a:100,b:"hello"}
+      var e:t2  = v
+      var f:t1 = e.d
+    return f
 }
+
+var x:t2 = {c:2,d:{a:50,b:"x"}}
+var y:t2= x
+y = main(x)
+print(y)
+
 
 /#
    type t1 = {

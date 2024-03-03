@@ -29,6 +29,47 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   _codeGenerationContext->getValueStackHandler()->popAll();
   if (expression->getKind() == BinderKindUtils::VariableExpression) {
     return generateVariableExp(expression);
+  } else if (expression->getKind() == BinderKindUtils::CallExpression) {
+    std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
+        std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+            _codeGenerationContext);
+    llvm::Value *rhsValue =
+        _expressionGenerationFactory->createStrategy(expression->getKind())
+            ->generateExpression(expression);
+
+    llvm::StructType *lhsStructType =
+        _codeGenerationContext->getTypeChain()->getType(_typeName);
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        expression->getLocation());
+    if (!rhsValue) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Right hand side value not found in assignment expression ");
+      return nullptr;
+    }
+    llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(rhsValue);
+    auto *calledFunction = calledInst->getCalledFunction();
+    llvm::StructType *structType = nullptr;
+    _codeGenerationContext->getReturnedObjectType(calledFunction, structType);
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    if (!structType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Right hand side value expected to be an object of type " +
+          lhsStructType->getStructName().str());
+    }
+
+    if (lhsStructType->getStructName() != structType->getStructName()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Right hand side value expected to be an object of type " +
+          lhsStructType->getStructName().str() + " but got " +
+          structType->getStructName().str());
+      return nullptr;
+    }
+    llvm::LoadInst *loaded = Builder->CreateLoad(structType, calledInst);
+    Builder->CreateStore(loaded, _variable);
+    return nullptr;
   }
 
   llvm::Value *res = this->createExpressionNP(expression, _variable, _typeName);

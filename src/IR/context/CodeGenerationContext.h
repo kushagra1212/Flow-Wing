@@ -96,6 +96,8 @@ class CodeGenerationContext {
                             llvm::Type *&arrayElementType,
                             std::vector<uint64_t> &actualSizes);
 
+  void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
+
  private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
