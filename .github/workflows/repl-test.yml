@@ -19,4 +19,4 @@ jobs:
           context: .
           file: ./Dockerfile.ReplTest
           load: true
-          tags: ${{ github.repository }}:ReplTest
+          tags: ${{ github.repository_owner }}:ReplTest
