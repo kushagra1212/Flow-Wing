@@ -21,8 +21,8 @@ llvm::Value *CallExpressionGenerationStrategy::generateExpression(
   return this->userDefinedFunctionCall(callExpression);
 }
 
-llvm::Type *CallExpressionGenerationStrategy::isGlobalArray(
-    llvm::Value *value) {
+llvm::Type *
+CallExpressionGenerationStrategy::isGlobalArray(llvm::Value *value) {
   if (!llvm::isa<llvm::GlobalVariable>(value)) {
     return nullptr;
   }
@@ -122,7 +122,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
             Builder->CreateStore(loaded, localVariable);
             return printObject(localVariable, structType);
           }
-          return nullptr;
         }
       }
 
@@ -362,7 +361,8 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     llvm::Value *retVal =
         handleExpression(calleeFunction, i, callExpression, rhsValue,
                          functionType, llvmArrayArgs, retFlag);
-    if (retFlag) return retVal;
+    if (retFlag)
+      return retVal;
     functionArgs.push_back(rhsValue);
   }
 
@@ -487,29 +487,29 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
   llvm::Value *retVal = nullptr;
   switch (kind) {
-    case BinderKindUtils::VariableExpression: {
-      retVal =
-          handleVariableExpression(rhsValue, callExpression, i, functionType,
-                                   llvmArrayArgs, arg, retFlag);
-      break;
-    }
-    case BinderKindUtils::BoundObjectExpression: {
-      retVal = handleObjectExpression(llvmArrayArgs, i, callExpression, arg,
-                                      rhsValue, retFlag);
-      break;
-    }
-    case BinderKindUtils::BoundBracketedExpression: {
-      retVal = handleBracketExpression(llvmArrayArgs, i, callExpression, arg,
-                                       rhsValue, retFlag);
-      break;
-    }
-    default: {
-      retVal = handlePremitive(rhsValue, callExpression, i, llvmArrayArgs, arg,
-                               retFlag);
-      break;
-    }
+  case BinderKindUtils::VariableExpression: {
+    retVal = handleVariableExpression(rhsValue, callExpression, i, functionType,
+                                      llvmArrayArgs, arg, retFlag);
+    break;
   }
-  if (retFlag) return retVal;
+  case BinderKindUtils::BoundObjectExpression: {
+    retVal = handleObjectExpression(llvmArrayArgs, i, callExpression, arg,
+                                    rhsValue, retFlag);
+    break;
+  }
+  case BinderKindUtils::BoundBracketedExpression: {
+    retVal = handleBracketExpression(llvmArrayArgs, i, callExpression, arg,
+                                     rhsValue, retFlag);
+    break;
+  }
+  default: {
+    retVal = handlePremitive(rhsValue, callExpression, i, llvmArrayArgs, arg,
+                             retFlag);
+    break;
+  }
+  }
+  if (retFlag)
+    return retVal;
 
   return nullptr;
 }
@@ -886,8 +886,9 @@ void CallExpressionGenerationStrategy::printUnit(const std::string &unit,
                       {getUnit(unit, unitName), Builder->getInt1(false)});
 }
 
-llvm::Value *CallExpressionGenerationStrategy::getUnit(
-    const std::string &unit, const std::string &unitName) {
+llvm::Value *
+CallExpressionGenerationStrategy::getUnit(const std::string &unit,
+                                          const std::string &unitName) {
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(unitName);
   if (!variable) {
     // The global variable doesn't exist
@@ -915,7 +916,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
 
       printArrayAtom(arrayType, v, sizes, indices, index + 1, elementType);
 
-      if (i != sizes[index] - 1) printUnit(", ", "comma");
+      if (i != sizes[index] - 1)
+        printUnit(", ", "comma");
       indices.pop_back();
     }
     printUnit("]", "closeBracket");
@@ -954,8 +956,9 @@ llvm::Value *CallExpressionGenerationStrategy::printArray(
   return nullptr;
 }
 
-llvm::Value *CallExpressionGenerationStrategy::printObject(
-    llvm::Value *outerElementPtr, llvm::StructType *parObjType) {
+llvm::Value *
+CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
+                                              llvm::StructType *parObjType) {
   printUnit("{ ", "{ ");
 
   BoundCustomTypeStatement *boundCustomTypeStatement =

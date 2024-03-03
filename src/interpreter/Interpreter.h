@@ -27,31 +27,21 @@
 #include "InterpreterUtils/InterpreterUtils.h"
 
 class Interpreter {
- private:
-  struct Variable {
-    std::string name;
-    std::any value;
-    Variable() = default;
-    Variable(std::string name, std::any value) {
-      this->name = name;
-      this->value = value;
-    }
-  };
-
- public:
+private:
+public:
   Interpreter(BoundScopeGlobal *globalScope,
               DiagnosticHandler *diagnosticHandler);
 
   void execute(BoundBlockStatement *node);
   std::string getResult();
 
- private:
+private:
   std::any last_value = nullptr;
   CompilationUnitSyntax *compilation_unit = nullptr;
   Interpreter *previous = nullptr;
   std::stack<std::unordered_map<std::string, BoundVariableDeclaration *>>
       variable_stack;
-  std::stack<std::unordered_map<std::string, Variable>> value_stack;
+  std::stack<std::unordered_map<std::string, std::any>> value_stack;
 
   std::stack<std::unordered_map<std::string, BoundFunctionDeclaration *>>
       function_stack;
@@ -73,21 +63,14 @@ class Interpreter {
                       BoundFunctionDeclaration *functionDeclaration);
 
   BoundFunctionDeclaration *getFunction(std::string name);
-  Variable getVariable(const std::string &name);
-  template <typename T>
-  T evaluateLiteralExpression(BoundExpression *node);
-  template <typename T>
-  T evaluateUnaryExpression(BoundExpression *node);
-  template <typename T>
-  T evaluateBinaryExpression(BoundExpression *node);
-  template <typename T>
-  T evaluateAssignmentExpression(BoundExpression *node);
-  template <typename T>
-  T evaluateVariableExpression(BoundExpression *node);
-  template <typename T>
-  T evaluateIndexExpression(BoundExpression *node);
-  template <typename T>
-  T evaluate(BoundExpression *node);
+  std::any getVariable(const std::string &name);
+  template <typename T> T evaluateLiteralExpression(BoundExpression *node);
+  template <typename T> T evaluateUnaryExpression(BoundExpression *node);
+  template <typename T> T evaluateBinaryExpression(BoundExpression *node);
+  template <typename T> T evaluateAssignmentExpression(BoundExpression *node);
+  template <typename T> T evaluateVariableExpression(BoundExpression *node);
+  template <typename T> T evaluateIndexExpression(BoundExpression *node);
+  template <typename T> T evaluate(BoundExpression *node);
 
   std::any handleBuiltInFunction(BoundCallExpression *node);
 
@@ -99,4 +82,4 @@ class Interpreter {
                               T right);
 };
 
-#endif  // INTERPRETER_H
+#endif // INTERPRETER_H

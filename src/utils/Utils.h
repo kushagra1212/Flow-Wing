@@ -92,8 +92,9 @@ bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
 auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 
-std::vector<std::string> getAllFilesInDirectoryWithExtension(
-    std::string directoryPath, std::string extension, bool recursive);
+std::vector<std::string>
+getAllFilesInDirectoryWithExtension(std::string directoryPath,
+                                    std::string extension, bool recursive);
 bool isSubstring(const std::string &s1, const std::string &s2);
 enum class SymbolKind {
   Variable,
@@ -129,7 +130,7 @@ class Node {
   static std::unordered_map<std::string, int> fileMap;
   static std::unordered_map<std::string, int> visitedMap;
 
- public:
+public:
   static void addPath(std::string path) {
     fileMap[(path)] = 1;
     visitedMap[(path)] = 1;
@@ -178,6 +179,6 @@ class Node {
   static bool isCycleDetected(std::string path) { return fileMap[(path)] >= 1; }
 };
 
-}  // namespace Utils
+} // namespace Utils
 
-#endif  // UTILS_H
+#endif // UTILS_H

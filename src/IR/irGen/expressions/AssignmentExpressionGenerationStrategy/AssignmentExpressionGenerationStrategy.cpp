@@ -314,6 +314,9 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
     return nullptr;
   }
 
+  if (llvm::isa<llvm::StructType>(rhsValue->getType())) {
+    llvm::outs() << "Dy";
+  }
   // Typed Container
 
   if (rhsValue->getType() != loadedElementValue->getType()) {
@@ -338,11 +341,11 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
 
   llvm::Value *v = nullptr;
 
-  if (!alloca) {  // Error Already Handled Look at the index
-                  // expression Up :)
+  if (!alloca) { // Error Already Handled Look at the index
+                 // expression Up :)
     llvm::GlobalVariable *gv = TheModule->getGlobalVariable(
-        variableName);  // Error was handled before
-                        // in the index expression (var loadedElementValue)
+        variableName); // Error was handled before
+                       // in the index expression (var loadedElementValue)
 
     arrayType = llvm::cast<llvm::ArrayType>(gv->getValueType());
     v = gv;

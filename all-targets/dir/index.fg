@@ -1,4 +1,22 @@
-   type t1 = {
+        {
+           type my = {
+            name: str,
+            age: int,
+            height: deci,
+            weight: deci,
+            isEmployed: bool,
+        }
+
+        var a:my = {
+            name: "Kushagra",
+            age: 30,
+            height: 5.10,
+            weight: 50.5,
+        }
+
+        print(a)
+        }
+/#   type t1 = {
             a:int,
             b:str
        }

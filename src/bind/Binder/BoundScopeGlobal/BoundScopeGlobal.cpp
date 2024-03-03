@@ -3,12 +3,13 @@
 BoundScopeGlobal::BoundScopeGlobal(
     std::unique_ptr<BoundScopeGlobal> previous,
     std::unordered_map<std::string, BoundVariableDeclaration *> variables,
+    std::unordered_map<std::string, std::any> variablesValues,
     std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
     DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
     : variables(variables), functions(functions),
-      globalStatement(std::move(statement)), previous(std::move(previous)),
-      _diagnosticHandler(diagnosticHandler) {}
+      variablesValues(variablesValues), globalStatement(std::move(statement)),
+      previous(std::move(previous)), _diagnosticHandler(diagnosticHandler) {}
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {
@@ -37,4 +38,33 @@ BoundVariableDeclaration *BoundScopeGlobal::getVariable(std::string name) {
     return this->variables[name];
   }
   return this->previous->getVariable(name);
+}
+
+bool BoundScopeGlobal::tryLookupVariableValue(std::string name) {
+  if (this->variablesValues.find(name) != this->variablesValues.end()) {
+    return true;
+  }
+  if (this->previous == nullptr) {
+    return false;
+  }
+  return this->previous->tryLookupVariableValue(name);
+}
+
+bool BoundScopeGlobal::tryAssignVariableValue(std::string name,
+                                              std::any value) {
+  if (this->variablesValues.find(name) != this->variablesValues.end()) {
+    this->variablesValues[name] = value;
+    return true;
+  }
+  if (this->previous == nullptr) {
+    return false;
+  }
+  return this->previous->tryAssignVariableValue(name, value);
+}
+
+std::any BoundScopeGlobal::getVariableValue(std::string name) {
+  if (this->variablesValues.find(name) != this->variablesValues.end()) {
+    return this->variablesValues[name];
+  }
+  return this->previous->getVariableValue(name);
 }

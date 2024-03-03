@@ -44,6 +44,11 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
     return v;
   }
 
+  // When Local Variable is a dynamic type
+  if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
+    return this->getUnTypedLocalVariableValue(variableValue, v, variableName);
+  }
+
   // When Local Variable is a struct type
   if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
     parObjTypeType = llvm::cast<llvm::StructType>(
@@ -64,11 +69,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
   if (!_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
     return this->getTypedPrimitiveLocalVariableValue(variableName,
                                                      variableValue, v);
-  }
-
-  // When Local Variable is a dynamic type
-  if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
-    return this->getUnTypedLocalVariableValue(variableValue, v, variableName);
   }
 
   _codeGenerationContext->getLogger()->LogError(
@@ -290,7 +290,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
       const bool isStruct =
           llvm::isa<llvm::StructType>(allocaInst->getAllocatedType());
 
-      if (!isStruct) return logError();
+      if (!isStruct)
+        return logError();
 
       if (isNested)
         return getObjectValue(allocaInst, listIndex + 1, propertyKey);
@@ -302,7 +303,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
       const bool isStruct =
           llvm::isa<llvm::StructType>(globalVariable->getValueType());
 
-      if (!isStruct) return logError();
+      if (!isStruct)
+        return logError();
 
       if (isNested)
         return getObjectValue(globalVariable, listIndex + 1, propertyKey);
