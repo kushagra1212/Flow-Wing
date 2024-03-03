@@ -9,13 +9,6 @@ OrIfStatementSyntax::OrIfStatementSyntax(
   this->ifKeyword = std::move(ifKeyword);
   this->condition = std::move(condition);
   this->statement = std::move(statement);
-
-  // Add children
-
-  _children.push_back(this->orKeyword.get());
-  _children.push_back(this->ifKeyword.get());
-  _children.push_back(this->condition.get());
-  _children.push_back(this->statement.get());
 }
 
 std::unique_ptr<SyntaxToken<std::any>> OrIfStatementSyntax::getIfKeyword() {
@@ -34,15 +27,25 @@ std::unique_ptr<SyntaxToken<std::any>> OrIfStatementSyntax::getOrKeyword() {
   return std::move(orKeyword);
 }
 
-SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::OrIfStatement;
 }
 
-DiagnosticUtils::SourceLocation OrIfStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation OrIfStatementSyntax::getSourceLocation()
+    const {
   return this->ifKeyword->getSourceLocation();
 }
 
-std::vector<SyntaxNode *> OrIfStatementSyntax::getChildren() {
+const std::vector<SyntaxNode *> &OrIfStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    // Add children
+
+    _children.push_back(this->orKeyword.get());
+    _children.push_back(this->ifKeyword.get());
+    _children.push_back(this->condition.get());
+    _children.push_back(this->statement.get());
+  }
+
   return this->_children;
 }
 

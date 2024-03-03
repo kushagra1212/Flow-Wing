@@ -6,14 +6,14 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundIfStatement : public BoundStatement, public BoundSourceLocation {
-private:
+ private:
   std::unique_ptr<BoundExpression> _condition;
   std::unique_ptr<BoundStatement> _thenStatement;
   std::unique_ptr<BoundStatement> _elseStatement;
 
   std::vector<std::unique_ptr<BoundOrIfStatement>> _orIfStatements;
 
-public:
+ public:
   BoundIfStatement(const DiagnosticUtils::SourceLocation &location);
 
   std::unique_ptr<BoundExpression> getCondition();
@@ -25,7 +25,7 @@ public:
   void addOrIfStatement(std::unique_ptr<BoundOrIfStatement> orIfStatement);
   void addElseStatement(std::unique_ptr<BoundStatement> elseStatement);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

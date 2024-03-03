@@ -7,7 +7,7 @@
 #include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 class ForStatementGenerationStrategy : public StatementGenerationStrategy {
-public:
+ public:
   ForStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
@@ -18,4 +18,4 @@ public:
                                        llvm::Value *upperBound);
 };
 
-#endif // __FLOWWING_FOR_STATEMENT_STRATEGY_H__
+#endif  // __FLOWWING_FOR_STATEMENT_STRATEGY_H__

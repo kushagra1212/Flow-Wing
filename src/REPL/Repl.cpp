@@ -1,7 +1,6 @@
 #include "Repl.h"
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
-
   _diagnosticHandler = std::make_unique<DiagnosticHandler>();
   previousText = std::vector<std::string>();
   _previousGlobalScope = nullptr;
@@ -23,7 +22,6 @@ void Repl::runIfNotInTest(std::function<void()> f) {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-
   std::unique_ptr<Parser> parser = nullptr;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
 
@@ -39,7 +37,6 @@ void Repl::runWithStream(std::istream &inputStream,
     std::unique_ptr<DiagnosticHandler> _previousDiagnosticHandler =
         std::make_unique<DiagnosticHandler>();
     while (std::getline(inputStream, line)) {
-
       if (handleSpecialCommands(line)) {
         break;
       }
@@ -56,7 +53,6 @@ void Repl::runWithStream(std::istream &inputStream,
                 DiagnosticUtils::DiagnosticType::Syntactic) ||
             _previousDiagnosticHandler->hasError(
                 DiagnosticUtils::DiagnosticType::Lexical)) {
-
           runIfNotInTest([&]() {
             outputStream << "\n" << YELLOW << "... " << RESET;
           });
@@ -108,7 +104,6 @@ void Repl::runWithStream(std::istream &inputStream,
     }
 
     if (!exit) {
-
       if (showSyntaxTree) {
         Utils::prettyPrint(compilationUnit.get());
       }
@@ -137,7 +132,6 @@ void Repl::runWithStream(std::istream &inputStream,
 void Repl::compileAndEvaluate(
     std::ostream &outputStream,
     std::unique_ptr<CompilationUnitSyntax> compilationUnit) {
-
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(std::move(_previousGlobalScope),
                                         compilationUnit.get(),
@@ -181,7 +175,6 @@ void Repl::compileAndEvaluate(
 void Repl::toggleExit() { exit = !exit; }
 
 void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
-
   std::string line;
 
   while (std::getline(inputStream, line)) {
@@ -248,7 +241,6 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
         return d.getType() == DiagnosticUtils::DiagnosticType::Runtime;
       });
     } else {
-
       _previousGlobalScope = std::move(globalScope);
     }
   } catch (const std::exception &e) {
@@ -262,7 +254,6 @@ void Repl::printWelcomeMessage(std::ostream &outputStream) {
 }
 
 void Repl::addTextString(const std::string &textString) {
-
   this->text.push_back(textString);
 }
 
@@ -296,15 +287,6 @@ int Repl::countBraces(const std::string &line, char brace) {
 bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
 
 bool Repl::isBoundTreeVisible() const { return showBoundTree; }
-
-#ifdef REPL_TEST_MODE
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
-#endif
 
 #ifdef REPL_MODE
 

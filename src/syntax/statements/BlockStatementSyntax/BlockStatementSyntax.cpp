@@ -32,12 +32,12 @@ void BlockStatementSyntax::setCloseBraceToken(
   this->_closeBraceToken = std::move(closeBraceToken);
 }
 
-SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BlockStatement;
 }
 
-std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
-  if (this->_children.size() == 0) {
+const std::vector<SyntaxNode *> &BlockStatementSyntax::getChildren() {
+  if (this->_children.empty()) {
     // Add children
     this->_children.push_back(this->_openBraceToken.get());
     for (const auto &statement : this->getStatements()) {
@@ -48,8 +48,8 @@ std::vector<SyntaxNode *> BlockStatementSyntax::getChildren() {
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
-BlockStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation BlockStatementSyntax::getSourceLocation()
+    const {
   return this->_openBraceToken->getSourceLocation();
 }
 

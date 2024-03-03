@@ -1,13 +1,13 @@
 #ifndef IR_PARSER_H
 #define IR_PARSER_H
 
-#include "../../Common.h"
-#include "llvm/IR/AssemblyAnnotationWriter.h"
 #include <llvm/IR/Module.h>
 
-class IRParser {
+#include "../../Common.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
 
-public:
+class IRParser {
+ public:
   IRParser();
   void mergeIR(const std::string &ir);
   void mergeIR(llvm::Module *module);
@@ -20,8 +20,8 @@ public:
 
   void printIR();
 
-private:
+ private:
   std::string _ir;
 };
 
-#endif // IR_PARSER_H
+#endif  // IR_PARSER_H

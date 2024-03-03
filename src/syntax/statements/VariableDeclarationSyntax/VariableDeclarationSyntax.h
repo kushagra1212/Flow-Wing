@@ -4,35 +4,54 @@
 #include "../../SyntaxKindUtils.h"
 #include "../../SyntaxToken.h"
 #include "../../expression/ExpressionSyntax.h"
+#include "../../expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../StatementSyntax.h"
+
 class VariableDeclarationSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
-  std::unique_ptr<SyntaxToken<std::any>> _equalsToken;
   std::unique_ptr<ExpressionSyntax> _initializer;
-  Utils::type _type;
+  std::unique_ptr<TypeExpressionSyntax> _typeExpr;
 
-public:
-  VariableDeclarationSyntax(std::unique_ptr<SyntaxToken<std::any>> keyword,
-                            std::unique_ptr<SyntaxToken<std::any>> identifier,
-                            std::unique_ptr<SyntaxToken<std::any>> equalsToken,
-                            std::unique_ptr<ExpressionSyntax> initializer,
-                            Utils::type type);
+ public:
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> getIdentifier();
-  std::unique_ptr<ExpressionSyntax> getInitializer();
-  std::unique_ptr<SyntaxToken<std::any>> getEqualsToken();
-  std::unique_ptr<SyntaxToken<std::any>> getKeyword();
+  // Setters
+  inline void setKeyword(std::unique_ptr<SyntaxToken<std::any>> keyword) {
+    _keyword = std::move(keyword);
+  }
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  inline void setIdentifier(std::unique_ptr<SyntaxToken<std::any>> identifier) {
+    _identifier = std::move(identifier);
+  }
 
-  std::unique_ptr<ExpressionSyntax> &getInitializerPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getIdentifierPtr();
+  inline void setInitializer(std::unique_ptr<ExpressionSyntax> initializer) {
+    _initializer = std::move(initializer);
+  }
 
-  std::unique_ptr<SyntaxToken<std::any>> &getEqualsTokenPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getKeywordPtr();
-  const Utils::type getType() const;
+  inline void setTypeExpr(std::unique_ptr<TypeExpressionSyntax> typeExpr) {
+    _typeExpr = std::move(typeExpr);
+  }
+
+  // Getters
+  inline auto getIdentifierRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _identifier;
+  }
+
+  inline auto getKeywordRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _keyword;
+  }
+
+  inline auto getTypeRef() -> const std::unique_ptr<TypeExpressionSyntax> & {
+    return _typeExpr;
+  }
+
+  inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {
+    return _initializer;
+  }
 };

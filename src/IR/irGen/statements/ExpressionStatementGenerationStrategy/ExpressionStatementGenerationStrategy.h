@@ -6,11 +6,11 @@
 
 class ExpressionStatementGenerationStrategy
     : public StatementGenerationStrategy {
-public:
+ public:
   ExpressionStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
 
-#endif //__FLOWWING_EXPRESSION_STATEMENT_STRATEGY_H__
+#endif  //__FLOWWING_EXPRESSION_STATEMENT_STRATEGY_H__

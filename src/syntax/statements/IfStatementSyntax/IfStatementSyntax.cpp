@@ -18,26 +18,30 @@ std::unique_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() {
   return std::move(elseClause);
 }
 
-SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 
-DiagnosticUtils::SourceLocation IfStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation IfStatementSyntax::getSourceLocation()
+    const {
   return this->ifKeyword->getSourceLocation();
 }
 
-std::vector<SyntaxNode *> IfStatementSyntax::getChildren() {
-  _children.push_back(this->ifKeyword.get());
-  _children.push_back(this->condition.get());
-  _children.push_back(this->statement.get());
+const std::vector<SyntaxNode *> &IfStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    _children.push_back(this->ifKeyword.get());
+    _children.push_back(this->condition.get());
+    _children.push_back(this->statement.get());
 
-  for (auto &orIfStatement : this->orIfStatements) {
-    _children.push_back(orIfStatement.get());
+    for (auto &orIfStatement : this->orIfStatements) {
+      _children.push_back(orIfStatement.get());
+    }
+
+    if (this->elseClause != nullptr) {
+      _children.push_back(this->elseClause.get());
+    }
   }
 
-  if (this->elseClause != nullptr) {
-    _children.push_back(this->elseClause.get());
-  }
   return this->_children;
 }
 

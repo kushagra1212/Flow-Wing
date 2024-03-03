@@ -7,17 +7,16 @@
 
 class BoundExpressionStatement : public BoundStatement,
                                  public BoundSourceLocation {
-
-private:
+ private:
   std::unique_ptr<BoundExpression> _expression;
 
-public:
+ public:
   BoundExpressionStatement(const DiagnosticUtils::SourceLocation &location,
                            std::unique_ptr<BoundExpression> expression);
 
   std::unique_ptr<BoundExpression> getExpression();
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 

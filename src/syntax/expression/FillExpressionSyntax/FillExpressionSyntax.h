@@ -6,23 +6,23 @@
 #include "../ExpressionSyntax.h"
 
 class FillExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::unique_ptr<ExpressionSyntax> _sizeToFillExpression;
   std::unique_ptr<ExpressionSyntax> _elementExpression;
 
-public:
+ public:
   // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
 
   void setSizeToFillExpression(
       std::unique_ptr<ExpressionSyntax> sizeToFillExpression);
 
-  void
-  setElementExpression(std::unique_ptr<ExpressionSyntax> elementExpression);
+  void setElementExpression(
+      std::unique_ptr<ExpressionSyntax> elementExpression);
 
   // Getters
   auto getSizeToFillExpressionRef() const
@@ -32,4 +32,4 @@ public:
       -> const std::unique_ptr<ExpressionSyntax> &;
 };
 
-#endif //  __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
+#endif  //  __FLOWWING_FILL_EXPRESSION_SYNTAX_H__

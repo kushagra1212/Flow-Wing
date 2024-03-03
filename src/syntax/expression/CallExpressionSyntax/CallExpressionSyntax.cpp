@@ -49,13 +49,12 @@ CallExpressionSyntax::getCloseParenthesisToken() {
   return std::move(_closeParenthesisToken);
 }
 
-SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
   return SyntaxKindUtils::CallExpression;
 }
 
-std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
+const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
   if (this->_children.size() == 0) {
-
     this->_children.push_back(_identifier.get());
     this->_children.push_back(_openParenthesisToken.get());
 
@@ -71,8 +70,8 @@ std::vector<SyntaxNode *> CallExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
-CallExpressionSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation CallExpressionSyntax::getSourceLocation()
+    const {
   return this->_identifier->getSourceLocation();
 }
 

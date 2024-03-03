@@ -20,7 +20,6 @@ std::string toString(DiagnosticLevel level);
 std::string toString(DiagnosticType type);
 
 struct SourceLocation {
-
   int lineNumber;
   int columnNumber;
   std::string absoluteFilePath;
@@ -39,6 +38,6 @@ struct SourceLocation {
   }
 };
 
-} // namespace DiagnosticUtils
+}  // namespace DiagnosticUtils
 
-#endif // DIAGNOSTIC_UTILS_H
+#endif  // DIAGNOSTIC_UTILS_H

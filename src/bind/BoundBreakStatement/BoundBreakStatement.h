@@ -5,13 +5,12 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundBreakStatement : public BoundStatement, public BoundSourceLocation {
-
-public:
+ public:
   BoundBreakStatement(const DiagnosticUtils::SourceLocation &location);
 
-  BinderKindUtils::BoundNodeKind getKind() const;
+  BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
 };
 
-#endif // BOUDBREAKSTATEMENT_H
+#endif  // BOUDBREAKSTATEMENT_H

@@ -6,20 +6,20 @@
 #include "../StatementSyntax.h"
 
 class ContinueStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _continueKeyword;
 
-public:
+ public:
   ContinueStatementSyntax(
       std::unique_ptr<SyntaxToken<std::any>> continueKeyword);
 
   std::unique_ptr<SyntaxToken<std::any>> getContinueKeyword();
 
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };
 
-#endif // CONTINUESTATEMENTSYNTAX_H
+#endif  // CONTINUESTATEMENTSYNTAX_H

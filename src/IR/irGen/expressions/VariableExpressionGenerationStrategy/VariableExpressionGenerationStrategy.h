@@ -1,12 +1,13 @@
 #ifndef __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 
+#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class VariableExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
-public:
+ public:
   VariableExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -19,10 +20,9 @@ public:
 
   // Get Primitive Local Variable Value
 
-  llvm::Value *
-  getTypedPrimitiveLocalVariableValue(const std::string &variableName,
-                                      llvm::Value *variableValue,
-                                      llvm::AllocaInst *v);
+  llvm::Value *getTypedPrimitiveLocalVariableValue(
+      const std::string &variableName, llvm::Value *variableValue,
+      llvm::AllocaInst *v);
 
   llvm::Value *getUnTypedLocalVariableValue(llvm::Value *variableValue,
                                             llvm::AllocaInst *v,
@@ -31,6 +31,20 @@ public:
   llvm::Value *getLocalVariableValue(const std::string &variableName,
                                      llvm::Value *variableValue,
                                      llvm::AllocaInst *v);
+
+  llvm::Value *getObjectValue(llvm::Value *elementPtr, size_t listIndex,
+                              const std::string &variableName);
+
+  llvm::Value *getObjectValueNF(llvm::Value *variableElementPtr,
+                                size_t listIndex,
+                                const std::string &parPropertyKey,
+                                std::vector<llvm::Value *> indices,
+                                llvm::StructType *type);
+
+ private:
+  BoundVariableExpression *_variableExpression;
+  BoundTypeExpression *_typeExpression;
+  llvm::StructType *parObjTypeType = nullptr;
 };
 
-#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

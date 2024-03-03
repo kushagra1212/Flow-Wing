@@ -6,14 +6,14 @@
 #include "../ExpressionSyntax.h"
 
 class ContainerExpressionSyntax : public ExpressionSyntax {
-private:
+ private:
   std::vector<std::unique_ptr<ExpressionSyntax>> _elements;
 
-public:
+ public:
   // Overrides
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
   auto setElement(std::unique_ptr<ExpressionSyntax> element) -> void;
@@ -23,4 +23,4 @@ public:
       -> const std::vector<std::unique_ptr<ExpressionSyntax>> &;
 };
 
-#endif // __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__
+#endif  // __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__

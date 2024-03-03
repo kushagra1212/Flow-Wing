@@ -15,7 +15,6 @@ void BinaryOperationTest::SetUp() { _test->SetUp(); }
 void BinaryOperationTest::TearDown() { _test->TearDown(); }
 
 void BinaryOperationTest::setInput(const std::string &input) {
-
 #ifdef JIT_TEST_MODE
   _test->setInput("print(" + input + ")");
 #endif

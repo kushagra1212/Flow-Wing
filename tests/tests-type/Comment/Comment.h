@@ -1,11 +1,10 @@
 #ifndef COMMENT_TEST_H
 #define COMMENT_TEST_H
-#include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
+
 #include "../../JITCompilerTest/JITCompilerTest.h"
 #include "../../ReplTest/ReplTest.h"
 class CommentTest : public ::testing::Test {
-protected:
+ protected:
   CommentTest();
 
   void SetUp() override;
@@ -16,4 +15,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // FOR_LOOP_H
+#endif  // FOR_LOOP_H

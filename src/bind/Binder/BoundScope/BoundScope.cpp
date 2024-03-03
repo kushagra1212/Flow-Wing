@@ -1,7 +1,9 @@
 #include "BoundScope.h"
 
 BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
-    : parent(std::move(parent)), breakable(false), continuable(false),
+    : parent(std::move(parent)),
+      breakable(false),
+      continuable(false),
       functionCounted(0) {}
 
 bool BoundScope::isInFunction() {
@@ -53,18 +55,17 @@ bool BoundScope::isContinuable() {
   return this->parent->isContinuable();
 }
 
-bool BoundScope::tryDeclareVariable(
-    std::string name, const struct Utils::Variable &initialValue) {
+bool BoundScope::tryDeclareVariable(const std::string &name,
+                                    BoundVariableDeclaration *variable) {
   if (this->variables.find(name) == this->variables.end()) {
-
-    this->variables[name] = initialValue;
+    this->variables[name] = variable;
     return true;
   }
 
   return false;
 }
 
-bool BoundScope::tryLookupVariable(std::string name) {
+bool BoundScope::tryLookupVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return true;
   }
@@ -74,29 +75,31 @@ bool BoundScope::tryLookupVariable(std::string name) {
   return this->parent->tryLookupVariable(name);
 }
 
-Utils::Variable BoundScope::tryGetVariable(std::string name) {
+BoundVariableDeclaration *BoundScope::tryGetVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return this->variables[name];
   }
-  return this->parent->tryGetVariable(name);
+
+  if (this->parent) return this->parent->tryGetVariable(name);
+
+  return nullptr;
 }
 
-bool BoundScope::tryAssignVariable(std::string name,
-                                   const struct Utils::Variable &value) {
+bool BoundScope::tryAssignVariable(const std::string &name,
+                                   BoundVariableDeclaration *variable) {
   if (this->variables.find(name) != this->variables.end()) {
-    this->variables[name] = value;
+    this->variables[name] = variable;
     return true;
   }
   if (this->parent == nullptr) {
     return false;
   }
-  return this->parent->tryAssignVariable(name, value);
+  return this->parent->tryAssignVariable(name, variable);
 }
 
 bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
   if (this->functions.find(function->getFunctionNameRef()) !=
       this->functions.end()) {
-
     return false;
   }
 
@@ -108,7 +111,7 @@ bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
   return true;
 }
 
-bool BoundScope::tryLookupFunction(std::string name) {
+bool BoundScope::tryLookupFunction(const std::string &name) {
   if (this->functions.find(name) != this->functions.end()) {
     return true;
   }
@@ -127,4 +130,39 @@ std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
     result.push_back(function.second);
   }
   return result;
+}
+
+bool BoundScope::tryLookupCustomType(const std::string &name) {
+  if (this->customTypes.find(name) != this->customTypes.end()) {
+    return true;
+  }
+  if (this->parent == nullptr) {
+    return false;
+  }
+  return this->parent->tryLookupCustomType(name);
+}
+
+BoundCustomTypeStatement *BoundScope::tryGetCustomType(
+    const std::string &name) {
+  if (this->customTypes.find(name) != this->customTypes.end()) {
+    return this->customTypes[name];
+  }
+  if (this->parent == nullptr) {
+    return nullptr;
+  }
+  return this->parent->tryGetCustomType(name);
+}
+
+bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
+  if (this->customTypes.find(customType->getTypeNameAsString()) !=
+      this->customTypes.end()) {
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareCustomType(customType);
+  }
+
+  this->customTypes[customType->getTypeNameAsString()] = customType;
+  return true;
 }

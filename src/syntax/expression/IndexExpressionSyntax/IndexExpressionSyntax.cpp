@@ -10,13 +10,11 @@ IndexExpressionSyntax::getIndexIdentifierExpressionPtr() {
   return this->_identifierExpression;
 }
 
-SyntaxKindUtils::SyntaxKind IndexExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind IndexExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IndexExpression;
 }
-std::vector<SyntaxNode *> IndexExpressionSyntax::getChildren() {
-
-  if (_children.size() > 0)
-    return _children;
+const std::vector<SyntaxNode *> &IndexExpressionSyntax::getChildren() {
+  if (_children.size() > 0) return _children;
 
   _children.push_back(this->_identifierExpression.get());
 
@@ -26,7 +24,6 @@ std::vector<SyntaxNode *> IndexExpressionSyntax::getChildren() {
 
   return _children;
 }
-DiagnosticUtils::SourceLocation
-IndexExpressionSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation IndexExpressionSyntax::getSourceLocation() const {
   return this->_identifierExpression->getSourceLocation();
 }

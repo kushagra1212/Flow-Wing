@@ -7,7 +7,7 @@
 #include "StringTypeConverter/StringTypeConverter.h"
 
 class ValueVisitor {
-public:
+ public:
   virtual llvm::Value *visit(Int32TypeConverter *converter,
                              llvm::Value *value) = 0;
   virtual llvm::Value *visit(DoubleTypeConverter *converter,
@@ -19,4 +19,4 @@ public:
                              llvm::Value *value) = 0;
 };
 
-#endif // VALUE_VISITOR_H
+#endif  // VALUE_VISITOR_H

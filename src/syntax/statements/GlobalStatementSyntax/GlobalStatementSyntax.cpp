@@ -4,24 +4,26 @@ GlobalStatementSyntax::GlobalStatementSyntax(
     const bool &isExposed, std::unique_ptr<StatementSyntax> statement)
     : MemberSyntax(isExposed) {
   this->_statement = std::move(statement);
-
-  _children.push_back(_statement.get());
 }
 
 std::unique_ptr<StatementSyntax> GlobalStatementSyntax::getStatement() {
   return std::move(_statement);
 }
 
-SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::GlobalStatement;
 }
 
-std::vector<SyntaxNode *> GlobalStatementSyntax::getChildren() {
+const std::vector<SyntaxNode *> &GlobalStatementSyntax::getChildren() {
+  if (_children.empty()) {
+    _children.push_back(_statement.get());
+  }
+
   return this->_children;
 }
 
-DiagnosticUtils::SourceLocation
-GlobalStatementSyntax::getSourceLocation() const {
+const DiagnosticUtils::SourceLocation GlobalStatementSyntax::getSourceLocation()
+    const {
   return _statement->getSourceLocation();
 }
 

@@ -5,7 +5,7 @@
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
-public:
+ public:
   IndexExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -20,7 +20,7 @@ public:
 
   const bool canGenerateExpression(const std::string &variableName);
 
-private:
+ private:
   std::vector<llvm::Value *> _indices;
   std::vector<llvm::ConstantInt *> _actualSizes;
   std::string _variableName;
@@ -29,4 +29,4 @@ private:
   llvm::ArrayType *_arrayType;
 };
 
-#endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__

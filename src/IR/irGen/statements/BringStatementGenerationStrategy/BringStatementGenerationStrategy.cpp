@@ -9,7 +9,6 @@ BringStatementGenerationStrategy::BringStatementGenerationStrategy(
 
 llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-
   BoundBringStatement *bringStatement =
       static_cast<BoundBringStatement *>(statement);
 
@@ -27,9 +26,8 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   }
 
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
-
-    if (variable.second.type == Utils::type::UNKNOWN) {
-
+    if (variable.second->getTypeExpression()->getSyntaxType() ==
+        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
       _codeGenerationContext->getLogger()->LogError(
           "Multifile UNKOWN type not allowed, Please "
           "specify the type of variable " +
@@ -39,7 +37,7 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
 
     llvm::Type *type =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            variable.second.type);
+            variable.second->getTypeExpression()->getSyntaxType());
 
     llvm::GlobalVariable *variableLLVM = new llvm::GlobalVariable(
         *TheModule, type, false, llvm::GlobalValue::ExternalLinkage, nullptr,
@@ -72,9 +70,8 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
 }
 
 // TODO: Refactor This Later
-llvm::Value *
-BringStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
-
+llvm::Value *BringStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
   BoundBringStatement *bringStatement =
       static_cast<BoundBringStatement *>(statement);
 

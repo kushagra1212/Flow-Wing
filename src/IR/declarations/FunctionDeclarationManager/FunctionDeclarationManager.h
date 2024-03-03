@@ -1,16 +1,17 @@
 #ifndef __FUNCTION_DECLARATION_MANAGER_H__
 #define __FUNCTION_DECLARATION_MANAGER_H__
 
-#include "../../constants/FlowWingIRConstants.h"
-#include "../../context/CodeGenerationContext.h"
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
+#include "../../constants/FlowWingIRConstants.h"
+#include "../../context/CodeGenerationContext.h"
+
 using namespace FLOWWING::IR::CONSTANTS;
 
 class FunctionDeclarationManager {
-public:
+ public:
   FunctionDeclarationManager(CodeGenerationContext *codeGenerationContext);
 
   llvm::Function *declarePrintFn();
@@ -33,7 +34,7 @@ public:
 
   llvm::Function *declareRaiseExceptionFn();
 
-private:
+ private:
   llvm::Module *TheModule;
   llvm::LLVMContext *TheContext;
 
@@ -41,4 +42,4 @@ private:
                                   llvm::FunctionType *functionType);
 };
 
-#endif // __FUNCTION_DECLARATION_MANAGER_H__
+#endif  // __FUNCTION_DECLARATION_MANAGER_H__

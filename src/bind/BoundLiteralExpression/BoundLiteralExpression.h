@@ -1,19 +1,20 @@
 #pragma once
+#include <any>
+#include <iostream>
+#include <typeinfo>
+
 #include "../../utils/Utils.h"
 #include "../BinderKindUtils.h"
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-#include <any>
-#include <iostream>
-#include <typeinfo>
-
-template <typename T> class BoundLiteralExpression : public BoundExpression {
-private:
+template <typename T>
+class BoundLiteralExpression : public BoundExpression {
+ private:
   T value;
   SyntaxKindUtils::SyntaxKind _syntaxKind;
 
-public:
+ public:
   BoundLiteralExpression(const DiagnosticUtils::SourceLocation &location,
                          T value);
 

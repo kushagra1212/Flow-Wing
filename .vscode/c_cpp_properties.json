@@ -6,28 +6,30 @@
                 "${workspaceFolder}/**",
                 "/usr/include/gtest/internal",
                 "/usr/include/gtest",
-                "/usr/local/llvm-17/**"
+                "/usr/lib/llvm-17/**",
+                "/usr/include/llvm-17/"
             ],
             "defines": [],
-            "compilerPath": "/usr/local/llvm-17/clang+llvm/bin/clang",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
-        },
-        {
-            "name": "Mac",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/include/gtest/internal",
-                "/usr/include/gtest",
-                "/usr/local/opt/llvm/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/local/opt/llvm/bin/clang",
+            "compilerPath": "/usr/lib/llvm-17/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"
         }
+        // ,
+        // {
+        //     "name": "Mac",
+        //     "includePath": [
+        //         "${workspaceFolder}/**",
+        //         "/Users/kushagrarathore/code/per/Flow-Wing/**",
+        //         "/usr/local/Cellar/googletest/1.14.0/**",
+        //         "/usr/local/opt/llvm/**"
+        //     ],
+        //     "defines": [],
+        //     "compilerPath": "/usr/local/opt/llvm/bin/clang",
+        //     "cStandard": "c11",
+        //     "cppStandard": "c++17",
+        //     "intelliSenseMode": "clang-x64"
+        // }
     ],
     "version": 4
 }

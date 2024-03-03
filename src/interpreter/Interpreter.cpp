@@ -2,12 +2,13 @@
 
 Interpreter::Interpreter(BoundScopeGlobal *globalScope,
                          DiagnosticHandler *diagnosticHandler) {
-
   this->_globalScope = globalScope;
   this->_interpreterUtils =
       std::make_unique<InterpreterUtils>(diagnosticHandler);
 
   this->variable_stack.push(this->_globalScope->variables);
+
+  this->value_stack.push(this->_globalScope->variablesValues);
   this->function_stack.push(this->_globalScope->functions);
 }
 
@@ -15,50 +16,55 @@ std::string Interpreter::getResult() {
   return InterpreterConversion::explicitConvertAnyToString(this->last_value);
 }
 
-void Interpreter::declareVariable(std::string name, Utils::Variable variable) {
-  std::map<std::string, Utils::Variable> &current_scope =
+void Interpreter::declareVariable(std::string name,
+                                  BoundVariableDeclaration *variable) {
+  std::unordered_map<std::string, BoundVariableDeclaration *> &current_scope =
       this->variable_stack.top();
 
   current_scope[name] = variable;
+  std::unordered_map<std::string, std::any> &current_value_scope =
+      this->value_stack.top();
+
+  current_value_scope[name] =
+      evaluate<std::any>(variable->getInitializerPtr().get());
 }
 
-Utils::Variable Interpreter::getVariable(std::string name) {
-  std::stack<std::map<std::string, Utils::Variable>> variable_stack_copy =
-      this->variable_stack;
+std::any Interpreter::getVariable(const std::string &name) {
+  std::stack<std::unordered_map<std::string, std::any>> value_stack_copy =
+      this->value_stack;
 
-  while (!variable_stack_copy.empty()) {
-    std::map<std::string, Utils::Variable> current_scope =
-        variable_stack_copy.top();
+  while (!value_stack_copy.empty()) {
+    std::unordered_map<std::string, std::any> current_scope =
+        value_stack_copy.top();
 
     if (current_scope.find(name) != current_scope.end()) {
       return current_scope[name];
     }
 
-    variable_stack_copy.pop();
+    value_stack_copy.pop();
   }
 
   this->_interpreterUtils->logError("Variable '" + name + "' Is Not Declared");
 
-  return Utils::Variable();
+  return nullptr;
 }
 
 void Interpreter::defineFunction(
     std::string name, BoundFunctionDeclaration *functionDeclaration) {
-  std::map<std::string, BoundFunctionDeclaration *> &current_scope =
+  std::unordered_map<std::string, BoundFunctionDeclaration *> &current_scope =
       this->function_stack.top();
   current_scope[name] = functionDeclaration;
 }
 
 BoundFunctionDeclaration *Interpreter::getFunction(std::string name) {
-  std::stack<std::map<std::string, BoundFunctionDeclaration *>>
+  std::stack<std::unordered_map<std::string, BoundFunctionDeclaration *>>
       function_stack_rest;
 
   while (!function_stack.empty()) {
-    std::map<std::string, BoundFunctionDeclaration *> current_scope =
+    std::unordered_map<std::string, BoundFunctionDeclaration *> current_scope =
         function_stack.top();
 
     if (current_scope.find(name) != current_scope.end()) {
-
       while (!function_stack_rest.empty()) {
         function_stack.push(function_stack_rest.top());
         function_stack_rest.pop();
@@ -78,30 +84,29 @@ BoundFunctionDeclaration *Interpreter::getFunction(std::string name) {
   return nullptr;
 }
 
-void Interpreter::assignVariable(std::string name, Utils::Variable variable) {
-  std::stack<std::map<std::string, Utils::Variable>> variable_stack_copy;
+void Interpreter::assignVariable(std::string name, std::any val) {
+  std::stack<std::unordered_map<std::string, std::any>> value_stack_copy;
   bool found = false;
-  while (!this->variable_stack.empty()) {
-    std::map<std::string, Utils::Variable> &current_scope =
-        this->variable_stack.top();
+
+  while (!this->value_stack.empty()) {
+    std::unordered_map<std::string, std::any> &current_scope =
+        this->value_stack.top();
 
     if (current_scope.find(name) != current_scope.end()) {
-      current_scope[name] = variable;
-
+      current_scope[name] = val;
       found = true;
       break;
     }
 
-    variable_stack_copy.push(current_scope);
+    value_stack_copy.push(current_scope);
 
-    this->variable_stack.pop();
+    this->value_stack.pop();
   }
-  while (!variable_stack_copy.empty()) {
-    this->variable_stack.push(variable_stack_copy.top());
-    variable_stack_copy.pop();
+  while (!value_stack_copy.empty()) {
+    this->value_stack.push(value_stack_copy.top());
+    value_stack_copy.pop();
   }
   if (!found) {
-
     this->_interpreterUtils->logError("Variable '" + name +
                                       "' is not declared");
   }
@@ -120,8 +125,11 @@ void Interpreter::evaluateExpressionStatement(BoundExpressionStatement *node) {
 void Interpreter::evaluateBlockStatement(BoundBlockStatement *node) {
   BoundBlockStatement *blockStatement = (BoundBlockStatement *)node;
 
-  if (!blockStatement->getGlobal())
-    this->variable_stack.push(std::map<std::string, Utils::Variable>());
+  if (!blockStatement->getGlobal()) {
+    this->variable_stack.push(
+        std::unordered_map<std::string, BoundVariableDeclaration *>());
+    this->value_stack.push(std::unordered_map<std::string, std::any>());
+  }
 
   for (const auto &statement : blockStatement->getStatements()) {
     if (this->_interpreterUtils->getDiagnosticHandler()->hasError(
@@ -135,8 +143,10 @@ void Interpreter::evaluateBlockStatement(BoundBlockStatement *node) {
     }
   }
 
-  if (!blockStatement->getGlobal())
+  if (!blockStatement->getGlobal()) {
     this->variable_stack.pop();
+    this->value_stack.pop();
+  }
 }
 
 void Interpreter::evaluateVariableDeclaration(BoundVariableDeclaration *node) {
@@ -146,13 +156,9 @@ void Interpreter::evaluateVariableDeclaration(BoundVariableDeclaration *node) {
   this->_interpreterUtils->setCurrentSourceLocation(
       variableDeclaration->getLocation());
 
-  std::string variable_name = variableDeclaration->getVariable();
+  const std::string &variable_name = variableDeclaration->getVariableName();
 
-  this->declareVariable(
-      variable_name,
-      Utils::Variable(this->evaluate<std::any>(
-                          variableDeclaration->getInitializerPtr().get()),
-                      variableDeclaration->isConst()));
+  this->declareVariable(variable_name, variableDeclaration);
 }
 
 void Interpreter::evaluateIfStatement(BoundIfStatement *node) {
@@ -191,7 +197,9 @@ void Interpreter::evaluateWhileStatement(BoundWhileStatement *node) {
   this->_interpreterUtils->setCurrentSourceLocation(
       whileStatement->getLocation());
 
-  this->variable_stack.push(std::map<std::string, Utils::Variable>());
+  this->variable_stack.push(
+      std::unordered_map<std::string, BoundVariableDeclaration *>());
+  this->value_stack.push(std::unordered_map<std::string, std::any>());
 
   while (true) {
     bool condition = InterpreterConversion::explicitConvertAnyToBool(
@@ -213,16 +221,15 @@ void Interpreter::evaluateWhileStatement(BoundWhileStatement *node) {
     }
   }
   this->variable_stack.pop();
+  this->value_stack.pop();
 }
 void Interpreter::execute(BoundBlockStatement *node) {
-
   for (const auto &statement : node->getStatements()) {
     if (this->_interpreterUtils->getDiagnosticHandler()->hasError(
             DiagnosticUtils::DiagnosticType::Runtime))
       break;
 
     if (statement.get()->getKind() == BinderKindUtils::BlockStatement) {
-
       showResult = 0;
     }
 
@@ -248,12 +255,15 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
   int stepValue = 1;
 
   if (forStatement->getStepExpressionPtr().get()) {
-
     stepValue = InterpreterConversion::explicitConvertAnyToInt(
         this->evaluate<std::any>(forStatement->getStepExpressionPtr().get()));
   }
 
-  this->variable_stack.push(std::map<std::string, Utils::Variable>());
+  this->variable_stack.push(
+      std::unordered_map<std::string, BoundVariableDeclaration *>());
+
+  this->value_stack.push(std::unordered_map<std::string, std::any>());
+
   std::any lowerBound = 0;
   if (forStatement->getInitializationPtr().get()->getKind() ==
       BinderKindUtils::BoundNodeKind::VariableDeclaration) {
@@ -263,10 +273,11 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
     this->_interpreterUtils->setCurrentSourceLocation(
         variableDeclaration->getLocation());
 
-    variable_name = variableDeclaration->getVariable();
+    variable_name = variableDeclaration->getVariableName();
     this->evaluateStatement(variableDeclaration);
 
-    lowerBound = this->getVariable(variable_name).value;
+    lowerBound = this->evaluate<std::any>(
+        variableDeclaration->getInitializerPtr().get());
   } else {
     this->evaluateStatement(forStatement->getInitializationPtr().get());
 
@@ -277,7 +288,6 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
       this->evaluate<std::any>(forStatement->getUpperBoundPtr().get());
 
   if (lowerBound.type() != upperBound.type()) {
-
     this->_interpreterUtils->logError(
         "Incompatible types in for statement condition " +
         std::to_string(lowerBound.type().hash_code()) + " and " +
@@ -285,7 +295,6 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
 
     return;
   }
-
   if (lowerBound.type() == typeid(int)) {
     int i = InterpreterConversion::explicitConvertAnyToInt(lowerBound);
     int ub = InterpreterConversion::explicitConvertAnyToInt(upperBound);
@@ -295,9 +304,7 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
         break;
 
       if (variable_name != "") {
-        this->assignVariable(
-            variable_name,
-            Utils::Variable(i, (this->getVariable(variable_name)).isConst));
+        this->assignVariable(variable_name, i);
       }
       this->evaluateStatement(forStatement->getStatementPtr().get());
 
@@ -315,55 +322,48 @@ void Interpreter::evaluateForStatement(BoundForStatement *node) {
       i += stepValue;
     }
   } else {
-
     this->_interpreterUtils->logError(
         "Unexpected condition type in for statement condition " +
         std::to_string(lowerBound.type().hash_code()) + " and " +
         std::to_string(upperBound.type().hash_code()));
   }
-
   this->variable_stack.pop();
+  this->value_stack.pop();
 }
 
 void Interpreter::evaluateStatement(BoundStatement *node) {
+
   switch (node->getKind()) {
   case BinderKindUtils::BoundNodeKind::ExpressionStatement: {
-
     this->evaluateExpressionStatement((BoundExpressionStatement *)node);
     break;
   }
   case BinderKindUtils::BoundNodeKind::BlockStatement: {
-
     showResult = 0;
     this->evaluateBlockStatement((BoundBlockStatement *)node);
     break;
   }
   case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
-
     this->evaluateVariableDeclaration((BoundVariableDeclaration *)node);
 
     break;
   }
   case BinderKindUtils::BoundNodeKind::IfStatement: {
-
     this->evaluateIfStatement((BoundIfStatement *)node);
     break;
   }
 
   case BinderKindUtils::BoundNodeKind::WhileStatement: {
-
     this->evaluateWhileStatement((BoundWhileStatement *)node);
     break;
   }
 
   case BinderKindUtils::BoundNodeKind::ForStatement: {
-
     this->evaluateForStatement((BoundForStatement *)node);
     break;
   }
 
   case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
-
     BoundFunctionDeclaration *functionDeclaration =
         (BoundFunctionDeclaration *)node;
 
@@ -387,17 +387,17 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
     this->_interpreterUtils->setCurrentSourceLocation(
         returnStatement->getLocation());
 
-    Utils::type return_type = this->return_type_stack.top().first;
+    SyntaxKindUtils::SyntaxKind return_type =
+        this->return_type_stack.top().first;
 
-    if (return_type != Utils::type::NOTHING &&
+    if (return_type != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
         returnStatement->getReturnExpressionPtr() == nullptr) {
-
       this->_interpreterUtils->logError(
           "Function return type is not Nothing, return "
           "expression is not found");
     }
 
-    else if (return_type == Utils::type::NOTHING &&
+    else if (return_type == SyntaxKindUtils::SyntaxKind::NthgKeyword &&
              returnStatement->getReturnExpressionPtr() != nullptr) {
       this->_interpreterUtils->logError(
           "Function return type is Nothing, return "
@@ -422,7 +422,6 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
     }
   }
   default: {
-
     this->_interpreterUtils->logError(
         "Unexpected " + BinderKindUtils::to_string(node->getKind()));
 
@@ -431,12 +430,12 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
   }
 
   this->_globalScope->variables = this->variable_stack.top();
+  this->_globalScope->variablesValues = this->value_stack.top();
   this->_globalScope->functions = this->function_stack.top();
 }
 
 template <typename T>
 T Interpreter::evaluateLiteralExpression(BoundExpression *node) {
-
   BoundLiteralExpression<std::any> *literalExpression =
       (BoundLiteralExpression<std::any> *)node;
 
@@ -460,7 +459,6 @@ T Interpreter::evaluateLiteralExpression(BoundExpression *node) {
   } else if (value.type() == typeid(double)) {
     return std::any_cast<double>(value);
   } else {
-
     this->_interpreterUtils->logError("Unexpected literal expression");
     return nullptr;
   }
@@ -478,21 +476,12 @@ template <typename T>
 T Interpreter::evaluateVariableExpression(BoundExpression *node) {
   BoundVariableExpression *variableExpression = (BoundVariableExpression *)node;
 
-  std::any variable = this->evaluate<std::any>(
-      variableExpression->getIdentifierExpressionPtr().get());
-  if (variable.type() != typeid(std::string)) {
-
-    this->_interpreterUtils->logError("Unexpected variable name");
-    return nullptr;
-  }
-
-  std::string variable_name = std::any_cast<std::string>(variable);
+  std::string variable_name = variableExpression->getVariableNameRef();
   switch (variableExpression->getKind()) {
   case BinderKindUtils::BoundNodeKind::VariableExpression: {
-    return this->getVariable(variable_name).value;
+    return this->getVariable(variable_name);
   }
   default: {
-
     this->_interpreterUtils->logError("Unexpected variable name");
     return nullptr;
   }
@@ -507,28 +496,19 @@ T Interpreter::evaluateAssignmentExpression(BoundExpression *node) {
   this->_interpreterUtils->setCurrentSourceLocation(
       assignmentExpression->getLocation());
 
-  std::any variable =
-      this->evaluate<std::any>(assignmentExpression->getLeftPtr().get());
-
-  if (variable.type() != typeid(std::string)) {
-
-    return nullptr;
-  }
-  std::string variable_name = std::any_cast<std::string>(variable);
+  std::string variable_name =
+      assignmentExpression->getVariable()->getVariableName();
 
   std::any evaluatedRight =
       this->evaluate<std::any>(assignmentExpression->getRightPtr().get());
-  bool isConst = this->getVariable(variable_name).isConst;
+
   switch (assignmentExpression->getOperator()) {
   case BinderKindUtils::BoundBinaryOperatorKind::Assignment: {
+    this->assignVariable(variable_name, evaluatedRight);
 
-    this->assignVariable(variable_name,
-                         Utils::Variable(evaluatedRight, isConst));
-
-    return this->getVariable(variable_name).value;
+    return evaluatedRight;
   }
   default: {
-
     this->_interpreterUtils->logError("Unexpected assignment operator");
 
     return nullptr;
@@ -552,7 +532,6 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
     return this->binaryExpressionEvaluator<std::any>(binaryExpression, left_any,
                                                      right_any);
   } catch (const std::exception &e) {
-
     this->_interpreterUtils->logError(
         "Unexpected Binary Expression " +
         std::to_string(left_any.type().hash_code()) + " " +
@@ -564,7 +543,6 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
 
 std::any
 Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
-
   std::size_t arguments_size = callExpression->getArgumentsRef().size();
   const std::unique_ptr<BoundFunctionDeclaration> &fd =
       BuiltInFunction::getBuiltInFunction(callExpression->getCallerNameRef());
@@ -581,7 +559,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
       std::getline(std::cin, input);
       return input;
     } else {
-
       this->_interpreterUtils->logError("Unexpected Function Call" +
                                         FW::BI::FUNCTION::Int32 +
                                         "Arguments Does  Not Match");
@@ -590,21 +567,18 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
     }
   } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::Print) {
     if (arguments_size != 1) {
-
       this->_interpreterUtils->logError("Unexpected Function Call" +
                                         FW::BI::FUNCTION::Print +
                                         "Arguments Does  Not Match");
 
       return nullptr;
     } else {
-
       std::any value = (this->evaluate<std::any>(
           (BoundExpression *)callExpression->getArgumentsRef()[0].get()));
 
       try {
         std::cout << InterpreterConversion::explicitConvertAnyToString(value);
       } catch (const std::exception &e) {
-
         this->_interpreterUtils->logError(
             "Unexpected Function Call" + FW::BI::FUNCTION::Print +
             "Arguments Does  Not Match" + e.what());
@@ -666,7 +640,6 @@ template <typename T>
 T Interpreter::evaluateIndexExpression(BoundExpression *node) {
   BoundIndexExpression *indexExpression =
       static_cast<BoundIndexExpression *>(node);
-
   std::any value = this->evaluateVariableExpression<std::any>(
       (BoundExpression *)indexExpression->getBoundIdentifierExpression().get());
 
@@ -739,12 +712,10 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
         this->getFunction(callExpression->getCallerNameRef());
 
     if (functionDefination != nullptr) {
-
       this->_interpreterUtils->setCurrentSourceLocation(
           callExpression->getCallerIdentifierPtr().get()->getLocation());
 
       if (functionDefination->getParametersRef().size() != arguments_size) {
-
         this->_interpreterUtils->logError(
             "Unexpected Function Call" +
             functionDefination->getFunctionNameRef() +
@@ -752,31 +723,39 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
         return nullptr;
       }
-      std::map<std::string, Utils::Variable> function_Variables;
-
+      std::unordered_map<std::string, BoundVariableDeclaration *>
+          function_Variables;
+      std::unordered_map<std::string, std::any> function__value_variables;
       BoundTypeExpression *returnTypeExpression =
           (BoundTypeExpression *)functionDefination->getReturnType().get();
 
-      this->return_type_stack.push({returnTypeExpression->getUtilsType(), 0});
+      this->return_type_stack.push({returnTypeExpression->getSyntaxType(), 0});
 
       for (int i = 0; i < arguments_size; i++) {
         std::any value = this->evaluate<std::any>(
             callExpression->getArgumentsRef()[i].get());
 
-        function_Variables[functionDefination->getParametersRef()[i]
-                               ->getVariableNameRef()] =
-            Utils::Variable(
-                value, functionDefination->getParametersRef()[i]->isConstant());
+        std::string param_name =
+            functionDefination->getParametersRef()[i]->getVariableName();
+
+        function_Variables[param_name] =
+            functionDefination->getParametersRef()[i].get();
+
+        function__value_variables[param_name] = value;
+
         if (this->_interpreterUtils->getDiagnosticHandler()->hasError(
                 DiagnosticUtils::DiagnosticType::Runtime))
           break;
       }
       this->variable_stack.push(function_Variables);
 
+      this->value_stack.push(function__value_variables);
+
       this->evaluateStatement(functionDefination->getBodyRef().get());
 
       if (this->return_type_stack.top().second == 0 &&
-          Utils::type::NOTHING != returnTypeExpression->getUtilsType()) {
+          SyntaxKindUtils::SyntaxKind::NthgKeyword !=
+              returnTypeExpression->getSyntaxType()) {
         this->_interpreterUtils->logError(
             "Function return type is not Nothing, return expression is not "
             "found");
@@ -785,10 +764,10 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
       this->return_type_stack.pop();
 
       this->variable_stack.pop();
+      this->value_stack.pop();
 
       return this->last_value;
     } else {
-
       this->_interpreterUtils->logError(
           "Unexpected Function Call" +
           functionDefination->getFunctionNameRef() + "Not Found");
@@ -809,7 +788,6 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 std::any
 Interpreter::unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,
                                       std::any operand) {
-
   BinderKindUtils::BoundUnaryOperatorKind op =
       unaryExpression->getOperatorPtr();
   if (operand.type() == typeid(int)) {
@@ -839,7 +817,6 @@ Interpreter::unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,
 template <typename T>
 T Interpreter::binaryExpressionEvaluator(
     BoundBinaryExpression *binaryExpression, T left, T right) {
-
   if (left.type() == typeid(std::string) ||
       right.type() == typeid(std::string)) {
     return this->_interpreterUtils->getResultFromBinaryOperationOnString(
@@ -847,7 +824,6 @@ T Interpreter::binaryExpressionEvaluator(
         InterpreterConversion::explicitConvertAnyToString(right),
         binaryExpression);
   } else if (left.type() == typeid(double) || right.type() == typeid(double)) {
-
     return this->_interpreterUtils->getResultFromBinaryOperationOnDouble(
         InterpreterConversion::explicitConvertToAnyToDouble(left),
         InterpreterConversion::explicitConvertToAnyToDouble(right),

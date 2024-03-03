@@ -7,11 +7,10 @@
 #include "../../expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 #include "../../expression/ExpressionSyntax.h"
 #include "../../expression/LiteralExpressionSyntax.h"
-
 #include "../StatementSyntax.h"
 
 class ContainerStatementSyntax : public StatementSyntax {
-private:
+ private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<ExpressionSyntax> _containerExpression;
@@ -19,21 +18,19 @@ private:
 
   Utils::type _type;
 
-public:
+ public:
   ContainerStatementSyntax() = default;
 
   // Overrides
-  std::vector<SyntaxNode *> getChildren() override;
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  auto
-  setContainerExpression(std::unique_ptr<ExpressionSyntax> containerExpression)
-      -> void;
-  auto
-  setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken)
-      -> void;
+  auto setContainerExpression(
+      std::unique_ptr<ExpressionSyntax> containerExpression) -> void;
+  auto setIdentifierToken(
+      std::unique_ptr<SyntaxToken<std::any>> identifierToken) -> void;
   auto setType(Utils::type type) -> void;
   auto addContainerSizeExpression(std::unique_ptr<ExpressionSyntax> item)
       -> void;
@@ -51,4 +48,4 @@ public:
   const Utils::type &getType() const;
 };
 
-#endif // __CONTAINER_STATEMENT_SYNTAX_H__
+#endif  // __CONTAINER_STATEMENT_SYNTAX_H__

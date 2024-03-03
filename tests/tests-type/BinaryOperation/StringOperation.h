@@ -2,4 +2,4 @@
 #define STRING_OPERATION_H
 #include "BinaryOperationTest.h"
 
-#endif // STRING_OPERATION_H
+#endif  // STRING_OPERATION_H

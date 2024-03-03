@@ -1,14 +1,14 @@
 
 #ifndef REPL_H
 #define REPL_H
+
 #include "../Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../interpreter/Interpreter.h"
 #include "../parser/Parser.h"
-#include <gtest/gtest.h>
 
 class Repl {
-public:
+ public:
   Repl();
   Repl(const bool &isTest);
   ~Repl();
@@ -25,15 +25,15 @@ public:
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void
-  compileAndEvaluate(std::ostream &outputStream,
-                     std::unique_ptr<CompilationUnitSyntax> compilationUnit);
+  void compileAndEvaluate(
+      std::ostream &outputStream,
+      std::unique_ptr<CompilationUnitSyntax> compilationUnit);
   void runIfNotInTest(std::function<void()> f);
   void toggleExit();
 
   void addTextString(const std::string &textString);
 
-private: // Data members
+ private:  // Data members
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> text = std::vector<std::string>();
 
@@ -45,4 +45,4 @@ private: // Data members
   bool isTest;
 };
 
-#endif // REPL_H
+#endif  // REPL_H

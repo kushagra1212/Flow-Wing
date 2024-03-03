@@ -3,23 +3,22 @@
 
 #include "../../../Common.h"
 #include "../../MemberSyntax.h"
-
 #include "../StatementSyntax.h"
 class GlobalStatementSyntax : public MemberSyntax {
-private:
+ private:
   std::unique_ptr<StatementSyntax> _statement;
 
-public:
+ public:
   GlobalStatementSyntax(const bool &isExposed,
                         std::unique_ptr<StatementSyntax> statement);
 
   std::unique_ptr<StatementSyntax> getStatement();
 
-  SyntaxKindUtils::SyntaxKind getKind() const override;
-  std::vector<SyntaxNode *> getChildren() override;
-  DiagnosticUtils::SourceLocation getSourceLocation() const override;
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<StatementSyntax> &getStatementPtr();
 };
 
-#endif // GlobalStatementSyntax_H
+#endif  // GlobalStatementSyntax_H

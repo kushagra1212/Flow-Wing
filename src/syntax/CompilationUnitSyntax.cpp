@@ -1,17 +1,12 @@
 #include "CompilationUnitSyntax.h"
 
-SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
+const SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::CompilationUnit;
 }
 
 std::vector<std::unique_ptr<MemberSyntax>> &
 CompilationUnitSyntax::getMembers() {
   return this->_members;
-}
-
-std::unique_ptr<SyntaxToken<std::any>>
-CompilationUnitSyntax::getEndOfFileToken() {
-  return std::move(this->_endOfFileToken);
 }
 
 void CompilationUnitSyntax::addMember(std::unique_ptr<MemberSyntax> member) {
@@ -23,7 +18,7 @@ void CompilationUnitSyntax::setEndOfFileToken(
   this->_endOfFileToken = std::move(endOfFileToken);
 }
 
-std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
+const std::vector<SyntaxNode *> &CompilationUnitSyntax::getChildren() {
   if (this->_children.empty()) {
     // Add Children
     for (const auto &member : this->_members) {
@@ -34,7 +29,7 @@ std::vector<SyntaxNode *> CompilationUnitSyntax::getChildren() {
   return this->_children;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> &
-CompilationUnitSyntax::getEndOfFileTokenPtr() {
+const std::unique_ptr<SyntaxToken<std::any>> &
+CompilationUnitSyntax::getEndOfFileTokenRef() {
   return this->_endOfFileToken;
 }

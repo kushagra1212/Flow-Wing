@@ -7,7 +7,7 @@
 #include "../../ReplTest/ReplTest.h"
 
 class BinaryOperationTest : public ::testing::Test {
-protected:
+ protected:
   BinaryOperationTest();
   void SetUp() override;
   void TearDown() override;
@@ -17,4 +17,4 @@ protected:
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif // BINARY_OPERATION_H
+#endif  // BINARY_OPERATION_H

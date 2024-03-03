@@ -1,14 +1,22 @@
 #include "TypeExpressionSyntax.h"
 
-TypeExpressionSyntax::TypeExpressionSyntax(Utils::type type) : _type(type) {}
+TypeExpressionSyntax::TypeExpressionSyntax(
+    std::unique_ptr<SyntaxToken<std::any>> type)
+    : _type(std::move(type)) {}
 
-SyntaxKindUtils::SyntaxKind TypeExpressionSyntax::getKind() const {
+const SyntaxKindUtils::SyntaxKind TypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::PrimitiveTypeExpression;
 }
 
-std::vector<SyntaxNode *> TypeExpressionSyntax::getChildren() { return {}; }
+const std::vector<SyntaxNode *> &TypeExpressionSyntax::getChildren() {
+  if (_children.empty()) {
+    _children.push_back(_type.get());
+  }
 
-DiagnosticUtils::SourceLocation
-TypeExpressionSyntax::getSourceLocation() const {
+  return _children;
+}
+
+const DiagnosticUtils::SourceLocation TypeExpressionSyntax::getSourceLocation()
+    const {
   return {};
 }

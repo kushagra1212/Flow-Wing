@@ -20,9 +20,8 @@ const std::string Compiler::getBuiltInModulePath() const {
   return filePath;
 }
 
-std::unique_ptr<llvm::MemoryBuffer>
-Compiler::getMemoryBuffer(std::string filePath) {
-
+std::unique_ptr<llvm::MemoryBuffer> Compiler::getMemoryBuffer(
+    std::string filePath) {
   if (auto bufferOrErr = llvm::MemoryBuffer::getFile(filePath)) {
     return std::move(*bufferOrErr);
   } else {
@@ -37,9 +36,9 @@ Compiler::getMemoryBuffer(std::string filePath) {
   }
 }
 
-std::unique_ptr<llvm::Module>
-Compiler::createModuleFromIR(const std::string &filePath,
-                             std::unique_ptr<llvm::LLVMContext> &TheContext) {
+std::unique_ptr<llvm::Module> Compiler::createModuleFromIR(
+    const std::string &filePath,
+    std::unique_ptr<llvm::LLVMContext> &TheContext) {
   llvm::SMDiagnostic Err;
   std::unique_ptr<llvm::Module> module =
       llvm::parseIRFile(filePath, Err, *TheContext);
@@ -59,7 +58,6 @@ Compiler::createModuleFromIR(const std::string &filePath,
 std::unique_ptr<llvm::Module> Compiler::createModuleFromBitcode(
     const std::string &filePath,
     std::unique_ptr<llvm::LLVMContext> &TheContext) {
-
   std::unique_ptr<llvm::MemoryBuffer> buffer =
 
       std::move(getMemoryBuffer(filePath));
@@ -68,7 +66,6 @@ std::unique_ptr<llvm::Module> Compiler::createModuleFromBitcode(
           llvm::parseBitcodeFile(buffer->getMemBufferRef(), *TheContext)) {
     return std::move(*moduleOrErr);
   } else {
-
     _currentDiagnosticHandler->printDiagnostic(
         std::cout, Diagnostic("Error reading bitcode file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
@@ -101,9 +98,8 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
   return _userDefinedIRFilePaths;
 }
 
-std::unique_ptr<llvm::Module>
-Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
-
+std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
+    std::unique_ptr<llvm::LLVMContext> &TheContext) {
   std::vector<std::string> _userDefinedIRFilePaths = getIRFilePaths();
 
   const std::string &filePath = getBuiltInModulePath();
@@ -123,7 +119,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
 
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+#if (defined(DEBUG) && defined(JIT_MODE)) || \
     (defined(DEBUG) && defined(AOT_MODE))
 
     _currentDiagnosticHandler->printDiagnostic(
@@ -147,7 +143,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     }
   }
 
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+#if (defined(DEBUG) && defined(JIT_MODE)) || \
     (defined(DEBUG) && defined(AOT_MODE))
 
   _currentDiagnosticHandler->printDiagnostic(
@@ -168,7 +164,6 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
 void Compiler::compile(std::vector<std::string> &text,
                        std::ostream &outputStream) {
-
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>(this->_filePath);
 
@@ -264,7 +259,6 @@ void Compiler::compile(std::vector<std::string> &text,
 }
 
 void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
-
   std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<DiagnosticHandler>();
 

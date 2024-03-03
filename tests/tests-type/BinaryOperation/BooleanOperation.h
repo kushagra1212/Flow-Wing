@@ -3,4 +3,4 @@
 
 #include "BinaryOperationTest.h"
 
-#endif // INTEGER_OPERATION_H
+#endif  // INTEGER_OPERATION_H

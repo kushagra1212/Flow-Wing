@@ -47,7 +47,9 @@ const std::string STRING_TO_LONG = "string_to_long";
 const std::string STRING_TO_DOUBLE = "string_to_double";
 const std::string RAISE_EXCEPTION = "raise_exception";
 
-}; // namespace FUNCTIONS
-}; // namespace INNERS
+};  // namespace FUNCTIONS
+};  // namespace INNERS
 
-}; // namespace FLOWWING::IR::CONSTANTS
+const std::string IS_EXISTS = "is_exists";
+
+};  // namespace FLOWWING::IR::CONSTANTS

@@ -16,12 +16,10 @@ std::unique_ptr<BoundStatement> BoundIfStatement::getElseStatement() {
   return std::move(_elseStatement);
 }
 BinderKindUtils::BoundNodeKind BoundIfStatement::getKind() const {
-
   return BinderKindUtils::BoundNodeKind::IfStatement;
 }
 
 std::vector<BoundNode *> BoundIfStatement::getChildren() {
-
   this->_children.push_back(this->_condition.get());
   this->_children.push_back(this->_thenStatement.get());
 

@@ -6,11 +6,11 @@
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 class BoundIndexExpression : public BoundExpression {
-private:
+ private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _boundIdentifierExpression;
   std::vector<std::unique_ptr<BoundExpression>> _boundIndexExpressions;
 
-public:
+ public:
   BoundIndexExpression(const DiagnosticUtils::SourceLocation &location,
                        std::unique_ptr<BoundLiteralExpression<std::any>>
                            boundIdentifierExpression);
@@ -36,4 +36,4 @@ public:
   }
 };
 
-#endif // __BIND_INDEX_EXPRESSION_H__
+#endif  // __BIND_INDEX_EXPRESSION_H__

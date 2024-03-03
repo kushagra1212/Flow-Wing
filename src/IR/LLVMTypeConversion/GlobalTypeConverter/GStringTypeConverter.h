@@ -6,12 +6,11 @@
 #include "../TypeConverterBase.h"
 
 class GStringTypeConverter : public TypeConverterBase {
-
-public:
+ public:
   GStringTypeConverter(CodeGenerationContext *context);
 
   llvm::Value *convertExplicit(llvm::Value *value) override;
   llvm::Value *convertImplicit(llvm::Value *value) override;
 };
 
-#endif // __GLOBAL_TYPE_CONVERTER_H__
+#endif  // __GLOBAL_TYPE_CONVERTER_H__

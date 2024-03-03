@@ -1,13 +1,14 @@
 #ifndef __GLOBAL_VARIABLE_INITIALIZER_H__
 #define __GLOBAL_VARIABLE_INITIALIZER_H__
 
-#include "../../context/CodeGenerationContext.h"
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
+#include "../../context/CodeGenerationContext.h"
+
 class GlobalVariableInitializer {
-public:
+ public:
   GlobalVariableInitializer(CodeGenerationContext *codeGenerationContext);
 
   void initializeTrue();
@@ -17,7 +18,7 @@ public:
   void initializeContinueCount();
   void initializeErrorCount();
 
-private:
+ private:
   llvm::Module *TheModule;
   llvm::LLVMContext *TheContext;
   CodeGenerationContext *_codeGenerationContext;
@@ -26,4 +27,4 @@ private:
   llvm::Type *i32Type;
 };
 
-#endif // __GLOBAL_VARIABLE_INITIALIZER_H__
+#endif  // __GLOBAL_VARIABLE_INITIALIZER_H__

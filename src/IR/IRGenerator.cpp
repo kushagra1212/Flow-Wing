@@ -2,9 +2,9 @@
 
 IRGenerator::IRGenerator(
     int environment, DiagnosticHandler *diagnosticHandler,
-    std::map<std::string, BoundFunctionDeclaration *> boundedUserFunctions,
+    std::unordered_map<std::string, BoundFunctionDeclaration *>
+        boundedUserFunctions,
     const std::string sourceFileName) {
-
   // Initialize the code generation context
   _codeGenerationContext = std::make_unique<CodeGenerationContext>(
       diagnosticHandler, sourceFileName);
@@ -117,7 +117,6 @@ const int32_t IRGenerator::hasErrors() const {
 
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
-
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
 
@@ -138,6 +137,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
     BinderKindUtils::BoundNodeKind kind = statement->getKind();
+
     _statementGenerationFactory->createStrategy(kind)->generateGlobalStatement(
         statement);
   }
@@ -151,7 +151,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-
       _functionStatementGenerationStrategy->generateGlobalStatement(
           blockStatement->getStatements()[i].get());
     }
@@ -178,7 +177,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
 }
 
 int IRGenerator::executeGeneratedCode() {
-
   llvm::Function *evaluateBlockStatement =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
 
@@ -216,7 +214,6 @@ int IRGenerator::executeGeneratedCode() {
 
 bool IRGenerator::saveLLVMModuleToFile(llvm::Module *module,
                                        const std::string &path) {
-
   // Create an output stream for the .ll file
   std::error_code EC;
   llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
@@ -227,7 +224,6 @@ bool IRGenerator::saveLLVMModuleToFile(llvm::Module *module,
     OS.flush();
     return true;
   } else {
-
     _llvmLogger->LogError("Error opening " + Utils::getFileName(path) +
                           " for writing: " + EC.message());
 
