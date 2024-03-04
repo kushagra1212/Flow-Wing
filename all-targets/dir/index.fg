@@ -1,21 +1,46 @@
-        {
-           type my = {
-            name: str,
-            age: int,
-            height: deci,
-            weight: deci,
-            isEmployed: bool,
-        }
+         type parent = {
+      pa:str,
+      pb:int,
+      pc:deci,
+      pd:bool
+     }
+     type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool,
+      p:parent
+     }
 
-        var a:my = {
-            name: "Kushagra",
-            age: 30,
-            height: 5.10,
-            weight: 50.5,
-        }
+     var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true,
+       p: {pa:"b",pb:1,pc:1.1,pd:true}
+     }
 
-        print(a)
-        }
+
+    fun main(y:t1) -> t1 {
+
+      print(y)
+          y.a = "hello2"
+    y.b = 110
+    y.c = 110.10
+    y.d = true
+    y.p.pa = "wj"
+    y.p.pb = 20
+    y.p.pc = 47.00000000000000
+    y.p.pd = false
+print("\n")
+    return y
+    }
+
+    var z:t1 =  {a:"gog",b:1,c:1.1,d:true}
+    print(z)
+    print("\n")
+    z = main(x)
+     print(z)
 /#   type t1 = {
             a:int,
             b:str
