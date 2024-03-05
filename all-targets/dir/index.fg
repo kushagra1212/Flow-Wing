@@ -1,46 +1,32 @@
-         type parent = {
-      pa:str,
-      pb:int,
-      pc:deci,
-      pd:bool
-     }
-     type t1 = {
+type parent ={
+      pa:int,
+      pb:str,
+      pc:bool,
+      pd:deci
+}
+
+type t1 = {
       a:str,
       b:int,
-      c:deci,
-      d:bool,
-      p:parent
-     }
+      c:bool,
+      d:deci,
+      par:parent
+}
+fun get(y:t1) -> t1 {
+      y.par.pa = 545
+      y.par.pb = "llo"
+      y.par.pc = true
+      return y
+}
+var  x:t1 = {a:"hello",b:100,c:true,d:2.0,par:{pa:200,pb:"fso",pc:true,pd:3.0}}
+var z:t1 = {a:"string",b:500,c:true,d:5.0,par:{pa:700,pb:"fdso",pc:true,pd:4.0}}
+print(z)
+z = get(x)
+print(z)
 
-     var x:t1 = { 
-       a:"hello",
-       b:10,
-       c:10.10,
-       d:true,
-       p: {pa:"b",pb:1,pc:1.1,pd:true}
-     }
 
 
-    fun main(y:t1) -> t1 {
 
-      print(y)
-          y.a = "hello2"
-    y.b = 110
-    y.c = 110.10
-    y.d = true
-    y.p.pa = "wj"
-    y.p.pb = 20
-    y.p.pc = 47.00000000000000
-    y.p.pd = false
-print("\n")
-    return y
-    }
-
-    var z:t1 =  {a:"gog",b:1,c:1.1,d:true}
-    print(z)
-    print("\n")
-    z = main(x)
-     print(z)
 /#   type t1 = {
             a:int,
             b:str
