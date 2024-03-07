@@ -9,19 +9,17 @@ Compiler::Compiler(std::string filePath)
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
-  filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
+  filePath =
+      this->executable_directory_string + "/lib/FlowWing/built_in_module.bc";
 #else
-  const std::string builtInModulePath =
-      this->executable_directory_string + "/lib/FlowWing/";
-  filePath = builtInModulePath + "built_in_module.bc";
-  std::cout << "Executable directory: " << filePath << std::endl;
+  filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
 #endif
-
+  std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
 }
 
-std::unique_ptr<llvm::MemoryBuffer> Compiler::getMemoryBuffer(
-    std::string filePath) {
+std::unique_ptr<llvm::MemoryBuffer>
+Compiler::getMemoryBuffer(std::string filePath) {
   if (auto bufferOrErr = llvm::MemoryBuffer::getFile(filePath)) {
     return std::move(*bufferOrErr);
   } else {
@@ -36,9 +34,9 @@ std::unique_ptr<llvm::MemoryBuffer> Compiler::getMemoryBuffer(
   }
 }
 
-std::unique_ptr<llvm::Module> Compiler::createModuleFromIR(
-    const std::string &filePath,
-    std::unique_ptr<llvm::LLVMContext> &TheContext) {
+std::unique_ptr<llvm::Module>
+Compiler::createModuleFromIR(const std::string &filePath,
+                             std::unique_ptr<llvm::LLVMContext> &TheContext) {
   llvm::SMDiagnostic Err;
   std::unique_ptr<llvm::Module> module =
       llvm::parseIRFile(filePath, Err, *TheContext);
@@ -98,8 +96,8 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
   return _userDefinedIRFilePaths;
 }
 
-std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
-    std::unique_ptr<llvm::LLVMContext> &TheContext) {
+std::unique_ptr<llvm::Module>
+Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   std::vector<std::string> _userDefinedIRFilePaths = getIRFilePaths();
 
   const std::string &filePath = getBuiltInModulePath();
@@ -119,7 +117,7 @@ std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
 
-#if (defined(DEBUG) && defined(JIT_MODE)) || \
+#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
 
     _currentDiagnosticHandler->printDiagnostic(
@@ -143,7 +141,7 @@ std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
     }
   }
 
-#if (defined(DEBUG) && defined(JIT_MODE)) || \
+#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
 
   _currentDiagnosticHandler->printDiagnostic(
@@ -153,7 +151,7 @@ std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
                             DiagnosticUtils::SourceLocation(
                                 0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
-  // TheModule->print(llvm::outs(), nullptr);
+  TheModule->print(llvm::outs(), nullptr);
 
   llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
 

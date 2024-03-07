@@ -23,11 +23,17 @@ void AOTCompiler::execute() {
   llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
                                  linkedModule.get());
 
-  const std::string CLANG_PATH = "/usr/bin/clang-17";
+  std::string CLANG_PATH =
+      "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+
+#ifdef DEBUG
+  CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+#endif
 
   // check For Clang
 
-  if (system((CLANG_PATH + " --version > /dev/null 2>&1").c_str()) != 0) {
+  if (system(("ls " + CLANG_PATH + " --version > /dev/null 2>&1").c_str()) !=
+      0) {
     _currentDiagnosticHandler->printDiagnostic(
         std::cout,
         Diagnostic("Clang not found.", DiagnosticUtils::DiagnosticLevel::Error,
@@ -39,8 +45,7 @@ void AOTCompiler::execute() {
   }
 
   std::system((CLANG_PATH + " -O3 -o " + fileNameWithOutExtension + " " +
-               fileNameWithOutExtension + ".ll" + " -Wl,-e," +
-               FLOWWING_GLOBAL_ENTRY_POINT)
+               fileNameWithOutExtension + ".ll")
                   .c_str());
 }
 
@@ -52,7 +57,7 @@ void signalHandler(int signal) {
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
             << ") received." << RESET << std::endl;
 
-  exit(1);  // Exit with a non-zero status to indicate an error.
+  exit(1); // Exit with a non-zero status to indicate an error.
 }
 
 #endif
@@ -76,11 +81,7 @@ int main(int argc, char *argv[]) {
                        std::cerr, true);
     return 0;
   }
-  std::filesystem::path executable_path =
-      std::filesystem::canonical(std::filesystem::path(argv[0]));
 
-  std::filesystem::path executable_directory = executable_path.parent_path();
-  std::string executable_directory_string = executable_directory.string();
   // Opens the file using the provided file path
 
   std::ifstream file;
@@ -110,7 +111,15 @@ int main(int argc, char *argv[]) {
 
   std::unique_ptr<AOTCompiler> aotCompiler =
       std::make_unique<AOTCompiler>(argv[1]);
+
+#if DEBUG
+  std::filesystem::path executable_path =
+      std::filesystem::canonical(std::filesystem::path(argv[0]));
+
+  std::filesystem::path executable_directory = executable_path.parent_path();
+  std::string executable_directory_string = executable_directory.string();
   aotCompiler->executable_directory_string = executable_directory_string;
+#endif
 
   aotCompiler->compile(text, std::cout);
 
