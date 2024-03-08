@@ -123,6 +123,30 @@ for (var i = 0 to 5 : 2) {
 
 ```
 
+# Objects
+
+Flow-Wing now provides support for objects, enabling developers to define structured data types with multiple fields. Objects offer the advantage of nesting within each other, enhancing flexibility in data modeling and organization.
+
+
+## Sample Type Object Declaration
+
+```
+type Person {
+   name:str
+   age:int
+   address:str
+}
+
+```
+## Object Initialization
+
+```
+var p : Person = {
+  name : "John"
+  age : 30
+  address : "123 Main St"
+}
+```
 ## Comments
 
 You can use both single-line (/\;) and multi-line (#/ #/) comments in your code:
