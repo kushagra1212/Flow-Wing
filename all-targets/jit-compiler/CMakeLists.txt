@@ -71,9 +71,10 @@ target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread ${LLVM_STATI
 
 # Set the output name of the executable
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${DEFAULT_EXECUTABLE_NAME})
-
-# Link the version target to the build process
-add_dependencies(FlowWing version)
+if(TESTS_ENABLED)
+else()
+  add_dependencies(FlowWing version)
+endif()
 
 # Creating Install Targets
 if(NOT DEFINED CPACK_INSTALL_PREFIX)
