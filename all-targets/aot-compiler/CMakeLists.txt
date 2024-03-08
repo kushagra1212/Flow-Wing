@@ -75,7 +75,6 @@ endif()
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION  bin)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/FlowWing/ DESTINATION ${CPACK_INSTALL_PREFIX}/lib/FlowWing)
 
-install(CODE "execute_process(COMMAND chmod +x ${CPACK_INSTALL_PREFIX}/lib/FlowWing/dependencies/llvm-17/bin/clang-17)")
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

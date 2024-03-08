@@ -9,12 +9,11 @@ Compiler::Compiler(std::string filePath)
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
-  filePath =
-      this->executable_directory_string + "/lib/FlowWing/built_in_module.bc";
+  filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
 #else
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
 #endif
-  std::cout << "Executable directory: " << filePath << std::endl;
+  // std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
 }
 
@@ -151,7 +150,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
                             DiagnosticUtils::SourceLocation(
                                 0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
-  TheModule->print(llvm::outs(), nullptr);
+  // TheModule->print(llvm::outs(), nullptr);
 
   llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
 
