@@ -1,0 +1,1 @@
+#define VERSION_INFO "0.0.1"

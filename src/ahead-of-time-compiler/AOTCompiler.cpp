@@ -1,6 +1,6 @@
 #include "AOTCompiler.h"
-#include "../../all-targets/aot-compiler/aot-compiler-build/version.h"
 #include "../cli/argh.h"
+#include "../common/version.h"
 
 AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
