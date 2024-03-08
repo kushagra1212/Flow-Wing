@@ -2,7 +2,7 @@
 
 This file contains the instructions to create an AOT installer for FlowWing.
 
-## Commands
+## Commands for AOT Compiler
  
 - For Ubuntu (Debian) / Linux
 

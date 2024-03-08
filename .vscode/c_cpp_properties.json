@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/**/**",
                 "/usr/include/gtest/internal",
                 "/usr/include/gtest",
                 "/usr/lib/llvm-17/**",

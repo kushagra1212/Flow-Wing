@@ -23,4 +23,8 @@ echo "Getting things ready.."
 # Grant permission to the clang-17 binary
 sudo chmod +x "$CLANG_BINARY"
 
+# Remove the downloaded Debian package
+echo "Removing $PACKAGE_FILE..."
+rm "$PACKAGE_FILE"
+
 echo "Installation complete."

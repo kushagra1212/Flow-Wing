@@ -1,4 +1,6 @@
 #include "JITCompiler.h"
+#include "../../all-targets/jit-compiler/jit-compiler-build/version.h"
+#include "../cli/argh.h"
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
 
@@ -72,7 +74,7 @@ void signalHandler(int signal) {
   std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
             << ") received." << RESET << std::endl;
 
-  exit(1);  // Exit with a non-zero status to indicate an error.
+  exit(1); // Exit with a non-zero status to indicate an error.
 }
 
 #endif
@@ -91,10 +93,18 @@ int main(int argc, char **argv) {
 
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
+  argh::parser cmdl(argv);
+  if (cmdl[{"-V", "--version"}]) {
+    std::cout << "Flowwing JIT Compiler" << std::endl;
+    std::cout << "----------------------" << std::endl;
+    std::cout << "Version: " << VERSION_INFO << std::endl;
+
+    return EXIT_FAILURE;
+  }
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
-    return 0;
+    return EXIT_FAILURE;
   }
   std::filesystem::path executable_path =
       std::filesystem::canonical(std::filesystem::path(argv[0]));
@@ -117,9 +127,9 @@ int main(int argc, char *argv[]) {
           {"Please check if the file exists and you have read permissions."},
           std::cerr);
 
-      return 1;
+      return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
   }
   // Close the file (imp)
   file.close();
@@ -134,7 +144,7 @@ int main(int argc, char *argv[]) {
 
   jitCompiler->compile(text, std::cout);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

@@ -1,4 +1,6 @@
 #include "AOTCompiler.h"
+#include "../../all-targets/aot-compiler/aot-compiler-build/version.h"
+#include "../cli/argh.h"
 
 AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
@@ -76,10 +78,18 @@ int main(int argc, char **argv) {
 
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
+  argh::parser cmdl(argv);
+  if (cmdl[{"-V", "--version"}]) {
+    std::cout << "Flowwing Compiler" << std::endl;
+    std::cout << "Version: " << VERSION_INFO << std::endl;
+
+    return EXIT_FAILURE;
+  }
+
   if (argc != 2) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   // Opens the file using the provided file path
@@ -98,9 +108,9 @@ int main(int argc, char *argv[]) {
           {"Please check if the file exists and you have read permissions."},
           std::cerr);
 
-      return 1;
+      return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
   }
   // Close the file (imp)
   file.close();
@@ -123,7 +133,7 @@ int main(int argc, char *argv[]) {
 
   aotCompiler->compile(text, std::cout);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #endif

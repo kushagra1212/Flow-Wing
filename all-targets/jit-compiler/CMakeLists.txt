@@ -1,11 +1,18 @@
 cmake_minimum_required(VERSION 3.5)
-project(FlowWing)
-
+project(FlowWing VERSION 0.0.1)
+set(VERSION "0.0.1")
 set(CMAKE_CXX_STANDARD 17)
 
 # Locate GTest
 find_package(GTest REQUIRED)
+
 include_directories(${GTEST_INCLUDE_DIRS})
+
+# Add a custom target for version information
+add_custom_target(version
+    COMMAND ${CMAKE_COMMAND} -DVERSION=${VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/version.cmake
+    COMMENT "Generating version information"
+)
 
 
 # Find the LLVM libraries statically
@@ -65,6 +72,8 @@ target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread ${LLVM_STATI
 # Set the output name of the executable
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${DEFAULT_EXECUTABLE_NAME})
 
+# Link the version target to the build process
+add_dependencies(FlowWing version)
 
 # Creating Install Targets
 if(NOT DEFINED CPACK_INSTALL_PREFIX)
