@@ -1,4 +1,5 @@
-type parent ={
+print(true + true)
+/#type parent ={
       pa:int,
       pb:str,
       pc:bool,

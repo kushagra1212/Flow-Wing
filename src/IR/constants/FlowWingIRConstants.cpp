@@ -19,9 +19,12 @@ const std::string FLOWWING_GLOBAL_TRUE = "FLOWWING_GLOBAL_TRUE";
 const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 // Entry Point
+#if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 const std::string FLOWWING_GLOBAL_ENTRY_POINT =
     "____##FLOWWING_GLOBAL_ENTRY_POINT____##";
-
+#else
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
+#endif
 namespace INNERS {
 namespace FUNCTIONS {
 
@@ -47,9 +50,9 @@ const std::string STRING_TO_LONG = "string_to_long";
 const std::string STRING_TO_DOUBLE = "string_to_double";
 const std::string RAISE_EXCEPTION = "raise_exception";
 
-};  // namespace FUNCTIONS
-};  // namespace INNERS
+}; // namespace FUNCTIONS
+}; // namespace INNERS
 
 const std::string IS_EXISTS = "is_exists";
 
-};  // namespace FLOWWING::IR::CONSTANTS
+}; // namespace FLOWWING::IR::CONSTANTS

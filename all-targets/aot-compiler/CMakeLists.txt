@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(FlowWing)
+project(FlowWing VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -14,6 +14,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../src/IR/BuiltinIRs/ DESTINATION ${CMAKE_BINARY_DIR}/lib/FlowWing)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../dependencies/ DESTINATION ${CMAKE_BINARY_DIR}/lib/FlowWing/dependencies)
 
 # use ccache if available
 find_program(CCACHE_FOUND ccache)
@@ -72,14 +73,15 @@ if(NOT DEFINED CPACK_INSTALL_PREFIX)
 endif()
 
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION  bin)
-install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/FlowWing/ DESTINATION lib/FlowWing)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/FlowWing/ DESTINATION ${CPACK_INSTALL_PREFIX}/lib/FlowWing)
+
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 # Set the output directory for the generated package
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_BINARY_DIR}/release")
-
+set(CPACK_PACKAGE_CONTACT "Kushagra Rathore kushagrarathore002@gmail.com")
 set(CPACK_PACKAGE_NAME "FlowWing")
 set(CPACK_PACKAGE_VENDOR "Kushagra Rathore")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FlowWing is a programming language that is designed to be fast, simple, and easy to use.")
