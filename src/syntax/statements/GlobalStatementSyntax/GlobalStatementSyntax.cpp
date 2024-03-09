@@ -1,8 +1,7 @@
 #include "GlobalStatementSyntax.h"
 
 GlobalStatementSyntax::GlobalStatementSyntax(
-    const bool &isExposed, std::unique_ptr<StatementSyntax> statement)
-    : MemberSyntax(isExposed) {
+    const bool &isExposed, std::unique_ptr<StatementSyntax> statement) {
   this->_statement = std::move(statement);
 }
 
@@ -22,8 +21,8 @@ const std::vector<SyntaxNode *> &GlobalStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation GlobalStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+GlobalStatementSyntax::getSourceLocation() const {
   return _statement->getSourceLocation();
 }
 

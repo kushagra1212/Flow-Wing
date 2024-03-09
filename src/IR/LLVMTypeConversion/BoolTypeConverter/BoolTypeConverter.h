@@ -4,11 +4,11 @@
 #include "../TypeConverterBase.h"
 
 class BoolTypeConverter : public TypeConverterBase {
- public:
+public:
   BoolTypeConverter(CodeGenerationContext *context);
 
-  llvm::Value *convertExplicit(llvm::Value *value) override;
-  llvm::Value *convertImplicit(llvm::Value *value) override;
+  llvm::Value *convertExplicit(llvm::Value *&value) override;
+  llvm::Value *convertImplicit(llvm::Value *&value) override;
 };
 
-#endif  // __BOOL_TYPE_CONVERTER_H__
+#endif // __BOOL_TYPE_CONVERTER_H__

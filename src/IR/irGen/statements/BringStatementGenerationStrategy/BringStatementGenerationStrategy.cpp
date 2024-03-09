@@ -15,15 +15,53 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
 
-  std::unique_ptr<FunctionDeclarationGenerationStrategy>
-      _functionDeclarationGenerationStrategy =
-          std::make_unique<FunctionDeclarationGenerationStrategy>(
-              _codeGenerationContext);
+  const std::string onlyFileName = Utils::getNameExtension(
+      bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
-  for (const auto &_function : bringStatement->getGlobalScopePtr()->functions) {
-    _functionDeclarationGenerationStrategy->generateGlobalStatement(
-        _function.second);
+  std::string absoluteFilePathWithoutExtension =
+      Utils::removeExtensionFromString(
+          bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+               absoluteFilePathWithoutExtension.end(), '/', 'i');
+
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              llvm::ArrayRef<llvm::Type *>(), false);
+
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                             absoluteFilePathWithoutExtension, *TheModule);
+
+  // Custom Object Type Declaration
+  std::unique_ptr<CustomTypeStatementGenerationStrategy> custTypeGenStrat =
+      std::make_unique<CustomTypeStatementGenerationStrategy>(
+          _codeGenerationContext);
+
+  for (const auto &customType :
+       bringStatement->getGlobalScopePtr()->customTypes) {
+
+    if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(customType.first) &&
+          !customType.second->isExposed()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Object Type " + customType.first + " is not exposed in the file " +
+            onlyFileName);
+        return nullptr;
+      }
+
+      custTypeGenStrat->generateGlobalStatement(customType.second);
+
+    } else {
+      custTypeGenStrat->generateGlobalStatement(customType.second);
+    }
   }
+
+  // Variable Declaration
+  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+      varDecGenStrat =
+          std::make_unique<VariableDeclarationStatementGenerationStrategy>(
+              _codeGenerationContext);
 
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
     if (variable.second->getTypeExpression()->getSyntaxType() ==
@@ -32,33 +70,64 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
           "Multifile UNKOWN type not allowed, Please "
           "specify the type of variable " +
           variable.first);
-      continue;
+      return nullptr;
     }
 
-    llvm::Type *type =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            variable.second->getTypeExpression()->getSyntaxType());
+    if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(variable.first) &&
+          !variable.second->isExposed()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Varibale " + variable.first + " is not exposed in the file " +
+            onlyFileName);
+        return nullptr;
+      }
 
-    llvm::GlobalVariable *variableLLVM = new llvm::GlobalVariable(
-        *TheModule, type, false, llvm::GlobalValue::ExternalLinkage, nullptr,
-        variable.first);
+      if (bringStatement->isImported(variable.first))
+        varDecGenStrat->generateGlobalStatement(variable.second);
+
+    } else {
+
+      varDecGenStrat->generateGlobalStatement(variable.second);
+    }
   }
 
-  const std::string onlyFileName = Utils::getNameExtension(
-      bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
-  std::string removedExtenstionFromAbsolutePath =
-      Utils::removeExtensionFromString(
-          bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+  // Function Declaration
+  std::unique_ptr<FunctionDeclarationGenerationStrategy>
+      _functionDeclarationGenerationStrategy =
+          std::make_unique<FunctionDeclarationGenerationStrategy>(
+              _codeGenerationContext);
 
-  std::replace(removedExtenstionFromAbsolutePath.begin(),
-               removedExtenstionFromAbsolutePath.end(), '/', '-');
+  for (const auto &_function : bringStatement->getGlobalScopePtr()->functions) {
+
+    if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(_function.first) &&
+          !_function.second->isExposed()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Function " + _function.first + " is not exposed in the file " +
+            onlyFileName);
+        return nullptr;
+      }
+
+      if (bringStatement->isImported(_function.first))
+        _functionDeclarationGenerationStrategy->generateGlobalStatement(
+            _function.second);
+
+    } else {
+      _functionDeclarationGenerationStrategy->generateGlobalStatement(
+          _function.second);
+    }
+  }
+
+  Builder->CreateCall(F, {});
+
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
       bringStatement->getGlobalScopePtr()->functions,
-      removedExtenstionFromAbsolutePath);
+      absoluteFilePathWithoutExtension);
 
   _evaluator->generateEvaluateGlobalStatement(
-      bringStatement->getGlobalScopePtr()->globalStatement.get(), onlyFileName);
+      bringStatement->getGlobalScopePtr()->globalStatement.get(),
+      absoluteFilePathWithoutExtension);
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
   if (_evaluator->hasErrors()) {
@@ -70,8 +139,8 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
 }
 
 // TODO: Refactor This Later
-llvm::Value *BringStatementGenerationStrategy::generateStatement(
-    BoundStatement *statement) {
+llvm::Value *
+BringStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   BoundBringStatement *bringStatement =
       static_cast<BoundBringStatement *>(statement);
 

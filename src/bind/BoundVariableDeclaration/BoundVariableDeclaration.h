@@ -10,15 +10,17 @@
 
 class BoundVariableDeclaration : public BoundStatement,
                                  public BoundSourceLocation {
- private:
+private:
   std::string _variableName;
   std::unique_ptr<BoundExpression> _initializer;
   bool _isConst;
   std::unique_ptr<BoundTypeExpression> _typeExp;
+  bool _isExposed;
 
- public:
+public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
-                           const std::string &variableName, bool isConst);
+                           const std::string &variableName, bool isConst,
+                           bool isExposed);
 
   std::unique_ptr<BoundExpression> getInitializer();
 
@@ -36,6 +38,8 @@ class BoundVariableDeclaration : public BoundStatement,
       -> const std::unique_ptr<BoundTypeExpression> & {
     return _typeExp;
   }
+
+  inline auto isExposed() const -> bool { return _isExposed; }
 
   // Setters
   inline auto setInitializer(std::unique_ptr<BoundExpression> initializer)

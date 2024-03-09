@@ -10,7 +10,11 @@ const SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
 }
 
 const std::vector<SyntaxNode *> &CustomTypeStatementSyntax::getChildren() {
-  if (_children.size() > 0) return _children;
+  if (_children.size() > 0)
+    return _children;
+
+  if (this->_exposeKeyword)
+    _children.push_back(this->_exposeKeyword.get());
 
   _children.push_back(this->_typeName.get());
 

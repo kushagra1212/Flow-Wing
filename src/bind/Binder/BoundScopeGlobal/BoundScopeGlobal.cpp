@@ -5,9 +5,10 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::unordered_map<std::string, BoundVariableDeclaration *> variables,
     std::unordered_map<std::string, std::any> variablesValues,
     std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
+    std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
     DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
-    : variables(variables), functions(functions),
+    : variables(variables), functions(functions), customTypes(customTypes),
       variablesValues(variablesValues), globalStatement(std::move(statement)),
       previous(std::move(previous)), _diagnosticHandler(diagnosticHandler) {}
 

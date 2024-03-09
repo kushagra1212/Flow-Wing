@@ -1,8 +1,8 @@
 #include "BoundFunctionDeclaration.h"
 
 BoundFunctionDeclaration::BoundFunctionDeclaration(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    const DiagnosticUtils::SourceLocation &location, bool isExposed)
+    : BoundSourceLocation(location), _isExposed(isExposed) {}
 
 BinderKindUtils::BoundNodeKind BoundFunctionDeclaration::getKind() const {
   return BinderKindUtils::BoundNodeKind::FunctionDeclaration;

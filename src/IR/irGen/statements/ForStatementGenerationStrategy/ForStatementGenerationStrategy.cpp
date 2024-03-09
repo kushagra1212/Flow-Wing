@@ -6,8 +6,8 @@ ForStatementGenerationStrategy::ForStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
 
-llvm::Value *ForStatementGenerationStrategy::generateStatement(
-    BoundStatement *statement) {
+llvm::Value *
+ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   BoundForStatement *forStatement = static_cast<BoundForStatement *>(statement);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -30,13 +30,14 @@ llvm::Value *ForStatementGenerationStrategy::generateStatement(
   // Step Value
 
   llvm::Value *stepValue =
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true));  // default
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 1, true)); // default
 
   BoundExpression *forStepExp = forStatement->getStepExpressionPtr().get();
   if (forStepExp) {
-    stepValue = _int32TypeConverter->convertImplicit(
+    llvm::Value *r =
         _expressionGenerationFactory->createStrategy(forStepExp->getKind())
-            ->generateExpression(forStepExp));
+            ->generateExpression(forStepExp);
+    stepValue = _int32TypeConverter->convertImplicit(r);
   }
 
   // Upper Bound

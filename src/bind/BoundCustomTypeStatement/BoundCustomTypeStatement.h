@@ -12,22 +12,25 @@ class BoundCustomTypeStatement : public BoundStatement,
   std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
                         std::unique_ptr<BoundTypeExpression>>>
       _key_type_pairs;
+  bool _isExposed;
 
- public:
-  BoundCustomTypeStatement(const DiagnosticUtils::SourceLocation &location);
+public:
+  BoundCustomTypeStatement(const DiagnosticUtils::SourceLocation &location,
+                           bool isExposed);
 
   /*
     Setters
   */
 
-  inline auto setTypeName(
-      std::unique_ptr<BoundLiteralExpression<std::any>> typeName) -> void {
+  inline auto
+  setTypeName(std::unique_ptr<BoundLiteralExpression<std::any>> typeName)
+      -> void {
     this->_typeName = std::move(typeName);
   }
 
-  inline auto addKeyTypePair(
-      std::unique_ptr<BoundLiteralExpression<std::any>> key,
-      std::unique_ptr<BoundTypeExpression> type) -> void {
+  inline auto
+  addKeyTypePair(std::unique_ptr<BoundLiteralExpression<std::any>> key,
+                 std::unique_ptr<BoundTypeExpression> type) -> void {
     this->_key_type_pairs.push_back(
         std::make_pair(std::move(key), std::move(type)));
   }
@@ -50,9 +53,11 @@ class BoundCustomTypeStatement : public BoundStatement,
     return this->_key_type_pairs;
   }
 
- public:
+  inline auto isExposed() -> bool { return this->_isExposed; }
+
+public:
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 };
 
-#endif  // __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
+#endif // __FLOW_BOUNDCUSTOMTYPESTATEMENT_H

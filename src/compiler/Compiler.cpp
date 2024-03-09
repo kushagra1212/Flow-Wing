@@ -8,7 +8,8 @@ Compiler::Compiler(std::string filePath)
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
-#if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
+#if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE) ||      \
+    defined(RELEASE)
   filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
 #else
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
@@ -150,9 +151,9 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
                             DiagnosticUtils::SourceLocation(
                                 0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
-  // TheModule->print(llvm::outs(), nullptr);
+  TheModule->print(llvm::outs(), nullptr);
 
-  llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
+  // llFileSaveStrategy->saveToFile("../my_module.ll", TheModule.get());
 
 #endif
 
@@ -208,6 +209,7 @@ void Compiler::compile(std::vector<std::string> &text,
       DiagnosticUtils::DiagnosticType::Semantic);
 
   if (hasSemanticError) {
+
     currentDiagnosticHandler->logDiagnostics(
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
@@ -232,7 +234,9 @@ void Compiler::compile(std::vector<std::string> &text,
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions);
-
+    const std::string fileNameWithOutExtension =
+        Utils::removeExtensionFromString(Utils::getFileName(
+            currentDiagnosticHandler->getAbsoluteFilePath()));
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 

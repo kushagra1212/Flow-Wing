@@ -9,7 +9,7 @@ std::unique_ptr<SyntaxToken<std::any>> BreakStatementSyntax::getBreakKeyword() {
   return std::move(_breakKeyword);
 }
 const SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::BreakKeyword;
+  return SyntaxKindUtils::SyntaxKind::BreakStatement;
 }
 
 const std::vector<SyntaxNode *> &BreakStatementSyntax::getChildren() {
@@ -21,8 +21,8 @@ const std::vector<SyntaxNode *> &BreakStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation BreakStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+BreakStatementSyntax::getSourceLocation() const {
   return _breakKeyword->getSourceLocation();
 }
 

@@ -3,15 +3,16 @@
 BoundBringStatement::BoundBringStatement(
     const DiagnosticUtils::SourceLocation &location,
     DiagnosticHandler *diagnosticHandler,
-    std::unique_ptr<BoundScopeGlobal> globalScope)
+    std::unique_ptr<BoundScopeGlobal> globalScope,
+    std::vector<std::string> &expressionStrings)
     : BoundSourceLocation(location) {
   this->_diagnosticHandler = diagnosticHandler;
-  this->_globalScope = std::move(globalScope);
 
-  for (auto &boundStatement :
-       this->_globalScope.get()->globalStatement->getStatements()) {
-    this->_children.push_back(boundStatement.get());
+  for (const auto &expressionString : expressionStrings) {
+    _expressionStringsMap[expressionString] = 1;
   }
+
+  this->_globalScope = std::move(globalScope);
 }
 
 BinderKindUtils::BoundNodeKind BoundBringStatement::getKind() const {
@@ -19,6 +20,14 @@ BinderKindUtils::BoundNodeKind BoundBringStatement::getKind() const {
 }
 
 std::vector<BoundNode *> BoundBringStatement::getChildren() {
+  if (this->_children.empty()) {
+    if (this->_globalScope) {
+      for (auto &boundStatement :
+           this->_globalScope.get()->globalStatement->getStatements()) {
+        this->_children.push_back(boundStatement.get());
+      }
+    }
+  }
   return this->_children;
 }
 

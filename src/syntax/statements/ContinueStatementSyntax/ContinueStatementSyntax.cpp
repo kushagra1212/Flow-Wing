@@ -20,7 +20,7 @@ const std::vector<SyntaxNode *> &ContinueStatementSyntax::getChildren() {
 }
 
 const SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
-  return SyntaxKindUtils::SyntaxKind::ContinueKeyword;
+  return SyntaxKindUtils::SyntaxKind::ContinueStatement;
 }
 
 const DiagnosticUtils::SourceLocation

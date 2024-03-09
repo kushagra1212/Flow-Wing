@@ -997,6 +997,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
     } else {
       llvm::LoadInst *loaded = Builder->CreateLoad(type, innerElementPtr);
 
+      llvm::Value *loadedVal = llvm::cast<llvm::Value>(loaded);
       if (loaded->getType()->isPointerTy()) {
         printUnit("'", "'");
         llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
@@ -1022,7 +1023,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
         Builder->SetInsertPoint(endBlock);
 
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(loaded),
+                            {_stringTypeConverter->convertExplicit(loadedVal),
                              Builder->getInt1(false)});
 
         Builder->CreateBr(mergeBlock);
@@ -1032,7 +1033,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
 
       } else {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(loaded),
+                            {_stringTypeConverter->convertExplicit(loadedVal),
                              Builder->getInt1(false)});
       }
     }

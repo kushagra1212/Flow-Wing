@@ -10,7 +10,8 @@
 #include "../ParameterSyntax/ParameterSyntax.h"
 #include "../StatementSyntax.h"
 class FunctionDeclarationSyntax : public MemberSyntax {
- private:
+private:
+  std::unique_ptr<SyntaxToken<std::any>> _exposedKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _functionKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
@@ -21,19 +22,17 @@ class FunctionDeclarationSyntax : public MemberSyntax {
   std::unique_ptr<BlockStatementSyntax> _body;
   std::unique_ptr<ExpressionSyntax> _returnExpression;
 
- public:
-  FunctionDeclarationSyntax(const bool &isExposed);
-
+public:
   std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
   std::unique_ptr<SyntaxToken<std::any>> getIdentifierToken();
   std::unique_ptr<SyntaxToken<std::any>> getOpenParenthesisToken();
   std::unique_ptr<SyntaxToken<std::any>> getCloseParenthesisToken();
   std::unique_ptr<BlockStatementSyntax> getBody();
 
-  void setFunctionKeyword(
-      std::unique_ptr<SyntaxToken<std::any>> functionKeyword);
-  void setIdentifierToken(
-      std::unique_ptr<SyntaxToken<std::any>> identifierToken);
+  void
+  setFunctionKeyword(std::unique_ptr<SyntaxToken<std::any>> functionKeyword);
+  void
+  setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken);
   void setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken);
   void addParameter(std::unique_ptr<VariableDeclarationSyntax> parameter);
@@ -43,6 +42,11 @@ class FunctionDeclarationSyntax : public MemberSyntax {
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
   void setReturnType(std::unique_ptr<ExpressionSyntax> returnExpression);
+
+  inline auto
+  setExposedKeyword(std::unique_ptr<SyntaxToken<std::any>> exposedKeyword) {
+    _exposedKeyword = std::move(exposedKeyword);
+  }
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -61,6 +65,8 @@ class FunctionDeclarationSyntax : public MemberSyntax {
       -> const std::unique_ptr<ExpressionSyntax> & {
     return _returnExpression;
   }
+
+  inline auto isExposed() const -> bool { return _exposedKeyword != nullptr; }
 };
 
-#endif  // FUNCTIONDECLARATIONSYNTAX_H
+#endif // FUNCTIONDECLARATIONSYNTAX_H

@@ -31,14 +31,14 @@ void BuiltInFunction::setupBuiltInFunctions() {
   auto create = [](std::string funName, SyntaxKindUtils::SyntaxKind rt) {
     std::unique_ptr<BoundFunctionDeclaration> func =
         std::make_unique<BoundFunctionDeclaration>(
-            DiagnosticUtils::SourceLocation());
+            DiagnosticUtils::SourceLocation(), false);
     func->setFunctionName(funName);
     func->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(), rt)));
 
     std::unique_ptr<BoundVariableDeclaration> varDec =
         std::make_unique<BoundVariableDeclaration>(
-            DiagnosticUtils::SourceLocation(), "par", false);
+            DiagnosticUtils::SourceLocation(), "par", false, false);
 
     varDec->setTypeExpression(std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(),
@@ -81,4 +81,4 @@ const std::string Bool = "Bool";
 const std::string Print = "print";
 const std::string Input = "input";
 
-};  // namespace FW::BI::FUNCTION
+}; // namespace FW::BI::FUNCTION

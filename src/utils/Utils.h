@@ -60,6 +60,7 @@ const std::string concatErrors(const std::vector<std::string> &errors,
                                std::ostream &outputStream,
                                bool isWarning = false);
 auto getStrongRandomString() -> std::string;
+std::string generateUniqueString();
 std::string getTypeString(const std::any &value);
 SyntaxKindUtils::SyntaxKind getTypeFromAny(const std::any &value);
 std::string getSourceCode(CompilationUnitSyntax *node);

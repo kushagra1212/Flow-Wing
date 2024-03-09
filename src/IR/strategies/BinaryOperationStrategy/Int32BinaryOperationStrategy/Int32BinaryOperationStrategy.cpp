@@ -116,37 +116,39 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
         _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), rhsValue));
     break;
 
-  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpEQ(lhsValue, rhsValue));
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
+    llvm::Value *_val = Builder->CreateICmpEQ(lhsValue, rhsValue);
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
+  }
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals: {
 
-  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpNE(lhsValue, rhsValue));
+    llvm::Value *_val = Builder->CreateICmpNE(lhsValue, rhsValue);
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
-
+  }
   case BinderKindUtils::BoundBinaryOperatorKind::Less: {
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpSLT(lhsValue, rhsValue));
+    llvm::Value *_val = Builder->CreateICmpSLT(lhsValue, rhsValue);
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals: {
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpSLE(lhsValue, rhsValue));
+    llvm::Value *_val = Builder->CreateICmpSLE(lhsValue, rhsValue);
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
   }
 
-  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpSGT(lhsValue, rhsValue));
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater: {
+    llvm::Value *_val = Builder->CreateICmpSGT(lhsValue, rhsValue);
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
+  }
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals: {
+    llvm::Value *_val = Builder->CreateICmpSGE(lhsValue, rhsValue);
 
-  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-
-    return _typeSpecificValueVisitor->visit(
-        _boolTypeConverter.get(), Builder->CreateICmpSGE(lhsValue, rhsValue));
+    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
+  }
   default: {
 
     errorMessage = "Unsupported binary operator for int type ";

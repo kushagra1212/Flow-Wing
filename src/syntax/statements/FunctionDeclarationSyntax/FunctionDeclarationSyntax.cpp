@@ -1,8 +1,5 @@
 #include "FunctionDeclarationSyntax.h"
 
-FunctionDeclarationSyntax::FunctionDeclarationSyntax(const bool &isExposed)
-    : MemberSyntax(isExposed) {}
-
 std::unique_ptr<SyntaxToken<std::any>>
 FunctionDeclarationSyntax::getFunctionKeyword() {
   return std::move(_functionKeyword);
@@ -39,6 +36,8 @@ FunctionDeclarationSyntax::getSourceLocation() const {
 const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
   if (this->_children.empty()) {
     // Add children
+    if (_exposedKeyword)
+      _children.push_back(_exposedKeyword.get());
     _children.push_back(_functionKeyword.get());
     _children.push_back(_identifierToken.get());
     _children.push_back(_openParenthesisToken.get());

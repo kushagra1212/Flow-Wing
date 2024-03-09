@@ -3,12 +3,8 @@
 #define MEMBER_SYNTAX_H
 #include "SyntaxNode.h"
 class MemberSyntax : public SyntaxNode {
-  bool isExposed = false;
 
- public:
-  MemberSyntax(const bool &isExposed) : isExposed(isExposed) {}
-
-  const bool &getIsExposed() const { return isExposed; }
+public:
 };
 
-#endif  // MEMBER_SYNTAX_H
+#endif // MEMBER_SYNTAX_H

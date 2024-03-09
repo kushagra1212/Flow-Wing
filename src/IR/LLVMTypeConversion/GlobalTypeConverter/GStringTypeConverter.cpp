@@ -4,12 +4,12 @@ GStringTypeConverter::GStringTypeConverter(CodeGenerationContext *context)
     : TypeConverterBase(context){};
 
 llvm::Value *
-GStringTypeConverter::convertExplicit(llvm::Value *possibleGlobalVariable) {
+GStringTypeConverter::convertExplicit(llvm::Value *&possibleGlobalVariable) {
   return convertImplicit(possibleGlobalVariable);
 }
 
 llvm::Value *
-GStringTypeConverter::convertImplicit(llvm::Value *possibleGlobalVariable) {
+GStringTypeConverter::convertImplicit(llvm::Value *&possibleGlobalVariable) {
 
   llvm::Value *res = nullptr;
   auto globalVar = llvm::dyn_cast<llvm::GlobalVariable>(possibleGlobalVariable);

@@ -13,7 +13,7 @@
 using namespace FLOWWING::IR::CONSTANTS;
 
 class TypeConverterBase {
- public:
+public:
   CodeGenerationContext *_codeGenerationContext;
   llvm::IRBuilder<> *_builder;
   llvm::Module *_module;
@@ -29,9 +29,9 @@ class TypeConverterBase {
         _llvmContext(context->getContext().get()),
         _codeGenerationContext(context){};
 
-  virtual llvm::Value *convertExplicit(llvm::Value *value) = 0;
+  virtual llvm::Value *convertExplicit(llvm::Value *&value) = 0;
 
-  virtual llvm::Value *convertImplicit(llvm::Value *value) = 0;
+  virtual llvm::Value *convertImplicit(llvm::Value *&value) = 0;
 };
 
-#endif  // __TYPE_CONVERTER_BASE_H__
+#endif // __TYPE_CONVERTER_BASE_H__

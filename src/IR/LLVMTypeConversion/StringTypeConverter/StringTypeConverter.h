@@ -5,15 +5,15 @@
 #include "../TypeConverterBase.h"
 
 class StringTypeConverter : public TypeConverterBase {
- public:
+public:
   StringTypeConverter(CodeGenerationContext *context);
 
-  llvm::Value *convertExplicit(llvm::Value *value) override;
-  llvm::Value *convertImplicit(llvm::Value *value) override;
+  llvm::Value *convertExplicit(llvm::Value *&value) override;
+  llvm::Value *convertImplicit(llvm::Value *&value) override;
 
   std::string valueToString(llvm::Value *val);
 
   llvm::Value *convertStringToi8Ptr(std::string stringValue);
 };
 
-#endif  // __STRING_TYPE_CONVERTER_H__
+#endif // __STRING_TYPE_CONVERTER_H__

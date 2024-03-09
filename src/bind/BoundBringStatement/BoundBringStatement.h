@@ -10,17 +10,26 @@
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
   DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _globalScope;
+  std::unordered_map<std::string, int8_t> _expressionStringsMap;
 
- public:
+public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
                       DiagnosticHandler *diagnosticHandler,
-                      std::unique_ptr<BoundScopeGlobal> globalScope);
+                      std::unique_ptr<BoundScopeGlobal> globalScope,
+                      std::vector<std::string> &expressionStrings);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
   DiagnosticHandler *getDiagnosticHandlerPtr() const;
   const std::unique_ptr<BoundScopeGlobal> &getGlobalScopePtr() const;
+
+  auto inline isImported(const std::string &name) -> bool {
+    return _expressionStringsMap.find(name) != _expressionStringsMap.end();
+  }
+  auto inline isChoosyImport() -> bool {
+    return _expressionStringsMap.size() > 0;
+  }
 };
 
-#endif  // BIND_BRING_STATEMENT_H
+#endif // BIND_BRING_STATEMENT_H

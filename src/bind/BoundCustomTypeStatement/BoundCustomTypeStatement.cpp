@@ -1,8 +1,8 @@
 #include "BoundCustomTypeStatement.h"
 
 BoundCustomTypeStatement::BoundCustomTypeStatement(
-    const DiagnosticUtils::SourceLocation &location)
-    : BoundSourceLocation(location) {}
+    const DiagnosticUtils::SourceLocation &location, bool isExposed)
+    : BoundSourceLocation(location), _isExposed(isExposed) {}
 
 BinderKindUtils::BoundNodeKind BoundCustomTypeStatement::getKind() const {
   return BinderKindUtils::BoundNodeKind::CustomTypeStatement;

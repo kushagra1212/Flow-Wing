@@ -141,6 +141,12 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
         _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
 
+    if (!structType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Object type " + objectTypeExpression->getTypeName() + " not found");
+      return nullptr;
+    }
+
     std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
         std::make_unique<ObjectExpressionGenerationStrategy>(
             _codeGenerationContext);

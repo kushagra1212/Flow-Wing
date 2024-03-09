@@ -8,13 +8,15 @@
 #include "../StatementSyntax.h"
 
 class VariableDeclarationSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
+
+  std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
   std::unique_ptr<ExpressionSyntax> _initializer;
   std::unique_ptr<TypeExpressionSyntax> _typeExpr;
 
- public:
+public:
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
@@ -36,6 +38,11 @@ class VariableDeclarationSyntax : public StatementSyntax {
     _typeExpr = std::move(typeExpr);
   }
 
+  inline void
+  setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword) {
+    _exposeKeyword = std::move(exposeKeyword);
+  }
+
   // Getters
   inline auto getIdentifierRef()
       -> const std::unique_ptr<SyntaxToken<std::any>> & {
@@ -54,4 +61,6 @@ class VariableDeclarationSyntax : public StatementSyntax {
   inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {
     return _initializer;
   }
+
+  inline auto isExposed() -> bool { return _exposeKeyword != nullptr; }
 };

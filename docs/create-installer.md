@@ -16,6 +16,7 @@ This file contains the instructions to create an AOT installer for FlowWing.
 ```
     cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release ..
     ninja
-    cpack -G DEB
-    sudo dpkg -i FlowWing-0.1.1-Linux.deb   
+      cpack -G DEB
+    cd release
+    sudo dpkg -i FlowWing-0.0.1-Linux.deb   
 ```

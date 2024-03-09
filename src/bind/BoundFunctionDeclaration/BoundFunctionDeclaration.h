@@ -12,11 +12,12 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::unique_ptr<BoundBlockStatement> _body;
   std::vector<std::unique_ptr<BoundVariableDeclaration>> _parameters;
   std::string _functionName;
-
+  bool _isExposed;
   std::unique_ptr<BoundExpression> _returnType;
 
- public:
-  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location);
+public:
+  BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
+                           bool isExposed);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
@@ -43,6 +44,8 @@ class BoundFunctionDeclaration : public BoundStatement,
       -> const std::unique_ptr<BoundExpression> & {
     return _returnType;
   }
+
+  inline auto isExposed() const -> bool { return _isExposed; }
 };
 
 #endif

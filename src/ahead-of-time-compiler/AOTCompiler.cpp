@@ -22,14 +22,17 @@ void AOTCompiler::execute() {
   const std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
       Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
 
+#ifdef DEBUG
+  std::string CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
   llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
                                  linkedModule.get());
-
+  std::string FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
+#elif RELEASE
   std::string CLANG_PATH =
       "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
-
-#ifdef DEBUG
-  CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".bc",
+                                 linkedModule.get());
+  std::string FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
 #endif
 
   // check For Clang
@@ -46,9 +49,9 @@ void AOTCompiler::execute() {
     return;
   }
 
-  std::system((CLANG_PATH + " -O3 -o " + fileNameWithOutExtension + " " +
-               fileNameWithOutExtension + ".ll")
-                  .c_str());
+  // std::system((CLANG_PATH + " -O3 -o " + fileNameWithOutExtension + " " +
+  //              FILE_NAME_WITH_EXTENSION)
+  //                 .c_str());
 }
 
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)
@@ -122,14 +125,15 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<AOTCompiler> aotCompiler =
       std::make_unique<AOTCompiler>(argv[1]);
 
-#if DEBUG
-  std::filesystem::path executable_path =
-      std::filesystem::canonical(std::filesystem::path(argv[0]));
+  // #if DEBUG
+  //   std::filesystem::path executable_path =
+  //       std::filesystem::canonical(std::filesystem::path(argv[0]));
 
-  std::filesystem::path executable_directory = executable_path.parent_path();
-  std::string executable_directory_string = executable_directory.string();
-  aotCompiler->executable_directory_string = executable_directory_string;
-#endif
+  //   std::filesystem::path executable_directory =
+  //   executable_path.parent_path(); std::string executable_directory_string =
+  //   executable_directory.string(); aotCompiler->executable_directory_string =
+  //   executable_directory_string;
+  // #endif
 
   aotCompiler->compile(text, std::cout);
 

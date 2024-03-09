@@ -5,9 +5,11 @@ void Utils::split(const std::string &str, const std::string &delim,
   size_t prev = 0, pos = 0;
   do {
     pos = str.find(delim, prev);
-    if (pos == std::string::npos) pos = str.length();
+    if (pos == std::string::npos)
+      pos = str.length();
     std::string token = str.substr(prev, pos - prev);
-    if (!token.empty()) tokens.push_back(token);
+    if (!token.empty())
+      tokens.push_back(token);
 
     prev = pos + delim.length();
   } while (pos < str.length() && prev < str.length());
@@ -272,21 +274,23 @@ bool Utils::isSubstring(const std::string &s1, const std::string &s2) {
     /* For current index i, check for
     pattern match */
     for (j = 0; j < M; j++)
-      if (s2[i + j] != s1[j]) break;
+      if (s2[i + j] != s1[j])
+        break;
 
-    if (j == M) return true;  // or print index of the pattern
+    if (j == M)
+      return true; // or print index of the pattern
   }
 
   return false;
 }
-const std::string Utils::removeExtensionFromString(
-    const std::string &filePath) {
+const std::string
+Utils::removeExtensionFromString(const std::string &filePath) {
   std::filesystem::path path(filePath);
   return path.replace_extension("").string();
 }
 
-DiagnosticUtils::SourceLocation Utils::getSourceLocation(
-    SyntaxToken<std::any> *token) {
+DiagnosticUtils::SourceLocation
+Utils::getSourceLocation(SyntaxToken<std::any> *token) {
   return DiagnosticUtils::SourceLocation(token->getLineNumber(),
                                          token->getColumnNumber(),
                                          token->getAbsoluteFilePath());
@@ -294,64 +298,64 @@ DiagnosticUtils::SourceLocation Utils::getSourceLocation(
 
 Utils::type Utils::toContainerType(Utils::type basicType) {
   switch (basicType) {
-    case Utils::type::INT8:
-      return Utils::type::INT8_CONTAINER;
-    case Utils::type::INT16:
-      return Utils::type::INT16_CONTAINER;
-    case Utils::type::INT32:
-      return Utils::type::INT32_CONTAINER;
-    case Utils::type::INT64:
-      return Utils::type::INT64_CONTAINER;
-    case Utils::type::DECIMAL:
-      return Utils::type::DECIMAL_CONTAINER;
-    case Utils::type::BOOL:
-      return Utils::type::BOOL_CONTAINER;
-    case Utils::type::STRING:
-      return Utils::type::STRING_CONTAINER;
-    case Utils::type::UNKNOWN:
-      return Utils::type::UNKNOWN_CONTAINER;
-    default:
-      // Handle error: basicType is not a basic Utils::type
-      throw std::invalid_argument("Invalid basic Utils::type");
+  case Utils::type::INT8:
+    return Utils::type::INT8_CONTAINER;
+  case Utils::type::INT16:
+    return Utils::type::INT16_CONTAINER;
+  case Utils::type::INT32:
+    return Utils::type::INT32_CONTAINER;
+  case Utils::type::INT64:
+    return Utils::type::INT64_CONTAINER;
+  case Utils::type::DECIMAL:
+    return Utils::type::DECIMAL_CONTAINER;
+  case Utils::type::BOOL:
+    return Utils::type::BOOL_CONTAINER;
+  case Utils::type::STRING:
+    return Utils::type::STRING_CONTAINER;
+  case Utils::type::UNKNOWN:
+    return Utils::type::UNKNOWN_CONTAINER;
+  default:
+    // Handle error: basicType is not a basic Utils::type
+    throw std::invalid_argument("Invalid basic Utils::type");
   }
 }
 
 Utils::type Utils::toContainerElementType(Utils::type containerType) {
   switch (containerType) {
-    case Utils::type::INT8_CONTAINER:
-      return Utils::type::INT8;
-    case Utils::type::INT16_CONTAINER:
-      return Utils::type::INT16;
-    case Utils::type::INT32_CONTAINER:
-      return Utils::type::INT32;
-    case Utils::type::INT64_CONTAINER:
-      return Utils::type::INT64;
-    case Utils::type::DECIMAL_CONTAINER:
-      return Utils::type::DECIMAL;
-    case Utils::type::BOOL_CONTAINER:
-      return Utils::type::BOOL;
-    case Utils::type::STRING_CONTAINER:
-      return Utils::type::STRING;
-    case Utils::type::UNKNOWN_CONTAINER:
-      return Utils::type::UNKNOWN;
-    default:
-      // Handle error: containerType is not a container Utils::type
-      throw std::invalid_argument("Invalid container Utils::type");
+  case Utils::type::INT8_CONTAINER:
+    return Utils::type::INT8;
+  case Utils::type::INT16_CONTAINER:
+    return Utils::type::INT16;
+  case Utils::type::INT32_CONTAINER:
+    return Utils::type::INT32;
+  case Utils::type::INT64_CONTAINER:
+    return Utils::type::INT64;
+  case Utils::type::DECIMAL_CONTAINER:
+    return Utils::type::DECIMAL;
+  case Utils::type::BOOL_CONTAINER:
+    return Utils::type::BOOL;
+  case Utils::type::STRING_CONTAINER:
+    return Utils::type::STRING;
+  case Utils::type::UNKNOWN_CONTAINER:
+    return Utils::type::UNKNOWN;
+  default:
+    // Handle error: containerType is not a container Utils::type
+    throw std::invalid_argument("Invalid container Utils::type");
   }
 }
 
 auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> const bool {
   switch (type) {
-    case Utils::type::INT8:
-    case Utils::type::INT16:
-    case Utils::type::INT32:
-    case Utils::type::INT64:
-    case Utils::type::DECIMAL:
-    case Utils::type::BOOL:
-    case Utils::type::STRING:
-      return true;
-    default:
-      return false;
+  case Utils::type::INT8:
+  case Utils::type::INT16:
+  case Utils::type::INT32:
+  case Utils::type::INT64:
+  case Utils::type::DECIMAL:
+  case Utils::type::BOOL:
+  case Utils::type::STRING:
+    return true;
+  default:
+    return false;
   }
 }
 auto Utils::isDynamicTypedPrimitiveType(Utils::type type) -> const bool {
@@ -371,16 +375,16 @@ auto Utils::isDynamicTypedType(Utils::type type) -> const bool {
 
 auto Utils::isStaticTypedContainerType(Utils::type type) -> const bool {
   switch (type) {
-    case Utils::type::INT8_CONTAINER:
-    case Utils::type::INT16_CONTAINER:
-    case Utils::type::INT32_CONTAINER:
-    case Utils::type::INT64_CONTAINER:
-    case Utils::type::DECIMAL_CONTAINER:
-    case Utils::type::BOOL_CONTAINER:
-    case Utils::type::STRING_CONTAINER:
-      return true;
-    default:
-      return false;
+  case Utils::type::INT8_CONTAINER:
+  case Utils::type::INT16_CONTAINER:
+  case Utils::type::INT32_CONTAINER:
+  case Utils::type::INT64_CONTAINER:
+  case Utils::type::DECIMAL_CONTAINER:
+  case Utils::type::BOOL_CONTAINER:
+  case Utils::type::STRING_CONTAINER:
+    return true;
+  default:
+    return false;
   }
   return false;
 }
@@ -404,21 +408,21 @@ bool Utils::isDouble(const std::string &str) {
 
 auto Utils::typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string {
   switch (type) {
-    case SyntaxKindUtils::SyntaxKind::Int32Keyword:
-      return "Int32";
-    case SyntaxKindUtils::SyntaxKind::DeciKeyword:
-      return "Decimal";
-    case SyntaxKindUtils::SyntaxKind::StrKeyword:
-      return "String";
-    case SyntaxKindUtils::SyntaxKind::BoolKeyword:
-      return "Bool";
-    case SyntaxKindUtils::SyntaxKind::NthgKeyword:
-      return "Nothing";
-    case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
-      return "Unknown";
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+    return "Int32";
+  case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+    return "Decimal";
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+    return "String";
+  case SyntaxKindUtils::SyntaxKind::BoolKeyword:
+    return "Bool";
+  case SyntaxKindUtils::SyntaxKind::NthgKeyword:
+    return "Nothing";
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
+    return "Unknown";
 
-    default:
-      break;
+  default:
+    break;
   }
   return "Not a type";
 }
@@ -494,6 +498,17 @@ auto Utils::getStrongRandomString() -> std::string {
   return str.substr(0, 10);
 }
 
+std::string Utils::generateUniqueString() {
+  // Get the current time since epoch
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+  // Convert the timestamp to a string
+  return std::to_string(milliseconds);
+}
+
 std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
     std::string directoryPath, std::string extension, bool recursive) {
   std::vector<std::string> files = std::vector<std::string>();
@@ -519,59 +534,59 @@ const std::string Utils::getRelativePath(const std::string &filePath) {
 
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   switch (node->getKind()) {
-    case SyntaxKindUtils::SyntaxKind::BadToken:
-    case SyntaxKindUtils::SyntaxKind::NumberToken:
-    case SyntaxKindUtils::SyntaxKind::TrueKeyword:
-    case SyntaxKindUtils::SyntaxKind::FalseKeyword:
-    case SyntaxKindUtils::SyntaxKind::VarKeyword:
-    case SyntaxKindUtils::SyntaxKind::IfKeyword:
-    case SyntaxKindUtils::SyntaxKind::OrKeyword:
-    case SyntaxKindUtils::SyntaxKind::ElseKeyword:
-    case SyntaxKindUtils::SyntaxKind::WhileKeyword:
-    case SyntaxKindUtils::SyntaxKind::ForKeyword:
-    case SyntaxKindUtils::SyntaxKind::FunctionKeyword:
-    case SyntaxKindUtils::SyntaxKind::ToKeyword:
-    case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
-    case SyntaxKindUtils::SyntaxKind::BreakKeyword:
-    case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
-    case SyntaxKindUtils::SyntaxKind::ConstKeyword:
-    case SyntaxKindUtils::SyntaxKind::IdentifierToken:
-    case SyntaxKindUtils::SyntaxKind::WhitespaceToken:
-    case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
-    case SyntaxKindUtils::SyntaxKind::CommentStatement:
-    case SyntaxKindUtils::SyntaxKind::PlusToken:
-    case SyntaxKindUtils::SyntaxKind::MinusToken:
-    case SyntaxKindUtils::SyntaxKind::StarToken:
-    case SyntaxKindUtils::SyntaxKind::SemiColonToken:
-    case SyntaxKindUtils::SyntaxKind::CommaToken:
-    case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
-    case SyntaxKindUtils::SyntaxKind::CloseBraceToken:
-    case SyntaxKindUtils::SyntaxKind::HashToken:
-    case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken:
-    case SyntaxKindUtils::SyntaxKind::CloseParenthesisToken:
-    case SyntaxKindUtils::SyntaxKind::CaretToken:
-    case SyntaxKindUtils::SyntaxKind::PercentToken:
-    case SyntaxKindUtils::SyntaxKind::TildeToken:
-    case SyntaxKindUtils::SyntaxKind::ColonToken:
-    case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
-    case SyntaxKindUtils::SyntaxKind::AmpersandToken:
-    case SyntaxKindUtils::SyntaxKind::SlashToken:
-    case SyntaxKindUtils::SyntaxKind::PipePipeToken:
-    case SyntaxKindUtils::SyntaxKind::PipeToken:
-    case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
-    case SyntaxKindUtils::SyntaxKind::EqualsToken:
-    case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
-    case SyntaxKindUtils::SyntaxKind::BangToken:
-    case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
-    case SyntaxKindUtils::SyntaxKind::LessToken:
-    case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
-    case SyntaxKindUtils::SyntaxKind::GreaterToken:
-    case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
-    case SyntaxKindUtils::SyntaxKind::StringToken: {
-      return true;
-    }
-    default:
-      break;
+  case SyntaxKindUtils::SyntaxKind::BadToken:
+  case SyntaxKindUtils::SyntaxKind::NumberToken:
+  case SyntaxKindUtils::SyntaxKind::TrueKeyword:
+  case SyntaxKindUtils::SyntaxKind::FalseKeyword:
+  case SyntaxKindUtils::SyntaxKind::VarKeyword:
+  case SyntaxKindUtils::SyntaxKind::IfKeyword:
+  case SyntaxKindUtils::SyntaxKind::OrKeyword:
+  case SyntaxKindUtils::SyntaxKind::ElseKeyword:
+  case SyntaxKindUtils::SyntaxKind::WhileKeyword:
+  case SyntaxKindUtils::SyntaxKind::ForKeyword:
+  case SyntaxKindUtils::SyntaxKind::FunctionKeyword:
+  case SyntaxKindUtils::SyntaxKind::ToKeyword:
+  case SyntaxKindUtils::SyntaxKind::ContinueKeyword:
+  case SyntaxKindUtils::SyntaxKind::BreakKeyword:
+  case SyntaxKindUtils::SyntaxKind::ReturnKeyword:
+  case SyntaxKindUtils::SyntaxKind::ConstKeyword:
+  case SyntaxKindUtils::SyntaxKind::IdentifierToken:
+  case SyntaxKindUtils::SyntaxKind::WhitespaceToken:
+  case SyntaxKindUtils::SyntaxKind::EndOfFileToken:
+  case SyntaxKindUtils::SyntaxKind::CommentStatement:
+  case SyntaxKindUtils::SyntaxKind::PlusToken:
+  case SyntaxKindUtils::SyntaxKind::MinusToken:
+  case SyntaxKindUtils::SyntaxKind::StarToken:
+  case SyntaxKindUtils::SyntaxKind::SemiColonToken:
+  case SyntaxKindUtils::SyntaxKind::CommaToken:
+  case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
+  case SyntaxKindUtils::SyntaxKind::CloseBraceToken:
+  case SyntaxKindUtils::SyntaxKind::HashToken:
+  case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken:
+  case SyntaxKindUtils::SyntaxKind::CloseParenthesisToken:
+  case SyntaxKindUtils::SyntaxKind::CaretToken:
+  case SyntaxKindUtils::SyntaxKind::PercentToken:
+  case SyntaxKindUtils::SyntaxKind::TildeToken:
+  case SyntaxKindUtils::SyntaxKind::ColonToken:
+  case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
+  case SyntaxKindUtils::SyntaxKind::AmpersandToken:
+  case SyntaxKindUtils::SyntaxKind::SlashToken:
+  case SyntaxKindUtils::SyntaxKind::PipePipeToken:
+  case SyntaxKindUtils::SyntaxKind::PipeToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::EqualsToken:
+  case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::BangToken:
+  case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::LessToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
+  case SyntaxKindUtils::SyntaxKind::GreaterToken:
+  case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
+  case SyntaxKindUtils::SyntaxKind::StringToken: {
+    return true;
+  }
+  default:
+    break;
   }
 
   return false;

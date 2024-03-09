@@ -121,6 +121,8 @@ enum SyntaxKind {
   ContainerStatement,
   VariableExpressionSyntax,
   ArrayVariableExpressionSyntax,
+  BreakStatement,
+  ContinueStatement,
   PrimitiveTypeExpression,
   ArrayTypeExpression,
   ObjectTypeExpression,
@@ -140,6 +142,6 @@ bool isDouble(const std::string &str);
 const std::string to_string(SyntaxKind kind);
 
 bool isType(SyntaxKind kind);
-}  // namespace SyntaxKindUtils
+} // namespace SyntaxKindUtils
 
-#endif  // SYNTAXKINDUTILS_H
+#endif // SYNTAXKINDUTILS_H

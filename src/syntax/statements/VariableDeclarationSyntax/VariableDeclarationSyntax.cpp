@@ -5,13 +5,20 @@ const SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
 }
 
 const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
-  if (_children.size()) return this->_children;
+  if (_children.size())
+    return this->_children;
 
-  if (_keyword) _children.push_back(_keyword.get());
+  if (_exposeKeyword)
+    _children.push_back(_exposeKeyword.get());
 
-  if (_identifier) _children.push_back(_identifier.get());
+  if (_keyword)
+    _children.push_back(_keyword.get());
 
-  if (_typeExpr) _children.push_back(_typeExpr.get());
+  if (_identifier)
+    _children.push_back(_identifier.get());
+
+  if (_typeExpr)
+    _children.push_back(_typeExpr.get());
 
   if (_initializer) {
     _children.push_back(_initializer.get());
@@ -22,9 +29,15 @@ const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
 
 const DiagnosticUtils::SourceLocation
 VariableDeclarationSyntax::getSourceLocation() const {
-  if (_keyword) return this->_keyword->getSourceLocation();
-  if (_identifier) return this->_identifier->getSourceLocation();
-  if (_typeExpr) return this->_typeExpr->getSourceLocation();
-  if (_initializer) return this->_initializer->getSourceLocation();
+  if (_exposeKeyword)
+    return this->_exposeKeyword->getSourceLocation();
+  if (_keyword)
+    return this->_keyword->getSourceLocation();
+  if (_identifier)
+    return this->_identifier->getSourceLocation();
+  if (_typeExpr)
+    return this->_typeExpr->getSourceLocation();
+  if (_initializer)
+    return this->_initializer->getSourceLocation();
   return DiagnosticUtils::SourceLocation();
 }

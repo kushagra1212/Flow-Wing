@@ -46,7 +46,8 @@ std::unique_ptr<BoundVariableDeclaration> Binder::bindVariableDeclaration(
 
   std::unique_ptr<BoundVariableDeclaration> variable =
       std::make_unique<BoundVariableDeclaration>(
-          variableDeclaration->getSourceLocation(), variable_str, isConst);
+          variableDeclaration->getSourceLocation(), variable_str, isConst,
+          variableDeclaration->isExposed());
 
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
@@ -232,10 +233,10 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ForStatement: {
     return std::move(bindForStatement((ForStatementSyntax *)syntax));
   }
-  case SyntaxKindUtils::SyntaxKind::BreakKeyword: {
+  case SyntaxKindUtils::SyntaxKind::BreakStatement: {
     return std::move(bindBreakStatement((BreakStatementSyntax *)syntax));
   }
-  case SyntaxKindUtils::SyntaxKind::ContinueKeyword: {
+  case SyntaxKindUtils::SyntaxKind::ContinueStatement: {
     return std::move(bindContinueStatement((ContinueStatementSyntax *)syntax));
   }
   case SyntaxKindUtils::SyntaxKind::ReturnStatement: {
@@ -257,7 +258,8 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
     CustomTypeStatementSyntax *customTypeStatement) {
   std::unique_ptr<BoundCustomTypeStatement> boundCustomTypeStatement =
       std::make_unique<BoundCustomTypeStatement>(
-          customTypeStatement->getSourceLocation());
+          customTypeStatement->getSourceLocation(),
+          customTypeStatement->isExposed());
 
   const std::string &name =
       customTypeStatement->getTypeNameRef()->getTokenPtr()->getText();
@@ -373,6 +375,7 @@ std::unique_ptr<BoundStatement>
 Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   this->_diagnosticHandler->addParentDiagnostics(
       bringStatement->getDiagnosticHandlerPtr().get());
+  std::vector<std::string> expressionStrings = {};
 
   if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
       !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
@@ -383,7 +386,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
+        expressionStrings);
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
@@ -396,12 +400,14 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
+        expressionStrings);
   }
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr);
+        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
+        expressionStrings);
   }
 
   Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
@@ -436,6 +442,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
             (expression->getSourceLocation())));
         continue;
       }
+
+      expressionStrings.push_back(expression->getText());
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
@@ -448,6 +456,17 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     if (!this->root->tryDeclareFunction(function.second)) {
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Function " + function.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+  }
+
+  for (auto &customType : globalScope->customTypes) {
+    if (!this->root->tryDeclareCustomType(customType.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Type " + customType.first + " Already Declared",
                      DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Semantic,
                      Utils::getSourceLocation(
@@ -468,7 +487,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
   return std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(),
-      bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope));
+      bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope),
+      expressionStrings);
 }
 
 std::unique_ptr<BoundLiteralExpression<std::any>>
@@ -805,8 +825,8 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   }
 
   std::unique_ptr<BoundFunctionDeclaration> fd =
-      std::make_unique<BoundFunctionDeclaration>(syntax->getSourceLocation());
-
+      std::make_unique<BoundFunctionDeclaration>(syntax->getSourceLocation(),
+                                                 syntax->isExposed());
   fd->setFunctionName(function_name);
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =
@@ -986,9 +1006,9 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   if (previousGlobalScope) {
     binder->root->variables = previousGlobalScope->variables;
     binder->root->functions = previousGlobalScope->functions;
+    binder->root->customTypes = previousGlobalScope->customTypes;
     prevVariablesValues = previousGlobalScope->variablesValues;
   }
-
   std::unique_ptr<BoundBlockStatement> _globalBoundBlockStatement =
       std::make_unique<BoundBlockStatement>(DiagnosticUtils::SourceLocation(),
                                             true);
@@ -1027,8 +1047,8 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
 
   return std::make_unique<BoundScopeGlobal>(
       std::move(previousGlobalScope), binder->root->variables,
-      prevVariablesValues, binder->root->functions, diagnosticHandler,
-      std::move(_globalBoundBlockStatement));
+      prevVariablesValues, binder->root->functions, binder->root->customTypes,
+      diagnosticHandler, std::move(_globalBoundBlockStatement));
 }
 
 // Utils

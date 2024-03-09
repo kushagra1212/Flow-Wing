@@ -1,4 +1,9 @@
-print(true + true)
+bring  "../../dir/math.fg"
+var x:int = 0
+print("hellO")
+x = Int32(input("Enter number"))
+print(area(2))
+var zx = "s"
 /#type parent ={
       pa:int,
       pb:str,
