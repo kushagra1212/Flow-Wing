@@ -24,12 +24,8 @@ llvm::Value *Int32TypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
     // TODO: Implement explicit conversion from string to int
 
-    // llvm::ArrayRef<llvm::Value *> Args =
-    // {this->explicitConvertToString(val)};
-    llvm::ArrayRef<llvm::Value *> Args = {value};
-
     return _builder->CreateCall(
-        _module->getFunction(INNERS::FUNCTIONS::STRING_TO_INT), Args);
+        _module->getFunction(INNERS::FUNCTIONS::STRING_TO_INT), {value});
   }
   default:
     break;

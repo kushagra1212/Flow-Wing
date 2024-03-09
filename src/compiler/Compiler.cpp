@@ -8,8 +8,7 @@ Compiler::Compiler(std::string filePath)
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
-#if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE) ||      \
-    defined(RELEASE)
+#if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
 #else
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
@@ -24,7 +23,7 @@ Compiler::getMemoryBuffer(std::string filePath) {
     return std::move(*bufferOrErr);
   } else {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading bitcode file: " +
+        std::cout, Diagnostic("Error reading bitcode file: " + filePath + " " +
                                   bufferOrErr.getError().message(),
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,

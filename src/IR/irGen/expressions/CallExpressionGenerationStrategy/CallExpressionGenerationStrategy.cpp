@@ -214,12 +214,10 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Input) {
     if (arguments_size == 0) {
-      llvm::ArrayRef<llvm::Value *> Args = {};
 
-      llvm::CallInst *callInst = Builder->CreateCall(
-          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
 
-      return callInst;
     } else if (arguments_size == 1) {
       llvm::Value *val =
           _expressionGenerationFactory
@@ -231,11 +229,8 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                           {_stringTypeConverter->convertExplicit(val),
                            Builder->getInt1(false)});
 
-      llvm::ArrayRef<llvm::Value *> Args = {};
-      llvm::CallInst *callInst = Builder->CreateCall(
-          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT), Args);
-
-      return callInst;
+      return Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::String) {
     if (arguments_size == 1) {
