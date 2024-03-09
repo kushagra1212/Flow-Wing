@@ -21,18 +21,18 @@ void AOTCompiler::execute() {
 
   const std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
       Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
-
+  std::string CLANG_PATH = "";
+  std::string FILE_NAME_WITH_EXTENSION = "";
 #ifdef DEBUG
-  std::string CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+  CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
   llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
                                  linkedModule.get());
-  std::string FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
+  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
 #elif RELEASE
-  std::string CLANG_PATH =
-      "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+  LANG_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
   llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".bc",
                                  linkedModule.get());
-  std::string FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
+  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
 #endif
 
   // check For Clang
