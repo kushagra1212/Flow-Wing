@@ -10,8 +10,10 @@ const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
-#else
+#elif defined(RELEASE) && defined(__LINUX__)
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
+#elif defined(RELEASE) && defined(__APPLE__)
+  filePath = _executable_path.parent_path().string() + "/../Library" + "/built_in_module.ll";
 #endif
   // std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
@@ -80,7 +82,7 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #else
   _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".bc", false);
+      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #endif
 
   if (_userDefinedIRFilePaths.size() == 0) {
@@ -101,17 +103,27 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
   const std::string &filePath = getBuiltInModulePath();
 
-  std::unique_ptr<llvm::Module> TheModule =
-      filePath[filePath.length() - 1] == 'l'
-          ? std::move(createModuleFromIR(filePath, TheContext))
-          : std::move(createModuleFromBitcode(filePath, TheContext));
 
+//#if defined(RELEASE) 
+  std::unique_ptr<llvm::Module> TheModule = std::make_unique<llvm::Module>("built_in_module", *TheContext);
+// #else
+//     std::unique_ptr<llvm::Module> TheModule =
+//       filePath[filePath.length() - 1] == 'l'
+//           ? std::move(createModuleFromIR(filePath, TheContext))
+//           : std::move(createModuleFromBitcode(filePath, TheContext));
+// #endif
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
   // TODO: Change the triple to x86_64-unknown-linux-gnu
-  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+  // TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+ 
+ #if defined(__APPLE__)
+  TheModule->setTargetTriple("x86_64-apple-macosx14.0.0");
+ #elif defined(__LINUX__)
+  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+ #endif
 
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;

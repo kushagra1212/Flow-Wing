@@ -33,6 +33,7 @@ class Compiler {
       const std::string &filePath,
       std::unique_ptr<llvm::LLVMContext> &TheContext);
 
+
   virtual void execute() = 0;
 
   std::string _filePath;
@@ -41,6 +42,7 @@ class Compiler {
   std::string executable_directory_string;
   std::unique_ptr<DiagnosticHandler> _currentDiagnosticHandler;
   llvm::ExecutionEngine *executionEngine;
+  std::filesystem::path _executable_path = std::filesystem::current_path();
 };
 
 #endif  // __FLOW__WING__COMPILER__H__

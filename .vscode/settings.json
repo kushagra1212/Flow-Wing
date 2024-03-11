@@ -123,7 +123,9 @@
     "__debug": "cpp",
     "__mutex_base": "cpp",
     "__threading_support": "cpp",
-    "__errc": "cpp"
+    "__errc": "cpp",
+    "print": "cpp",
+    "execution": "cpp"
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,

@@ -159,7 +159,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #ifdef DEBUG
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
 #elif RELEASE
-  bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
+  llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
 #endif
 
   // this->_irParser->mergeIR(TheModule.get());

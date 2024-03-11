@@ -13,6 +13,12 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
+ #if defined(__APPLE__)
+  _module->setTargetTriple("x86_64-apple-macosx14.0.0");
+ #elif defined(__LINUX__)
+  _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+ #endif
+
   // Assign diagnosticHandler
   _diagnosticHandler = diagnosticHandler;
 

@@ -39,14 +39,14 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfBlock.push_back(
-        llvm::BasicBlock::Create(*TheContext, "orIf" + i, function));
+        llvm::BasicBlock::Create(*TheContext, "orIf" + std::to_string(i), function));
   }
 
   std::vector<llvm::BasicBlock *> orIfThenBlocks;
 
   for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfThenBlocks.push_back(
-        llvm::BasicBlock::Create(*TheContext, "orIfThen" + i, function));
+        llvm::BasicBlock::Create(*TheContext, "orIfThen" + std::to_string(i), function));
   }
 
   llvm::BasicBlock *elseBlock =
