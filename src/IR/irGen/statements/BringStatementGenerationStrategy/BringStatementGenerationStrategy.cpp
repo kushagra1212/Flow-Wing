@@ -64,14 +64,6 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
               _codeGenerationContext);
 
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
-    if (variable.second->getTypeExpression()->getSyntaxType() ==
-        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Multifile UNKOWN type not allowed, Please "
-          "specify the type of variable " +
-          variable.first);
-      return nullptr;
-    }
 
     if (bringStatement->isChoosyImport()) {
       if (bringStatement->isImported(variable.first) &&
@@ -82,11 +74,23 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
         return nullptr;
       }
 
-      if (bringStatement->isImported(variable.first))
+      if (bringStatement->isImported(variable.first)) {
+        if (variable.second->getTypeExpression()->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Multifile UNKOWN type not allowed, Please "
+              "specify the type of variable " +
+              variable.first);
+          return nullptr;
+        }
         varDecGenStrat->generateGlobalStatement(variable.second);
+      }
 
     } else {
-
+      if (variable.second->getTypeExpression()->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+        continue;
+      }
       varDecGenStrat->generateGlobalStatement(variable.second);
     }
   }

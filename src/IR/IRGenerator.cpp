@@ -158,12 +158,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 #ifdef DEBUG
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
-#elif RELEASE
   std::unique_ptr<ObjectFile> objectFile =
       std::make_unique<ObjectFile>(blockName);
   objectFile->writeModuleToFile(TheModule);
-
-  llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
+#elif RELEASE
+  if (!this->hasErrors()) {
+    std::unique_ptr<ObjectFile> objectFile =
+        std::make_unique<ObjectFile>(blockName);
+    objectFile->writeModuleToFile(TheModule);
+  }
 #endif
 
   // this->_irParser->mergeIR(TheModule.get());

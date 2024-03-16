@@ -1,4 +1,5 @@
-bring  "../../dir/math.fg"
+bring  "../../math.fg"
+bring "add.fg"
 var x:int = 0
 print("hellO")
 x = Int32(input("Enter number"))

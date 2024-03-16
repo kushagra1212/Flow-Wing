@@ -237,7 +237,7 @@ Visit [https://brew.sh](https://brew.sh) to install brew.
 
 ```bash
   brew tap kushagra1212/flow-wing
-  brew install FlowWing
+  brew install flowwing
   ```
 #### Verify Installation
 
