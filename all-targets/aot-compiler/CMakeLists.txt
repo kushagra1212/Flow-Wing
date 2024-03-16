@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28.3)
+cmake_minimum_required(VERSION 3.22.1)
 cmake_policy(SET CMP0075 NEW)
 project(FlowWing VERSION 0.0.1)
 set(VERSION "0.0.1")
