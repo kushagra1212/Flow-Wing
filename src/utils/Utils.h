@@ -96,6 +96,9 @@ auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,
                                     std::string extension, bool recursive);
+
+void deleteFilesWithExtension(const std::string &directoryPath,
+                              const std::string &extension);
 bool isSubstring(const std::string &s1, const std::string &s2);
 enum class SymbolKind {
   Variable,

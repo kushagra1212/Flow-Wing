@@ -1,6 +1,6 @@
 #include "Parser.h"
 Parser::Parser(const std::vector<std::string> &souceCode,
-               DiagnosticHandler *diagnosticHandler) {
+               FLowWing::DiagnosticHandler *diagnosticHandler) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
 
@@ -578,8 +578,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 
   bringStatement->setRelativeFilePath(relativeFilePath);
 
-  std::unique_ptr<DiagnosticHandler> diagnosticHandler =
-      std::make_unique<DiagnosticHandler>(relativeFilePath);
+  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>(relativeFilePath);
 
   bringStatement->setAbsoluteFilePath(
       Utils::getAbsoluteFilePath(relativeFilePath));

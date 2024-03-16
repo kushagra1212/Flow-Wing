@@ -1,14 +1,6 @@
 #include "ContainerTest.h"
 
-ContainerTest::ContainerTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+ContainerTest::ContainerTest() { _test = std::move(FlowWing::getTest()); }
 
 void ContainerTest::SetUp() { _test->SetUp(); }
 
@@ -22,7 +14,7 @@ std::string ContainerTest::getOutput() const { return _test->getOutput(); }
 
 void ContainerTest::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 TEST_F(ContainerTest, BasicContainerIntDeclaration) {
   std::string input = R"({var a:int[5] = [1, 2, 3, 4, 5] 

@@ -41,27 +41,27 @@
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
 class Parser {
- public:
+public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
 
   std::unique_ptr<Lexer> lexer;
 
   Parser(const std::vector<std::string> &souceCode,
-         DiagnosticHandler *diagnosticHandler);
+         FLowWing::DiagnosticHandler *diagnosticHandler);
   ~Parser();
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
- private:
-  DiagnosticHandler *_diagnosticHandler;
+private:
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
 
   bool matchKind(const SyntaxKindUtils::SyntaxKind &kind);
   void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
 
-  std::unique_ptr<SyntaxToken<std::any>> match(
-      const SyntaxKindUtils::SyntaxKind &kind);
+  std::unique_ptr<SyntaxToken<std::any>>
+  match(const SyntaxKindUtils::SyntaxKind &kind);
   SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
@@ -75,24 +75,24 @@ class Parser {
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::unique_ptr<VariableDeclarationSyntax> parseVariableDeclaration(
-      bool isFuncDec = false);
+  std::unique_ptr<VariableDeclarationSyntax>
+  parseVariableDeclaration(bool isFuncDec = false);
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
-  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement(
-      const bool &isExposed);
+  std::unique_ptr<GlobalStatementSyntax>
+  parseGlobalStatement(const bool &isExposed);
 
   /*
     EXPRESSIONS
   */
   std::unique_ptr<ExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
-  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration(
-      const bool &isExposed);
+  std::unique_ptr<FunctionDeclarationSyntax>
+  parseFunctionDeclaration(const bool &isExposed);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);

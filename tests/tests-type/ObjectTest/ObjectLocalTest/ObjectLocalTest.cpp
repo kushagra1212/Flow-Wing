@@ -1,14 +1,6 @@
 #include "ObjectLocalTest.h"
 
-ObjectLocalTest::ObjectLocalTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+ObjectLocalTest::ObjectLocalTest() { _test = std::move(FlowWing::getTest()); }
 
 void ObjectLocalTest::SetUp() { _test->SetUp(); }
 
@@ -22,7 +14,7 @@ std::string ObjectLocalTest::getOutput() const { return _test->getOutput(); }
 
 void ObjectLocalTest::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 // Declarations
 
@@ -450,7 +442,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1Fun) {
       c:deci,
       d:bool
      }
-     fun main() -> t1{
+     fun mainTest() -> t1{
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -462,7 +454,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1Fun) {
      }
 
     {
-             var u:t1 = main()
+             var u:t1 = mainTest()
      print(u)
     }
   )");
@@ -487,7 +479,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecFun) {
       p:parent
      }
 
-     fun main() -> t1 {
+     fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -498,7 +490,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecFun) {
      }
 
     {
-    var y:t1 = main()
+    var y:t1 = mainTest()
      print(y)
     }
   )");
@@ -523,7 +515,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseFun) {
       p:parent
      }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -534,7 +526,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseFun) {
      return x
     }
     {
-    var y:t1 = main()
+    var y:t1 = mainTest()
 
      print(y)
     }
@@ -559,7 +551,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Fun) {
       d:bool,
       p:parent
      }
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -570,7 +562,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Fun) {
      return x
     }
     {
-     var y:t1 = main()
+     var y:t1 = mainTest()
      print(y)
     }
   )");
@@ -595,7 +587,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignFun) {
       p:parent
      }
     
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -608,7 +600,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignFun) {
     }
 
     {
-    var z:t1 = main()
+    var z:t1 = mainTest()
      print(z)
     }
   )");
@@ -640,12 +632,12 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecFun) {
        d:true,
      }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
         return x
       }
 
     {
-     var y:t1 =  main()
+     var y:t1 =  mainTest()
      print(y)
     }
   )");
@@ -670,7 +662,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Fun) {
       p:parent
      }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
           var x:t1 = { 
        a:"hello",
        b:10,
@@ -682,7 +674,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Fun) {
     }
 
     {
-     var z:t1 =  main()
+     var z:t1 =  mainTest()
      print(z)
     }
   )");
@@ -707,7 +699,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1AvdFun) {
       p:parent
      }
 
-    fun main() -> parent {
+    fun mainTest() -> parent {
           var x:t1 = { 
        a:"hello",
        b:10,
@@ -720,7 +712,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1AvdFun) {
     }
 
     {
-            var z:parent =  main()
+            var z:parent =  mainTest()
      print(z)
     }
   )");
@@ -733,7 +725,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntFun) {
         a:int
       }
   
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
         var x:t1 = {
           a:1
         }  
@@ -741,7 +733,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntFun) {
       }
 
     {
-              var y:t1 = main()
+              var y:t1 = mainTest()
       print(y)
     }
     
@@ -755,7 +747,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDecFun) {
         a:deci
       }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
               var x:t1 = {
         a:1.0
       }
@@ -763,7 +755,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDecFun) {
       }
 
     {
-              var y:t1 = main()
+              var y:t1 = mainTest()
       print(y)
     }
 
@@ -777,7 +769,7 @@ TEST_F(ObjectLocalTest, ObjectLoneBoolFun) {
         a:bool
       }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
            var x:t1 = {
         a:true
       }
@@ -786,7 +778,7 @@ TEST_F(ObjectLocalTest, ObjectLoneBoolFun) {
 
     
     {
-              var y:t1 = main()
+              var y:t1 = mainTest()
       print(y)
     }
 
@@ -801,7 +793,7 @@ TEST_F(ObjectLocalTest, ObjectLoneStrFun) {
         a:str
       }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
           var x:t1 = {
         a:"hello"
       }
@@ -809,7 +801,7 @@ TEST_F(ObjectLocalTest, ObjectLoneStrFun) {
     }
 
     {
-            var y:t1 = main()
+            var y:t1 = mainTest()
       print(y)
     }
 
@@ -1463,7 +1455,7 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssignFunAllIn) {
      }
 
 
-    fun main(y:t1) -> t1 {
+    fun mainTest(y:t1) -> t1 {
 
       print(y)
           y.a = "hello2"
@@ -1482,7 +1474,7 @@ print("\n")
             var z:t1 =  {a:"gog",b:1,c:1.1,d:true}
     print(z)
     print("\n")
-    z = main(x)
+    z = mainTest(x)
      print(z)
     }
 

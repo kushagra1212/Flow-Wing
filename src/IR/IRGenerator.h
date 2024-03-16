@@ -17,6 +17,7 @@
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
 #include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../IR/logger/LLVMLogger.h"
+#include "../ahead-of-time-compiler/ObjectFile/ObjectFile.h"
 #include "../bind/Binder/Binder.h"
 #include "../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
 #include "../bind/BinderKindUtils.h"
@@ -97,8 +98,8 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <sstream>
 
 class IRGenerator {
- public:
-  IRGenerator(int environment, DiagnosticHandler *diagnosticHandler,
+public:
+  IRGenerator(int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
               std::unordered_map<std::string, BoundFunctionDeclaration *>
                   boundedUserFunctions,
               const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
@@ -122,7 +123,7 @@ class IRGenerator {
   const int32_t hasErrors() const;
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
- private:
+private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
@@ -151,4 +152,4 @@ class IRGenerator {
   std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
 };
 
-#endif  // IRGENERATOR_H
+#endif // IRGENERATOR_H

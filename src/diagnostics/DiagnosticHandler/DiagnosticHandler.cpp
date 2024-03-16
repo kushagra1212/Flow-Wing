@@ -1,5 +1,7 @@
 #include "DiagnosticHandler.h"
 
+using namespace FLowWing;
+
 DiagnosticHandler::DiagnosticHandler(std::string filePath,
                                      DiagnosticHandler *parent)
     : parent(parent) {

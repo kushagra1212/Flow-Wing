@@ -56,7 +56,7 @@ set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 
 # Set the executable name based on whether it's a test build or not
 if(TESTS_ENABLED)
-    set(EXECUTABLE_NAME "runTests")
+    set(EXECUTABLE_NAME "FlowWing")
 else()
     set(EXECUTABLE_NAME "FlowWing")
 endif()

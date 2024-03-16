@@ -12,7 +12,7 @@
 #include "../utils/Utils.h"
 
 class Compiler {
- public:
+public:
   Compiler(std::string filePath = "");
 
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
@@ -22,17 +22,16 @@ class Compiler {
   std::unique_ptr<llvm::MemoryBuffer> getMemoryBuffer(std::string filePath);
   std::vector<std::string> getIRFilePaths() const;
 
-  std::unique_ptr<llvm::Module> getLinkedModule(
-      std::unique_ptr<llvm::LLVMContext> &TheContext);
+  std::unique_ptr<llvm::Module>
+  getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext);
 
-  std::unique_ptr<llvm::Module> createModuleFromBitcode(
-      const std::string &filePath,
-      std::unique_ptr<llvm::LLVMContext> &TheContext);
+  std::unique_ptr<llvm::Module>
+  createModuleFromBitcode(const std::string &filePath,
+                          std::unique_ptr<llvm::LLVMContext> &TheContext);
 
-  std::unique_ptr<llvm::Module> createModuleFromIR(
-      const std::string &filePath,
-      std::unique_ptr<llvm::LLVMContext> &TheContext);
-
+  std::unique_ptr<llvm::Module>
+  createModuleFromIR(const std::string &filePath,
+                     std::unique_ptr<llvm::LLVMContext> &TheContext);
 
   virtual void execute() = 0;
 
@@ -40,9 +39,9 @@ class Compiler {
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::vector<std::string> text = std::vector<std::string>();
   std::string executable_directory_string;
-  std::unique_ptr<DiagnosticHandler> _currentDiagnosticHandler;
+  std::unique_ptr<FLowWing::DiagnosticHandler> _currentDiagnosticHandler;
   llvm::ExecutionEngine *executionEngine;
   std::filesystem::path _executable_path = std::filesystem::current_path();
 };
 
-#endif  // __FLOW__WING__COMPILER__H__
+#endif // __FLOW__WING__COMPILER__H__

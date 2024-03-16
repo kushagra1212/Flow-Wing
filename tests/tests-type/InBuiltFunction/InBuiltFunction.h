@@ -1,11 +1,10 @@
 #ifndef IN_BUILT_FUNCTIONS_H
 #define IN_BUILT_FUNCTIONS_H
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
 class InBuiltFunction : public ::testing::Test {
- protected:
+protected:
   InBuiltFunction();
 
   void SetUp() override;
@@ -17,4 +16,4 @@ class InBuiltFunction : public ::testing::Test {
   std::unique_ptr<BaseTest> _test;
 };
 
-#endif  // IN_BUILT_FUNCTIONS_H
+#endif // IN_BUILT_FUNCTIONS_H

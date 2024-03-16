@@ -1,11 +1,10 @@
 #ifndef __MDC_FUNCTION_TEST_H__
 #define __MDC_FUNCTION_TEST_H__
 
-#include "../../../../JITCompilerTest/JITCompilerTest.h"
-#include "../../../../ReplTest/ReplTest.h"
+#include "../../../../Common.h"
 
 class MDCInFunction : public ::testing::Test {
- protected:
+protected:
   MDCInFunction();
 
   void SetUp() override;
@@ -25,4 +24,4 @@ class MDCInFunction : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // __MDC_FUNCTION_TEST_H__
+#endif // __MDC_FUNCTION_TEST_H__

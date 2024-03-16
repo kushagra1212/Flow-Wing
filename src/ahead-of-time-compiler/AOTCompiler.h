@@ -12,12 +12,57 @@
 #include "../compiler/Compiler.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
+#include "ObjectFile/ObjectFile.h"
 
 class AOTCompiler : public Compiler {
- public:
+public:
   AOTCompiler(std::string filePath = "");
 
+  auto inline getClangFilePath() -> std::filesystem::path {
+    std::filesystem::path CLANG_PATH = "";
+
+#if defined(__LINUX__)
+    CLANG_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+#elif defined(__APPLE__)
+    CLANG_PATH = "/usr/bin/clang";
+#endif
+
+    return CLANG_PATH;
+  }
+
+  auto inline getLibPath() -> std::filesystem::path {
+    std::filesystem::path LIB_PATH = "";
+
+#if defined(__LINUX__)
+    LIB_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/lib";
+#elif defined(__APPLE__)
+    LIB_PATH = "/usr/local/lib/FlowWing";
+#endif
+
+    return LIB_PATH;
+  }
+
+  auto inline getObjectFilesJoinedAsString() -> std::string {
+
+    std::vector<std::string> objectFiles =
+        Utils::getAllFilesInDirectoryWithExtension(".", ".o", false);
+    std::string joined = "";
+    for (const auto &objectFile : objectFiles) {
+      joined += objectFile + " ";
+    }
+    return joined;
+  }
+
+  auto inline deleteObjectFiles() -> void {
+    std::vector<std::string> objectFiles =
+        Utils::getAllFilesInDirectoryWithExtension(".", ".o", false);
+    for (const auto &objectFile : objectFiles) {
+      std::filesystem::remove(objectFile);
+    }
+  }
+
+  void link();
   void execute();
 };
 
-#endif  // __FLOW__WING__AOT__COMPILER__H__
+#endif // __FLOW__WING__AOT__COMPILER__H__

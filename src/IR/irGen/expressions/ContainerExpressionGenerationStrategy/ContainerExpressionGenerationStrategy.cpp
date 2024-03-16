@@ -92,7 +92,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
   _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
                                             _actualSizes, _elementType);
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-      *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
       _defaultVal, _containerName);
 
   _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);

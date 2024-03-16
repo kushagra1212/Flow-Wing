@@ -1,11 +1,12 @@
 #include "CodeGenerationContext.h"
 
 CodeGenerationContext ::CodeGenerationContext(
-    DiagnosticHandler *diagnosticHandler, const std::string sourceFileName)
+    FLowWing::DiagnosticHandler *diagnosticHandler,
+    const std::string sourceFileName)
     : _sourceFileName(sourceFileName) {
   _context = std::make_unique<llvm::LLVMContext>();
   _builder = std::make_unique<llvm::IRBuilder<>>(*_context);
-  _module = std::make_unique<llvm::Module>("FlowWing", *_context);
+  _module = std::make_unique<llvm::Module>(sourceFileName, *_context);
 
   _sourceFileName = sourceFileName;
 
@@ -13,11 +14,11 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
- #if defined(__APPLE__)
+#if defined(__APPLE__)
   _module->setTargetTriple("x86_64-apple-macosx14.0.0");
- #elif defined(__LINUX__)
+#elif defined(__LINUX__)
   _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
- #endif
+#endif
 
   // Assign diagnosticHandler
   _diagnosticHandler = diagnosticHandler;
@@ -88,7 +89,8 @@ const std::string &CodeGenerationContext::getSourceFileName() const {
   return this->_sourceFileName;
 }
 
-DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler() const {
+FLowWing::DiagnosticHandler *
+CodeGenerationContext::getDiagnosticHandler() const {
   return _diagnosticHandler;
 }
 
@@ -182,8 +184,8 @@ void CodeGenerationContext::incrementCount(const std::string name) {
   _builder->CreateStore(newCount, _module->getGlobalVariable(name));
 }
 
-llvm::Constant *CodeGenerationContext::createConstantFromValue(
-    llvm::Value *myValue) {
+llvm::Constant *
+CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
   llvm::Type *valueType = myValue->getType();
 
   if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
@@ -218,7 +220,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
         return strConstant;
       }
     }
-  } else if (valueType->isIntegerTy(1)) {  // Check if it's a boolean (i1).
+  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
     if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
       return llvm::ConstantInt::get(valueType,
                                     boolConstant->getUniqueInteger());
@@ -228,7 +230,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
 
   // this->logError("Unsupported type for conversion to constant");
 
-  return nullptr;  // Return nullptr if the type is not recognized.
+  return nullptr; // Return nullptr if the type is not recognized.
 }
 
 void CodeGenerationContext::callREF(const std::string &error) {
@@ -311,8 +313,8 @@ void CodeGenerationContext::setArrayElementTypeMetadata(
       std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
   setMetadata("ET", array, metaData);
 }
-llvm::Type *CodeGenerationContext::getArrayElementTypeMetadata(
-    llvm::Value *array) {
+llvm::Type *
+CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
   std::string metaData = "";
   getMetaData("ET", array, metaData);
   std::vector<std::string> sizesStr;

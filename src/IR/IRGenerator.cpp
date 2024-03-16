@@ -1,7 +1,7 @@
 #include "IRGenerator.h"
 
 IRGenerator::IRGenerator(
-    int environment, DiagnosticHandler *diagnosticHandler,
+    int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
     const std::string sourceFileName) {
@@ -159,6 +159,10 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #ifdef DEBUG
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
 #elif RELEASE
+  std::unique_ptr<ObjectFile> objectFile =
+      std::make_unique<ObjectFile>(blockName);
+  objectFile->writeModuleToFile(TheModule);
+
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
 #endif
 

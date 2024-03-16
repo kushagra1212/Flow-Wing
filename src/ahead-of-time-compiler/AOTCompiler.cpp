@@ -4,74 +4,53 @@
 
 AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
 
-void AOTCompiler::execute() {
-  std::unique_ptr<llvm::LLVMContext> TheContext =
-      std::make_unique<llvm::LLVMContext>();
-  std::unique_ptr<llvm::IRBuilder<>> Builder =
-      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+void AOTCompiler::link() {
 
-  std::unique_ptr<llvm::Module> linkedModule =
-      std::move(getLinkedModule(TheContext));
+  std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
+      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
 
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy =
-      std::make_unique<LLFileSaveStrategy>(_llvmLogger.get());
-  std::unique_ptr<BCFileSaveStrategy> bcFileSaveStrategy =
-      std::make_unique<BCFileSaveStrategy>(_llvmLogger.get());
+  std::filesystem::path CLANG_PATH = getClangFilePath();
+  std::filesystem::path LIB_PATH = getLibPath();
 
+  std::string executeCmd = "";
 
-  const std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
-      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
-  std::filesystem::path CLANG_PATH = "";
-  std::string FILE_NAME_WITH_EXTENSION = "";
-#if defined(DEBUG) &&  defined(__LINUX__)
-  CLANG_PATH = "Contents/bin/clang-17";
-  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
-#elif defined(RELEASE) &&  defined(__LINUX__)
-  CLANG_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
-  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".bc",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
-#elif defined(DEBUG) &&  defined(__APPLE__)
-  CLANG_PATH ="/usr/bin/clang";
-  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
-#elif defined(RELEASE) &&  defined(__APPLE__)
-  CLANG_PATH ="/usr/bin/clang";
-  bcFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".bc",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
+#if defined(AOT_TEST_MODE)
+  fileNameWithOutExtension =
+      FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT;
+  executeCmd = " && ./" + fileNameWithOutExtension;
 #endif
+
+  std::string cmd =
+      (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " " +
+       getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
+       " -lbuilt_in_module" + executeCmd);
+
+  std::system(cmd.c_str());
+
+  // delete object files
+  deleteObjectFiles();
 
   // check For Clang
 
-  // if (system(("ls " + CLANG_PATH.string() + " --version > /dev/null 2>&1").c_str()) !=
+  // if (system(("ls " + CLANG_PATH.string() + " --version > /dev/null
+  // 2>&1").c_str()) !=
   //     0) {
   //   _currentDiagnosticHandler->printDiagnostic(
   //       std::cout,
-  //       Diagnostic("Clang not found " +  CLANG_PATH.string(), DiagnosticUtils::DiagnosticLevel::Error,
+  //       Diagnostic("Clang not found " +  CLANG_PATH.string(),
+  //       DiagnosticUtils::DiagnosticLevel::Error,
   //                  DiagnosticUtils::DiagnosticType::Linker,
   //                  DiagnosticUtils::SourceLocation(
   //                      0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
 
   //   return;
   // }
-
-  #if defined(DEBUG)
-  const std::filesystem::path BUILT_IN_MODULE_PATH = "Contents/lib/";
-  #elif defined(RELEASE)
-  const std::filesystem::path BUILT_IN_MODULE_PATH = "";
-  #endif
-  std::string cmd = (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " " +
-               FILE_NAME_WITH_EXTENSION + " -L"+BUILT_IN_MODULE_PATH.parent_path().string() + " -lbuilt_in_module");
-
-  std::system(cmd.c_str());
 }
+
+void AOTCompiler::execute() { link(); }
 
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)
 
@@ -118,7 +97,6 @@ int main(int argc, char *argv[]) {
 
   std::ifstream file;
 
-
   file.open(argv[1]);
 
   if (!file.is_open()) {
@@ -145,7 +123,6 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<AOTCompiler> aotCompiler =
       std::make_unique<AOTCompiler>(argv[1]);
 
-
   // #if DEBUG
   //   std::filesystem::path executable_path =
   //       std::filesystem::canonical(std::filesystem::path(argv[0]));
@@ -158,8 +135,6 @@ int main(int argc, char *argv[]) {
 
   aotCompiler->_executable_path = std::filesystem::path(argv[0]);
   aotCompiler->compile(text, std::cout);
-
-
 
   return EXIT_SUCCESS;
 }
