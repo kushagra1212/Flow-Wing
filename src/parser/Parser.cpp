@@ -1,10 +1,11 @@
 #include "Parser.h"
-Parser::Parser(const std::vector<std::string> &souceCode,
-               FLowWing::DiagnosticHandler *diagnosticHandler) {
+Parser::Parser(const std::vector<std::string> &sourceCode,
+               FLowWing::DiagnosticHandler *diagnosticHandler,
+               std::unordered_map<std::string, int8_t> bringStatementPathsMap) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
-
-  lexer = std::make_unique<Lexer>(souceCode, diagnosticHandler);
+  this->_bringStatementsPathsMap = bringStatementPathsMap;
+  lexer = std::make_unique<Lexer>(sourceCode, diagnosticHandler);
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
@@ -581,21 +582,36 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
       std::make_unique<FLowWing::DiagnosticHandler>(relativeFilePath);
 
-  bringStatement->setAbsoluteFilePath(
-      Utils::getAbsoluteFilePath(relativeFilePath));
+  std::string absoluteFilePath = Utils::getAbsoluteFilePath(relativeFilePath);
+
+  if (_bringStatementsPathsMap[absoluteFilePath] == 1) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Found Circular Reference <" + absoluteFilePath + ">",
+                   DiagnosticUtils::DiagnosticLevel::Warning,
+                   DiagnosticUtils::DiagnosticType::Syntactic,
+                   Utils::getSourceLocation(this->getCurrent())));
+
+    return std::move(this->parseStatement());
+  }
+
+  _bringStatementsPathsMap[absoluteFilePath] += 1;
+
+  bringStatement->setAbsoluteFilePath(absoluteFilePath);
 
   this->_diagnosticHandler->addParentDiagnostics(diagnosticHandler.get());
   bringStatement->setDiagnosticHandler(std::move(diagnosticHandler));
 
-  std::unique_ptr<Parser> parser = std::make_unique<Parser>(
-      Utils::readLines(Utils::getAbsoluteFilePath(relativeFilePath)),
-      bringStatement->getDiagnosticHandlerPtr().get());
+  std::unique_ptr<Parser> parser =
+      std::make_unique<Parser>(Utils::readLines(absoluteFilePath),
+                               bringStatement->getDiagnosticHandlerPtr().get(),
+                               _bringStatementsPathsMap);
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::move(parser->parseCompilationUnit());
 
   bringStatement->setCompilationUnit(std::move(compilationUnit));
 
+  _bringStatementsPathsMap[absoluteFilePath] -= 1;
   return std::move(bringStatement);
 }
 

@@ -23,15 +23,20 @@ void AOTCompiler::link() {
   executeCmd = " && ./" + fileNameWithOutExtension;
 #endif
 
-  std::string cmd =
-      (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " " +
-       getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
-       " -lbuilt_in_module" + executeCmd);
+  try {
+    std::string cmd =
+        (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " " +
+         getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
+         " -lbuilt_in_module" + executeCmd);
 
-  std::system(cmd.c_str());
-
-  // delete object files
-  deleteObjectFiles();
+    std::system(cmd.c_str());
+    // delete object files
+    deleteObjectFiles();
+  } catch (const std::exception &e) {
+    std::cerr << "Exception occurred: " << e.what() << std::endl;
+    // delete object files
+    deleteObjectFiles();
+  }
 
   // check For Clang
 
@@ -116,7 +121,7 @@ int main(int argc, char *argv[]) {
   // Close the file (imp)
   file.close();
 
-  Utils::Node::addPath(argv[1]);
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(argv[1]));
   std::vector<std::string> text =
       Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
 

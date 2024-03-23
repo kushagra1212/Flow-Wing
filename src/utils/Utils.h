@@ -136,8 +136,8 @@ class Node {
 
 public:
   static void addPath(std::string path) {
-    fileMap[(path)] = 1;
-    visitedMap[(path)] = 1;
+    fileMap[(path)]++;
+    visitedMap[(path)]++;
   }
 
   static bool isPathVisited(std::string path) {

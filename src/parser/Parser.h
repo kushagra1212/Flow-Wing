@@ -46,8 +46,10 @@ public:
 
   std::unique_ptr<Lexer> lexer;
 
-  Parser(const std::vector<std::string> &souceCode,
-         FLowWing::DiagnosticHandler *diagnosticHandler);
+  Parser(const std::vector<std::string> &sourceCode,
+         FLowWing::DiagnosticHandler *diagnosticHandler,
+         std::unordered_map<std::string, int8_t> bringStatementPathsMap =
+             std::unordered_map<std::string, int8_t>());
   ~Parser();
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
@@ -106,6 +108,8 @@ private:
   std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
   std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
   std::unique_ptr<ObjectExpressionSyntax> parseObjectExpression();
+
+  std::unordered_map<std::string, int8_t> _bringStatementsPathsMap;
 
   std::unique_ptr<MemberSyntax> parseMember();
 };
