@@ -132,8 +132,8 @@ Flow-Wing now provides support for objects, enabling developers to define struct
 
 ```
 type Person {
-   name:str
-   age:int
+   name:str,
+   age:int,
    address:str
 }
 
@@ -142,8 +142,8 @@ type Person {
 
 ```
 var p : Person = {
-  name : "John"
-  age : 30
+  name : "John",
+  age : 30,
   address : "123 Main St"
 }
 ```
