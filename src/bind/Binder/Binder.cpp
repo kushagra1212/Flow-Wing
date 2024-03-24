@@ -373,13 +373,12 @@ std::unique_ptr<BoundExpression> Binder::bindBracketedExpression(
 
 std::unique_ptr<BoundStatement>
 Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
-  this->_diagnosticHandler->addParentDiagnostics(
-      bringStatement->getDiagnosticHandlerPtr().get());
+
   std::vector<std::string> expressionStrings = {};
 
   if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
       !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
-    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
@@ -391,7 +390,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
-    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Found Circular Dependency <" +
             bringStatement->getRelativeFilePathPtr() + "> ",
         DiagnosticUtils::DiagnosticLevel::Error,
@@ -403,7 +402,16 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
         expressionStrings);
   }
+
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "File <" + bringStatement->getRelativeFilePathPtr() +
+            "> already included ",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
@@ -447,6 +455,10 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
+
+  this->_diagnosticHandler->addParentDiagnostics(
+      bringStatement->getDiagnosticHandlerPtr().get());
+
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(
           nullptr, bringStatement->getCompilationUnitPtr().get(),
@@ -941,7 +953,7 @@ Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 }
 
 Binder::Binder(std::unique_ptr<BoundScope> parent,
-               DiagnosticHandler *diagnosticHandler) {
+               FLowWing::DiagnosticHandler *diagnosticHandler) {
   BuiltInFunction::setupBuiltInFunctions();
 
   this->root = std::make_unique<BoundScope>(std::move(parent));
@@ -999,7 +1011,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 std::unique_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         CompilationUnitSyntax *syntax,
-                        DiagnosticHandler *diagnosticHandler) {
+                        FLowWing::DiagnosticHandler *diagnosticHandler) {
   std::unique_ptr<Binder> binder =
       std::make_unique<Binder>(nullptr, diagnosticHandler);
   std::unordered_map<std::string, std::any> prevVariablesValues;

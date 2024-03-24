@@ -1,7 +1,7 @@
 #include "Interpreter.h"
 
 Interpreter::Interpreter(BoundScopeGlobal *globalScope,
-                         DiagnosticHandler *diagnosticHandler) {
+                         FLowWing::DiagnosticHandler *diagnosticHandler) {
   this->_globalScope = globalScope;
   this->_interpreterUtils =
       std::make_unique<InterpreterUtils>(diagnosticHandler);

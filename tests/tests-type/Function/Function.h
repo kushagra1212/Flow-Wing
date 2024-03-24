@@ -1,11 +1,11 @@
 #ifndef USER_FUNCTIONS_H
 #define USER_FUNCTIONS_H
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
+namespace FlowWing {
 class Function : public ::testing::Test {
- protected:
+protected:
   Function();
 
   void SetUp() override;
@@ -16,5 +16,6 @@ class Function : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
+} // namespace FlowWing
 
-#endif  // IN_BUILT_FUNCTIONS_H
+#endif // IN_BUILT_FUNCTIONS_H

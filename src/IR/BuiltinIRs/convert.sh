@@ -19,6 +19,7 @@ fi
 filename=$(basename -- "$input_file")
 filename_no_ext="${filename%.*}"
 
+
 # Perform the conversion using llvm-as
 llvm-as "$input_file" -o "$filename_no_ext.bc"
 
@@ -28,4 +29,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Conversion successful. Output file: $filename_no_ext.bc"
+# Create Object Files (.o): 
+llc "$filename_no_ext.bc" -filetype=obj -o "$filename_no_ext.o"
+
+
+# Create an archive file using llvm-ar
+llvm-ar rcs "Contents/lib/$filename_no_ext.a" "$filename_no_ext.o"
+
+# Check if archive creation was successful
+if [ $? -ne 0 ]; then
+    echo "Error: Archive creation failed."
+    exit 1
+fi
+
+echo "Conversion and archive creation successful. Output file: Contents/lib/$filename_no_ext.a"

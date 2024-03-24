@@ -2,12 +2,10 @@
 #define BINARY_OPERATION_TESTS_H
 
 #include "../../../src/REPL/Repl.h"
-#include "../../BaseTest/BaseTest.h"
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
 class BinaryOperationTest : public ::testing::Test {
- protected:
+protected:
   BinaryOperationTest();
   void SetUp() override;
   void TearDown() override;
@@ -17,4 +15,4 @@ class BinaryOperationTest : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // BINARY_OPERATION_H
+#endif // BINARY_OPERATION_H

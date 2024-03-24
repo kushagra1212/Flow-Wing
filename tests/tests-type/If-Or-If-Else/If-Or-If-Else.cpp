@@ -1,13 +1,7 @@
 #include "If-Or-If-Else.h"
 
 IfORIFELSEReplTest::IfORIFELSEReplTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
+  _test = std::move(FlowWing::getTest());
 }
 
 void IfORIFELSEReplTest::SetUp() { _test->SetUp(); }

@@ -20,13 +20,13 @@
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
-#include "llvm/Support/TargetSelect.h"
 #include "utils/ValueStack/ValueStackHandler.h"
+#include "llvm/Support/TargetSelect.h"
 
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
- public:
-  CodeGenerationContext(DiagnosticHandler *diagnosticHandler,
+public:
+  CodeGenerationContext(FLowWing::DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
   std::unique_ptr<llvm::IRBuilder<>> &getBuilder();
@@ -59,7 +59,7 @@ class CodeGenerationContext {
     return _valueStackHandler;
   }
 
-  DiagnosticHandler *getDiagnosticHandler() const;
+  FLowWing::DiagnosticHandler *getDiagnosticHandler() const;
 
   void addBoundedUserFunction(std::string name,
                               BoundFunctionDeclaration *functionDeclaration);
@@ -98,7 +98,7 @@ class CodeGenerationContext {
 
   void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
 
- private:
+private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -114,7 +114,7 @@ class CodeGenerationContext {
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;
-  DiagnosticHandler *_diagnosticHandler;
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 
   std::stack<int8_t> _returnAllocaStack;
@@ -125,4 +125,4 @@ class CodeGenerationContext {
   std::unordered_map<std::string, uint64_t> _globalTypeMap;
 };
 
-#endif  // CODEGENERATIONCONTEXT_H
+#endif // CODEGENERATIONCONTEXT_H

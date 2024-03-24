@@ -1,14 +1,6 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+InBuiltFunction::InBuiltFunction() { _test = std::move(FlowWing::getTest()); }
 
 void InBuiltFunction::SetUp() { _test->SetUp(); }
 

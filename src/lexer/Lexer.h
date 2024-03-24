@@ -7,19 +7,19 @@
 #include "../syntax/SyntaxToken.h"
 #include "../utils/Utils.h"
 class Lexer {
- public:
+public:
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
   Lexer(const std::vector<std::string> &sourceCode,
-        DiagnosticHandler *diagnosticHandler);
+        FLowWing::DiagnosticHandler *diagnosticHandler);
 
- private:
+private:
   std::vector<std::string> _sourceCode;
   const char endOfFile = '\r';
   const char endOfLine = '\1';
   size_t lineNumber;
   size_t position;
   size_t textSize = 0;
-  DiagnosticHandler *_diagnosticHandler;
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
 
   char getCurrent();
 
@@ -38,4 +38,4 @@ class Lexer {
   std::unique_ptr<SyntaxToken<std::any>> readSingleLineComment();
   bool isEndOfLineOrFile();
 };
-#endif  // LEXER_H
+#endif // LEXER_H

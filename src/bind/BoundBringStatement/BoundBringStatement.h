@@ -8,20 +8,20 @@
 #include "../BoundStatement/BoundStatement.h"
 
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
-  DiagnosticHandler *_diagnosticHandler;
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _globalScope;
   std::unordered_map<std::string, int8_t> _expressionStringsMap;
 
 public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
-                      DiagnosticHandler *diagnosticHandler,
+                      FLowWing::DiagnosticHandler *diagnosticHandler,
                       std::unique_ptr<BoundScopeGlobal> globalScope,
                       std::vector<std::string> &expressionStrings);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
-  DiagnosticHandler *getDiagnosticHandlerPtr() const;
+  FLowWing::DiagnosticHandler *getDiagnosticHandlerPtr() const;
   const std::unique_ptr<BoundScopeGlobal> &getGlobalScopePtr() const;
 
   auto inline isImported(const std::string &name) -> bool {

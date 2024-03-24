@@ -9,7 +9,7 @@ void BringStatementSyntax::setAbsoluteFilePath(
   this->absoluteFilePath = absoluteFilePath;
 }
 void BringStatementSyntax::setDiagnosticHandler(
-    std::unique_ptr<DiagnosticHandler> diagnosticHandler) {
+    std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler) {
   this->diagnosticHandler = std::move(diagnosticHandler);
 }
 
@@ -47,8 +47,8 @@ const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
   }
   return _children;
 }
-const DiagnosticUtils::SourceLocation BringStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+BringStatementSyntax::getSourceLocation() const {
   return _bringKeyword->getSourceLocation();
 }
 
@@ -67,7 +67,7 @@ const std::string &BringStatementSyntax::getRelativeFilePathPtr() {
   return relativeFilePath;
 }
 
-std::unique_ptr<DiagnosticHandler> &
+std::unique_ptr<FLowWing::DiagnosticHandler> &
 BringStatementSyntax::getDiagnosticHandlerPtr() {
   return diagnosticHandler;
 }

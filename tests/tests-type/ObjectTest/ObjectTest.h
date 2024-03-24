@@ -1,11 +1,10 @@
 #ifndef __OBJECT_TEST_H__
 #define __OBJECT_TEST_H__
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
 class ObjectTest : public ::testing::Test {
- protected:
+protected:
   ObjectTest();
 
   void SetUp() override;
@@ -25,4 +24,4 @@ class ObjectTest : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // __OBJECT_TEST_H__
+#endif // __OBJECT_TEST_H__

@@ -1,11 +1,10 @@
 #ifndef __JIT__FUNCTION_TEST_H__
 #define __JIT__FUNCTION_TEST_H__
 
-#include "../../../JITCompilerTest/JITCompilerTest.h"
-#include "../../../ReplTest/ReplTest.h"
+#include "../../../Common.h"
 
 class JITFunction : public ::testing::Test {
- protected:
+protected:
   JITFunction();
 
   void SetUp() override;
@@ -25,4 +24,4 @@ class JITFunction : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // __JIT__FUNCTION_TEST_H__
+#endif // __JIT__FUNCTION_TEST_H__

@@ -6,7 +6,7 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::unordered_map<std::string, std::any> variablesValues,
     std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
     std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
-    DiagnosticHandler *diagnosticHandler,
+    FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
     : variables(variables), functions(functions), customTypes(customTypes),
       variablesValues(variablesValues), globalStatement(std::move(statement)),

@@ -1,17 +1,21 @@
 #include "Compiler.h"
 
-Compiler::Compiler(std::string filePath)
+Compiler::Compiler(std::string filePath, const bool &isFormattedCodeReq)
     : _filePath(filePath),
       llFileSaveStrategy(std::make_unique<LLFileSaveStrategy>(nullptr)),
-      _currentDiagnosticHandler(std::make_unique<DiagnosticHandler>(filePath)),
-      executionEngine(nullptr) {}
+      _currentDiagnosticHandler(
+          std::make_unique<FLowWing::DiagnosticHandler>(filePath)),
+      executionEngine(nullptr), isFormattedCodeRequired(isFormattedCodeReq) {}
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
-#else
+#elif defined(RELEASE) && defined(__LINUX__)
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
+#elif defined(RELEASE) && defined(__APPLE__)
+  filePath = _executable_path.parent_path().string() + "/../Library" +
+             "/built_in_module.ll";
 #endif
   // std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
@@ -80,7 +84,7 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #else
   _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".bc", false);
+      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #endif
 
   if (_userDefinedIRFilePaths.size() == 0) {
@@ -101,17 +105,28 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
   const std::string &filePath = getBuiltInModulePath();
 
+#if defined(RELEASE)
+  std::unique_ptr<llvm::Module> TheModule =
+      std::make_unique<llvm::Module>("built_in_module", *TheContext);
+#else
   std::unique_ptr<llvm::Module> TheModule =
       filePath[filePath.length() - 1] == 'l'
           ? std::move(createModuleFromIR(filePath, TheContext))
           : std::move(createModuleFromBitcode(filePath, TheContext));
-
+#endif
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
   // TODO: Change the triple to x86_64-unknown-linux-gnu
-  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+  // TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+
+#if defined(__APPLE__)
+  TheModule->setTargetTriple("x86_64-apple-macosx14.0.0");
+#elif defined(__LINUX__)
+  TheModule->setTargetTriple(
+      llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+#endif
 
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
@@ -161,11 +176,13 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
 void Compiler::compile(std::vector<std::string> &text,
                        std::ostream &outputStream) {
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>(this->_filePath);
+  std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>(this->_filePath);
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
+
+  parser->setIsFormattedCodeRequired(isFormattedCodeRequired);
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -173,7 +190,8 @@ void Compiler::compile(std::vector<std::string> &text,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -186,7 +204,8 @@ void Compiler::compile(std::vector<std::string> &text,
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -214,7 +233,8 @@ void Compiler::compile(std::vector<std::string> &text,
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -229,13 +249,18 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
 
+  if (isFormattedCodeRequired) {
+
+    std::cout << parser->getFormattedSourceCode() << std::endl;
+    return;
+  }
+
   try {
+
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions);
-    const std::string fileNameWithOutExtension =
-        Utils::removeExtensionFromString(Utils::getFileName(
-            currentDiagnosticHandler->getAbsoluteFilePath()));
+
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
@@ -259,8 +284,8 @@ void Compiler::compile(std::vector<std::string> &text,
 }
 
 void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>();
+  std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>();
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -271,7 +296,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -284,7 +310,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -302,7 +329,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }

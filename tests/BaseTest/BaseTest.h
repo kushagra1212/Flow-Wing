@@ -9,7 +9,9 @@
 #include <string>
 
 class BaseTest {
- public:
+public:
+  virtual ~BaseTest() {}
+
   virtual void SetUp() = 0;
   virtual void TearDown() = 0;
   virtual void setInput(const std::string &input) = 0;
@@ -21,4 +23,4 @@ class BaseTest {
   std::streambuf *saved_cout_buf;
 };
 
-#endif  // BASE_TEST_H
+#endif // BASE_TEST_H

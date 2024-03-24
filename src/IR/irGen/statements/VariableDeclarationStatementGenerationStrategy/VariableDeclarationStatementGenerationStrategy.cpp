@@ -152,7 +152,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
             _codeGenerationContext);
 
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, structType, false, llvm::GlobalValue::ExternalLinkage,
+        *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
 
     objExpGenStrat->setVariable(_globalVariable);
@@ -172,7 +172,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
             _variableType);
 
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, llvmType, false, llvm::GlobalValue::ExternalLinkage,
+        *TheModule, llvmType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(llvmType), _variableName);
 
     Builder->CreateStore(_rhsValue, _globalVariable);
@@ -183,7 +183,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
   // Handle Global Dynamic Typed Variable
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
       *TheModule, _codeGenerationContext->getDynamicType()->get(), false,
-      llvm::GlobalValue::ExternalLinkage,
+      llvm::GlobalValue::ExternalWeakLinkage,
       llvm::Constant::getNullValue(
           _codeGenerationContext->getDynamicType()->get()),
       _variableName);

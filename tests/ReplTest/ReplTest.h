@@ -5,7 +5,7 @@
 #include "../BaseTest/BaseTest.h"
 
 class ReplTest : public BaseTest {
- public:
+public:
   ReplTest();
   void SetUp();
   void TearDown();
@@ -16,4 +16,4 @@ class ReplTest : public BaseTest {
   std::unique_ptr<Repl> repl;
 };
 
-#endif  // REPL_TEST_H
+#endif // REPL_TEST_H

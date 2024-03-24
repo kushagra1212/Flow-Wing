@@ -30,7 +30,7 @@ class Interpreter {
 private:
 public:
   Interpreter(BoundScopeGlobal *globalScope,
-              DiagnosticHandler *diagnosticHandler);
+              FLowWing::DiagnosticHandler *diagnosticHandler);
 
   void execute(BoundBlockStatement *node);
   std::string getResult();

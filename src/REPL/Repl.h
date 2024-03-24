@@ -8,7 +8,7 @@
 #include "../parser/Parser.h"
 
 class Repl {
- public:
+public:
   Repl();
   Repl(const bool &isTest);
   ~Repl();
@@ -25,19 +25,19 @@ class Repl {
   bool handleSpecialCommands(const std::string &line);
   int countBraces(const std::string &line, char brace);
 
-  void compileAndEvaluate(
-      std::ostream &outputStream,
-      std::unique_ptr<CompilationUnitSyntax> compilationUnit);
+  void
+  compileAndEvaluate(std::ostream &outputStream,
+                     std::unique_ptr<CompilationUnitSyntax> compilationUnit);
   void runIfNotInTest(std::function<void()> f);
   void toggleExit();
 
   void addTextString(const std::string &textString);
 
- private:  // Data members
+private: // Data members
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> text = std::vector<std::string>();
 
-  std::unique_ptr<DiagnosticHandler> _diagnosticHandler;
+  std::unique_ptr<FLowWing::DiagnosticHandler> _diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _previousGlobalScope;
   std::vector<std::string> previousText;
 
@@ -45,4 +45,4 @@ class Repl {
   bool isTest;
 };
 
-#endif  // REPL_H
+#endif // REPL_H

@@ -5,7 +5,7 @@
 #include "../BaseTest/BaseTest.h"
 
 class JITCompilerTest : public BaseTest {
- public:
+public:
   JITCompilerTest();
   void SetUp();
   void TearDown();
@@ -16,4 +16,4 @@ class JITCompilerTest : public BaseTest {
   std::unique_ptr<JITCompiler> jit_compiler;
 };
 
-#endif  // JIT_COMPILER_TEST_H
+#endif // JIT_COMPILER_TEST_H

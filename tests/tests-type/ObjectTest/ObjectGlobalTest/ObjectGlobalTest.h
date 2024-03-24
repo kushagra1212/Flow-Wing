@@ -1,8 +1,7 @@
 #ifndef __OBJECT_GLOBAL_TEST_H__
 #define __OBJECT_GLOBAL_TEST_H__
 
-#include "../../../JITCompilerTest/JITCompilerTest.h"
-#include "../../../ReplTest/ReplTest.h"
+#include "../../../Common.h"
 
 class ObjectGlobalTest : public ::testing::Test {
 protected:

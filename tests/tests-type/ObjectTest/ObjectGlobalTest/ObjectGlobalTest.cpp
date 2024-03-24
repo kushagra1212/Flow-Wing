@@ -1,14 +1,6 @@
 #include "ObjectGlobalTest.h"
 
-ObjectGlobalTest::ObjectGlobalTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+ObjectGlobalTest::ObjectGlobalTest() { _test = std::move(FlowWing::getTest()); }
 
 void ObjectGlobalTest::SetUp() { _test->SetUp(); }
 
@@ -22,7 +14,7 @@ std::string ObjectGlobalTest::getOutput() const { return _test->getOutput(); }
 
 void ObjectGlobalTest::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 // Declarations
 
@@ -303,7 +295,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTest1Fun) {
       c:deci,
       d:bool
      }
-     fun main() -> t1{
+     fun mainTest() -> t1{
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -314,7 +306,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTest1Fun) {
      return x
      }
 
-     var u:t1 = main()
+     var u:t1 = mainTest()
      print(u)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
@@ -338,7 +330,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecFun) {
       p:parent
      }
 
-     fun main() -> t1 {
+     fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -348,7 +340,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecFun) {
      return x
      }
 
-     var y:t1 = main()
+     var y:t1 = mainTest()
      print(y)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
@@ -372,7 +364,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUseFun) {
       p:parent
      }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -382,7 +374,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUseFun) {
      }
      return x
     }
-    var y:t1 = main()
+    var y:t1 = mainTest()
 
      print(y)
   )");
@@ -406,7 +398,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2Fun) {
       d:bool,
       p:parent
      }
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -416,7 +408,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2Fun) {
      }
      return x
     }
-    var y:t1 = main()
+    var y:t1 = mainTest()
      print(y)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } })");
@@ -440,7 +432,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2AssignFun) {
       p:parent
      }
     
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
            var x:t1 = { 
        a:"hello",
        b:10,
@@ -451,7 +443,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2AssignFun) {
      var y:t1 = x
      return y
     }
-    var z:t1 = main()
+    var z:t1 = mainTest()
      print(z)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
@@ -482,11 +474,11 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecFun) {
        d:true,
      }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
         return x
       }
 
-      var y:t1 =  main()
+      var y:t1 =  mainTest()
      print(y)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
@@ -510,7 +502,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecAssign1Fun) {
       p:parent
      }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
           var x:t1 = { 
        a:"hello",
        b:10,
@@ -521,7 +513,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecAssign1Fun) {
     return y
     }
 
-    var z:t1 =  main()
+    var z:t1 =  mainTest()
      print(z)
   )");
   O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
@@ -545,7 +537,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecAssign1AvdFun) {
       p:parent
      }
 
-    fun main() -> parent {
+    fun mainTest() -> parent {
           var x:t1 = { 
        a:"hello",
        b:10,
@@ -557,7 +549,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecAssign1AvdFun) {
     return y.p
     }
 
-    var z:parent =  main()
+    var z:parent =  mainTest()
      print(z)
   )");
   O(R"({ pa : 's', pb : 1, pc : 1.10000000000000, pd : true })");
@@ -569,14 +561,14 @@ TEST_F(ObjectGlobalTest, ObjectLoneIntFun) {
         a:int
       }
   
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
         var x:t1 = {
           a:1
         }  
       return x
       }
 
-      var y:t1 = main()
+      var y:t1 = mainTest()
       print(y)
     
   )");
@@ -589,14 +581,14 @@ TEST_F(ObjectGlobalTest, ObjectLoneDecFun) {
         a:deci
       }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
               var x:t1 = {
         a:1.0
       }
       return x
       }
 
-      var y:t1 = main()
+      var y:t1 = mainTest()
       print(y)
 
   )");
@@ -609,7 +601,7 @@ TEST_F(ObjectGlobalTest, ObjectLoneBoolFun) {
         a:bool
       }
 
-      fun main() -> t1 {
+      fun mainTest() -> t1 {
            var x:t1 = {
         a:true
       }
@@ -617,7 +609,7 @@ TEST_F(ObjectGlobalTest, ObjectLoneBoolFun) {
       }
 
     
-      var y:t1 = main()
+      var y:t1 = mainTest()
       print(y)
 
 
@@ -631,14 +623,14 @@ TEST_F(ObjectGlobalTest, ObjectLoneStrFun) {
         a:str
       }
 
-    fun main() -> t1 {
+    fun mainTest() -> t1 {
           var x:t1 = {
         a:"hello"
       }
       return x
     }
 
-    var y:t1 = main()
+    var y:t1 = mainTest()
       print(y)
 
 
@@ -1082,7 +1074,7 @@ TEST_F(ObjectGlobalTest, ObjectGlobalTestDecUse2NoDecAssignFunAllIn) {
      }
 
 
-    fun main(y:t1) -> t1 {
+    fun mainTest(y:t1) -> t1 {
 
       print(y)
           y.a = "hello2"
@@ -1100,7 +1092,7 @@ print("\n")
     var z:t1 =  {a:"gog",b:1,c:1.1,d:true}
     print(z)
     print("\n")
-    z = main(x)
+    z = mainTest(x)
      print(z)
 
   )");

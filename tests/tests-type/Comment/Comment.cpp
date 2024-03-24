@@ -1,14 +1,6 @@
 #include "Comment.h"
 
-CommentTest::CommentTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+CommentTest::CommentTest() { _test = std::move(FlowWing::getTest()); }
 
 void CommentTest::SetUp() { _test->SetUp(); }
 

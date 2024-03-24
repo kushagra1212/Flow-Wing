@@ -25,6 +25,22 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), '/', 'i');
 
+  std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
+      ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
+      bringStatement->getGlobalScopePtr()->functions,
+      absoluteFilePathWithoutExtension);
+
+  _evaluator->generateEvaluateGlobalStatement(
+      bringStatement->getGlobalScopePtr()->globalStatement.get(),
+      absoluteFilePathWithoutExtension);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
+  if (_evaluator->hasErrors()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Error in importing file " +
+        bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+  }
+
   llvm::FunctionType *FT =
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
                               llvm::ArrayRef<llvm::Type *>(), false);
@@ -64,14 +80,6 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
               _codeGenerationContext);
 
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
-    if (variable.second->getTypeExpression()->getSyntaxType() ==
-        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Multifile UNKOWN type not allowed, Please "
-          "specify the type of variable " +
-          variable.first);
-      return nullptr;
-    }
 
     if (bringStatement->isChoosyImport()) {
       if (bringStatement->isImported(variable.first) &&
@@ -82,11 +90,23 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
         return nullptr;
       }
 
-      if (bringStatement->isImported(variable.first))
+      if (bringStatement->isImported(variable.first)) {
+        if (variable.second->getTypeExpression()->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Multifile UNKOWN type not allowed, Please "
+              "specify the type of variable " +
+              variable.first);
+          return nullptr;
+        }
         varDecGenStrat->generateGlobalStatement(variable.second);
+      }
 
     } else {
-
+      if (variable.second->getTypeExpression()->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+        continue;
+      }
       varDecGenStrat->generateGlobalStatement(variable.second);
     }
   }
@@ -120,21 +140,6 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
 
   Builder->CreateCall(F, {});
 
-  std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
-      ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
-      bringStatement->getGlobalScopePtr()->functions,
-      absoluteFilePathWithoutExtension);
-
-  _evaluator->generateEvaluateGlobalStatement(
-      bringStatement->getGlobalScopePtr()->globalStatement.get(),
-      absoluteFilePathWithoutExtension);
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      bringStatement->getLocation());
-  if (_evaluator->hasErrors()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Error in importing file " +
-        bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
-  }
   return nullptr;
 }
 

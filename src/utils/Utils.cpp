@@ -527,6 +527,16 @@ std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
   return files;
 }
 
+void Utils::deleteFilesWithExtension(const std::string &directoryPath,
+                                     const std::string &extension) {
+  namespace fs = std::filesystem;
+  for (const auto &entry : fs::directory_iterator(directoryPath)) {
+    if (entry.path().extension() == extension) {
+      fs::remove(entry.path());
+    }
+  }
+}
+
 const std::string Utils::getRelativePath(const std::string &filePath) {
   std::filesystem::path path(filePath);
   return path.relative_path().string();

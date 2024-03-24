@@ -10,30 +10,33 @@
 #include "InterpreterConversions/InterpreterConversion.h"
 
 class InterpreterUtils {
- private:
+private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
-  DiagnosticHandler *_diagnosticHandler = nullptr;
+  FLowWing::DiagnosticHandler *_diagnosticHandler = nullptr;
 
- public:
-  InterpreterUtils(DiagnosticHandler *diagnosticHandler);
+public:
+  InterpreterUtils(FLowWing::DiagnosticHandler *diagnosticHandler);
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
-  DiagnosticHandler *getDiagnosticHandler();
+  FLowWing::DiagnosticHandler *getDiagnosticHandler();
   void logError(const std::string message);
 
-  std::any getResultFromBinaryOperationOnString(
-      std::string lhsValue, std::string rhsValue,
-      BoundBinaryExpression *binaryExpression);
-  std::any getResultFromBinaryOperationOnDouble(
-      double lhsValue, double rhsValue,
-      BoundBinaryExpression *binaryExpression);
+  std::any
+  getResultFromBinaryOperationOnString(std::string lhsValue,
+                                       std::string rhsValue,
+                                       BoundBinaryExpression *binaryExpression);
+  std::any
+  getResultFromBinaryOperationOnDouble(double lhsValue, double rhsValue,
+                                       BoundBinaryExpression *binaryExpression);
 
-  std::any getResultFromBinaryOperationOnInt(
-      int lhsValue, int rhsValue, BoundBinaryExpression *binaryExpression);
+  std::any
+  getResultFromBinaryOperationOnInt(int lhsValue, int rhsValue,
+                                    BoundBinaryExpression *binaryExpression);
 
-  std::any getResultFromBinaryOperationOnBool(
-      bool lhsValue, bool rhsValue, BoundBinaryExpression *binaryExpression);
+  std::any
+  getResultFromBinaryOperationOnBool(bool lhsValue, bool rhsValue,
+                                     BoundBinaryExpression *binaryExpression);
 
   template <typename T>
   std::any getResultFromUnaryExpressionEvaluatorHandler(
@@ -55,4 +58,4 @@ class InterpreterUtils {
       BinderKindUtils::BoundUnaryOperatorKind op, std::string operand);
 };
 
-#endif  // INTERPRETERUTILS_H
+#endif // INTERPRETERUTILS_H

@@ -6,15 +6,16 @@
 #include "../Diagnostic/Diagnostic.h"
 #include "../DiagnosticUtils/DiagnosticUtils.h"
 
+namespace FLowWing {
 class DiagnosticHandler {
- private:
+private:
   std::vector<Diagnostic> diagnostics;
   DiagnosticHandler *parent;
   int previousLineCount = 0;
   std::string _filePath;
   std::vector<std::string> _replLines;
 
- public:
+public:
   std::string getFileName(const std::string &filePath);
   DiagnosticHandler(std::string filePath = "",
                     DiagnosticHandler *parent = nullptr);
@@ -45,5 +46,6 @@ class DiagnosticHandler {
 
   const int8_t isRepl() const;
 };
+} // namespace FLowWing
 
-#endif  // DIAGNOSTIC_HANDLER_H
+#endif // DIAGNOSTIC_HANDLER_H

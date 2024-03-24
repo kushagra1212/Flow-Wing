@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.22.1)
+cmake_policy(SET CMP0075 NEW)
 project(FlowWing VERSION 0.0.1)
 set(VERSION "0.0.1")
 
@@ -20,8 +21,7 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../src/IR/BuiltinIRs/ DESTINATION ${CMAKE_BINARY_DIR}/lib/FlowWing)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../dependencies/ DESTINATION ${CMAKE_BINARY_DIR}/lib/FlowWing/dependencies)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../src/IR/BuiltinIRs/Contents DESTINATION ${CMAKE_BINARY_DIR})
 
 # use ccache if available
 find_program(CCACHE_FOUND ccache)
@@ -56,7 +56,7 @@ set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 
 # Set the executable name based on whether it's a test build or not
 if(TESTS_ENABLED)
-    set(EXECUTABLE_NAME "runTests")
+    set(EXECUTABLE_NAME "FlowWing")
 else()
     set(EXECUTABLE_NAME "FlowWing")
 endif()
