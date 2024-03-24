@@ -2,7 +2,9 @@
 #include "../cli/argh.h"
 #include "../common/version.h"
 
-AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
+AOTCompiler::AOTCompiler(std::string filePath,
+                         const bool &isFormattedCodeRequired)
+    : Compiler(filePath, isFormattedCodeRequired) {}
 
 void AOTCompiler::link() {
 
@@ -25,11 +27,12 @@ void AOTCompiler::link() {
 
   try {
     std::string cmd =
-        (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " " +
-         getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
-         " -lbuilt_in_module" + executeCmd);
+        (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " -e _" +
+         FLOWWING_GLOBAL_ENTRY_POINT + " " + getObjectFilesJoinedAsString() +
+         " -L" + LIB_PATH.string() + " -lbuilt_in_module " + executeCmd);
 
     std::system(cmd.c_str());
+
     // delete object files
     deleteObjectFiles();
   } catch (const std::exception &e) {
@@ -85,31 +88,37 @@ int main(int argc, char **argv) {
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser cmdl(argv);
-  if (cmdl[{"-V", "--version"}]) {
+  if (cmdl[{"--version", "-V"}]) {
     std::cout << "Flowwing Compiler" << std::endl;
     std::cout << "Version: " << VERSION_INFO << std::endl;
 
     return EXIT_FAILURE;
   }
 
-  if (argc != 2) {
+  bool isFormattedCodeRequired = false;
+  if (cmdl[{"--format", "-FM"}]) {
+    isFormattedCodeRequired = true;
+  }
+
+  if (!cmdl("file") && !cmdl("F")) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return EXIT_FAILURE;
   }
 
+  std::string _filePath = cmdl("file") ? cmdl("file").str() : cmdl("F").str();
   // Opens the file using the provided file path
 
   std::ifstream file;
 
-  file.open(argv[1]);
+  file.open(_filePath);
 
   if (!file.is_open()) {
-    Utils::printErrors({"Unable to open file: " + std::string(argv[1]),
+    Utils::printErrors({"Unable to open file: " + std::string(_filePath),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
 
-    if (access(argv[1], R_OK) != 0) {
+    if (access(_filePath.c_str(), R_OK) != 0) {
       Utils::printErrors(
           {"Please check if the file exists and you have read permissions."},
           std::cerr);
@@ -121,12 +130,12 @@ int main(int argc, char *argv[]) {
   // Close the file (imp)
   file.close();
 
-  Utils::Node::addPath(Utils::getAbsoluteFilePath(argv[1]));
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(_filePath));
   std::vector<std::string> text =
-      Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
+      Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<AOTCompiler> aotCompiler =
-      std::make_unique<AOTCompiler>(argv[1]);
+      std::make_unique<AOTCompiler>(_filePath, isFormattedCodeRequired);
 
   // #if DEBUG
   //   std::filesystem::path executable_path =

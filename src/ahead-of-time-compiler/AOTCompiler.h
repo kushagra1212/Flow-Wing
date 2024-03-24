@@ -16,7 +16,8 @@
 
 class AOTCompiler : public Compiler {
 public:
-  AOTCompiler(std::string filePath = "");
+  AOTCompiler(std::string filePath = "",
+              const bool &isFormattedCodeRequired = false);
 
   auto inline getClangFilePath() -> std::filesystem::path {
     std::filesystem::path CLANG_PATH = "";

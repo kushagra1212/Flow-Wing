@@ -248,6 +248,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readWhitespace() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
+
   std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
       std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), lineNumber,
@@ -257,12 +258,19 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
+  std::string text = "\n";
+  int lineN = this->lineNumber;
+  int pos = this->position + 1;
+  text += this->getCurrent();
   this->next(); // skip /
+  text += this->getCurrent();
   this->next(); // skip #
+
   while (this->getCurrent() != endOfFile &&
          (this->getCurrent() != '#' ||
           (this->getCurrent() == '#' && this->peek(1) != '/'))) {
     if (this->getCurrent() == endOfFile) {
+      text += this->getCurrent();
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::move(readEndOfFile());
 
@@ -273,22 +281,37 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
 
       return std::move(newSyntaxToken);
     } else if (this->getCurrent() == endOfLine) {
+      text += "\n";
       this->lineNumber++;
       this->position = 0;
     } else {
+      text += this->getCurrent();
       this->next();
     }
   }
 
+  text += this->getCurrent();
   this->next();
+  text += this->getCurrent();
+  this->next();
+
+  if (this->getCurrent() == endOfLine) {
+    text += "\n";
+    this->lineNumber++;
+    this->position = 0;
+  }
   return std::make_unique<SyntaxToken<std::any>>(
-      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::CommentStatement, this->position++, "/##/",
-      nullptr);
+      this->_diagnosticHandler->getAbsoluteFilePath(), lineN,
+      SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
+  std::string text = "\n";
+  int lineN = this->lineNumber;
+  int pos = this->position + 1;
+  text += this->getCurrent();
   this->next(); // skip /
+  text += this->getCurrent();
   this->next(); // skip ;
   while (!this->isEndOfLineOrFile()) {
     if (this->getCurrent() == endOfLine) {
@@ -302,13 +325,16 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
 
       return std::move(newSyntaxToken);
     } else {
+      text += this->getCurrent();
       this->next();
     }
   }
+  text += '\n';
+  this->lineNumber++;
+  this->position = 0;
   return std::make_unique<SyntaxToken<std::any>>(
-      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::CommentStatement, this->position++, "/;",
-      nullptr);
+      this->_diagnosticHandler->getAbsoluteFilePath(), lineN,
+      SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
@@ -655,5 +681,5 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::StringToken, start, text, text);
+      SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"', text);
 }

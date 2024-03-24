@@ -125,7 +125,8 @@
     "__threading_support": "cpp",
     "__errc": "cpp",
     "print": "cpp",
-    "execution": "cpp"
+    "execution": "cpp",
+    "strstream": "cpp"
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,

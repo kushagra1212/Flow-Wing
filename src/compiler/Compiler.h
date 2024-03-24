@@ -13,7 +13,7 @@
 
 class Compiler {
 public:
-  Compiler(std::string filePath = "");
+  Compiler(std::string filePath = "", const bool &isFormattedCodeReq = false);
 
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
@@ -42,6 +42,7 @@ public:
   std::unique_ptr<FLowWing::DiagnosticHandler> _currentDiagnosticHandler;
   llvm::ExecutionEngine *executionEngine;
   std::filesystem::path _executable_path = std::filesystem::current_path();
+  bool isFormattedCodeRequired = false;
 };
 
 #endif // __FLOW__WING__COMPILER__H__

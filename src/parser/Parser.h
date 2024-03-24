@@ -40,6 +40,10 @@
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
+#define ONE_SPACE " "
+#define TWO_SPACES "  "
+#define TAB_SPACE "  "
+#define NEW_LINE "\n"
 class Parser {
 public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
@@ -54,10 +58,18 @@ public:
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
+  inline auto setIsFormattedCodeRequired(const bool isFormattedCodeRequired) {
+    _isFormattedCodeRequired = isFormattedCodeRequired;
+  }
+
+  inline std::string getFormattedSourceCode() { return _formattedSourceCode; }
+
 private:
   FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
+
+  bool _isFormattedCodeRequired = false;
 
   bool matchKind(const SyntaxKindUtils::SyntaxKind &kind);
   void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
@@ -67,6 +79,19 @@ private:
   SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
+  std::string _formattedSourceCode = "";
+  std::string INDENT = "";
+
+  inline void appendWithSpace() { _formattedSourceCode += ONE_SPACE; }
+
+  inline void appendNewLine() {
+    if (this->getCurrent() &&
+        this->getCurrent()->getKind() !=
+            SyntaxKindUtils::SyntaxKind::CommentStatement) {
+      _formattedSourceCode += NEW_LINE;
+    } else
+      appendWithSpace();
+  }
 
   /*
     STATEMENTS
@@ -74,6 +99,7 @@ private:
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
+  std::unique_ptr<StatementSyntax> parseCommentStatement();
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();

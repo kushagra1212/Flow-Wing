@@ -1,11 +1,11 @@
 #include "Compiler.h"
 
-Compiler::Compiler(std::string filePath)
+Compiler::Compiler(std::string filePath, const bool &isFormattedCodeReq)
     : _filePath(filePath),
       llFileSaveStrategy(std::make_unique<LLFileSaveStrategy>(nullptr)),
       _currentDiagnosticHandler(
           std::make_unique<FLowWing::DiagnosticHandler>(filePath)),
-      executionEngine(nullptr) {}
+      executionEngine(nullptr), isFormattedCodeRequired(isFormattedCodeReq) {}
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
@@ -182,6 +182,8 @@ void Compiler::compile(std::vector<std::string> &text,
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
+  parser->setIsFormattedCodeRequired(isFormattedCodeRequired);
+
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
     currentDiagnosticHandler->logDiagnostics(
@@ -247,7 +249,14 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
 
+  if (isFormattedCodeRequired) {
+
+    std::cout << parser->getFormattedSourceCode() << std::endl;
+    return;
+  }
+
   try {
+
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions);
