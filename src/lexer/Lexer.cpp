@@ -601,7 +601,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfLine() {
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
-  std::string text = "";
+  std::string text = "", valueText = "";
   while (!this->isEndOfLineOrFile() && this->getCurrent() != '"') {
     if (this->getCurrent() == '\0') {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
@@ -621,22 +621,24 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
       return std::move(newSyntaxToken);
     }
     if (this->getCurrent() == '\\') {
+      text += this->getCurrent();
       this->next();
+      text += this->getCurrent();
       switch (this->getCurrent()) {
       case '"':
-        text += '"';
+        valueText += '"';
         break;
       case '\\':
-        text += '\\';
+        valueText += '\\';
         break;
       case 'n':
-        text += '\n';
+        valueText += '\n';
         break;
       case 'r':
-        text += '\r';
+        valueText += '\r';
         break;
       case 't':
-        text += '\t';
+        valueText += '\t';
         break;
       default:
         std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
@@ -658,6 +660,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
       }
     } else {
       text += this->getCurrent();
+      valueText += this->getCurrent();
     }
     this->next();
   }
@@ -681,5 +684,6 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"', text);
+      SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"',
+      valueText);
 }

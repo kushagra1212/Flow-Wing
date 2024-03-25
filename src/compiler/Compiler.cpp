@@ -253,6 +253,26 @@ void Compiler::compile(std::vector<std::string> &text,
   if (isFormattedCodeRequired) {
 
     std::cout << parser->getFormattedSourceCode() << std::endl;
+    //? format and Save to file
+    //     std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
+    //                    std::ios::out);
+
+    // // Check if the file is opened successfully
+    // if (!file.is_open()) {
+    //   _currentDiagnosticHandler->printDiagnostic(
+    //       std::cerr,
+    //       Diagnostic(
+    //           "Error opening file: formatting failed " +
+    //               currentDiagnosticHandler->getAbsoluteFilePath(),
+    //           DiagnosticUtils::DiagnosticLevel::Error,
+    //           DiagnosticUtils::DiagnosticType::Linker,
+    //           DiagnosticUtils::SourceLocation(
+    //               0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
+    //   return;
+    // }
+
+    // // Replace the content of the file with text
+    // file << parser->getFormattedSourceCode();
     return;
   }
 
