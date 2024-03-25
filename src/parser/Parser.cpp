@@ -4,6 +4,7 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
                std::unordered_map<std::string, int8_t> bringStatementPathsMap) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
+
   this->_bringStatementsPathsMap = bringStatementPathsMap;
   lexer = std::make_unique<Lexer>(sourceCode, diagnosticHandler);
 
@@ -158,6 +159,7 @@ std::unique_ptr<MemberSyntax> Parser::parseMember() {
   }
 
   if (currentKind == SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
+    appendNewLine();
     return std::move(this->parseFunctionDeclaration(isExposed));
   }
   return std::move(this->parseGlobalStatement(isExposed));
@@ -613,10 +615,14 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 
   bringStatement->setRelativeFilePath(relativeFilePath);
 
-  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
-      std::make_unique<FLowWing::DiagnosticHandler>(relativeFilePath);
+  std::string absoluteFilePath =
+      std::filesystem::path(this->_diagnosticHandler->getAbsoluteFilePath())
+          .parent_path()
+          .string() +
+      "/" + relativeFilePath;
 
-  std::string absoluteFilePath = Utils::getAbsoluteFilePath(relativeFilePath);
+  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>(absoluteFilePath);
 
   if (_bringStatementsPathsMap[absoluteFilePath] == 1) {
     this->_diagnosticHandler->addDiagnostic(

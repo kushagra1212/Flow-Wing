@@ -27,7 +27,7 @@ Compiler::getMemoryBuffer(std::string filePath) {
     return std::move(*bufferOrErr);
   } else {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading bitcode file: " + filePath + " " +
+        std::cerr, Diagnostic("Error reading bitcode file: " + filePath + " " +
                                   bufferOrErr.getError().message(),
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
@@ -46,7 +46,7 @@ Compiler::createModuleFromIR(const std::string &filePath,
 
   if (!module) {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading IR file: " + filePath,
+        std::cerr, Diagnostic("Error reading IR file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -68,7 +68,7 @@ std::unique_ptr<llvm::Module> Compiler::createModuleFromBitcode(
     return std::move(*moduleOrErr);
   } else {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading bitcode file: " + filePath,
+        std::cerr, Diagnostic("Error reading bitcode file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -89,7 +89,7 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
 
   if (_userDefinedIRFilePaths.size() == 0) {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("No user defined IR files found.",
+        std::cerr, Diagnostic("No user defined IR files found.",
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -135,7 +135,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     (defined(DEBUG) && defined(AOT_MODE))
 
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout,
+        std::cerr,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
@@ -147,7 +147,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
         llvm::Linker::Flags::OverrideFromSrc);
     if (LinkResult) {
       _currentDiagnosticHandler->printDiagnostic(
-          std::cout, Diagnostic("Error linking " + path,
+          std::cerr, Diagnostic("Error linking " + path,
                                 DiagnosticUtils::DiagnosticLevel::Error,
                                 DiagnosticUtils::DiagnosticType::Linker,
                                 DiagnosticUtils::SourceLocation(0, 0, path)));
@@ -159,7 +159,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     (defined(DEBUG) && defined(AOT_MODE))
 
   _currentDiagnosticHandler->printDiagnostic(
-      std::cout, Diagnostic("Finished linking modules.",
+      std::cerr, Diagnostic("Finished linking modules.",
                             DiagnosticUtils::DiagnosticLevel::Info,
                             DiagnosticUtils::DiagnosticType::Linker,
                             DiagnosticUtils::SourceLocation(
@@ -177,7 +177,8 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 void Compiler::compile(std::vector<std::string> &text,
                        std::ostream &outputStream) {
   std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<FLowWing::DiagnosticHandler>(this->_filePath);
+      std::make_unique<FLowWing::DiagnosticHandler>(
+          Utils::getAbsoluteFilePath(this->_filePath));
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -187,7 +188,7 @@ void Compiler::compile(std::vector<std::string> &text,
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
     currentDiagnosticHandler.reset(
@@ -201,7 +202,7 @@ void Compiler::compile(std::vector<std::string> &text,
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
     currentDiagnosticHandler.reset(
@@ -229,7 +230,7 @@ void Compiler::compile(std::vector<std::string> &text,
   if (hasSemanticError) {
 
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 

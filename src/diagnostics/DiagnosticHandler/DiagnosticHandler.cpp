@@ -5,7 +5,7 @@ using namespace FLowWing;
 DiagnosticHandler::DiagnosticHandler(std::string filePath,
                                      DiagnosticHandler *parent)
     : parent(parent) {
-  this->_filePath = Utils::getAbsoluteFilePath(filePath);
+  this->_filePath = (filePath);
 }
 
 void DiagnosticHandler::addDiagnostic(const Diagnostic &diagnostic) {

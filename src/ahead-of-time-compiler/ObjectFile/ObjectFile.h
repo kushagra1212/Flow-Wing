@@ -28,7 +28,10 @@ public:
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
     auto CPU = "generic";
     auto Features = "";
+    llvm::sys::fs::create_directories(
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR);
 
+    llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
     TargetOptions opt;
 
     auto TargetMachine = Target->createTargetMachine(
@@ -38,7 +41,9 @@ public:
     module->setTargetTriple(TargetTriple);
 
     std::error_code EC;
-    raw_fd_ostream dest(_fileName + ".o", EC, sys::fs::OF_None);
+    raw_fd_ostream dest(FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR +
+                            _fileName + ".o",
+                        EC, sys::fs::OF_None);
 
     legacy::PassManager pass;
     auto FileType = CGFT_ObjectFile;

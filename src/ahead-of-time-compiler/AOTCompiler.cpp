@@ -22,14 +22,17 @@ void AOTCompiler::link() {
 #if defined(AOT_TEST_MODE)
   fileNameWithOutExtension =
       FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT;
-  executeCmd = " && ./" + fileNameWithOutExtension;
+  executeCmd = " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
+               fileNameWithOutExtension;
 #endif
 
   try {
     std::string cmd =
-        (CLANG_PATH.string() + " -O3 -o " + fileNameWithOutExtension + " -e _" +
-         FLOWWING_GLOBAL_ENTRY_POINT + " " + getObjectFilesJoinedAsString() +
-         " -L" + LIB_PATH.string() + " -lbuilt_in_module " + executeCmd);
+        (CLANG_PATH.string() + " -O3 -o " +
+         FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + fileNameWithOutExtension +
+         " -e _" + FLOWWING_GLOBAL_ENTRY_POINT + " " +
+         getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
+         " -lbuilt_in_module " + executeCmd);
 
     std::system(cmd.c_str());
 
@@ -40,22 +43,6 @@ void AOTCompiler::link() {
     // delete object files
     deleteObjectFiles();
   }
-
-  // check For Clang
-
-  // if (system(("ls " + CLANG_PATH.string() + " --version > /dev/null
-  // 2>&1").c_str()) !=
-  //     0) {
-  //   _currentDiagnosticHandler->printDiagnostic(
-  //       std::cout,
-  //       Diagnostic("Clang not found " +  CLANG_PATH.string(),
-  //       DiagnosticUtils::DiagnosticLevel::Error,
-  //                  DiagnosticUtils::DiagnosticType::Linker,
-  //                  DiagnosticUtils::SourceLocation(
-  //                      0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
-
-  //   return;
-  // }
 }
 
 void AOTCompiler::execute() { link(); }

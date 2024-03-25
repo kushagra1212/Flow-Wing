@@ -20,6 +20,8 @@ const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 // Entry Point
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
+const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
+const std::string TEMP_BIN_DIR = "build/bin/";
 namespace INNERS {
 namespace FUNCTIONS {
 

@@ -46,7 +46,8 @@ public:
   auto inline getObjectFilesJoinedAsString() -> std::string {
 
     std::vector<std::string> objectFiles =
-        Utils::getAllFilesInDirectoryWithExtension(".", ".o", false);
+        Utils::getAllFilesInDirectoryWithExtension(
+            FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
     std::string joined = "";
     for (const auto &objectFile : objectFiles) {
       joined += objectFile + " ";
@@ -56,7 +57,8 @@ public:
 
   auto inline deleteObjectFiles() -> void {
     std::vector<std::string> objectFiles =
-        Utils::getAllFilesInDirectoryWithExtension(".", ".o", false);
+        Utils::getAllFilesInDirectoryWithExtension(
+            FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
     for (const auto &objectFile : objectFiles) {
       std::filesystem::remove(objectFile);
     }

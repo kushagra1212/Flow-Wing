@@ -376,8 +376,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
   std::vector<std::string> expressionStrings = {};
 
-  if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
-      !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
+  if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath())) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
         DiagnosticUtils::DiagnosticLevel::Error,
