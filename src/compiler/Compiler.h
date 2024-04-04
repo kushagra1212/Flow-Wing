@@ -8,12 +8,13 @@
 
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
+#include "../cli/commandLineOptions/commandLineOptions.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 
 class Compiler {
 public:
-  Compiler(std::string filePath = "", const bool &isFormattedCodeReq = false);
+  Compiler(std::string filePath = "");
 
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
   void runTests(std::istream &inputStream, std::ostream &outputStream);
@@ -42,7 +43,22 @@ public:
   std::unique_ptr<FLowWing::DiagnosticHandler> _currentDiagnosticHandler;
   llvm::ExecutionEngine *executionEngine;
   std::filesystem::path _executable_path = std::filesystem::current_path();
-  bool isFormattedCodeRequired = false;
+
+  //! Version
+  FlowWingCliOptions::Option<bool> Version;
+  FlowWingCliOptions::Option<bool> ShortVersion;
+
+  //! File
+  FlowWingCliOptions::Option<std::string> File;
+  FlowWingCliOptions::Option<std::string> ShortFile;
+
+  //! Format
+  FlowWingCliOptions::Option<bool> Format;
+  FlowWingCliOptions::Option<bool> ShortFormat;
+
+  //! Format Print
+  FlowWingCliOptions::Option<bool> FormatPrint;
+  FlowWingCliOptions::Option<bool> ShortFormatPrint;
 };
 
 #endif // __FLOW__WING__COMPILER__H__

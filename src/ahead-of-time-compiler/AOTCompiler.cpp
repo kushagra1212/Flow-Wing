@@ -4,7 +4,7 @@
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)
-    : Compiler(filePath, isFormattedCodeRequired) {}
+    : Compiler(filePath) {}
 
 void AOTCompiler::link() {
 
@@ -75,19 +75,16 @@ int main(int argc, char **argv) {
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser cmdl(argv);
-  if (cmdl[{"--version", "-V"}]) {
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Version.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortVersion.name.c_str()}]) {
     std::cout << "Flowwing Compiler" << std::endl;
     std::cout << "Version: " << VERSION_INFO << std::endl;
-
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
-  bool isFormattedCodeRequired = false;
-  if (cmdl[{"--format", "-FM"}]) {
-    isFormattedCodeRequired = true;
-  }
-
-  if (!cmdl("file") && !cmdl("F")) {
+  if (!cmdl(FlowWingCliOptions::OPTIONS::File.name.c_str()) &&
+      !cmdl(FlowWingCliOptions::OPTIONS::ShortFile.name.c_str())) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return EXIT_FAILURE;
@@ -122,7 +119,21 @@ int main(int argc, char *argv[]) {
       Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<AOTCompiler> aotCompiler =
-      std::make_unique<AOTCompiler>(_filePath, isFormattedCodeRequired);
+      std::make_unique<AOTCompiler>(_filePath);
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Format.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormat.name.c_str()}]) {
+
+    aotCompiler->Format.setValue(true);
+    aotCompiler->ShortFormat.setValue(true);
+  }
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::FormatPrint.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormatPrint.name.c_str()}]) {
+
+    aotCompiler->FormatPrint.setValue(true);
+    aotCompiler->ShortFormatPrint.setValue(true);
+  }
 
   // #if DEBUG
   //   std::filesystem::path executable_path =

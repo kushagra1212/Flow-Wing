@@ -154,14 +154,15 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     logString = getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber));
 
     fileName += "File: ";
-    fileName +=
-        this->getFileName(diagnostic.getLocation().absoluteFilePath != ""
-                              ? diagnostic.getLocation().absoluteFilePath
-                              : this->_filePath);
+    const std::string FILEPATH =
+        (diagnostic.getLocation().absoluteFilePath != ""
+             ? diagnostic.getLocation().absoluteFilePath
+             : this->_filePath);
+    fileName += this->getFileName(FILEPATH);
 
     if (_filePath != "") {
       fileOut = YELLOW;
-      fileOut += "Location: " + this->_filePath + "\n" + RESET;
+      fileOut += "Location: " + FILEPATH + "\n" + RESET;
     }
   }
 

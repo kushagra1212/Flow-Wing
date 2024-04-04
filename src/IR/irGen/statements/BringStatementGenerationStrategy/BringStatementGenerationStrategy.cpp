@@ -53,13 +53,18 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   std::unique_ptr<CustomTypeStatementGenerationStrategy> custTypeGenStrat =
       std::make_unique<CustomTypeStatementGenerationStrategy>(
           _codeGenerationContext);
-
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
   for (const auto &customType :
        bringStatement->getGlobalScopePtr()->customTypes) {
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        customType.second->getLocation());
 
     if (bringStatement->isChoosyImport()) {
       if (bringStatement->isImported(customType.first) &&
           !customType.second->isExposed()) {
+
         _codeGenerationContext->getLogger()->LogError(
             "Object Type " + customType.first + " is not exposed in the file " +
             onlyFileName);
@@ -78,14 +83,16 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
       varDecGenStrat =
           std::make_unique<VariableDeclarationStatementGenerationStrategy>(
               _codeGenerationContext);
-
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
-
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        variable.second->getLocation());
     if (bringStatement->isChoosyImport()) {
       if (bringStatement->isImported(variable.first) &&
           !variable.second->isExposed()) {
         _codeGenerationContext->getLogger()->LogError(
-            "Varibale " + variable.first + " is not exposed in the file " +
+            "Variable " + variable.first + " is not exposed in the file " +
             onlyFileName);
         return nullptr;
       }
@@ -94,7 +101,7 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
         if (variable.second->getTypeExpression()->getSyntaxType() ==
             SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
           _codeGenerationContext->getLogger()->LogError(
-              "Multifile UNKOWN type not allowed, Please "
+              "Multi file UNKOWN type not allowed, Please "
               "specify the type of variable " +
               variable.first);
           return nullptr;
@@ -118,10 +125,12 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
               _codeGenerationContext);
 
   for (const auto &_function : bringStatement->getGlobalScopePtr()->functions) {
-
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        _function.second->getLocation());
     if (bringStatement->isChoosyImport()) {
       if (bringStatement->isImported(_function.first) &&
           !_function.second->isExposed()) {
+
         _codeGenerationContext->getLogger()->LogError(
             "Function " + _function.first + " is not exposed in the file " +
             onlyFileName);

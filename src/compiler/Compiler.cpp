@@ -1,11 +1,30 @@
 #include "Compiler.h"
 
-Compiler::Compiler(std::string filePath, const bool &isFormattedCodeReq)
+Compiler::Compiler(std::string filePath)
     : _filePath(filePath),
       llFileSaveStrategy(std::make_unique<LLFileSaveStrategy>(nullptr)),
       _currentDiagnosticHandler(
           std::make_unique<FLowWing::DiagnosticHandler>(filePath)),
-      executionEngine(nullptr), isFormattedCodeRequired(isFormattedCodeReq) {}
+      executionEngine(nullptr) {
+
+  // Define command-line options
+
+  //! Version
+  Version = FlowWingCliOptions::OPTIONS::Version;
+  ShortVersion = FlowWingCliOptions::OPTIONS::ShortVersion;
+
+  //! File
+  File = FlowWingCliOptions::OPTIONS::File;
+  ShortFile = FlowWingCliOptions::OPTIONS::ShortFile;
+
+  //! Format
+  Format = FlowWingCliOptions::OPTIONS::Format;
+  ShortFormat = FlowWingCliOptions::OPTIONS::ShortFormat;
+
+  //! Format Print
+  FormatPrint = FlowWingCliOptions::OPTIONS::FormatPrint;
+  ShortFormatPrint = FlowWingCliOptions::OPTIONS::ShortFormatPrint;
+}
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
@@ -183,7 +202,8 @@ void Compiler::compile(std::vector<std::string> &text,
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
-  parser->setIsFormattedCodeRequired(isFormattedCodeRequired);
+  parser->setIsFormattedCodeRequired(this->Format.getValue() ||
+                                     this->ShortFormat.getValue());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -250,29 +270,33 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
 
-  if (isFormattedCodeRequired) {
+  if (this->Format.getValue() || this->ShortFormat.getValue()) {
+
+    //? format and Save to file
+    std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
+                       std::ios::out);
+
+    // Check if the file is opened successfully
+    if (!file.is_open()) {
+      _currentDiagnosticHandler->printDiagnostic(
+          std::cerr,
+          Diagnostic(
+              "Error opening file: formatting failed " +
+                  currentDiagnosticHandler->getAbsoluteFilePath(),
+              DiagnosticUtils::DiagnosticLevel::Error,
+              DiagnosticUtils::DiagnosticType::Linker,
+              DiagnosticUtils::SourceLocation(
+                  0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
+      return;
+    }
+
+    // Replace the content of the file with text
+    file << parser->getFormattedSourceCode();
+    return;
+  } else if (this->FormatPrint.getValue() ||
+             this->ShortFormatPrint.getValue()) {
 
     std::cout << parser->getFormattedSourceCode() << std::endl;
-    //? format and Save to file
-    //     std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
-    //                    std::ios::out);
-
-    // // Check if the file is opened successfully
-    // if (!file.is_open()) {
-    //   _currentDiagnosticHandler->printDiagnostic(
-    //       std::cerr,
-    //       Diagnostic(
-    //           "Error opening file: formatting failed " +
-    //               currentDiagnosticHandler->getAbsoluteFilePath(),
-    //           DiagnosticUtils::DiagnosticLevel::Error,
-    //           DiagnosticUtils::DiagnosticType::Linker,
-    //           DiagnosticUtils::SourceLocation(
-    //               0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
-    //   return;
-    // }
-
-    // // Replace the content of the file with text
-    // file << parser->getFormattedSourceCode();
     return;
   }
 
