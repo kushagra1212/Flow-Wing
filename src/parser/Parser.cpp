@@ -171,6 +171,10 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int32Keyword));
   }
 
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int8Keyword));
+  }
+
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::DeciKeyword));
   }
@@ -205,6 +209,8 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
           SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::BoolKeyword) +
           "> or <" +
           SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::NthgKeyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int8Keyword) +
           ">",
       DiagnosticUtils::DiagnosticLevel::Error,
       DiagnosticUtils::DiagnosticType::Syntactic,
@@ -264,7 +270,11 @@ Parser::parseFunctionDeclaration(const bool &isExposed) {
   functionDeclaration->setReturnType(this->parseTypeExpression());
   appendWithSpace();
 
-  functionDeclaration->setBody(std::move(this->parseBlockStatement()));
+  if (this->getCurrent()->getKind() == SyntaxKindUtils::SyntaxKind::DeclKeyword)
+    functionDeclaration->setDeclKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::DeclKeyword)));
+  else
+    functionDeclaration->setBody(std::move(this->parseBlockStatement()));
 
   appendNewLine();
   return std::move(functionDeclaration);

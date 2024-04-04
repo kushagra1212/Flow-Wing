@@ -220,9 +220,22 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     return true;
   }
 
-  _rhsValue =
-      _expressionGenerationFactory->createStrategy(initializerExp->getKind())
-          ->generateExpression(initializerExp);
+  if (initializerExp->getKind() ==
+          BinderKindUtils::BoundNodeKind::LiteralExpression &&
+      _variableType != SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    std::unique_ptr<LiteralExpressionGenerationStrategy>
+        literalExpressionGenerationStrategy =
+            std::make_unique<LiteralExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
+    _rhsValue = literalExpressionGenerationStrategy->generateTypedExpression(
+        initializerExp, _variableType);
+
+  } else {
+    _rhsValue =
+        _expressionGenerationFactory->createStrategy(initializerExp->getKind())
+            ->generateExpression(initializerExp);
+  }
 
   if (!_rhsValue) {
     _codeGenerationContext->getLogger()->LogError(

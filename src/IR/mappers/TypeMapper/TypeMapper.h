@@ -18,7 +18,7 @@ class TypeMapper {
   std::unordered_map<SyntaxKindUtils::SyntaxKind, llvm::Type *>
       _reverseTypeMappings;
 
- public:
+public:
   TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder);
 
   SyntaxKindUtils::SyntaxKind mapLLVMTypeToCustomType(llvm::Type *type) const;
@@ -28,6 +28,7 @@ class TypeMapper {
   const bool isBoolType(llvm::Type *type) const;
   const bool isDoubleType(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
+  const bool isInt8Type(llvm::Type *type) const;
   const bool isPtrType(llvm::Type *type) const;
   const bool isPrimitiveType(llvm::Type *type) const;
   const bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;
@@ -46,4 +47,4 @@ class TypeMapper {
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;
 };
 
-#endif  // TYPEMAPPER_H
+#endif // TYPEMAPPER_H

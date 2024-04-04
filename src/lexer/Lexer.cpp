@@ -182,6 +182,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
         SyntaxKindUtils::SyntaxKind::Int32Keyword, start, text, "int");
   }
 
+  else if (text == "int8") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Int8Keyword, start, text, "int8");
+  }
+
   else if (text == "bool") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -228,6 +234,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::TypeKeyword, start, text, "type");
+  } else if (text == "decl") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::DeclKeyword, start, text, "decl");
   }
 
   return std::make_unique<SyntaxToken<std::any>>(

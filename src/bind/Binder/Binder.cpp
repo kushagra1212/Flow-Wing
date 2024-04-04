@@ -851,15 +851,19 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   fd->setReturnType(std::move(bindTypeExpression(
       (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
 
-  this->root->incrementFunctionCount();
+  if (syntax->isOnlyDeclared()) {
+    fd->setOnlyDeclared();
+  } else {
+    this->root->incrementFunctionCount();
 
-  std::unique_ptr<BoundBlockStatement> boundBody(
-      (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
-          .release());
+    std::unique_ptr<BoundBlockStatement> boundBody(
+        (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
+            .release());
 
-  fd->setFunctionBody(std::move(boundBody));
+    fd->setFunctionBody(std::move(boundBody));
 
-  this->root->decrementFunctionCount();
+    this->root->decrementFunctionCount();
+  }
 
   if (!this->root->tryDeclareFunction(fd.get())) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(

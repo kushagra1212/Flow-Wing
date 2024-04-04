@@ -8,10 +8,9 @@ StructTypeBuilder::StructTypeBuilder(
     : TypeBuilderInterface(_codeGenerationContext) {
   _context = _codeGenerationContext->getContext().get();
   _memberTypesForDynamicTypes = {
-      llvm::Type::getInt32Ty(*_context),
-      llvm::Type::getDoubleTy(*_context),
-      llvm::Type::getInt1Ty(*_context),
-      llvm::Type::getInt8PtrTy(*_context),
+      llvm::Type::getInt32Ty(*_context), llvm::Type::getDoubleTy(*_context),
+      llvm::Type::getInt1Ty(*_context),  llvm::Type::getInt8PtrTy(*_context),
+      llvm::Type::getInt8Ty(*_context),
   };
 }
 

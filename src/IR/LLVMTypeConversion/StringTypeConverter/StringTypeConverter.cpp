@@ -103,12 +103,18 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
 
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    _logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int to string is not "
-                                "supported for variable with predefined type"));
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int32 to string is not "
+        "supported for variable with predefined type"));
 
     return nullptr;
+  }
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int8 to string is not "
+        "supported for variable with predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
     _logger->logLLVMError(

@@ -21,6 +21,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
   std::unique_ptr<ExpressionSyntax> _returnExpression;
+  std::unique_ptr<SyntaxToken<std::any>> _declKeyword;
+  bool _isOnlyDeclared = false;
 
 public:
   std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
@@ -48,6 +50,12 @@ public:
     _exposedKeyword = std::move(exposedKeyword);
   }
 
+  inline auto
+  setDeclKeyword(std::unique_ptr<SyntaxToken<std::any>> declKeyword) {
+    _isOnlyDeclared = true;
+    _declKeyword = std::move(declKeyword);
+  }
+
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
@@ -65,6 +73,13 @@ public:
       -> const std::unique_ptr<ExpressionSyntax> & {
     return _returnExpression;
   }
+
+  inline auto getDeclKeywordRef() const
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _declKeyword;
+  }
+
+  inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _exposedKeyword != nullptr; }
 };

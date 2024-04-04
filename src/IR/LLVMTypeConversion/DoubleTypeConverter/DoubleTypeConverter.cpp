@@ -10,7 +10,8 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return _builder->CreateSIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
@@ -43,7 +44,8 @@ llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
 
   switch (type) {
-  case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return _builder->CreateSIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }

@@ -39,3 +39,25 @@ llvm::Value *LiteralExpressionGenerationStrategy::generateGlobalExpression(
 
   return nullptr;
 }
+
+llvm::Value *LiteralExpressionGenerationStrategy::generateTypedExpression(
+    BoundExpression *expression, SyntaxKindUtils::SyntaxKind variableType) {
+  BoundLiteralExpression<std::any> *literalExpression =
+      (BoundLiteralExpression<std::any> *)expression;
+  std::any value = literalExpression->getValue();
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      literalExpression->getLocation());
+
+  llvm::Value *val = _llvmValueConverter->convertToTypedLLVMValue(
+      value, literalExpression->getSyntaxKind(), variableType);
+
+  if (val == nullptr) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Literal Type " +
+        SyntaxKindUtils::to_string(literalExpression->getSyntaxKind()));
+    return nullptr;
+  }
+
+  return val;
+}

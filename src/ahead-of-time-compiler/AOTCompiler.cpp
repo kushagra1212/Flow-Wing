@@ -26,13 +26,18 @@ void AOTCompiler::link() {
                fileNameWithOutExtension;
 #endif
 
+  const std::string RAY_LIB_CMD =
+      "-lraylib -framework CoreFoundation -framework "
+      "CoreGraphics -framework Cocoa -framework IOKit -framework "
+      "CoreVideo ";
+
   try {
     std::string cmd =
         (CLANG_PATH.string() + " -O3 -o " +
          FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + fileNameWithOutExtension +
          " -e _" + FLOWWING_GLOBAL_ENTRY_POINT + " " +
          getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
-         " -lbuilt_in_module " + executeCmd);
+         " -lbuilt_in_module " + RAY_LIB_CMD + executeCmd);
 
     std::system(cmd.c_str());
 

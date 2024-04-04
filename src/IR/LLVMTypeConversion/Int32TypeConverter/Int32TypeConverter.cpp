@@ -15,6 +15,9 @@ llvm::Value *Int32TypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
     return value;
   }
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    return _builder->CreateSExt(value, llvm::Type::getInt32Ty(*TheContext));
+  }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
     return _builder->CreateFPToSI(value, llvm::Type::getInt32Ty(*TheContext));
   }
@@ -47,6 +50,10 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *&value) {
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
     return value;
+  }
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    return _builder->CreateSExt(value,
+                                llvm::Type::getInt32Ty(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
     this->_logger->logLLVMWarning(llvm::createStringError(

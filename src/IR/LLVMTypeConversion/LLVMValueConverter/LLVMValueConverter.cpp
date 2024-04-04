@@ -40,11 +40,10 @@ llvm::Value *LLVMValueConverter::doubleToLLVMValue(double value) {
 }
 
 llvm::Value *LLVMValueConverter::boolToLLVMValue(bool value) {
-  if (value) {
+  if (value)
     return llvm::ConstantInt::getTrue(*_llvmContext);
-  } else {
+  else
     return llvm::ConstantInt::getFalse(*_llvmContext);
-  }
 }
 
 llvm::Value *
@@ -93,4 +92,55 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
   //     strPtr, llvm::IntegerType::getInt8PtrTy((*_llvmContext)),
   //     "element_ptr");
   // return strPtr;
+}
+
+llvm::Value *
+LLVMValueConverter::convertToTypedLLVMValue(std::any value,
+                                            SyntaxKindUtils::SyntaxKind kind,
+                                            SyntaxKindUtils::SyntaxKind type) {
+
+  if (value.type() == typeid(bool))
+    return boolToLLVMValue(std::any_cast<bool>(value));
+
+  if (value.type() == typeid(std::string))
+    return stringToTypedLLVMValue(std::any_cast<std::string>(value), kind,
+                                  type);
+
+  return nullptr;
+}
+
+llvm::Value *
+LLVMValueConverter::stringToTypedLLVMValue(std::string value,
+                                           SyntaxKindUtils::SyntaxKind kind,
+                                           SyntaxKindUtils::SyntaxKind type) {
+  //  if the string contains only decimal numbers
+
+  if (kind == SyntaxKindUtils::NumberToken) {
+
+    if (Utils::isInteger(value)) {
+      // larger integer type
+      switch (type) {
+      case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
+        llvm::APInt llvmLongIntValue(32, value, 10);
+        return llvm::ConstantInt::get(*_llvmContext, llvmLongIntValue);
+      }
+      case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+        llvm::APInt llvmLongIntValue(8, value, 10);
+        return llvm::ConstantInt::get(*_llvmContext, llvmLongIntValue);
+      }
+      default:
+        break;
+      }
+    }
+
+    if (Utils::isDouble(value)) {
+      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(), value.c_str());
+      llvm::Constant *llvmValue =
+          llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+
+      return llvmValue;
+    }
+  }
+
+  return _builder->CreateGlobalStringPtr(value);
 }

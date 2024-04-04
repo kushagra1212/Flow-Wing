@@ -10,11 +10,18 @@
 #include "llvm/IR/Value.h"
 
 class LLVMValueConverter {
- public:
+public:
   LLVMValueConverter(CodeGenerationContext *context);
 
   llvm::Value *convertToLLVMValue(std::any value,
                                   SyntaxKindUtils::SyntaxKind kind);
+  llvm::Value *convertToTypedLLVMValue(std::any value,
+                                       SyntaxKindUtils::SyntaxKind kind,
+                                       SyntaxKindUtils::SyntaxKind type);
+
+  llvm::Value *stringToTypedLLVMValue(std::string value,
+                                      SyntaxKindUtils::SyntaxKind kind,
+                                      SyntaxKindUtils::SyntaxKind type);
 
   llvm::Value *int32ToLLVMValue(int32_t value);
   llvm::Value *doubleToLLVMValue(double value);
@@ -22,7 +29,7 @@ class LLVMValueConverter {
   llvm::Value *stringToLLVMValue(std::string value,
                                  SyntaxKindUtils::SyntaxKind kind);
 
- private:
+private:
   llvm::IRBuilder<> *_builder;
   llvm::Module *_module;
   TypeMapper *_mapper;
@@ -31,4 +38,4 @@ class LLVMValueConverter {
   CodeGenerationContext *_codeGenerationContext;
 };
 
-#endif  // __FLOWWING_LLVM_VALUE_CONVERTER_H__
+#endif // __FLOWWING_LLVM_VALUE_CONVERTER_H__

@@ -2,12 +2,13 @@
 #define __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class VariableDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
- public:
+public:
   VariableDeclarationStatementGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -24,17 +25,18 @@ class VariableDeclarationStatementGenerationStrategy
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
-  llvm::Value *handleUnTypedPrimitiveLocalVariableDeclr(
-      const std::string &variableName, llvm::Value *rhsValue);
+  llvm::Value *
+  handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
+                                           llvm::Value *rhsValue);
 
   llvm::Value *handlePrimitiveLocalVariableDeclr(
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
- private:
+private:
   std::string _variableName;
   llvm::Value *_rhsValue;
   SyntaxKindUtils::SyntaxKind _variableType;
 };
 
-#endif  // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
+#endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

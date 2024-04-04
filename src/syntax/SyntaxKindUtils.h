@@ -36,6 +36,7 @@ enum SyntaxKind {
   HashToken,
   NthgKeyword,
   Int32Keyword,
+  Int8Keyword,
   DeciKeyword,
   StrKeyword,
   BoolKeyword,
@@ -84,6 +85,7 @@ enum SyntaxKind {
   ElseClause,
   FillKeyword,
   TypeKeyword,
+  DeclKeyword,
 
   // Identifiers
   IdentifierToken,

@@ -201,7 +201,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::Int32Keyword:
     return "Int32Keyword";
-
+  case SyntaxKind::Int8Keyword:
+    return "Int8Keyword";
   case SyntaxKind::DeciKeyword:
     return "DeciKeyword";
 
@@ -286,6 +287,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::ContinueStatement:
     return "ContinueStatement";
+
+  case SyntaxKind::DeclKeyword:
+    return "DeclKeyword";
   default:
     return "NotDefined";
   }
@@ -297,6 +301,7 @@ bool SyntaxKindUtils::isType(SyntaxKind kind) {
   case SyntaxKind::Int32Keyword:
   case SyntaxKind::DeciKeyword:
   case SyntaxKind::StrKeyword:
+  case SyntaxKind::Int8Keyword:
     return true;
   default:
     return false;
