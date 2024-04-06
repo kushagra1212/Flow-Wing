@@ -34,14 +34,15 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           arrayAlloca);
-  createExpression(
+
+  createExpressionLoop(
       arrayType, arrayAlloca,
       llvm::cast<llvm::Constant>(
           _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
       _totalSize);
 
-  return createExpression(arrayType, arrayAlloca, _elementToFill,
-                          _sizeToFillInt);
+  return createExpressionLoop(arrayType, arrayAlloca, _elementToFill,
+                              _sizeToFillInt);
 }
 
 llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
@@ -87,6 +88,7 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
   return createGlobalExpression(arrayType, _globalVariable);
 }
 
+//! NOT IN USE
 llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
     llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
     uint64_t &sizeToFillVal, std::vector<llvm::Value *> &indices,
@@ -159,8 +161,8 @@ llvm::Value *FillExpressionGenerationStrategy::createExpression(
 
 llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
     llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable) {
-  return this->createExpression(arrayType, _globalVariable, _elementToFill,
-                                _sizeToFillInt);
+  return this->createExpressionLoop(arrayType, _globalVariable, _elementToFill,
+                                    _sizeToFillInt);
 }
 
 bool FillExpressionGenerationStrategy::canGenerateExpression(
@@ -255,4 +257,111 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   }
 
   return true;
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
+    uint64_t &sizeToFillVal) {
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+
+  std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
+  std::vector<llvm::AllocaInst *> indices;
+
+  for (int i = 0; i < _actualSizes.size(); i++) {
+    std::vector<llvm::BasicBlock *> blocks = {
+        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopStart",
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopCmp",
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopBody",
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopEnd",
+                                 currentBlock->getParent())};
+
+    llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
+    indices.push_back(index);
+    loopBlocks.push_back(blocks);
+  }
+
+  llvm::AllocaInst *numberOfElementsFilled =
+      Builder->CreateAlloca(Builder->getInt32Ty());
+  Builder->CreateStore(Builder->getInt32(0), numberOfElementsFilled);
+
+  llvm::BasicBlock *exit = llvm::BasicBlock::Create(
+      *TheContext, "FillExpr.exit", currentBlock->getParent());
+
+  Builder->CreateBr(loopBlocks[0][0]);
+
+  for (int i = 0; i < _actualSizes.size(); i++) {
+    // start
+    Builder->SetInsertPoint(loopBlocks[i][0]);
+    Builder->CreateStore(Builder->getInt32(0), indices[i]);
+    Builder->CreateBr(loopBlocks[i][1]);
+
+    // cmp
+    Builder->SetInsertPoint(loopBlocks[i][1]);
+    llvm::Value *currentIndex =
+        Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
+    llvm::Value *isLessThan = Builder->CreateICmpSLT(
+        currentIndex, Builder->getInt32(_actualSizes[i]));
+    //! Comparison Count Increment
+    llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
+        Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
+        Builder->getInt32(sizeToFillVal));
+    //!
+
+    llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);
+
+    Builder->CreateCondBr(success, loopBlocks[i][2], loopBlocks[i][3]);
+
+    // body
+    Builder->SetInsertPoint(loopBlocks[i][2]);
+    if (i == _actualSizes.size() - 1) {
+      std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
+
+      for (int j = 0; j < _actualSizes.size(); j++) {
+        indexList.push_back(
+            Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
+      }
+
+      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
+      Builder->CreateStore(elementToFill, elementPtr);
+
+      llvm::Value *_currentIndex =
+          Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
+      llvm::Value *nextIndex =
+          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
+      Builder->CreateStore(nextIndex, indices[i]);
+
+      //! Elements filled Count Increment
+      Builder->CreateStore(
+          Builder->CreateAdd(Builder->CreateLoad(Builder->getInt32Ty(),
+                                                 numberOfElementsFilled),
+                             Builder->getInt32(1)),
+          numberOfElementsFilled);
+      //! End
+
+      Builder->CreateBr(loopBlocks[i][1]);
+    } else {
+      Builder->CreateBr(loopBlocks[i + 1][0]);
+    }
+
+    // end
+    Builder->SetInsertPoint(loopBlocks[i][3]);
+    if (i != 0) {
+      llvm::Value *_currentIndex =
+          Builder->CreateLoad(Builder->getInt32Ty(), indices[i - 1]);
+      llvm::Value *nextIndex =
+          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
+      Builder->CreateStore(nextIndex, indices[i - 1]);
+
+      Builder->CreateBr(loopBlocks[i - 1][1]);
+    } else {
+      Builder->CreateBr(exit);
+    }
+  }
+
+  Builder->SetInsertPoint(exit);
+
+  return nullptr;
 }

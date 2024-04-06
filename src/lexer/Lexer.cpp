@@ -37,6 +37,9 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
   while (!this->isEndOfLineOrFile() && isdigit(this->getCurrent())) {
     this->next();
   }
+  if (this->getCurrent() == 'd') {
+    this->next();
+  }
   const int &length = this->position - start;
   const std::string &text = this->_sourceCode[lineNumber].substr(start, length);
 
@@ -90,7 +93,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
   const int start = this->position;
-  while (!this->isEndOfLineOrFile() && isalnum(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() &&
+         (isalnum(this->getCurrent()) || this->getCurrent() == '_')) {
     this->next();
   }
   const int length = this->position - start;
@@ -186,9 +190,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::Int8Keyword, start, text, "int8");
-  }
-
-  else if (text == "bool") {
+  } else if (text == "int64") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Int64Keyword, start, text, "int64");
+  } else if (text == "bool") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::BoolKeyword, start, text, "bool");
@@ -204,6 +210,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::DeciKeyword, start, text, "double");
+  }
+
+  else if (text == "deci32") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Deci32Keyword, start, text, "float");
   }
 
   else if (text == "bring") {

@@ -29,6 +29,7 @@ public:
   const bool isDoubleType(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
   const bool isInt8Type(llvm::Type *type) const;
+  const bool isInt64Type(llvm::Type *type) const;
   const bool isPtrType(llvm::Type *type) const;
   const bool isPrimitiveType(llvm::Type *type) const;
   const bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;

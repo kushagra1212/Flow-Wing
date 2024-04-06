@@ -31,6 +31,10 @@ class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                                     std::vector<llvm::Value *> &indices,
                                     uint64_t index);
 
+llvm::Value *createExpressionLoop(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
+    uint64_t &sizeToFillVal);
+
  private:
   std::vector<uint64_t> _actualSizes;
 

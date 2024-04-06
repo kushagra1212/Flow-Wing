@@ -9,7 +9,7 @@
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
- public:
+public:
   CallExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -18,17 +18,18 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
-  llvm::Value *handleExpression(
-      llvm::Function *calleeFunction, uint64_t i,
-      BoundCallExpression *callExpression, llvm::Value *&rhsValue,
-      llvm::FunctionType *functionType,
-      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
-      bool &retFlag);
+  llvm::Value *
+  handleExpression(llvm::Function *calleeFunction, uint64_t i,
+                   BoundCallExpression *callExpression, llvm::Value *&rhsValue,
+                   llvm::FunctionType *functionType,
+                   const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+                   bool &retFlag);
 
-  llvm::Value *handlePremitive(
-      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
-      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
-      llvm::Argument *arg, bool &retFlag);
+  llvm::Value *
+  handlePremitive(llvm::Value *&rhsValue, BoundCallExpression *callExpression,
+                  uint64_t i,
+                  const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+                  llvm::Argument *arg, bool &retFlag);
 
   llvm::Value *handleBracketExpression(
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
@@ -54,8 +55,7 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                           llvm::Value *v);
 
   llvm::Value *printArrayAtom(llvm::ArrayType *&arrayType, llvm::Value *&v,
-                              const std::vector<uint64_t> &sizes,
-                              std::vector<llvm::Value *> &indices, int64_t i,
+                              const std::vector<uint64_t> &actualSizes,
                               llvm::Type *&elementType);
 
   llvm::Value *printObject(llvm::Value *outerElementPtr,
@@ -68,8 +68,8 @@ class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 
   llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
 
- private:
+private:
   bool _isGlobal = false;
 };
 
-#endif  // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

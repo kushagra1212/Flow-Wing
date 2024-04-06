@@ -1,9 +1,9 @@
-#include "DoubleTypeConverter.h"
+#include "FloatTypeConverter.h"
 
-DoubleTypeConverter::DoubleTypeConverter(CodeGenerationContext *context)
+FloatTypeConverter::FloatTypeConverter(CodeGenerationContext *context)
     : TypeConverterBase(context){};
 
-llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
+llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
   llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
@@ -14,18 +14,18 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::Int64Keyword:
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return _builder->CreateSIToFP(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
+        value, llvm::Type::getFloatTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    return value;
+    return _builder->CreateFPTrunc(
+        value, llvm::Type::getFloatTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    return _builder->CreateFPExt(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
+    return value;
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     return _builder->CreateUIToFP(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
+        value, llvm::Type::getFloatTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
     return _builder->CreateCall(
@@ -42,7 +42,7 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
   return nullptr;
 }
 
-llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
+llvm::Value *FloatTypeConverter::convertImplicit(llvm::Value *&value) {
   llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
@@ -50,17 +50,26 @@ llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
 
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
-  case SyntaxKindUtils::SyntaxKind::Int8Keyword:
-  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return _builder->CreateSIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int64 to deci32 is not "
+        "supported for variable with predefined type"));
+    return nullptr;
+  }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    return value;
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from deci to deci32 is not "
+        "supported for variable with predefined type"));
+    return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    return _builder->CreateFPExt(
-        value, llvm::Type::getDoubleTy(_builder->getContext()));
+    return value;
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     _logger->logLLVMError(llvm::createStringError(

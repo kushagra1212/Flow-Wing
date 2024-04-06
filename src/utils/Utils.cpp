@@ -410,6 +410,10 @@ auto Utils::typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string {
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
     return "Int32";
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword:
+    return "Int8";
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+    return "Int64";
   case SyntaxKindUtils::SyntaxKind::DeciKeyword:
     return "Decimal";
   case SyntaxKindUtils::SyntaxKind::StrKeyword:

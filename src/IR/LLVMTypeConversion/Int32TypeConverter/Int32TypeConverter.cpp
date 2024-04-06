@@ -18,7 +18,11 @@ llvm::Value *Int32TypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return _builder->CreateSExt(value, llvm::Type::getInt32Ty(*TheContext));
   }
-  case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+    return _builder->CreateTrunc(value, llvm::Type::getInt32Ty(*TheContext));
+  }
+  case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
     return _builder->CreateFPToSI(value, llvm::Type::getInt32Ty(*TheContext));
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
@@ -55,12 +59,30 @@ llvm::Value *Int32TypeConverter::convertImplicit(llvm::Value *&value) {
     return _builder->CreateSExt(value,
                                 llvm::Type::getInt32Ty(_builder->getContext()));
   }
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+    this->_logger->logLLVMWarning(
+        llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                "Implicit conversion from int64 to int32 "
+                                "is not supported for variable with "
+                                "predefined type"));
+    return nullptr;
+  }
+
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    this->_logger->logLLVMWarning(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
-        "Implicit conversion from float/double to int32 "
-        "is not supported for variable with "
-        "predefined type"));
+    this->_logger->logLLVMWarning(
+        llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                "Implicit conversion from deci to int32 "
+                                "is not supported for variable with "
+                                "predefined type"));
+
+    return nullptr;
+  }
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    this->_logger->logLLVMWarning(
+        llvm::createStringError(llvm::inconvertibleErrorCode(),
+                                "Implicit conversion from deci32 to int32 "
+                                "is not supported for variable with "
+                                "predefined type"));
 
     return nullptr;
   }

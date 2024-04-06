@@ -171,6 +171,14 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int32Keyword));
   }
 
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+    return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int64Keyword));
+  }
+
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    return std::move(this->match(SyntaxKindUtils::SyntaxKind::Deci32Keyword));
+  }
+
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::Int8Keyword));
   }
@@ -203,6 +211,12 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
               SyntaxKindUtils::SyntaxKind::Int32Keyword) +
           "> or <" +
           SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::DeciKeyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(
+              SyntaxKindUtils::SyntaxKind::Deci32Keyword) +
+          "> or <" +
+          SyntaxKindUtils::to_string(
+              SyntaxKindUtils::SyntaxKind::Int64Keyword) +
           "> or <" +
           SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StrKeyword) +
           "> or <" +

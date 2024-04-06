@@ -290,6 +290,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::DeclKeyword:
     return "DeclKeyword";
+  case SyntaxKind::Deci32Keyword:
+    return "Deci32Keyword";
+  case SyntaxKind::Int64Keyword:
+    return "Int64Keyword";
   default:
     return "NotDefined";
   }
@@ -298,10 +302,12 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 bool SyntaxKindUtils::isType(SyntaxKind kind) {
   switch (kind) {
   case SyntaxKind::BoolKeyword:
-  case SyntaxKind::Int32Keyword:
-  case SyntaxKind::DeciKeyword:
-  case SyntaxKind::StrKeyword:
   case SyntaxKind::Int8Keyword:
+  case SyntaxKind::Int32Keyword:
+  case SyntaxKind::Int64Keyword:
+  case SyntaxKind::DeciKeyword:
+  case SyntaxKind::Deci32Keyword:
+  case SyntaxKind::StrKeyword:
     return true;
   default:
     return false;

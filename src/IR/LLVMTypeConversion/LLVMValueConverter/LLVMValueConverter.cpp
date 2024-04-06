@@ -61,8 +61,18 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
 
       return llvmValue;
     }
-
+    char endChar = ' ';
+    if (value.size() > 1 && value[value.size() - 1] == 'd') {
+      endChar = 'd';
+      value.pop_back();
+    }
     if (Utils::isDouble(value)) {
+      if (endChar == 'd') {
+        llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEsingle(),
+                                      value.c_str());
+        return llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+      }
+
       llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(), value.c_str());
       llvm::Constant *llvmValue =
           llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
@@ -128,17 +138,30 @@ LLVMValueConverter::stringToTypedLLVMValue(std::string value,
         llvm::APInt llvmLongIntValue(8, value, 10);
         return llvm::ConstantInt::get(*_llvmContext, llvmLongIntValue);
       }
+      case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+        llvm::APInt llvmLongIntValue(64, value, 10);
+        return llvm::ConstantInt::get(*_llvmContext, llvmLongIntValue);
+      }
       default:
         break;
       }
     }
 
     if (Utils::isDouble(value)) {
-      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(), value.c_str());
-      llvm::Constant *llvmValue =
-          llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
-
-      return llvmValue;
+      switch (type) {
+      case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
+        llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(),
+                                      value.c_str());
+        return llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+      }
+      case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+        llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEsingle(),
+                                      value.c_str());
+        return llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+      }
+      default:
+        break;
+      }
     }
   }
 

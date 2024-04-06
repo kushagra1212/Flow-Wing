@@ -9,8 +9,12 @@ TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
        SyntaxKindUtils::SyntaxKind::Int8Keyword},
       {(llvm::Type *)llvm::Type::getInt32Ty(*context),
        SyntaxKindUtils::SyntaxKind::Int32Keyword},
+      {(llvm::Type *)llvm::Type::getInt64Ty(*context),
+       SyntaxKindUtils::SyntaxKind::Int64Keyword},
       {(llvm::Type *)llvm::Type::getDoubleTy(*context),
        SyntaxKindUtils::SyntaxKind::DeciKeyword},
+      {(llvm::Type *)llvm::Type::getFloatTy(*context),
+       SyntaxKindUtils::SyntaxKind::Deci32Keyword},
       {(llvm::Type *)llvm::Type::getInt8PtrTy(*context),
        SyntaxKindUtils::SyntaxKind::StrKeyword},
       {(llvm::Type *)llvm::Type::getVoidTy(*context),
@@ -24,8 +28,12 @@ TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
        (llvm::Type *)llvm::Type::getInt8Ty(*context)},
       {SyntaxKindUtils::SyntaxKind::Int32Keyword,
        (llvm::Type *)llvm::Type::getInt32Ty(*context)},
+      {SyntaxKindUtils::SyntaxKind::Int64Keyword,
+       (llvm::Type *)llvm::Type::getInt64Ty(*context)},
       {SyntaxKindUtils::SyntaxKind::DeciKeyword,
        (llvm::Type *)llvm::Type::getDoubleTy(*context)},
+      {SyntaxKindUtils::SyntaxKind::Deci32Keyword,
+       (llvm::Type *)llvm::Type::getFloatTy(*context)},
       {SyntaxKindUtils::SyntaxKind::StrKeyword,
        (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
       {SyntaxKindUtils::SyntaxKind::NthgKeyword,
@@ -78,6 +86,11 @@ const bool TypeMapper::isInt32Type(llvm::Type *type) const {
          SyntaxKindUtils::SyntaxKind::Int32Keyword;
 }
 
+const bool TypeMapper::isInt64Type(llvm::Type *type) const {
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::Int64Keyword;
+}
+
 const bool TypeMapper::isInt8Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::Int8Keyword;
@@ -97,12 +110,16 @@ TypeMapper::getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const {
   switch (customType) {
   case SyntaxKindUtils::SyntaxKind::BoolKeyword:
     return "Boolean";
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+    return "Integer64";
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
     return "Integer32";
   case SyntaxKindUtils::SyntaxKind::Int8Keyword:
     return "Integer8";
   case SyntaxKindUtils::SyntaxKind::DeciKeyword:
-    return "Decimal";
+    return "Decimal64";
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
+    return "Decimal32";
   case SyntaxKindUtils::SyntaxKind::StrKeyword:
     return "String";
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
@@ -121,10 +138,18 @@ llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
     _retVal = _builder->getInt32(0);
     break;
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+    _retVal = _builder->getInt64(0);
+    break;
   case SyntaxKindUtils::SyntaxKind::Int8Keyword:
     _retVal = _builder->getInt8(0);
+    break;
   case SyntaxKindUtils::SyntaxKind::DeciKeyword:
     _retVal = llvm::ConstantFP::get(*_context, llvm::APFloat(0.0));
+    break;
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
+    _retVal = llvm::ConstantFP::get(*_context,
+                                    llvm::APFloat(static_cast<float>(0.0)));
     break;
   case SyntaxKindUtils::SyntaxKind::BoolKeyword:
     _retVal = _builder->getInt1(false);
