@@ -4,7 +4,7 @@
 #include "ValueStack.h"
 
 class ValueStackHandler {
- public:
+public:
   std::stack<ValueStack *> vs;
 
   auto inline push(const std::string &typeName, llvm::Value *value,
@@ -67,6 +67,15 @@ class ValueStackHandler {
 
     ValueStack *valueStack = vs.top();
     return valueStack->getType() == "primary";
+  }
+
+  auto inline isArrayType() -> bool {
+    if (vs.empty()) {
+      return false;
+    }
+
+    ValueStack *valueStack = vs.top();
+    return valueStack->getType() == "array";
   }
 };
 

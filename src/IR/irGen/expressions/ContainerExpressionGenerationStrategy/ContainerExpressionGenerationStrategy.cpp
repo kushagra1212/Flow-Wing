@@ -28,13 +28,17 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
                                             _actualSizes, _elementType);
 
-  llvm::AllocaInst *arrayAlloca =
-      Builder->CreateAlloca(arrayType, nullptr, _containerName);
+  if (!_allocaInst) {
+    llvm::AllocaInst *alloc =
+        Builder->CreateAlloca(arrayType, nullptr, _containerName);
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                            alloc);
+    _codeGenerationContext->setArraySizeMetadata(alloc, _actualSizes);
+    _codeGenerationContext->setArrayElementTypeMetadata(alloc, _elementType);
+    _allocaInst = alloc;
+  }
 
   // Fill the array with default values
-
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          arrayAlloca);
 
   std::unique_ptr<FillExpressionGenerationStrategy>
       fillExpressionGenerationStrategy =
@@ -43,15 +47,12 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
               _containerName);
 
   fillExpressionGenerationStrategy->createExpression(
-      arrayType, arrayAlloca,
+      arrayType, _allocaInst,
       llvm::cast<llvm::Constant>(
           _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
       _totalSize);
 
-  _codeGenerationContext->setArraySizeMetadata(arrayAlloca, _actualSizes);
-  _codeGenerationContext->setArrayElementTypeMetadata(arrayAlloca,
-                                                      _elementType);
-  return createExpression(arrayType, arrayAlloca, containerExpression);
+  return createExpression(arrayType, _allocaInst, containerExpression);
 }
 
 const bool ContainerExpressionGenerationStrategy::canGenerateExpression(

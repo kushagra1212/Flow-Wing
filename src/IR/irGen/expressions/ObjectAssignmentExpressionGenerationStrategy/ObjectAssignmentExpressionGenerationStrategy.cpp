@@ -132,6 +132,75 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
           lhsStructType->getStructName().str());
       return nullptr;
     }
+  } else if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+    lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+    if (!lshValue) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Left hand side value not found in assignment expression " +
+          assignmentExpression->getVariable()->getVariableName());
+      return nullptr;
+    }
+
+    llvm::ArrayType *lhsArrayType = llvm::cast<llvm::ArrayType>(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+    llvm::Type *elementType = lhsArrayType->getElementType();
+    llvm::Type *type = lhsArrayType;
+
+    std::vector<uint64_t> sizes;
+    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
+      sizes.push_back(arrayType->getNumElements());
+      type = arrayType->getElementType();
+    }
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    if ((assignmentExpression->getRightPtr()->getKind() ==
+             BinderKindUtils::BoundBracketedExpression ||
+         assignmentExpression->getRightPtr()->getKind() ==
+             BinderKindUtils::CallExpression)) {
+
+      std::unique_ptr<LiteralExpressionGenerationStrategy>
+          literalExpressionGenerationStrategy =
+              std::make_unique<LiteralExpressionGenerationStrategy>(
+                  _codeGenerationContext);
+
+      std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+          containerDeclarationStatementGenerationStrategy =
+              std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+                  _codeGenerationContext);
+
+      containerDeclarationStatementGenerationStrategy->setAllocaInst(
+          (lshValue));
+
+      containerDeclarationStatementGenerationStrategy->generateCommonStatement(
+          sizes, type, "", assignmentExpression->getRightPtr().get());
+
+      return nullptr;
+
+    } else if (assignmentExpression->getRightPtr()->getKind() ==
+               BinderKindUtils::VariableExpression) {
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(lshValue);
+      assignStrategy->setContainerName(lshValue->getName().str());
+
+      assignStrategy->createExpressionForObject(
+          assignmentExpression->getRightPtr().get(), lhsArrayType, lshValue,
+          sizes, type);
+      return nullptr;
+    }
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        assignmentExpression->getRightPtr()->getLocation());
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Right hand side value expected to be an object of type " +
+        lhsArrayType->getStructName().str());
+    return nullptr;
   }
 
   lshValue = _codeGenerationContext->getValueStackHandler()->getValue();

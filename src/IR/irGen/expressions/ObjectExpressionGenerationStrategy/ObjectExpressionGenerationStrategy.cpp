@@ -247,6 +247,57 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       this->createExpressionNP(innerObjectExpression, innerElementPtr,
                                innerElementType->getName().str());
     } else if (propertiesMap[propertyName]->getSyntaxType() ==
+                   SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
+               (bExpr->getKind() == BinderKindUtils::BoundBracketedExpression ||
+                bExpr->getKind() == BinderKindUtils::CallExpression)) {
+
+      std::unique_ptr<LiteralExpressionGenerationStrategy>
+          literalExpressionGenerationStrategy =
+              std::make_unique<LiteralExpressionGenerationStrategy>(
+                  _codeGenerationContext);
+
+      BoundArrayTypeExpression *boundArrayTypeExpression =
+          static_cast<BoundArrayTypeExpression *>(propertiesMap[propertyName]);
+
+      std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+          containerDeclarationStatementGenerationStrategy =
+              std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+                  _codeGenerationContext);
+
+      containerDeclarationStatementGenerationStrategy->setAllocaInst(
+          (innerElementPtr));
+
+      containerDeclarationStatementGenerationStrategy->generateCommonStatement(
+          boundArrayTypeExpression,
+          variable->getName().str() + "." + propertyName, bExpr.get());
+    } else if (propertiesMap[propertyName]->getSyntaxType() ==
+                   SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
+               bExpr->getKind() == BinderKindUtils::VariableExpression) {
+
+      llvm::ArrayType *arrayType =
+          llvm::cast<llvm::ArrayType>(parStructType->getElementType(index));
+      llvm::Type *elementType = arrayType->getElementType();
+      llvm::Type *type = arrayType;
+
+      std::vector<uint64_t> sizes;
+      while (llvm::ArrayType *arrayType =
+                 llvm::dyn_cast<llvm::ArrayType>(type)) {
+        sizes.push_back(arrayType->getNumElements());
+        type = arrayType->getElementType();
+      }
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(innerElementPtr);
+      assignStrategy->setContainerName(variable->getName().str() + "." +
+                                       propertyName);
+
+      assignStrategy->createExpressionForObject(bExpr.get(), arrayType,
+                                                innerElementPtr, sizes, type);
+
+    } else if (propertiesMap[propertyName]->getSyntaxType() ==
                    SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
                bExpr->getKind() == BinderKindUtils::VariableExpression) {
       rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
@@ -355,6 +406,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNPDefault(
 
       this->createExpressionNPDefault(innerElementPtr,
                                       lshStructType->getName().str());
+    } else if (bExpr->getSyntaxType() ==
+               SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+
     } else {
 
       Builder->CreateStore(
@@ -682,5 +736,22 @@ ObjectExpressionGenerationStrategy::generateVariableAccessThroughPtr(
   //   allocaInst->setMetadata(Kind, llvm::MDNode::get(*TheContext,
   //   argInfoMD));
 
+  return nullptr;
+}
+llvm::AllocaInst *
+ObjectExpressionGenerationStrategy::findAllocaInstFromPtr(llvm::Value *ptr) {
+  if (llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(ptr)) {
+    if (llvm::AllocaInst *allocaInst = llvm::dyn_cast<llvm::AllocaInst>(inst)) {
+      return allocaInst;
+    } else {
+      // If ptr is derived from an instruction (e.g., a GEP), we need to find
+      // the original alloca
+      for (auto &use : inst->operands()) {
+        if (llvm::AllocaInst *allocaInst = findAllocaInstFromPtr(use)) {
+          return allocaInst;
+        }
+      }
+    }
+  }
   return nullptr;
 }

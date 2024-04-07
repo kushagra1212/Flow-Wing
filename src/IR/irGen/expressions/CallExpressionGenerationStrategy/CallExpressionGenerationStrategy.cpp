@@ -317,11 +317,18 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       args.push_back(arg);
     }
 
-    std::unique_ptr<FunctionStatementGenerationStrategy> fgst =
-        std::make_unique<FunctionStatementGenerationStrategy>(
-            _codeGenerationContext);
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        callExpression->getLocation());
 
-    fgst->generateStatementOnFly(definedFunction, args);
+    _codeGenerationContext->getLogger()->LogError(
+        "Function call " + callExpression->getCallerNameRef() + " not found");
+    return nullptr;
+
+    // std::unique_ptr<FunctionStatementGenerationStrategy> fgst =
+    //     std::make_unique<FunctionStatementGenerationStrategy>(
+    //         _codeGenerationContext);
+
+    // fgst->generateStatementOnFly(definedFunction, args);
 
     Builder->SetInsertPoint(currentBlock);
   }
@@ -1080,6 +1087,19 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
 
       printObject(innerElementPtr, structType);
+    } else if (bTE->getSyntaxType() ==
+               SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+      llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+      llvm::Type *elementType = arrayType->getElementType();
+      llvm::Type *type = arrayType;
+
+      std::vector<uint64_t> sizes;
+      while (llvm::ArrayType *arrayType =
+                 llvm::dyn_cast<llvm::ArrayType>(type)) {
+        sizes.push_back(arrayType->getNumElements());
+        type = arrayType->getElementType();
+      }
+      printArrayAtom(arrayType, innerElementPtr, sizes, type);
     } else {
       llvm::LoadInst *loaded = Builder->CreateLoad(type, innerElementPtr);
 

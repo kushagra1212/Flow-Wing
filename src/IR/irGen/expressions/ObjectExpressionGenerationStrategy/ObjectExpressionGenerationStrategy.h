@@ -3,9 +3,12 @@
 
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
+#include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
-
 class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   ObjectExpressionGenerationStrategy(CodeGenerationContext *context);
@@ -36,6 +39,7 @@ public:
   inline auto setVariable(llvm::Value *variable) { _variable = variable; }
 
   inline auto setTypeName(std::string typeName) { _typeName = typeName; }
+  llvm::AllocaInst *findAllocaInstFromPtr(llvm::Value *ptr);
 
 private:
   llvm::Value *_variable;

@@ -41,6 +41,10 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
 
   // When Local Variable is an array type
   if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", v, "array",
+        llvm::cast<llvm::ArrayType>(
+            (llvm::cast<llvm::AllocaInst>(v))->getAllocatedType()));
     return v;
   }
 
@@ -178,6 +182,13 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
         _codeGenerationContext->getValueStackHandler()->push(
             structType->getStructName().str(), innerElementPtr, "struct",
             structType);
+
+        return innerElementPtr;
+      } else if (bTE->getSyntaxType() ==
+                 SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+        llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+        _codeGenerationContext->getValueStackHandler()->push(
+            "", innerElementPtr, "array", arrayType);
 
         return innerElementPtr;
       }

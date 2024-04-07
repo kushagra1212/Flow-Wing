@@ -80,9 +80,12 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
     hasError = true;
   }
 
-  _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
-  _lhsArrayElementType =
-      _codeGenerationContext->getArrayElementTypeMetadata(_variable);
+  if (_lhsSizes.size() == 0)
+    _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
+
+  if (!_lhsArrayElementType)
+    _lhsArrayElementType =
+        _codeGenerationContext->getArrayElementTypeMetadata(_variable);
 
   if (_rhsSizes.size() == 0) {
     _codeGenerationContext->getArraySizeMetadata(_rhsVariable, _rhsSizes);
@@ -212,4 +215,20 @@ llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
   Builder->CreateStore(loaded, variable);
 
   return nullptr;
+}
+llvm::Value *
+ContainerAssignmentExpressionGenerationStrategy::createExpressionForObject(
+    BoundExpression *expression, llvm::ArrayType *&arrayType,
+    llvm::Value *&variable, const std::vector<uint64_t> &sizes,
+    llvm::Type *&elementType) {
+  _arrayType = arrayType;
+  _variable = variable;
+  _lhsSizes = sizes;
+  _lhsArrayElementType = elementType;
+  if (!canGenerateExpressionAssignment(expression)) {
+    return nullptr;
+  }
+
+  return createExpression(_arrayType, _variable, _rhsVariable, _rhsArrayType,
+                          _rhsArrayElementType, _lhsSizes, _rhsSizes);
 }

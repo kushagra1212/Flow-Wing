@@ -10,7 +10,7 @@ class ContainerDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
   void calcActualContainerSize(BoundArrayTypeExpression *arrayTypeExpression);
 
- public:
+public:
   ContainerDeclarationStatementGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -20,20 +20,31 @@ class ContainerDeclarationStatementGenerationStrategy
   llvm::Value *generateBracketGlobalExpression(
       BoundBracketedExpression *bracketedExpression);
 
-  llvm::Value *generateBracketLocalExpression(
-      BoundBracketedExpression *bracketedExpression);
+  llvm::Value *
+  generateBracketLocalExpression(BoundBracketedExpression *bracketedExpression);
+
+  llvm::Value *generateCommonStatement(std ::vector<uint64_t> actualSizes,
+                                       llvm::Type *arrayElementType,
+                                       const std::string &containerName,
+                                       BoundExpression *initializer);
 
   const bool canGenerateCallExpression(BoundExpression *callExp);
 
-  llvm::Value *generateCommonStatement(
-      BoundArrayTypeExpression *arrayTypeExpression,
-      const std::string &containerName, BoundExpression *initializer);
+  llvm::Value *
+  generateCommonStatement(BoundArrayTypeExpression *arrayTypeExpression,
+                          const std::string &containerName,
+                          BoundExpression *initializer);
 
- private:
+  inline auto setAllocaInst(llvm::Value *allocaInst) {
+    _allocaInst = allocaInst;
+  }
+
+private:
   std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
   std::string _containerName;
   llvm::LoadInst *_loadedValue;
+  llvm::Value *_allocaInst;
 };
 
-#endif  //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
+#endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__

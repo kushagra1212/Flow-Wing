@@ -23,25 +23,25 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
                                             _actualSizes, _elementType);
 
-  llvm::AllocaInst *arrayAlloca =
-      Builder->CreateAlloca(arrayType, nullptr, _containerName);
+  if (!_allocaInst) {
+    llvm::AllocaInst *alloca =
+        Builder->CreateAlloca(arrayType, nullptr, _containerName);
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                            alloca);
+    _codeGenerationContext->setArraySizeMetadata(alloca, _actualSizes);
+    _codeGenerationContext->setArrayElementTypeMetadata(alloca, _elementType);
+    _allocaInst = alloca;
+  }
 
   // Fill the array with default values
 
-  _codeGenerationContext->setArraySizeMetadata(arrayAlloca, _actualSizes);
-  _codeGenerationContext->setArrayElementTypeMetadata(arrayAlloca,
-                                                      _elementType);
-
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          arrayAlloca);
-
   createExpressionLoop(
-      arrayType, arrayAlloca,
+      arrayType, _allocaInst,
       llvm::cast<llvm::Constant>(
           _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
       _totalSize);
 
-  return createExpressionLoop(arrayType, arrayAlloca, _elementToFill,
+  return createExpressionLoop(arrayType, _allocaInst, _elementToFill,
                               _sizeToFillInt);
 }
 

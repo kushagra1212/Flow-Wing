@@ -27,8 +27,6 @@ llvm::Value *
 ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundArrayTypeExpression *arrayTypeExpression,
     const std::string &containerName, BoundExpression *initializer) {
-  const SyntaxKindUtils::SyntaxKind &containerElementType =
-      arrayTypeExpression->getElementType();
 
   this->calcActualContainerSize(arrayTypeExpression);
   _containerName = containerName;
@@ -55,16 +53,74 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
     _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
                                               _actualSizes, _elementType);
 
-    llvm::AllocaInst *arrayAlloca =
-        Builder->CreateAlloca(arrayType, nullptr, _containerName);
+    if (!_allocaInst) {
+      llvm::AllocaInst *alloca =
+          Builder->CreateAlloca(arrayType, nullptr, _containerName);
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                              alloca);
+      _allocaInst = alloca;
+    }
 
     // Fill the array with default values
 
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                            arrayAlloca);
+    // Store the result of the call in the localVariable variable
+    Builder->CreateStore(_loadedValue, _allocaInst);
+
+    return nullptr;
+  }
+
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
+  }
+  return nullptr;
+}
+
+llvm::Value *
+ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
+    std ::vector<uint64_t> actualSizes, llvm::Type *arrayElementType,
+    const std::string &containerName, BoundExpression *initializer) {
+
+  _actualSizes = actualSizes;
+  _containerName = containerName;
+
+  _elementType = arrayElementType;
+
+  BinderKindUtils::BoundNodeKind kind = initializer->getKind();
+
+  switch (kind) {
+  case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
+    return generateBracketLocalExpression(
+        (BoundBracketedExpression *)initializer);
+  }
+  case BinderKindUtils::BoundNodeKind::CallExpression: {
+    if (!canGenerateCallExpression(initializer)) {
+      return nullptr;
+    }
+    llvm::ArrayType *arrayType = nullptr;
+
+    llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
+        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+    _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
+                                              _actualSizes, _elementType);
+
+    if (!_allocaInst) {
+      llvm::AllocaInst *alloca =
+          Builder->CreateAlloca(arrayType, nullptr, _containerName);
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                              alloca);
+      _allocaInst = alloca;
+    }
+
+    // Fill the array with default values
 
     // Store the result of the call in the localVariable variable
-    Builder->CreateStore(_loadedValue, arrayAlloca);
+    Builder->CreateStore(_loadedValue, _allocaInst);
 
     return nullptr;
   }
@@ -181,6 +237,9 @@ ContainerDeclarationStatementGenerationStrategy::generateBracketLocalExpression(
         std::make_unique<ContainerExpressionGenerationStrategy>(
             _codeGenerationContext, _actualSizes, _elementType, _containerName);
 
+    if (_allocaInst)
+      specificStrategy->setAllocaInst(_allocaInst);
+
     return specificStrategy->generateExpression(
         bracketedExpression->getExpressionRef().get());
   }
@@ -189,6 +248,9 @@ ContainerDeclarationStatementGenerationStrategy::generateBracketLocalExpression(
     std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
         std::make_unique<FillExpressionGenerationStrategy>(
             _codeGenerationContext, _actualSizes, _elementType, _containerName);
+
+    if (_allocaInst)
+      specificStrategy->setAllocaInst(_allocaInst);
 
     return specificStrategy->generateExpression(
         bracketedExpression->getExpressionRef().get());
