@@ -1101,4 +1101,413 @@ print("\n")
 { a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
 }
 
+TEST_F(ObjectGlobalTest, ArrayInObjectPropertySingleDimensionExpression) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)    
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
+}
+
+TEST_F(ObjectGlobalTest, ArrayInObjectPropertySingleDimensionExpressionMulti) {
+  I(R"(
+     type t1 = {
+       x:int[10][5]
+     }
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)     
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [9, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectGlobalTest, ArrayInObjectPropertySingleDimensionFillExpression) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var y:t1 = {
+      x:[5 fill 5]
+    }
+
+    print(y)    
+  )");
+  O(R"({ x : [5, 5, 5, 5, 5, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(ObjectGlobalTest, ArrayInObjectPropertySingleDimensionUsingVariable) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)    
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(ObjectGlobalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableMulti) {
+  I(R"(
+     type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [5 fill 10]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)    
+  )");
+  O(R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectGlobalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableMulti2) {
+  I(R"(
+     type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [1,2,3,4,5,6,7,8]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)    
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectGlobalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunction) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:get()
+    }
+    print(y)    
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionMulti) {
+  I(R"(
+     type t1 = {
+       x:int[10][5]
+     }
+
+    fun get() -> int[10][5] {
+
+    var z:int[10][5] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:get()
+    }
+    print(y)  
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+// Assignment
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionComplete) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y = {x:get()}
+    print(y) 
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFunction) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = get()
+    print(y) 
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFunctionMutli) {
+  I(R"(
+      type t1 = {
+        x:int[10][5]
+      }
+
+      fun get() -> int[10][5] {
+
+      var z:int[10][5] = [1,2,3,4,5,6,7,8]
+      return z
+      }
+      
+      var y:t1 = {
+        x:[5 fill 2]
+      }
+      print(y)
+      y.x = get()
+      print(y) 
+  )");
+  O(R"({ x : [[2, 2, 2, 2, 2], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] }{ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughExpression) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = [1 ,2 ,3]
+    print(y) 
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 0, 0, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFillExpression) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = [4 fill 10]
+    print(y) 
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [10, 10, 10, 10, 0, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughVariable) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = z
+    print(y) 
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParam) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    fun getPrint(u:t1) -> nthg {
+      print(u)
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    getPrint(y)
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    fun getPrint(u:t1) ->  t1 {
+      return u
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn2) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    fun getPrint(u:t1) ->  t1 {
+      u  = {x:z}
+      return u
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn3) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    fun getPrint(u:t1) ->  t1 {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+      u  = {x:z}
+      return u
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4) {
+  I(R"(
+     type t1 = {
+       x:int[10]
+     }
+    fun getPrint(u:t1) ->  t1 {
+
+      u  = {x:[1,2,3,4,5,6,7,8]}
+      return u
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectGlobalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4Multi) {
+  I(R"(
+     type t1 = {
+       x:int[10][5]
+     }
+    fun getPrint(u:t1) ->  t1 {
+
+      u  = {x:[1,2,3,4,5,6,7,8]}
+      return u
+    }
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
 #endif

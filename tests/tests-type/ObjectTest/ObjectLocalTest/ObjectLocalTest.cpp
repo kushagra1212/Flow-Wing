@@ -2201,4 +2201,508 @@ print(z)
   O(R"({ a : 'string', b : 500, c : true, d : 5.00000000000000, par : { pa : 700, pb : 'fdso', pc : true, pd : 4.00000000000000 } }{ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
 }
 
+// Array Inside objects
+
+TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionIn) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10]
+     }
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)    
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
+}
+
+TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionInMix) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+     {
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)    
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
+}
+
+TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionMultiIn) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10][5]
+     }
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)  
+}   
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [9, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionFillExpressionIn) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10]
+     }
+    var y:t1 = {
+      x:[5 fill 5]
+    }
+
+    print(y)    
+}
+  )");
+  O(R"({ x : [5, 5, 5, 5, 5, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionUsingVariableIn) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10]
+     }
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)    
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(ObjectLocalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableMultiIn) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [5 fill 10]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)  
+}  
+  )");
+  O(R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectLocalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableMultiInMix) {
+  I(R"(
+
+       type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [5 fill 10]
+    {
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)  
+}  
+  )");
+  O(R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectLocalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableMulti2In) {
+  I(R"(
+{
+       type t1 = {
+       x:int[10][5]
+     }
+
+    var z:int[10][5] = [1,2,3,4,5,6,7,8]
+    
+    var y:t1 = {
+      x:z
+    }
+
+    print(y)   
+} 
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(ObjectLocalTest,
+       ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:get()
+    }
+    print(y)   
+} 
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionMultiIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10][5]
+     }
+
+    fun get() -> int[10][5] {
+
+    var z:int[10][5] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:get()
+    }
+    print(y)  
+}
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+// Assignment
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionCompleteIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y = {x:get()}
+    print(y) 
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFunctionIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = get()
+    print(y) 
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFunctionMutliIn) {
+  I(R"(
+
+        type t1 = {
+        x:int[10][5]
+      }
+
+      fun get() -> int[10][5] {
+
+      var z:int[10][5] = [1,2,3,4,5,6,7,8]
+      return z
+      }
+      {
+      var y:t1 = {
+        x:[5 fill 2]
+      }
+      print(y)
+      y.x = get()
+      print(y) 
+}
+  )");
+  O(R"({ x : [[2, 2, 2, 2, 2], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] }{ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughExpressionIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = [1 ,2 ,3]
+    print(y) 
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 0, 0, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughFillExpressionIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+    fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    {
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = [4 fill 10]
+    print(y) 
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [10, 10, 10, 10, 0, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromFunctionPartialAssignThroughVariableIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+         fun get() -> int[10] {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+    return z
+    }
+    
+     {
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(y)
+    y.x = z
+    print(y) 
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+    fun getPrint(u:t1) -> nthg {
+      print(u)
+    }
+    
+     {
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    getPrint(y)
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturnIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+    fun getPrint(u:t1) ->  t1 {
+      return u
+    }
+    
+     {
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+}
+  )");
+  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn2In) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }    
+        fun getPrint(u:t1) ->  t1 {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+      u  = {x:z}
+      return u
+    }
+
+     {
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+ 
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn3In) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+     
+         fun getPrint(u:t1) ->  t1 {
+
+    var z:int[10] = [1,2,3,4,5,6,7,8]
+      u  = {x:z}
+      return u
+    }
+     {
+
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4In) {
+  I(R"(
+
+       type t1 = {
+       x:int[10]
+     }
+
+         fun getPrint(u:t1) ->  t1 {
+
+      u  = {x:[1,2,3,4,5,6,7,8]}
+      return u
+    }
+     {
+
+    
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+}
+  )");
+  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiIn) {
+  I(R"(
+
+       type t1 = {
+       x:int[10][5]
+     }
+    fun getPrint(u:t1) ->  t1 {
+
+      u  = {x:[1,2,3,4,5,6,7,8]}
+      return u
+    }
+    {
+    var y:t1 = {
+      x:[5 fill 2]
+    }
+    print(getPrint(y))
+}
+  )");
+  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+}
+
 #endif
