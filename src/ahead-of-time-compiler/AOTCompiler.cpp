@@ -26,10 +26,14 @@ void AOTCompiler::link() {
                fileNameWithOutExtension;
 #endif
 
-  const std::string RAY_LIB_CMD =
-      "-lraylib -framework CoreFoundation -framework "
-      "CoreGraphics -framework Cocoa -framework IOKit -framework "
-      "CoreVideo ";
+  std::string RAY_LIB_CMD = "";
+
+#if defined(__APPLE__)
+
+  RAY_LIB_CMD = "-lraylib -framework CoreFoundation -framework "
+                "CoreGraphics -framework Cocoa -framework IOKit -framework "
+                "CoreVideo ";
+#endif
 
   try {
     std::string cmd =
@@ -37,7 +41,7 @@ void AOTCompiler::link() {
          FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + fileNameWithOutExtension +
          " -e _" + FLOWWING_GLOBAL_ENTRY_POINT + " " +
          getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
-         " -lbuilt_in_module " + RAY_LIB_CMD + executeCmd);
+         " -lbuilt_in_module  -fPIE " + RAY_LIB_CMD + executeCmd);
 
     std::system(cmd.c_str());
 

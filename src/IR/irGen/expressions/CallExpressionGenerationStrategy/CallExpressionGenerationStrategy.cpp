@@ -998,13 +998,18 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
             _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
                 elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
                                 v->getName().str());
+      } else if (llvm::isa<llvm::StructType>(arrayType->getElementType())) {
+
+        printObject(elementPtr,
+                    llvm::cast<llvm::StructType>(arrayType->getElementType()));
       } else {
         // Typed Container Element
         innerValue = Builder->CreateLoad(elementType, elementPtr);
+        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                            {_stringTypeConverter->convertExplicit(innerValue),
+                             Builder->getInt1(false)});
       }
-      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {_stringTypeConverter->convertExplicit(innerValue),
-                           Builder->getInt1(false)});
+
       //! Printing Ends
       llvm::Value *_currentIndex =
           Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);

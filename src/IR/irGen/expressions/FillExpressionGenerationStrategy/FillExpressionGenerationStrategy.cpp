@@ -69,8 +69,14 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
 
   // Create a default value for the array
 
-  llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
-      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+  llvm::Constant *_defaultVal = nullptr;
+
+  if (!llvm::isa<llvm::StructType>(_elementType)) {
+    _defaultVal = llvm::cast<llvm::Constant>(
+        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+  } else {
+    _defaultVal = llvm::Constant::getNullValue(_elementType);
+  }
 
   _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
                                             _actualSizes, _elementType);
@@ -230,6 +236,31 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _sizeToFillInt = _totalSize;
   }
 
+  if (fillExpression->getElementToFillRef()->getKind() ==
+          BinderKindUtils::BoundObjectExpression &&
+      !llvm::isa<llvm::StructType>(_elementType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Attempting to fill an array " + _containerName +
+        " of non object type with a object type Expression.");
+    return false;
+  }
+
+  if (fillExpression->getElementToFillRef()->getKind() !=
+          BinderKindUtils::BoundObjectExpression &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Attempting to fill an array " + _containerName +
+        " of object type with a non object type Expression.");
+    return false;
+  }
+
+  if (fillExpression->getElementToFillRef()->getKind() ==
+          BinderKindUtils::BoundObjectExpression &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _objectExpression = fillExpression->getElementToFillRef().get();
+    return true;
+  }
+
   _elementToFill =
       _expressionGenerationFactory
           ->createStrategy(fillExpression->getElementToFillRef()->getKind())
@@ -257,6 +288,11 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   }
 
   return true;
+}
+llvm::Value *
+FillExpressionGenerationStrategy::createExpressionLoopWithTotalSize(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill) {
+  return createExpressionLoop(arrayType, v, elementToFill, _totalSize);
 }
 
 llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
@@ -325,7 +361,17 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
       }
 
       llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
-      Builder->CreateStore(elementToFill, elementPtr);
+
+      if (_objectExpression) {
+        std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrategy =
+            std::make_unique<ObjectExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
+        objExpGenStrategy->setVariable(elementPtr);
+        objExpGenStrategy->setTypeName(_elementType->getStructName().str());
+        objExpGenStrategy->generateExpression(_objectExpression);
+      } else
+        Builder->CreateStore(elementToFill, elementPtr);
 
       llvm::Value *_currentIndex =
           Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);

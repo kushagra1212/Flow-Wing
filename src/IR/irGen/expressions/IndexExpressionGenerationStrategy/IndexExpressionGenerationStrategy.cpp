@@ -175,6 +175,14 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
 
   llvm::Value *elementPtr =
       Builder->CreateGEP(_arrayType, _variable, indexList);
+  if (llvm::isa<llvm::StructType>(_arrayType->getElementType())) {
+    llvm::StructType *structType =
+        llvm::cast<llvm::StructType>(_arrayType->getElementType());
+    _codeGenerationContext->getValueStackHandler()->push(
+        structType->getStructName().str(), elementPtr, "struct", structType);
+    return elementPtr;
+  }
+
   return Builder->CreateLoad(_arrayElementType, elementPtr);
 }
 

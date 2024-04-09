@@ -21,5 +21,10 @@ const SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
 }
 const DiagnosticUtils::SourceLocation
 ArrayTypeExpressionSyntax::getSourceLocation() const {
-  return this->_elementType->getSourceLocation();
+  if (_elementType)
+    this->_elementType->getSourceLocation();
+  if (_nonTrivialElementType)
+    this->_nonTrivialElementType->getSourceLocation();
+
+  return DiagnosticUtils::SourceLocation();
 }

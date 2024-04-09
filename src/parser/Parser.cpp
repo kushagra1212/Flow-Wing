@@ -302,7 +302,13 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE, 0, "NBU_ARRAY_TYPE",
               "NBU_ARRAY_TYPE"));
 
-  arrayTypeExpression->setElementType(std::move(this->parsePrimitiveType()));
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+    arrayTypeExpression->setNonTrivialElementType(
+        std::move(this->parseObjectTypeExpression()));
+  } else {
+    arrayTypeExpression->setElementType(std::move(this->parsePrimitiveType()));
+  }
 
   while (this->getCurrent()->getKind() ==
          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {

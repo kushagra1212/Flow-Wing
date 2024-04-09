@@ -889,8 +889,14 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
             typeExpressionSyntax->getSourceLocation(),
             typeExpressionSyntax->getTypeRef()->getKind());
 
-    boundArrayTypeExpression->setElementType(
-        arrayTypeExpressionSyntax->getElementTypeRef()->getKind());
+    if (arrayTypeExpressionSyntax->isTrivial()) {
+      boundArrayTypeExpression->setElementType(
+          arrayTypeExpressionSyntax->getElementTypeRef()->getKind());
+    } else {
+      boundArrayTypeExpression->setNonTrivialElementType(
+          std::move(bindTypeExpression(
+              arrayTypeExpressionSyntax->getNonTrivialElementTypeRef().get())));
+    }
 
     for (const auto &size : arrayTypeExpressionSyntax->getDimensions()) {
       boundArrayTypeExpression->addDimension(
@@ -919,17 +925,17 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
 
     boundObjectTypeExpression->setTypeName(name);
 
-    if (!this->root->tryLookupCustomType(name)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Type " + name + " Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-                         ->getTokenPtr()
-                         ->getSourceLocation()));
+    // if (!this->root->tryLookupCustomType(name)) {
+    //   this->_diagnosticHandler->addDiagnostic(
+    //       Diagnostic("Type " + name + " Not Found",
+    //                  DiagnosticUtils::DiagnosticLevel::Error,
+    //                  DiagnosticUtils::DiagnosticType::Semantic,
+    //                  objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+    //                      ->getTokenPtr()
+    //                      ->getSourceLocation()));
 
-      return std::move(boundObjectTypeExpression);
-    }
+    //   return std::move(boundObjectTypeExpression);
+    // }
 
     boundObjectTypeExpression->setObjectTypeIdentifier(
         std::move(bindLiteralExpression(

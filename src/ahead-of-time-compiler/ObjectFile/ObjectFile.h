@@ -33,7 +33,6 @@ public:
 
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
     TargetOptions opt;
-
     auto TargetMachine = Target->createTargetMachine(
         TargetTriple, CPU, Features, opt, std::optional<Reloc::Model>());
 

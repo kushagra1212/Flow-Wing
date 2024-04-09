@@ -22,8 +22,8 @@ public:
   auto inline getClangFilePath() -> std::filesystem::path {
     std::filesystem::path CLANG_PATH = "";
 
-#if defined(__LINUX__)
-    CLANG_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
+#if defined(__linux__)
+    CLANG_PATH = "/usr/bin/clang-17";
 #elif defined(__APPLE__)
     CLANG_PATH = "/usr/bin/clang";
 #endif
@@ -34,8 +34,8 @@ public:
   auto inline getLibPath() -> std::filesystem::path {
     std::filesystem::path LIB_PATH = "";
 
-#if defined(__LINUX__)
-    LIB_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/lib";
+#if defined(__linux__)
+    LIB_PATH = "/usr/local/lib/FlowWing";
 #elif defined(__APPLE__)
     LIB_PATH = "/usr/local/lib/FlowWing";
 #endif

@@ -409,6 +409,36 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNPDefault(
     } else if (bExpr->getSyntaxType() ==
                SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
 
+      llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+          parStructType->getElementType(indexValue));
+      llvm::Type *elementType = arrayType->getElementType();
+      llvm::Type *type = arrayType;
+
+      std::vector<uint64_t> sizes;
+      while (llvm::ArrayType *arrayType =
+                 llvm::dyn_cast<llvm::ArrayType>(type)) {
+        sizes.push_back(arrayType->getNumElements());
+        type = arrayType->getElementType();
+      }
+
+      std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
+          std::make_unique<FillExpressionGenerationStrategy>(
+              _codeGenerationContext, sizes, type,
+              variable->getName().str() + "." + propertyName);
+
+      llvm::Constant *_defaultVal = nullptr;
+
+      if (!llvm::isa<llvm::StructType>(type)) {
+        _defaultVal = llvm::cast<llvm::Constant>(
+            _codeGenerationContext->getMapper()->getDefaultValue(type));
+
+        specificStrategy->createExpressionLoopWithTotalSize(
+            arrayType, innerElementPtr, _defaultVal);
+      } else {
+        // _defaultVal = llvm::Constant::getNullValue(type);
+        createExpressionNPDefault(innerElementPtr, type->getStructName().str());
+      }
+
     } else {
 
       Builder->CreateStore(

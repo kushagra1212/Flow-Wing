@@ -37,11 +37,26 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
           literalExpressionGenerationStrategy =
               std::make_unique<LiteralExpressionGenerationStrategy>(
                   _codeGenerationContext);
+      llvm::Type *elementType = nullptr;
+      if (boundArrayTypeExpression->isTrivialType()) {
 
-      llvm::Type *elementType =
-          _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-              boundArrayTypeExpression->getElementType());
+        elementType =
+            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+                boundArrayTypeExpression->getElementType());
+      } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
+                     boundArrayTypeExpression->getNonTrivialElementType()
+                         .get())) {
 
+        elementType = _codeGenerationContext->getTypeChain()->getType(
+            objectType->getTypeName());
+      }
+      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+          boundArrayTypeExpression->getLocation());
+      if (!elementType) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Expected a array element type in custom type statement");
+        return nullptr;
+      }
       llvm::Type *arrayType = elementType;
       std::vector<uint64_t> dimensions(
           boundArrayTypeExpression->getDimensions().size(), 0);
@@ -50,6 +65,8 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
                 boundArrayTypeExpression->getDimensions()[k].get());
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            boundArrayTypeExpression->getDimensions()[k]->getLocation());
 
         if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
           _codeGenerationContext->getLogger()->LogError(

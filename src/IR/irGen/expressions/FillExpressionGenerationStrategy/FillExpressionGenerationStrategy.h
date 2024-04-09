@@ -3,7 +3,7 @@
 
 #include "../../../../bind/BoundFillExpression/BoundFillExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-
+#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   FillExpressionGenerationStrategy(CodeGenerationContext *context,
@@ -35,6 +35,10 @@ public:
                                     llvm::Value *elementToFill,
                                     uint64_t &sizeToFillVal);
 
+  llvm::Value *createExpressionLoopWithTotalSize(llvm::Type *arrayType,
+                                                 llvm::Value *v,
+                                                 llvm::Value *elementToFill);
+
   inline auto setAllocaInst(llvm::Value *allocaInst) {
     _allocaInst = allocaInst;
   }
@@ -52,6 +56,7 @@ private:
   llvm::Value *_elementToFill;
   uint64_t _sizeToFillInt;
   llvm::Value *_allocaInst;
+  BoundExpression *_objectExpression;
 };
 
 #endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

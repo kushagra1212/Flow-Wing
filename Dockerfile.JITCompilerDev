@@ -5,13 +5,13 @@ FROM kushagra711/common-base-llvm:latest
 COPY . /jit-compiler-dev
 
 # Set the working directory
-WORKDIR /jit-compiler-dev/all-targets/jit-compiler
+WORKDIR /jit-compiler-dev/targets/jit-compiler
 
 # Create a compiler-build directory
 RUN mkdir -p jit-compiler-build
 
 # Configure and build your project using Ninja
-WORKDIR /jit-compiler-dev/all-targets/jit-compiler/jit-compiler-build
+WORKDIR /jit-compiler-dev/targets/jit-compiler/jit-compiler-build
 #RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja
 

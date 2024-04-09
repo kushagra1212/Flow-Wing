@@ -274,14 +274,21 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
       static_cast<BoundArrayTypeExpression *>(
           contVarDec->getTypeExpression().get());
 
-  const SyntaxKindUtils::SyntaxKind &containerElementType =
-      arrayTypeExpression->getElementType();
-
   this->calcActualContainerSize(arrayTypeExpression);
   _containerName = contVarDec->getVariableName();
 
-  _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-      arrayTypeExpression->getElementType());
+  if (arrayTypeExpression->isTrivialType()) {
+    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        arrayTypeExpression->getElementType());
+
+  } else {
+    BoundObjectTypeExpression *objectTypeExpression =
+        static_cast<BoundObjectTypeExpression *>(
+            arrayTypeExpression->getNonTrivialElementType().get());
+
+    _elementType = _codeGenerationContext->getTypeChain()->getType(
+        objectTypeExpression->getTypeName());
+  }
 
   BinderKindUtils::BoundNodeKind kind =
       contVarDec->getInitializerPtr()->getKind();

@@ -4,6 +4,7 @@
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../../../../bind/BoundContainerStatement/BoundContainerStatement.h"
 #include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ContainerDeclarationStatementGenerationStrategy
