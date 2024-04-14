@@ -306,11 +306,10 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
       SyntaxKindUtils::SyntaxKind::IdentifierToken) {
     arrayTypeExpression->setNonTrivialElementType(
         std::move(this->parseObjectTypeExpression()));
+    removeWithSpace();
   } else {
     arrayTypeExpression->setElementType(std::move(this->parsePrimitiveType()));
   }
-
-  removeWithSpace();
 
   while (this->getCurrent()->getKind() ==
          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
