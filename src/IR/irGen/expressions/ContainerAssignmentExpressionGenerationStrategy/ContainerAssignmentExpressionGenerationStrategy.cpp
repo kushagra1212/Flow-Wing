@@ -34,7 +34,7 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 
   _rhsVariable = _expressionGenerationFactory->createStrategy(expr->getKind())
                      ->generateExpression(expr);
-
+  _codeGenerationContext->getValueStackHandler()->popAll();
   _rhsArrayType = nullptr;
 
   bool hasError = false;

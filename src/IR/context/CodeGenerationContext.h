@@ -88,15 +88,29 @@ public:
   void getMetaData(const std::string kind, llvm::Value *array,
                    std::string &metaData);
   llvm::Type *getArrayElementTypeMetadata(llvm::Value *array);
-  void getMultiArrayType(llvm::ArrayType *&arrayType, llvm::Constant *&def,
+  void getMultiArrayTypeForGlobal(llvm::ArrayType *&arrayType,
+                                  llvm::Constant *&def,
+                                  const std::vector<uint64_t> &actualSizes,
+                                  llvm::Type *elementType);
+  void getMultiArrayType(llvm::ArrayType *&arrayType,
                          const std::vector<uint64_t> &actualSizes,
                          llvm::Type *elementType);
-
   void getRetrunedArrayType(llvm::Function *F, llvm::ArrayType *&arrayType,
                             llvm::Type *&arrayElementType,
                             std::vector<uint64_t> &actualSizes);
 
   void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
+
+  int8_t verifyArrayType(llvm::ArrayType *lhsType, llvm::ArrayType *rhsType);
+  inline auto
+  createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
+                                      llvm::Type *&arrayElementType) -> void {
+    while (llvm::ArrayType *arrayType =
+               llvm::dyn_cast<llvm::ArrayType>(arrayElementType)) {
+      actualSizes.push_back(arrayType->getNumElements());
+      arrayElementType = arrayType->getElementType();
+    }
+  }
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;

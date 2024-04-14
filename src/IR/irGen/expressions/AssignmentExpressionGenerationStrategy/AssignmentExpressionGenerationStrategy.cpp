@@ -257,113 +257,68 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
 
-  BoundIndexExpression *indexExpression = static_cast<BoundIndexExpression *>(
-      assignmentExpression->getLeftPtr().get());
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getLeftPtr().get());
+  llvm::Value *lhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *lhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Assignment to constant  is not supported");
+    return nullptr;
+  }
+  llvm::Value *lhsValue = Builder->CreateLoad(lhsType, lhsPtr);
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
-  _variableType =
-      assignmentExpression->getVariable()->getTypeExpression()->getSyntaxType();
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getRightPtr().get());
 
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
-          ->generateExpression(assignmentExpression->getRightPtr().get());
+  llvm::Value *rhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *rhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  llvm::Value *rhsValue = nullptr;
+
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else {
+    rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
+  }
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (!rhsValue) {
-    // Error generating IR for the right-hand side expression
-
     _codeGenerationContext->getLogger()->LogError(
         "Right hand side value not found in assignment expression ");
-
     return nullptr;
   }
 
-  for (const auto &index : indexExpression->getBoundIndexExpressions()) {
-    llvm::Value *indexValue =
-        _expressionGenerationFactory->createStrategy(index.get()->getKind())
-            ->generateExpression(index.get());
-
-    indexValue = _int32TypeConverter->convertExplicit(indexValue);
-
-    if (!_codeGenerationContext->getMapper()->isInt32Type(
-            indexValue->getType())) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected index value to be of type int but got " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              indexValue->getType())));
-      return nullptr;
-    }
-    _indices.push_back(indexValue);
-  }
-
-  llvm::Value *loadedElementValue =
-      _expressionGenerationFactory->createStrategy(indexExpression->getKind())
-          ->generateExpression(indexExpression);
-
-  if (!loadedElementValue) {
+  if (!lhsValue) {
     _codeGenerationContext->getLogger()->LogError(
-        "Index value not found in assignment expression");
-
+        "Left hand side value not found in assignment expression ");
     return nullptr;
   }
 
-  // ? Is a container
-
-  if (_variableType != SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Cannot assign to non array variable" + _variableName);
-    return nullptr;
-  }
-
-  if (llvm::isa<llvm::StructType>(rhsValue->getType())) {
-    llvm::outs() << "Dy";
-  }
-  // Typed Container
-
-  if (rhsValue->getType() != loadedElementValue->getType()) {
+  if (lhsType != rhsType) {
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in assignment expression, expected " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            loadedElementValue->getType()) +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(lhsType) +
         " but found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            rhsValue->getType()) +
-        " ");
-
+        _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType) + " ");
     return nullptr;
   }
-
-  std::string variableName = std::any_cast<std::string>(
-      (indexExpression->getBoundIdentifierExpression().get())->getValue());
-
-  llvm::AllocaInst *alloca =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
-  llvm::Type *arrayType = nullptr;
-
-  llvm::Value *v = nullptr;
-
-  if (!alloca) { // Error Already Handled Look at the index
-                 // expression Up :)
-    llvm::GlobalVariable *gv = TheModule->getGlobalVariable(
-        variableName); // Error was handled before
-                       // in the index expression (var loadedElementValue)
-
-    arrayType = llvm::cast<llvm::ArrayType>(gv->getValueType());
-    v = gv;
-  } else {
-    arrayType = llvm::cast<llvm::ArrayType>(alloca->getAllocatedType());
-    v = alloca;
+  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+      llvm::isa<llvm::ArrayType>(rhsType)) {
+    if (_codeGenerationContext->verifyArrayType(
+            llvm::cast<llvm::ArrayType>(lhsType),
+            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
+      return nullptr;
   }
 
-  std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
-
-  for (auto index : _indices) {
-    indexList.push_back(index);
-  }
-
-  // Get Element pointer
-  llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
-
-  Builder->CreateStore(rhsValue, elementPtr);
+  Builder->CreateStore(rhsValue, lhsPtr);
 
   return rhsValue;
 }

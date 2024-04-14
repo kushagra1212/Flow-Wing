@@ -136,7 +136,7 @@
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "clang-format.executable": "/usr/local/opt/llvm/bin/clang-format",
-  "workbench.colorTheme": "Snazzy Operator",
+  "workbench.colorTheme": "GitHub Dark High Contrast",
    "editor.codeActionsOnSave": {
   },
   "editor.bracketPairColorization.enabled": true,

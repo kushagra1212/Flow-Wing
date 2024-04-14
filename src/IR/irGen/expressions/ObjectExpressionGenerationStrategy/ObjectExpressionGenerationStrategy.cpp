@@ -151,19 +151,21 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
+  std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
 
+  uint64_t index = 0;
   for (const auto &[bLitExpr, bExpr] :
        boundCustomTypeStatement->getKeyPairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
     propertiesMap[propertyName] = bExpr.get();
+    propertiesMapIndexed[propertyName] = index;
+    index++;
   }
-
-  uint64_t indexValue = 0;
 
   for (const auto &[bLitExpr, bExpr] :
        parObjectExpression->getKeyValuePairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
-
+    uint64_t indexValue = propertiesMapIndexed[propertyName];
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bLitExpr->getLocation());
 

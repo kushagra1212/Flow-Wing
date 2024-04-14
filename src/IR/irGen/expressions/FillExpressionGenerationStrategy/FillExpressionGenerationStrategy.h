@@ -57,6 +57,9 @@ private:
   uint64_t _sizeToFillInt;
   llvm::Value *_allocaInst;
   BoundExpression *_objectExpression;
+  BoundExpression *_variableExpression;
+  bool _isGlobal = false;
+  llvm::Type *_elementToFillType;
 };
 
 #endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

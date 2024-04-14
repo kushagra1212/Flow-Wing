@@ -310,6 +310,8 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
     arrayTypeExpression->setElementType(std::move(this->parsePrimitiveType()));
   }
 
+  removeWithSpace();
+
   while (this->getCurrent()->getKind() ==
          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
     this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
@@ -1160,7 +1162,62 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
 
     this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
   }
-  appendWithSpace();
+
+  if (this->getCurrent()->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
+    std::unique_ptr<TypeExpressionSyntax> typeExpression =
+        std::make_unique<TypeExpressionSyntax>(
+            std::make_unique<SyntaxToken<std::any>>(
+                this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+                SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
+                "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
+
+    std::unique_ptr<VariableExpressionSyntax> variExp =
+        std::make_unique<VariableExpressionSyntax>(
+            std::make_unique<LiteralExpressionSyntax<std::any>>(nullptr, value),
+            false, std::move(typeExpression));
+
+    while (this->getCurrent()->getKind() ==
+           SyntaxKindUtils::SyntaxKind::DotToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::DotToken);
+
+      if (this->getCurrent()->getKind() ==
+              SyntaxKindUtils::SyntaxKind::IdentifierToken &&
+          this->peek(1)->getKind() ==
+              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+
+        std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken = std::move(
+            this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+
+        std::any value = localIdentifierToken->getValue();
+        std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
+            std::make_unique<IndexExpressionSyntax>(
+                std::make_unique<LiteralExpressionSyntax<std::any>>(
+                    std::move(localIdentifierToken), value));
+
+        while (this->getCurrent()->getKind() ==
+               SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+
+          this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+
+          localIndexExpression->addIndexExpression(
+              std::move(this->parseExpression()));
+
+          this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
+        }
+
+        variExp->addDotExpression(std::move(localIndexExpression));
+      } else {
+        std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken = std::move(
+            this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        std::any value = localIdentifierToken->getValue();
+
+        variExp->addDotExpression(
+            std::make_unique<LiteralExpressionSyntax<std::any>>(
+                std::move(localIdentifierToken), value));
+      }
+    }
+    indexExpression->addVariableExpression(std::move(variExp));
+  }
 
   if (this->getCurrent()->getKind() ==
       SyntaxKindUtils::SyntaxKind::EqualsToken) {

@@ -17,9 +17,11 @@ BinderKindUtils::BoundNodeKind BoundIndexExpression::getKind() const {
 std::vector<BoundNode *> BoundIndexExpression::getChildren() {
   if (_children.size() == 0) {
     _children.push_back(_boundIdentifierExpression.get());
-
     for (const auto &item : _boundIndexExpressions) {
       _children.push_back(item.get());
+    }
+    if (_variableExpression) {
+      _children.push_back(_variableExpression.get());
     }
   }
 

@@ -77,6 +77,15 @@ public:
     ValueStack *valueStack = vs.top();
     return valueStack->getType() == "array";
   }
+
+  auto inline isLLVMConstant() -> bool {
+    if (vs.empty()) {
+      return false;
+    }
+
+    ValueStack *&valueStack = vs.top();
+    return valueStack->getType() == "constant";
+  }
 };
 
 #endif

@@ -330,6 +330,51 @@ CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
 }
 
 void CodeGenerationContext::getMultiArrayType(
+    llvm::ArrayType *&arrayType, const std::vector<uint64_t> &actualSizes,
+    llvm::Type *elementType) {
+  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+    if (arrayType == nullptr) {
+      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+    } else {
+      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+    }
+  }
+}
+int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
+                                              llvm::ArrayType *rhsType) {
+  std::vector<uint64_t> lhsSizes, rhsSizes;
+  llvm::Type *lshEType = llvm::cast<llvm::ArrayType>(lhsType),
+             *rhsEType = llvm::cast<llvm::ArrayType>(rhsType);
+  this->createArraySizesAndArrayElementType(lhsSizes, lshEType);
+  this->createArraySizesAndArrayElementType(rhsSizes, rhsEType);
+  if (lhsType != rhsType) {
+    this->getLogger()->LogError(
+        "Type mismatch in assignment expression, expected " +
+        this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+        this->getMapper()->getLLVMTypeName(rhsType) + " ");
+    return EXIT_FAILURE;
+  }
+
+  if (lhsSizes.size() != rhsSizes.size()) {
+    this->getLogger()->LogError(
+        "Dimension mismatch Expected " + std::to_string(lhsSizes.size()) +
+        " but found " + std::to_string(rhsSizes.size()));
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < lhsSizes.size(); i++) {
+    if (lhsSizes[i] != rhsSizes[i]) {
+      this->getLogger()->LogError("Dimension mismatch Expected " +
+                                  std::to_string(i) + "th Dimension " +
+                                  std::to_string(lhsSizes[i]) + " but found " +
+                                  std::to_string(rhsSizes[i]));
+      return EXIT_FAILURE;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+void CodeGenerationContext::getMultiArrayTypeForGlobal(
     llvm::ArrayType *&arrayType, llvm::Constant *&def,
     const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
   for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
@@ -365,7 +410,7 @@ void CodeGenerationContext::getRetrunedArrayType(
     llvm::Constant *def = llvm::cast<llvm::Constant>(
         this->getMapper()->getDefaultValue(arrayElementType));
 
-    getMultiArrayType(arrayType, def, actualSizes, arrayElementType);
+    getMultiArrayType(arrayType, actualSizes, arrayElementType);
   } else if (strs[2] == "pr") {
     arrayElementType = getMapper()->mapCustomTypeToLLVMType(
         (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));

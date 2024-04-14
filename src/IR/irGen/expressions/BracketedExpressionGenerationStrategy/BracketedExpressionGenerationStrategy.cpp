@@ -54,47 +54,47 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateExpression(
   }
 
   switch ((kind)) {
-    case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
-      BoundContainerExpression *containerExpression =
-          static_cast<BoundContainerExpression *>(
-              bracketedExpression->getExpressionRef().get());
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+    BoundContainerExpression *containerExpression =
+        static_cast<BoundContainerExpression *>(
+            bracketedExpression->getExpressionRef().get());
 
-      std::unique_ptr<ContainerExpressionGenerationStrategy>
-          containerExpressionGenerationStrategy =
-              std::make_unique<ContainerExpressionGenerationStrategy>(
-                  _codeGenerationContext, dimensions, elementType,
-                  _containerName);
+    std::unique_ptr<ContainerExpressionGenerationStrategy>
+        containerExpressionGenerationStrategy =
+            std::make_unique<ContainerExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
-      if (!containerExpressionGenerationStrategy->canGenerateExpression(
-              containerExpression)) {
-        return nullptr;
-      }
-
-      return containerExpressionGenerationStrategy->createLocalExpression(
-          arrayType, _allocaInst, containerExpression);
+    if (!containerExpressionGenerationStrategy->canGenerateExpression(
+            containerExpression)) {
+      return nullptr;
     }
 
-    case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
-      BoundFillExpression *fillExpression = static_cast<BoundFillExpression *>(
-          bracketedExpression->getExpressionRef().get());
+    return containerExpressionGenerationStrategy->createLocalExpression(
+        arrayType, _allocaInst, containerExpression);
+  }
 
-      std::unique_ptr<FillExpressionGenerationStrategy>
-          fillExpressionGenerationStrategy =
-              std::make_unique<FillExpressionGenerationStrategy>(
-                  _codeGenerationContext, dimensions, elementType,
-                  _containerName);
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+    BoundFillExpression *fillExpression = static_cast<BoundFillExpression *>(
+        bracketedExpression->getExpressionRef().get());
 
-      if (!fillExpressionGenerationStrategy->canGenerateExpression(
-              fillExpression)) {
-        return nullptr;
-      }
+    std::unique_ptr<FillExpressionGenerationStrategy>
+        fillExpressionGenerationStrategy =
+            std::make_unique<FillExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
-      return fillExpressionGenerationStrategy->createLocalExpression(
-          arrayType, _allocaInst);
+    if (!fillExpressionGenerationStrategy->canGenerateExpression(
+            fillExpression)) {
+      return nullptr;
     }
 
-    default:
-      break;
+    return fillExpressionGenerationStrategy->createLocalExpression(arrayType,
+                                                                   _allocaInst);
+  }
+
+  default:
+    break;
   }
 
   _codeGenerationContext->getLogger()->LogError(
@@ -148,47 +148,47 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
   }
 
   switch ((kind)) {
-    case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
-      BoundContainerExpression *containerExpression =
-          static_cast<BoundContainerExpression *>(
-              bracketedExpression->getExpressionRef().get());
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+    BoundContainerExpression *containerExpression =
+        static_cast<BoundContainerExpression *>(
+            bracketedExpression->getExpressionRef().get());
 
-      std::unique_ptr<ContainerExpressionGenerationStrategy>
-          containerExpressionGenerationStrategy =
-              std::make_unique<ContainerExpressionGenerationStrategy>(
-                  _codeGenerationContext, dimensions, elementType,
-                  _containerName);
+    std::unique_ptr<ContainerExpressionGenerationStrategy>
+        containerExpressionGenerationStrategy =
+            std::make_unique<ContainerExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
-      if (!containerExpressionGenerationStrategy->canGenerateExpression(
-              containerExpression)) {
-        return nullptr;
-      }
-
-      return containerExpressionGenerationStrategy->createGlobalExpression(
-          arrayType, _previousGlobalVariable, containerExpression);
+    if (!containerExpressionGenerationStrategy->canGenerateExpression(
+            containerExpression)) {
+      return nullptr;
     }
 
-    case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
-      BoundFillExpression *fillExpression = static_cast<BoundFillExpression *>(
-          bracketedExpression->getExpressionRef().get());
+    return containerExpressionGenerationStrategy->createGlobalExpression(
+        arrayType, _previousGlobalVariable, containerExpression);
+  }
 
-      std::unique_ptr<FillExpressionGenerationStrategy>
-          fillExpressionGenerationStrategy =
-              std::make_unique<FillExpressionGenerationStrategy>(
-                  _codeGenerationContext, dimensions, elementType,
-                  _containerName);
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+    BoundFillExpression *fillExpression = static_cast<BoundFillExpression *>(
+        bracketedExpression->getExpressionRef().get());
 
-      if (!fillExpressionGenerationStrategy->canGenerateExpression(
-              fillExpression)) {
-        return nullptr;
-      }
+    std::unique_ptr<FillExpressionGenerationStrategy>
+        fillExpressionGenerationStrategy =
+            std::make_unique<FillExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
 
-      return fillExpressionGenerationStrategy->createGlobalExpression(
-          arrayType, _previousGlobalVariable);
+    if (!fillExpressionGenerationStrategy->canGenerateExpression(
+            fillExpression)) {
+      return nullptr;
     }
 
-    default:
-      break;
+    return fillExpressionGenerationStrategy->createGlobalExpression(
+        arrayType, _previousGlobalVariable);
+  }
+
+  default:
+    break;
   }
 
   _codeGenerationContext->getLogger()->LogError(

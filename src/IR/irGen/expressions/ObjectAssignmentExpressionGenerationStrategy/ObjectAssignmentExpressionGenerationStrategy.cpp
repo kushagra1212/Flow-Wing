@@ -334,11 +334,14 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     boundTypeExpressionMap[propertyName] = bTE.get();
   }
 
-  std::string propertyKey = std::any_cast<std::string>(
-      _lhsVarExpr->getDotExpressionList()[listIndex]->getValue());
+  BoundLiteralExpression<std::any> *litExp =
+      static_cast<BoundLiteralExpression<std::any> *>(
+          _lhsVarExpr->getDotExpressionList()[listIndex].get());
+
+  std::string propertyKey = std::any_cast<std::string>(litExp->getValue());
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      _lhsVarExpr->getDotExpressionList()[listIndex]->getLocation());
+      litExp->getLocation());
 
   if (boundTypeExpressionMap.find(propertyKey) ==
       boundTypeExpressionMap.end()) {

@@ -561,6 +561,51 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
         std::move(bindExpression(indexExp.get())));
   }
 
+  if (indexExpression->isObject()) {
+
+    VariableExpressionSyntax *variableExpressionSyntax =
+        static_cast<VariableExpressionSyntax *>(
+            indexExpression->getVariableExpressionRef().get());
+
+    std::unique_ptr<BoundVariableExpression> boundVariableExpression =
+        std::make_unique<BoundVariableExpression>(
+            indexExpression->getSourceLocation(), nullptr,
+            variableExpressionSyntax->isConstant(),
+            variable->getTypeExpression().get());
+
+    for (const auto &dotExpression :
+         variableExpressionSyntax->getDotExpressionList()) {
+      if (dotExpression->getKind() ==
+          SyntaxKindUtils::SyntaxKind::IndexExpression) {
+
+        IndexExpressionSyntax *indexExpression =
+            static_cast<IndexExpressionSyntax *>(dotExpression.get());
+        std::unique_ptr<BoundLiteralExpression<std::any>>
+            localBoundIdentifierExpression(
+                (BoundLiteralExpression<std::any> *)bindExpression(
+                    indexExpression->getIndexIdentifierExpressionPtr().get())
+                    .release());
+
+        std::unique_ptr<BoundIndexExpression> localBoundIndexExp =
+            std::make_unique<BoundIndexExpression>(
+                indexExpression->getSourceLocation(),
+                std::move(localBoundIdentifierExpression));
+
+        for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
+          localBoundIndexExp->addBoundIndexExpression(
+              std::move(bindExpression(indexExp.get())));
+        }
+        boundVariableExpression->addDotExpression(
+            std::move(localBoundIndexExp));
+      } else {
+        boundVariableExpression->addDotExpression(
+            std::move(bindExpression(dotExpression.get())));
+      }
+    }
+
+    boundIndexExp->addVariableExpression(std::move(boundVariableExpression));
+  }
+
   return std::move(boundIndexExp);
 }
 
@@ -925,17 +970,17 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
 
     boundObjectTypeExpression->setTypeName(name);
 
-    // if (!this->root->tryLookupCustomType(name)) {
-    //   this->_diagnosticHandler->addDiagnostic(
-    //       Diagnostic("Type " + name + " Not Found",
-    //                  DiagnosticUtils::DiagnosticLevel::Error,
-    //                  DiagnosticUtils::DiagnosticType::Semantic,
-    //                  objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-    //                      ->getTokenPtr()
-    //                      ->getSourceLocation()));
+    if (!this->root->tryLookupCustomType(name)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Type " + name + " Not Found",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+                         ->getTokenPtr()
+                         ->getSourceLocation()));
 
-    //   return std::move(boundObjectTypeExpression);
-    // }
+      return std::move(boundObjectTypeExpression);
+    }
 
     boundObjectTypeExpression->setObjectTypeIdentifier(
         std::move(bindLiteralExpression(

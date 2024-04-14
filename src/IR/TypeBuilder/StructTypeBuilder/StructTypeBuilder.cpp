@@ -70,6 +70,9 @@ llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
       _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
                                                             v, index);
 
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", elementPtr, "dynamic", this->getMemberTypes()[index]);
+
   return _codeGenerationContext->getBuilder()->CreateLoad(
       this->getMemberTypes()[index], elementPtr);
 }

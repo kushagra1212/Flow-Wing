@@ -36,8 +36,16 @@ public:
                           const std::string &containerName,
                           BoundExpression *initializer);
 
+  const bool canGenerateVariableExpression(BoundExpression *callExp);
+
+  int8_t verifyArrayType(llvm::ArrayType *left, llvm::ArrayType *right);
+
   inline auto setAllocaInst(llvm::Value *allocaInst) {
     _allocaInst = allocaInst;
+  }
+
+  inline auto setElementType(llvm::Type *elementType) {
+    _elementType = elementType;
   }
 
 private:

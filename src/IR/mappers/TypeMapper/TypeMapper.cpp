@@ -101,29 +101,42 @@ const bool TypeMapper::isPtrType(llvm::Type *type) const {
 }
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
+  if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    if (llvm::isa<llvm::StructType>(type)) {
+      llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+      return COLORED_STRING::GET(
+          "<Object<" + structType->getName().str() + ">>", YELLOW_TEXT, RESET);
+    } else if (llvm::isa<llvm::ArrayType>(type)) {
+      llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+      return COLORED_STRING::GET(
+          "<Array" + getLLVMTypeName(arrayType->getElementType()) + ">",
+          YELLOW_TEXT, RESET);
+    }
+  }
 
-  return getLLVMTypeName(customType);
+  return COLORED_STRING::GET("<" + getLLVMTypeName(customType) + ">",
+                             YELLOW_TEXT, RESET);
 }
 
 std::string
 TypeMapper::getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const {
   switch (customType) {
   case SyntaxKindUtils::SyntaxKind::BoolKeyword:
-    return "Boolean";
+    return "'Boolean'";
   case SyntaxKindUtils::SyntaxKind::Int64Keyword:
-    return "Integer64";
+    return "'Integer64'";
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
-    return "Integer32";
+    return "'Integer32'";
   case SyntaxKindUtils::SyntaxKind::Int8Keyword:
-    return "Integer8";
+    return "'Integer8'";
   case SyntaxKindUtils::SyntaxKind::DeciKeyword:
-    return "Decimal64";
+    return "'Decimal64'";
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
-    return "Decimal32";
+    return "'Decimal32'";
   case SyntaxKindUtils::SyntaxKind::StrKeyword:
-    return "String";
+    return "'String'";
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
-    return "Nothing";
+    return "'Nothing'";
   default:
     break;
   }
@@ -168,7 +181,12 @@ llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
 }
 
 llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
-  return getDefaultValue(mapLLVMTypeToCustomType(type));
+  SyntaxKindUtils::SyntaxKind kind = mapLLVMTypeToCustomType(type);
+  if (kind == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    return llvm::Constant::getNullValue(type);
+  }
+
+  return getDefaultValue(kind);
 }
 
 const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {

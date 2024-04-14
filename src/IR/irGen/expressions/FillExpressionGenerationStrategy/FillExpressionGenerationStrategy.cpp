@@ -20,8 +20,8 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                            _actualSizes, _elementType);
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
 
   if (!_allocaInst) {
     llvm::AllocaInst *alloca =
@@ -35,11 +35,7 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
 
   // Fill the array with default values
 
-  createExpressionLoop(
-      arrayType, _allocaInst,
-      llvm::cast<llvm::Constant>(
-          _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
-      _totalSize);
+  createExpressionLoop(arrayType, _allocaInst, _defaultVal, _totalSize);
 
   return createExpressionLoop(arrayType, _allocaInst, _elementToFill,
                               _sizeToFillInt);
@@ -49,8 +45,7 @@ llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
     llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
   // Get And Set Default Value
 
-  this->createExpression(arrayType, arrayAlloca, _elementToFill,
-                         _sizeToFillInt);
+  createExpressionLoop(arrayType, arrayAlloca, _elementToFill, _sizeToFillInt);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           arrayAlloca);
@@ -71,15 +66,12 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
 
   llvm::Constant *_defaultVal = nullptr;
 
-  if (!llvm::isa<llvm::StructType>(_elementType)) {
-    _defaultVal = llvm::cast<llvm::Constant>(
-        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-  } else {
-    _defaultVal = llvm::Constant::getNullValue(_elementType);
-  }
+  _defaultVal = llvm::cast<llvm::Constant>(
+      _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                            _actualSizes, _elementType);
+  _codeGenerationContext->getMultiArrayTypeForGlobal(
+      arrayType, _defaultVal, _actualSizes, _elementType);
+
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
       _defaultVal, _containerName);
@@ -167,6 +159,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpression(
 
 llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
     llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable) {
+  _isGlobal = true;
   return this->createExpressionLoop(arrayType, _globalVariable, _elementToFill,
                                     _sizeToFillInt);
 }
@@ -246,6 +239,8 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   }
 
   if (fillExpression->getElementToFillRef()->getKind() !=
+          BinderKindUtils::VariableExpression &&
+      fillExpression->getElementToFillRef()->getKind() !=
           BinderKindUtils::BoundObjectExpression &&
       llvm::isa<llvm::StructType>(_elementType)) {
     _codeGenerationContext->getLogger()->LogError(
@@ -265,6 +260,16 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
       _expressionGenerationFactory
           ->createStrategy(fillExpression->getElementToFillRef()->getKind())
           ->generateExpression(fillExpression->getElementToFillRef().get());
+
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
+    _elementToFillType =
+        _codeGenerationContext->getValueStackHandler()->getLLVMType();
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    _variableExpression = fillExpression->getElementToFillRef().get();
+    return true;
+  }
 
   if (!_elementToFill) {
     _codeGenerationContext->getLogger()->LogError(
@@ -305,13 +310,17 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
 
   for (int i = 0; i < _actualSizes.size(); i++) {
     std::vector<llvm::BasicBlock *> blocks = {
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopStart",
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopStart-" + std::to_string(i),
                                  currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopCmp",
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopCmp-" + std::to_string(i),
                                  currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopBody",
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopBody-" + std::to_string(i),
                                  currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopEnd",
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopEnd-" + std::to_string(i),
                                  currentBlock->getParent())};
 
     llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
@@ -370,6 +379,15 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
         objExpGenStrategy->setVariable(elementPtr);
         objExpGenStrategy->setTypeName(_elementType->getStructName().str());
         objExpGenStrategy->generateExpression(_objectExpression);
+      } else if (llvm::isa<llvm::StructType>(_elementType) &&
+                 _variableExpression) {
+        std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
+            std::make_unique<ObjectExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
+        objExpGenStrat->generateVariable(elementPtr,
+                                         _elementType->getStructName().str(),
+                                         _elementToFill, _isGlobal);
       } else
         Builder->CreateStore(elementToFill, elementPtr);
 

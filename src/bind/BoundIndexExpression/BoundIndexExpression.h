@@ -6,11 +6,13 @@
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 class BoundIndexExpression : public BoundExpression {
- private:
+private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _boundIdentifierExpression;
   std::vector<std::unique_ptr<BoundExpression>> _boundIndexExpressions;
+  std::unique_ptr<BoundExpression> _variableExpression;
+  bool _isObject = false;
 
- public:
+public:
   BoundIndexExpression(const DiagnosticUtils::SourceLocation &location,
                        std::unique_ptr<BoundLiteralExpression<std::any>>
                            boundIdentifierExpression);
@@ -28,12 +30,26 @@ class BoundIndexExpression : public BoundExpression {
     return this->_boundIndexExpressions;
   }
 
+  inline auto getVariableExpression() const
+      -> const std::unique_ptr<BoundExpression> & {
+    return _variableExpression;
+  }
+
   // Setters
 
   inline void addBoundIndexExpression(
       std::unique_ptr<BoundExpression> boundIndexExpression) {
     this->_boundIndexExpressions.push_back(std::move(boundIndexExpression));
   }
+
+  inline auto
+  addVariableExpression(std::unique_ptr<BoundExpression> variableExpression)
+      -> void {
+    _isObject = true;
+    _variableExpression = std::move(variableExpression);
+  }
+
+  inline auto isObject() const -> const bool { return _isObject; }
 };
 
-#endif  // __BIND_INDEX_EXPRESSION_H__
+#endif // __BIND_INDEX_EXPRESSION_H__

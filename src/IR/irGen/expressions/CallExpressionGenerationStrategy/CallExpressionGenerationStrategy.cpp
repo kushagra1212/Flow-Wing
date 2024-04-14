@@ -132,6 +132,24 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
             value, _codeGenerationContext->getTypeChain()->getType(typeName));
       }
 
+      if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+        llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+            _codeGenerationContext->getValueStackHandler()->getLLVMType());
+        llvm::Value *innerElementPtr =
+            _codeGenerationContext->getValueStackHandler()->getValue();
+        _codeGenerationContext->getValueStackHandler()->popAll();
+        llvm::Type *elementType = arrayType->getElementType();
+        llvm::Type *type = arrayType;
+
+        std::vector<uint64_t> sizes;
+        while (llvm::ArrayType *arrayType =
+                   llvm::dyn_cast<llvm::ArrayType>(type)) {
+          sizes.push_back(arrayType->getNumElements());
+          type = arrayType->getElementType();
+        }
+        return printArrayAtom(arrayType, innerElementPtr, sizes, type);
+      }
+
       if (llvm::isa<llvm::ArrayType>(value->getType())) {
         llvm::ArrayType *arrayType =
             llvm::cast<llvm::ArrayType>(value->getType());
@@ -1097,13 +1115,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
       llvm::Type *elementType = arrayType->getElementType();
       llvm::Type *type = arrayType;
-
       std::vector<uint64_t> sizes;
-      while (llvm::ArrayType *arrayType =
-                 llvm::dyn_cast<llvm::ArrayType>(type)) {
-        sizes.push_back(arrayType->getNumElements());
-        type = arrayType->getElementType();
-      }
+      _codeGenerationContext->createArraySizesAndArrayElementType(sizes, type);
       printArrayAtom(arrayType, innerElementPtr, sizes, type);
     } else {
       llvm::LoadInst *loaded = Builder->CreateLoad(type, innerElementPtr);
