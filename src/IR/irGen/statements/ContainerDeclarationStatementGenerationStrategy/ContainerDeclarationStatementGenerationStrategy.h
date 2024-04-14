@@ -38,8 +38,6 @@ public:
 
   const bool canGenerateVariableExpression(BoundExpression *callExp);
 
-  int8_t verifyArrayType(llvm::ArrayType *left, llvm::ArrayType *right);
-
   inline auto setAllocaInst(llvm::Value *allocaInst) {
     _allocaInst = allocaInst;
   }

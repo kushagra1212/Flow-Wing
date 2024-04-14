@@ -8,14 +8,16 @@
 
 class ObjectAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
- public:
+public:
   ObjectAssignmentExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
-  llvm::Value *assignObject(llvm::Value *variableElementPtr, size_t listIndex,
-                            const std::string &parPropertyKey, bool reachedEnd);
+  llvm::Value *_deprecated_assignObject(llvm::Value *variableElementPtr,
+                                        size_t listIndex,
+                                        const std::string &parPropertyKey,
+                                        bool reachedEnd);
 
   bool canGenerateAssignmentExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
@@ -23,11 +25,11 @@ class ObjectAssignmentExpressionGenerationStrategy
   llvm::Value *copyOject(llvm::StructType *parStructType, llvm::Value *lshPtr,
                          llvm::Value *rhsPtr);
 
- private:
+private:
   BoundAssignmentExpression *_assignmentExp;
   llvm::Value *_lhsVar;
   BoundVariableExpression *_lhsVarExpr;
   bool _isGlobal = false;
 };
 
-#endif  // __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__

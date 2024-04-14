@@ -136,23 +136,83 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 llvm::Value *
 ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
-  _arrayType = nullptr;
+  // 1 RHS is variableExpression (array,array), (struct,struct)(useCopy Function
+  // 2 if direct does not works) from ObjectAssignment), (primitive,primitive)
 
-  if (llvm::isa<llvm::GlobalVariable>(_variable)) {
-    llvm::GlobalVariable *globalVariable =
-        llvm::cast<llvm::GlobalVariable>(_variable);
+  // 2 RHS Expression (array,BracketExp), (struct,structExp)
 
-    if (llvm::isa<llvm::ArrayType>(globalVariable->getValueType())) {
-      _arrayType = llvm::cast<llvm::ArrayType>(globalVariable->getValueType());
-    }
+  // 3 RHS CallExpression (can be handled using first)
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getLeftPtr().get());
+  llvm::Value *lhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *lhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Assignment to constant  is not supported");
+    return nullptr;
+  }
+  llvm::Value *lhsValue = Builder->CreateLoad(lhsType, lhsPtr);
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getRightPtr().get());
+
+  llvm::Value *rhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *rhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  llvm::Value *rhsValue = nullptr;
+
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else {
+    rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
   }
 
-  if (!canGenerateExpressionAssignment(expression)) {
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  if (!rhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Right hand side value not found in assignment expression ");
     return nullptr;
   }
 
-  return createExpression(_arrayType, _variable, _rhsVariable, _rhsArrayType,
-                          _rhsArrayElementType, _lhsSizes, _rhsSizes);
+  if (!lhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Left hand side value not found in assignment expression ");
+    return nullptr;
+  }
+
+  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+      llvm::isa<llvm::ArrayType>(rhsType)) {
+
+    if (_codeGenerationContext->verifyArrayType(
+            llvm::cast<llvm::ArrayType>(lhsType),
+            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
+      return nullptr;
+  } else {
+
+    if (lhsType != rhsType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Type mismatch in assignment expression, expected " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(lhsType) +
+          " but found " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType) + " ");
+      return nullptr;
+    }
+  }
+  Builder->CreateStore(rhsValue, lhsPtr);
+
+  return rhsValue;
 }
 
 llvm::Value *

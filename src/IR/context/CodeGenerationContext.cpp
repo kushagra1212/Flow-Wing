@@ -343,11 +343,11 @@ void CodeGenerationContext::getMultiArrayType(
 int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
                                               llvm::ArrayType *rhsType) {
   std::vector<uint64_t> lhsSizes, rhsSizes;
-  llvm::Type *lshEType = llvm::cast<llvm::ArrayType>(lhsType),
-             *rhsEType = llvm::cast<llvm::ArrayType>(rhsType);
+  llvm::Type *lshEType = (lhsType), *rhsEType = (rhsType);
   this->createArraySizesAndArrayElementType(lhsSizes, lshEType);
   this->createArraySizesAndArrayElementType(rhsSizes, rhsEType);
-  if (lhsType != rhsType) {
+
+  if (lshEType != rhsEType) {
     this->getLogger()->LogError(
         "Type mismatch in assignment expression, expected " +
         this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
@@ -363,9 +363,9 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
   }
 
   for (int i = 0; i < lhsSizes.size(); i++) {
-    if (lhsSizes[i] != rhsSizes[i]) {
-      this->getLogger()->LogError("Dimension mismatch Expected " +
-                                  std::to_string(i) + "th Dimension " +
+    if (lhsSizes[i] < rhsSizes[i]) {
+      this->getLogger()->LogError("Dimension mismatch Expected Dimension " +
+                                  std::to_string(i) + " to be " +
                                   std::to_string(lhsSizes[i]) + " but found " +
                                   std::to_string(rhsSizes[i]));
       return EXIT_FAILURE;

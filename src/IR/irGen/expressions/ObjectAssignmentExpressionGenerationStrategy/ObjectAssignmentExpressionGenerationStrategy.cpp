@@ -269,7 +269,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
   return nullptr;
 }
 
-llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
+llvm::Value *
+ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
     llvm::Value *variableElementPtr, size_t listIndex,
     const std::string &parPropertyKey, bool reachedEnd) {
   llvm::StructType *parStructType = nullptr;
@@ -416,8 +417,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
       }
     }
 
-    return assignObject(allocaInstAndGl, listIndex + 1, propertyKey,
-                        (!isNested));
+    return _deprecated_assignObject(allocaInstAndGl, listIndex + 1, propertyKey,
+                                    (!isNested));
   }
 
   llvm::Value *rhsValue =

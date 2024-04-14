@@ -84,8 +84,7 @@ AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
       assignStrategy->setVariable(_previousGlobalVariable);
       assignStrategy->setContainerName(_variableName);
 
-      return assignStrategy->generateGlobalExpression(
-          assignmentExpression->getRightPtr().get());
+      return assignStrategy->generateGlobalExpression(assignmentExpression);
     }
 
     auto strategy = _expressionGenerationFactory->createStrategy(
@@ -301,6 +300,14 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
         "Left hand side value not found in assignment expression ");
     return nullptr;
   }
+  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+      llvm::isa<llvm::ArrayType>(rhsType)) {
+
+    if (_codeGenerationContext->verifyArrayType(
+            llvm::cast<llvm::ArrayType>(lhsType),
+            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
+      return nullptr;
+  }
 
   if (lhsType != rhsType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -309,13 +316,6 @@ AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
         " but found " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType) + " ");
     return nullptr;
-  }
-  if (llvm::isa<llvm::ArrayType>(lhsType) &&
-      llvm::isa<llvm::ArrayType>(rhsType)) {
-    if (_codeGenerationContext->verifyArrayType(
-            llvm::cast<llvm::ArrayType>(lhsType),
-            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
-      return nullptr;
   }
 
   Builder->CreateStore(rhsValue, lhsPtr);
