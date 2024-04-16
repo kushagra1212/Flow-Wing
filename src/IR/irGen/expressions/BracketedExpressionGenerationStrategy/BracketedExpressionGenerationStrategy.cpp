@@ -196,3 +196,68 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
 
   return nullptr;
 }
+
+llvm::Value *BracketedExpressionGenerationStrategy::assignBracketExpression(
+    BoundBracketedExpression *&bracketedExpression, llvm::Value *&lhsPtr,
+    llvm::ArrayType *arrayType, std::string &containerName) {
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bracketedExpression->getLocation());
+
+  BinderKindUtils::BoundNodeKind kind =
+      bracketedExpression->getExpressionRef().get()->getKind();
+
+  llvm::Type *elementType = arrayType;
+  std::vector<uint64_t> dimensions;
+  _codeGenerationContext->createArraySizesAndArrayElementType(dimensions,
+                                                              elementType);
+
+  switch ((kind)) {
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+    BoundContainerExpression *containerExpression =
+        static_cast<BoundContainerExpression *>(
+            bracketedExpression->getExpressionRef().get());
+
+    std::unique_ptr<ContainerExpressionGenerationStrategy>
+        containerExpressionGenerationStrategy =
+            std::make_unique<ContainerExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
+
+    if (!containerExpressionGenerationStrategy->canGenerateExpression(
+            containerExpression)) {
+      return nullptr;
+    }
+
+    return containerExpressionGenerationStrategy->createExpression(
+        arrayType, lhsPtr, containerExpression);
+  }
+
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+    BoundFillExpression *fillExpression = static_cast<BoundFillExpression *>(
+        bracketedExpression->getExpressionRef().get());
+
+    std::unique_ptr<FillExpressionGenerationStrategy>
+        fillExpressionGenerationStrategy =
+            std::make_unique<FillExpressionGenerationStrategy>(
+                _codeGenerationContext, dimensions, elementType,
+                _containerName);
+
+    if (!fillExpressionGenerationStrategy->canGenerateExpression(
+            fillExpression)) {
+      return nullptr;
+    }
+
+    return fillExpressionGenerationStrategy->createExpressionLoopWrapper(
+        arrayType, lhsPtr);
+  }
+
+  default:
+    break;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable " + _containerName + " not found in assignment expression ");
+
+  return nullptr;
+}

@@ -39,6 +39,9 @@ public:
                                                  llvm::Value *v,
                                                  llvm::Value *elementToFill);
 
+  llvm::Value *createExpressionLoopWrapper(llvm::Type *arrayType,
+                                           llvm::Value *val);
+
   inline auto setAllocaInst(llvm::Value *allocaInst) {
     _allocaInst = allocaInst;
   }

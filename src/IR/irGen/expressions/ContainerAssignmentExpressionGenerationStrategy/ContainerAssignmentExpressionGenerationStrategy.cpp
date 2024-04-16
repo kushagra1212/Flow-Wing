@@ -133,20 +133,10 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
   return true;
 }
 
-llvm::Value *
-ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
-    BoundExpression *expression) {
-  // 1 RHS is variableExpression (array,array), (struct,struct)(useCopy Function
-  // 2 if direct does not works) from ObjectAssignment), (primitive,primitive)
-
-  // 2 RHS Expression (array,BracketExp), (struct,structExp)
-
-  // 3 RHS CallExpression (can be handled using first)
-  BoundAssignmentExpression *assignmentExpression =
-      static_cast<BoundAssignmentExpression *>(expression);
+llvm::Value *ContainerAssignmentExpressionGenerationStrategy::assignVariable(
+    BoundAssignmentExpression *assignmentExpression) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
-
   _expressionGenerationFactory
       ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
       ->generateExpression(assignmentExpression->getLeftPtr().get());
@@ -213,6 +203,34 @@ ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
   Builder->CreateStore(rhsValue, lhsPtr);
 
   return rhsValue;
+}
+
+llvm::Value *
+ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
+    BoundExpression *expression) {
+  // 1 RHS is variableExpression (array,array), (struct,struct)(useCopy Function
+  // 2 if direct does not works) from ObjectAssignment), (primitive,primitive)
+
+  // 2 RHS Expression (array,BracketExp), (struct,structExp)
+
+  // 3 RHS CallExpression (can be handled using first)
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  BinderKindUtils::BoundNodeKind rhsKind =
+      assignmentExpression->getRightPtr()->getKind();
+
+  switch (rhsKind) {
+  case BinderKindUtils::VariableExpression:
+    return assignVariable(assignmentExpression);
+  default:
+    break;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Right hand side value not found in assignment expression " +
+      assignmentExpression->getVariable()->getVariableName());
+  return nullptr;
 }
 
 llvm::Value *

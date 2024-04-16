@@ -12,7 +12,7 @@
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
- public:
+public:
   AssignmentExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -38,8 +38,9 @@ class AssignmentExpressionGenerationStrategy
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
-  llvm::Value *handleUnTypedPrmitiveLocalVariableAssignment(
-      const std::string &variableName, llvm::Value *rhsValue);
+  llvm::Value *
+  handleUnTypedPrmitiveLocalVariableAssignment(const std::string &variableName,
+                                               llvm::Value *rhsValue);
 
   llvm::Value *handlePrimitiveLocalVariableAssignment(
       const std::string &variableName,
@@ -51,15 +52,28 @@ class AssignmentExpressionGenerationStrategy
       llvm::GlobalVariable *variable, const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
-  llvm::Value *handleUnTypedPrmitiveGlobalVariableAssignment(
-      llvm::GlobalVariable *variable, const std::string &variableName,
-      llvm::Value *rhsValue);
+  llvm::Value *
+  handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
+                                           const std::string &variableName,
+                                           llvm::Value *rhsValue);
 
   llvm::Value *handlePrimitiveGlobalVariableAssignment(
       llvm::GlobalVariable *variable, const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
- private:
+  llvm::Value *
+  handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);
+  llvm::Value *
+  handleAssignmentByVariable(BoundVariableExpression *variableExpression);
+  llvm::Value *handleAssignmentByBracketedExpression(
+      BoundBracketedExpression *bracketedExpression);
+
+  int8_t populateLHS(BoundAssignmentExpression *&assignmentExpression);
+
+  int8_t
+  handleWhenRHSIsConstant(BoundAssignmentExpression *assignmentExpression);
+
+private:
   std::string _variableName;
   llvm::AllocaInst *_allocaInst;
   llvm::GlobalVariable *_previousGlobalVariable;
@@ -68,6 +82,12 @@ class AssignmentExpressionGenerationStrategy
   std::vector<llvm::Value *> _indices;
   BoundVariableExpression *_variableExpression;
   BoundExpression *_rhsExpression;
+
+  // Complete Assignment
+  std::string _lhsVariableName;
+  llvm::Type *_lhsType, *_rhsType;
+  llvm::Value *_lhsPtr, *_rhsPtr;
+  SyntaxKindUtils::SyntaxKind _lhsTypeKind;
 };
 
-#endif  // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

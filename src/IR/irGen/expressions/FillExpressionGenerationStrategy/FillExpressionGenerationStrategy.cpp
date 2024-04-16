@@ -429,3 +429,9 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
 
   return nullptr;
 }
+
+llvm::Value *FillExpressionGenerationStrategy::createExpressionLoopWrapper(
+    llvm::Type *arrayType, llvm::Value *ptr) {
+  return this->createExpressionLoop(arrayType, ptr, _elementToFill,
+                                    _sizeToFillInt);
+}

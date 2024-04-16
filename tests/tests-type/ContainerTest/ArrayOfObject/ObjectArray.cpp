@@ -738,4 +738,195 @@ print(arr2[0].ar[0].g[0].d)
 0.00000000000000)");
 }
 
+TEST_F(ObjectArray, ArrayDeclarationUsingAnotherVariableObjectTest) {
+  I(R"(
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var arr2:t[2] = [1 fill {y:"j",a:2.2}]
+print(arr)
+print("\n")
+var p:int[2] = [1,2]
+arr[0] = arr2[0]
+print(arr)
+)");
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }]
+[{ x : 0, y : 'j', a : 2.20000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }])");
+}
+
+TEST_F(ObjectArray, ArrayDeclarationUsingAnotherVariableObjectTestInitTest) {
+  I(R"(
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12}]}]}]
+print(sec)
+)");
+  O(R"([{ x : 0, y : '', a : 3.50000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : 'god', d : 0.00000000000000, i : 12 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0 }, { o : 0, s : '', d : 0.00000000000000, i : 0 }] }] }])");
+}
+
+TEST_F(ObjectArray,
+       ArrayDeclarationUsingAnotherVariableObjectTestInitTestComplex2) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+print(sec)
+)");
+  O(R"([{ x : 0, y : '', a : 3.50000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : 'god', d : 0.00000000000000, i : 12, ob : { i : 200, s : 'some' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+TEST_F(ObjectArray,
+       ArrayDeclarationUsingAnotherVariableObjectTestInitTestComplex2Assign) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+print(arr)
+print("\n")
+arr[0].ar[0].g[0].ob = sec[0].ar[0].g[0].ob
+print(arr)
+)");
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 200, s : 'some' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(
+    ObjectArray,
+    ArrayDeclarationUsingAnotherVariableObjectTestInitTestComplex2AssignPrimitive) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+print(arr)
+print("\n")
+arr[0].ar[0].g[0].ob.i = sec[0].ar[0].g[0].ob.i
+print(arr)
+)");
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 200, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
 #endif

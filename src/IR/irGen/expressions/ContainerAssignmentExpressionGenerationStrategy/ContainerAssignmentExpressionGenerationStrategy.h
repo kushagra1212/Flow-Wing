@@ -1,6 +1,7 @@
 #ifndef __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 
+#include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 
@@ -37,6 +38,8 @@ public:
                                          llvm::Value *&variable,
                                          const std::vector<uint64_t> &sizes,
                                          llvm::Type *&elementType);
+
+  llvm::Value *assignVariable(BoundAssignmentExpression *assignmentExpression);
 
 private:
   // LHS

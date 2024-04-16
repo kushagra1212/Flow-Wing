@@ -374,6 +374,37 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
 
   return EXIT_SUCCESS;
 }
+
+int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
+                                               llvm::StructType *rhsType) {
+
+  if (lhsType != rhsType) {
+    this->getLogger()->LogError("Type mismatch Expected " +
+                                this->getMapper()->getLLVMTypeName(lhsType) +
+                                " but found " +
+                                this->getMapper()->getLLVMTypeName(rhsType) +
+                                "in " + "assignment expression");
+    return EXIT_FAILURE;
+  }
+
+  if (lhsType->getNumElements() != rhsType->getNumElements()) {
+    this->getLogger()->LogError("Object type mismatch Expected " +
+                                std::to_string(lhsType->getNumElements()) +
+                                " but found " +
+                                std::to_string(rhsType->getNumElements()));
+    return EXIT_FAILURE;
+  }
+
+  if (lhsType->getStructName() != rhsType->getStructName()) {
+    this->getLogger()->LogError("Object type mismatch Expected " +
+                                lhsType->getStructName().str() + " but found " +
+                                rhsType->getStructName().str());
+
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 void CodeGenerationContext::getMultiArrayTypeForGlobal(
     llvm::ArrayType *&arrayType, llvm::Constant *&def,
     const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {

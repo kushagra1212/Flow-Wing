@@ -102,6 +102,7 @@ public:
   void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
 
   int8_t verifyArrayType(llvm::ArrayType *lhsType, llvm::ArrayType *rhsType);
+  int8_t verifyStructType(llvm::StructType *lhsType, llvm::StructType *rhsType);
   inline auto
   createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
                                       llvm::Type *&arrayElementType) -> void {
