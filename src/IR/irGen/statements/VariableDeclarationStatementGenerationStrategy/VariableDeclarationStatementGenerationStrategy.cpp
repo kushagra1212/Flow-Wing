@@ -147,21 +147,24 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       return nullptr;
     }
 
-    std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-        std::make_unique<ObjectExpressionGenerationStrategy>(
+    // std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
+    //     std::make_unique<ObjectExpressionGenerationStrategy>(
+    //         _codeGenerationContext);
+    std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+        std::make_unique<AssignmentExpressionGenerationStrategy>(
             _codeGenerationContext);
-
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
 
-    objExpGenStrat->setVariable(_globalVariable);
-    objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
-    _codeGenerationContext->getValueStackHandler()->push(
-        structType->getStructName().str(), _globalVariable, "struct",
-        structType);
+    // objExpGenStrat->setVariable(_globalVariable);
+    // objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
+    // _codeGenerationContext->getValueStackHandler()->push(
+    //     structType->getStructName().str(), _globalVariable, "struct",
+    //     structType);
 
-    return objExpGenStrat->generateGlobalExpression(
+    return assignmentEGS->handleAssignExpression(
+        _globalVariable, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
   }
 

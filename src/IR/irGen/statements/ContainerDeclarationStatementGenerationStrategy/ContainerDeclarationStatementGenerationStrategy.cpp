@@ -389,80 +389,89 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
     _elementType = _codeGenerationContext->getTypeChain()->getType(
         objectTypeExpression->getTypeName());
   }
+  llvm::ArrayType *arrayType = nullptr;
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
+
+  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
+  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+      *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
+      _defaultVal, _containerName);
 
   BinderKindUtils::BoundNodeKind kind =
       contVarDec->getInitializerPtr()->getKind();
 
-  switch (kind) {
-  case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
-    return generateBracketGlobalExpression(
-        (BoundBracketedExpression *)contVarDec->getInitializerPtr().get());
-  }
-  case BinderKindUtils::BoundNodeKind::CallExpression: {
-    if (!canGenerateCallExpression(contVarDec->getInitializerPtr().get())) {
-      return nullptr;
-    }
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
 
-    llvm::ArrayType *arrayType = nullptr;
+  return assignmentStrategy->handleAssignExpression(
+      _globalVariable, arrayType, _containerName,
+      contVarDec->getInitializerPtr().get());
 
-    // Create a default value for the array
+  // switch (kind) {
+  // case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
+  //   return generateBracketGlobalExpression(
+  //       (BoundBracketedExpression *)contVarDec->getInitializerPtr().get());
+  // }
+  // case BinderKindUtils::BoundNodeKind::CallExpression: {
+  //   if (!canGenerateCallExpression(contVarDec->getInitializerPtr().get())) {
+  //     return nullptr;
+  //   }
 
-    llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
-        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+  //   // Create a default value for the array
 
-    _codeGenerationContext->getMultiArrayTypeForGlobal(
-        arrayType, _defaultVal, _actualSizes, _elementType);
-    llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
-        _defaultVal, _containerName);
+  //   _codeGenerationContext->setArraySizeMetadata(_globalVariable,
+  //   _actualSizes);
+  //   _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
+  //                                                       _elementType);
 
-    _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);
-    _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
-                                                        _elementType);
+  //   // Store the result of the call in the _globalVariable variable
+  //   Builder->CreateStore(_loadedValue, _globalVariable);
+  //   return nullptr;
+  // }
+  // case BinderKindUtils::BoundNodeKind::VariableExpression: {
+  //   if
+  //   (!canGenerateVariableExpression(contVarDec->getInitializerPtr().get())) {
+  //     return nullptr;
+  //   }
 
-    // Store the result of the call in the _globalVariable variable
-    Builder->CreateStore(_loadedValue, _globalVariable);
-    return nullptr;
-  }
-  case BinderKindUtils::BoundNodeKind::VariableExpression: {
-    if (!canGenerateVariableExpression(contVarDec->getInitializerPtr().get())) {
-      return nullptr;
-    }
+  //   llvm::ArrayType *arrayType = nullptr;
 
-    llvm::ArrayType *arrayType = nullptr;
+  //   // Create a default value for the array
 
-    // Create a default value for the array
+  //   llvm::Constant *_defaultVal = nullptr;
 
-    llvm::Constant *_defaultVal = nullptr;
+  //   if (!llvm::isa<llvm::StructType>(_elementType)) {
+  //     _defaultVal = llvm::cast<llvm::Constant>(
+  //         _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+  //   } else {
+  //     _defaultVal = llvm::Constant::getNullValue(_elementType);
+  //   }
 
-    if (!llvm::isa<llvm::StructType>(_elementType)) {
-      _defaultVal = llvm::cast<llvm::Constant>(
-          _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-    } else {
-      _defaultVal = llvm::Constant::getNullValue(_elementType);
-    }
+  //   _codeGenerationContext->getMultiArrayTypeForGlobal(
+  //       arrayType, _defaultVal, _actualSizes, _elementType);
+  //   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+  //       *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
+  //       _defaultVal, _containerName);
 
-    _codeGenerationContext->getMultiArrayTypeForGlobal(
-        arrayType, _defaultVal, _actualSizes, _elementType);
-    llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
-        _defaultVal, _containerName);
+  //   _codeGenerationContext->setArraySizeMetadata(_globalVariable,
+  //   _actualSizes);
+  //   _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
+  //                                                       _elementType);
 
-    _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);
-    _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
-                                                        _elementType);
+  //   // Store the result of the call in the _globalVariable variable
+  //   Builder->CreateStore(_loadedValue, _globalVariable);
+  //   return nullptr;
+  // }
 
-    // Store the result of the call in the _globalVariable variable
-    Builder->CreateStore(_loadedValue, _globalVariable);
-    return nullptr;
-  }
-
-  default: {
-    _codeGenerationContext->getLogger()->LogError(
-        "Unsupported Container Expression Type ");
-    break;
-  }
-  }
+  // default: {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Unsupported Container Expression Type ");
+  //   break;
+  // }
+  // }
   return nullptr;
 }
 

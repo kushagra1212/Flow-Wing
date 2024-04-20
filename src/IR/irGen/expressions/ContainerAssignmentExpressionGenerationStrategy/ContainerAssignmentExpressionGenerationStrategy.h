@@ -4,6 +4,7 @@
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

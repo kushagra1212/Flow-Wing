@@ -33,13 +33,23 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   createExpressionNPDefault(_variable, _typeName);
-  if (expression->getKind() == BinderKindUtils::VariableExpression) {
-    return generateVariableExp(expression);
-  } else if (expression->getKind() == BinderKindUtils::CallExpression) {
-    return generateCallExp(expression);
-  }
+  std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+      objectAssignmentGES =
+          std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
 
-  llvm::Value *res = this->createExpressionNP(expression, _variable, _typeName);
+  return objectAssignmentGES->assignObject(
+      static_cast<BoundObjectExpression *>(expression), _variable,
+      _codeGenerationContext->getTypeChain()->getType(_typeName),
+      _variable->getName().str());
+  // if (expression->getKind() == BinderKindUtils::VariableExpression) {
+  //   return generateVariableExp(expression);
+  // } else if (expression->getKind() == BinderKindUtils::CallExpression) {
+  //   return generateCallExp(expression);
+  // }
+
+  // llvm::Value *res = this->createExpressionNP(expression, _variable,
+  // _typeName);
 
   //   if (llvm::isa<llvm::GlobalVariable>(_variable)) {
   //     llvm::GlobalVariable *globalVariable =
@@ -50,7 +60,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   //                                 llvm::MDNode::get(*TheContext, argInfoMD));
   //   }
 
-  return res;
+  // return res;
+  return nullptr;
 }
 
 llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
@@ -248,131 +259,148 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
 
       this->createExpressionNP(innerObjectExpression, innerElementPtr,
                                innerElementType->getName().str());
-    } else if (propertiesMap[propertyName]->getSyntaxType() ==
-                   SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
-               (bExpr->getKind() == BinderKindUtils::BoundBracketedExpression ||
-                bExpr->getKind() == BinderKindUtils::CallExpression)) {
-
-      std::unique_ptr<LiteralExpressionGenerationStrategy>
-          literalExpressionGenerationStrategy =
-              std::make_unique<LiteralExpressionGenerationStrategy>(
-                  _codeGenerationContext);
-
-      BoundArrayTypeExpression *boundArrayTypeExpression =
-          static_cast<BoundArrayTypeExpression *>(propertiesMap[propertyName]);
-
-      std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
-          containerDeclarationStatementGenerationStrategy =
-              std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
-                  _codeGenerationContext);
-
-      containerDeclarationStatementGenerationStrategy->setAllocaInst(
-          (innerElementPtr));
-
-      containerDeclarationStatementGenerationStrategy->generateCommonStatement(
-          boundArrayTypeExpression,
-          variable->getName().str() + "." + propertyName, bExpr.get());
-    } else if (propertiesMap[propertyName]->getSyntaxType() ==
-                   SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
-               bExpr->getKind() == BinderKindUtils::VariableExpression) {
-
-      llvm::ArrayType *arrayType =
-          llvm::cast<llvm::ArrayType>(parStructType->getElementType(index));
-      llvm::Type *elementType = arrayType->getElementType();
-      llvm::Type *type = arrayType;
-
-      std::vector<uint64_t> sizes;
-      while (llvm::ArrayType *arrayType =
-                 llvm::dyn_cast<llvm::ArrayType>(type)) {
-        sizes.push_back(arrayType->getNumElements());
-        type = arrayType->getElementType();
-      }
-
-      auto assignStrategy =
-          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
-              _codeGenerationContext);
-
-      assignStrategy->setVariable(innerElementPtr);
-      assignStrategy->setContainerName(variable->getName().str() + "." +
-                                       propertyName);
-
-      assignStrategy->createExpressionForObject(bExpr.get(), arrayType,
-                                                innerElementPtr, sizes, type);
-
-    } else if (propertiesMap[propertyName]->getSyntaxType() ==
-                   SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
-               bExpr->getKind() == BinderKindUtils::VariableExpression) {
-      rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
-                ->generateExpression(bExpr.get());
-      if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Expected a object of type " + _typeName);
-        _codeGenerationContext->getValueStackHandler()->popAll();
-        return nullptr;
-      }
-      llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(
-          _codeGenerationContext->getValueStackHandler()->getLLVMType());
-
-      BoundObjectTypeExpression *boundObjectTypeExpression =
-          static_cast<BoundObjectTypeExpression *>(propertiesMap[propertyName]);
-
-      llvm::StructType *lshStructType =
-          (_codeGenerationContext->getTypeChain()->getType(
-              boundObjectTypeExpression->getTypeName()));
-
-      if (lshStructType->getStructName() != rhsStructType->getStructName()) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Expected a object of type " +
-            Utils::CE(lshStructType->getStructName().str()) +
-            " but got object of type " +
-            Utils::CE(rhsStructType->getStructName().str()));
-        return nullptr;
-      }
-      std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
-          std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-              _codeGenerationContext);
-      strategy->copyOject(
-          lshStructType, innerElementPtr,
-          _codeGenerationContext->getValueStackHandler()->getValue());
-
-      _codeGenerationContext->getValueStackHandler()->popAll();
-
-    } else if (propertiesMap[propertyName]->getSyntaxType() ==
-               SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected a object of type " + _typeName);
-      return nullptr;
     } else {
-      rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
-                ->generateExpression(bExpr.get());
+      std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+          std::make_unique<AssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
 
-      if (!rhs) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Property " + std::any_cast<std::string>(bLitExpr->getValue()) +
-            " not found in type " + typeName);
-        return nullptr;
-      }
-
-      if (_codeGenerationContext->getMapper()->isPrimitiveType(
-              rhs->getType()) &&
-          _codeGenerationContext->getMapper()->isPrimitiveType(
-              parStructType->getElementType(index)) &&
-          rhs->getType() != parStructType->getElementType(index)) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Type of property " +
-            std::any_cast<std::string>(bLitExpr->getValue()) +
-            " does not match type in type " + typeName + " Expected " +
-            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                parStructType->getElementType(index))) +
-            " but got " +
-            Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-                rhs->getType())));
-
-        return nullptr;
-      }
-
-      Builder->CreateStore(rhs, innerElementPtr);
+      assignmentEGS->handleAssignExpression(
+          innerElementPtr, parStructType->getElementType(index),
+          variable->getName().str() + "." + propertyName, bExpr.get());
     }
+
+    // else if (propertiesMap[propertyName]->getSyntaxType() ==
+    //              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
+    //          (bExpr->getKind() == BinderKindUtils::BoundBracketedExpression
+    //          ||
+    //           bExpr->getKind() == BinderKindUtils::CallExpression)) {
+
+    //   std::unique_ptr<LiteralExpressionGenerationStrategy>
+    //       literalExpressionGenerationStrategy =
+    //           std::make_unique<LiteralExpressionGenerationStrategy>(
+    //               _codeGenerationContext);
+
+    //   BoundArrayTypeExpression *boundArrayTypeExpression =
+    //       static_cast<BoundArrayTypeExpression
+    //       *>(propertiesMap[propertyName]);
+
+    //   std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+    //       containerDeclarationStatementGenerationStrategy =
+    //           std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+    //               _codeGenerationContext);
+
+    //   containerDeclarationStatementGenerationStrategy->setAllocaInst(
+    //       (innerElementPtr));
+
+    //   containerDeclarationStatementGenerationStrategy->generateCommonStatement(
+    //       boundArrayTypeExpression,
+    //       variable->getName().str() + "." + propertyName, bExpr.get());
+    // }
+    // else if (propertiesMap[propertyName]->getSyntaxType() ==
+    //              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
+    //          bExpr->getKind() == BinderKindUtils::VariableExpression) {
+
+    //   llvm::ArrayType *arrayType =
+    //       llvm::cast<llvm::ArrayType>(parStructType->getElementType(index));
+    //   llvm::Type *elementType = arrayType->getElementType();
+    //   llvm::Type *type = arrayType;
+
+    //   std::vector<uint64_t> sizes;
+    //   while (llvm::ArrayType *arrayType =
+    //              llvm::dyn_cast<llvm::ArrayType>(type)) {
+    //     sizes.push_back(arrayType->getNumElements());
+    //     type = arrayType->getElementType();
+    //   }
+
+    //   auto assignStrategy =
+    //       std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+    //           _codeGenerationContext);
+
+    //   assignStrategy->setVariable(innerElementPtr);
+    //   assignStrategy->setContainerName(variable->getName().str() + "." +
+    //                                    propertyName);
+
+    //   assignStrategy->createExpressionForObject(bExpr.get(), arrayType,
+    //                                             innerElementPtr, sizes,
+    //                                             type);
+    // }
+    // else if (propertiesMap[propertyName]->getSyntaxType() ==
+    //              SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
+    //          bExpr->getKind() == BinderKindUtils::VariableExpression) {
+    //   rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
+    //             ->generateExpression(bExpr.get());
+    //   if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Expected a object of type " + _typeName);
+    //     _codeGenerationContext->getValueStackHandler()->popAll();
+    //     return nullptr;
+    //   }
+    //   llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(
+    //       _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+    //   BoundObjectTypeExpression *boundObjectTypeExpression =
+    //       static_cast<BoundObjectTypeExpression
+    //       *>(propertiesMap[propertyName]);
+
+    //   llvm::StructType *lshStructType =
+    //       (_codeGenerationContext->getTypeChain()->getType(
+    //           boundObjectTypeExpression->getTypeName()));
+
+    //   if (lshStructType->getStructName() != rhsStructType->getStructName()) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Expected a object of type " +
+    //         Utils::CE(lshStructType->getStructName().str()) +
+    //         " but got object of type " +
+    //         Utils::CE(rhsStructType->getStructName().str()));
+    //     return nullptr;
+    //   }
+    //   std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy
+    //   =
+    //       std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+    //           _codeGenerationContext);
+    //   strategy->copyOject(
+    //       lshStructType, innerElementPtr,
+    //       _codeGenerationContext->getValueStackHandler()->getValue());
+
+    //   _codeGenerationContext->getValueStackHandler()->popAll();
+    // }
+    // else if (propertiesMap[propertyName]->getSyntaxType() ==
+    //          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Expected a object of type " + _typeName);
+    //   return nullptr;
+    // }
+    // else {
+    //   rhs = _expressionGenerationFactory->createStrategy(bExpr->getKind())
+    //             ->generateExpression(bExpr.get());
+
+    //   if (!rhs) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Property " + std::any_cast<std::string>(bLitExpr->getValue()) +
+    //         " not found in type " + typeName);
+    //     return nullptr;
+    //   }
+
+    //   if (_codeGenerationContext->getMapper()->isPrimitiveType(
+    //           rhs->getType()) &&
+    //       _codeGenerationContext->getMapper()->isPrimitiveType(
+    //           parStructType->getElementType(index)) &&
+    //       rhs->getType() != parStructType->getElementType(index)) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Type of property " +
+    //         std::any_cast<std::string>(bLitExpr->getValue()) +
+    //         " does not match type in type " + typeName + " Expected " +
+    //         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+    //             parStructType->getElementType(index))) +
+    //         " but got " +
+    //         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+    //             rhs->getType())));
+
+    //     return nullptr;
+    //   }
+
+    //   Builder->CreateStore(rhs, innerElementPtr);
+    // }
     indexValue++;
   }
 

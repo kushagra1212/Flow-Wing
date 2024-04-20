@@ -488,7 +488,31 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   //   // END
   // }
 
-  return Builder->CreateCall(calleeFunction, functionArgs);
+  llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
+
+  llvm::ArrayType *arrayType = nullptr;
+  llvm::Type *elementType = nullptr;
+  std::vector<uint64_t> actualSizes;
+  _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
+                                               elementType, actualSizes);
+
+  if (arrayType != nullptr) {
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "array",
+                                                         arrayType);
+
+    return callIn;
+  }
+  llvm::StructType *structType = nullptr;
+  _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
+  if (structType != nullptr) {
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
+                                                         structType);
+    return callIn;
+  }
+
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", callIn, "primitive", calleeFunction->getReturnType());
+  return callIn;
 }
 
 llvm::Value *CallExpressionGenerationStrategy::handleExpression(

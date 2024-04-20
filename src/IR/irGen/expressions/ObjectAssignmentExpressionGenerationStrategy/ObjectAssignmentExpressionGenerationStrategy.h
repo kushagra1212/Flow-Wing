@@ -25,6 +25,11 @@ public:
   llvm::Value *copyOject(llvm::StructType *parStructType, llvm::Value *lshPtr,
                          llvm::Value *rhsPtr);
 
+  llvm::Value *assignObject(BoundObjectExpression *parObjectExpression,
+                            llvm::Value *variable,
+                            llvm::StructType *parStructType,
+                            std::string lhsVarName);
+
 private:
   BoundAssignmentExpression *_assignmentExp;
   llvm::Value *_lhsVar;

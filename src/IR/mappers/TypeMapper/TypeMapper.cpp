@@ -104,18 +104,19 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
   if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
     if (llvm::isa<llvm::StructType>(type)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
-      return COLORED_STRING::GET(
-          "<Object<" + structType->getName().str() + ">>", YELLOW_TEXT, RESET);
+      return COLORED_STRING::GET("<Object<" + structType->getName().str() +
+                                     ">>",
+                                 YELLOW_TEXT, RED_TEXT);
     } else if (llvm::isa<llvm::ArrayType>(type)) {
       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
       return COLORED_STRING::GET(
           "<Array" + getLLVMTypeName(arrayType->getElementType()) + ">",
-          YELLOW_TEXT, RESET);
+          YELLOW_TEXT, RED_TEXT);
     }
   }
 
   return COLORED_STRING::GET("<" + getLLVMTypeName(customType) + ">",
-                             YELLOW_TEXT, RESET);
+                             YELLOW_TEXT, RED_TEXT);
 }
 
 std::string

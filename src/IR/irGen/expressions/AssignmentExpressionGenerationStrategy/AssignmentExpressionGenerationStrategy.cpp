@@ -301,23 +301,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
 
-  _rhsExpression = assignmentExpression->getRightPtr().get();
-
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
-
-  if (auto boundLiteralExpression = dynamic_cast<BoundVariableExpression *>(
-          assignmentExpression->getLeftPtr().get())) {
-    return this->handleLiteralExpressionAssignment(assignmentExpression);
-  } else if (auto boundIndexExpression = dynamic_cast<BoundIndexExpression *>(
-                 assignmentExpression->getLeftPtr().get())) {
-    return this->handleIndexExpressionAssignment(assignmentExpression);
-  }
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Left hand side value not found in assignment expression ");
-
-  return nullptr;
+  return handleAssignmentExpression(assignmentExpression);
 }
 
 llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
@@ -395,31 +381,45 @@ int8_t AssignmentExpressionGenerationStrategy::populateLHS(
         "Assignment to constant  is not supported in assignment expression ");
     return EXIT_FAILURE;
   }
-
-  if (assignmentExpression->getLeftPtr()->getKind() !=
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLeftPtr()->getLocation());
+  if (assignmentExpression->getLeftPtr()->getKind() ==
       BinderKindUtils::VariableExpression) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Left hand side value must be a variable in assignment expression ");
-    return EXIT_FAILURE;
+    BoundVariableExpression *variableExpression =
+        static_cast<BoundVariableExpression *>(
+            assignmentExpression->getLeftPtr().get());
+
+    _lhsVariableName = variableExpression->getVariableNameRef();
+
+    return EXIT_SUCCESS;
   }
 
-  BoundVariableExpression *variableExpression =
-      static_cast<BoundVariableExpression *>(
-          assignmentExpression->getLeftPtr().get());
+  if (assignmentExpression->getLeftPtr()->getKind() ==
+      BinderKindUtils::IndexExpression) {
 
-  _lhsVariableName = variableExpression->getVariableNameRef();
+    BoundIndexExpression *indexExp = static_cast<BoundIndexExpression *>(
+        assignmentExpression->getLeftPtr().get());
 
-  return EXIT_SUCCESS;
+    _lhsVariableName = std::any_cast<std::string>(
+        indexExp->getBoundIdentifierExpression().get()->getValue());
+
+    return EXIT_SUCCESS;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Left hand side value must be a variable or index Expression in "
+      "assignment expression ");
+  return EXIT_FAILURE;
 }
 
 llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
-    BoundVariableExpression *variableExpression) {
+    BoundExpression *exp) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      variableExpression->getLocation());
+      exp->getLocation());
 
-  _expressionGenerationFactory->createStrategy(variableExpression->getKind())
-      ->generateExpression(variableExpression);
+  _expressionGenerationFactory->createStrategy(exp->getKind())
+      ->generateExpression(exp);
 
   llvm::Value *rhsPtr =
       _codeGenerationContext->getValueStackHandler()->getValue();
@@ -468,7 +468,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable Assignment " + _lhsVariableName +
         " Expected type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsTypeKind) +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType) +
         " but got type " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType));
 
@@ -476,6 +476,43 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   }
 
   return Builder->CreateStore(rhsValue, _lhsPtr);
+}
+
+llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
+    BoundExpression *expression) {
+  BinderKindUtils::BoundNodeKind rhsKind = expression->getKind();
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      expression->getLocation());
+
+  switch (rhsKind) {
+  case BinderKindUtils::VariableExpression:
+  case BinderKindUtils::IndexExpression:
+  case BinderKindUtils::CallExpression:
+    return handleAssignmentByVariable(
+        static_cast<BoundVariableExpression *>(expression));
+
+  case BinderKindUtils::BoundBracketedExpression:
+    return handleAssignmentByBracketedExpression(
+        static_cast<BoundBracketedExpression *>(expression));
+
+  case BinderKindUtils::BoundObjectExpression:
+    return handleAssignmentByObjectExpression(
+        static_cast<BoundObjectExpression *>(expression));
+  // case BinderKindUtils::IndexExpression:
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Invalid Expression found (not supported) ");
+  //   return nullptr;
+  default:
+    break;
+  }
+
+  if (handleWhenRHSIsConstant(expression) == EXIT_SUCCESS)
+    return nullptr;
+
+  _codeGenerationContext->getLogger()->LogError("Invalid Expression found ");
+
+  return nullptr;
 }
 
 llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
@@ -487,33 +524,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   if (populateLHS(assignmentExpression) == EXIT_FAILURE)
     return nullptr;
 
-  BinderKindUtils::BoundNodeKind rhsKind =
-      assignmentExpression->getRightPtr()->getKind();
-
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getRightPtr()->getLocation());
-
-  switch (rhsKind) {
-  case BinderKindUtils::VariableExpression:
-    return handleAssignmentByVariable(static_cast<BoundVariableExpression *>(
-        assignmentExpression->getRightPtr().get()));
-
-  case BinderKindUtils::BoundBracketedExpression:
-    return handleAssignmentByBracketedExpression(
-        static_cast<BoundBracketedExpression *>(
-            assignmentExpression->getRightPtr().get()));
-
-  default:
-    break;
-  }
-
-  if (handleWhenRHSIsConstant(assignmentExpression) == EXIT_SUCCESS)
-    return nullptr;
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Right hand side value must be a proper value in assignment expression ");
-
-  return nullptr;
+  return handleRHSExpression(assignmentExpression->getRightPtr().get());
 }
 llvm::Value *AssignmentExpressionGenerationStrategy::
     handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
@@ -527,13 +538,12 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
 }
 
 int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
-    BoundAssignmentExpression *assignmentExpression) {
+    BoundExpression *expression) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getRightPtr()->getLocation());
+      expression->getLocation());
 
-  _expressionGenerationFactory
-      ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
-      ->generateExpression(assignmentExpression->getRightPtr().get());
+  _expressionGenerationFactory->createStrategy(expression->getKind())
+      ->generateExpression(expression);
 
   llvm::Value *rhsPtr =
       _codeGenerationContext->getValueStackHandler()->getValue();
@@ -543,7 +553,7 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-
+    _codeGenerationContext->getValueStackHandler()->popAll();
     if (_lhsTypeKind == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE)
       handleDynamicPrimitiveVariableAssignment(_lhsPtr, _lhsVariableName,
                                                rhsValue);
@@ -552,8 +562,33 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
 
     return EXIT_SUCCESS;
   }
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   return EXIT_FAILURE;
+}
+
+llvm::Value *
+AssignmentExpressionGenerationStrategy::handleAssignmentByObjectExpression(
+    BoundObjectExpression *boundObjExp) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      boundObjExp->getLocation());
+
+  if (!llvm::isa<llvm::StructType>(_lhsType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Left hand side value must be an object in assignment expression, but "
+        "found " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType));
+    return nullptr;
+  }
+
+  std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+      objectAssignmentGES =
+          std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+  return objectAssignmentGES->assignObject(
+      boundObjExp, _lhsPtr, llvm::cast<llvm::StructType>(_lhsType),
+      _lhsVariableName);
 }
 
 llvm::Value *
@@ -577,4 +612,14 @@ AssignmentExpressionGenerationStrategy::handleAssignmentByBracketedExpression(
   return bracketedExpressionGenerationStrategy->assignBracketExpression(
       bracketedExpression, _lhsPtr, llvm::cast<llvm::ArrayType>(_lhsType),
       _lhsVariableName);
+}
+
+llvm::Value *AssignmentExpressionGenerationStrategy ::handleAssignExpression(
+    llvm::Value *lshPtr, llvm::Type *lhsType, std::string lhsVarName,
+    BoundExpression *expression) {
+  _lhsPtr = lshPtr;
+  _lhsType = lhsType;
+  _lhsVariableName = lhsVarName;
+
+  return handleRHSExpression(expression);
 }

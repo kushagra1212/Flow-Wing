@@ -150,72 +150,82 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
           (BoundContainerExpression *)containerExpression->getElementsRef()[i]
               .get(),
           indices, index + 1);
-
-    }
-    //!!! IMP MAKE USE OF ASSIGNMENT EXPRESSIONS STRATEGY!!!
-
-    else if (llvm::isa<llvm::StructType>(_elementType) &&
-             containerExpression->getElementsRef()[i].get()->getKind() ==
-                 BinderKindUtils::BoundObjectExpression) {
-
-      std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrategy =
-          std::make_unique<ObjectExpressionGenerationStrategy>(
+    } else {
+      std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+          std::make_unique<AssignmentExpressionGenerationStrategy>(
               _codeGenerationContext);
 
       llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
-      objExpGenStrategy->setVariable(elementPtr);
-      objExpGenStrategy->setTypeName(_elementType->getStructName().str());
-      objExpGenStrategy->generateExpression(
+      assignmentEGS->handleAssignExpression(
+          elementPtr, _elementType, _containerName,
           containerExpression->getElementsRef()[i].get());
-    } else if (llvm::isa<llvm::StructType>(_elementType) &&
-               containerExpression->getElementsRef()[i].get()->getKind() ==
-                   BinderKindUtils::VariableExpression) {
-      _expressionGenerationFactory
-          ->createStrategy(
-              containerExpression->getElementsRef()[i].get()->getKind())
-          ->generateExpression(containerExpression->getElementsRef()[i].get());
-      // std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-      //     std::make_unique<ObjectExpressionGenerationStrategy>(
-      //         _codeGenerationContext);
-
-      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
-      llvm::Value *_elementToFill = Builder->CreateLoad(
-          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-          _codeGenerationContext->getValueStackHandler()->getValue());
-      _codeGenerationContext->getValueStackHandler()->popAll();
-      // objExpGenStrat->generateVariable(elementPtr,
-      //                                  _elementType->getStructName().str(),
-      //                                  _elementToFill, _isGlobal);
-      Builder->CreateStore(_elementToFill, elementPtr);
-    } else {
-      llvm::Value *itemValue =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  containerExpression->getElementsRef()[i].get()->getKind())
-              ->generateExpression(
-                  containerExpression->getElementsRef()[i].get());
-
-      // Compute the address of the i-th element
-
-      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
-
-      if (_elementType != itemValue->getType()) {
-        std::string elementTypeName =
-            _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
-
-        std::string itemValueTypeName =
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                itemValue->getType());
-
-        _codeGenerationContext->getLogger()->LogError(
-            _containerName + " Container item type mismatch. Expected " +
-            elementTypeName + " but got " + itemValueTypeName);
-
-        return nullptr;
-      }
-      // Typed Container
-      Builder->CreateStore(itemValue, elementPtr);
     }
+
+    //!!! IMP MAKE USE OF ASSIGNMENT EXPRESSIONS STRATEGY!!!
+
+    // else if (llvm::isa<llvm::StructType>(_elementType) &&
+    //          containerExpression->getElementsRef()[i].get()->getKind() ==
+    //              BinderKindUtils::BoundObjectExpression) {
+
+    //   std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrategy =
+    //       std::make_unique<ObjectExpressionGenerationStrategy>(
+    //           _codeGenerationContext);
+
+    //   objExpGenStrategy->setVariable(elementPtr);
+    //   objExpGenStrategy->setTypeName(_elementType->getStructName().str());
+    //   objExpGenStrategy->generateExpression(
+    //       containerExpression->getElementsRef()[i].get());
+    // }
+    // else if (llvm::isa<llvm::StructType>(_elementType) &&
+    //          containerExpression->getElementsRef()[i].get()->getKind() ==
+    //              BinderKindUtils::VariableExpression) {
+    //   _expressionGenerationFactory
+    //       ->createStrategy(
+    //           containerExpression->getElementsRef()[i].get()->getKind())
+    //       ->generateExpression(containerExpression->getElementsRef()[i].get());
+    //   // std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
+    //   //     std::make_unique<ObjectExpressionGenerationStrategy>(
+    //   //         _codeGenerationContext);
+
+    //   llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
+    //   llvm::Value *_elementToFill = Builder->CreateLoad(
+    //       _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+    //       _codeGenerationContext->getValueStackHandler()->getValue());
+    //   _codeGenerationContext->getValueStackHandler()->popAll();
+    //   // objExpGenStrat->generateVariable(elementPtr,
+    //   // _elementType->getStructName().str(),
+    //   //                                  _elementToFill, _isGlobal);
+    //   Builder->CreateStore(_elementToFill, elementPtr);
+    // }
+    // else {
+    //   llvm::Value *itemValue =
+    //       _expressionGenerationFactory
+    //           ->createStrategy(
+    //               containerExpression->getElementsRef()[i].get()->getKind())
+    //           ->generateExpression(
+    //               containerExpression->getElementsRef()[i].get());
+
+    //   // Compute the address of the i-th element
+
+    //   llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
+
+    //   if (_elementType != itemValue->getType()) {
+    //     std::string elementTypeName =
+    //         _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
+
+    //     std::string itemValueTypeName =
+    //         _codeGenerationContext->getMapper()->getLLVMTypeName(
+    //             itemValue->getType());
+
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         _containerName + " Container item type mismatch. Expected " +
+    //         elementTypeName + " but got " + itemValueTypeName);
+
+    //     return nullptr;
+    //   }
+    //   // Typed Container
+    //   Builder->CreateStore(itemValue, elementPtr);
+    // }
     indices.pop_back();
   }
 

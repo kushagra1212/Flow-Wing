@@ -255,6 +255,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _objectExpression = fillExpression->getElementToFillRef().get();
     return true;
   }
+  //! Handle Case for BoundContainerExpression
 
   _elementToFill =
       _expressionGenerationFactory
@@ -270,6 +271,8 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _variableExpression = fillExpression->getElementToFillRef().get();
     return true;
   }
+
+  //! Handle Case for isArrayType
 
   if (!_elementToFill) {
     _codeGenerationContext->getLogger()->LogError(
@@ -349,11 +352,11 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
         Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
     llvm::Value *isLessThan = Builder->CreateICmpSLT(
         currentIndex, Builder->getInt32(_actualSizes[i]));
-    //! Comparison Count Increment
+    //?------Comparison Count Increment------
     llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
         Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
         Builder->getInt32(sizeToFillVal));
-    //!
+    //?
 
     llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);
 
@@ -371,23 +374,30 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
 
       llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
 
+      //! USE AssignmentExpressionGenerationStrategy for All CASES
       if (_objectExpression) {
+        std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+            objectAssignmentGES =
+                std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+                    _codeGenerationContext);
+
+        objectAssignmentGES->assignObject(
+            static_cast<BoundObjectExpression *>(_objectExpression), elementPtr,
+            llvm::cast<llvm::StructType>(_elementType),
+            elementPtr->getName().str());
+
+      }
+      //! It is temp here use _assignmentExpressionGenerationStrategy for
+      //! both Array,Struct, and primitives
+      else if (llvm::isa<llvm::StructType>(_elementType) &&
+               _variableExpression) {
         std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrategy =
             std::make_unique<ObjectExpressionGenerationStrategy>(
                 _codeGenerationContext);
 
-        objExpGenStrategy->setVariable(elementPtr);
-        objExpGenStrategy->setTypeName(_elementType->getStructName().str());
-        objExpGenStrategy->generateExpression(_objectExpression);
-      } else if (llvm::isa<llvm::StructType>(_elementType) &&
-                 _variableExpression) {
-        std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-            std::make_unique<ObjectExpressionGenerationStrategy>(
-                _codeGenerationContext);
-
-        objExpGenStrat->generateVariable(elementPtr,
-                                         _elementType->getStructName().str(),
-                                         _elementToFill, _isGlobal);
+        objExpGenStrategy->generateVariable(elementPtr,
+                                            _elementType->getStructName().str(),
+                                            _elementToFill, _isGlobal);
       } else
         Builder->CreateStore(elementToFill, elementPtr);
 
@@ -397,13 +407,13 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
           Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
       Builder->CreateStore(nextIndex, indices[i]);
 
-      //! Elements filled Count Increment
+      //?------Elements filled Count Increment------
       Builder->CreateStore(
           Builder->CreateAdd(Builder->CreateLoad(Builder->getInt32Ty(),
                                                  numberOfElementsFilled),
                              Builder->getInt32(1)),
           numberOfElementsFilled);
-      //! End
+      //?------End------
 
       Builder->CreateBr(loopBlocks[i][1]);
     } else {

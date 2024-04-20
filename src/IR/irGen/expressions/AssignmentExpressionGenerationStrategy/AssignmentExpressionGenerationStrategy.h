@@ -4,6 +4,7 @@
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
+#include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
@@ -63,15 +64,20 @@ public:
 
   llvm::Value *
   handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);
-  llvm::Value *
-  handleAssignmentByVariable(BoundVariableExpression *variableExpression);
-  llvm::Value *handleAssignmentByBracketedExpression(
-      BoundBracketedExpression *bracketedExpression);
+  llvm::Value *handleRHSExpression(BoundExpression *expression);
+  llvm::Value *handleAssignExpression(llvm::Value *lshPtr, llvm::Type *lhsType,
+                                      std::string lhsVarName,
+                                      BoundExpression *expression);
+  llvm::Value *handleAssignmentByVariable(BoundExpression *exp);
 
   int8_t populateLHS(BoundAssignmentExpression *&assignmentExpression);
 
-  int8_t
-  handleWhenRHSIsConstant(BoundAssignmentExpression *assignmentExpression);
+  int8_t handleWhenRHSIsConstant(BoundExpression *expression);
+
+  llvm::Value *handleAssignmentByBracketedExpression(
+      BoundBracketedExpression *bracketedExpression);
+  llvm::Value *
+  handleAssignmentByObjectExpression(BoundObjectExpression *boundObjExp);
 
 private:
   std::string _variableName;
