@@ -30,7 +30,7 @@ TEST_F(ContainerTest, BasicContainerStringDeclaration) {
   std::string input = R"({ var a:str[5] = ["a", "b", "c", "d", "e"]
 print(a)})";
 
-  std::string expected_output = "[a, b, c, d, e]";
+  std::string expected_output = "['a', 'b', 'c', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -305,7 +305,7 @@ TEST_F(ContainerTest, BasicContainerStringDeclarationGlobal) {
   std::string input = R"(var a:str[5] = ["a", "b", "c", "d", "e"]
 print(a))";
 
-  std::string expected_output = "[a, b, c, d, e]";
+  std::string expected_output = "['a', 'b', 'c', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -560,7 +560,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, world, this, is, a]";
+  std::string expected_output = "['hello', 'world', 'this', 'is', 'a']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -610,7 +610,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, world, this, d, e]";
+  std::string expected_output = "['hello', 'world', 'this', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -662,7 +662,7 @@ TEST_F(ContainerTest, BasicContainerAssignmentPartialStringDeclarationGlobal) {
 
 print(a))";
 
-  std::string expected_output = "[hello, world, this, d, e]";
+  std::string expected_output = "['hello', 'world', 'this', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -723,7 +723,7 @@ TEST_F(
 print(a)
 })";
 
-  std::string expected_output = "[hello, world, this, d, e]";
+  std::string expected_output = "['hello', 'world', 'this', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -793,7 +793,7 @@ a[0] = "hello world"
 print(a)
 })";
 
-  std::string expected_output = "[hello world, world, this, d, e]";
+  std::string expected_output = "['hello world', 'world', 'this', 'd', 'e']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -875,7 +875,7 @@ TEST_F(ContainerTest, BasicContainerFillAssignmentStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -926,7 +926,7 @@ TEST_F(ContainerTest, BasicContainerFillAssignmentPartialStringDeclaration) {
 
 print(a)})";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -952,7 +952,7 @@ TEST_F(ContainerTest, BasicContainerFillAssignmentStringDeclarationGlobal) {
 
 print(a))";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1003,7 +1003,7 @@ TEST_F(ContainerTest,
 
 print(a))";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1036,7 +1036,7 @@ TEST_F(ContainerTest,
 print(a)
 })";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1135,7 +1135,7 @@ print(a)
        }
 )";
 
-  std::string expected_output = "[hello, hello, hello, hello, hello]";
+  std::string expected_output = "['hello', 'hello', 'hello', 'hello', 'hello']";
   setInput(input);
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
@@ -1202,7 +1202,7 @@ print(a)
 )";
 
   std::string expected_output =
-      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e])";
+      R"(['hello', 'hello', 'c', 'd', 'e']['b', 'hello', 'c', 'd', 'e']['u', 'hello', 'c', 'd', 'e']['t', 'hello', 'c', 'd', 'e']['hello', 'hello', 'c', 'd', 'e']['val', 'val', 'c', 'd', 'e'])";
 
   setInput(input);
   runEvaluator();
@@ -1236,7 +1236,7 @@ print(a)
 )";
 
   std::string expected_output =
-      R"([hello, hello, c, d, e][b, hello, c, d, e][u, hello, c, d, e][t, hello, c, d, e][hello, hello, c, d, e][val, val, c, d, e][balls, val, c, d, e])";
+      R"(['hello', 'hello', 'c', 'd', 'e']['b', 'hello', 'c', 'd', 'e']['u', 'hello', 'c', 'd', 'e']['t', 'hello', 'c', 'd', 'e']['hello', 'hello', 'c', 'd', 'e']['val', 'val', 'c', 'd', 'e']['balls', 'val', 'c', 'd', 'e'])";
 
   setInput(input);
   runEvaluator();

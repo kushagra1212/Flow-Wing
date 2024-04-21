@@ -45,14 +45,14 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
 
       return false;
     }
-    _arrayElementType =
-        _codeGenerationContext->getArrayElementTypeMetadata(variable);
+    // _arrayElementType =
+    //     _codeGenerationContext->getArrayElementTypeMetadata(variable);
     _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
     _variable = variable;
 
     return true;
   }
-  _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
+  // _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
   _arrayType = llvm::cast<llvm::ArrayType>(v->getAllocatedType());
   _variable = v;
 
@@ -110,7 +110,11 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
       !this->canGenerateExpression(_variableName))
     return nullptr;
   std::vector<uint64_t> sizes;
-  _codeGenerationContext->getArraySizeMetadata(_variable, sizes);
+
+  _arrayElementType = _arrayType;
+
+  _codeGenerationContext->createArraySizesAndArrayElementType(
+      sizes, _arrayElementType);
 
   for (int i = 0; i < sizes.size(); i++) {
     _actualSizes.push_back(Builder->getInt32(sizes[i]));

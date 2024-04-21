@@ -43,7 +43,7 @@ TEST_F(MDCInFunction, Str1DArrayAsParam) {
             foo(a)
         )");
 
-  O("[a, b, c]");
+  O("['a', 'b', 'c']");
 }
 
 // 1D Deci Param
@@ -107,7 +107,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParam) {
             foo(a)
         )");
 
-  O("[[a, b, c], [d, e, f]]");
+  O("[['a', 'b', 'c'], ['d', 'e', 'f']]");
 }
 
 // 2D Deci Param
@@ -180,7 +180,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParam) {
             foo(a,x)
         )");
 
-  O("[[a, a, c], [d, e, f]]");
+  O("[['a', 'a', 'c'], ['d', 'e', 'f']]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstant) {
@@ -228,7 +228,7 @@ TEST_F(MDCInFunction, Str1DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[a, b, c]");
+  O("['a', 'b', 'c']");
 }
 
 // 1D Deci Param
@@ -292,7 +292,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[[a, b, c], [d, e, f]]");
+  O("[['a', 'b', 'c'], ['d', 'e', 'f']]");
 }
 
 // 2D Deci Param
@@ -365,7 +365,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParamLOCAL) {
             foo(a,x)}
         )");
 
-  O("[[a, a, c], [d, e, f]]");
+  O("[['a', 'a', 'c'], ['d', 'e', 'f']]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstantLOCAL) {
@@ -509,7 +509,8 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStr) {
     print(result)
   )");
 
-  O("[[Hello, Hello, Hello, Hello, Hello], [Hello, , , , ]]");
+  O("[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
+    "'']]");
 }
 
 // Test case for mainTest() function bool
@@ -573,7 +574,8 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStrAssign) {
     print(result)
   )");
 
-  O("[[Hello, Hello, Hello, Hello, Hello], [Hello, , , , ]]");
+  O("[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
+    "'']]");
 }
 
 // Test case for mainTest() function bool

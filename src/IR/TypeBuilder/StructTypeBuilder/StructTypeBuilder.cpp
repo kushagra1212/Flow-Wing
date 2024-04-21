@@ -56,7 +56,7 @@ const bool StructTypeBuilder::isDyn(llvm::Type *type) const {
 llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
     llvm::Value *v, const std::string &variableName) const {
 
-  uint64_t index = 0;
+  uint64_t index = -1;
 
   if (isGlobalVar(variableName)) {
     index = _codeGenerationContext->getAllocaChain()->getGlobalTypeIndex(
@@ -71,7 +71,7 @@ llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
                                                             v, index);
 
   _codeGenerationContext->getValueStackHandler()->push(
-      "", elementPtr, "dynamic", this->getMemberTypes()[index]);
+      "", elementPtr, "dynamic", this->getMemberTypes()[index], v);
 
   return _codeGenerationContext->getBuilder()->CreateLoad(
       this->getMemberTypes()[index], elementPtr);

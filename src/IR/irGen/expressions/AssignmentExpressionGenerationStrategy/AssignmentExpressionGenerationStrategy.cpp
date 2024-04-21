@@ -300,7 +300,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
-
+  _isGlobal = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
   return handleAssignmentExpression(assignmentExpression);
@@ -310,9 +310,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
-
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       assignmentExpression->getLocation());
+  _isGlobal = true;
   return handleAssignmentExpression(assignmentExpression);
 }
 
@@ -374,6 +374,8 @@ int8_t AssignmentExpressionGenerationStrategy::populateLHS(
       ->generateExpression(assignmentExpression->getLeftPtr().get());
   _lhsPtr = _codeGenerationContext->getValueStackHandler()->getValue();
   _lhsType = _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  _lhsDynamicPtr =
+      _codeGenerationContext->getValueStackHandler()->getDynamicValue();
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
@@ -435,10 +437,10 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  if (_lhsTypeKind == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+  if (_lhsDynamicPtr) {
 
-    return handleDynamicPrimitiveVariableAssignment(_lhsPtr, _lhsVariableName,
-                                                    rhsValue);
+    return handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr,
+                                                    _lhsVariableName, rhsValue);
   }
 
   if (llvm::isa<llvm::StructType>(_lhsType) &&
@@ -499,10 +501,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
   case BinderKindUtils::BoundObjectExpression:
     return handleAssignmentByObjectExpression(
         static_cast<BoundObjectExpression *>(expression));
-  // case BinderKindUtils::IndexExpression:
-  //   _codeGenerationContext->getLogger()->LogError(
-  //       "Invalid Expression found (not supported) ");
-  //   return nullptr;
+
   default:
     break;
   }
@@ -530,9 +529,14 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
     handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
                                              const std::string &variableName,
                                              llvm::Value *rhsValue) {
+  if (llvm::isa<llvm::GlobalVariable>(variable)) {
+    _isGlobal = true;
+  } else {
+    _isGlobal = false;
+  }
+  std::string varName = _isGlobal ? variableName : variableName;
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      variable, rhsValue, rhsValue->getType(),
-      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
+      variable, rhsValue, rhsValue->getType(), variableName);
 
   return nullptr;
 }
@@ -554,11 +558,12 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
     _codeGenerationContext->getValueStackHandler()->popAll();
-    if (_lhsTypeKind == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE)
-      handleDynamicPrimitiveVariableAssignment(_lhsPtr, _lhsVariableName,
+    if (_lhsDynamicPtr) {
+      handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
-    else
+    } else {
       Builder->CreateStore(rhsValue, _lhsPtr);
+    }
 
     return EXIT_SUCCESS;
   }

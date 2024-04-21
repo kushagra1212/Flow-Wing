@@ -68,6 +68,8 @@ public:
 
   llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
 
+  void printString(llvm::Value *value, llvm::Type *elementType);
+
 private:
   bool _isGlobal = false;
 };

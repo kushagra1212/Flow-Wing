@@ -369,9 +369,9 @@ print(x.d)
 print(x.f)
 print(x)
 )");
-  O("[0, 0][0.00000000000000, 0.00000000000000][, ][false, false]{ x : 2, y : "
-    "[0, 0], b : [0.00000000000000, 0.00000000000000], c : [, ], d : [false, "
-    "false], f : '' }");
+  O("[0, 0][0.00000000000000, 0.00000000000000]['', ''][false, false](null){ x "
+    ": 2, y : [0, 0], b : [0.00000000000000, 0.00000000000000], c : ['', ''], "
+    "d : [false, false], f : '' }");
 }
 
 TEST_F(ObjectArray, PrintArrayInsideObject) {
@@ -392,9 +392,9 @@ print(x.d)
 print(x.f)
 print(x)
 )");
-  O("[5, 5][2.20000000000000, 0.00000000000000][hello, ][true, true]{ x : 2, y "
-    ": [5, 5], b : [2.20000000000000, 0.00000000000000], c : [hello, ], d : "
-    "[true, true], f : '' }");
+  O("[5, 5][2.20000000000000, 0.00000000000000]['hello', ''][true, "
+    "true](null){ x : 2, y : [5, 5], b : [2.20000000000000, 0.00000000000000], "
+    "c : ['hello', ''], d : [true, true], f : '' }");
 }
 
 TEST_F(ObjectArray, PrintArrayInsideObjectComplex) {

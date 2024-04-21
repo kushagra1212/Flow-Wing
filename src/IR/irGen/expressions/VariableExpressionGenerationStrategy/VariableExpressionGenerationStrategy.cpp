@@ -77,6 +77,12 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
                                                      variableValue, v);
   }
 
+  // when Primitive Typed Global Variable (Value)
+
+  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
+                                                       v->getAllocatedType());
+
+  return Builder->CreateLoad(v->getAllocatedType(), v, variableName);
   _codeGenerationContext->getLogger()->LogError(
       "Variable " + variableName + " not found in variable expression ");
 
@@ -434,8 +440,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
     return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-        variable,
-        FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
+        variable, variableName);
   }
 
   // Typed Global Variables

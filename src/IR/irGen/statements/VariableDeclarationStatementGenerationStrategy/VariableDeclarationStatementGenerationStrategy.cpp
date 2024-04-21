@@ -192,8 +192,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       _variableName);
 
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      _globalVariable, _rhsValue, _rhsValue->getType(),
-      FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + _variableName);
+      _globalVariable, _rhsValue, _rhsValue->getType(), _variableName);
 
   return _rhsValue;
 }

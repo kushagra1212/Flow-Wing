@@ -94,6 +94,8 @@ private:
   llvm::Type *_lhsType, *_rhsType;
   llvm::Value *_lhsPtr, *_rhsPtr;
   SyntaxKindUtils::SyntaxKind _lhsTypeKind;
+
+  llvm::Value *_lhsDynamicPtr;
 };
 
 #endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

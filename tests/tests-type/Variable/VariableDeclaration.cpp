@@ -208,6 +208,27 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENTForGlobalVariable) {
+  std::string input =
+      R"(
+      var x = 2
+      print(2) print(x) print(x+2) print(x+true) print(x+false)
+      print(x+1.1) x = 2.2 print(x+2) print(x+false) print(x+true)
+      x  =  true
+      print(x==false) print(x+false)
+      print(x+true) print(x+1) print(x+1.1)
+      print(x+"Hello")
+      )";
+
+  std::string expected_output =
+      "224323.100000000000004.200000000000002.200000000000003."
+      "20000000000000falsetruetrue22.10000000000000trueHello";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT2) {
   std::string input =
       R"(

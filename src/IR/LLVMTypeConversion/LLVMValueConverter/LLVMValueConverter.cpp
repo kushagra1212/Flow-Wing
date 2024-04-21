@@ -81,6 +81,10 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
     }
   }
 
+  // if (value.length() == 0) {
+  //   return llvm::ConstantInt::getNullValue(_builder->getInt8PtrTy());
+  // }
+
   return _builder->CreateGlobalStringPtr(value);
 
   // llvm::Constant *strConstant =

@@ -85,6 +85,49 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         return nullptr;
       }
 
+      if (!_codeGenerationContext->getValueStackHandler()->isEmpty() &&
+          _codeGenerationContext->getValueStackHandler()->isDynamicType()) {
+
+        llvm::Value *loaded = Builder->CreateLoad(
+            _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+            _codeGenerationContext->getValueStackHandler()->getValue());
+
+        _codeGenerationContext->getValueStackHandler()->popAll();
+
+        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                            {_stringTypeConverter->convertExplicit(loaded),
+                             Builder->getInt1(false)});
+        return nullptr;
+      }
+
+      // if (!_codeGenerationContext->getValueStackHandler()->isEmpty()) {
+      //   llvm::Value *ptr =
+      //       _codeGenerationContext->getValueStackHandler()->getValue();
+      //   llvm::Type *type =
+      //       _codeGenerationContext->getValueStackHandler()->getLLVMType();
+
+      //   _codeGenerationContext->getValueStackHandler()->popAll();
+
+      //   if (llvm::isa<llvm::StructType>(type))
+      //     return printObject(Builder->CreateLoad(type, ptr),
+      //                        llvm::cast<llvm::StructType>(type));
+
+      //   if (llvm::isa<llvm::ArrayType>(type)) {
+      //     llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+      //     _codeGenerationContext->getValueStackHandler()->popAll();
+      //     llvm::Type *elementType = arrayType->getElementType();
+      //     llvm::Type *type = arrayType;
+
+      //     std::vector<uint64_t> sizes;
+      //     while (llvm::ArrayType *arrayType =
+      //                llvm::dyn_cast<llvm::ArrayType>(type)) {
+      //       sizes.push_back(arrayType->getNumElements());
+      //       type = arrayType->getElementType();
+      //     }
+      //     return printArrayAtom(arrayType, ptr, sizes, type);
+      //   }
+      // }
+
       if (llvm::isa<llvm::CallInst>(value)) {
         llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
         auto *calledFunction = calledInst->getCalledFunction();
@@ -216,7 +259,10 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           return printObject(value, structType);
         }
       }
-
+      // if (value->getType()->isPointerTy()) {
+      //   printString(value, value->getType());
+      //   return nullptr;
+      // }
       if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
               value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
@@ -946,6 +992,41 @@ CallExpressionGenerationStrategy::getUnit(const std::string &unit,
   return Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), variable);
 }
 
+void CallExpressionGenerationStrategy::printString(llvm::Value *value,
+                                                   llvm::Type *type) {
+  printUnit("'", "'");
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+  llvm::BasicBlock *isNullBlock = llvm::BasicBlock::Create(
+      *TheContext, "IsNull", currentBlock->getParent());
+  llvm::BasicBlock *endBlock =
+      llvm::BasicBlock::Create(*TheContext, "End", currentBlock->getParent());
+  llvm::BasicBlock *mergeBlock =
+      llvm::BasicBlock::Create(*TheContext, "Merge", currentBlock->getParent());
+
+  // Create a null pointer constant of the same type as yourValue
+  llvm::Constant *nullPtr = llvm::Constant::getNullValue(type);
+
+  // Compare yourValue with the null pointer constant
+  llvm::Value *isNullValue = Builder->CreateICmpNE(value, nullPtr);
+
+  Builder->CreateCondBr(isNullValue, endBlock, isNullBlock);
+
+  Builder->SetInsertPoint(isNullBlock);
+
+  Builder->CreateBr(mergeBlock);
+
+  Builder->SetInsertPoint(endBlock);
+
+  Builder->CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      {_stringTypeConverter->convertExplicit(value), Builder->getInt1(false)});
+
+  Builder->CreateBr(mergeBlock);
+
+  Builder->SetInsertPoint(mergeBlock);
+  printUnit("'", "'");
+}
+
 llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     llvm::ArrayType *&arrayType, llvm::Value *&v,
     const std::vector<uint64_t> &actualSizes, llvm::Type *&elementType) {
@@ -1038,8 +1119,7 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
       if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
         innerValue =
             _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-                elementPtr, FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX +
-                                v->getName().str());
+                elementPtr, v->getName().str());
       } else if (llvm::isa<llvm::StructType>(arrayType->getElementType())) {
 
         printObject(elementPtr,
@@ -1047,9 +1127,15 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
       } else {
         // Typed Container Element
         innerValue = Builder->CreateLoad(elementType, elementPtr);
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(innerValue),
-                             Builder->getInt1(false)});
+
+        if (innerValue->getType()->isPointerTy()) {
+          printString(innerValue, elementType);
+        } else
+
+          Builder->CreateCall(
+              TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+              {_stringTypeConverter->convertExplicit(innerValue),
+               Builder->getInt1(false)});
       }
 
       //! Printing Ends
@@ -1147,38 +1233,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
 
       llvm::Value *loadedVal = llvm::cast<llvm::Value>(loaded);
       if (loaded->getType()->isPointerTy()) {
-        printUnit("'", "'");
-        llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-        llvm::BasicBlock *isNullBlock = llvm::BasicBlock::Create(
-            *TheContext, "IsNull", currentBlock->getParent());
-        llvm::BasicBlock *endBlock = llvm::BasicBlock::Create(
-            *TheContext, "End", currentBlock->getParent());
-        llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-            *TheContext, "Merge", currentBlock->getParent());
-
-        // Create a null pointer constant of the same type as yourValue
-        llvm::Constant *nullPtr = llvm::Constant::getNullValue(type);
-
-        // Compare yourValue with the null pointer constant
-        llvm::Value *isNullValue = Builder->CreateICmpNE(loaded, nullPtr);
-
-        Builder->CreateCondBr(isNullValue, endBlock, isNullBlock);
-
-        Builder->SetInsertPoint(isNullBlock);
-
-        Builder->CreateBr(mergeBlock);
-
-        Builder->SetInsertPoint(endBlock);
-
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(loadedVal),
-                             Builder->getInt1(false)});
-
-        Builder->CreateBr(mergeBlock);
-
-        Builder->SetInsertPoint(mergeBlock);
-        printUnit("'", "'");
-
+        printString(loadedVal, type);
       } else {
         Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
                             {_stringTypeConverter->convertExplicit(loadedVal),

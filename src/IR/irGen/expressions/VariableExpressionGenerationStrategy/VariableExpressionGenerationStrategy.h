@@ -52,6 +52,7 @@ private:
   BoundVariableExpression *_variableExpression;
   BoundTypeExpression *_typeExpression;
   llvm::StructType *parObjTypeType = nullptr;
+  bool _isGlobal = false;
 };
 
 #endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
