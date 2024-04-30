@@ -67,6 +67,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     return nullptr;
   }
 
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
+                                                              _rhsValue);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =
@@ -77,6 +79,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   }
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+
     BoundVariableDeclaration *variableDeclaration =
         static_cast<BoundVariableDeclaration *>(statement);
 
@@ -88,29 +91,50 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
         _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
 
-    std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-        std::make_unique<ObjectExpressionGenerationStrategy>(
+    if (!structType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Object type " + objectTypeExpression->getTypeName() + " not found");
+      return nullptr;
+    }
+    std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+        std::make_unique<AssignmentExpressionGenerationStrategy>(
             _codeGenerationContext);
 
     llvm::AllocaInst *var =
         Builder->CreateAlloca(structType, nullptr, _variableName);
 
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
-    objExpGenStrat->setVariable(var);
-    objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
-    _codeGenerationContext->getValueStackHandler()->push(
-        structType->getStructName().str(), var, "struct", structType);
 
-    return objExpGenStrat->generateExpression(
+    return assignmentEGS->handleAssignExpression(
+        var, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
   }
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
-                                                              _rhsValue);
+  if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+    llvm::Type *llvmType =
+        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+            _variableType);
 
-  // Handle Primitive Local Variable
-  return handlePrimitiveLocalVariableDeclr(_variableName, _variableType,
-                                           _rhsValue);
+    llvm::AllocaInst *var =
+        Builder->CreateAlloca(llvmType, nullptr, _variableName);
+
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+
+    Builder->CreateStore(_rhsValue, var);
+
+    return _rhsValue;
+  }
+
+  //    Dynamic Typed Variable
+
+  llvm::AllocaInst *var = Builder->CreateAlloca(
+      _codeGenerationContext->getDynamicType()->get(), nullptr, _variableName);
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+      var, _rhsValue, _rhsValue->getType(), _variableName);
+
+  return _rhsValue;
 }
 
 llvm::Value *
@@ -146,22 +170,12 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
       return nullptr;
     }
-
-    // std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-    //     std::make_unique<ObjectExpressionGenerationStrategy>(
-    //         _codeGenerationContext);
     std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
         std::make_unique<AssignmentExpressionGenerationStrategy>(
             _codeGenerationContext);
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
-
-    // objExpGenStrat->setVariable(_globalVariable);
-    // objExpGenStrat->setTypeName(objectTypeExpression->getTypeName());
-    // _codeGenerationContext->getValueStackHandler()->push(
-    //     structType->getStructName().str(), _globalVariable, "struct",
-    //     structType);
 
     return assignmentEGS->handleAssignExpression(
         _globalVariable, structType, _variableName,

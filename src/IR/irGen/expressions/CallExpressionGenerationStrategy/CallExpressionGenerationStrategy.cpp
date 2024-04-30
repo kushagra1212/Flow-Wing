@@ -574,6 +574,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
   llvm::Value *retVal = nullptr;
   switch (kind) {
+    //!!! INDEX EXPRESSION AND CALL EXPRESSION ARE NOT IMPLEMENTED !!! REMAINING
   case BinderKindUtils::VariableExpression: {
     retVal = handleVariableExpression(rhsValue, callExpression, i, functionType,
                                       llvmArrayArgs, arg, retFlag);
