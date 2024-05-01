@@ -228,7 +228,7 @@ To run Flow-Wing programs, you'll need an `Flow-Wing AOT-compiler or JIT-Compile
 
 ## Installing Flow-Wing 
 
-### MacOS
+### MacOS x86_64
 
 
 #### Install Homebrew 
