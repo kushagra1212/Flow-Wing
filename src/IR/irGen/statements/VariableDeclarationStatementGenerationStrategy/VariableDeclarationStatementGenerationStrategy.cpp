@@ -69,6 +69,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 
   _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
                                                               _rhsValue);
+
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =
@@ -77,7 +78,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 
     return contDecGenStrat->generateStatement(statement);
   }
-
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
 
     BoundVariableDeclaration *variableDeclaration =
@@ -96,15 +99,12 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
       return nullptr;
     }
-    std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
-        std::make_unique<AssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
 
     llvm::AllocaInst *var =
         Builder->CreateAlloca(structType, nullptr, _variableName);
 
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
-
+    assignmentEGS->initDefaultValue(structType, var);
     return assignmentEGS->handleAssignExpression(
         var, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
@@ -117,7 +117,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 
     llvm::AllocaInst *var =
         Builder->CreateAlloca(llvmType, nullptr, _variableName);
-
+    assignmentEGS->initDefaultValue(llvmType, var);
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
 
     Builder->CreateStore(_rhsValue, var);
@@ -152,6 +152,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 
     return contDecGenStrat->generateGlobalStatement(statement);
   }
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
     BoundVariableDeclaration *variableDeclaration =
@@ -170,12 +173,12 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
       return nullptr;
     }
-    std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
-        std::make_unique<AssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
+
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
+
+    assignmentEGS->initDefaultValue(structType, _globalVariable);
 
     return assignmentEGS->handleAssignExpression(
         _globalVariable, structType, _variableName,
@@ -191,6 +194,8 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, llvmType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(llvmType), _variableName);
+
+    assignmentEGS->initDefaultValue(llvmType, _globalVariable);
 
     Builder->CreateStore(_rhsValue, _globalVariable);
 

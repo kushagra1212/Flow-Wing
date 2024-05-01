@@ -135,7 +135,7 @@
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
-  "clang-format.executable": "/usr/local/opt/llvm/bin/clang-format",
+  "clang-format.executable": "/opt/homebrew/opt/llvm@17/bin/clang-format",
   "workbench.colorTheme": "GitHub Dark High Contrast",
    "editor.codeActionsOnSave": {
   },

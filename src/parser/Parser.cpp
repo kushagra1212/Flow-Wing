@@ -1132,13 +1132,41 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
          SyntaxKindUtils::SyntaxKind::DotToken) {
     this->match(SyntaxKindUtils::SyntaxKind::DotToken);
 
-    std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-    std::any value = identifierToken->getValue();
+    if (this->getCurrent()->getKind() ==
+            SyntaxKindUtils::SyntaxKind::IdentifierToken &&
+        this->peek(1)->getKind() ==
+            SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
-    variExp->addDotExpression(
-        std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(identifierToken), value));
+      std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+
+      std::any value = localIdentifierToken->getValue();
+      std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
+          std::make_unique<IndexExpressionSyntax>(
+              std::make_unique<LiteralExpressionSyntax<std::any>>(
+                  std::move(localIdentifierToken), value));
+
+      while (this->getCurrent()->getKind() ==
+             SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+
+        this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+
+        localIndexExpression->addIndexExpression(
+            std::move(this->parseExpression()));
+
+        this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
+      }
+
+      variExp->addDotExpression(std::move(localIndexExpression));
+    } else {
+      std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      std::any value = localIdentifierToken->getValue();
+
+      variExp->addDotExpression(
+          std::make_unique<LiteralExpressionSyntax<std::any>>(
+              std::move(localIdentifierToken), value));
+    }
   }
 
   return std::move(variExp);

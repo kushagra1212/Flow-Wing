@@ -62,6 +62,8 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
 
+  assignmentStrategy->initDefaultValue(arrayType, alloca);
+
   return assignmentStrategy->handleAssignExpression(alloca, arrayType,
                                                     containerName, initializer);
 }
@@ -357,6 +359,8 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
   std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
+
+  assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
 
   return assignmentStrategy->handleAssignExpression(
       _globalVariable, arrayType, _containerName,

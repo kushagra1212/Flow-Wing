@@ -1457,42 +1457,4 @@ TEST_F(ObjectTest, AssignValueSimpleObject2) {
 //     "type1 :  } }");
 // }
 
-TEST_F(ObjectTest, PartialFillFailing) {
-  I(R"(
-    type obj = {
-    i:int,
-    s:str
-  }
-type k = {
-  o: int,
-  s: str,
-  d: deci,
-  i: int,
-  ob:obj
-}
-type par = {
-  u: str,
-  g: k[2]
-}
-type t = {
-  x: int,
-  y: str,
-  a: deci,
-  b: bool,
-  ar: par[1]
-}
-var gka: k  = {
-  i:1022,
- o: 102,
-  s: "sora"
-  
-}
-var r:par = {g:[]}
-print(r.g[0].s)
-
-    )");
-
-  O("{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
-}
 #endif

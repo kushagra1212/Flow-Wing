@@ -557,7 +557,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   }
   }
 
-  const int &_len = std::max(
+  const int _len = std::max(
       (int)this->_sourceCode[lineNumber].length() - (int)start, (int)0);
 
   const std::string &str = this->_sourceCode[lineNumber].substr(start, _len);

@@ -20,12 +20,11 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/kushagrarathore/code/per/Flow-Wing/**",
-                "/usr/local/Cellar/googletest/1.14.0/**",
-                "/usr/local/opt/llvm/**"
+                "/opt/homebrew/Cellar/googletest/1.14.0/**",
+                "/opt/homebrew/opt/llvm@17/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/local/opt/llvm/bin/clang",
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"

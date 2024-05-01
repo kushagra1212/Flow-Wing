@@ -37,7 +37,7 @@ public:
 #if defined(__linux__)
     LIB_PATH = "/usr/local/lib/FlowWing";
 #elif defined(__APPLE__)
-    LIB_PATH = "/usr/local/lib/FlowWing";
+    LIB_PATH = "/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib";
 #endif
 
     return LIB_PATH;

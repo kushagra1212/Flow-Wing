@@ -579,7 +579,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17) {
         print(z[1][1])
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]4(null)6(null)4y56");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -602,8 +602,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18) {
         print(y)
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', "
-    "'6']]4(null)6(null)4y56[['Hello', 'Hello']]");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container
@@ -1732,7 +1731,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17GL) {
         print(z[1][1])}
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]4(null)6(null)4y56");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -1775,8 +1774,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18GL) {
         print(y)
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', "
-    "'6']]4(null)6(null)4y56[['Hello', 'Hello']]");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container

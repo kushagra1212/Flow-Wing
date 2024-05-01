@@ -369,9 +369,9 @@ print(x.d)
 print(x.f)
 print(x)
 )");
-  O("[0, 0][0.00000000000000, 0.00000000000000]['', ''][false, false](null){ x "
-    ": 2, y : [0, 0], b : [0.00000000000000, 0.00000000000000], c : ['', ''], "
-    "d : [false, false], f : '' }");
+  O("[0, 0][0.00000000000000, 0.00000000000000]['', ''][false, false]{ x : 2, "
+    "y : [0, 0], b : [0.00000000000000, 0.00000000000000], c : ['', ''], d : "
+    "[false, false], f : '' }");
 }
 
 TEST_F(ObjectArray, PrintArrayInsideObject) {
@@ -392,9 +392,9 @@ print(x.d)
 print(x.f)
 print(x)
 )");
-  O("[5, 5][2.20000000000000, 0.00000000000000]['hello', ''][true, "
-    "true](null){ x : 2, y : [5, 5], b : [2.20000000000000, 0.00000000000000], "
-    "c : ['hello', ''], d : [true, true], f : '' }");
+  O("[5, 5][2.20000000000000, 0.00000000000000]['hello', ''][true, true]{ x : "
+    "2, y : [5, 5], b : [2.20000000000000, 0.00000000000000], c : ['hello', "
+    "''], d : [true, true], f : '' }");
 }
 
 TEST_F(ObjectArray, PrintArrayInsideObjectComplex) {
@@ -969,7 +969,7 @@ arr = []
 print(arr)
 )");
   O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
-[{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+[{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
 
 TEST_F(
@@ -1165,7 +1165,216 @@ arr[1].ar[0] = sec[0].ar[0]
 print(arr[1])
 )");
   O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
-{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : 'god', d : 0.00000000000000, i : 12, ob : { i : 200, s : 'some' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArray, ArrayInsideObjectAcess) {
+  I(R"(
+      type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var r:par = {g:[]}
+print(r.g[1])
+    )");
+
+  O("{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }");
+}
+
+TEST_F(ObjectArray, ArrayInsideObjectAcessLocal) {
+  I(R"(
+{
+        type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var r:par = {g:[]}
+print(r.g[1])
+}
+    )");
+
+  O("{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }");
+}
+
+TEST_F(ObjectArray, ArrayInsideObjectAcessLocalPartialLocal) {
+  I(R"(
+
+        type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+{
+var r:par = {g:[]}
+print(r.g[1])
+}
+    )");
+
+  O("{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }");
+}
+TEST_F(ObjectArray, ArrayInsideObjectAcessLocalPartialLocal2) {
+  I(R"(
+
+        type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var r:par = {g:[]}
+{
+print(r.g[1])
+}
+    )");
+
+  O("{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }");
+}
+
+TEST_F(ObjectArray, ArrayInsideObjectAcessRig) {
+  I(R"(
+
+      type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var r:par = {g:[{},{d:2.3,s:"Hello",ob:{s:"g"}}]}
+
+print(r.g[1].o)
+print(r.g[1].i)
+print(r.g[1].s)
+print(r.g[1].d)
+print(r.g[1].ob)
+print("\n")
+print(r.g[0].o)
+print(r.g[0].i)
+print(r.g[0].s)
+print(r.g[0].d)
+print(r.g[0].ob)
+    )");
+
+  O(R"(00Hello2.30000000000000{ i : 0, s : 'g' }
+000.00000000000000{ i : 0, s : '' })");
 }
 
 #endif

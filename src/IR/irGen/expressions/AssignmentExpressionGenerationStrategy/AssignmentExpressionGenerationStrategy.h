@@ -79,6 +79,12 @@ public:
   llvm::Value *
   handleAssignmentByObjectExpression(BoundObjectExpression *boundObjExp);
 
+  // Default Initialize
+  void initObjectWithDefaultValue(llvm::StructType *type, llvm::Value *alloca);
+  void initArrayWithDefaultValue(llvm::ArrayType *arrayType,
+                                 llvm::Value *alloca);
+  void initDefaultValue(llvm::Type *type, llvm::Value *alloca);
+
 private:
   std::string _variableName;
   llvm::AllocaInst *_allocaInst;

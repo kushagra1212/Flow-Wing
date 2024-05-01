@@ -859,8 +859,31 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
 
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
-    boundVariableExpression->addDotExpression(
-        std::move(bindLiteralExpression(dotExpression.get())));
+    if (dotExpression->getKind() ==
+        SyntaxKindUtils::SyntaxKind::IndexExpression) {
+
+      IndexExpressionSyntax *indexExpression =
+          static_cast<IndexExpressionSyntax *>(dotExpression.get());
+      std::unique_ptr<BoundLiteralExpression<std::any>>
+          localBoundIdentifierExpression(
+              (BoundLiteralExpression<std::any> *)bindExpression(
+                  indexExpression->getIndexIdentifierExpressionPtr().get())
+                  .release());
+
+      std::unique_ptr<BoundIndexExpression> localBoundIndexExp =
+          std::make_unique<BoundIndexExpression>(
+              indexExpression->getSourceLocation(),
+              std::move(localBoundIdentifierExpression));
+
+      for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
+        localBoundIndexExp->addBoundIndexExpression(
+            std::move(bindExpression(indexExp.get())));
+      }
+      boundVariableExpression->addDotExpression(std::move(localBoundIndexExp));
+    } else {
+      boundVariableExpression->addDotExpression(
+          std::move(bindExpression(dotExpression.get())));
+    }
   }
 
   return std::move(boundVariableExpression);
