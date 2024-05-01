@@ -12,14 +12,15 @@ ContainerDeclarationStatementGenerationStrategy::
 
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
+
   auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
 
   BoundArrayTypeExpression *arrayTypeExpression =
       static_cast<BoundArrayTypeExpression *>(
           contVarDec->getTypeExpression().get());
 
-  return generateCommonStatement(arrayTypeExpression,
-                                 contVarDec->getVariableName(),
+  _containerName = contVarDec->getVariableName();
+  return generateCommonStatement(arrayTypeExpression, _containerName,
                                  contVarDec->getInitializerPtr().get());
 }
 
@@ -27,53 +28,97 @@ llvm::Value *
 ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundArrayTypeExpression *arrayTypeExpression,
     const std::string &containerName, BoundExpression *initializer) {
-  const SyntaxKindUtils::SyntaxKind &containerElementType =
-      arrayTypeExpression->getElementType();
 
   this->calcActualContainerSize(arrayTypeExpression);
+
+  if (arrayTypeExpression->isTrivialType()) {
+    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        arrayTypeExpression->getElementType());
+
+  } else {
+    BoundObjectTypeExpression *objectTypeExpression =
+        static_cast<BoundObjectTypeExpression *>(
+            arrayTypeExpression->getNonTrivialElementType().get());
+
+    _elementType = _codeGenerationContext->getTypeChain()->getType(
+        objectTypeExpression->getTypeName());
+  }
+  llvm::ArrayType *arrayType = nullptr;
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
+
+  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
+
+  llvm::AllocaInst *alloca =
+      Builder->CreateAlloca(arrayType, nullptr, containerName);
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(containerName,
+                                                          alloca);
+
+  BinderKindUtils::BoundNodeKind kind = initializer->getKind();
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
+
+  assignmentStrategy->initDefaultValue(arrayType, alloca);
+
+  return assignmentStrategy->handleAssignExpression(alloca, arrayType,
+                                                    containerName, initializer);
+}
+
+llvm::Value *
+ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
+    std ::vector<uint64_t> actualSizes, llvm::Type *arrayElementType,
+    const std::string &containerName, BoundExpression *initializer) {
+
+  _actualSizes = actualSizes;
   _containerName = containerName;
 
-  _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-      arrayTypeExpression->getElementType());
+  _elementType = arrayElementType;
 
   BinderKindUtils::BoundNodeKind kind = initializer->getKind();
 
   switch (kind) {
-    case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
-      return generateBracketLocalExpression(
-          (BoundBracketedExpression *)initializer);
-    }
-    case BinderKindUtils::BoundNodeKind::CallExpression: {
-      if (!canGenerateCallExpression(initializer)) {
-        return nullptr;
-      }
-      llvm::ArrayType *arrayType = nullptr;
-
-      llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
-          _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-
-      _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                                _actualSizes, _elementType);
-
-      llvm::AllocaInst *arrayAlloca =
-          Builder->CreateAlloca(arrayType, nullptr, _containerName);
-
-      // Fill the array with default values
-
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                              arrayAlloca);
-
-      // Store the result of the call in the localVariable variable
-      Builder->CreateStore(_loadedValue, arrayAlloca);
-
+  case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
+    return generateBracketLocalExpression(
+        (BoundBracketedExpression *)initializer);
+  }
+  case BinderKindUtils::BoundNodeKind::CallExpression: {
+    if (!canGenerateCallExpression(initializer)) {
       return nullptr;
     }
+    llvm::ArrayType *arrayType = nullptr;
 
-    default: {
-      _codeGenerationContext->getLogger()->LogError(
-          "Unsupported Container Expression Type ");
-      break;
+    llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
+        _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
+
+    _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                              _elementType);
+
+    if (!_allocaInst) {
+      llvm::AllocaInst *alloca =
+          Builder->CreateAlloca(arrayType, nullptr, _containerName);
+
+      _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                              alloca);
+      _allocaInst = alloca;
     }
+
+    // Fill the array with default values
+
+    // Store the result of the call in the localVariable variable
+    Builder->CreateStore(_loadedValue, _allocaInst);
+
+    return nullptr;
+  }
+
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
   }
   return nullptr;
 }
@@ -134,6 +179,71 @@ ContainerDeclarationStatementGenerationStrategy::canGenerateCallExpression(
   return true;
 }
 
+const bool
+ContainerDeclarationStatementGenerationStrategy::canGenerateVariableExpression(
+    BoundExpression *exp) {
+
+  _expressionGenerationFactory->createStrategy(exp->getKind())
+      ->generateExpression(exp);
+
+  if (!_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected an array of " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType));
+    return false;
+  }
+
+  llvm::Value *value =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+
+  llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+      _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+  _loadedValue = Builder->CreateLoad(arrayType, value);
+  _codeGenerationContext->getValueStackHandler()->popAll();
+  llvm::Type *elementType = arrayType;
+  std::vector<uint64_t> actualSizes;
+  _codeGenerationContext->createArraySizesAndArrayElementType(actualSizes,
+                                                              elementType);
+
+  if (elementType != _elementType) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected an array of " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType) +
+        " but found " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(elementType));
+
+    return false;
+  }
+
+  if (actualSizes.size() != _actualSizes.size()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Dimensions of the Containers Must Be same, Expected array to be "
+        "of " +
+        std::to_string(_actualSizes.size()) + " Dimension but found " +
+        "array of " + std::to_string(actualSizes.size()) + " Dimension");
+
+    return false;
+  }
+
+  for (uint64_t i = 0; i < actualSizes.size(); i++) {
+    if (actualSizes[i] != _actualSizes[i]) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Dimensions of the Containers must be same, Expected array's " +
+          std::to_string(i) +
+          " th Dimension  to "
+          "be "
+          "equal to " +
+          std::to_string(_actualSizes[i]) + ", but found " +
+          std::to_string(actualSizes[i]));
+
+      return false;
+    }
+  }
+
+  return true;
+}
+
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::
     generateBracketGlobalExpression(
         BoundBracketedExpression *bracketedExpression) {
@@ -141,31 +251,29 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::
       bracketedExpression->getExpressionRef().get()->getKind();
 
   switch (bracketedExpressionKind) {
-    case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
-      std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
-          std::make_unique<ContainerExpressionGenerationStrategy>(
-              _codeGenerationContext, _actualSizes, _elementType,
-              _containerName);
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+    std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<ContainerExpressionGenerationStrategy>(
+            _codeGenerationContext, _actualSizes, _elementType, _containerName);
 
-      return specificStrategy->generateGlobalExpression(
-          bracketedExpression->getExpressionRef().get());
-    }
+    return specificStrategy->generateGlobalExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
 
-    case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
-      std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
-          std::make_unique<FillExpressionGenerationStrategy>(
-              _codeGenerationContext, _actualSizes, _elementType,
-              _containerName);
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+    std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<FillExpressionGenerationStrategy>(
+            _codeGenerationContext, _actualSizes, _elementType, _containerName);
 
-      return specificStrategy->generateGlobalExpression(
-          bracketedExpression->getExpressionRef().get());
-    }
+    return specificStrategy->generateGlobalExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
 
-    default: {
-      _codeGenerationContext->getLogger()->LogError(
-          "Unsupported Container Expression Type ");
-      break;
-    }
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
   }
 
   return nullptr;
@@ -178,31 +286,35 @@ ContainerDeclarationStatementGenerationStrategy::generateBracketLocalExpression(
       bracketedExpression->getExpressionRef().get()->getKind();
 
   switch (bracketedExpressionKind) {
-    case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
-      std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
-          std::make_unique<ContainerExpressionGenerationStrategy>(
-              _codeGenerationContext, _actualSizes, _elementType,
-              _containerName);
+  case BinderKindUtils::BoundNodeKind::BoundContainerExpression: {
+    std::unique_ptr<ContainerExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<ContainerExpressionGenerationStrategy>(
+            _codeGenerationContext, _actualSizes, _elementType, _containerName);
 
-      return specificStrategy->generateExpression(
-          bracketedExpression->getExpressionRef().get());
-    }
+    if (_allocaInst)
+      specificStrategy->setAllocaInst(_allocaInst);
 
-    case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
-      std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
-          std::make_unique<FillExpressionGenerationStrategy>(
-              _codeGenerationContext, _actualSizes, _elementType,
-              _containerName);
+    return specificStrategy->generateExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
 
-      return specificStrategy->generateExpression(
-          bracketedExpression->getExpressionRef().get());
-    }
+  case BinderKindUtils::BoundNodeKind::BoundFillExpression: {
+    std::unique_ptr<FillExpressionGenerationStrategy> specificStrategy =
+        std::make_unique<FillExpressionGenerationStrategy>(
+            _codeGenerationContext, _actualSizes, _elementType, _containerName);
 
-    default: {
-      _codeGenerationContext->getLogger()->LogError(
-          "Unsupported Container Expression Type ");
-      break;
-    }
+    if (_allocaInst)
+      specificStrategy->setAllocaInst(_allocaInst);
+
+    return specificStrategy->generateExpression(
+        bracketedExpression->getExpressionRef().get());
+  }
+
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Container Expression Type ");
+    break;
+  }
   }
 
   return nullptr;
@@ -216,58 +328,43 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
       static_cast<BoundArrayTypeExpression *>(
           contVarDec->getTypeExpression().get());
 
-  const SyntaxKindUtils::SyntaxKind &containerElementType =
-      arrayTypeExpression->getElementType();
-
   this->calcActualContainerSize(arrayTypeExpression);
   _containerName = contVarDec->getVariableName();
 
-  _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-      arrayTypeExpression->getElementType());
+  if (arrayTypeExpression->isTrivialType()) {
+    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        arrayTypeExpression->getElementType());
+
+  } else {
+    BoundObjectTypeExpression *objectTypeExpression =
+        static_cast<BoundObjectTypeExpression *>(
+            arrayTypeExpression->getNonTrivialElementType().get());
+
+    _elementType = _codeGenerationContext->getTypeChain()->getType(
+        objectTypeExpression->getTypeName());
+  }
+  llvm::ArrayType *arrayType = nullptr;
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
+
+  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
+  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
+      *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
+      _defaultVal, _containerName);
 
   BinderKindUtils::BoundNodeKind kind =
       contVarDec->getInitializerPtr()->getKind();
 
-  switch (kind) {
-    case BinderKindUtils::BoundNodeKind::BoundBracketedExpression: {
-      return generateBracketGlobalExpression(
-          (BoundBracketedExpression *)contVarDec->getInitializerPtr().get());
-    }
-    case BinderKindUtils::BoundNodeKind::CallExpression: {
-      if (!canGenerateCallExpression(contVarDec->getInitializerPtr().get())) {
-        return nullptr;
-      }
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
 
-      llvm::ArrayType *arrayType = nullptr;
+  assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
 
-      // Create a default value for the array
-
-      llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
-          _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
-
-      _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                                _actualSizes, _elementType);
-      llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-          *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
-          _defaultVal, _containerName);
-
-      _codeGenerationContext->setArraySizeMetadata(_globalVariable,
-                                                   _actualSizes);
-      _codeGenerationContext->setArrayElementTypeMetadata(_globalVariable,
-                                                          _elementType);
-
-      // Store the result of the call in the _globalVariable variable
-      Builder->CreateStore(_loadedValue, _globalVariable);
-      return nullptr;
-    }
-
-    default: {
-      _codeGenerationContext->getLogger()->LogError(
-          "Unsupported Container Expression Type ");
-      break;
-    }
-  }
-  return nullptr;
+  return assignmentStrategy->handleAssignExpression(
+      _globalVariable, arrayType, _containerName,
+      contVarDec->getInitializerPtr().get());
 }
 
 void ContainerDeclarationStatementGenerationStrategy::calcActualContainerSize(

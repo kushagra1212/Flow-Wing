@@ -11,6 +11,7 @@ class SyntaxNode {
   std::string absoluteFilePath;
   std::vector<SyntaxNode *> _children;
 
+    virtual ~SyntaxNode() = default; 
   virtual const SyntaxKindUtils::SyntaxKind getKind() const = 0;
 
   virtual const std::vector<SyntaxNode *> &getChildren() = 0;

@@ -69,6 +69,9 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         binaryExpression);
   }
 
+  _codeGenerationContext->getValueStackHandler()->push("", result, "constant",
+                                                       result->getType());
+
   return result;
 }
 

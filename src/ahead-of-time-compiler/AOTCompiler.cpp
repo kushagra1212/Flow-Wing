@@ -2,57 +2,59 @@
 #include "../cli/argh.h"
 #include "../common/version.h"
 
-AOTCompiler::AOTCompiler(std::string filePath) : Compiler(filePath) {}
+AOTCompiler::AOTCompiler(std::string filePath,
+                         const bool &isFormattedCodeRequired)
+    : Compiler(filePath) {}
 
-void AOTCompiler::execute() {
-  std::unique_ptr<llvm::LLVMContext> TheContext =
-      std::make_unique<llvm::LLVMContext>();
-  std::unique_ptr<llvm::IRBuilder<>> Builder =
-      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+void AOTCompiler::link() {
 
-  std::unique_ptr<llvm::Module> linkedModule =
-      std::move(getLinkedModule(TheContext));
+  std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
+      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
 
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy =
-      std::make_unique<LLFileSaveStrategy>(_llvmLogger.get());
+  std::filesystem::path CLANG_PATH = getClangFilePath();
+  std::filesystem::path LIB_PATH = getLibPath();
 
-  const std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
-      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
-  std::string CLANG_PATH = "";
-  std::string FILE_NAME_WITH_EXTENSION = "";
-#ifdef DEBUG
-  CLANG_PATH = "lib/FlowWing/dependencies/llvm-17/bin/clang-17";
-  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".ll",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".ll";
-#elif RELEASE
-  LANG_PATH = "/usr/local/lib/FlowWing/dependencies/llvm-17/bin/clang-17";
-  llFileSaveStrategy->saveToFile(fileNameWithOutExtension + ".bc",
-                                 linkedModule.get());
-  FILE_NAME_WITH_EXTENSION = fileNameWithOutExtension + ".bc";
+  std::string executeCmd = "";
+
+#if defined(AOT_TEST_MODE)
+  fileNameWithOutExtension =
+      FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT;
+  executeCmd = " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
+               fileNameWithOutExtension;
 #endif
 
-  // check For Clang
+  std::string RAY_LIB_CMD = "";
 
-  if (system(("ls " + CLANG_PATH + " --version > /dev/null 2>&1").c_str()) !=
-      0) {
-    _currentDiagnosticHandler->printDiagnostic(
-        std::cout,
-        Diagnostic("Clang not found.", DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Linker,
-                   DiagnosticUtils::SourceLocation(
-                       0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
+#if defined(__APPLE__)
 
-    return;
+  // RAY_LIB_CMD = "-lraylib -framework CoreFoundation -framework "
+  //               "CoreGraphics -framework Cocoa -framework IOKit -framework "
+  //               "CoreVideo ";
+#endif
+
+  try {
+    std::string cmd =
+        (CLANG_PATH.string() + " -O3 -o " +
+         FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + fileNameWithOutExtension +
+         " -e _" + FLOWWING_GLOBAL_ENTRY_POINT + " " +
+         getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
+         " -lbuilt_in_module  -fPIE " + RAY_LIB_CMD + executeCmd);
+
+    std::system(cmd.c_str());
+
+    // delete object files
+    deleteObjectFiles();
+  } catch (const std::exception &e) {
+    std::cerr << "Exception occurred: " << e.what() << std::endl;
+    // delete object files
+    deleteObjectFiles();
   }
-
-  // std::system((CLANG_PATH + " -O3 -o " + fileNameWithOutExtension + " " +
-  //              FILE_NAME_WITH_EXTENSION)
-  //                 .c_str());
 }
+
+void AOTCompiler::execute() { link(); }
 
 #if defined(AOT_MODE) || defined(AOT_TEST_MODE)
 
@@ -82,31 +84,34 @@ int main(int argc, char **argv) {
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser cmdl(argv);
-  if (cmdl[{"-V", "--version"}]) {
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Version.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortVersion.name.c_str()}]) {
     std::cout << "Flowwing Compiler" << std::endl;
     std::cout << "Version: " << VERSION_INFO << std::endl;
-
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
-  if (argc != 2) {
+  if (!cmdl(FlowWingCliOptions::OPTIONS::File.name.c_str()) &&
+      !cmdl(FlowWingCliOptions::OPTIONS::ShortFile.name.c_str())) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return EXIT_FAILURE;
   }
 
+  std::string _filePath = cmdl("file") ? cmdl("file").str() : cmdl("F").str();
   // Opens the file using the provided file path
 
   std::ifstream file;
 
-  file.open(argv[1]);
+  file.open(_filePath);
 
   if (!file.is_open()) {
-    Utils::printErrors({"Unable to open file: " + std::string(argv[1]),
+    Utils::printErrors({"Unable to open file: " + std::string(_filePath),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
 
-    if (access(argv[1], R_OK) != 0) {
+    if (access(_filePath.c_str(), R_OK) != 0) {
       Utils::printErrors(
           {"Please check if the file exists and you have read permissions."},
           std::cerr);
@@ -118,12 +123,26 @@ int main(int argc, char *argv[]) {
   // Close the file (imp)
   file.close();
 
-  Utils::Node::addPath(argv[1]);
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(_filePath));
   std::vector<std::string> text =
-      Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
+      Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<AOTCompiler> aotCompiler =
-      std::make_unique<AOTCompiler>(argv[1]);
+      std::make_unique<AOTCompiler>(_filePath);
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Format.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormat.name.c_str()}]) {
+
+    aotCompiler->Format.setValue(true);
+    aotCompiler->ShortFormat.setValue(true);
+  }
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::FormatPrint.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormatPrint.name.c_str()}]) {
+
+    aotCompiler->FormatPrint.setValue(true);
+    aotCompiler->ShortFormatPrint.setValue(true);
+  }
 
   // #if DEBUG
   //   std::filesystem::path executable_path =
@@ -135,6 +154,7 @@ int main(int argc, char *argv[]) {
   //   executable_directory_string;
   // #endif
 
+  aotCompiler->_executable_path = std::filesystem::path(argv[0]);
   aotCompiler->compile(text, std::cout);
 
   return EXIT_SUCCESS;

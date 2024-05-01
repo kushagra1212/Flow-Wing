@@ -410,6 +410,10 @@ auto Utils::typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string {
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword:
     return "Int32";
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword:
+    return "Int8";
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+    return "Int64";
   case SyntaxKindUtils::SyntaxKind::DeciKeyword:
     return "Decimal";
   case SyntaxKindUtils::SyntaxKind::StrKeyword:
@@ -525,6 +529,16 @@ std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
     }
   }
   return files;
+}
+
+void Utils::deleteFilesWithExtension(const std::string &directoryPath,
+                                     const std::string &extension) {
+  namespace fs = std::filesystem;
+  for (const auto &entry : fs::directory_iterator(directoryPath)) {
+    if (entry.path().extension() == extension) {
+      fs::remove(entry.path());
+    }
+  }
 }
 
 const std::string Utils::getRelativePath(const std::string &filePath) {

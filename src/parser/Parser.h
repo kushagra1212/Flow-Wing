@@ -40,31 +40,61 @@
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
+#define ONE_SPACE " "
+#define TWO_SPACES "  "
+#define TAB_SPACE "  "
+#define NEW_LINE "\n"
 class Parser {
- public:
+public:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> tokens;
 
   std::unique_ptr<Lexer> lexer;
 
-  Parser(const std::vector<std::string> &souceCode,
-         DiagnosticHandler *diagnosticHandler);
+  Parser(const std::vector<std::string> &sourceCode,
+         FLowWing::DiagnosticHandler *diagnosticHandler,
+         std::unordered_map<std::string, int8_t> bringStatementPathsMap =
+             std::unordered_map<std::string, int8_t>());
   ~Parser();
 
   std::unique_ptr<CompilationUnitSyntax> parseCompilationUnit();
 
- private:
-  DiagnosticHandler *_diagnosticHandler;
+  inline auto setIsFormattedCodeRequired(const bool isFormattedCodeRequired) {
+    _isFormattedCodeRequired = isFormattedCodeRequired;
+  }
+
+  inline std::string getFormattedSourceCode() { return _formattedSourceCode; }
+
+private:
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
+
+  bool _isFormattedCodeRequired = false;
 
   bool matchKind(const SyntaxKindUtils::SyntaxKind &kind);
   void parseMemberList(std::vector<std::unique_ptr<MemberSyntax>> members);
 
-  std::unique_ptr<SyntaxToken<std::any>> match(
-      const SyntaxKindUtils::SyntaxKind &kind);
+  std::unique_ptr<SyntaxToken<std::any>>
+  match(const SyntaxKindUtils::SyntaxKind &kind);
   SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
+  std::string _formattedSourceCode = "";
+  std::string INDENT = "";
+
+  inline void appendWithSpace() { _formattedSourceCode += ONE_SPACE; }
+  inline void removeWithSpace() {
+    _formattedSourceCode =
+        _formattedSourceCode.erase(_formattedSourceCode.length() - 1, 1);
+  }
+  inline void appendNewLine() {
+    if (this->getCurrent() &&
+        this->getCurrent()->getKind() !=
+            SyntaxKindUtils::SyntaxKind::CommentStatement) {
+      _formattedSourceCode += NEW_LINE;
+    } else
+      appendWithSpace();
+  }
 
   /*
     STATEMENTS
@@ -72,27 +102,28 @@ class Parser {
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
+  std::unique_ptr<StatementSyntax> parseCommentStatement();
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::unique_ptr<VariableDeclarationSyntax> parseVariableDeclaration(
-      bool isFuncDec = false);
+  std::unique_ptr<VariableDeclarationSyntax>
+  parseVariableDeclaration(bool isFuncDec = false);
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
-  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement(
-      const bool &isExposed);
+  std::unique_ptr<GlobalStatementSyntax>
+  parseGlobalStatement(const bool &isExposed);
 
   /*
     EXPRESSIONS
   */
   std::unique_ptr<ExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
-  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration(
-      const bool &isExposed);
+  std::unique_ptr<FunctionDeclarationSyntax>
+  parseFunctionDeclaration(const bool &isExposed);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
@@ -106,6 +137,8 @@ class Parser {
   std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
   std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
   std::unique_ptr<ObjectExpressionSyntax> parseObjectExpression();
+
+  std::unordered_map<std::string, int8_t> _bringStatementsPathsMap;
 
   std::unique_ptr<MemberSyntax> parseMember();
 };

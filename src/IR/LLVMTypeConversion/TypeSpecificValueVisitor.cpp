@@ -19,3 +19,8 @@ llvm::Value *TypeSpecificValueVisitor::visit(StringTypeConverter *converter,
                                              llvm::Value *&value) {
   return converter->convertExplicit(value);
 }
+
+llvm::Value *TypeSpecificValueVisitor::visit(FloatTypeConverter *converter,
+                                             llvm::Value *&value) {
+  return converter->convertExplicit(value);
+}

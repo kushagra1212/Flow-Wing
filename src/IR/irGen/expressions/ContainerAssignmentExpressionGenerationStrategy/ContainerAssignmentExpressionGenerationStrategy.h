@@ -1,12 +1,14 @@
 #ifndef __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 
+#include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
- public:
+public:
   ContainerAssignmentExpressionGenerationStrategy(
       CodeGenerationContext *context);
 
@@ -32,7 +34,15 @@ class ContainerAssignmentExpressionGenerationStrategy
                    std::vector<llvm::Value *> &indices,
                    const std::vector<uint64_t> &rhsSizes, uint64_t index);
 
- private:
+  llvm::Value *createExpressionForObject(BoundExpression *expression,
+                                         llvm::ArrayType *&arrayType,
+                                         llvm::Value *&variable,
+                                         const std::vector<uint64_t> &sizes,
+                                         llvm::Type *&elementType);
+
+  llvm::Value *assignVariable(BoundAssignmentExpression *assignmentExpression);
+
+private:
   // LHS
   std::string _containerName;
   llvm::Value *_variable;
@@ -48,4 +58,4 @@ class ContainerAssignmentExpressionGenerationStrategy
   llvm::Type *_rhsArrayElementType, *_lhsArrayElementType;
 };
 
-#endif  // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

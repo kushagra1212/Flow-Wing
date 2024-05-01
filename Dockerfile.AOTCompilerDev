@@ -5,13 +5,13 @@ FROM kushagra711/common-base-llvm:latest
 COPY . /aot-compiler-dev
 
 # Set the working directory
-WORKDIR /aot-compiler-dev/all-targets/aot-compiler
+WORKDIR /aot-compiler-dev/targets/aot-compiler
 
 # Create a compiler-build directory
 RUN mkdir -p aot-compiler-build
 
 # Configure and build your project using Ninja
-WORKDIR /aot-compiler-dev/all-targets/aot-compiler/aot-compiler-build
+WORKDIR /aot-compiler-dev/targets/aot-compiler/aot-compiler-build
 #RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja
 

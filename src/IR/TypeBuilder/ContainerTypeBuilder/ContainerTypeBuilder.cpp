@@ -12,6 +12,9 @@ ContainerTypeBuilder::ContainerTypeBuilder(
       llvm::Type::getDoubleTy(*_codeGenerationContext->getContext().get()),
       llvm::Type::getInt1Ty(*_codeGenerationContext->getContext().get()),
       llvm::Type::getInt8PtrTy(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getInt8Ty(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getInt64Ty(*_codeGenerationContext->getContext().get()),
+      llvm::Type::getFloatTy(*_codeGenerationContext->getContext().get()),
   };
 }
 

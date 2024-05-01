@@ -4,12 +4,22 @@
 #include "ValueStack.h"
 
 class ValueStackHandler {
- public:
+  auto inline isType(const std::string type) -> bool {
+    if (vs.empty()) {
+      return false;
+    }
+
+    ValueStack *valueStack = vs.top();
+    return valueStack->getType() == type;
+  }
+
+public:
   std::stack<ValueStack *> vs;
 
   auto inline push(const std::string &typeName, llvm::Value *value,
-                   const std::string &type, llvm::Type *llvmType) {
-    vs.push(new ValueStack(typeName, value, type, llvmType));
+                   const std::string &type, llvm::Type *llvmType,
+                   llvm::Value *dynamicValue = nullptr) {
+    vs.push(new ValueStack(typeName, value, type, llvmType, dynamicValue));
   }
 
   auto inline getTypeName() -> std::string {
@@ -42,14 +52,7 @@ class ValueStackHandler {
     }
   }
 
-  auto inline isStructType() -> bool {
-    if (vs.empty()) {
-      return false;
-    }
-
-    ValueStack *valueStack = vs.top();
-    return valueStack->getType() == "struct";
-  }
+  auto inline isStructType() -> bool { return isType("struct"); }
 
   auto inline getLLVMType() -> llvm::Type * {
     if (vs.empty()) {
@@ -60,13 +63,23 @@ class ValueStackHandler {
     return valueStack->getLLVMType();
   }
 
-  auto inline isPrimaryType() -> bool {
+  auto inline isPrimaryType() -> bool { return isType("primary"); }
+
+  auto inline isArrayType() -> bool { return isType("array"); }
+
+  auto inline isDynamicType() -> bool { return isType("dynamic"); }
+
+  auto inline isLLVMConstant() -> bool { return isType("constant"); }
+
+  auto inline isEmpty() -> bool { return vs.empty(); }
+
+  auto inline getDynamicValue() -> llvm::Value * {
     if (vs.empty()) {
-      return false;
+      return nullptr;
     }
 
     ValueStack *valueStack = vs.top();
-    return valueStack->getType() == "primary";
+    return valueStack->getDynamicValue();
   }
 };
 

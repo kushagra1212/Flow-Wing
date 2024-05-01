@@ -1,14 +1,6 @@
 #include "ObjectTest.h"
 
-ObjectTest::ObjectTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+ObjectTest::ObjectTest() { _test = std::move(FlowWing::getTest()); }
 
 void ObjectTest::SetUp() { _test->SetUp(); }
 
@@ -20,7 +12,7 @@ std::string ObjectTest::getOutput() const { return _test->getOutput(); }
 
 void ObjectTest::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 TEST_F(ObjectTest, DefineCustomType) {
   I(R"(
@@ -1464,4 +1456,5 @@ TEST_F(ObjectTest, AssignValueSimpleObject2) {
 //     ": { name : 'Rathore', age : 0, height : 0.00000000000000, is : false, "
 //     "type1 :  } }");
 // }
+
 #endif

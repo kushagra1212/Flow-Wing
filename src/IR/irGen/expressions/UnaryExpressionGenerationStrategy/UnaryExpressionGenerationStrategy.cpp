@@ -24,7 +24,12 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
 
     return nullptr;
   }
-  return _unaryOperationStrategy->performOperation(val, unaryExpression);
+  llvm::Value *res =
+      _unaryOperationStrategy->performOperation(val, unaryExpression);
+
+  _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                       res->getType());
+  return res;
 }
 
 llvm::Value *UnaryExpressionGenerationStrategy::generateGlobalExpression(

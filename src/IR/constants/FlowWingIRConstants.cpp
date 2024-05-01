@@ -19,12 +19,9 @@ const std::string FLOWWING_GLOBAL_TRUE = "FLOWWING_GLOBAL_TRUE";
 const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 // Entry Point
-#if defined(JIT_TEST_MODE)
-const std::string FLOWWING_GLOBAL_ENTRY_POINT =
-    "____##FLOWWING_GLOBAL_ENTRY_POINT____##";
-#else
-const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
-#endif
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
+const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
+const std::string TEMP_BIN_DIR = "build/bin/";
 namespace INNERS {
 namespace FUNCTIONS {
 

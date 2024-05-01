@@ -2,12 +2,13 @@
 #define __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__
 
 #include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
+#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
- public:
+public:
   ContainerExpressionGenerationStrategy(CodeGenerationContext *context,
                                         std::vector<uint64_t> actualSizes,
                                         llvm::Type *elementType,
@@ -18,32 +19,38 @@ class ContainerExpressionGenerationStrategy
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   // Specialized for BoundContainerExpression
-  llvm::Value *createGlobalExpression(
-      llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable,
-      BoundContainerExpression *containerExpression);
+  llvm::Value *
+  createGlobalExpression(llvm::Type *arrayType,
+                         llvm::GlobalVariable *_globalVariable,
+                         BoundContainerExpression *containerExpression);
 
-  llvm::Value *createLocalExpression(
-      llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
-      BoundContainerExpression *containerExpression);
+  llvm::Value *
+  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+                        BoundContainerExpression *containerExpression);
 
   llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
                                 BoundContainerExpression *containerExpression);
 
-  const bool canGenerateExpression(
-      BoundContainerExpression *containerExpression);
+  const bool
+  canGenerateExpression(BoundContainerExpression *containerExpression);
 
-  llvm::Value *createExpressionAtom(
-      llvm::Type *&arrayType, llvm::Value *&v,
-      BoundContainerExpression *containerExpression,
-      std::vector<llvm::Value *> &indices, uint64_t index);
+  llvm::Value *
+  createExpressionAtom(llvm::Type *&arrayType, llvm::Value *&v,
+                       BoundContainerExpression *containerExpression,
+                       std::vector<llvm::Value *> &indices, uint64_t index);
 
- private:
+  inline auto setAllocaInst(llvm::Value *allocaInst) {
+    _allocaInst = allocaInst;
+  }
+
+private:
   uint64_t _totalSize;
   std::vector<uint64_t> _actualSizes;
   llvm::Type *_elementType;
   std::string _containerName;
   uint64_t _sizeToFill;
   bool _isGlobal;
+  llvm::Value *_allocaInst;
 };
 
-#endif  // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__
+#endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

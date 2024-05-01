@@ -1,11 +1,10 @@
 #ifndef FOR_LOOP_TEST_H
 #define FOR_LOOP_TEST_H
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
 class ForLoopReplTest : public ::testing::Test {
- protected:
+protected:
   ForLoopReplTest();
 
   void SetUp() override;
@@ -16,4 +15,4 @@ class ForLoopReplTest : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // FOR_LOOP_H
+#endif // FOR_LOOP_H

@@ -2,7 +2,7 @@
 
 BoundBringStatement::BoundBringStatement(
     const DiagnosticUtils::SourceLocation &location,
-    DiagnosticHandler *diagnosticHandler,
+    FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundScopeGlobal> globalScope,
     std::vector<std::string> &expressionStrings)
     : BoundSourceLocation(location) {
@@ -31,7 +31,8 @@ std::vector<BoundNode *> BoundBringStatement::getChildren() {
   return this->_children;
 }
 
-DiagnosticHandler *BoundBringStatement::getDiagnosticHandlerPtr() const {
+FLowWing::DiagnosticHandler *
+BoundBringStatement::getDiagnosticHandlerPtr() const {
   return this->_diagnosticHandler;
 }
 

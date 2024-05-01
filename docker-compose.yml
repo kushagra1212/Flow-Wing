@@ -8,6 +8,13 @@ services:
       dockerfile: Dockerfile.AOTCompilerDev
     volumes:
       - .:/aot-compiler-dev
+  aot-compiler-test:
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.AOTCompilerTest
+    volumes:
+      - .:/aot-compiler-test
   jit-compiler-test:
     tty: true
     build:

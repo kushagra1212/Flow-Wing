@@ -6,7 +6,7 @@
 #include "../BoundTypeExpression/BoundTypeExpression.h"
 
 class BoundVariableExpression : public BoundExpression {
- public:
+public:
   BoundVariableExpression(
       const DiagnosticUtils::SourceLocation &location,
       std::unique_ptr<BoundLiteralExpression<std::any>> identiferExpression,
@@ -31,20 +31,18 @@ class BoundVariableExpression : public BoundExpression {
 
   inline auto isConstant() const -> const bool { return _isConstant; }
 
-  inline auto getDotExpressionList() const -> const
-      std::vector<std::unique_ptr<BoundLiteralExpression<std::any>>> & {
+  inline auto getDotExpressionList() const
+      -> const std::vector<std::unique_ptr<BoundExpression>> & {
     return _dotExpressionList;
   }
 
-  inline void addDotExpression(
-      std::unique_ptr<BoundLiteralExpression<std::any>> dotExpression) {
+  inline void addDotExpression(std::unique_ptr<BoundExpression> dotExpression) {
     _dotExpressionList.push_back(std::move(dotExpression));
   }
 
- private:
+private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
-  std::vector<std::unique_ptr<BoundLiteralExpression<std::any>>>
-      _dotExpressionList;
+  std::vector<std::unique_ptr<BoundExpression>> _dotExpressionList;
   bool _isConstant;
   BoundTypeExpression *_variableTypeExp;
 };

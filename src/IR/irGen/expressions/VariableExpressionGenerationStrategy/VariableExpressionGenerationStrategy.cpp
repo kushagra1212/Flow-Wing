@@ -16,7 +16,8 @@ VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
     }
     return getObjectValue(v, 0, variableName);
   }
-
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", v, "primitive", variableValue->getType());
   return Builder->CreateLoad(variableValue->getType(), v, variableName);
 }
 
@@ -41,6 +42,11 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
 
   // When Local Variable is an array type
   if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", v, "array",
+        llvm::cast<llvm::ArrayType>(
+            (llvm::cast<llvm::AllocaInst>(v))->getAllocatedType()));
     return v;
   }
 
@@ -71,6 +77,12 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
                                                      variableValue, v);
   }
 
+  // when Primitive Typed Global Variable (Value)
+
+  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
+                                                       v->getAllocatedType());
+
+  return Builder->CreateLoad(v->getAllocatedType(), v, variableName);
   _codeGenerationContext->getLogger()->LogError(
       "Variable " + variableName + " not found in variable expression ");
 
@@ -126,17 +138,34 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     llvm::Value *outerElementPtr, size_t listIndex,
     const std::string &parPropertyKey, std::vector<llvm::Value *> indices,
     llvm::StructType *parObjType) {
+
+  std::string dotPropertyKey = "";
+  if (_variableExpression->getDotExpressionList()[listIndex]->getKind() ==
+      BinderKindUtils::IndexExpression) {
+    BoundIndexExpression *boundIndexExpression =
+        static_cast<BoundIndexExpression *>(
+            _variableExpression->getDotExpressionList()[listIndex].get());
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        boundIndexExpression->getLocation());
+    dotPropertyKey = std::any_cast<std::string>(
+        boundIndexExpression->getBoundIdentifierExpression().get()->getValue());
+
+  } else {
+
+    BoundLiteralExpression<std::any> *litExp =
+        static_cast<BoundLiteralExpression<std::any> *>(
+            _variableExpression->getDotExpressionList()[listIndex].get());
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        litExp->getLocation());
+    dotPropertyKey = std::any_cast<std::string>(litExp->getValue());
+  }
+
   BoundCustomTypeStatement *boundCustomTypeStatement =
       _codeGenerationContext->getCustomTypeChain()->getExpr(
           parObjType->getStructName().str());
 
   uint64_t loopIndex = 0;
-
-  std::string dotPropertyKey = std::any_cast<std::string>(
-      _variableExpression->getDotExpressionList()[listIndex]->getValue());
-
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      _variableExpression->getDotExpressionList()[listIndex]->getLocation());
 
   auto logError = [&]() {
     _codeGenerationContext->getLogger()->LogError(
@@ -155,9 +184,31 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
       const bool isNested =
           _variableExpression->getDotExpressionList().size() > listIndex + 1;
 
-      if (isNested &&
-          bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE)
-        return logError();
+      if (isNested) {
+        if (bTE->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+          if (!llvm::isa<llvm::ArrayType>(type)) {
+            _codeGenerationContext->getLogger()->LogError(
+                "Dot operator on non array type is not allowed, variable " +
+                parObjType->getStructName().str() + " is not an array type");
+            return nullptr;
+          } else {
+
+            llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+
+            if (!llvm::isa<llvm::StructType>(arrayType->getElementType())) {
+              _codeGenerationContext->getLogger()->LogError(
+                  "Dot operator on non struct type is not allowed, variable " +
+                  parObjType->getStructName().str() + " is not an struct type");
+              return nullptr;
+            }
+          }
+
+        } else if (bTE->getSyntaxType() !=
+                   SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+          return logError();
+        }
+      }
 
       llvm::Value *innerElementPtr =
           Builder->CreateStructGEP(parObjType, outerElementPtr, loopIndex);
@@ -180,7 +231,60 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
             structType);
 
         return innerElementPtr;
+      } else if (llvm::isa<llvm::ArrayType>(type) &&
+                 bTE->getSyntaxType() ==
+                     SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+        llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+        if (_variableExpression->getDotExpressionList()[listIndex]->getKind() ==
+            BinderKindUtils::IndexExpression) {
+          BoundIndexExpression *boundIndexExpression =
+              static_cast<BoundIndexExpression *>(
+                  _variableExpression->getDotExpressionList()[listIndex].get());
+          std::unique_ptr<IndexExpressionGenerationStrategy>
+              indexExpressionGenerationStrategy =
+                  std::make_unique<IndexExpressionGenerationStrategy>(
+                      _codeGenerationContext);
+
+          _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+              boundIndexExpression->getLocation());
+          indexExpressionGenerationStrategy->setIndexExpression(
+              boundIndexExpression);
+          indexExpressionGenerationStrategy->setVariable(innerElementPtr);
+          indexExpressionGenerationStrategy->populateIndices();
+          indexExpressionGenerationStrategy->setArrayType(arrayType);
+          indexExpressionGenerationStrategy->populateArraySize();
+          llvm::Value *val =
+              indexExpressionGenerationStrategy->handleArrayTypeIndexing();
+          if (llvm::isa<llvm::StructType>(arrayType->getArrayElementType()) &&
+              listIndex + 1 <
+                  _variableExpression->getDotExpressionList().size()) {
+
+            std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+            return getObjectValueNF(
+                val, listIndex + 1, propertyName, indices,
+                llvm::cast<llvm::StructType>(type->getArrayElementType()));
+          }
+
+          return val;
+        }
+
+        if (llvm::isa<llvm::ArrayType>(type) &&
+            _variableExpression->getDotExpressionList()[listIndex]->getKind() !=
+                BinderKindUtils::IndexExpression &&
+            listIndex + 1 <
+                _variableExpression->getDotExpressionList().size()) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Applying dot operator on entire " +
+              _codeGenerationContext->getMapper()->getLLVMTypeName(type) +
+              " instead of a array element");
+          return nullptr;
+        }
+        _codeGenerationContext->getValueStackHandler()->push(
+            "", innerElementPtr, "array", arrayType);
+
+        return innerElementPtr;
       }
+
       _codeGenerationContext->getValueStackHandler()->push("", innerElementPtr,
                                                            "primitive", type);
       return Builder->CreateLoad(type, innerElementPtr);
@@ -230,11 +334,14 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
     boundTypeExpressionMap[propertyName] = bTE.get();
   }
 
-  std::string propertyKey = std::any_cast<std::string>(
-      _variableExpression->getDotExpressionList()[listIndex]->getValue());
+  BoundLiteralExpression<std::any> *litExp =
+      static_cast<BoundLiteralExpression<std::any> *>(
+          _variableExpression->getDotExpressionList()[listIndex].get());
+
+  std::string propertyKey = std::any_cast<std::string>(litExp->getValue());
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      _variableExpression->getDotExpressionList()[listIndex]->getLocation());
+      litExp->getLocation());
 
   if (boundTypeExpressionMap.find(propertyKey) ==
       boundTypeExpressionMap.end()) {
@@ -333,15 +440,27 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
     return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-        variable,
-        FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX + variableName);
+        variable, variableName);
   }
 
   // Typed Global Variables
 
   // when Global Variable (Value) is an array type
   if (llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-    return variable;
+
+    if (_variableExpression->getDotExpressionList().size() == 0) {
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", variable, "array",
+          llvm::cast<llvm::ArrayType>(variable->getValueType()));
+      return variable;
+    } else {
+      _codeGenerationContext->getLogger()->LogError(
+          "Array Element should be accessed using index in variable " +
+          variableName + " " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              variable->getValueType()));
+      return nullptr;
+    }
   }
 
   // When Global Variable (Value) is a struct type
@@ -367,6 +486,9 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
   }
 
   // when Primitive Typed Global Variable (Value)
+
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", variable, "primitive", variable->getValueType());
 
   return Builder->CreateLoad(variable->getValueType(), variable, variableName);
 }

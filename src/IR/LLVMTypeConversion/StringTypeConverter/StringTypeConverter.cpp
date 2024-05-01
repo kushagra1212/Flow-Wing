@@ -44,6 +44,17 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
     return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
                                 {value});
   }
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    // Create an APFloat object with the double value
+    llvm::APFloat llvmDoubleValue =
+        llvm::cast<llvm::ConstantFP>(value)->getValueAPF();
+    // Convert APFloat to string
+    std::string str;
+    llvm::raw_string_ostream stream(str);
+    llvmDoubleValue.print(stream);
+    stream.flush();
+    return convertStringToi8Ptr(str);
+  }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     llvm::Value *str = _builder->CreateSelect(
         value,
@@ -103,19 +114,43 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
 
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    _logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int to string is not "
-                                "supported for variable with predefined type"));
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int32 to string is not "
+        "supported for variable with predefined type"));
 
+    return nullptr;
+  }
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int64 to string is not "
+        "supported for variable with predefined type"));
+
+    return nullptr;
+  }
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from int8 to string is not "
+        "supported for variable with predefined type"));
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
     _logger->logLLVMError(
         llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from float/double to "
+                                "Implicit conversion from deci to "
                                 "string is not supported for variable with "
                                 "predefined type"));
+
+    return nullptr;
+  }
+
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    _logger->logLLVMError(llvm::createStringError(
+        llvm::inconvertibleErrorCode(),
+        "Implicit conversion from deci32 to string is not "
+        "supported for variable with predefined type"));
 
     return nullptr;
   }

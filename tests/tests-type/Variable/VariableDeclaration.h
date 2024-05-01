@@ -1,11 +1,9 @@
 #ifndef VARIABLE_DECLARATION_H
 #define VARIABLE_DECLARATION_H
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
-
+#include "../../Common.h"
 class VariableDeclaration : public ::testing::Test {
- protected:
+protected:
   VariableDeclaration();
   void SetUp() override;
   void TearDown() override;
@@ -15,4 +13,4 @@ class VariableDeclaration : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // VARIABLE_DECLARATION_H
+#endif // VARIABLE_DECLARATION_H

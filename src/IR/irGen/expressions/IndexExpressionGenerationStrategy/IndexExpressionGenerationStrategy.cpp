@@ -45,29 +45,25 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
 
       return false;
     }
-    _arrayElementType =
-        _codeGenerationContext->getArrayElementTypeMetadata(variable);
+    // _arrayElementType =
+    //     _codeGenerationContext->getArrayElementTypeMetadata(variable);
     _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
     _variable = variable;
 
     return true;
   }
-  _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
+  // _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
   _arrayType = llvm::cast<llvm::ArrayType>(v->getAllocatedType());
   _variable = v;
 
   return true;
 }
 
-llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
-    BoundExpression *expression) {
-  BoundIndexExpression *indexExpression =
-      static_cast<BoundIndexExpression *>(expression);
-
+int8_t IndexExpressionGenerationStrategy::populateIndices() {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      indexExpression->getLocation());
+      _indexExpression->getLocation());
 
-  for (auto &index : indexExpression->getBoundIndexExpressions()) {
+  for (auto &index : _indexExpression->getBoundIndexExpressions()) {
     llvm::Value *indexValue =
         _expressionGenerationFactory->createStrategy(index.get()->getKind())
             ->generateExpression(index.get());
@@ -76,7 +72,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
             indexValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
           "Index value must be of type int");
-      return nullptr;
+      return EXIT_FAILURE;
     }
 
     indexValue = _int32TypeConverter->convertExplicit(indexValue);
@@ -87,20 +83,38 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
           "Expected index value to be of type int but got " +
           Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
               indexValue->getType())));
-      return nullptr;
+      return EXIT_FAILURE;
     }
     _indices.push_back(indexValue);
   }
+  return EXIT_SUCCESS;
+}
+
+int8_t IndexExpressionGenerationStrategy::populateVariableName() {
 
   _variableName = std::any_cast<std::string>(
-      (indexExpression->getBoundIdentifierExpression().get())->getValue());
+      (_indexExpression->getBoundIdentifierExpression().get())->getValue());
+  return EXIT_SUCCESS;
+}
 
-  if (!this->canGenerateExpression(_variableName)) {
+llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
+    BoundExpression *expression) {
+  BoundIndexExpression *indexExpression =
+      static_cast<BoundIndexExpression *>(expression);
+  _indexExpression = indexExpression;
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      indexExpression->getLocation());
+
+  if (this->populateIndices() || this->populateVariableName() ||
+      !this->canGenerateExpression(_variableName))
     return nullptr;
-  }
-
   std::vector<uint64_t> sizes;
-  _codeGenerationContext->getArraySizeMetadata(_variable, sizes);
+
+  _arrayElementType = _arrayType;
+
+  _codeGenerationContext->createArraySizesAndArrayElementType(
+      sizes, _arrayElementType);
 
   for (int i = 0; i < sizes.size(); i++) {
     _actualSizes.push_back(Builder->getInt32(sizes[i]));
@@ -175,6 +189,40 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
 
   llvm::Value *elementPtr =
       Builder->CreateGEP(_arrayType, _variable, indexList);
+
+  if (_indexExpression->isObject()) {
+    BoundVariableExpression *variableExpression =
+        static_cast<BoundVariableExpression *>(
+            _indexExpression->getVariableExpression().get());
+
+    llvm::StructType *parObjTypeType =
+        llvm::cast<llvm::StructType>(_arrayType->getArrayElementType());
+
+    if (variableExpression->getDotExpressionList().size() == 0) {
+      _codeGenerationContext->getValueStackHandler()->push(
+          parObjTypeType->getStructName().str(), elementPtr, "struct",
+          parObjTypeType);
+
+      return elementPtr;
+    }
+    std::unique_ptr<VariableExpressionGenerationStrategy> strategy =
+        std::make_unique<VariableExpressionGenerationStrategy>(
+            _codeGenerationContext);
+    std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+    strategy->setVariableExpression(variableExpression);
+    return strategy->getObjectValueNF(elementPtr, 0, _variable->getName().str(),
+                                      indices, parObjTypeType);
+  }
+
+  if (llvm::isa<llvm::StructType>(_arrayType->getElementType())) {
+    llvm::StructType *structType =
+        llvm::cast<llvm::StructType>(_arrayType->getElementType());
+    _codeGenerationContext->getValueStackHandler()->push(
+        structType->getStructName().str(), elementPtr, "struct", structType);
+    return elementPtr;
+  }
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", elementPtr, "primitive", _arrayElementType);
   return Builder->CreateLoad(_arrayElementType, elementPtr);
 }
 
