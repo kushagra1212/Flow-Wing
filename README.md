@@ -131,7 +131,7 @@ Flow-Wing now provides support for objects, enabling developers to define struct
 ## Sample Type Object Declaration
 
 ```
-type Person {
+type Person = {
    name:str,
    age:int,
    address:str
@@ -226,5 +226,23 @@ while(x < 5) {
 To run Flow-Wing programs, you'll need an `Flow-Wing AOT-compiler or JIT-Compiler` and if you want to use the Flow-Wing REPL, you'll need the Flow-Wing interpreter.
 
 
+## Installing Flow-Wing 
+
+### MacOS
+
+
+#### Install Homebrew 
+
+Visit [https://brew.sh](https://brew.sh) to install brew.
+
+```bash
+  brew tap kushagra1212/flow-wing
+  brew install flowwing
+  ```
+#### Verify Installation
+
+```bash
+flowwing --version
+```
 
 

@@ -2,10 +2,12 @@
 #define __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
+#include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 
 class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
- public:
+public:
   IndexExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
@@ -20,13 +22,34 @@ class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 
   const bool canGenerateExpression(const std::string &variableName);
 
- private:
+  inline auto setIndexExpression(BoundIndexExpression *indexExpression) {
+    _indexExpression = indexExpression;
+  }
+  int8_t populateIndices();
+  int8_t populateVariableName();
+  inline auto setArrayType(llvm::Type *arrayType) -> void {
+    _arrayType = llvm::cast<llvm::ArrayType>(arrayType);
+  }
+  inline auto populateArraySize() -> void {
+    _arrayElementType = _arrayType;
+    std::vector<uint64_t> sizes;
+    _codeGenerationContext->createArraySizesAndArrayElementType(
+        sizes, _arrayElementType);
+    for (int i = 0; i < sizes.size(); i++) {
+      _actualSizes.push_back(Builder->getInt32(sizes[i]));
+    }
+  }
+
+  inline auto setVariable(llvm::Value *variable) { _variable = variable; }
+
+private:
   std::vector<llvm::Value *> _indices;
   std::vector<llvm::ConstantInt *> _actualSizes;
   std::string _variableName;
   llvm::Type *_arrayElementType;
   llvm::Value *_variable;
   llvm::ArrayType *_arrayType;
+  BoundIndexExpression *_indexExpression;
 };
 
-#endif  // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__

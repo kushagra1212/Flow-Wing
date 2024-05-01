@@ -1,13 +1,7 @@
 #include "BinaryOperationTest.h"
 
 BinaryOperationTest::BinaryOperationTest() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
+  _test = std::move(FlowWing::getTest());
 }
 
 void BinaryOperationTest::SetUp() { _test->SetUp(); }
@@ -15,13 +9,18 @@ void BinaryOperationTest::SetUp() { _test->SetUp(); }
 void BinaryOperationTest::TearDown() { _test->TearDown(); }
 
 void BinaryOperationTest::setInput(const std::string &input) {
-#ifdef JIT_TEST_MODE
-  _test->setInput("print(" + input + ")");
+
+  std::string latestInput = "";
+
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
+  latestInput = ("print(" + input + ")");
 #endif
 
 #ifdef REPL_TEST_MODE
-  _test->setInput(input);
+  latestInput = input;
 #endif
+
+  _test->setInput(latestInput);
 }
 
 std::string BinaryOperationTest::getOutput() const {

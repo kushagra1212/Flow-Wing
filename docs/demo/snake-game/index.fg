@@ -1,0 +1,110 @@
+bring "fg-raylib.fg"
+
+const WHITE: int = COLOR(255,255,255,255)
+const RED: int =  COLOR(255,0,0,255)
+const GREEN: int =  COLOR(0,255,0,255)
+const BLUE: int = COLOR(0,0,255,255)
+const DARKBLUE: int = COLOR(0, 82, 172, 255) 
+
+type Position = {
+  x: int,
+  y: int
+}
+
+const screenWidth: int  = 1000
+const screenHeight: int = 500
+const side: int = 10
+
+fun getFoodPosition() -> Position {
+  var pos: Position = { 
+    x: getRandomNumber(0,screenWidth - 1), 
+    y: getRandomNumber(0,screenHeight - 1)
+  }
+  pos.x =  pos.x -  pos.x % side
+  pos.y = pos.y - pos.y % side
+  return pos
+}
+
+
+
+fun main() -> int {
+    SetTargetFPS(60)
+
+    const speed = 10
+    var tail: int = 1
+    var posX: int[1000000] = [1000000 fill -1]
+    var posY: int[1000000] = [1000000 fill -1]
+
+  
+    posX[0] = 0
+    posY[0] = 0
+    var foodPos: Position = getFoodPosition()
+      var newPos: Position = {
+          x: posX[0],
+          y: posY[0]
+      }
+
+    InitWindow(screenWidth,screenHeight,"snake-game-in-flowwing")
+    while(!WindowShouldClose()) {
+      
+      var isKeyPressed = false
+
+      if(IsKeyPressed(KEY_UP) || IsKeyDown(KEY_UP)) {
+        isKeyPressed = true
+        newPos.y = newPos.y - speed
+      }
+      or if(IsKeyPressed(KEY_DOWN) || IsKeyDown(KEY_DOWN)) {
+        isKeyPressed = true
+        newPos.y = newPos.y + speed
+      }
+      or if(IsKeyPressed(KEY_RIGHT) || IsKeyDown(KEY_RIGHT)) {
+        isKeyPressed = true
+        newPos.x = newPos.x + speed
+      }
+      or if(IsKeyPressed(KEY_LEFT) || IsKeyDown(KEY_LEFT)) {
+        isKeyPressed = true
+        newPos.x = newPos.x - speed
+      }
+
+      if(newPos.x < 0) {
+        newPos.x = 0
+      }
+      if(newPos.x >= screenWidth - speed) {
+        newPos.x = screenWidth - speed
+      }
+
+      if(newPos.y < 0) {
+        newPos.y = 0
+      }
+
+      if(newPos.y >= screenHeight - speed) {
+        newPos.y = screenHeight  - speed 
+      }
+
+      if(newPos.x == foodPos.x && newPos.y ==  foodPos.y) {
+        foodPos = getFoodPosition()
+        tail = tail + 1
+
+      }
+      if(isKeyPressed) {
+        for var index: int = tail - 1 to 1 : -1 {
+          posX[index] =  posX[index - 1]
+          posY[index] = posY[index - 1]
+        }
+      }
+      posX[0] = newPos.x 
+      posY[0] = newPos.y
+      BeginDrawing()
+      ClearBackground(WHITE)
+      for var index: int = 0 to tail -1 {
+        DrawRectangle(posX[index] , posY[index], side, side, BLUE) 
+      }
+      DrawCircle(screenWidth //5, 120, 35.0d, DARKBLUE)
+      DrawRectangle(foodPos.x, foodPos.y, side, side, GREEN)         
+      EndDrawing()
+  }
+  CloseWindow()
+  return  0
+}
+
+main()

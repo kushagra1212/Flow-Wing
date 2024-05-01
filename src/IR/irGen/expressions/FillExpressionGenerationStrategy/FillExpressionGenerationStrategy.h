@@ -3,9 +3,9 @@
 
 #include "../../../../bind/BoundFillExpression/BoundFillExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-
+#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
- public:
+public:
   FillExpressionGenerationStrategy(CodeGenerationContext *context,
                                    std::vector<uint64_t> actualSizes,
                                    llvm::Type *elementType,
@@ -31,7 +31,22 @@ class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
                                     std::vector<llvm::Value *> &indices,
                                     uint64_t index);
 
- private:
+  llvm::Value *createExpressionLoop(llvm::Type *arrayType, llvm::Value *v,
+                                    llvm::Value *elementToFill,
+                                    uint64_t &sizeToFillVal);
+
+  llvm::Value *createExpressionLoopWithTotalSize(llvm::Type *arrayType,
+                                                 llvm::Value *v,
+                                                 llvm::Value *elementToFill);
+
+  llvm::Value *createExpressionLoopWrapper(llvm::Type *arrayType,
+                                           llvm::Value *val);
+
+  inline auto setAllocaInst(llvm::Value *allocaInst) {
+    _allocaInst = allocaInst;
+  }
+
+private:
   std::vector<uint64_t> _actualSizes;
 
   uint64_t _totalSize;
@@ -43,7 +58,11 @@ class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 
   llvm::Value *_elementToFill;
   uint64_t _sizeToFillInt;
-  llvm::AllocaInst *_allocaInst;
+  llvm::Value *_allocaInst;
+  BoundExpression *_objectExpression;
+  BoundExpression *_variableExpression;
+  bool _isGlobal = false;
+  llvm::Type *_elementToFillType;
 };
 
-#endif  // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
+#endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

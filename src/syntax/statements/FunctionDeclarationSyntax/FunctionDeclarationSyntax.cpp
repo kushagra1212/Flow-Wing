@@ -51,11 +51,13 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
 
     _children.push_back(_closeParenthesisToken.get());
 
-    if (_returnExpression != nullptr) {
+    if (_returnExpression)
       _children.push_back(_returnExpression.get());
-    }
 
-    _children.push_back(_body.get());
+    if (_body)
+      _children.push_back(_body.get());
+    if (_declKeyword)
+      _children.push_back(_declKeyword.get());
   }
   return this->_children;
 }

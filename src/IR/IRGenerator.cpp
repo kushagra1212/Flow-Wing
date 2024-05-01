@@ -1,7 +1,7 @@
 #include "IRGenerator.h"
 
 IRGenerator::IRGenerator(
-    int environment, DiagnosticHandler *diagnosticHandler,
+    int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
     const std::string sourceFileName) {
@@ -151,15 +151,27 @@ void IRGenerator::generateEvaluateGlobalStatement(
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      _functionStatementGenerationStrategy->generateGlobalStatement(
-          blockStatement->getStatements()[i].get());
+
+      BoundFunctionDeclaration *functionDeclaration =
+          static_cast<BoundFunctionDeclaration *>(
+              blockStatement->getStatements()[i].get());
+      if (!functionDeclaration->isOnlyDeclared())
+        _functionStatementGenerationStrategy->generateGlobalStatement(
+            functionDeclaration);
     }
   }
 
 #ifdef DEBUG
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
+  std::unique_ptr<ObjectFile> objectFile =
+      std::make_unique<ObjectFile>(blockName);
+  objectFile->writeModuleToFile(TheModule);
 #elif RELEASE
-  bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
+  if (!this->hasErrors()) {
+    std::unique_ptr<ObjectFile> objectFile =
+        std::make_unique<ObjectFile>(blockName);
+    objectFile->writeModuleToFile(TheModule);
+  }
 #endif
 
   // this->_irParser->mergeIR(TheModule.get());

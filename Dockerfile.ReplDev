@@ -5,14 +5,14 @@ FROM kushagra711/common-base-llvm:latest
 
 COPY . /repl-dev
 # Set the working directory
-WORKDIR /repl-dev/all-targets/repl
+WORKDIR /repl-dev/targets/repl
 
 # Create a repl-build directory
 RUN mkdir -p repl-build
 
 # Configure and repl-build your project
 
-WORKDIR /repl-dev/all-targets/repl/repl-build
+WORKDIR /repl-dev/targets/repl/repl-build
 #RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja
 #CMD ["./FlowWing"]

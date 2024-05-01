@@ -8,10 +8,10 @@ StructTypeBuilder::StructTypeBuilder(
     : TypeBuilderInterface(_codeGenerationContext) {
   _context = _codeGenerationContext->getContext().get();
   _memberTypesForDynamicTypes = {
-      llvm::Type::getInt32Ty(*_context),
-      llvm::Type::getDoubleTy(*_context),
-      llvm::Type::getInt1Ty(*_context),
-      llvm::Type::getInt8PtrTy(*_context),
+      llvm::Type::getInt32Ty(*_context), llvm::Type::getDoubleTy(*_context),
+      llvm::Type::getInt1Ty(*_context),  llvm::Type::getInt8PtrTy(*_context),
+      llvm::Type::getInt8Ty(*_context),  llvm::Type::getInt64Ty(*_context),
+      llvm::Type::getFloatTy(*_context),
   };
 }
 
@@ -56,7 +56,7 @@ const bool StructTypeBuilder::isDyn(llvm::Type *type) const {
 llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
     llvm::Value *v, const std::string &variableName) const {
 
-  uint64_t index = 0;
+  uint64_t index = -1;
 
   if (isGlobalVar(variableName)) {
     index = _codeGenerationContext->getAllocaChain()->getGlobalTypeIndex(
@@ -69,6 +69,9 @@ llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
   llvm::Value *elementPtr =
       _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
                                                             v, index);
+
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", elementPtr, "dynamic", this->getMemberTypes()[index], v);
 
   return _codeGenerationContext->getBuilder()->CreateLoad(
       this->getMemberTypes()[index], elementPtr);

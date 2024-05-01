@@ -132,6 +132,75 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
           lhsStructType->getStructName().str());
       return nullptr;
     }
+  } else if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+    lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+    if (!lshValue) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Left hand side value not found in assignment expression " +
+          assignmentExpression->getVariable()->getVariableName());
+      return nullptr;
+    }
+
+    llvm::ArrayType *lhsArrayType = llvm::cast<llvm::ArrayType>(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType());
+
+    llvm::Type *elementType = lhsArrayType->getElementType();
+    llvm::Type *type = lhsArrayType;
+
+    std::vector<uint64_t> sizes;
+    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
+      sizes.push_back(arrayType->getNumElements());
+      type = arrayType->getElementType();
+    }
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    if ((assignmentExpression->getRightPtr()->getKind() ==
+             BinderKindUtils::BoundBracketedExpression ||
+         assignmentExpression->getRightPtr()->getKind() ==
+             BinderKindUtils::CallExpression)) {
+
+      std::unique_ptr<LiteralExpressionGenerationStrategy>
+          literalExpressionGenerationStrategy =
+              std::make_unique<LiteralExpressionGenerationStrategy>(
+                  _codeGenerationContext);
+
+      std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
+          containerDeclarationStatementGenerationStrategy =
+              std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+                  _codeGenerationContext);
+
+      containerDeclarationStatementGenerationStrategy->setAllocaInst(
+          (lshValue));
+
+      containerDeclarationStatementGenerationStrategy->generateCommonStatement(
+          sizes, type, "", assignmentExpression->getRightPtr().get());
+
+      return nullptr;
+
+    } else if (assignmentExpression->getRightPtr()->getKind() ==
+               BinderKindUtils::VariableExpression) {
+
+      auto assignStrategy =
+          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignStrategy->setVariable(lshValue);
+      assignStrategy->setContainerName(lshValue->getName().str());
+
+      assignStrategy->createExpressionForObject(
+          assignmentExpression->getRightPtr().get(), lhsArrayType, lshValue,
+          sizes, type);
+      return nullptr;
+    }
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        assignmentExpression->getRightPtr()->getLocation());
+
+    _codeGenerationContext->getLogger()->LogError(
+        "Right hand side value expected to be an object of type " +
+        lhsArrayType->getStructName().str());
+    return nullptr;
   }
 
   lshValue = _codeGenerationContext->getValueStackHandler()->getValue();
@@ -200,7 +269,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
   return nullptr;
 }
 
-llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
+llvm::Value *
+ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
     llvm::Value *variableElementPtr, size_t listIndex,
     const std::string &parPropertyKey, bool reachedEnd) {
   llvm::StructType *parStructType = nullptr;
@@ -265,11 +335,14 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     boundTypeExpressionMap[propertyName] = bTE.get();
   }
 
-  std::string propertyKey = std::any_cast<std::string>(
-      _lhsVarExpr->getDotExpressionList()[listIndex]->getValue());
+  BoundLiteralExpression<std::any> *litExp =
+      static_cast<BoundLiteralExpression<std::any> *>(
+          _lhsVarExpr->getDotExpressionList()[listIndex].get());
+
+  std::string propertyKey = std::any_cast<std::string>(litExp->getValue());
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      _lhsVarExpr->getDotExpressionList()[listIndex]->getLocation());
+      litExp->getLocation());
 
   if (boundTypeExpressionMap.find(propertyKey) ==
       boundTypeExpressionMap.end()) {
@@ -344,8 +417,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
       }
     }
 
-    return assignObject(allocaInstAndGl, listIndex + 1, propertyKey,
-                        (!isNested));
+    return _deprecated_assignObject(allocaInstAndGl, listIndex + 1, propertyKey,
+                                    (!isNested));
   }
 
   llvm::Value *rhsValue =
@@ -413,4 +486,72 @@ bool ObjectAssignmentExpressionGenerationStrategy::
   }
 
   return true;
+}
+
+llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
+    BoundObjectExpression *parObjectExpression, llvm::Value *variable,
+    llvm::StructType *parStructType, std::string lhsVarName) {
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      parObjectExpression->getLocation());
+  std::string typeName = parStructType->getStructName().str();
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+
+  std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
+  std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
+
+  uint64_t index = 0;
+  for (const auto &[bLitExpr, bExpr] :
+       boundCustomTypeStatement->getKeyPairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+    propertiesMap[propertyName] = bExpr.get();
+    propertiesMapIndexed[propertyName] = index;
+    index++;
+  }
+
+  for (const auto &[bLitExpr, bExpr] :
+       parObjectExpression->getKeyValuePairs()) {
+    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
+    uint64_t indexValue = propertiesMapIndexed[propertyName];
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        bLitExpr->getLocation());
+
+    if (propertiesMap.find(propertyName) == propertiesMap.end()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Property " + propertyName + " not found in type " + typeName);
+      return nullptr;
+    }
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        bExpr->getLocation());
+
+    llvm::Value *innerElementPtr =
+        Builder->CreateStructGEP(parStructType, variable, indexValue);
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    if (propertiesMap[propertyName]->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE &&
+        bExpr->getKind() == BinderKindUtils::BoundObjectExpression) {
+      BoundObjectExpression *innerObjectExpression =
+          static_cast<BoundObjectExpression *>(bExpr.get());
+
+      llvm::StructType *innerElementType = llvm::cast<llvm::StructType>(
+          parStructType->getElementType(indexValue));
+
+      this->assignObject(innerObjectExpression, innerElementPtr,
+                         innerElementType, propertyName);
+    } else {
+      std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+          std::make_unique<AssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      assignmentEGS->handleAssignExpression(
+          innerElementPtr, parStructType->getElementType(indexValue),
+          propertyName, bExpr.get());
+    }
+    indexValue++;
+  }
+
+  return nullptr;
 }

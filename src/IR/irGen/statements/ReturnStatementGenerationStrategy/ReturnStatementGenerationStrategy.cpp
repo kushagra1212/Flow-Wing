@@ -27,7 +27,7 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(returnBlock);
 
-  llvm::Value *returnValue = nullptr;  // default return value
+  llvm::Value *returnValue = nullptr; // default return value
 
   llvm::Value *hasError = Builder->getFalse();
   std::string errorMessage = "";
@@ -46,14 +46,12 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
           returnType->getType());
   if (returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
       returnStat == nullptr) {
-    errorMessage =
-        "Function return type is not Nothing, return "
-        "expression is not found";
+    errorMessage = "Function return type is not Nothing, return "
+                   "expression is not found";
   } else if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword &&
              returnStat != nullptr) {
-    errorMessage =
-        "Function return type is Nothing, return "
-        "expression is found";
+    errorMessage = "Function return type is Nothing, return "
+                   "expression is found";
   } else if (returnStat != nullptr) {
     _codeGenerationContext->getValueStackHandler()->popAll();
     returnValue =
@@ -103,9 +101,11 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   if (returnStat != nullptr &&
       returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-    returnValue =
-        _expressionGenerationFactory->createStrategy(returnStat->getKind())
-            ->generateExpression(returnStat);
+    if (!returnValue) {
+      returnValue =
+          _expressionGenerationFactory->createStrategy(returnStat->getKind())
+              ->generateExpression(returnStat);
+    }
 
     // create alloca for return value
 

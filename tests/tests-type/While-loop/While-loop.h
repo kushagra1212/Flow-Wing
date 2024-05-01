@@ -1,11 +1,10 @@
 #ifndef WHILE_LOOP_H
 #define WHILE_LOOP_H
 
-#include "../../JITCompilerTest/JITCompilerTest.h"
-#include "../../ReplTest/ReplTest.h"
+#include "../../Common.h"
 
 class WhileLoop : public ::testing::Test {
- protected:
+protected:
   WhileLoop();
 
   void SetUp() override;
@@ -16,4 +15,4 @@ class WhileLoop : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // VARIABLE_DECLARATION_H
+#endif // VARIABLE_DECLARATION_H

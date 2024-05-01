@@ -6,14 +6,14 @@ FROM kushagra711/common-base-llvm:latest
 
 COPY . /repl-test
 # Set the working directory
-WORKDIR /repl-test/all-targets/repl
+WORKDIR /repl-test/targets/repl
 
 # Create a repl-test-build directory
 RUN mkdir -p repl-test-build
 
 # Configure and test-build your project
 
-WORKDIR /repl-test/all-targets/repl/repl-test-build
+WORKDIR /repl-test/targets/repl/repl-test-build
 RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 RUN ninja
 # Run Tests

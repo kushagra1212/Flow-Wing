@@ -3,17 +3,16 @@
 FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
     llvm::Type *elementType, const std::string &containerName)
-    : ExpressionGenerationStrategy(context),
-      _actualSizes(actualSizes),
-      _elementType(elementType),
-      _containerName(containerName) {
+    : ExpressionGenerationStrategy(context), _actualSizes(actualSizes),
+      _elementType(elementType), _containerName(containerName) {
   _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
                                std::multiplies<uint64_t>());
 }
 
 llvm::Value *FillExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
-  if (!canGenerateExpression(expression)) return nullptr;
+  if (!canGenerateExpression(expression))
+    return nullptr;
 
   // Allocate memory on the stack for the array
   llvm::ArrayType *arrayType = nullptr;
@@ -21,36 +20,32 @@ llvm::Value *FillExpressionGenerationStrategy::generateExpression(
   llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                            _actualSizes, _elementType);
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
 
-  llvm::AllocaInst *arrayAlloca =
-      Builder->CreateAlloca(arrayType, nullptr, _containerName);
+  if (!_allocaInst) {
+    llvm::AllocaInst *alloca =
+        Builder->CreateAlloca(arrayType, nullptr, _containerName);
+    _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                            alloca);
+    _codeGenerationContext->setArraySizeMetadata(alloca, _actualSizes);
+    _codeGenerationContext->setArrayElementTypeMetadata(alloca, _elementType);
+    _allocaInst = alloca;
+  }
 
   // Fill the array with default values
 
-  _codeGenerationContext->setArraySizeMetadata(arrayAlloca, _actualSizes);
-  _codeGenerationContext->setArrayElementTypeMetadata(arrayAlloca,
-                                                      _elementType);
+  createExpressionLoop(arrayType, _allocaInst, _defaultVal, _totalSize);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          arrayAlloca);
-  createExpression(
-      arrayType, arrayAlloca,
-      llvm::cast<llvm::Constant>(
-          _codeGenerationContext->getMapper()->getDefaultValue(_elementType)),
-      _totalSize);
-
-  return createExpression(arrayType, arrayAlloca, _elementToFill,
-                          _sizeToFillInt);
+  return createExpressionLoop(arrayType, _allocaInst, _elementToFill,
+                              _sizeToFillInt);
 }
 
 llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
     llvm::Type *arrayType, llvm::AllocaInst *arrayAlloca) {
   // Get And Set Default Value
 
-  this->createExpression(arrayType, arrayAlloca, _elementToFill,
-                         _sizeToFillInt);
+  createExpressionLoop(arrayType, arrayAlloca, _elementToFill, _sizeToFillInt);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           arrayAlloca);
@@ -60,7 +55,8 @@ llvm::Value *FillExpressionGenerationStrategy::createLocalExpression(
 
 llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
-  if (!canGenerateExpression(expression)) return nullptr;
+  if (!canGenerateExpression(expression))
+    return nullptr;
 
   // Load and Store the items in the allocated memory
 
@@ -68,13 +64,16 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
 
   // Create a default value for the array
 
-  llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
+  llvm::Constant *_defaultVal = nullptr;
+
+  _defaultVal = llvm::cast<llvm::Constant>(
       _codeGenerationContext->getMapper()->getDefaultValue(_elementType));
 
-  _codeGenerationContext->getMultiArrayType(arrayType, _defaultVal,
-                                            _actualSizes, _elementType);
+  _codeGenerationContext->getMultiArrayTypeForGlobal(
+      arrayType, _defaultVal, _actualSizes, _elementType);
+
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-      *TheModule, arrayType, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
       _defaultVal, _containerName);
 
   _codeGenerationContext->setArraySizeMetadata(_globalVariable, _actualSizes);
@@ -87,11 +86,13 @@ llvm::Value *FillExpressionGenerationStrategy::generateGlobalExpression(
   return createGlobalExpression(arrayType, _globalVariable);
 }
 
+//! NOT IN USE
 llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
     llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
     uint64_t &sizeToFillVal, std::vector<llvm::Value *> &indices,
     uint64_t index) {
-  if (sizeToFillVal == 0) return nullptr;
+  if (sizeToFillVal == 0)
+    return nullptr;
 
   if (index < (_actualSizes.size())) {
     for (int64_t i = 0; i < _actualSizes[index]; i++) {
@@ -99,7 +100,8 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
       createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices,
                            index + 1);
       indices.pop_back();
-      if (sizeToFillVal == 0) return nullptr;
+      if (sizeToFillVal == 0)
+        return nullptr;
     }
     return nullptr;
   }
@@ -157,8 +159,9 @@ llvm::Value *FillExpressionGenerationStrategy::createExpression(
 
 llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
     llvm::Type *arrayType, llvm::GlobalVariable *_globalVariable) {
-  return this->createExpression(arrayType, _globalVariable, _elementToFill,
-                                _sizeToFillInt);
+  _isGlobal = true;
+  return this->createExpressionLoop(arrayType, _globalVariable, _elementToFill,
+                                    _sizeToFillInt);
 }
 
 bool FillExpressionGenerationStrategy::canGenerateExpression(
@@ -226,10 +229,50 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _sizeToFillInt = _totalSize;
   }
 
+  if (fillExpression->getElementToFillRef()->getKind() ==
+          BinderKindUtils::BoundObjectExpression &&
+      !llvm::isa<llvm::StructType>(_elementType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Attempting to fill an array " + _containerName +
+        " of non object type with a object type Expression.");
+    return false;
+  }
+
+  if (fillExpression->getElementToFillRef()->getKind() !=
+          BinderKindUtils::VariableExpression &&
+      fillExpression->getElementToFillRef()->getKind() !=
+          BinderKindUtils::BoundObjectExpression &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Attempting to fill an array " + _containerName +
+        " of object type with a non object type Expression.");
+    return false;
+  }
+
+  if (fillExpression->getElementToFillRef()->getKind() ==
+          BinderKindUtils::BoundObjectExpression &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _objectExpression = fillExpression->getElementToFillRef().get();
+    return true;
+  }
+  //! Handle Case for BoundContainerExpression
+
   _elementToFill =
       _expressionGenerationFactory
           ->createStrategy(fillExpression->getElementToFillRef()->getKind())
           ->generateExpression(fillExpression->getElementToFillRef().get());
+
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      llvm::isa<llvm::StructType>(_elementType)) {
+    _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
+    _elementToFillType =
+        _codeGenerationContext->getValueStackHandler()->getLLVMType();
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    _variableExpression = fillExpression->getElementToFillRef().get();
+    return true;
+  }
+
+  //! Handle Case for isArrayType
 
   if (!_elementToFill) {
     _codeGenerationContext->getLogger()->LogError(
@@ -253,4 +296,152 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   }
 
   return true;
+}
+llvm::Value *
+FillExpressionGenerationStrategy::createExpressionLoopWithTotalSize(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill) {
+  return createExpressionLoop(arrayType, v, elementToFill, _totalSize);
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
+    llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
+    uint64_t &sizeToFillVal) {
+  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+
+  std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
+  std::vector<llvm::AllocaInst *> indices;
+
+  for (int i = 0; i < _actualSizes.size(); i++) {
+    std::vector<llvm::BasicBlock *> blocks = {
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopStart-" + std::to_string(i),
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopCmp-" + std::to_string(i),
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopBody-" + std::to_string(i),
+                                 currentBlock->getParent()),
+        llvm::BasicBlock::Create(*TheContext,
+                                 "FillExpr.loopEnd-" + std::to_string(i),
+                                 currentBlock->getParent())};
+
+    llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
+    indices.push_back(index);
+    loopBlocks.push_back(blocks);
+  }
+
+  llvm::AllocaInst *numberOfElementsFilled =
+      Builder->CreateAlloca(Builder->getInt32Ty());
+  Builder->CreateStore(Builder->getInt32(0), numberOfElementsFilled);
+
+  llvm::BasicBlock *exit = llvm::BasicBlock::Create(
+      *TheContext, "FillExpr.exit", currentBlock->getParent());
+
+  Builder->CreateBr(loopBlocks[0][0]);
+
+  for (int i = 0; i < _actualSizes.size(); i++) {
+    // start
+    Builder->SetInsertPoint(loopBlocks[i][0]);
+    Builder->CreateStore(Builder->getInt32(0), indices[i]);
+    Builder->CreateBr(loopBlocks[i][1]);
+
+    // cmp
+    Builder->SetInsertPoint(loopBlocks[i][1]);
+    llvm::Value *currentIndex =
+        Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
+    llvm::Value *isLessThan = Builder->CreateICmpSLT(
+        currentIndex, Builder->getInt32(_actualSizes[i]));
+    //?------Comparison Count Increment------
+    llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
+        Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
+        Builder->getInt32(sizeToFillVal));
+    //?
+
+    llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);
+
+    Builder->CreateCondBr(success, loopBlocks[i][2], loopBlocks[i][3]);
+
+    // body
+    Builder->SetInsertPoint(loopBlocks[i][2]);
+    if (i == _actualSizes.size() - 1) {
+      std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
+
+      for (int j = 0; j < _actualSizes.size(); j++) {
+        indexList.push_back(
+            Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
+      }
+
+      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
+
+      //! USE AssignmentExpressionGenerationStrategy for All CASES
+      if (_objectExpression) {
+        std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+            objectAssignmentGES =
+                std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+                    _codeGenerationContext);
+
+        objectAssignmentGES->assignObject(
+            static_cast<BoundObjectExpression *>(_objectExpression), elementPtr,
+            llvm::cast<llvm::StructType>(_elementType),
+            elementPtr->getName().str());
+
+      }
+      //! It is temp here use _assignmentExpressionGenerationStrategy for
+      //! both Array,Struct, and primitives
+      else if (llvm::isa<llvm::StructType>(_elementType) &&
+               _variableExpression) {
+        std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrategy =
+            std::make_unique<ObjectExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
+        objExpGenStrategy->generateVariable(elementPtr,
+                                            _elementType->getStructName().str(),
+                                            _elementToFill, _isGlobal);
+      } else
+        Builder->CreateStore(elementToFill, elementPtr);
+
+      llvm::Value *_currentIndex =
+          Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
+      llvm::Value *nextIndex =
+          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
+      Builder->CreateStore(nextIndex, indices[i]);
+
+      //?------Elements filled Count Increment------
+      Builder->CreateStore(
+          Builder->CreateAdd(Builder->CreateLoad(Builder->getInt32Ty(),
+                                                 numberOfElementsFilled),
+                             Builder->getInt32(1)),
+          numberOfElementsFilled);
+      //?------End------
+
+      Builder->CreateBr(loopBlocks[i][1]);
+    } else {
+      Builder->CreateBr(loopBlocks[i + 1][0]);
+    }
+
+    // end
+    Builder->SetInsertPoint(loopBlocks[i][3]);
+    if (i != 0) {
+      llvm::Value *_currentIndex =
+          Builder->CreateLoad(Builder->getInt32Ty(), indices[i - 1]);
+      llvm::Value *nextIndex =
+          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
+      Builder->CreateStore(nextIndex, indices[i - 1]);
+
+      Builder->CreateBr(loopBlocks[i - 1][1]);
+    } else {
+      Builder->CreateBr(exit);
+    }
+  }
+
+  Builder->SetInsertPoint(exit);
+
+  return nullptr;
+}
+
+llvm::Value *FillExpressionGenerationStrategy::createExpressionLoopWrapper(
+    llvm::Type *arrayType, llvm::Value *ptr) {
+  return this->createExpressionLoop(arrayType, ptr, _elementToFill,
+                                    _sizeToFillInt);
 }

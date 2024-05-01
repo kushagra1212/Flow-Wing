@@ -373,13 +373,11 @@ std::unique_ptr<BoundExpression> Binder::bindBracketedExpression(
 
 std::unique_ptr<BoundStatement>
 Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
-  this->_diagnosticHandler->addParentDiagnostics(
-      bringStatement->getDiagnosticHandlerPtr().get());
+
   std::vector<std::string> expressionStrings = {};
 
-  if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath()) ||
-      !Utils::Node::isPathAbsolute(bringStatement->getAbsoluteFilePath())) {
-    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+  if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath())) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
@@ -391,7 +389,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
-    bringStatement->getDiagnosticHandlerPtr()->addDiagnostic(Diagnostic(
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Found Circular Dependency <" +
             bringStatement->getRelativeFilePathPtr() + "> ",
         DiagnosticUtils::DiagnosticLevel::Error,
@@ -403,7 +401,16 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
         expressionStrings);
   }
+
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "File <" + bringStatement->getRelativeFilePathPtr() +
+            "> already included ",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
@@ -447,6 +454,10 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
+
+  this->_diagnosticHandler->addParentDiagnostics(
+      bringStatement->getDiagnosticHandlerPtr().get());
+
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(
           nullptr, bringStatement->getCompilationUnitPtr().get(),
@@ -548,6 +559,51 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
   for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
     boundIndexExp->addBoundIndexExpression(
         std::move(bindExpression(indexExp.get())));
+  }
+
+  if (indexExpression->isObject()) {
+
+    VariableExpressionSyntax *variableExpressionSyntax =
+        static_cast<VariableExpressionSyntax *>(
+            indexExpression->getVariableExpressionRef().get());
+
+    std::unique_ptr<BoundVariableExpression> boundVariableExpression =
+        std::make_unique<BoundVariableExpression>(
+            indexExpression->getSourceLocation(), nullptr,
+            variableExpressionSyntax->isConstant(),
+            variable->getTypeExpression().get());
+
+    for (const auto &dotExpression :
+         variableExpressionSyntax->getDotExpressionList()) {
+      if (dotExpression->getKind() ==
+          SyntaxKindUtils::SyntaxKind::IndexExpression) {
+
+        IndexExpressionSyntax *indexExpression =
+            static_cast<IndexExpressionSyntax *>(dotExpression.get());
+        std::unique_ptr<BoundLiteralExpression<std::any>>
+            localBoundIdentifierExpression(
+                (BoundLiteralExpression<std::any> *)bindExpression(
+                    indexExpression->getIndexIdentifierExpressionPtr().get())
+                    .release());
+
+        std::unique_ptr<BoundIndexExpression> localBoundIndexExp =
+            std::make_unique<BoundIndexExpression>(
+                indexExpression->getSourceLocation(),
+                std::move(localBoundIdentifierExpression));
+
+        for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
+          localBoundIndexExp->addBoundIndexExpression(
+              std::move(bindExpression(indexExp.get())));
+        }
+        boundVariableExpression->addDotExpression(
+            std::move(localBoundIndexExp));
+      } else {
+        boundVariableExpression->addDotExpression(
+            std::move(bindExpression(dotExpression.get())));
+      }
+    }
+
+    boundIndexExp->addVariableExpression(std::move(boundVariableExpression));
   }
 
   return std::move(boundIndexExp);
@@ -803,8 +859,31 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
 
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
-    boundVariableExpression->addDotExpression(
-        std::move(bindLiteralExpression(dotExpression.get())));
+    if (dotExpression->getKind() ==
+        SyntaxKindUtils::SyntaxKind::IndexExpression) {
+
+      IndexExpressionSyntax *indexExpression =
+          static_cast<IndexExpressionSyntax *>(dotExpression.get());
+      std::unique_ptr<BoundLiteralExpression<std::any>>
+          localBoundIdentifierExpression(
+              (BoundLiteralExpression<std::any> *)bindExpression(
+                  indexExpression->getIndexIdentifierExpressionPtr().get())
+                  .release());
+
+      std::unique_ptr<BoundIndexExpression> localBoundIndexExp =
+          std::make_unique<BoundIndexExpression>(
+              indexExpression->getSourceLocation(),
+              std::move(localBoundIdentifierExpression));
+
+      for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
+        localBoundIndexExp->addBoundIndexExpression(
+            std::move(bindExpression(indexExp.get())));
+      }
+      boundVariableExpression->addDotExpression(std::move(localBoundIndexExp));
+    } else {
+      boundVariableExpression->addDotExpression(
+          std::move(bindExpression(dotExpression.get())));
+    }
   }
 
   return std::move(boundVariableExpression);
@@ -840,15 +919,19 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
   fd->setReturnType(std::move(bindTypeExpression(
       (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
 
-  this->root->incrementFunctionCount();
+  if (syntax->isOnlyDeclared()) {
+    fd->setOnlyDeclared();
+  } else {
+    this->root->incrementFunctionCount();
 
-  std::unique_ptr<BoundBlockStatement> boundBody(
-      (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
-          .release());
+    std::unique_ptr<BoundBlockStatement> boundBody(
+        (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
+            .release());
 
-  fd->setFunctionBody(std::move(boundBody));
+    fd->setFunctionBody(std::move(boundBody));
 
-  this->root->decrementFunctionCount();
+    this->root->decrementFunctionCount();
+  }
 
   if (!this->root->tryDeclareFunction(fd.get())) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
@@ -874,8 +957,14 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
             typeExpressionSyntax->getSourceLocation(),
             typeExpressionSyntax->getTypeRef()->getKind());
 
-    boundArrayTypeExpression->setElementType(
-        arrayTypeExpressionSyntax->getElementTypeRef()->getKind());
+    if (arrayTypeExpressionSyntax->isTrivial()) {
+      boundArrayTypeExpression->setElementType(
+          arrayTypeExpressionSyntax->getElementTypeRef()->getKind());
+    } else {
+      boundArrayTypeExpression->setNonTrivialElementType(
+          std::move(bindTypeExpression(
+              arrayTypeExpressionSyntax->getNonTrivialElementTypeRef().get())));
+    }
 
     for (const auto &size : arrayTypeExpressionSyntax->getDimensions()) {
       boundArrayTypeExpression->addDimension(
@@ -941,7 +1030,7 @@ Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 }
 
 Binder::Binder(std::unique_ptr<BoundScope> parent,
-               DiagnosticHandler *diagnosticHandler) {
+               FLowWing::DiagnosticHandler *diagnosticHandler) {
   BuiltInFunction::setupBuiltInFunctions();
 
   this->root = std::make_unique<BoundScope>(std::move(parent));
@@ -999,7 +1088,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 std::unique_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         CompilationUnitSyntax *syntax,
-                        DiagnosticHandler *diagnosticHandler) {
+                        FLowWing::DiagnosticHandler *diagnosticHandler) {
   std::unique_ptr<Binder> binder =
       std::make_unique<Binder>(nullptr, diagnosticHandler);
   std::unordered_map<std::string, std::any> prevVariablesValues;

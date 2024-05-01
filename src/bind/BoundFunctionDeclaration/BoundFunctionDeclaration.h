@@ -14,6 +14,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::string _functionName;
   bool _isExposed;
   std::unique_ptr<BoundExpression> _returnType;
+  bool _isOnlyDeclared = false;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -25,6 +26,9 @@ public:
   void addParameter(std::unique_ptr<BoundVariableDeclaration> parameter);
   void setFunctionName(const std::string &functionName);
   void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
+
+  inline void setOnlyDeclared() { _isOnlyDeclared = true; }
+
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
     _returnType = std::move(returnType);
   }
@@ -44,6 +48,8 @@ public:
       -> const std::unique_ptr<BoundExpression> & {
     return _returnType;
   }
+
+  inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _isExposed; }
 };

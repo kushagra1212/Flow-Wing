@@ -1,11 +1,10 @@
 #ifndef __MULTIDIM__CONTAINER_TEST_H__
 #define __MULTIDIM__CONTAINER_TEST_H__
 
-#include "../../../JITCompilerTest/JITCompilerTest.h"
-#include "../../../ReplTest/ReplTest.h"
+#include "../../../Common.h"
 
 class MultiDimContainer : public ::testing::Test {
- protected:
+protected:
   MultiDimContainer();
 
   void SetUp() override;
@@ -25,4 +24,4 @@ class MultiDimContainer : public ::testing::Test {
 
   std::unique_ptr<BaseTest> _test;
 };
-#endif  // __MULTIDIM__CONTAINER_TEST_H__
+#endif // __MULTIDIM__CONTAINER_TEST_H__

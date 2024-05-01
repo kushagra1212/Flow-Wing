@@ -1,14 +1,6 @@
 #include "While-loop.h"
 
-WhileLoop::WhileLoop() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+WhileLoop::WhileLoop() { _test = std::move(FlowWing::getTest()); }
 
 void WhileLoop::SetUp() { _test->SetUp(); }
 

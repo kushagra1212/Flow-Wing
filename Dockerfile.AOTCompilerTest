@@ -1,0 +1,20 @@
+# Use an common-base-llvm base image
+FROM kushagra711/common-base-llvm:latest
+
+
+# Copy your source code to the container
+
+COPY . /aot-compiler-test
+# Set the working directory
+WORKDIR /aot-compiler-test/targets/aot-compiler
+
+# Create a compiler-test-build directory
+RUN mkdir -p aot-compiler-test-build
+
+# Configure and compiler-test-build your project
+
+WORKDIR /aot-compiler-test/targets/aot-compiler/aot-compiler-test-build
+RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
+RUN ninja
+# Run Tests
+RUN ./FlowWing

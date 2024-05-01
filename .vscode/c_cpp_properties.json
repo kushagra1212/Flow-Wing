@@ -1,35 +1,34 @@
 {
     "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/include/gtest/internal",
-                "/usr/include/gtest",
-                "/usr/lib/llvm-17/**",
-                "/usr/include/llvm-17/"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/lib/llvm-17/bin/clang",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
-        }
-        // ,
         // {
-        //     "name": "Mac",
+        //     "name": "Linux",
         //     "includePath": [
         //         "${workspaceFolder}/**",
-        //         "/Users/kushagrarathore/code/per/Flow-Wing/**",
-        //         "/usr/local/Cellar/googletest/1.14.0/**",
-        //         "/usr/local/opt/llvm/**"
+        //         "/usr/include/gtest/internal",
+        //         "/usr/include/gtest",
+        //         "/usr/lib/llvm-17/**",
+        //         "/usr/include/llvm-17/"
         //     ],
         //     "defines": [],
-        //     "compilerPath": "/usr/local/opt/llvm/bin/clang",
+        //     "compilerPath": "/usr/lib/llvm-17/bin/clang",
         //     "cStandard": "c11",
         //     "cppStandard": "c++17",
         //     "intelliSenseMode": "clang-x64"
         // }
+        // ,
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/homebrew/Cellar/googletest/1.14.0/**",
+                "/opt/homebrew/opt/llvm@17/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
     ],
     "version": 4
 }

@@ -4,8 +4,8 @@
 #include <any>
 #include <chrono>
 #include <csignal>
-#include <cstdlib>  // For malloc
-#include <cstring>  // For strlen and memcpy
+#include <cstdlib> // For malloc
+#include <cstring> // For strlen and memcpy
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -17,6 +17,7 @@
 #include <mutex>
 #include <queue>
 #include <random>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <thread>
@@ -53,4 +54,11 @@ constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP = "\033[2K\r\033[F";
 constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP_AND_RESET = "\033[2K\r\033[F\r";
 constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP_AND_RESET_AND_MOVE_UP =
     "\033[2K\r\033[F\r\033[F";
+namespace COLORED_STRING {
+inline std::string GET(std::string str, const char *color, const char *reset) {
+  std::stringstream ss;
+  ss << color << str << reset;
+  return ss.str();
+}
+} // namespace COLORED_STRING
 #endif

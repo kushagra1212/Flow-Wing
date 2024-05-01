@@ -1,7 +1,7 @@
 #include "Lexer.h"
 
 Lexer::Lexer(const std::vector<std::string> &sourceCode,
-             DiagnosticHandler *diagnosticHandler) {
+             FLowWing::DiagnosticHandler *diagnosticHandler) {
   textSize = sourceCode.size();
 
   this->_sourceCode = sourceCode;
@@ -11,7 +11,8 @@ Lexer::Lexer(const std::vector<std::string> &sourceCode,
 }
 
 char Lexer::getCurrent() {
-  if (this->lineNumber >= textSize) return this->endOfFile;
+  if (this->lineNumber >= textSize)
+    return this->endOfFile;
 
   if (this->position >= this->_sourceCode[lineNumber].length())
     return this->endOfLine;
@@ -20,7 +21,8 @@ char Lexer::getCurrent() {
 }
 
 auto Lexer::peek(const int64_t &offset) const -> const char {
-  if (this->lineNumber >= textSize) return this->endOfFile;
+  if (this->lineNumber >= textSize)
+    return this->endOfFile;
 
   if (this->position + offset >= this->_sourceCode[lineNumber].length())
     return this->endOfLine;
@@ -33,6 +35,9 @@ void Lexer::next() { this->position++; }
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readDecimal(const int &start) {
   this->next();
   while (!this->isEndOfLineOrFile() && isdigit(this->getCurrent())) {
+    this->next();
+  }
+  if (this->getCurrent() == 'd') {
     this->next();
   }
   const int &length = this->position - start;
@@ -88,7 +93,8 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readNumber() {
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
   const int start = this->position;
-  while (!this->isEndOfLineOrFile() && isalnum(this->getCurrent())) {
+  while (!this->isEndOfLineOrFile() &&
+         (isalnum(this->getCurrent()) || this->getCurrent() == '_')) {
     this->next();
   }
   const int length = this->position - start;
@@ -180,7 +186,15 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
         SyntaxKindUtils::SyntaxKind::Int32Keyword, start, text, "int");
   }
 
-  else if (text == "bool") {
+  else if (text == "int8") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Int8Keyword, start, text, "int8");
+  } else if (text == "int64") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Int64Keyword, start, text, "int64");
+  } else if (text == "bool") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::BoolKeyword, start, text, "bool");
@@ -196,6 +210,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::DeciKeyword, start, text, "double");
+  }
+
+  else if (text == "deci32") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Deci32Keyword, start, text, "float");
   }
 
   else if (text == "bring") {
@@ -226,6 +246,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::TypeKeyword, start, text, "type");
+  } else if (text == "decl") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::DeclKeyword, start, text, "decl");
   }
 
   return std::make_unique<SyntaxToken<std::any>>(
@@ -246,6 +270,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readWhitespace() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
+
   std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
       std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), lineNumber,
@@ -255,12 +280,19 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
-  this->next();  // skip /
-  this->next();  // skip #
+  std::string text = "\n";
+  int lineN = this->lineNumber;
+  int pos = this->position + 1;
+  text += this->getCurrent();
+  this->next(); // skip /
+  text += this->getCurrent();
+  this->next(); // skip #
+
   while (this->getCurrent() != endOfFile &&
          (this->getCurrent() != '#' ||
           (this->getCurrent() == '#' && this->peek(1) != '/'))) {
     if (this->getCurrent() == endOfFile) {
+      text += this->getCurrent();
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
           std::move(readEndOfFile());
 
@@ -271,23 +303,38 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
 
       return std::move(newSyntaxToken);
     } else if (this->getCurrent() == endOfLine) {
+      text += "\n";
       this->lineNumber++;
       this->position = 0;
     } else {
+      text += this->getCurrent();
       this->next();
     }
   }
 
+  text += this->getCurrent();
   this->next();
+  text += this->getCurrent();
+  this->next();
+
+  if (this->getCurrent() == endOfLine) {
+    text += "\n";
+    this->lineNumber++;
+    this->position = 0;
+  }
   return std::make_unique<SyntaxToken<std::any>>(
-      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::CommentStatement, this->position++, "/##/",
-      nullptr);
+      this->_diagnosticHandler->getAbsoluteFilePath(), lineN,
+      SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
-  this->next();  // skip /
-  this->next();  // skip ;
+  std::string text = "\n";
+  int lineN = this->lineNumber;
+  int pos = this->position + 1;
+  text += this->getCurrent();
+  this->next(); // skip /
+  text += this->getCurrent();
+  this->next(); // skip ;
   while (!this->isEndOfLineOrFile()) {
     if (this->getCurrent() == endOfLine) {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
@@ -300,221 +347,217 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
 
       return std::move(newSyntaxToken);
     } else {
+      text += this->getCurrent();
       this->next();
     }
   }
+  text += '\n';
+  this->lineNumber++;
+  this->position = 0;
   return std::make_unique<SyntaxToken<std::any>>(
-      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::CommentStatement, this->position++, "/;",
-      nullptr);
+      this->_diagnosticHandler->getAbsoluteFilePath(), lineN,
+      SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   int start = this->position;
   switch (this->getCurrent()) {
-    case '+':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::PlusToken, this->position++, "+",
-          nullptr);
-    case '-':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::MinusToken, this->position++, "-",
-          nullptr);
+  case '+':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::PlusToken, this->position++, "+", nullptr);
+  case '-':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::MinusToken, this->position++, "-",
+        nullptr);
 
-    case '*':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::StarToken, this->position++, "*",
-          nullptr);
-    case ';':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::SemicolonToken, this->position++, ";",
-          nullptr);
-    case ',':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::CommaToken, this->position++, ",",
-          nullptr);
-    case '{':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::OpenBraceToken, this->position++, "{",
-          nullptr);
-    case '}':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::CloseBraceToken, this->position++, "}",
-          nullptr);
-    case '[':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::OpenBracketToken, this->position++, "[",
-          nullptr);
+  case '*':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::StarToken, this->position++, "*", nullptr);
+  case ';':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::SemicolonToken, this->position++, ";",
+        nullptr);
+  case ',':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CommaToken, this->position++, ",",
+        nullptr);
+  case '{':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::OpenBraceToken, this->position++, "{",
+        nullptr);
+  case '}':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CloseBraceToken, this->position++, "}",
+        nullptr);
+  case '[':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::OpenBracketToken, this->position++, "[",
+        nullptr);
 
-    case ']':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::CloseBracketToken, this->position++, "]",
-          nullptr);
+  case ']':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CloseBracketToken, this->position++, "]",
+        nullptr);
 
-    case '#':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::HashToken, this->position++, "#",
-          nullptr);
+  case '#':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::HashToken, this->position++, "#", nullptr);
 
-    case '(':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::OpenParenthesisToken, this->position++,
-          "(", nullptr);
-    case ')':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::CloseParenthesisToken, this->position++,
-          ")", nullptr);
+  case '(':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::OpenParenthesisToken, this->position++,
+        "(", nullptr);
+  case ')':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CloseParenthesisToken, this->position++,
+        ")", nullptr);
 
-    case '^':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::CaretToken, this->position++, "^",
-          nullptr);
-    case '%':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::PercentToken, this->position++, "%",
-          nullptr);
-    case '~':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::TildeToken, this->position++, "~",
-          nullptr);
-    case ':':
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::ColonToken, this->position++, ":",
-          nullptr);
+  case '^':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::CaretToken, this->position++, "^",
+        nullptr);
+  case '%':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::PercentToken, this->position++, "%",
+        nullptr);
+  case '~':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::TildeToken, this->position++, "~",
+        nullptr);
+  case ':':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ColonToken, this->position++, ":",
+        nullptr);
 
-    case '.':
+  case '.':
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::DotToken, this->position++, ".", nullptr);
+  case '&': {
+    if (this->peek(1) == '&') {
+      this->next();
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::DotToken, this->position++, ".",
-          nullptr);
-    case '&': {
-      if (this->peek(1) == '&') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
-            this->position++, "&&", nullptr);
-      }
-
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::AmpersandToken, this->position++, "&",
-          nullptr);
-    }
-    case '/': {
-      if (this->peek(1) == '#') {
-        return std::move(this->readMultiLineComment());
-      } else if (this->peek(1) == ';') {
-        return std::move(this->readSingleLineComment());
-      } else if (this->peek(1) == '/') {
-        this->next();  // Skip /
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::SlashSlashToken, this->position++,
-            "//", nullptr);
-      }
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::SlashToken, this->position++, "/",
-          nullptr);
+          SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken,
+          this->position++, "&&", nullptr);
     }
 
-    case '|': {
-      if (this->peek(1) == '|') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::PipePipeToken, this->position++, "||",
-            nullptr);
-      }
-
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::AmpersandToken, this->position++, "&",
+        nullptr);
+  }
+  case '/': {
+    if (this->peek(1) == '#') {
+      return std::move(this->readMultiLineComment());
+    } else if (this->peek(1) == ';') {
+      return std::move(this->readSingleLineComment());
+    } else if (this->peek(1) == '/') {
+      this->next(); // Skip /
       return std::make_unique<SyntaxToken<std::any>>(
           this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::PipeToken, this->position++, "|",
+          SyntaxKindUtils::SyntaxKind::SlashSlashToken, this->position++, "//",
           nullptr);
     }
-    case '=': {
-      if (this->peek(1) == '=') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::EqualsEqualsToken, this->position++,
-            "==", nullptr);
-      }
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::EqualsToken, this->position++, "=",
-          nullptr);
-    }
-
-    case '!': {
-      if (this->peek(1) == '=') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::BangEqualsToken, this->position++,
-            "!=", nullptr);
-      }
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::BangToken, this->position++, "!",
-          nullptr);
-    }
-
-    case '<': {
-      if (this->peek(1) == '=') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::LessOrEqualsToken, this->position++,
-            "<=", nullptr);
-      }
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::LessToken, this->position++, "<",
-          nullptr);
-    }
-
-    case '>': {
-      if (this->peek(1) == '=') {
-        this->next();
-        return std::make_unique<SyntaxToken<std::any>>(
-            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-            SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken, this->position++,
-            ">=", nullptr);
-      }
-      return std::make_unique<SyntaxToken<std::any>>(
-          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-          SyntaxKindUtils::SyntaxKind::GreaterToken, this->position++, ">",
-          nullptr);
-    }
-
-    case '"': {
-      return std::move(this->readString(start));
-    }
-
-    default: {
-      break;
-    }
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::SlashToken, this->position++, "/",
+        nullptr);
   }
 
-  const int &_len = std::max(
+  case '|': {
+    if (this->peek(1) == '|') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::PipePipeToken, this->position++, "||",
+          nullptr);
+    }
+
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::PipeToken, this->position++, "|", nullptr);
+  }
+  case '=': {
+    if (this->peek(1) == '=') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::EqualsEqualsToken, this->position++,
+          "==", nullptr);
+    }
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::EqualsToken, this->position++, "=",
+        nullptr);
+  }
+
+  case '!': {
+    if (this->peek(1) == '=') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::BangEqualsToken, this->position++,
+          "!=", nullptr);
+    }
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::BangToken, this->position++, "!", nullptr);
+  }
+
+  case '<': {
+    if (this->peek(1) == '=') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::LessOrEqualsToken, this->position++,
+          "<=", nullptr);
+    }
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::LessToken, this->position++, "<", nullptr);
+  }
+
+  case '>': {
+    if (this->peek(1) == '=') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken, this->position++,
+          ">=", nullptr);
+    }
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::GreaterToken, this->position++, ">",
+        nullptr);
+  }
+
+  case '"': {
+    return std::move(this->readString(start));
+  }
+
+  default: {
+    break;
+  }
+  }
+
+  const int _len = std::max(
       (int)this->_sourceCode[lineNumber].length() - (int)start, (int)0);
 
   const std::string &str = this->_sourceCode[lineNumber].substr(start, _len);
@@ -580,7 +623,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfLine() {
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
-  std::string text = "";
+  std::string text = "", valueText = "";
   while (!this->isEndOfLineOrFile() && this->getCurrent() != '"') {
     if (this->getCurrent() == '\0') {
       std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
@@ -600,44 +643,46 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
       return std::move(newSyntaxToken);
     }
     if (this->getCurrent() == '\\') {
+      text += this->getCurrent();
       this->next();
+      text += this->getCurrent();
       switch (this->getCurrent()) {
-        case '"':
-          text += '"';
-          break;
-        case '\\':
-          text += '\\';
-          break;
-        case 'n':
-          text += '\n';
-          break;
-        case 'r':
-          text += '\r';
-          break;
-        case 't':
-          text += '\t';
-          break;
-        default:
-          std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
-              std::make_unique<SyntaxToken<std::any>>(
-                  this->_diagnosticHandler->getAbsoluteFilePath(),
-                  this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken,
-                  start,
-                  this->_sourceCode[lineNumber].substr(start,
-                                                       this->position - start),
-                  0);
+      case '"':
+        valueText += '"';
+        break;
+      case '\\':
+        valueText += '\\';
+        break;
+      case 'n':
+        valueText += '\n';
+        break;
+      case 'r':
+        valueText += '\r';
+        break;
+      case 't':
+        valueText += '\t';
+        break;
+      default:
+        std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+            std::make_unique<SyntaxToken<std::any>>(
+                this->_diagnosticHandler->getAbsoluteFilePath(),
+                this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+                this->_sourceCode[lineNumber].substr(start,
+                                                     this->position - start),
+                0);
 
-          this->_diagnosticHandler->addDiagnostic(Diagnostic(
-              "Bad Character Escape Sequence: \\" +
-                  this->_sourceCode[lineNumber].substr(this->position, 1),
-              DiagnosticUtils::DiagnosticLevel::Error,
-              DiagnosticUtils::DiagnosticType::Lexical,
-              Utils::getSourceLocation(newSyntaxToken.get())));
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Bad Character Escape Sequence: \\" +
+                this->_sourceCode[lineNumber].substr(this->position, 1),
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Lexical,
+            Utils::getSourceLocation(newSyntaxToken.get())));
 
-          return std::move(newSyntaxToken);
+        return std::move(newSyntaxToken);
       }
     } else {
       text += this->getCurrent();
+      valueText += this->getCurrent();
     }
     this->next();
   }
@@ -661,5 +706,6 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
-      SyntaxKindUtils::SyntaxKind::StringToken, start, text, text);
+      SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"',
+      valueText);
 }

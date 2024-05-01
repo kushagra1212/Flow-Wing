@@ -20,13 +20,13 @@
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
-#include "llvm/Support/TargetSelect.h"
 #include "utils/ValueStack/ValueStackHandler.h"
+#include "llvm/Support/TargetSelect.h"
 
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
- public:
-  CodeGenerationContext(DiagnosticHandler *diagnosticHandler,
+public:
+  CodeGenerationContext(FLowWing::DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
   std::unique_ptr<llvm::IRBuilder<>> &getBuilder();
@@ -59,7 +59,7 @@ class CodeGenerationContext {
     return _valueStackHandler;
   }
 
-  DiagnosticHandler *getDiagnosticHandler() const;
+  FLowWing::DiagnosticHandler *getDiagnosticHandler() const;
 
   void addBoundedUserFunction(std::string name,
                               BoundFunctionDeclaration *functionDeclaration);
@@ -88,17 +88,32 @@ class CodeGenerationContext {
   void getMetaData(const std::string kind, llvm::Value *array,
                    std::string &metaData);
   llvm::Type *getArrayElementTypeMetadata(llvm::Value *array);
-  void getMultiArrayType(llvm::ArrayType *&arrayType, llvm::Constant *&def,
+  void getMultiArrayTypeForGlobal(llvm::ArrayType *&arrayType,
+                                  llvm::Constant *&def,
+                                  const std::vector<uint64_t> &actualSizes,
+                                  llvm::Type *elementType);
+  void getMultiArrayType(llvm::ArrayType *&arrayType,
                          const std::vector<uint64_t> &actualSizes,
                          llvm::Type *elementType);
-
   void getRetrunedArrayType(llvm::Function *F, llvm::ArrayType *&arrayType,
                             llvm::Type *&arrayElementType,
                             std::vector<uint64_t> &actualSizes);
 
   void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
 
- private:
+  int8_t verifyArrayType(llvm::ArrayType *lhsType, llvm::ArrayType *rhsType);
+  int8_t verifyStructType(llvm::StructType *lhsType, llvm::StructType *rhsType);
+  inline auto
+  createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
+                                      llvm::Type *&arrayElementType) -> void {
+    while (llvm::ArrayType *arrayType =
+               llvm::dyn_cast<llvm::ArrayType>(arrayElementType)) {
+      actualSizes.push_back(arrayType->getNumElements());
+      arrayElementType = arrayType->getElementType();
+    }
+  }
+
+private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -114,7 +129,7 @@ class CodeGenerationContext {
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;
-  DiagnosticHandler *_diagnosticHandler;
+  FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 
   std::stack<int8_t> _returnAllocaStack;
@@ -125,4 +140,4 @@ class CodeGenerationContext {
   std::unordered_map<std::string, uint64_t> _globalTypeMap;
 };
 
-#endif  // CODEGENERATIONCONTEXT_H
+#endif // CODEGENERATIONCONTEXT_H

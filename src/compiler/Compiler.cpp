@@ -3,15 +3,38 @@
 Compiler::Compiler(std::string filePath)
     : _filePath(filePath),
       llFileSaveStrategy(std::make_unique<LLFileSaveStrategy>(nullptr)),
-      _currentDiagnosticHandler(std::make_unique<DiagnosticHandler>(filePath)),
-      executionEngine(nullptr) {}
+      _currentDiagnosticHandler(
+          std::make_unique<FLowWing::DiagnosticHandler>(filePath)),
+      executionEngine(nullptr) {
+
+  // Define command-line options
+
+  //! Version
+  Version = FlowWingCliOptions::OPTIONS::Version;
+  ShortVersion = FlowWingCliOptions::OPTIONS::ShortVersion;
+
+  //! File
+  File = FlowWingCliOptions::OPTIONS::File;
+  ShortFile = FlowWingCliOptions::OPTIONS::ShortFile;
+
+  //! Format
+  Format = FlowWingCliOptions::OPTIONS::Format;
+  ShortFormat = FlowWingCliOptions::OPTIONS::ShortFormat;
+
+  //! Format Print
+  FormatPrint = FlowWingCliOptions::OPTIONS::FormatPrint;
+  ShortFormatPrint = FlowWingCliOptions::OPTIONS::ShortFormatPrint;
+}
 
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
-#else
+#elif defined(RELEASE) && defined(__LINUX__)
   filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
+#elif defined(RELEASE) && defined(__APPLE__)
+  filePath = _executable_path.parent_path().string() + "/../Library" +
+             "/built_in_module.ll";
 #endif
   // std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
@@ -23,7 +46,7 @@ Compiler::getMemoryBuffer(std::string filePath) {
     return std::move(*bufferOrErr);
   } else {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading bitcode file: " + filePath + " " +
+        std::cerr, Diagnostic("Error reading bitcode file: " + filePath + " " +
                                   bufferOrErr.getError().message(),
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
@@ -42,7 +65,7 @@ Compiler::createModuleFromIR(const std::string &filePath,
 
   if (!module) {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading IR file: " + filePath,
+        std::cerr, Diagnostic("Error reading IR file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -64,7 +87,7 @@ std::unique_ptr<llvm::Module> Compiler::createModuleFromBitcode(
     return std::move(*moduleOrErr);
   } else {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("Error reading bitcode file: " + filePath,
+        std::cerr, Diagnostic("Error reading bitcode file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -80,12 +103,12 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #else
   _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".bc", false);
+      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #endif
 
   if (_userDefinedIRFilePaths.size() == 0) {
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout, Diagnostic("No user defined IR files found.",
+        std::cerr, Diagnostic("No user defined IR files found.",
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(0, 0, "")));
@@ -101,17 +124,28 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
   const std::string &filePath = getBuiltInModulePath();
 
+#if defined(RELEASE)
+  std::unique_ptr<llvm::Module> TheModule =
+      std::make_unique<llvm::Module>("built_in_module", *TheContext);
+#else
   std::unique_ptr<llvm::Module> TheModule =
       filePath[filePath.length() - 1] == 'l'
           ? std::move(createModuleFromIR(filePath, TheContext))
           : std::move(createModuleFromBitcode(filePath, TheContext));
-
+#endif
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
   // TODO: Change the triple to x86_64-unknown-linux-gnu
-  TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+  // TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
+
+#if defined(__APPLE__)
+  TheModule->setTargetTriple("x86_64-apple-macosx14.0.0");
+#elif defined(__LINUX__)
+  TheModule->setTargetTriple(
+      llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+#endif
 
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
@@ -120,7 +154,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     (defined(DEBUG) && defined(AOT_MODE))
 
     _currentDiagnosticHandler->printDiagnostic(
-        std::cout,
+        std::cerr,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
                    DiagnosticUtils::SourceLocation(0, 0, path)));
@@ -132,7 +166,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
         llvm::Linker::Flags::OverrideFromSrc);
     if (LinkResult) {
       _currentDiagnosticHandler->printDiagnostic(
-          std::cout, Diagnostic("Error linking " + path,
+          std::cerr, Diagnostic("Error linking " + path,
                                 DiagnosticUtils::DiagnosticLevel::Error,
                                 DiagnosticUtils::DiagnosticType::Linker,
                                 DiagnosticUtils::SourceLocation(0, 0, path)));
@@ -144,7 +178,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     (defined(DEBUG) && defined(AOT_MODE))
 
   _currentDiagnosticHandler->printDiagnostic(
-      std::cout, Diagnostic("Finished linking modules.",
+      std::cerr, Diagnostic("Finished linking modules.",
                             DiagnosticUtils::DiagnosticLevel::Info,
                             DiagnosticUtils::DiagnosticType::Linker,
                             DiagnosticUtils::SourceLocation(
@@ -161,19 +195,24 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
 void Compiler::compile(std::vector<std::string> &text,
                        std::ostream &outputStream) {
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>(this->_filePath);
+  std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>(
+          Utils::getAbsoluteFilePath(this->_filePath));
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
+  parser->setIsFormattedCodeRequired(this->Format.getValue() ||
+                                     this->ShortFormat.getValue());
+
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -183,10 +222,11 @@ void Compiler::compile(std::vector<std::string> &text,
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -210,11 +250,12 @@ void Compiler::compile(std::vector<std::string> &text,
   if (hasSemanticError) {
 
     currentDiagnosticHandler->logDiagnostics(
-        outputStream, [](const Diagnostic &d) {
+        std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -229,13 +270,42 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
 
+  if (this->Format.getValue() || this->ShortFormat.getValue()) {
+
+    //? format and Save to file
+    std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
+                       std::ios::out);
+
+    // Check if the file is opened successfully
+    if (!file.is_open()) {
+      _currentDiagnosticHandler->printDiagnostic(
+          std::cerr,
+          Diagnostic(
+              "Error opening file: formatting failed " +
+                  currentDiagnosticHandler->getAbsoluteFilePath(),
+              DiagnosticUtils::DiagnosticLevel::Error,
+              DiagnosticUtils::DiagnosticType::Linker,
+              DiagnosticUtils::SourceLocation(
+                  0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
+      return;
+    }
+
+    // Replace the content of the file with text
+    file << parser->getFormattedSourceCode();
+    return;
+  } else if (this->FormatPrint.getValue() ||
+             this->ShortFormatPrint.getValue()) {
+
+    std::cout << parser->getFormattedSourceCode() << std::endl;
+    return;
+  }
+
   try {
+
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions);
-    const std::string fileNameWithOutExtension =
-        Utils::removeExtensionFromString(Utils::getFileName(
-            currentDiagnosticHandler->getAbsoluteFilePath()));
+
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
@@ -259,8 +329,8 @@ void Compiler::compile(std::vector<std::string> &text,
 }
 
 void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
-  std::unique_ptr<DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<DiagnosticHandler>();
+  std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<FLowWing::DiagnosticHandler>();
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -271,7 +341,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
     return;
   }
 
@@ -284,7 +355,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
         outputStream, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }
@@ -302,7 +374,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new DiagnosticHandler(this->_filePath));
+    currentDiagnosticHandler.reset(
+        new FLowWing::DiagnosticHandler(this->_filePath));
 
     return;
   }

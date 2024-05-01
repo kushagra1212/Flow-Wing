@@ -3,6 +3,7 @@
 
 #include "BoolTypeConverter/BoolTypeConverter.h"
 #include "DoubleTypeConverter/DoubleTypeConverter.h"
+#include "FloatTypeConverter/FloatTypeConverter.h"
 #include "Int32TypeConverter/Int32TypeConverter.h"
 #include "StringTypeConverter/StringTypeConverter.h"
 
@@ -16,6 +17,9 @@ public:
                              llvm::Value *&value) = 0;
 
   virtual llvm::Value *visit(StringTypeConverter *converter,
+                             llvm::Value *&value) = 0;
+
+  virtual llvm::Value *visit(FloatTypeConverter *converter,
                              llvm::Value *&value) = 0;
 };
 

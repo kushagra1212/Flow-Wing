@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
   // Close the file (imp)
   file.close();
 
-  Utils::Node::addPath(argv[1]);
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(argv[1]));
   std::vector<std::string> text =
       Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
 

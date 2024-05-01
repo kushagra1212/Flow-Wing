@@ -1,17 +1,24 @@
 #include "CodeGenerationContext.h"
 
 CodeGenerationContext ::CodeGenerationContext(
-    DiagnosticHandler *diagnosticHandler, const std::string sourceFileName)
+    FLowWing::DiagnosticHandler *diagnosticHandler,
+    const std::string sourceFileName)
     : _sourceFileName(sourceFileName) {
   _context = std::make_unique<llvm::LLVMContext>();
   _builder = std::make_unique<llvm::IRBuilder<>>(*_context);
-  _module = std::make_unique<llvm::Module>("FlowWing", *_context);
+  _module = std::make_unique<llvm::Module>(sourceFileName, *_context);
 
   _sourceFileName = sourceFileName;
 
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
+
+#if defined(__APPLE__)
+  _module->setTargetTriple("x86_64-apple-macosx14.0.0");
+#elif defined(__LINUX__)
+  _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+#endif
 
   // Assign diagnosticHandler
   _diagnosticHandler = diagnosticHandler;
@@ -82,7 +89,8 @@ const std::string &CodeGenerationContext::getSourceFileName() const {
   return this->_sourceFileName;
 }
 
-DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler() const {
+FLowWing::DiagnosticHandler *
+CodeGenerationContext::getDiagnosticHandler() const {
   return _diagnosticHandler;
 }
 
@@ -176,8 +184,8 @@ void CodeGenerationContext::incrementCount(const std::string name) {
   _builder->CreateStore(newCount, _module->getGlobalVariable(name));
 }
 
-llvm::Constant *CodeGenerationContext::createConstantFromValue(
-    llvm::Value *myValue) {
+llvm::Constant *
+CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
   llvm::Type *valueType = myValue->getType();
 
   if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
@@ -212,7 +220,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
         return strConstant;
       }
     }
-  } else if (valueType->isIntegerTy(1)) {  // Check if it's a boolean (i1).
+  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
     if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
       return llvm::ConstantInt::get(valueType,
                                     boolConstant->getUniqueInteger());
@@ -222,7 +230,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
 
   // this->logError("Unsupported type for conversion to constant");
 
-  return nullptr;  // Return nullptr if the type is not recognized.
+  return nullptr; // Return nullptr if the type is not recognized.
 }
 
 void CodeGenerationContext::callREF(const std::string &error) {
@@ -305,8 +313,8 @@ void CodeGenerationContext::setArrayElementTypeMetadata(
       std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
   setMetadata("ET", array, metaData);
 }
-llvm::Type *CodeGenerationContext::getArrayElementTypeMetadata(
-    llvm::Value *array) {
+llvm::Type *
+CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
   std::string metaData = "";
   getMetaData("ET", array, metaData);
   std::vector<std::string> sizesStr;
@@ -322,6 +330,82 @@ llvm::Type *CodeGenerationContext::getArrayElementTypeMetadata(
 }
 
 void CodeGenerationContext::getMultiArrayType(
+    llvm::ArrayType *&arrayType, const std::vector<uint64_t> &actualSizes,
+    llvm::Type *elementType) {
+  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+    if (arrayType == nullptr) {
+      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+    } else {
+      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+    }
+  }
+}
+int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
+                                              llvm::ArrayType *rhsType) {
+  std::vector<uint64_t> lhsSizes, rhsSizes;
+  llvm::Type *lshEType = (lhsType), *rhsEType = (rhsType);
+  this->createArraySizesAndArrayElementType(lhsSizes, lshEType);
+  this->createArraySizesAndArrayElementType(rhsSizes, rhsEType);
+
+  if (lshEType != rhsEType) {
+    this->getLogger()->LogError(
+        "Type mismatch in assignment expression, expected " +
+        this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+        this->getMapper()->getLLVMTypeName(rhsType) + " ");
+    return EXIT_FAILURE;
+  }
+
+  if (lhsSizes.size() != rhsSizes.size()) {
+    this->getLogger()->LogError(
+        "Dimension mismatch Expected " + std::to_string(lhsSizes.size()) +
+        " but found " + std::to_string(rhsSizes.size()));
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < lhsSizes.size(); i++) {
+    if (lhsSizes[i] < rhsSizes[i]) {
+      this->getLogger()->LogError("Dimension mismatch Expected Dimension " +
+                                  std::to_string(i) + " to be " +
+                                  std::to_string(lhsSizes[i]) + " but found " +
+                                  std::to_string(rhsSizes[i]));
+      return EXIT_FAILURE;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
+                                               llvm::StructType *rhsType) {
+
+  if (lhsType != rhsType) {
+    this->getLogger()->LogError("Type mismatch Expected " +
+                                this->getMapper()->getLLVMTypeName(lhsType) +
+                                " but found " +
+                                this->getMapper()->getLLVMTypeName(rhsType) +
+                                "in " + "assignment expression");
+    return EXIT_FAILURE;
+  }
+
+  if (lhsType->getNumElements() != rhsType->getNumElements()) {
+    this->getLogger()->LogError("Object type mismatch Expected " +
+                                std::to_string(lhsType->getNumElements()) +
+                                " but found " +
+                                std::to_string(rhsType->getNumElements()));
+    return EXIT_FAILURE;
+  }
+
+  if (lhsType->getStructName() != rhsType->getStructName()) {
+    this->getLogger()->LogError("Object type mismatch Expected " +
+                                lhsType->getStructName().str() + " but found " +
+                                rhsType->getStructName().str());
+
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
+void CodeGenerationContext::getMultiArrayTypeForGlobal(
     llvm::ArrayType *&arrayType, llvm::Constant *&def,
     const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
   for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
@@ -357,7 +441,7 @@ void CodeGenerationContext::getRetrunedArrayType(
     llvm::Constant *def = llvm::cast<llvm::Constant>(
         this->getMapper()->getDefaultValue(arrayElementType));
 
-    getMultiArrayType(arrayType, def, actualSizes, arrayElementType);
+    getMultiArrayType(arrayType, actualSizes, arrayElementType);
   } else if (strs[2] == "pr") {
     arrayElementType = getMapper()->mapCustomTypeToLLVMType(
         (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));

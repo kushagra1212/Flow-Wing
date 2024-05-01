@@ -34,7 +34,7 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
 
   _rhsVariable = _expressionGenerationFactory->createStrategy(expr->getKind())
                      ->generateExpression(expr);
-
+  _codeGenerationContext->getValueStackHandler()->popAll();
   _rhsArrayType = nullptr;
 
   bool hasError = false;
@@ -80,9 +80,12 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
     hasError = true;
   }
 
-  _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
-  _lhsArrayElementType =
-      _codeGenerationContext->getArrayElementTypeMetadata(_variable);
+  if (_lhsSizes.size() == 0)
+    _codeGenerationContext->getArraySizeMetadata(_variable, _lhsSizes);
+
+  if (!_lhsArrayElementType)
+    _lhsArrayElementType =
+        _codeGenerationContext->getArrayElementTypeMetadata(_variable);
 
   if (_rhsSizes.size() == 0) {
     _codeGenerationContext->getArraySizeMetadata(_rhsVariable, _rhsSizes);
@@ -130,26 +133,104 @@ const bool ContainerAssignmentExpressionGenerationStrategy::
   return true;
 }
 
-llvm::Value *
-ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
-    BoundExpression *expression) {
-  _arrayType = nullptr;
+llvm::Value *ContainerAssignmentExpressionGenerationStrategy::assignVariable(
+    BoundAssignmentExpression *assignmentExpression) {
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      assignmentExpression->getLocation());
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getLeftPtr().get());
+  llvm::Value *lhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *lhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Assignment to constant  is not supported");
+    return nullptr;
+  }
+  llvm::Value *lhsValue = Builder->CreateLoad(lhsType, lhsPtr);
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
-  if (llvm::isa<llvm::GlobalVariable>(_variable)) {
-    llvm::GlobalVariable *globalVariable =
-        llvm::cast<llvm::GlobalVariable>(_variable);
+  _expressionGenerationFactory
+      ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+      ->generateExpression(assignmentExpression->getRightPtr().get());
 
-    if (llvm::isa<llvm::ArrayType>(globalVariable->getValueType())) {
-      _arrayType = llvm::cast<llvm::ArrayType>(globalVariable->getValueType());
-    }
+  llvm::Value *rhsPtr =
+      _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *rhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  llvm::Value *rhsValue = nullptr;
+
+  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else {
+    rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
   }
 
-  if (!canGenerateExpressionAssignment(expression)) {
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  if (!rhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Right hand side value not found in assignment expression ");
     return nullptr;
   }
 
-  return createExpression(_arrayType, _variable, _rhsVariable, _rhsArrayType,
-                          _rhsArrayElementType, _lhsSizes, _rhsSizes);
+  if (!lhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Left hand side value not found in assignment expression ");
+    return nullptr;
+  }
+
+  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+      llvm::isa<llvm::ArrayType>(rhsType)) {
+
+    if (_codeGenerationContext->verifyArrayType(
+            llvm::cast<llvm::ArrayType>(lhsType),
+            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
+      return nullptr;
+  } else {
+
+    if (lhsType != rhsType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Type mismatch in assignment expression, expected " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(lhsType) +
+          " but found " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType) + " ");
+      return nullptr;
+    }
+  }
+  Builder->CreateStore(rhsValue, lhsPtr);
+
+  return rhsValue;
+}
+
+llvm::Value *
+ContainerAssignmentExpressionGenerationStrategy::generateGlobalExpression(
+    BoundExpression *expression) {
+  // 1 RHS is variableExpression (array,array), (struct,struct)(useCopy Function
+  // 2 if direct does not works) from ObjectAssignment), (primitive,primitive)
+
+  // 2 RHS Expression (array,BracketExp), (struct,structExp)
+
+  // 3 RHS CallExpression (can be handled using first)
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  BinderKindUtils::BoundNodeKind rhsKind =
+      assignmentExpression->getRightPtr()->getKind();
+
+  switch (rhsKind) {
+  case BinderKindUtils::VariableExpression:
+    return assignVariable(assignmentExpression);
+  default:
+    break;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Right hand side value not found in assignment expression " +
+      assignmentExpression->getVariable()->getVariableName());
+  return nullptr;
 }
 
 llvm::Value *
@@ -212,4 +293,20 @@ llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
   Builder->CreateStore(loaded, variable);
 
   return nullptr;
+}
+llvm::Value *
+ContainerAssignmentExpressionGenerationStrategy::createExpressionForObject(
+    BoundExpression *expression, llvm::ArrayType *&arrayType,
+    llvm::Value *&variable, const std::vector<uint64_t> &sizes,
+    llvm::Type *&elementType) {
+  _arrayType = arrayType;
+  _variable = variable;
+  _lhsSizes = sizes;
+  _lhsArrayElementType = elementType;
+  if (!canGenerateExpressionAssignment(expression)) {
+    return nullptr;
+  }
+
+  return createExpression(_arrayType, _variable, _rhsVariable, _rhsArrayType,
+                          _rhsArrayElementType, _lhsSizes, _rhsSizes);
 }

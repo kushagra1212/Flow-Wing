@@ -26,7 +26,8 @@ extern const std::string FLOWWING_GLOBAL_FALSE;
 // Entry Point
 
 extern const std::string FLOWWING_GLOBAL_ENTRY_POINT;
-
+extern const std::string TEMP_OBJECT_FILES_DIR;
+extern const std::string TEMP_BIN_DIR;
 enum ENVIRONMENT { REPL, SOURCE_FILE };
 
 namespace INNERS {
@@ -51,11 +52,11 @@ extern const std::string STRING_TO_LONG;
 extern const std::string STRING_TO_DOUBLE;
 extern const std::string RAISE_EXCEPTION;
 
-};  // namespace FUNCTIONS
-};  // namespace INNERS
+}; // namespace FUNCTIONS
+}; // namespace INNERS
 
 extern const std::string IS_EXISTS;
 
-};  // namespace FLOWWING::IR::CONSTANTS
+}; // namespace FLOWWING::IR::CONSTANTS
 
-#endif  // FLOWWING_IR_CONSTANTS_H
+#endif // FLOWWING_IR_CONSTANTS_H

@@ -1,14 +1,6 @@
 #include "JITFunction.h"
 
-JITFunction::JITFunction() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
-}
+JITFunction::JITFunction() { _test = std::move(FlowWing::getTest()); }
 
 void JITFunction::SetUp() { _test->SetUp(); }
 
@@ -20,14 +12,14 @@ std::string JITFunction::getOutput() const { return _test->getOutput(); }
 
 void JITFunction::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE)
 
 TEST_F(JITFunction, NthgReturnTypeWithIntReturnValue2) {
   std::string input = R"(
-fun main()-> nthg {
-    return 2
-}
-print(main())
+fun mainTest()-> nthg {
+      return 2
+  }
+  print(mainTest())
 )";
 
   setInput(input);
@@ -39,7 +31,7 @@ print(main())
                  lowerCaseOutput.begin(), ::tolower);
 
   std::string expected_output =
-      "JITFunction return type is Nothing, return expression is found";
+      "Function return type is Nothing, return expression is found";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
@@ -48,10 +40,10 @@ print(main())
 }
 TEST_F(JITFunction, NthgReturnTypeWithStringReturnValue2) {
   std::string input = R"(
-    fun main()-> nthg {
+    fun mainTest()-> nthg {
       return "Hello"
     }
-    print(main())
+    print(mainTest())
   )";
 
   setInput(input);
@@ -66,7 +58,7 @@ TEST_F(JITFunction, NthgReturnTypeWithStringReturnValue2) {
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -74,10 +66,10 @@ TEST_F(JITFunction, NthgReturnTypeWithStringReturnValue2) {
 }
 
 TEST_F(JITFunction, NthgReturnTypeWithBoolReturnValue2) {
-  std::string input = R"(fun main()-> nthg {
+  std::string input = R"(fun mainTest()-> nthg {
     return (true)
 }
-print(main()))";
+print(mainTest()))";
 
   setInput(input);
   runEvaluator();
@@ -91,17 +83,17 @@ print(main()))";
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
 #endif
 }
 TEST_F(JITFunction, NthgReturnTypeWithDeciReturnValue2) {
-  std::string input = R"(fun main()-> nthg {
+  std::string input = R"(fun mainTest()-> nthg {
     return 2.2
 }
-print(main()))";
+print(mainTest()))";
 
   setInput(input);
   runEvaluator();
@@ -115,7 +107,7 @@ print(main()))";
       R"(JITFunction return type is Nothing, return expression is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -125,10 +117,10 @@ print(main()))";
 // Int return type with int str bool deci nthg as return value
 
 TEST_F(JITFunction, IntReturnTypeWithNoReturnValue2) {
-  std::string input = R"(fun main()-> int {
+  std::string input = R"(fun mainTest()-> int {
     return 2+2
 }
-print(main()))";
+print(mainTest()))";
 
   setInput(input);
   runEvaluator();
@@ -141,10 +133,10 @@ print(main()))";
 }
 
 TEST_F(JITFunction, IntReturnTypeWithNoReturnValueWithBrackets2) {
-  std::string input = R"(fun main()-> int {
+  std::string input = R"(fun mainTest()-> int {
     return (2+2)
 }
-print(main()))";
+print(mainTest()))";
 
   setInput(input);
   runEvaluator();
@@ -158,10 +150,10 @@ print(main()))";
 
 TEST_F(JITFunction, IntReturnTypeWithNthg2) {
   std::string input = R"(
-fun main()-> int {
+fun mainTest()-> int {
     return:
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -176,7 +168,7 @@ print(main())
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -198,7 +190,7 @@ TEST_F(JITFunction, IntReturnTypeWithNoReturn2) {
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -207,10 +199,10 @@ TEST_F(JITFunction, IntReturnTypeWithNoReturn2) {
 
 TEST_F(JITFunction, IntReturnTypeWithStrReturnValue2) {
   std::string input = R"(
-fun main()-> int {
+fun mainTest()-> int {
 return "str"
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -225,7 +217,7 @@ print(main())
       R"(Return Type Mismatch Integer is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -234,10 +226,10 @@ print(main())
 
 TEST_F(JITFunction, IntReturnTypeWithBoolReturnValue2) {
   std::string input = R"(
-fun main()-> int {
+fun mainTest()-> int {
 return true
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -253,7 +245,7 @@ print(main())
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -262,10 +254,10 @@ print(main())
 
 TEST_F(JITFunction, IntReturnTypeWithBoolReturnValueFalse2) {
   std::string input = R"(
-fun main()-> int {
+fun mainTest()-> int {
 return false
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -280,7 +272,7 @@ print(main())
       R"(Return Type Mismatch Integer is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -288,10 +280,10 @@ print(main())
 }
 TEST_F(JITFunction, IntReturnTypeWithDeciReturnValue2) {
   std::string input = R"(
-fun main()-> int {
+fun mainTest()-> int {
 return 1.2
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -306,7 +298,7 @@ print(main())
       R"(Return Type Mismatch Integer is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -317,10 +309,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithIntReturnValue2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return 1
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -335,7 +327,7 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -344,10 +336,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithNthgReturnValue2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return:
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -362,7 +354,7 @@ print(main())
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -371,10 +363,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithNoReturn2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -389,7 +381,7 @@ print(main())
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -398,10 +390,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithStringReturnValue2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return "str"
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -416,7 +408,7 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but String is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -425,10 +417,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithBoolReturnValueTrue2) {
   I(R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return true
 }
-print(main())
+print(mainTest())
 )");
 
   O(R"(true)");
@@ -436,10 +428,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithBoolReturnValueFalse2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return false
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -454,10 +446,10 @@ print(main())
 
 TEST_F(JITFunction, BoolReturnTypeWithDeciReturnValue2) {
   std::string input = R"(
-fun main()-> bool {
+fun mainTest()-> bool {
 return 1.2
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -472,7 +464,7 @@ print(main())
       R"(Return Type Mismatch Boolean is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -483,10 +475,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithIntReturnValue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return 1
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -501,7 +493,7 @@ print(main())
       R"(Return Type Mismatch String is expected but Integer is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -510,10 +502,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithNthgReturnValue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return:
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -528,7 +520,7 @@ print(main())
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -537,10 +529,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithNoReturnValue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -555,7 +547,7 @@ print(main())
       R"(JITFunction return type is not Nothing, return expression is not found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -564,10 +556,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithBoolReturnValueTrue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return true
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -582,7 +574,7 @@ print(main())
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -591,10 +583,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithBoolReturnValueFalse2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return (false)
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -609,7 +601,7 @@ print(main())
       R"(Return Type Mismatch String is expected but Boolean is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -618,10 +610,10 @@ print(main())
 
 TEST_F(JITFunction, StringReturnTypeWithDeciReturnValue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return 1.2
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);
@@ -636,7 +628,7 @@ print(main())
       R"(Return Type Mismatch String is expected but Decimal is found)";
   std::transform(expected_output.begin(), expected_output.end(),
                  expected_output.begin(), ::tolower);
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   EXPECT_TRUE(Utils::isSubstring(lowerCaseOutput, expected_output));
 #elif REPL_TEST_MODE
   EXPECT_TRUE(lowerCaseOutput.find(expected_output) != std::string::npos);
@@ -645,10 +637,10 @@ print(main())
 
 TEST_F(JITFunction, NthgReturnTypeWithNthgReturnValue2) {
   std::string input = R"(
-fun main()-> nthg {
+fun mainTest()-> nthg {
     return:
 }
-main()
+mainTest()
 )";
 
   setInput(input);
@@ -656,7 +648,7 @@ main()
   // Expected output should be in the of the output
   std::string lowerCaseOutput = getOutput();
   std::string expected_output;
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   expected_output = "";
 #elif REPL_TEST_MODE
   expected_output = "";
@@ -665,10 +657,10 @@ main()
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 TEST_F(JITFunction, NthgReturnTypeWithNoReturnValue2) {
-  std::string input = R"(fun main()-> nthg {
+  std::string input = R"(fun mainTest()-> nthg {
   
 }
-main())";
+mainTest())";
 
   setInput(input);
   runEvaluator();
@@ -676,7 +668,7 @@ main())";
   std::string lowerCaseOutput = getOutput();
 
   std::string expected_output;
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
   expected_output = "";
 #elif REPL_TEST_MODE
   expected_output = "";
@@ -685,12 +677,16 @@ main())";
   EXPECT_EQ(lowerCaseOutput, expected_output);
 }
 
+#endif
+
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
+
 TEST_F(JITFunction, StringReturnTypeWithStringReturnValue2) {
   std::string input = R"(
-fun main()-> str {
+fun mainTest()-> str {
 return "Hello" + " World"
 }
-print(main())
+print(mainTest())
 )";
 
   setInput(input);

@@ -1,13 +1,7 @@
 #include "MultiDimContainer.h"
 
 MultiDimContainer::MultiDimContainer() {
-#ifdef JIT_TEST_MODE
-  _test = std::make_unique<JITCompilerTest>();
-#endif
-
-#ifdef REPL_TEST_MODE
-  _test = std::make_unique<ReplTest>();
-#endif
+  _test = std::move(FlowWing::getTest());
 }
 
 void MultiDimContainer::SetUp() { _test->SetUp(); }
@@ -22,7 +16,7 @@ std::string MultiDimContainer::getOutput() const { return _test->getOutput(); }
 
 void MultiDimContainer::runEvaluator() { _test->runEvaluator(); }
 
-#ifdef JIT_TEST_MODE
+#if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 TEST_F(MultiDimContainer, BasicContainerIntDeclaration) {
   I("var x:int[2] = [1,2] print(x)");
   O("[1, 2]");
@@ -585,7 +579,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17) {
         print(z[1][1])
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -608,8 +602,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18) {
         print(y)
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56[[Hello, "
-    "Hello]]");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container
@@ -1719,7 +1712,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17LOCAL) {
         print(z[1][1])}
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17GL) {
   I(R"(
@@ -1738,7 +1731,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17GL) {
         print(z[1][1])}
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -1761,8 +1754,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18LOCAL) {
         print(y)}
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56[[Hello, "
-    "Hello]]");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18GL) {
   I(R"(
@@ -1782,8 +1774,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18GL) {
         print(y)
     )");
 
-  O("[[4, ], [6, ]][[4, y], [5, 6]]464y56[[Hello, "
-    "Hello]]");
+  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container
