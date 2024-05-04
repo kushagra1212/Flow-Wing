@@ -6,8 +6,7 @@ VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
 
 llvm::Value *
 VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
-    const std::string &variableName, llvm::Value *variableValue,
-    llvm::AllocaInst *v) {
+    const std::string &variableName, llvm::AllocaInst *v) {
   // When Local Variable is a struct type
   // When Global Variable (Value) is a struct type
   if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
@@ -16,9 +15,9 @@ VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
     }
     return getObjectValue(v, 0, variableName);
   }
-  _codeGenerationContext->getValueStackHandler()->push(
-      "", v, "primitive", variableValue->getType());
-  return Builder->CreateLoad(variableValue->getType(), v, variableName);
+  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
+                                                       v->getAllocatedType());
+  return Builder->CreateLoad(v->getAllocatedType(), v, variableName);
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
@@ -73,8 +72,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
 
   // When Primitive Local Variable is not a dynamic type
   if (!_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
-    return this->getTypedPrimitiveLocalVariableValue(variableName,
-                                                     variableValue, v);
+    return this->getTypedPrimitiveLocalVariableValue(variableName, v);
   }
 
   // when Primitive Typed Global Variable (Value)
@@ -132,8 +130,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     // // When Primitive Local Variable is not a dynamic type
     // if (!_codeGenerationContext->getDynamicType()->isDyn(
     //         v->getAllocatedType())) {
-    //   return this->getTypedPrimitiveLocalVariableValue(variableName,
-    //                                                    variableValue, v);
+    //   return this->getTypedPrimitiveLocalVariableValue(variableName, v);
     // }
 
     // when Primitive Typed Global Variable (Value)

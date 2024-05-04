@@ -1,4 +1,38 @@
- type obj = {
+{
+var x:int 
+print(x)
+var y:str 
+print(y)
+var b:bool 
+print(b)
+var d:deci 
+print(d)
+var u:int[2]
+print(u)
+type me = {
+    s:str 
+  }
+type ob ={
+    st:str,
+    a:int,
+    b:bool,
+    c:deci,
+    j:me,
+    ja:me[2]
+}
+var ua:ob[2]
+print(ua)
+var uo:ob 
+print(uo)
+}
+/#class Animal {
+  public var x:int =  
+
+}
+
+
+
+/#type obj = {
     i:int,
     s:str
   }

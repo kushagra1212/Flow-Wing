@@ -386,4 +386,73 @@ arr[0].ar[0].g = getGKA()
 [{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
 
+TEST_F(Malloc, DefaultInitialize) {
+  I(R"(
+var x:int 
+print(x)
+var y:str 
+print(y)
+var b:bool 
+print(b)
+var d:deci 
+print(d)
+var u:int[2]
+print(u)
+type me = {
+    s:str 
+  }
+type ob ={
+    st:str,
+    a:int,
+    b:bool,
+    c:deci,
+    j:me,
+    ja:me[2]
+}
+var ua:ob[2]
+print(ua)
+var uo:ob 
+print(uo)
+
+
+    )");
+
+  O(R"(0false0.00000000000000[0, 0][{ st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] }, { st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] }]{ st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] })");
+}
+
+TEST_F(Malloc, DefaultInitializeLocal) {
+  I(R"(
+{
+  var x:int 
+print(x)
+var y:str 
+print(y)
+var b:bool 
+print(b)
+var d:deci 
+print(d)
+var u:int[2]
+print(u)
+type me = {
+    s:str 
+  }
+type ob ={
+    st:str,
+    a:int,
+    b:bool,
+    c:deci,
+    j:me,
+    ja:me[2]
+}
+var ua:ob[2]
+print(ua)
+var uo:ob 
+print(uo)
+
+}
+
+    )");
+
+  O(R"(0false0.00000000000000[0, 0][{ st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] }, { st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] }]{ st : '', a : 0, b : false, c : 0.00000000000000, j : { s : '' }, ja : [{ s : '' }, { s : '' }] })");
+}
 #endif

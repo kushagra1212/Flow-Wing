@@ -61,7 +61,8 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
     _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
                                                      {intPtr, arrayType});
     assignmentStrategy->initDefaultValue(arrayType, intPtr);
-
+    if (!contVarDec->getInitializerPtr().get())
+      return intPtr;
     return assignmentStrategy->handleAssignExpression(
         intPtr, arrayType, _containerName,
         contVarDec->getInitializerPtr().get());
@@ -70,13 +71,14 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
   llvm::AllocaInst *alloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-  BinderKindUtils::BoundNodeKind kind =
-      contVarDec->getInitializerPtr()->getKind();
-
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
                                                           alloca);
   assignmentStrategy->initDefaultValue(arrayType, alloca);
+  if (!contVarDec->getInitializerPtr().get())
+    return alloca;
 
+  BinderKindUtils::BoundNodeKind kind =
+      contVarDec->getInitializerPtr()->getKind();
   return assignmentStrategy->handleAssignExpression(
       alloca, arrayType, _containerName, contVarDec->getInitializerPtr().get());
 }
@@ -429,6 +431,9 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
                                                      {intPtr, arrayType});
     assignmentStrategy->initDefaultValue(arrayType, intPtr);
 
+    if (!contVarDec->getInitializerPtr().get())
+      return intPtr;
+
     return assignmentStrategy->handleAssignExpression(
         intPtr, arrayType, _containerName,
         contVarDec->getInitializerPtr().get());
@@ -438,10 +443,13 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
       _defaultVal, _containerName);
 
+  assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
+
+  if (!contVarDec->getInitializerPtr().get())
+    return _globalVariable;
+
   BinderKindUtils::BoundNodeKind kind =
       contVarDec->getInitializerPtr()->getKind();
-
-  assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
 
   return assignmentStrategy->handleAssignExpression(
       _globalVariable, arrayType, _containerName,

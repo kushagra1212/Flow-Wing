@@ -23,7 +23,6 @@ public:
 
   llvm::Value *
   getTypedPrimitiveLocalVariableValue(const std::string &variableName,
-                                      llvm::Value *variableValue,
                                       llvm::AllocaInst *v);
 
   llvm::Value *getUnTypedLocalVariableValue(llvm::Value *variableValue,

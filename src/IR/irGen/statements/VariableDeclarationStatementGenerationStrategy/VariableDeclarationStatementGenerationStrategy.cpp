@@ -119,7 +119,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {intPtr, structType});
       assignmentEGS->initDefaultValue(structType, intPtr);
-
+      if (!variableDeclaration->getInitializerPtr().get())
+        return intPtr;
       return assignmentEGS->handleAssignExpression(
           intPtr, structType, _variableName,
           variableDeclaration->getInitializerPtr().get());
@@ -130,6 +131,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
     assignmentEGS->initDefaultValue(structType, var);
+    if (!variableDeclaration->getInitializerPtr().get())
+      return var;
     return assignmentEGS->handleAssignExpression(
         var, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
@@ -158,6 +161,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
                                                        {intPtr, llvmType});
       assignmentEGS->initDefaultValue(llvmType, intPtr);
 
+      if (!_rhsValue)
+        return intPtr;
+
       Builder->CreateStore(_rhsValue, intPtr);
       return _rhsValue;
     }
@@ -167,17 +173,27 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     assignmentEGS->initDefaultValue(llvmType, var);
     _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
 
+    if (!_rhsValue)
+      return var;
+
     Builder->CreateStore(_rhsValue, var);
 
     return _rhsValue;
   }
 
+  if (!_rhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected a right hand side value in the expression, but found "
+        "nothing");
+    return nullptr;
+  }
   //    Dynamic Typed Variable
 
   llvm::AllocaInst *var = Builder->CreateAlloca(
       _codeGenerationContext->getDynamicType()->get(), nullptr, _variableName);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
       var, _rhsValue, _rhsValue->getType(), _variableName);
 
@@ -241,6 +257,8 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
                                                        {intPtr, structType});
       assignmentEGS->initDefaultValue(structType, intPtr);
 
+      if (!variableDeclaration->getInitializerPtr().get())
+        return intPtr;
       return assignmentEGS->handleAssignExpression(
           intPtr, structType, _variableName,
           variableDeclaration->getInitializerPtr().get());
@@ -251,7 +269,8 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
         llvm::Constant::getNullValue(structType), _variableName);
 
     assignmentEGS->initDefaultValue(structType, _globalVariable);
-
+    if (!variableDeclaration->getInitializerPtr().get())
+      return _globalVariable;
     return assignmentEGS->handleAssignExpression(
         _globalVariable, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
@@ -280,6 +299,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
                                                        {intPtr, llvmType});
       assignmentEGS->initDefaultValue(llvmType, intPtr);
 
+      if (!_rhsValue)
+        return intPtr;
+
       Builder->CreateStore(_rhsValue, intPtr);
       return _rhsValue;
     }
@@ -290,9 +312,18 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 
     assignmentEGS->initDefaultValue(llvmType, _globalVariable);
 
+    if (!_rhsValue)
+      return _globalVariable;
     Builder->CreateStore(_rhsValue, _globalVariable);
 
     return _rhsValue;
+  }
+
+  if (!_rhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected a right hand side value in the expression, but found "
+        "nothing");
+    return nullptr;
   }
 
   // Handle Global Dynamic Typed Variable
@@ -322,15 +353,13 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       variableDeclaration->getLocation());
 
-  if (!initializerExp) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Rhs of variable " + _variableName + " is not an expression");
-    return false;
-  }
   _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
       _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    return true;
+  }
+  if (!initializerExp) {
     return true;
   }
 
