@@ -6,11 +6,25 @@ IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
 
 const bool IndexExpressionGenerationStrategy::canGenerateExpression(
     const std::string &variableName) {
+
+  std::pair<llvm::Value *, llvm::Type *> var =
+      _codeGenerationContext->getAllocaChain()->getPtr(variableName);
+
+  // When Local Variable is an array type
+  if (var.second && var.second && llvm::isa<llvm::ArrayType>(var.second)) {
+
+    llvm::Value *varValue =
+        Builder->CreateLoad(var.second, var.first, variableName);
+    _arrayType = llvm::cast<llvm::ArrayType>(var.second);
+    _variable = var.first;
+
+    return true;
+  }
+
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
 
   if (v && !(llvm::isa<llvm::ArrayType>(v->getAllocatedType()))) {
-
     _codeGenerationContext->getLogger()->LogError(
         "variable " + _variableName + " Expected to be of type array of " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(

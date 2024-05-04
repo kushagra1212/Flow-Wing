@@ -124,7 +124,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
     return nullptr;
   }
 
-  llvm::AllocaInst *v =
+  llvm::Value *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
   _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
@@ -138,7 +138,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::
 llvm::Value *AssignmentExpressionGenerationStrategy::
     handleUnTypedPrmitiveLocalVariableAssignment(
         const std::string &variableName, llvm::Value *rhsValue) {
-  llvm::AllocaInst *v =
+  llvm::Value *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
   _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
@@ -209,7 +209,12 @@ AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
     }
 
     bracketdStrategy->setContainerName(_variableName);
-    bracketdStrategy->setAllocatedVariable(_allocaInst);
+    if (llvm::isa<llvm::AllocaInst>(_allocaInst)) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Something went wrong now an variable " + _variableName);
+    }
+    bracketdStrategy->setAllocatedVariable(
+        llvm::cast<llvm::AllocaInst>(_allocaInst));
     return bracketdStrategy->generateExpression(
         assignmentExpression->getRightPtr().get());
   }

@@ -202,3 +202,11 @@ llvm::Function *FunctionDeclarationManager::declareRaiseExceptionFn() {
   return declareFunction(INNERS::FUNCTIONS::RAISE_EXCEPTION,
                          raiseDivisionByZeroExceptionFnType);
 }
+
+llvm::Function *FunctionDeclarationManager::declareMallocFunctionFn() {
+
+  llvm::FunctionType *mallocFunctionFn =
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), {}, false);
+
+  return declareFunction(INNERS::FUNCTIONS::MALLOC, mallocFunctionFn);
+}

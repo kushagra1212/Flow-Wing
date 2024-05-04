@@ -1,7 +1,8 @@
 #include "TypeMapper.h"
 
-TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder)
-    : _context(context), _builder(builder) {
+TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
+                       llvm::Module *module)
+    : _context(context), _builder(builder), _module(module) {
   _typeMappings = {
       {(llvm::Type *)llvm::Type::getInt1Ty(*context),
        SyntaxKindUtils::SyntaxKind::BoolKeyword},
@@ -216,4 +217,97 @@ const bool
 TypeMapper::isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
                              SyntaxKindUtils::SyntaxKind type2) const {
   return type1 == type2;
+}
+// llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+// llvm::Type *elementType = arrayType->getElementType();
+// llvm::Type *type = arrayType;
+// std::vector<uint64_t> sizes;
+// _codeGenerationContext->createArraySizesAndArrayElementType(sizes, type);
+uint64_t TypeMapper::getSizeOf(llvm::Type *type) {
+
+  if (type == llvm::Type::getInt32Ty(*_context))
+    return sizeof(int32_t);
+
+  if (type == llvm::Type::getInt64Ty(*_context))
+    return sizeof(int64_t);
+
+  if (type == llvm::Type::getInt8Ty(*_context))
+    return sizeof(int8_t);
+
+  if (type == llvm::Type::getDoubleTy(*_context))
+    return sizeof(double);
+
+  if (type == llvm::Type::getFloatTy(*_context))
+    return sizeof(float);
+
+  if (type == llvm::Type::getInt1Ty(*_context))
+    return sizeof(bool);
+
+  if (type == llvm::Type::getInt8PtrTy(*_context))
+    return sizeof(int8_t);
+
+  if (llvm::isa<llvm::ArrayType>(type)) {
+
+    llvm::DataLayout *TD = new llvm::DataLayout(_module);
+
+    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+    return TD->getTypeAllocSize(arrayType);
+    llvm::Type *elementType = arrayType->getElementType();
+    llvm::Type *type = arrayType;
+    std::vector<uint64_t> sizes;
+    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
+      sizes.push_back(arrayType->getNumElements());
+      type = arrayType->getElementType();
+    }
+    uint64_t elementSize = getSizeOf(type);
+    uint64_t totalSize = elementSize;
+    for (const int &size : sizes) {
+      totalSize *= size;
+    }
+    return totalSize;
+  }
+
+  if (llvm::isa<llvm::StructType>(type)) {
+
+    llvm::DataLayout *TD = new llvm::DataLayout(_module);
+
+    llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+    return TD->getTypeAllocSize(structType);
+  }
+
+  return 0;
+}
+
+uint64_t TypeMapper::getSizeOf(SyntaxKindUtils::SyntaxKind type) {
+
+  switch (type) {
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+    return sizeof(int32_t);
+    break;
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+    return sizeof(int64_t);
+    break;
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword:
+    return sizeof(int8_t);
+    break;
+  case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+    return sizeof(double);
+    break;
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
+    return sizeof(float);
+    break;
+  case SyntaxKindUtils::SyntaxKind::BoolKeyword:
+    return sizeof(bool);
+    break;
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+    return sizeof(int8_t);
+    break;
+  case SyntaxKindUtils::SyntaxKind::NthgKeyword:
+    break;
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
+    break;
+  default:
+    break;
+  }
+  return 0;
 }

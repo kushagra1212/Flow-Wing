@@ -63,6 +63,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
+  BoundVariableDeclaration *variableDeclaration =
+      static_cast<BoundVariableDeclaration *>(statement);
   if (!canGenerateStatement(statement)) {
     return nullptr;
   }
@@ -100,6 +102,29 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       return nullptr;
     }
 
+    if (variableDeclaration->getHasNewKeyword()) {
+
+      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+      llvm::CallInst *malloc_call = Builder->CreateCall(
+          fun, llvm::ConstantInt::get(
+                   llvm::Type::getInt64Ty(*TheContext),
+                   _codeGenerationContext->getMapper()->getSizeOf(structType)));
+      malloc_call->setTailCall(false);
+
+      // Cast the result of 'malloc' to a pointer to int
+      llvm::Value *intPtr = Builder->CreateBitCast(
+          malloc_call,
+          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                       {intPtr, structType});
+      assignmentEGS->initDefaultValue(structType, intPtr);
+
+      return assignmentEGS->handleAssignExpression(
+          intPtr, structType, _variableName,
+          variableDeclaration->getInitializerPtr().get());
+    }
+
     llvm::AllocaInst *var =
         Builder->CreateAlloca(structType, nullptr, _variableName);
 
@@ -114,6 +139,28 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     llvm::Type *llvmType =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
             _variableType);
+
+    if (variableDeclaration->getHasNewKeyword()) {
+
+      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+      llvm::CallInst *malloc_call = Builder->CreateCall(
+          fun, llvm::ConstantInt::get(
+                   llvm::Type::getInt64Ty(*TheContext),
+                   _codeGenerationContext->getMapper()->getSizeOf(llvmType)));
+      malloc_call->setTailCall(false);
+
+      // Cast the result of 'malloc' to a pointer to int
+      llvm::Value *intPtr = Builder->CreateBitCast(
+          malloc_call,
+          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                       {intPtr, llvmType});
+      assignmentEGS->initDefaultValue(llvmType, intPtr);
+
+      Builder->CreateStore(_rhsValue, intPtr);
+      return _rhsValue;
+    }
 
     llvm::AllocaInst *var =
         Builder->CreateAlloca(llvmType, nullptr, _variableName);
@@ -140,7 +187,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-  if (!canGenerateStatement(statement)) {
+  BoundVariableDeclaration *variableDeclaration =
+      static_cast<BoundVariableDeclaration *>(statement);
+  if (!canGenerateStatement(variableDeclaration)) {
     return nullptr;
   }
 
@@ -174,6 +223,29 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       return nullptr;
     }
 
+    if (variableDeclaration->getHasNewKeyword()) {
+
+      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+      llvm::CallInst *malloc_call = Builder->CreateCall(
+          fun, llvm::ConstantInt::get(
+                   llvm::Type::getInt64Ty(*TheContext),
+                   _codeGenerationContext->getMapper()->getSizeOf(structType)));
+      malloc_call->setTailCall(false);
+
+      // Cast the result of 'malloc' to a pointer to int
+      llvm::Value *intPtr = Builder->CreateBitCast(
+          malloc_call,
+          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                       {intPtr, structType});
+      assignmentEGS->initDefaultValue(structType, intPtr);
+
+      return assignmentEGS->handleAssignExpression(
+          intPtr, structType, _variableName,
+          variableDeclaration->getInitializerPtr().get());
+    }
+
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
         llvm::Constant::getNullValue(structType), _variableName);
@@ -190,6 +262,27 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
     llvm::Type *llvmType =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
             _variableType);
+    if (variableDeclaration->getHasNewKeyword()) {
+
+      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+      llvm::CallInst *malloc_call = Builder->CreateCall(
+          fun, llvm::ConstantInt::get(
+                   llvm::Type::getInt64Ty(*TheContext),
+                   _codeGenerationContext->getMapper()->getSizeOf(llvmType)));
+      malloc_call->setTailCall(false);
+
+      // Cast the result of 'malloc' to a pointer to int
+      llvm::Value *intPtr = Builder->CreateBitCast(
+          malloc_call,
+          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                       {intPtr, llvmType});
+      assignmentEGS->initDefaultValue(llvmType, intPtr);
+
+      Builder->CreateStore(_rhsValue, intPtr);
+      return _rhsValue;
+    }
 
     llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
         *TheModule, llvmType, false, llvm::GlobalValue::ExternalWeakLinkage,

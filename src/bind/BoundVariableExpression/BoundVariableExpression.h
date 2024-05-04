@@ -17,8 +17,13 @@ public:
   virtual std::vector<BoundNode *> getChildren() override;
 
   const std::unique_ptr<BoundLiteralExpression<std::any>> &
+
   getIdentifierExpressionPtr() const {
     return this->_identiferExpression;
+  }
+
+  inline auto setHasNewKeyword(bool hasNewKeyword) {
+    _hasNewKeyword = hasNewKeyword;
   }
 
   inline auto getVariableNameRef() const -> const std::string {
@@ -40,9 +45,12 @@ public:
     _dotExpressionList.push_back(std::move(dotExpression));
   }
 
+  inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
+
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
   std::vector<std::unique_ptr<BoundExpression>> _dotExpressionList;
   bool _isConstant;
   BoundTypeExpression *_variableTypeExp;
+  bool _hasNewKeyword;
 };

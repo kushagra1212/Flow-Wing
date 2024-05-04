@@ -11,7 +11,7 @@
 using namespace FLOWWING::IR::CONSTANTS;
 
 class FunctionDeclarationManager {
- public:
+public:
   FunctionDeclarationManager(CodeGenerationContext *codeGenerationContext);
 
   llvm::Function *declarePrintFn();
@@ -33,8 +33,9 @@ class FunctionDeclarationManager {
   llvm::Function *declareStringToDoubleFn();
 
   llvm::Function *declareRaiseExceptionFn();
+  llvm::Function *declareMallocFunctionFn();
 
- private:
+private:
   llvm::Module *TheModule;
   llvm::LLVMContext *TheContext;
 
@@ -42,4 +43,4 @@ class FunctionDeclarationManager {
                                   llvm::FunctionType *functionType);
 };
 
-#endif  // __FUNCTION_DECLARATION_MANAGER_H__
+#endif // __FUNCTION_DECLARATION_MANAGER_H__

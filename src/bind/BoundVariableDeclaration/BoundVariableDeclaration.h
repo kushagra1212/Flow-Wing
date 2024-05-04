@@ -16,6 +16,7 @@ private:
   bool _isConst;
   std::unique_ptr<BoundTypeExpression> _typeExp;
   bool _isExposed;
+  bool _hasNewKeyword;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -50,4 +51,10 @@ public:
   inline auto setTypeExpression(std::unique_ptr<BoundTypeExpression> typeExp) {
     _typeExp = std::move(typeExp);
   }
+
+  inline auto setHasNewKeyword(bool hasNewKeyword) {
+    _hasNewKeyword = hasNewKeyword;
+  }
+
+  inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
 };

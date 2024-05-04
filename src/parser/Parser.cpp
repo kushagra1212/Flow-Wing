@@ -907,6 +907,13 @@ Parser::parseVariableDeclaration(bool isFuncDec) {
         std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
     appendWithSpace();
 
+    if (this->getCurrent()->getKind() ==
+        SyntaxKindUtils::SyntaxKind::NewKeyword) {
+      varDec->setNewKeyword(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+      appendWithSpace();
+    }
+
     std::unique_ptr<ExpressionSyntax> initializer =
         std::move(this->parseExpression());
     varDec->setInitializer(std::move(initializer));
@@ -1291,6 +1298,13 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
     }
 
     appendWithSpace();
+
+    if (this->getCurrent()->getKind() ==
+        SyntaxKindUtils::SyntaxKind::NewKeyword) {
+      variableExpression->setNewKeyword(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+      appendWithSpace();
+    }
 
     std::unique_ptr<ExpressionSyntax> right =
         std::move(this->parseExpression());

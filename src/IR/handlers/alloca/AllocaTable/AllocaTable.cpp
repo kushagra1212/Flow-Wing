@@ -30,3 +30,23 @@ uint64_t AllocaTable::getTypeIndex(const std::string &name) {
 bool AllocaTable::hasTypeIndex(const std::string &name) {
   return _typeMap.find(name) != _typeMap.end();
 }
+
+std::pair<llvm::Value *, llvm::Type *>
+AllocaTable::getPtr(const std::string &name) {
+  if (_ptrs.find(name) != _ptrs.end()) {
+    return _ptrs[name];
+  }
+  return {};
+}
+bool AllocaTable::updatePtr(const std::string &name,
+                            std::pair<llvm::Value *, llvm::Type *> ptr) {
+  if (_ptrs.find(name) != _ptrs.end()) {
+    _ptrs[name] = ptr;
+    return true; // Updated
+  }
+  return false; // Not found
+}
+void AllocaTable::setPtr(const std::string &name,
+                         std::pair<llvm::Value *, llvm::Type *> ptr) {
+  _ptrs[name] = ptr;
+}

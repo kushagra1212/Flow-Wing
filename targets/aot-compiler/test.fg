@@ -27,6 +27,64 @@ fun getGKA() -> k[2] {
   s: "sora"
   
 }
+var x:k[2] = new [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+fun getArr()-> t[2] {
+var a:t[2] = new [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+{
+  var arr:t[2] = new [{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr = new [{x:2}]
+print(arr)
+}
+/#
+{
+    var x: int[100000] = new [100000 fill 2]
+x = new [100 fill 10]
+  print(x)
+  }
+
+/#
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
 var x:k[2] = [gka]
 
     return x
@@ -42,7 +100,7 @@ var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
 return a
   }
 {
-  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+  var arr:t[2] = [{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
 print(arr)
 print("\n\n")
 arr <- [{x:2}]
