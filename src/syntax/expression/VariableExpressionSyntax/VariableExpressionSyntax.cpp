@@ -16,6 +16,10 @@ const std::vector<SyntaxNode *> &VariableExpressionSyntax::getChildren() {
     _children.push_back(_identifierExpression.get());
     _children.push_back(_variableTypeExpr.get());
 
+    if (_newKeyword) {
+      _children.push_back(_newKeyword.get());
+    }
+
     if (_dotExpressionList.size()) {
       for (const auto &item : _dotExpressionList) {
         _children.push_back(item.get());

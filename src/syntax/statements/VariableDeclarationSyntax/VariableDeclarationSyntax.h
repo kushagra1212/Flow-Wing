@@ -11,10 +11,11 @@ class VariableDeclarationSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
-
+  std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
   std::unique_ptr<ExpressionSyntax> _initializer;
   std::unique_ptr<TypeExpressionSyntax> _typeExpr;
+  bool _hasNewKeyword = false;
 
 public:
   const SyntaxKindUtils::SyntaxKind getKind() const override;
@@ -43,6 +44,11 @@ public:
     _exposeKeyword = std::move(exposeKeyword);
   }
 
+  inline void setNewKeyword(std::unique_ptr<SyntaxToken<std::any>> newkeyword) {
+    _hasNewKeyword = true;
+    _newKeyword = std::move(newkeyword);
+  }
+
   // Getters
   inline auto getIdentifierRef()
       -> const std::unique_ptr<SyntaxToken<std::any>> & {
@@ -61,6 +67,7 @@ public:
   inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {
     return _initializer;
   }
+  inline auto getHasNewKeyWord() -> bool & { return _hasNewKeyword; }
 
   inline auto isExposed() -> bool { return _exposeKeyword != nullptr; }
 };

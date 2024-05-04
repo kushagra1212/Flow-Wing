@@ -89,6 +89,7 @@ enum SyntaxKind {
   FillKeyword,
   TypeKeyword,
   DeclKeyword,
+  NewKeyword,
 
   // Identifiers
   IdentifierToken,

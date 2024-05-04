@@ -12,16 +12,73 @@ ContainerDeclarationStatementGenerationStrategy::
 
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
     BoundStatement *statement) {
-
   auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
 
   BoundArrayTypeExpression *arrayTypeExpression =
       static_cast<BoundArrayTypeExpression *>(
           contVarDec->getTypeExpression().get());
 
+  this->calcActualContainerSize(arrayTypeExpression);
   _containerName = contVarDec->getVariableName();
-  return generateCommonStatement(arrayTypeExpression, _containerName,
-                                 contVarDec->getInitializerPtr().get());
+
+  if (arrayTypeExpression->isTrivialType()) {
+    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        arrayTypeExpression->getElementType());
+
+  } else {
+    BoundObjectTypeExpression *objectTypeExpression =
+        static_cast<BoundObjectTypeExpression *>(
+            arrayTypeExpression->getNonTrivialElementType().get());
+
+    _elementType = _codeGenerationContext->getTypeChain()->getType(
+        objectTypeExpression->getTypeName());
+  }
+  llvm::ArrayType *arrayType = nullptr;
+
+  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
+                                            _elementType);
+
+  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
+
+  if (contVarDec->getHasNewKeyword()) {
+
+    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+    llvm::CallInst *malloc_call = Builder->CreateCall(
+        fun, llvm::ConstantInt::get(
+                 llvm::Type::getInt64Ty(*TheContext),
+                 _codeGenerationContext->getMapper()->getSizeOf(arrayType)));
+    malloc_call->setTailCall(false);
+
+    // Cast the result of 'malloc' to a pointer to int
+    llvm::Value *intPtr = Builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+    _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                     {intPtr, arrayType});
+    assignmentStrategy->initDefaultValue(arrayType, intPtr);
+
+    return assignmentStrategy->handleAssignExpression(
+        intPtr, arrayType, _containerName,
+        contVarDec->getInitializerPtr().get());
+  }
+
+  llvm::AllocaInst *alloca =
+      Builder->CreateAlloca(arrayType, nullptr, _containerName);
+
+  BinderKindUtils::BoundNodeKind kind =
+      contVarDec->getInitializerPtr()->getKind();
+
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
+                                                          alloca);
+  assignmentStrategy->initDefaultValue(arrayType, alloca);
+
+  return assignmentStrategy->handleAssignExpression(
+      alloca, arrayType, _containerName, contVarDec->getInitializerPtr().get());
 }
 
 llvm::Value *
@@ -349,16 +406,40 @@ ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
                                             _elementType);
 
   llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
+
+  if (contVarDec->getHasNewKeyword()) {
+
+    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+    llvm::CallInst *malloc_call = Builder->CreateCall(
+        fun, llvm::ConstantInt::get(
+                 llvm::Type::getInt64Ty(*TheContext),
+                 _codeGenerationContext->getMapper()->getSizeOf(arrayType)));
+    malloc_call->setTailCall(false);
+
+    // Cast the result of 'malloc' to a pointer to int
+    llvm::Value *intPtr = Builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+    _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                     {intPtr, arrayType});
+    assignmentStrategy->initDefaultValue(arrayType, intPtr);
+
+    return assignmentStrategy->handleAssignExpression(
+        intPtr, arrayType, _containerName,
+        contVarDec->getInitializerPtr().get());
+  }
+
   llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
       *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
       _defaultVal, _containerName);
 
   BinderKindUtils::BoundNodeKind kind =
       contVarDec->getInitializerPtr()->getKind();
-
-  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
-      std::make_unique<AssignmentExpressionGenerationStrategy>(
-          _codeGenerationContext);
 
   assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
 

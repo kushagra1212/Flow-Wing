@@ -87,7 +87,7 @@ public:
 
 private:
   std::string _variableName;
-  llvm::AllocaInst *_allocaInst;
+  llvm::Value *_allocaInst;
   llvm::GlobalVariable *_previousGlobalVariable;
   SyntaxKindUtils::SyntaxKind _variableType;
   bool _isGlobal;

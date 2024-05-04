@@ -14,12 +14,14 @@ using namespace FLOWWING::IR::CONSTANTS;
 class TypeMapper {
   llvm::LLVMContext *_context;
   llvm::IRBuilder<> *_builder;
+  llvm::Module *_module;
   std::unordered_map<llvm::Type *, SyntaxKindUtils::SyntaxKind> _typeMappings;
   std::unordered_map<SyntaxKindUtils::SyntaxKind, llvm::Type *>
       _reverseTypeMappings;
 
 public:
-  TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder);
+  TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
+             llvm::Module *module);
 
   SyntaxKindUtils::SyntaxKind mapLLVMTypeToCustomType(llvm::Type *type) const;
   llvm::Type *mapCustomTypeToLLVMType(SyntaxKindUtils::SyntaxKind type) const;
@@ -43,6 +45,10 @@ public:
 
   llvm::Value *getDefaultValue(SyntaxKindUtils::SyntaxKind type);
   llvm::Value *getDefaultValue(llvm::Type *type);
+
+  uint64_t getSizeOf(SyntaxKindUtils::SyntaxKind type);
+
+  uint64_t getSizeOf(llvm::Type *type);
 
   std::string getLLVMTypeName(llvm::Type *type) const;
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;

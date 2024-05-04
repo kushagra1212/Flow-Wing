@@ -56,6 +56,8 @@ std::unique_ptr<BoundVariableDeclaration> Binder::bindVariableDeclaration(
     variable->setTypeExpression(std::move(boundTypeExpression));
   }
 
+  variable->setHasNewKeyword(variableDeclaration->getHasNewKeyWord());
+
   if (variableDeclaration->getInitializerRef()) {
     std::unique_ptr<BoundExpression> boundInitializerExpression = std::move(
         bindExpression(variableDeclaration->getInitializerRef().get()));
@@ -858,6 +860,9 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
               variableExpressionSyntax->getIdentifierTokenRef().get())),
           variableExpressionSyntax->isConstant(),
           variable->getTypeExpression().get());
+
+  boundVariableExpression->setHasNewKeyword(
+      variableExpressionSyntax->getHasNewKeyword());
 
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {

@@ -72,6 +72,7 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareStringToIntFn();
   functionDeclarationManager->declareStringToLongFn();
   functionDeclarationManager->declareRaiseExceptionFn();
+  functionDeclarationManager->declareMallocFunctionFn();
 }
 
 void IRGenerator::initializeGlobalVariables() {

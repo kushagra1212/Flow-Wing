@@ -91,6 +91,59 @@ llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
 
 llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     const std::string &variableName) {
+
+  std::pair<llvm::Value *, llvm::Type *> var =
+      _codeGenerationContext->getAllocaChain()->getPtr(variableName);
+
+  if (var.first && var.second) {
+    llvm::Value *varValue =
+        Builder->CreateLoad(var.second, var.first, variableName);
+    // When Local Variable is an array type
+    if (llvm::isa<llvm::ArrayType>(var.second)) {
+
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", var.first, "array", llvm::cast<llvm::ArrayType>(var.second));
+      return var.first;
+    }
+
+    // // When Local Variable is a dynamic type
+    // if (_codeGenerationContext->getDynamicType()->isDyn(var.second)) {
+    //   return this->getUnTypedLocalVariableValue(varValue, var.first,
+    //                                             variableName);
+    // }
+
+    // When Local Variable is a struct type
+    if (llvm::isa<llvm::StructType>(var.second)) {
+      parObjTypeType = llvm::cast<llvm::StructType>(var.second);
+
+      if (_variableExpression->getDotExpressionList().size() == 0) {
+        _codeGenerationContext->getValueStackHandler()->push(
+            parObjTypeType->getStructName().str(), var.first, "struct",
+            parObjTypeType);
+
+        return var.first;
+      }
+
+      std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
+      return getObjectValueNF(var.first, 0, variableName, indices,
+                              parObjTypeType);
+    }
+
+    // // When Primitive Local Variable is not a dynamic type
+    // if (!_codeGenerationContext->getDynamicType()->isDyn(
+    //         v->getAllocatedType())) {
+    //   return this->getTypedPrimitiveLocalVariableValue(variableName,
+    //                                                    variableValue, v);
+    // }
+
+    // when Primitive Typed Global Variable (Value)
+
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", var.first, "primitive", var.second);
+
+    return Builder->CreateLoad(var.second, var.first, variableName);
+  }
+
   llvm::AllocaInst *v =
       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 

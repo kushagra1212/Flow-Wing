@@ -294,9 +294,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "Deci32Keyword";
   case SyntaxKind::Int64Keyword:
     return "Int64Keyword";
-
   case SyntaxKind::AssignmentToken:
     return "AssignmentToken";
+  case SyntaxKind::NewKeyword:
+    return "NewKeyword";
   default:
     return "NotDefined";
   }

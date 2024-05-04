@@ -20,6 +20,9 @@ const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
   if (_typeExpr)
     _children.push_back(_typeExpr.get());
 
+  if (_newKeyword)
+    _children.push_back(_newKeyword.get());
+
   if (_initializer) {
     _children.push_back(_initializer.get());
   }
