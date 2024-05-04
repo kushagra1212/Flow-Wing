@@ -31,7 +31,8 @@ type t = {
     arr:par[1]
 }
 var arr:t[2] = [1 fill {x:1}]
-print(arr))");
+print(arr)
+)");
   O("[{ x : 1, y : '', a : 0.00000000000000, b : false, arr : [{ u : '', g : "
     "[{ o : 0 }, { o : 0 }, { o : 0 }, { o : 0 }, { o : 0 }] }] }, { x : 0, y "
     ": '', a : 0.00000000000000, b : false, arr : [{ u : '', g : [{ o : 0 }, { "

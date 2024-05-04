@@ -156,6 +156,6 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
   }
   }
 
-  this->_codeGenerationContext->callREF(errorMessage);
+  _codeGenerationContext->callREF(errorMessage);
   return nullptr;
 }

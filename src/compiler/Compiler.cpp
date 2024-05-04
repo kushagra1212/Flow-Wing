@@ -141,7 +141,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   // TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
 
 #if defined(__APPLE__)
-  TheModule->setTargetTriple("x86_64-apple-macosx14.0.0");
+  // TheModule->setTargetTriple("x86_64-apple-macosx14.0.0");
 #elif defined(__LINUX__)
   TheModule->setTargetTriple(
       llvm::Triple::normalize("x86_64-unknown-linux-gnu"));

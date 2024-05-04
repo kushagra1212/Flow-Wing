@@ -2705,4 +2705,301 @@ TEST_F(
   O(R"({ x : [[1, 2, 2, 2, 2], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiInDefaultAssign) {
+  I(R"(
+
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+var u:t  = getT()
+
+print(u)
+print("\n")
+u <- {}
+  print(u)
+
+  )");
+  O(R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiInDefaultAssignWithout) {
+  I(R"(
+
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+var u:t  = getT()
+
+print(u)
+print("\n")
+u = {}
+  print(u)
+
+  )");
+  O(R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiInDefaultAssignWithArray) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+{
+  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr <- []
+print(arr)
+arr[0].ar[0].g = getGKA()
+}
+
+  )");
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiInDefaultAssignWithArrayWithSomeValue) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+{
+  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr <- [{x:2}]
+print(arr)
+arr[0].ar[0].g = getGKA()
+}
+
+  )");
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamReturn4MultiInDefaultAssignWithArrayWithSomeValueGlobal) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr <- [{x:2}]
+print(arr)
+arr[0].ar[0].g = getGKA()
+
+
+  )");
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
 #endif

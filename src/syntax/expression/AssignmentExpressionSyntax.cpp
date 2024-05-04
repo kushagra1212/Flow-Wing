@@ -3,11 +3,9 @@
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> left,
     std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-    std::unique_ptr<ExpressionSyntax> right) {
-  this->_left = std::move(left);
-  this->_operatorToken = std::move(operatorToken);
-  this->_right = std::move(right);
-}
+    std::unique_ptr<ExpressionSyntax> right, bool needDefaultInitialize)
+    : _left(std::move(left)), _operatorToken(std::move(operatorToken)),
+      _right(std::move(right)), _needDefaultInitialize(needDefaultInitialize) {}
 
 const SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;

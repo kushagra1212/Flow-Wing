@@ -590,6 +590,48 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                                      rhsValue, retFlag);
     break;
   }
+  case BinderKindUtils::CallExpression: {
+    llvm::Value *value =
+        _expressionGenerationFactory
+            ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
+            ->generateExpression(callExpression->getArgumentsRef()[i].get());
+
+    if (llvm::isa<llvm::CallInst>(value)) {
+      llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
+      auto *calledFunction = calledInst->getCalledFunction();
+      llvm::ArrayType *arrayType = nullptr;
+      llvm::Type *elementType = nullptr;
+      std::vector<uint64_t> actualSizes;
+      _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
+                                                   elementType, actualSizes);
+
+      if (arrayType != nullptr) {
+        llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
+        llvm::Value *localVariable = Builder->CreateAlloca(arrayType, nullptr);
+
+        // Store the result of the call in the local variable
+        Builder->CreateStore(loaded, localVariable);
+        rhsValue = localVariable;
+      } else {
+        llvm::StructType *structType = nullptr;
+        _codeGenerationContext->getReturnedObjectType(calledFunction,
+                                                      structType);
+
+        if (structType != nullptr) {
+          llvm::LoadInst *loaded = Builder->CreateLoad(structType, calledInst);
+          llvm::Value *localVariable =
+              Builder->CreateAlloca(structType, nullptr);
+
+          // Store the result of the call in the local variable
+          Builder->CreateStore(loaded, localVariable);
+          rhsValue = localVariable;
+        } else {
+          rhsValue = value;
+        }
+      }
+    }
+    break;
+  }
   default: {
     retVal = handlePremitive(rhsValue, callExpression, i, llvmArrayArgs, arg,
                              retFlag);
@@ -624,7 +666,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
         Utils::CE(arg->getName().str()) + ", but found type " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
             rhsValue->getType())));
-    return nullptr;
+    return rhsValue;
   } else if (_codeGenerationContext->getDynamicType()->isDyn(
                  llvmArrayArgs[i]->getType())) {
     _codeGenerationContext->getLogger()->LogError(
@@ -633,7 +675,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
         Utils::CE(arg->getName().str())
 
     );
-    return nullptr;
+    return rhsValue;
   }
   retFlag = false;
   return nullptr;

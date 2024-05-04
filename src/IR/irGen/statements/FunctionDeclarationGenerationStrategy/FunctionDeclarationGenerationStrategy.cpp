@@ -63,8 +63,18 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
       size_t multiDimSize = arrayTypeExpression->getDimensions().size();
 
-      parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-          containerElementType);
+      if (arrayTypeExpression->isTrivialType()) {
+        parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+            arrayTypeExpression->getElementType());
+
+      } else {
+        BoundObjectTypeExpression *objectTypeExpression =
+            static_cast<BoundObjectTypeExpression *>(
+                arrayTypeExpression->getNonTrivialElementType().get());
+
+        parmType = _codeGenerationContext->getTypeChain()->getType(
+            objectTypeExpression->getTypeName());
+      }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
       for (int64_t k = multiDimSize - 1; k >= 0; k--) {
@@ -127,65 +137,33 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
         static_cast<BoundTypeExpression *>(fd->getReturnType().get());
 
     switch (bTE->getKind()) {
-      case BinderKindUtils::BoundTypeExpression: {
-        llvm::Type *elementType =
-            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                bTE->getSyntaxType());
-        returnType = elementType;
-        FT = llvm::FunctionType::get(returnType, argTypes, false);
-        F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                   fd->getFunctionNameRef(), *TheModule);
+    case BinderKindUtils::BoundTypeExpression: {
+      llvm::Type *elementType =
+          _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+              bTE->getSyntaxType());
+      returnType = elementType;
+      FT = llvm::FunctionType::get(returnType, argTypes, false);
+      F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 fd->getFunctionNameRef(), *TheModule);
 
-        _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-            fd->getFunctionNameRef(), std::make_unique<LLVMType>(returnType));
-        returnInfo =
-            fd->getFunctionNameRef() + ":rt:pr:" +
-            std::to_string(
-                _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-                    elementType));
-        break;
-      }
-      case BinderKindUtils::BoundArrayTypeExpression: {
-        BoundArrayTypeExpression *boundArrayTypeExpression =
-            static_cast<BoundArrayTypeExpression *>(fd->getReturnType().get());
+      _codeGenerationContext->getReturnTypeHandler()->addReturnType(
+          fd->getFunctionNameRef(), std::make_unique<LLVMType>(returnType));
+      returnInfo =
+          fd->getFunctionNameRef() + ":rt:pr:" +
+          std::to_string(
+              _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+                  elementType));
+      break;
+    }
+    case BinderKindUtils::BoundArrayTypeExpression: {
+      BoundArrayTypeExpression *boundArrayTypeExpression =
+          static_cast<BoundArrayTypeExpression *>(fd->getReturnType().get());
 
-        llvm::Type *elementType =
+      llvm::Type *elementType = nullptr;
+      if (boundArrayTypeExpression->isTrivialType()) {
+        elementType =
             _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
                 boundArrayTypeExpression->getElementType());
-
-        llvm::Type *arrayType = elementType;
-        llvm::Constant *_defaultVal = llvm::cast<llvm::Constant>(
-            _codeGenerationContext->getMapper()->getDefaultValue(elementType));
-        std::vector<uint64_t> returnDimentions(
-            boundArrayTypeExpression->getDimensions().size(), 0);
-        for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
-             k >= 0; k--) {
-          llvm::Value *arraySize =
-              literalExpressionGenerationStrategy->generateExpression(
-                  boundArrayTypeExpression->getDimensions()[k].get());
-
-          if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
-            _codeGenerationContext->getLogger()->LogError(
-                "Array size must be a constant integer");
-          }
-
-          returnDimentions[k] =
-              llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
-
-          arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
-        }
-        llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
-
-        FT = llvm::FunctionType::get(returnType, argTypes, false);
-        F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                   fd->getFunctionNameRef(), *TheModule);
-
-        _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-            fd->getFunctionNameRef(),
-            std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
-                                            returnDimentions,
-                                            boundArrayTypeExpression));
-
         returnInfo =
             fd->getFunctionNameRef() + ":rt:ay:" +
             std::to_string(
@@ -193,39 +171,83 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
                     elementType)) +
             ":sz:";
 
-        for (int64_t k = 0; k < returnDimentions.size(); k++) {
-          returnInfo += std::to_string(returnDimentions[k]) + ":";
-        }
-        break;
-      }
-      case BinderKindUtils::BoundObjectTypeExpression: {
-        BoundObjectTypeExpression *boundObjectTypeExpression =
-            static_cast<BoundObjectTypeExpression *>(fd->getReturnType().get());
+      } else {
+        BoundObjectTypeExpression *objectTypeExpression =
+            static_cast<BoundObjectTypeExpression *>(
+                boundArrayTypeExpression->getNonTrivialElementType().get());
 
-        llvm::StructType *structType =
-            _codeGenerationContext->getTypeChain()->getType(
-                boundObjectTypeExpression->getTypeName());
-
-        llvm::Type *returnType = llvm::PointerType::get(structType, 0);
-
-        FT = llvm::FunctionType::get(returnType, argTypes, false);
-        F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                   fd->getFunctionNameRef(), *TheModule);
-
-        _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-            fd->getFunctionNameRef(),
-            std::make_unique<LLVMObjectType>(returnType, structType));
-
+        elementType = _codeGenerationContext->getTypeChain()->getType(
+            objectTypeExpression->getTypeName());
         returnInfo = fd->getFunctionNameRef() +
-                     ":rt:ob:" + boundObjectTypeExpression->getTypeName();
+                     ":rt:ay:" + objectTypeExpression->getTypeName().c_str() +
+                     ":sz:";
+      }
 
-        break;
+      llvm::Type *arrayType = elementType;
+
+      std::vector<uint64_t> returnDimentions(
+          boundArrayTypeExpression->getDimensions().size(), 0);
+      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+           k >= 0; k--) {
+        llvm::Value *arraySize =
+            literalExpressionGenerationStrategy->generateExpression(
+                boundArrayTypeExpression->getDimensions()[k].get());
+
+        if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Array size must be a constant integer");
+        }
+
+        returnDimentions[k] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+
+        arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
       }
-      default: {
-        _codeGenerationContext->getLogger()->LogError(
-            "Invalid return type for function");
-        return nullptr;
+      llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
+
+      FT = llvm::FunctionType::get(returnType, argTypes, false);
+      F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 fd->getFunctionNameRef(), *TheModule);
+
+      _codeGenerationContext->getReturnTypeHandler()->addReturnType(
+          fd->getFunctionNameRef(),
+          std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
+                                          returnDimentions,
+                                          boundArrayTypeExpression));
+
+      for (int64_t k = 0; k < returnDimentions.size(); k++) {
+        returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
+      break;
+    }
+    case BinderKindUtils::BoundObjectTypeExpression: {
+      BoundObjectTypeExpression *boundObjectTypeExpression =
+          static_cast<BoundObjectTypeExpression *>(fd->getReturnType().get());
+
+      llvm::StructType *structType =
+          _codeGenerationContext->getTypeChain()->getType(
+              boundObjectTypeExpression->getTypeName());
+
+      llvm::Type *returnType = llvm::PointerType::get(structType, 0);
+
+      FT = llvm::FunctionType::get(returnType, argTypes, false);
+      F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 fd->getFunctionNameRef(), *TheModule);
+
+      _codeGenerationContext->getReturnTypeHandler()->addReturnType(
+          fd->getFunctionNameRef(),
+          std::make_unique<LLVMObjectType>(returnType, structType));
+
+      returnInfo = fd->getFunctionNameRef() +
+                   ":rt:ob:" + boundObjectTypeExpression->getTypeName();
+
+      break;
+    }
+    default: {
+      _codeGenerationContext->getLogger()->LogError(
+          "Invalid return type for function");
+      return nullptr;
+    }
     }
   }
   // Return type metadata

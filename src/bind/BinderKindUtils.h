@@ -71,7 +71,8 @@ enum BoundBinaryOperatorKind {
   BitwiseOr,
   BitwiseXor,
   Modulus,
-  IntegerDivision
+  IntegerDivision,
+  AssignmentToken
 };
 
 std::string to_string(BoundNodeKind kind);
@@ -84,4 +85,4 @@ BoundUnaryOperatorKind getUnaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
 BoundBinaryOperatorKind getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind);
 
-}  // namespace BinderKindUtils
+} // namespace BinderKindUtils

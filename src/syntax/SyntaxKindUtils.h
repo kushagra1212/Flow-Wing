@@ -38,12 +38,14 @@ enum SyntaxKind {
   Int32Keyword,
   Int64Keyword,
   Int8Keyword,
-  DeciKeyword,Deci32Keyword,
+  DeciKeyword,
+  Deci32Keyword,
   StrKeyword,
   BoolKeyword,
   BringKeyword,
   SlashSlashToken,
   DotToken,
+  AssignmentToken,
 
   // Bitwise
 

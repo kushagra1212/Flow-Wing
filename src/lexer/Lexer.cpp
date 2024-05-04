@@ -522,6 +522,14 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
   }
 
   case '<': {
+    if (this->peek(1) == '-') {
+      this->next();
+      return std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+          SyntaxKindUtils::SyntaxKind::AssignmentToken, this->position++, "<-",
+          nullptr);
+    }
+
     if (this->peek(1) == '=') {
       this->next();
       return std::make_unique<SyntaxToken<std::any>>(

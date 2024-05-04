@@ -69,9 +69,14 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         binaryExpression);
   }
 
+  if (!result) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Binary Operation !");
+    return nullptr;
+  }
+
   _codeGenerationContext->getValueStackHandler()->push("", result, "constant",
                                                        result->getType());
-
   return result;
 }
 
