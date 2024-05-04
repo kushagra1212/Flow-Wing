@@ -203,6 +203,7 @@ Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
         returnStatement->getExpressionPtr().get();
 
     if (returnExpression) {
+      // TODO IMPLEMENT all Expression
       boundExpression = std::move(bindExpression(returnExpression));
     }
   }
@@ -693,7 +694,8 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
   return std::make_unique<BoundAssignmentExpression>(
       assignmentExpression->getSourceLocation(),
       root->tryGetVariable(variable_str), std::move(boundIdentifierExpression),
-      op, std::move(boundRight));
+      op, std::move(boundRight),
+      assignmentExpression->getNeedDefaulInitilization());
 }
 
 std::unique_ptr<BoundExpression>

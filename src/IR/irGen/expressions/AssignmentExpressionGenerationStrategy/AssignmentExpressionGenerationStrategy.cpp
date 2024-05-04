@@ -523,6 +523,10 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   if (populateLHS(assignmentExpression) == EXIT_FAILURE)
     return nullptr;
 
+  if (assignmentExpression->getNeedDefaulInitilization()) {
+    initDefaultValue(_lhsType, _lhsPtr);
+  }
+
   return handleRHSExpression(assignmentExpression->getRightPtr().get());
 }
 llvm::Value *AssignmentExpressionGenerationStrategy::
@@ -614,6 +618,7 @@ AssignmentExpressionGenerationStrategy::handleAssignmentByBracketedExpression(
       bracketedExpressionGenerationStrategy =
           std::make_unique<BracketedExpressionGenerationStrategy>(
               _codeGenerationContext);
+
   return bracketedExpressionGenerationStrategy->assignBracketExpression(
       bracketedExpression, _lhsPtr, llvm::cast<llvm::ArrayType>(_lhsType),
       _lhsVariableName);

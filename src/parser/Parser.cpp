@@ -1263,18 +1263,33 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression() {
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
+
   if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken ||
+      this->peek(1)->getKind() ==
+          SyntaxKindUtils::SyntaxKind::AssignmentToken ||
       this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
     std::unique_ptr<VariableExpressionSyntax> variableExpression =
         std::move(this->parseVariableExpression());
     appendWithSpace();
-    if (this->getCurrent()->getKind() !=
+
+    bool needDefaultInitialize = false;
+
+    std::unique_ptr<SyntaxToken<std::any>> operatorToken = nullptr;
+    if (this->getCurrent()->getKind() ==
         SyntaxKindUtils::SyntaxKind::EqualsToken) {
+
+      operatorToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+    } else if (this->getCurrent()->getKind() ==
+               SyntaxKindUtils::SyntaxKind::AssignmentToken) {
+
+      operatorToken =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::AssignmentToken));
+      needDefaultInitialize = true;
+    } else {
       return std::move(variableExpression);
     }
 
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
     appendWithSpace();
 
     std::unique_ptr<ExpressionSyntax> right =
@@ -1283,7 +1298,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression() {
 
     return std::make_unique<AssignmentExpressionSyntax>(
         std::move(variableExpression), std::move(operatorToken),
-        std::move(right));
+        std::move(right), needDefaultInitialize);
 
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {

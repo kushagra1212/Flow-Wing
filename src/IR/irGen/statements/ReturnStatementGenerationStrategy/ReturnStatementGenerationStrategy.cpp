@@ -57,44 +57,69 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);
+    llvm::Value *rtValueLLVM =
+        _codeGenerationContext->getValueStackHandler()->getValue();
+    llvm::Type *rtypeLLVM =
+        _codeGenerationContext->getValueStackHandler()->getLLVMType();
 
     if (returnType->isPointerToObject()) {
       LLVMObjectType *llvmObjectType =
           static_cast<LLVMObjectType *>(returnType);
 
       if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
-        errorMessage = "Return Type Mismatch " +
-                       _codeGenerationContext->getMapper()->getLLVMTypeName(
-                           returnType->getType()) +
-                       " is expected but " +
-                       _codeGenerationContext->getMapper()->getLLVMTypeName(
-                           returnValue->getType()) +
-                       " is found";
-      }
-
-      if (llvmObjectType->getStructType()->getStructName() !=
-          _codeGenerationContext->getValueStackHandler()->getTypeName()) {
         errorMessage =
             "Return Type Mismatch " +
-            llvmObjectType->getStructType()->getStructName().str() +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                llvmObjectType->getStructType()) +
             " is expected but " +
-
-            _codeGenerationContext->getValueStackHandler()->getTypeName() +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM) +
             " is found";
       }
+
+      _codeGenerationContext->verifyType(llvmObjectType->getStructType(),
+                                         rtypeLLVM, " in Return Expression");
+
+      //   if (llvmObjectType->getStructType()->getStructName() !=
+      //       _codeGenerationContext->getValueStackHandler()->getTypeName()) {
+      //     errorMessage =
+      //         "Return Type Mismatch " +
+      //         llvmObjectType->getStructType()->getStructName().str() +
+      //         " is expected but " +
+      //         _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM)
+      //         + " is found";
+      //   }
+
+    } else if (returnType->isPointerToArray()) {
+      LLVMArrayType *llvmArrayType = static_cast<LLVMArrayType *>(returnType);
+
+      if (!_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+        errorMessage =
+            "Return Type Mismatch " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                returnType->getType()) +
+            " is expected but " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM) +
+            " is found";
+      }
+      _codeGenerationContext->verifyType(llvmArrayType->getElementType(),
+                                         rtypeLLVM, " in Return Expression");
 
     } else if (returnTypeCustomType !=
                _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
                    returnValue->getType())) {
-      errorMessage = "Return Type Mismatch " +
-                     _codeGenerationContext->getMapper()->getLLVMTypeName(
-                         returnTypeCustomType) +
-                     " is expected but " +
-                     _codeGenerationContext->getMapper()->getLLVMTypeName(
-                         returnValue->getType()) +
-                     " is found";
+      llvm::Type *type =
+          _codeGenerationContext->getValueStackHandler()->getLLVMType();
+      errorMessage =
+          "Return Type Mismatch " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              returnTypeCustomType) +
+          " is expected but " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(type) +
+          " is found";
     }
   }
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
   if (errorMessage != "") {
     _codeGenerationContext->getLogger()->LogError(errorMessage);
   }

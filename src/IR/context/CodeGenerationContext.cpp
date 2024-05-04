@@ -15,7 +15,7 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmParser();
 
 #if defined(__APPLE__)
-  _module->setTargetTriple("x86_64-apple-macosx14.0.0");
+  // _module->setTargetTriple("x86_64-apple-macosx14.0.0");
 #elif defined(__LINUX__)
   _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
 #endif
@@ -341,7 +341,8 @@ void CodeGenerationContext::getMultiArrayType(
   }
 }
 int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
-                                              llvm::ArrayType *rhsType) {
+                                              llvm::ArrayType *rhsType,
+                                              std::string inExp) {
   std::vector<uint64_t> lhsSizes, rhsSizes;
   llvm::Type *lshEType = (lhsType), *rhsEType = (rhsType);
   this->createArraySizesAndArrayElementType(lhsSizes, lshEType);
@@ -349,7 +350,7 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
 
   if (lshEType != rhsEType) {
     this->getLogger()->LogError(
-        "Type mismatch in assignment expression, expected " +
+        "Type mismatch " + inExp + ", expected " +
         this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
         this->getMapper()->getLLVMTypeName(rhsType) + " ");
     return EXIT_FAILURE;
@@ -358,7 +359,7 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
   if (lhsSizes.size() != rhsSizes.size()) {
     this->getLogger()->LogError(
         "Dimension mismatch Expected " + std::to_string(lhsSizes.size()) +
-        " but found " + std::to_string(rhsSizes.size()));
+        " but found " + std::to_string(rhsSizes.size()) + inExp);
     return EXIT_FAILURE;
   }
 
@@ -376,19 +377,19 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
 }
 
 int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
-                                               llvm::StructType *rhsType) {
+                                               llvm::StructType *rhsType,
+                                               std::string inExp) {
 
   if (lhsType != rhsType) {
-    this->getLogger()->LogError("Type mismatch Expected " +
-                                this->getMapper()->getLLVMTypeName(lhsType) +
-                                " but found " +
-                                this->getMapper()->getLLVMTypeName(rhsType) +
-                                "in " + "assignment expression");
+    this->getLogger()->LogError(
+        "Type mismatch Expected " +
+        this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+        this->getMapper()->getLLVMTypeName(rhsType) + inExp);
     return EXIT_FAILURE;
   }
 
   if (lhsType->getNumElements() != rhsType->getNumElements()) {
-    this->getLogger()->LogError("Object type mismatch Expected " +
+    this->getLogger()->LogError("Object type mismatch " + inExp + " Expected " +
                                 std::to_string(lhsType->getNumElements()) +
                                 " but found " +
                                 std::to_string(rhsType->getNumElements()));
@@ -396,12 +397,36 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   }
 
   if (lhsType->getStructName() != rhsType->getStructName()) {
-    this->getLogger()->LogError("Object type mismatch Expected " +
+    this->getLogger()->LogError("Object type mismatch " + inExp + " Expected " +
                                 lhsType->getStructName().str() + " but found " +
                                 rhsType->getStructName().str());
 
     return EXIT_FAILURE;
   }
+  return EXIT_SUCCESS;
+}
+
+int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
+                                         llvm::Type *rhsType,
+                                         std::string inExp) {
+  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+      llvm::isa<llvm::ArrayType>(rhsType))
+    return verifyArrayType(llvm::cast<llvm::ArrayType>(lhsType),
+                           llvm::cast<llvm::ArrayType>(rhsType), inExp);
+
+  if (llvm::isa<llvm::StructType>(lhsType) &&
+      llvm::isa<llvm::StructType>(rhsType))
+    return verifyStructType(llvm::cast<llvm::StructType>(lhsType),
+                            llvm::cast<llvm::StructType>(rhsType), inExp);
+
+  if (lhsType != rhsType) {
+    this->getLogger()->LogError(
+        "Type mismatch Expected " +
+        this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+        this->getMapper()->getLLVMTypeName(rhsType) + inExp);
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
 
@@ -431,8 +456,11 @@ void CodeGenerationContext::getRetrunedArrayType(
   }
   Utils::split(metaData, ":", strs);
   if (strs[2] == "ay") {
-    arrayElementType = getMapper()->mapCustomTypeToLLVMType(
-        (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
+    arrayElementType = getTypeChain()->getType(strs[3]);
+
+    if (!arrayElementType)
+      arrayElementType = getMapper()->mapCustomTypeToLLVMType(
+          (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
 
     for (int64_t i = 5; i < strs.size(); i++) {
       actualSizes.push_back(stoi(strs[i]));

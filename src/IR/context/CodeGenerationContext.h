@@ -101,8 +101,12 @@ public:
 
   void getReturnedObjectType(llvm::Function *F, llvm::StructType *&objectType);
 
-  int8_t verifyArrayType(llvm::ArrayType *lhsType, llvm::ArrayType *rhsType);
-  int8_t verifyStructType(llvm::StructType *lhsType, llvm::StructType *rhsType);
+  int8_t verifyArrayType(llvm::ArrayType *lhsType, llvm::ArrayType *rhsType,
+                         std::string inExp = " in assignment expression");
+  int8_t verifyStructType(llvm::StructType *lhsType, llvm::StructType *rhsType,
+                          std::string inExp = " in assignment expression");
+  int8_t verifyType(llvm::Type *lhsType, llvm::Type *rhsType,
+                    std::string inExp = " in assignment expression");
   inline auto
   createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
                                       llvm::Type *&arrayElementType) -> void {

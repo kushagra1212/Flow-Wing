@@ -8,18 +8,20 @@
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundAssignmentExpression : public BoundExpression {
- private:
+private:
   BinderKindUtils::BoundBinaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
   BoundVariableDeclaration *_variable;
+  bool _needDefaulInitilization;
 
- public:
+public:
   BoundAssignmentExpression(const DiagnosticUtils::SourceLocation &location,
                             BoundVariableDeclaration *variable,
                             std::unique_ptr<BoundExpression> left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
-                            std::unique_ptr<BoundExpression> right);
+                            std::unique_ptr<BoundExpression> right,
+                            bool needDefaulInitilization = false);
 
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
@@ -40,6 +42,8 @@ class BoundAssignmentExpression : public BoundExpression {
   std::unique_ptr<BoundExpression> &getRightPtr();
 
   const BoundVariableDeclaration *getVariable() const;
+
+  inline bool getNeedDefaulInitilization() { return _needDefaulInitilization; }
 };
 
-#endif  // ASSIGNMENT_EXPRESSION_H
+#endif // ASSIGNMENT_EXPRESSION_H

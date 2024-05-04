@@ -3445,4 +3445,1756 @@ print(r.g[0].ob)
   O(R"(00Hello2.30000000000000{ i : 0, s : 'g' }
 000.00000000000000{ i : 0, s : '' })");
 }
+
+TEST_F(ObjectArrayLocal, ArrayInsideObjectAcessPassingAsParam) {
+  I(R"(
+
+ 
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t[2])->nthg{
+  ar[1].x = 100
+  ar[1].y = "Hello2"
+  ar[1].a = 5.4
+  ar[1].b = true 
+  ar[1].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+    print(ar)
+}
+printF(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : '', g : [{ o : 0, s : 'go', d : 43.30000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal,
+       ArrayInsideObjectAcessPassingAsParamReturnFromFunction) {
+  I(R"(
+
+ 
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t[2],ar2:t[2])->t[2]{
+  ar[1].x = 100
+  ar[1].y = "Hello2"
+  ar[1].a = 5.4
+  ar[1].b = true 
+  ar[1].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar 
+}
+print(printF(arr,arr))
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : '', g : [{ o : 0, s : 'go', d : 43.30000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal,
+       ArrayInsideObjectAcessPassingAsParamReturnFromFunctionPreviousPersist) {
+  I(R"(
+
+
+
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t[2],ar2:t[2])->t[2]{
+  ar[1].x = 100
+  ar[1].y = "Hello2"
+  ar[1].a = 5.4
+  ar[1].b = true 
+  ar[1].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar 
+}
+print(arr)
+
+print("\n")
+
+print(printF(arr,arr))
+
+print("\n")
+
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : '', g : [{ o : 0, s : 'go', d : 43.30000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, ArrayInsideObjectAcessPassingAsParamObject) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->nthg{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+    print(ar)
+}
+print(arr)
+print("\n")
+printF(arr)
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal, ArrayInsideObjectAcessPassingAsParamObjectReturning) {
+  I(R"(
+type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+print(printF(arr))
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeGlobal) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+var newo:t = printF(arr)
+print(newo)
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeLocal) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+{
+  var newo:t = printF(arr)
+print(newo)
+}
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeLocal2) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+{
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+
+print(arr)
+print("\n")
+  var newo:t = printF(arr)
+print(newo)
+
+print("\n")
+print(arr)
+}
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignGlobal) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+arr = printF(arr)
+print(arr)
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] })");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocal) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+{
+
+arr = printF(arr)
+}
+print(arr)
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] })");
+}
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocal2) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+{
+
+arr = printF(arr)
+
+print(arr)
+}
+print("\n")
+print(arr)
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] })");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocal3) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+{
+
+var arr:t = {x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+
+print(arr)
+print("\n")
+arr = printF(arr)
+
+print(arr)
+
+print("\n")
+print(arr)
+}
+    )");
+
+  O(R"({ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] })");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocalPassingIndex) {
+  I(R"(
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun printF(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+arr[1] = printF(arr[0])
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] }])");
+}
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocalPassingIndexContainer) {
+  I(R"(
+  type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t)->t{
+  ar.x = 200
+  ar.y = "Hello4"
+  ar.b = false 
+  ar.ar = [{u:"s",g:[{d:55.3,s:"no"},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+
+print(arr)
+print("\n")
+arr[1] = getTwo(getOne(arr[0]))
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 200, y : 'Hello4', a : 5.40000000000000, b : false, ar : [{ u : 's', g : [{ o : 102, s : 'no', d : 55.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 40, s : 'bye' } }] }] }])");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocalPassingIndexContainerKeepingOld) {
+  I(R"(
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+fun getTwo(ar:t)->t{
+  ar.x = 200
+  ar.y = "Hello4"
+  ar.b = false 
+  ar.ar = [{g:[{d:55.3,},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+print(arr)
+print("\n")
+arr[1] = getTwo(getOne(arr[0]))
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 200, y : 'Hello4', a : 5.40000000000000, b : false, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 55.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 40, s : 'bye' } }] }] }])");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    ArrayInsideObjectAcessPassingAsParamObjectReturningInitializeAssignlocalPassingIndexContainerKeepingOlMultiFun) {
+  I(R"(
+
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+
+fun getOne(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t)->t{
+  ar.x = 200
+  ar.y = "Hello4"
+  ar.b = false 
+  ar.ar = [{g:[{d:55.3,},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+
+print(arr)
+print("\n")
+var tm:t = getOne(getTwo(arr[0]))
+print(tm)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+{ x : 100, y : 'Hello2', a : 5.40000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 43.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 20, s : 'hi' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg) {
+  I(R"(
+
+fun getOne() -> int {
+    return 2
+}
+fun getDeci(num:int) -> deci {
+    return 3.2 * num
+}
+
+print(getDeci(getOne()))
+    )");
+
+  O(R"(6.40000000000000)");
+}
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg2) {
+  I(R"(
+
+fun getOne() -> int {
+    return 2
+}
+fun getDeci(num:int,p:deci) -> deci {
+    return 3.2 * num * p 
+}
+
+print(getDeci(getOne(),2.3))
+    )");
+
+  O(R"(14.72000000000000)");
+}
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg2WithStr) {
+  I(R"(
+
+fun getOne() ->  str {
+    return "One"
+}
+fun getDeci(num:str) -> str {
+    return  num + "two" 
+}
+
+print(getDeci(getOne()))
+    )");
+
+  O(R"(Onetwo)");
+}
+
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg2WithArray) {
+  I(R"(
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t[2])->t[2]{
+  ar[0].x = 100
+  ar[0].y = "Hello2"
+  ar[0].a = 5.4
+  ar[0].b = true 
+  ar[0].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t[2])->t[2]{
+  ar[0].x = 200
+  ar[0].y = "Hello4"
+  ar[0].b = false 
+  ar[0].ar = [{g:[{d:55.3,},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+
+print(arr)
+print("\n")
+arr = getTwo(getOne(arr))
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 200, y : 'Hello4', a : 5.40000000000000, b : false, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 55.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 40, s : 'bye' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg2WithArray2) {
+  I(R"(
+  type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t[2])->t[2]{
+  ar[0].x = 100
+  ar[0].y = "Hello2"
+  ar[0].a = 5.4
+  ar[0].b = true 
+  ar[0].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t[2])->t[2]{
+  ar[0].x = 200
+  ar[0].y = "Hello4"
+  ar[0].b = false 
+  ar[0].ar = [{g:[{d:55.3,},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+
+print(arr)
+print("\n")
+print(getTwo(getOne(arr)))
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 200, y : 'Hello4', a : 5.40000000000000, b : false, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 55.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 40, s : 'bye' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, PassingCalledFunctionAsArg2WithArray2Local) {
+  I(R"(
+  type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t[2])->t[2]{
+  ar[0].x = 100
+  ar[0].y = "Hello2"
+  ar[0].a = 5.4
+  ar[0].b = true 
+  ar[0].ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t[2])->t[2]{
+  ar[0].x = 200
+  ar[0].y = "Hello4"
+  ar[0].b = false 
+  ar[0].ar = [{g:[{d:55.3,},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+{
+
+print(arr)
+print("\n")
+print(getTwo(getOne(arr)))
+}
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+[{ x : 200, y : 'Hello4', a : 5.40000000000000, b : false, ar : [{ u : 'get', g : [{ o : 102, s : 'go', d : 55.30000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 40, s : 'bye' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFun) {
+  I(R"(
+   type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+
+    return gka 
+  }
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[getGKA()]}]}]
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFunArray) {
+  I(R"(
+      type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFunArrayMultiple) {
+  I(R"(
+       type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+var arr:t[2] = getArr()
+print(arr)
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFunArrayMultipleLocal) {
+  I(R"(
+       type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+{
+  var arr:t[2] = getArr()
+print(arr)
+}
+    )");
+
+  O(R"([{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFunArrayMultipleLocal2) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr = getArr()
+print(arr)
+arr[0].ar[0].g = getGKA()
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+    )");
+
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal, InitializeArrayObjectWithFunArrayMultipleLocal2GKA) {
+  I(R"(
+  type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+
+  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr = getArr()
+print(arr)
+{
+arr[0].ar[0].g = getGKA()
+}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+
+    )");
+
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal,
+       InitializeArrayObjectWithFunArrayMultipleLocal2GKALocal) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+fun getArr()-> t[2] {
+var a:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:getGKA()}]}]
+return a
+  }
+{
+  var arr:t[2] =[{x:300,y:"eee",a:4.3,b:true,ar:[{g:getGKA()}]}]
+print(arr)
+print("\n\n")
+arr = getArr()
+print(arr)
+arr[0].ar[0].g = getGKA()
+}
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+    )");
+
+  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+
+[{ x : 2, y : 'hello', a : 3.30000000000000, b : true, ar : [{ u : 'get', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
+}
+
+TEST_F(ObjectArrayLocal,
+       InitializeArrayObjectWithFunArrayMultipleLocal2GKAOBJECTFUN) {
+  I(R"(
+    type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {x:243,y:"NO",a:2.3,b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+var u:t  = {x:32}
+print(u)
+u = getT()
+print("\n")
+print(u)
+    )");
+
+  O(R"({ x : 32, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 243, y : 'NO', a : 2.30000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       InitializeArrayObjectWithFunArrayMultipleLocal2GKAOBJECTFUN2) {
+  I(R"(
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {x:243,y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+var u:t  = {x:32}
+print(u)
+u = getT()
+print("\n")
+print(u)
+    )");
+
+  O(R"({ x : 32, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 243, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       InitializeArrayObjectWithFunArrayMultipleLocal2GKAOBJECTFUN2Initialize) {
+  I(R"(
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {x:243,y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+var u:t  = getT()
+print(u)
+
+    )");
+
+  O(R"({ x : 243, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(ObjectArrayLocal,
+       InitializeArrayObjectWithFunArrayMultipleLocal2GKAOBJECTFUN2LOCAL) {
+  I(R"(
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {x:243,y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+
+{
+  var u:t  = {x:32}
+print(u)
+u = getT()
+print("\n")
+print(u)
+}
+    )");
+
+  O(R"({ x : 32, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+{ x : 243, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
+TEST_F(
+    ObjectArrayLocal,
+    InitializeArrayObjectWithFunArrayMultipleLocal2GKAOBJECTFUN2InitializeLocal) {
+  I(R"(
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+fun getGKA() -> k[2] {
+  var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
+}
+var x:k[2] = [gka]
+
+    return x
+  }
+
+fun getT()-> t{
+  var tt:t = {x:243,y:"NO",b:true,ar:[{u:"eeet",g:getGKA()}]}
+  return tt
+  }
+{
+
+var u:t  = getT()
+print(u)
+}
+
+    )");
+
+  O(R"({ x : 243, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
+}
+
 // #endif

@@ -4,16 +4,18 @@
 #include "ExpressionSyntax.h"
 #include "LiteralExpressionSyntax.h"
 class AssignmentExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::unique_ptr<ExpressionSyntax> _left;
   std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _right;
+  bool _needDefaultInitialize = false;
 
- public:
+public:
   AssignmentExpressionSyntax(
       std::unique_ptr<ExpressionSyntax> left,
       std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-      std::unique_ptr<ExpressionSyntax> right);
+      std::unique_ptr<ExpressionSyntax> right,
+      bool needDefaultInitialize = false);
 
   std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
   std::unique_ptr<ExpressionSyntax> getRight();
@@ -26,4 +28,8 @@ class AssignmentExpressionSyntax : public ExpressionSyntax {
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
   std::unique_ptr<ExpressionSyntax> &getRightPtr();
   std::unique_ptr<ExpressionSyntax> &getLeftPtr();
+
+  auto inline getNeedDefaulInitilization() -> bool {
+    return _needDefaultInitialize;
+  }
 };
