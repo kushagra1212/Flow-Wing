@@ -37,8 +37,8 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   if (!_allocaInst) {
     llvm::AllocaInst *alloc =
         Builder->CreateAlloca(arrayType, nullptr, _containerName);
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                            alloc);
+    _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                     {alloc, arrayType});
     _codeGenerationContext->setArraySizeMetadata(alloc, _actualSizes);
     _codeGenerationContext->setArrayElementTypeMetadata(alloc, _elementType);
     _allocaInst = alloc;
@@ -117,8 +117,8 @@ llvm::Value *ContainerExpressionGenerationStrategy::createLocalExpression(
     llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
     BoundContainerExpression *containerExpression) {
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          _allocaInst);
+  _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                   {_allocaInst, arrayType});
 
   return createExpression(arrayType, _allocaInst, containerExpression);
 }

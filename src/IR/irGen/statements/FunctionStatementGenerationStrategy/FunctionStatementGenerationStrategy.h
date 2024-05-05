@@ -8,13 +8,18 @@
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {
- public:
+public:
   FunctionStatementGenerationStrategy(CodeGenerationContext *context);
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 
   llvm::Value *generateStatementOnFly(BoundFunctionDeclaration *node,
                                       std::vector<llvm::Value *> callArgs);
+
+  llvm::Value *generate(BoundStatement *statement,
+                        std::vector<std::string> classParams = {},
+                        llvm::Type *classType = nullptr,
+                        std::vector<std::string> classVariables = {});
 };
 
-#endif  // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
+#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

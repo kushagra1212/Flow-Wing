@@ -21,54 +21,53 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
     return true;
   }
 
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+  // llvm::AllocaInst *v =
+  //     _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
 
-  if (v && !(llvm::isa<llvm::ArrayType>(v->getAllocatedType()))) {
+  // if (v && !(llvm::isa<llvm::ArrayType>(v->getAllocatedType()))) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "variable " + _variableName + " Expected to be of type array of " +
+  //       Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           _arrayElementType)) +
+  //       " but got " +
+  //       Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           v->getAllocatedType())));
+  //   return false;
+  // }
+
+  // if (!v) {
+  // Variable not found, handle error
+  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(_variableName);
+
+  if (!variable) {
+    _codeGenerationContext->getLogger()->LogError(
+        "variable " + _variableName + " not found in variable expression");
+
+    return false;
+  }
+
+  if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+
     _codeGenerationContext->getLogger()->LogError(
         "variable " + _variableName + " Expected to be of type array of " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
             _arrayElementType)) +
         " but got " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-            v->getAllocatedType())));
+            variable->getValueType())));
+
     return false;
   }
+  // _arrayElementType =
+  //     _codeGenerationContext->getArrayElementTypeMetadata(variable);
+  _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
+  _variable = variable;
 
-  if (!v) {
-    // Variable not found, handle error
-    llvm::GlobalVariable *variable =
-        TheModule->getGlobalVariable(_variableName);
-
-    if (!variable) {
-      _codeGenerationContext->getLogger()->LogError(
-          "variable " + _variableName + " not found in variable expression");
-
-      return false;
-    }
-
-    if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-
-      _codeGenerationContext->getLogger()->LogError(
-          "variable " + _variableName + " Expected to be of type array of " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              _arrayElementType)) +
-          " but got " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              variable->getValueType())));
-
-      return false;
-    }
-    // _arrayElementType =
-    //     _codeGenerationContext->getArrayElementTypeMetadata(variable);
-    _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
-    _variable = variable;
-
-    return true;
-  }
-  // _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
-  _arrayType = llvm::cast<llvm::ArrayType>(v->getAllocatedType());
-  _variable = v;
+  // return true;
+  // }
+  // // _arrayElementType =
+  // _codeGenerationContext->getArrayElementTypeMetadata(v); _arrayType =
+  // llvm::cast<llvm::ArrayType>(v->getAllocatedType()); _variable = v;
 
   return true;
 }

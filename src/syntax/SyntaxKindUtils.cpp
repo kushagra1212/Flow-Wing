@@ -298,6 +298,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "AssignmentToken";
   case SyntaxKind::NewKeyword:
     return "NewKeyword";
+  case SyntaxKind::ClassKeyword:
+    return "ClassKeyword";
+  case SyntaxKind::ClassStatement:
+    return "ClassStatement";
   default:
     return "NotDefined";
   }

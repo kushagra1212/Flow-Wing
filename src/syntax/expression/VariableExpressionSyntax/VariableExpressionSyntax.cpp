@@ -14,7 +14,8 @@ const SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
 const std::vector<SyntaxNode *> &VariableExpressionSyntax::getChildren() {
   if (_children.empty()) {
     _children.push_back(_identifierExpression.get());
-    _children.push_back(_variableTypeExpr.get());
+    if (_variableTypeExpr)
+      _children.push_back(_variableTypeExpr.get());
 
     if (_newKeyword) {
       _children.push_back(_newKeyword.get());

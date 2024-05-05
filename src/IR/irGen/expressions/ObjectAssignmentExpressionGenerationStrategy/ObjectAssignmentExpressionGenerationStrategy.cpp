@@ -399,7 +399,7 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
         variableElementPtr->getName().str() + "." + propertyKey;
 
     llvm::Value *allocaInstAndGl =
-        _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
+        _codeGenerationContext->getAllocaChain()->getPtr(var_name).first;
 
     if (!allocaInstAndGl) {
       allocaInstAndGl = TheModule->getGlobalVariable(var_name);
@@ -412,8 +412,8 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
 
       } else {
         allocaInstAndGl = Builder->CreateAlloca(elementType, nullptr, var_name);
-        _codeGenerationContext->getAllocaChain()->setAllocaInst(
-            var_name, llvm::cast<llvm::AllocaInst>(allocaInstAndGl));
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            var_name, {allocaInstAndGl, elementType});
       }
     }
 
@@ -464,8 +464,9 @@ bool ObjectAssignmentExpressionGenerationStrategy::
   if (!val) {
     // Variable not found locally, handle error
 
-    _lhsVar = _codeGenerationContext->getAllocaChain()->getAllocaInst(
-        _lhsVarExpr->getVariableNameRef());
+    _lhsVar = _codeGenerationContext->getAllocaChain()
+                  ->getPtr(_lhsVarExpr->getVariableNameRef())
+                  .first;
 
     if (_lhsVar) {
       return true;

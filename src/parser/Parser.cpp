@@ -234,19 +234,22 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
 }
 
 std::unique_ptr<FunctionDeclarationSyntax>
-Parser::parseFunctionDeclaration(const bool &isExposed) {
+Parser::parseFunctionDeclaration(const bool &isExposed, bool isMemberFunction) {
   std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
       std::make_unique<FunctionDeclarationSyntax>();
 
-  if (this->getCurrent()->getKind() ==
-      SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
+  if (!isMemberFunction && this->getCurrent()->getKind() ==
+                               SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     functionDeclaration->setExposedKeyword(
         std::move(this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
     appendWithSpace();
   }
-  functionDeclaration->setFunctionKeyword(
-      std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
-  appendWithSpace();
+  if (!isMemberFunction) {
+    functionDeclaration->setFunctionKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+    appendWithSpace();
+  }
+  functionDeclaration->setIsMemberFunction(isMemberFunction);
 
   functionDeclaration->setIdentifierToken(
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
@@ -460,9 +463,55 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseBringStatement());
   case SyntaxKindUtils::SyntaxKind::TypeKeyword:
     return std::move(this->parseCustomTypeStatement());
+  case SyntaxKindUtils::SyntaxKind::ClassKeyword:
+    return std::move(this->parseClassStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
+}
+
+std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
+
+  std::unique_ptr<ClassStatementSyntax> classSyn =
+      std::make_unique<ClassStatementSyntax>();
+
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
+    this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword);
+    classSyn->setIsExposed(true);
+  }
+
+  classSyn->setClassKeyword(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::ClassKeyword)));
+
+  classSyn->setClassNameIdentifier(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+
+  this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+
+  while (this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
+         this->getCurrent()->getKind() !=
+             SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    SyntaxKindUtils::SyntaxKind kind = this->getCurrent()->getKind();
+
+    switch (kind) {
+    case SyntaxKindUtils::SyntaxKind::VarKeyword:
+    case SyntaxKindUtils::SyntaxKind::ConstKeyword: {
+      classSyn->addClassDataMember(std::move(this->parseVariableDeclaration()));
+      break;
+    }
+
+    default:
+      classSyn->addClassMemberFunction(std::move(
+          this->parseFunctionDeclaration(classSyn->isExposed(), true)));
+      break;
+    }
+  }
+
+  this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
+
+  return std::move(classSyn);
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parseBracketedExpression() {
@@ -1120,6 +1169,15 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
+  bool isSelf = false;
+
+  if (std::any_cast<std::string>(identifierToken->getValue()) == "self") {
+    this->match(SyntaxKindUtils::SyntaxKind::DotToken);
+    isSelf = true;
+    identifierToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+  }
+
   std::any value = identifierToken->getValue();
 
   std::unique_ptr<TypeExpressionSyntax> typeExpression =
@@ -1134,6 +1192,8 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
           std::make_unique<LiteralExpressionSyntax<std::any>>(
               std::move(identifierToken), value),
           false, std::move(typeExpression));
+
+  variExp->setIsSelf(isSelf);
 
   while (this->getCurrent()->getKind() ==
          SyntaxKindUtils::SyntaxKind::DotToken) {

@@ -1,9 +1,7 @@
 #include "BoundScope.h"
 
 BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
-    : parent(std::move(parent)),
-      breakable(false),
-      continuable(false),
+    : parent(std::move(parent)), breakable(false), continuable(false),
       functionCounted(0) {}
 
 bool BoundScope::isInFunction() {
@@ -80,7 +78,8 @@ BoundVariableDeclaration *BoundScope::tryGetVariable(const std::string &name) {
     return this->variables[name];
   }
 
-  if (this->parent) return this->parent->tryGetVariable(name);
+  if (this->parent)
+    return this->parent->tryGetVariable(name);
 
   return nullptr;
 }
@@ -97,28 +96,64 @@ bool BoundScope::tryAssignVariable(const std::string &name,
   return this->parent->tryAssignVariable(name, variable);
 }
 
-bool BoundScope::tryDeclareFunction(BoundFunctionDeclaration *function) {
+// Custom Types
+
+BoundCustomTypeStatement *
+BoundScope::tryGetCustomType(const std::string &name) {
+  if (this->customTypes.find(name) != this->customTypes.end()) {
+    return this->customTypes[name];
+  }
+  if (this->parent == nullptr) {
+    return nullptr;
+  }
+  return this->parent->tryGetCustomType(name);
+}
+
+bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
+  if (this->customTypes.find(customType->getTypeNameAsString()) ==
+      this->customTypes.end()) {
+    this->customTypes[customType->getTypeNameAsString()] = customType;
+    return true;
+  }
+
+  return false;
+}
+
+// Functions
+
+bool BoundScope::tryDeclareMemberFunction(BoundFunctionDeclaration *function) {
+  if (this->functions.find(function->getFunctionNameRef()) ==
+      this->functions.end()) {
+
+    this->functions[function->getFunctionNameRef()] = function;
+    return true;
+  }
+
+  return true;
+}
+
+bool BoundScope::tryDeclareFunctionGlobal(BoundFunctionDeclaration *function) {
   if (this->functions.find(function->getFunctionNameRef()) !=
       this->functions.end()) {
     return false;
   }
 
   if (this->parent) {
-    return this->parent->tryDeclareFunction(function);
+    return this->parent->tryDeclareFunctionGlobal(function);
   }
 
   this->functions[function->getFunctionNameRef()] = function;
   return true;
 }
 
-bool BoundScope::tryLookupFunction(const std::string &name) {
+BoundFunctionDeclaration *BoundScope::tryGetFunction(const std::string &name) {
   if (this->functions.find(name) != this->functions.end()) {
-    return true;
+    return this->functions[name];
   }
   if (this->parent == nullptr) {
-    return false;
+    return nullptr;
   }
-  return this->parent->tryLookupFunction(name);
+  return this->parent->tryGetFunction(name);
 }
 
 std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
@@ -130,39 +165,4 @@ std::vector<BoundFunctionDeclaration *> BoundScope::getAllFunctions() {
     result.push_back(function.second);
   }
   return result;
-}
-
-bool BoundScope::tryLookupCustomType(const std::string &name) {
-  if (this->customTypes.find(name) != this->customTypes.end()) {
-    return true;
-  }
-  if (this->parent == nullptr) {
-    return false;
-  }
-  return this->parent->tryLookupCustomType(name);
-}
-
-BoundCustomTypeStatement *BoundScope::tryGetCustomType(
-    const std::string &name) {
-  if (this->customTypes.find(name) != this->customTypes.end()) {
-    return this->customTypes[name];
-  }
-  if (this->parent == nullptr) {
-    return nullptr;
-  }
-  return this->parent->tryGetCustomType(name);
-}
-
-bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
-  if (this->customTypes.find(customType->getTypeNameAsString()) !=
-      this->customTypes.end()) {
-    return false;
-  }
-
-  if (this->parent) {
-    return this->parent->tryDeclareCustomType(customType);
-  }
-
-  this->customTypes[customType->getTypeNameAsString()] = customType;
-  return true;
 }

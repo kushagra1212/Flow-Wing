@@ -27,7 +27,9 @@ public:
   void setFunctionName(const std::string &functionName);
   void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
 
-  inline void setOnlyDeclared() { _isOnlyDeclared = true; }
+  inline void setOnlyDeclared(bool isOnlyDeclared) {
+    _isOnlyDeclared = isOnlyDeclared;
+  }
 
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
     _returnType = std::move(returnType);

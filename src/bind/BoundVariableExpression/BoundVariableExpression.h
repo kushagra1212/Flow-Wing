@@ -26,6 +26,8 @@ public:
     _hasNewKeyword = hasNewKeyword;
   }
 
+  inline auto setSelf(bool isSelf) { _isSelf = isSelf; }
+
   inline auto getVariableNameRef() const -> const std::string {
     return std::any_cast<std::string>(_identiferExpression->getValue());
   }
@@ -47,10 +49,13 @@ public:
 
   inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
 
+  inline auto isSelf() -> bool { return _isSelf; }
+
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _identiferExpression;
   std::vector<std::unique_ptr<BoundExpression>> _dotExpressionList;
   bool _isConstant;
   BoundTypeExpression *_variableTypeExp;
   bool _hasNewKeyword;
+  bool _isSelf = false;
 };

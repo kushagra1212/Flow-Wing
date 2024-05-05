@@ -22,8 +22,17 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateStatement(
 
 llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
+  this->generate(statement);
+  return nullptr;
+}
+
+llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
+    BoundStatement *statement, std::vector<llvm::Type *> initalArgTypes) {
   BoundFunctionDeclaration *fd =
       static_cast<BoundFunctionDeclaration *>(statement);
+
+  bool isFunctionAlreadyDeclared =
+      TheModule->getFunction(fd->getFunctionNameRef());
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
@@ -40,8 +49,9 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
       parmType = (_codeGenerationContext->getDynamicType()->get());
       argTypes.push_back(parmType);
 
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
+      if (!isFunctionAlreadyDeclared)
+        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+            fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
 
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -95,13 +105,15 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
       llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
 
       argTypes.push_back(parmTypePointer);
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          fd->getFunctionNameRef(),
-          std::make_unique<LLVMArrayType>(
-              parmTypePointer, parmType,
-              _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                  containerElementType),
-              dimensions, arrayTypeExpression));
+
+      if (!isFunctionAlreadyDeclared)
+        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+            fd->getFunctionNameRef(),
+            std::make_unique<LLVMArrayType>(
+                parmTypePointer, parmType,
+                _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+                    containerElementType),
+                dimensions, arrayTypeExpression));
 
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -117,16 +129,23 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
       llvm::Type *parmTypePointer = llvm::PointerType::get(structType, 0);
       argTypes.push_back(parmTypePointer);
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          fd->getFunctionNameRef(),
-          std::make_unique<LLVMObjectType>(parmTypePointer, structType));
+
+      if (!isFunctionAlreadyDeclared)
+        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+            fd->getFunctionNameRef(),
+            std::make_unique<LLVMObjectType>(parmTypePointer, structType));
     } else {
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType());
       argTypes.push_back(parmType);
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
+
+      if (!isFunctionAlreadyDeclared)
+        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+            fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
     }
+  }
+  for (auto &arg : initalArgTypes) {
+    argTypes.push_back(arg);
   }
   llvm::FunctionType *FT = nullptr;
   llvm::Function *F = nullptr;
@@ -304,5 +323,5 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
   _codeGenerationContext->addBoundedUserFunction(fd->getFunctionNameRef(), fd);
 
-  return nullptr;
+  return FT;
 }

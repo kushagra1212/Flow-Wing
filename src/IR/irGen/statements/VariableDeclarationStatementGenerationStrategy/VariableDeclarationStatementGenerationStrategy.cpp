@@ -20,7 +20,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   llvm::AllocaInst *v =
       Builder->CreateAlloca(llvmType, nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName, v);
+  _codeGenerationContext->getAllocaChain()->setPtr(variableName, {v, llvmType});
 
   Builder->CreateStore(rhsValue, v);
 
@@ -34,8 +34,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
       Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
                             nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
-                                                          variable);
+  _codeGenerationContext->getAllocaChain()->setPtr(
+      variableName,
+      {variable, _codeGenerationContext->getDynamicType()->get()});
 
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
       variable, rhsValue, rhsValue->getType(), variableName);
@@ -129,7 +130,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     llvm::AllocaInst *var =
         Builder->CreateAlloca(structType, nullptr, _variableName);
 
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+    _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                     {var, structType});
     assignmentEGS->initDefaultValue(structType, var);
     if (!variableDeclaration->getInitializerPtr().get())
       return var;
@@ -171,7 +173,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
     llvm::AllocaInst *var =
         Builder->CreateAlloca(llvmType, nullptr, _variableName);
     assignmentEGS->initDefaultValue(llvmType, var);
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+    _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                     {var, llvmType});
 
     if (!_rhsValue)
       return var;
@@ -192,7 +195,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
   llvm::AllocaInst *var = Builder->CreateAlloca(
       _codeGenerationContext->getDynamicType()->get(), nullptr, _variableName);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
+  _codeGenerationContext->getAllocaChain()->setPtr(
+      _variableName, {var, _codeGenerationContext->getDynamicType()->get()});
 
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
       var, _rhsValue, _rhsValue->getType(), _variableName);

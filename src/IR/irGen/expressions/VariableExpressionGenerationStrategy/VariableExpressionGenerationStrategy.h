@@ -21,20 +21,9 @@ public:
 
   // Get Primitive Local Variable Value
 
-  llvm::Value *
-  getTypedPrimitiveLocalVariableValue(const std::string &variableName,
-                                      llvm::AllocaInst *v);
-
   llvm::Value *getUnTypedLocalVariableValue(llvm::Value *variableValue,
-                                            llvm::AllocaInst *v,
+                                            llvm::Value *v,
                                             const std::string &variableName);
-
-  llvm::Value *getLocalVariableValue(const std::string &variableName,
-                                     llvm::Value *variableValue,
-                                     llvm::AllocaInst *v);
-
-  llvm::Value *getObjectValue(llvm::Value *elementPtr, size_t listIndex,
-                              const std::string &variableName);
 
   llvm::Value *getObjectValueNF(llvm::Value *variableElementPtr,
                                 size_t listIndex,

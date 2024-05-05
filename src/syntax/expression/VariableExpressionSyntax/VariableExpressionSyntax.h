@@ -50,6 +50,7 @@ public:
     _hasNewKeyword = true;
     _newKeyword = std::move(newKeyword);
   }
+  inline auto setIsSelf(bool isSelf) -> void { _isSelf = isSelf; }
 
   inline auto isConstant() const -> const bool & { return _isConstant; }
 
@@ -61,6 +62,7 @@ public:
         literalExpressionSyntax->getTokenPtr()->getText());
   }
   inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
+  inline auto getIsSelf() -> bool { return _isSelf; }
 
 private:
   std::unique_ptr<ExpressionSyntax> _identifierExpression;
@@ -70,6 +72,7 @@ private:
   bool _isConstant;
   std::string _variableName;
   bool _hasNewKeyword = false;
+  bool _isSelf = false;
 };
 
 #endif // __FLOW__WING__VARIABLE_H__

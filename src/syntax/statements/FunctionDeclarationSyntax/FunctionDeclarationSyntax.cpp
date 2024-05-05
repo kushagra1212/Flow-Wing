@@ -30,7 +30,16 @@ const SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
 
 const DiagnosticUtils::SourceLocation
 FunctionDeclarationSyntax::getSourceLocation() const {
-  return _functionKeyword->getSourceLocation();
+  if (_exposedKeyword)
+    return _exposedKeyword->getSourceLocation();
+  if (_functionKeyword)
+    return _functionKeyword->getSourceLocation();
+  if (_identifierToken)
+    return _identifierToken->getSourceLocation();
+  if (_openParenthesisToken)
+    return _openParenthesisToken->getSourceLocation();
+
+  return DiagnosticUtils::SourceLocation();
 }
 
 const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
@@ -38,9 +47,12 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
     // Add children
     if (_exposedKeyword)
       _children.push_back(_exposedKeyword.get());
-    _children.push_back(_functionKeyword.get());
-    _children.push_back(_identifierToken.get());
-    _children.push_back(_openParenthesisToken.get());
+    if (_functionKeyword)
+      _children.push_back(_functionKeyword.get());
+    if (_identifierToken)
+      _children.push_back(_identifierToken.get());
+    if (_openParenthesisToken)
+      _children.push_back(_openParenthesisToken.get());
 
     for (int i = 0; i < _parameters.size(); i++) {
       _children.push_back(_parameters[i].get());

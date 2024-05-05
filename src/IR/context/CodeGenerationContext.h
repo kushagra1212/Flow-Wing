@@ -17,6 +17,7 @@
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
+#include "../irGen/Types/Class.h"
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
@@ -116,6 +117,8 @@ public:
       arrayElementType = arrayType->getElementType();
     }
   }
+
+  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;

@@ -11,10 +11,13 @@
 
 class FunctionDeclarationGenerationStrategy
     : public StatementGenerationStrategy {
- public:
+public:
   FunctionDeclarationGenerationStrategy(CodeGenerationContext *context);
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  llvm::FunctionType *generate(BoundStatement *statement,
+                               std::vector<llvm::Type *> initalArgTypes = {});
 };
 
-#endif  // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__
+#endif // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__

@@ -412,7 +412,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   if (functionType->getNumParams() != llvmArrayArgs.size()) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
-        callExpression->getCallerNameRef() + " function" + "Expected " +
+        callExpression->getCallerNameRef() + " function Expected " +
         std::to_string(functionType->getNumParams()) + " arguments but got " +
         std::to_string(llvmArrayArgs.size()));
     return nullptr;
@@ -706,8 +706,9 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
       llvmArrayType->getArrayTypeExpression(), arg->getName().str(),
       callExpression->getArgumentsRef()[i].get());
 
-  rhsValue = _codeGenerationContext->getAllocaChain()->getAllocaInst(
-      arg->getName().str());
+  rhsValue = _codeGenerationContext->getAllocaChain()
+                 ->getPtr(arg->getName().str())
+                 .first;
   retFlag = false;
   return nullptr;
 }
@@ -745,8 +746,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
 
   } else {
     rhsValue = Builder->CreateAlloca(llvmObjectType->getStructType(), nullptr);
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(
-        rhsValue->getName().str(), (llvm::AllocaInst *)rhsValue);
+    _codeGenerationContext->getAllocaChain()->setPtr(
+        rhsValue->getName().str(), {rhsValue, rhsValue->getType()});
     objExpGenStrat->setVariable(rhsValue);
     objExpGenStrat->generateExpression(
         callExpression->getArgumentsRef()[i].get());
@@ -773,7 +774,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
   if (!variableExpression) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
-        callExpression->getCallerNameRef() + " function" + "Expected " +
+        callExpression->getCallerNameRef() + " function Expected " +
         std::to_string(functionType->getNumParams()) + " arguments but got " +
         std::to_string(llvmArrayArgs.size()));
     return nullptr;

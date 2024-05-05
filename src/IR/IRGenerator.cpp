@@ -159,6 +159,31 @@ void IRGenerator::generateEvaluateGlobalStatement(
       if (!functionDeclaration->isOnlyDeclared())
         _functionStatementGenerationStrategy->generateGlobalStatement(
             functionDeclaration);
+    } else if (kind == BinderKindUtils::BoundNodeKind::BoundClassStatement) {
+      BoundClassStatement *boundClassStatement =
+          static_cast<BoundClassStatement *>(
+              blockStatement->getStatements()[i].get());
+      llvm::StructType *classType =
+          _codeGenerationContext
+              ->_classTypes[boundClassStatement->getClassName()]
+              ->getClassType();
+
+      if (!classType) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Class " + boundClassStatement->getClassName() + " not found");
+        continue;
+      }
+      for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
+
+        std::vector<std::string> classVariables = {};
+
+        for (auto &variDec : boundClassStatement->getMemberVariablesRef()) {
+          classVariables.push_back(variDec->getVariableName());
+        }
+
+        _functionStatementGenerationStrategy->generate(
+            funDec.get(), {"self"}, classType, classVariables);
+      }
     }
   }
 

@@ -90,6 +90,7 @@ enum SyntaxKind {
   TypeKeyword,
   DeclKeyword,
   NewKeyword,
+  ClassKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -113,6 +114,7 @@ enum SyntaxKind {
   CustomTypeStatement,
   BlockStatement,
   VariableDeclaration,
+  ClassStatement,
   IfStatement,
   OrIfStatement,
   WhileStatement,

@@ -71,8 +71,8 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
   llvm::AllocaInst *alloca =
       Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                          alloca);
+  _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                   {alloca, arrayType});
   assignmentStrategy->initDefaultValue(arrayType, alloca);
   if (!contVarDec->getInitializerPtr().get())
     return alloca;
@@ -112,8 +112,8 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
   llvm::AllocaInst *alloca =
       Builder->CreateAlloca(arrayType, nullptr, containerName);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(containerName,
-                                                          alloca);
+  _codeGenerationContext->getAllocaChain()->setPtr(containerName,
+                                                   {alloca, arrayType});
 
   BinderKindUtils::BoundNodeKind kind = initializer->getKind();
 
@@ -160,8 +160,8 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
       llvm::AllocaInst *alloca =
           Builder->CreateAlloca(arrayType, nullptr, _containerName);
 
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(_containerName,
-                                                              alloca);
+      _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
+                                                       {alloca, arrayType});
       _allocaInst = alloca;
     }
 

@@ -597,7 +597,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
                        llvm::MDNode::get(
                            *TheContext, llvm::MDString::get(*TheContext, "-")));
 
-        _codeGenerationContext->getAllocaChain()->setAllocaInst(var_name, v);
+        _codeGenerationContext->getAllocaChain()->setPtr(var_name,
+                                                         {v, elementType});
       }
 
       this->createExpression(innerObjectExpression, var,
@@ -672,8 +673,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
       std::string var_name = variable->getName().str() + "." + propertyName;
 
       llvm::Value *fromVarLoaded =
-          _codeGenerationContext->getAllocaChain()->getAllocaInst(
-              fromVar->getName().str() + "." + propertyName);
+          _codeGenerationContext->getAllocaChain()
+              ->getPtr(fromVar->getName().str() + "." + propertyName)
+              .first;
 
       if (!fromVarLoaded) {
         fromVarLoaded = TheModule->getGlobalVariable(fromVar->getName().str() +
@@ -694,11 +696,11 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
         }
       } else {
         toValue =
-            _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
+            _codeGenerationContext->getAllocaChain()->getPtr(var_name).first;
         if (!toValue) {
           toValue = Builder->CreateAlloca(elementType, nullptr, var_name);
-          _codeGenerationContext->getAllocaChain()->setAllocaInst(
-              var_name, llvm::cast<llvm::AllocaInst>(toValue));
+          _codeGenerationContext->getAllocaChain()->setPtr(
+              var_name, {toValue, elementType});
         }
       }
 
@@ -771,8 +773,8 @@ ObjectExpressionGenerationStrategy::generateVariableAccessThroughPtr(
                 llvm::MDNode::get(*TheContext,
                                   llvm::MDString::get(*TheContext, "-")));
 
-        _codeGenerationContext->getAllocaChain()->setAllocaInst(
-            var_name, llvm::cast<llvm::AllocaInst>(alloca));
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            var_name, {alloca, innerStructType});
 
         this->generateVariableAccessThroughPtr(alloca, bOT->getTypeName(),
                                                inst);

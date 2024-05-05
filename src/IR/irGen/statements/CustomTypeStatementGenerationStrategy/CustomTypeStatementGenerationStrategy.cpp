@@ -20,86 +20,11 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
 
   for (auto &[boundLiteralExpression, bTE] :
        boundCustomTypeStatement->getKeyPairs()) {
-    llvm::Type *type = nullptr;
+
     const std::string propertyName =
         std::any_cast<std::string>(boundLiteralExpression->getValue());
 
-    switch (bTE->getKind()) {
-    case BinderKindUtils::BoundTypeExpression: {
-      type = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-          bTE->getSyntaxType());
-      break;
-    }
-    case BinderKindUtils::BoundArrayTypeExpression: {
-      BoundArrayTypeExpression *boundArrayTypeExpression =
-          static_cast<BoundArrayTypeExpression *>(bTE.get());
-      std::unique_ptr<LiteralExpressionGenerationStrategy>
-          literalExpressionGenerationStrategy =
-              std::make_unique<LiteralExpressionGenerationStrategy>(
-                  _codeGenerationContext);
-      llvm::Type *elementType = nullptr;
-      if (boundArrayTypeExpression->isTrivialType()) {
-
-        elementType =
-            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                boundArrayTypeExpression->getElementType());
-      } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
-                     boundArrayTypeExpression->getNonTrivialElementType()
-                         .get())) {
-
-        elementType = _codeGenerationContext->getTypeChain()->getType(
-            objectType->getTypeName());
-      }
-      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-          boundArrayTypeExpression->getLocation());
-      if (!elementType) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Expected a array element type in custom type statement");
-        return nullptr;
-      }
-      llvm::Type *arrayType = elementType;
-      std::vector<uint64_t> dimensions(
-          boundArrayTypeExpression->getDimensions().size(), 0);
-      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
-           k >= 0; k--) {
-        llvm::Value *arraySize =
-            literalExpressionGenerationStrategy->generateExpression(
-                boundArrayTypeExpression->getDimensions()[k].get());
-        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-            boundArrayTypeExpression->getDimensions()[k]->getLocation());
-
-        if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
-          _codeGenerationContext->getLogger()->LogError(
-              "Array size must be a constant integer");
-        }
-
-        dimensions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
-
-        arrayType = llvm::ArrayType::get(arrayType, dimensions[k]);
-      }
-      type = arrayType;
-      break;
-    }
-    case BinderKindUtils::BoundObjectTypeExpression: {
-      BoundObjectTypeExpression *bOT =
-          static_cast<BoundObjectTypeExpression *>(bTE.get());
-
-      BoundLiteralExpression<std::any> *bLE =
-          bOT->getObjectTypeIdentifier().get();
-
-      const std::string typeName = std::any_cast<std::string>(bLE->getValue());
-
-      type = _codeGenerationContext->getTypeChain()->getType(typeName);
-      break;
-    }
-    default: {
-      _codeGenerationContext->getLogger()->LogError(
-          "Invalid type expression in type statement");
-
-      return nullptr;
-    }
-    }
+    llvm::Type *type = getType(bTE.get());
 
     const std::string key =
         boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
@@ -127,4 +52,81 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
 llvm::Value *CustomTypeStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
   return this->generateStatement(statement);
+}
+
+llvm::Type *
+CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
+  switch (bTE->getKind()) {
+  case BinderKindUtils::BoundTypeExpression: {
+    return _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        bTE->getSyntaxType());
+  }
+  case BinderKindUtils::BoundArrayTypeExpression: {
+    BoundArrayTypeExpression *boundArrayTypeExpression =
+        static_cast<BoundArrayTypeExpression *>(bTE);
+    std::unique_ptr<LiteralExpressionGenerationStrategy>
+        literalExpressionGenerationStrategy =
+            std::make_unique<LiteralExpressionGenerationStrategy>(
+                _codeGenerationContext);
+    llvm::Type *elementType = nullptr;
+    if (boundArrayTypeExpression->isTrivialType()) {
+
+      elementType =
+          _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+              boundArrayTypeExpression->getElementType());
+    } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
+                   boundArrayTypeExpression->getNonTrivialElementType()
+                       .get())) {
+
+      elementType = _codeGenerationContext->getTypeChain()->getType(
+          objectType->getTypeName());
+    }
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        boundArrayTypeExpression->getLocation());
+    if (!elementType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected a array element type in custom type statement");
+      return nullptr;
+    }
+    llvm::Type *arrayType = elementType;
+    std::vector<uint64_t> dimensions(
+        boundArrayTypeExpression->getDimensions().size(), 0);
+    for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+         k >= 0; k--) {
+      llvm::Value *arraySize =
+          literalExpressionGenerationStrategy->generateExpression(
+              boundArrayTypeExpression->getDimensions()[k].get());
+      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+          boundArrayTypeExpression->getDimensions()[k]->getLocation());
+
+      if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Array size must be a constant integer");
+      }
+
+      dimensions[k] = llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+
+      arrayType = llvm::ArrayType::get(arrayType, dimensions[k]);
+    }
+    return arrayType;
+  }
+  case BinderKindUtils::BoundObjectTypeExpression: {
+    BoundObjectTypeExpression *bOT =
+        static_cast<BoundObjectTypeExpression *>(bTE);
+
+    BoundLiteralExpression<std::any> *bLE =
+        bOT->getObjectTypeIdentifier().get();
+
+    const std::string typeName = std::any_cast<std::string>(bLE->getValue());
+
+    return _codeGenerationContext->getTypeChain()->getType(typeName);
+    break;
+  }
+  default: {
+    _codeGenerationContext->getLogger()->LogError(
+        "Invalid type expression in type statement");
+
+    return nullptr;
+  }
+  }
 }

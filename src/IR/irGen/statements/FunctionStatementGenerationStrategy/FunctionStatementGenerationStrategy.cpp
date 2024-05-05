@@ -6,6 +6,12 @@ FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
 
 llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
+  return this->generate(statement);
+}
+
+llvm::Value *FunctionStatementGenerationStrategy::generate(
+    BoundStatement *statement, std::vector<std::string> classParams,
+    llvm::Type *classType, std::vector<std::string> classVariables) {
   BoundFunctionDeclaration *functionDeclaration =
       static_cast<BoundFunctionDeclaration *>(statement);
 
@@ -46,6 +52,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     parameterNames.push_back(
         functionDeclaration->getParametersRef()[i]->getVariableName());
   }
+  size_t paramsSize = parameterNames.size();
+
+  for (auto &classParam : classParams) {
+    parameterNames.push_back(classParam);
+  }
+
   std::unique_ptr<ContainerAssignmentExpressionGenerationStrategy>
       containerAssignmentExpressionGenerationStrategy(
           new ContainerAssignmentExpressionGenerationStrategy(
@@ -56,12 +68,48 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(
           functionDeclaration->getFunctionNameRef());
 
-  for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        functionDeclaration->getParametersRef()[i]->getLocation());
+  for (size_t i = 0; i < parameterNames.size(); i++) {
 
     llvm::Value *argValue = F->arg_begin() + i;
 
+    if (i >= paramsSize) {
+
+      llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);
+
+      for (int j = 0; j < structT->getNumElements(); j++) {
+        llvm::Type *type = structT->getElementType(j);
+
+        llvm::Value *elementPtr = Builder->CreateGEP(
+            structT, argValue, {Builder->getInt32(0), Builder->getInt32(j)});
+        _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j],
+                                                         {elementPtr, type});
+      }
+
+      //   llvm::AllocaInst *Alloca =
+      //       Builder->CreateAlloca(structT, nullptr, parameterNames[i]);
+      //   Builder->CreateStore(argValue, Alloca);
+
+      //   llvm::Value *loaded =
+      //       Builder->CreateGEP(llvm::Type::getInt32Ty(*TheContext), Alloca,
+      //                          {Builder->getInt32(0), Builder->getInt32(0)});
+
+      //   Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), loaded);
+      //   llvm::Value *intPtr = Builder->CreateBitCast(
+      //       argValue, llvm::PointerType::get(classType, 0));
+      //   llvm::Value *ptr = Builder->CreateGEP(
+      //       classType, argValue, {Builder->getInt32(0),
+      //       Builder->getInt32(0)});
+      //   llvm::Value *load = Builder->CreateLoad(
+      //       llvm::Type::getInt32Ty(*TheContext),
+      //       );
+
+      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                       {argValue, classType});
+      continue;
+    }
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        functionDeclaration->getParametersRef()[i]->getLocation());
     if (llvmArgsTypes[i]->isPointer() &&
         !llvm::isa<llvm::PointerType>(argValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
@@ -90,8 +138,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
           llvmArrayPtrType->getArrayElementType(),
           llvmArrayPtrType->getDimensions(), llvmArrayPtrType->getDimensions());
 
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(
-          parameterNames[i], (llvm::AllocaInst *)variable);
+      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                       {variable, arrayType});
 
     } else if (llvmArgsTypes[i]->isPointerToObject()) {
       LLVMObjectType *llvmObjectType =
@@ -108,8 +156,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       llvm::Value *structPtr =
           Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
 
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(
-          parameterNames[i], (llvm::AllocaInst *)structPtr);
+      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                       {structPtr, structType});
 
       objAssignSt->copyOject(structType, structPtr, argValue);
 
@@ -123,8 +171,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
       llvm::AllocaInst *variable = Builder->CreateAlloca(
           argValue->getType(), nullptr, parameterNames[i]);
       Builder->CreateStore(argValue, variable);
-      _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
-                                                              variable);
+      _codeGenerationContext->getAllocaChain()->setPtr(
+          parameterNames[i], {variable, argValue->getType()});
       _codeGenerationContext->getNamedValueChain()->setNamedValue(
           parameterNames[i], argValue);
     }
@@ -158,6 +206,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
   _codeGenerationContext->getTypeChain()->removeHandler();
+  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
   _codeGenerationContext->getReturnAllocaStack().pop();
 
@@ -216,8 +265,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
         Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
                               nullptr, parameterNames[i]);
 
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(parameterNames[i],
-                                                            variable);
+    _codeGenerationContext->getAllocaChain()->setPtr(
+        parameterNames[i],
+        {variable, _codeGenerationContext->getDynamicType()->get()});
 
     _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
         variable, argValue, argValue->getType(), parameterNames[i]);

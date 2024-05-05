@@ -12,6 +12,8 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  llvm::Type *getType(BoundTypeExpression *btE);
 };
 
 #endif // __FLOWWING_CUSTOM_TYPE_STATEMENT_STRATEGY_H__

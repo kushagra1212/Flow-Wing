@@ -4,96 +4,58 @@ VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-llvm::Value *
-VariableExpressionGenerationStrategy::getTypedPrimitiveLocalVariableValue(
-    const std::string &variableName, llvm::AllocaInst *v) {
-  // When Local Variable is a struct type
-  // When Global Variable (Value) is a struct type
-  if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
-    if (_variableExpression->getDotExpressionList().size() == 0) {
-      return v;
-    }
-    return getObjectValue(v, 0, variableName);
-  }
-  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
-                                                       v->getAllocatedType());
-  return Builder->CreateLoad(v->getAllocatedType(), v, variableName);
-}
-
 llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
-    llvm::Value *variableValue, llvm::AllocaInst *v,
+    llvm::Value *variableValue, llvm::Value *v,
     const std::string &variableName) {
   return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
       v, variableName);
 }
 
-llvm::Value *VariableExpressionGenerationStrategy::getLocalVariableValue(
-    const std::string &variableName, llvm::Value *variableValue,
-    llvm::AllocaInst *v) {
-  // Typed Local Variables
+llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
+    const std::string &variableName) {
 
-  if (!v) {
+  if (_variableExpression && _variableExpression->isSelf()) {
+
+    std::pair<llvm::Value *, llvm::Type *> cl =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
+      llvm::StructType *st = llvm::cast<llvm::StructType>(cl.second);
+      if (_codeGenerationContext->_classTypes[st->getStructName().str()] &&
+          _codeGenerationContext->_classTypes[st->getStructName().str()]
+              ->doesElementExist(variableName)) {
+        auto [elementType, elementIndex, elementName, classType] =
+            _codeGenerationContext->_classTypes[st->getStructName().str()]
+                ->getElement(variableName);
+        if (elementType and classType) {
+          llvm::Value *elementPtr = Builder->CreateGEP(
+              classType, cl.first,
+              {Builder->getInt32(0), Builder->getInt32(elementIndex)});
+
+          _codeGenerationContext->getValueStackHandler()->push(
+              "", elementPtr, elementName, elementType);
+
+          return Builder->CreateLoad(elementType, elementPtr);
+        }
+      }
+      _codeGenerationContext->getLogger()->LogError(
+          "Variable " + variableName +
+          " not found in variable expression Expected to member of class " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(cl.second));
+      return nullptr;
+    }
+
     _codeGenerationContext->getLogger()->LogError(
-        "Variable " + variableName + " not found in variable expression");
+        "Variable " + variableName +
+        " not found in variable expression Expected to member of class ");
 
     return nullptr;
   }
-
-  // When Local Variable is an array type
-  if (v && llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
-
-    _codeGenerationContext->getValueStackHandler()->push(
-        "", v, "array",
-        llvm::cast<llvm::ArrayType>(
-            (llvm::cast<llvm::AllocaInst>(v))->getAllocatedType()));
-    return v;
-  }
-
-  // When Local Variable is a dynamic type
-  if (_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
-    return this->getUnTypedLocalVariableValue(variableValue, v, variableName);
-  }
-
-  // When Local Variable is a struct type
-  if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
-    parObjTypeType = llvm::cast<llvm::StructType>(
-        (llvm::cast<llvm::AllocaInst>(v))->getAllocatedType());
-
-    if (_variableExpression->getDotExpressionList().size() == 0) {
-      _codeGenerationContext->getValueStackHandler()->push(
-          parObjTypeType->getStructName().str(), v, "struct", parObjTypeType);
-
-      return v;
-    }
-
-    std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
-    return getObjectValueNF(v, 0, variableName, indices, parObjTypeType);
-  }
-
-  // When Primitive Local Variable is not a dynamic type
-  if (!_codeGenerationContext->getDynamicType()->isDyn(v->getAllocatedType())) {
-    return this->getTypedPrimitiveLocalVariableValue(variableName, v);
-  }
-
-  // when Primitive Typed Global Variable (Value)
-
-  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
-                                                       v->getAllocatedType());
-
-  return Builder->CreateLoad(v->getAllocatedType(), v, variableName);
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable " + variableName + " not found in variable expression ");
-
-  return nullptr;
-}
-
-llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
-    const std::string &variableName) {
 
   std::pair<llvm::Value *, llvm::Type *> var =
       _codeGenerationContext->getAllocaChain()->getPtr(variableName);
 
   if (var.first && var.second) {
+
     llvm::Value *varValue =
         Builder->CreateLoad(var.second, var.first, variableName);
     // When Local Variable is an array type
@@ -105,10 +67,10 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     }
 
     // // When Local Variable is a dynamic type
-    // if (_codeGenerationContext->getDynamicType()->isDyn(var.second)) {
-    //   return this->getUnTypedLocalVariableValue(varValue, var.first,
-    //                                             variableName);
-    // }
+    if (_codeGenerationContext->getDynamicType()->isDyn(var.second)) {
+      return this->getUnTypedLocalVariableValue(varValue, var.first,
+                                                variableName);
+    }
 
     // When Local Variable is a struct type
     if (llvm::isa<llvm::StructType>(var.second)) {
@@ -128,39 +90,28 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     }
 
     // // When Primitive Local Variable is not a dynamic type
-    // if (!_codeGenerationContext->getDynamicType()->isDyn(
-    //         v->getAllocatedType())) {
-    //   return this->getTypedPrimitiveLocalVariableValue(variableName, v);
-    // }
+    if (!_codeGenerationContext->getDynamicType()->isDyn(var.second)) {
 
-    // when Primitive Typed Global Variable (Value)
+      // when Primitive Typed Global Variable (Value)
 
-    _codeGenerationContext->getValueStackHandler()->push(
-        "", var.first, "primitive", var.second);
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", var.first, "primitive", var.second);
 
-    return Builder->CreateLoad(var.second, var.first, variableName);
-  }
-
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
-
-  llvm::Value *variableValue =
-      _codeGenerationContext->getNamedValueChain()->getNamedValue(variableName);
-
-  // Get Local Variable Value
-  if (!variableValue) {
-    if (v) {
-      return this->getLocalVariableValue(variableName, variableValue, v);
+      return Builder->CreateLoad(var.second, var.first, variableName);
     }
 
-    llvm::GlobalVariable *variable = TheModule->getGlobalVariable(variableName);
+    _codeGenerationContext->getLogger()->LogError(
+        "Variable " + variableName + " not found in variable expression ");
+    return nullptr;
 
-    if (variable) {
-      return this->getGlobalVariableValue(variableName, variable);
-    }
+  } else {
+    return this->getGlobalVariableValue(
+        variableName, TheModule->getGlobalVariable(variableName));
   }
 
-  return this->getLocalVariableValue(variableName, variableValue, v);
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable " + variableName + " not found in variable expression ");
+  return nullptr;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
@@ -358,123 +309,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
 
   //   return nullptr;
   // }
-}
-
-llvm::Value *VariableExpressionGenerationStrategy::getObjectValue(
-    llvm::Value *variableElementPtr, size_t listIndex,
-    const std::string &parPropertyKey) {
-  llvm::StructType *objTypeType = nullptr;
-
-  if (llvm::isa<llvm::GlobalVariable>(variableElementPtr)) {
-    objTypeType = llvm::cast<llvm::StructType>(
-        (llvm::cast<llvm::GlobalVariable>(variableElementPtr))->getValueType());
-  } else if (llvm::isa<llvm::AllocaInst>(variableElementPtr)) {
-    objTypeType = llvm::cast<llvm::StructType>(
-        (llvm::cast<llvm::AllocaInst>(variableElementPtr))->getAllocatedType());
-  }
-
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(
-          objTypeType->getStructName().str());
-
-  std::unordered_map<std::string, BoundTypeExpression *> boundTypeExpressionMap;
-
-  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-    std::string propertyName = std::any_cast<std::string>(bLE->getValue());
-    boundTypeExpressionMap[propertyName] = bTE.get();
-  }
-
-  BoundLiteralExpression<std::any> *litExp =
-      static_cast<BoundLiteralExpression<std::any> *>(
-          _variableExpression->getDotExpressionList()[listIndex].get());
-
-  std::string propertyKey = std::any_cast<std::string>(litExp->getValue());
-
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      litExp->getLocation());
-
-  if (boundTypeExpressionMap.find(propertyKey) ==
-      boundTypeExpressionMap.end()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " not found in variable " + parPropertyKey +
-        " of type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  }
-  std::string key =
-      boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
-  size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
-
-  llvm::Type *type = objTypeType->getElementType(index);
-
-  if (index == -1) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " not found in variable " + parPropertyKey +
-        " of type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  }
-  auto logError = [&]() {
-    _codeGenerationContext->getLogger()->LogError(
-        "Property " + propertyKey + " is not an object in variable " +
-        parPropertyKey + " of Type " + objTypeType->getStructName().str());
-
-    return nullptr;
-  };
-
-  const bool isNested =
-      _variableExpression->getDotExpressionList().size() > listIndex + 1;
-
-  if (isNested && boundTypeExpressionMap[propertyKey]->getSyntaxType() !=
-                      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    return logError();
-  }
-  llvm::Value *elementPtr =
-      Builder->CreateStructGEP(objTypeType, variableElementPtr, index);
-
-  if (boundTypeExpressionMap[propertyKey]->getSyntaxType() ==
-      SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    const std::string var_name =
-        variableElementPtr->getName().str() + "." + propertyKey;
-
-    llvm::GlobalVariable *globalVariable =
-        TheModule->getGlobalVariable(var_name);
-
-    llvm::AllocaInst *allocaInst =
-        _codeGenerationContext->getAllocaChain()->getAllocaInst(var_name);
-
-    if (allocaInst) {
-      const bool isStruct =
-          llvm::isa<llvm::StructType>(allocaInst->getAllocatedType());
-
-      if (!isStruct)
-        return logError();
-
-      if (isNested)
-        return getObjectValue(allocaInst, listIndex + 1, propertyKey);
-
-      return allocaInst;
-    }
-
-    if (globalVariable) {
-      const bool isStruct =
-          llvm::isa<llvm::StructType>(globalVariable->getValueType());
-
-      if (!isStruct)
-        return logError();
-
-      if (isNested)
-        return getObjectValue(globalVariable, listIndex + 1, propertyKey);
-
-      return globalVariable;
-    }
-
-    return logError();
-  }
-
-  llvm::LoadInst *loaded = Builder->CreateLoad(type, elementPtr);
-
-  return loaded;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(

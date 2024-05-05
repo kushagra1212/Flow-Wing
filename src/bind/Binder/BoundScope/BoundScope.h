@@ -6,7 +6,7 @@
 #include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundScope {
- public:
+public:
   std::unordered_map<std::string, BoundVariableDeclaration *> variables;
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
@@ -18,7 +18,7 @@ class BoundScope {
 
   BoundScope(std::unique_ptr<BoundScope> parent);
 
- public:
+public:
   void makeBreakableAndContinuable();
   bool isBreakable();
   bool isContinuable();
@@ -43,13 +43,12 @@ class BoundScope {
 
   // Handle Functions
 
-  bool tryDeclareFunction(BoundFunctionDeclaration *function);
-
-  bool tryLookupFunction(const std::string &name);
+  bool tryDeclareMemberFunction(BoundFunctionDeclaration *function);
+  bool tryDeclareFunctionGlobal(BoundFunctionDeclaration *function);
+  BoundFunctionDeclaration *tryGetFunction(const std::string &name);
 
   // Handle Custom Types
 
   bool tryDeclareCustomType(BoundCustomTypeStatement *customType);
-  bool tryLookupCustomType(const std::string &name);
   BoundCustomTypeStatement *tryGetCustomType(const std::string &name);
 };

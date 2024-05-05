@@ -254,6 +254,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::NewKeyword, start, text, "new");
+  } else if (text == "class") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ClassKeyword, start, text, "class");
   }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,

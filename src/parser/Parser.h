@@ -24,6 +24,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
@@ -116,14 +117,15 @@ private:
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
-
+  std::unique_ptr<StatementSyntax> parseClassStatement();
   /*
     EXPRESSIONS
   */
   std::unique_ptr<ExpressionSyntax> parseIndexExpression();
   std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
-  parseFunctionDeclaration(const bool &isExposed);
+  parseFunctionDeclaration(const bool &isExposed,
+                           bool isMemberFunction = false);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
