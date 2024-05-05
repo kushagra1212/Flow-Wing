@@ -17,7 +17,8 @@ public:
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 
   llvm::FunctionType *generate(BoundStatement *statement,
-                               std::vector<llvm::Type *> initalArgTypes = {});
+                               std::vector<llvm::Type *> classArgs = {},
+                               std::string className = "");
 };
 
 #endif // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__

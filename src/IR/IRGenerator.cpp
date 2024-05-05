@@ -174,15 +174,16 @@ void IRGenerator::generateEvaluateGlobalStatement(
         continue;
       }
       for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
-
+        BoundFunctionDeclaration *functionDeclaration =
+            static_cast<BoundFunctionDeclaration *>(funDec.get());
         std::vector<std::string> classVariables = {};
 
         for (auto &variDec : boundClassStatement->getMemberVariablesRef()) {
           classVariables.push_back(variDec->getVariableName());
         }
-
-        _functionStatementGenerationStrategy->generate(
-            funDec.get(), {"self"}, classType, classVariables);
+        if (!functionDeclaration->isOnlyDeclared())
+          _functionStatementGenerationStrategy->generate(
+              functionDeclaration, {"self"}, classType, classVariables);
       }
     }
   }

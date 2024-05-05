@@ -968,7 +968,7 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
   }
-
+  fd->setIsMemberFunction(syntax->isMemberFunction());
   fd->setFunctionName(function_name);
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =

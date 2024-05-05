@@ -55,14 +55,19 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
-
+  uint64_t count = 0;
   for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());
-    vTableElements.push_back(functionDeclarationGenerationStrategy->generate(
-        fd, {llvm::Type::getInt8PtrTy(*TheContext)}));
-    classObject->setVTableElementIndex(fd->getFunctionNameRef(), i);
+
+    if (!fd->isOnlyDeclared()) {
+      vTableElements.push_back(functionDeclarationGenerationStrategy->generate(
+          fd, {llvm::Type::getInt8PtrTy(*TheContext)},
+          boundClassStatement->getClassName()));
+      classObject->setVTableElementIndex(fd->getFunctionNameRef(), count);
+      count++;
+    }
   }
 
   llvm::StructType *_vTableType =

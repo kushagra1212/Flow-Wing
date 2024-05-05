@@ -349,6 +349,19 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
   llvm::Function *calleeFunction =
       TheModule->getFunction(callExpression->getCallerNameRef());
+  std::vector<llvm::Value *> classArg = {};
+  {
+    auto [value, classType] =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+    if (value && classType && llvm::isa<llvm::StructType>(classType)) {
+      llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
+      callExpression->setCallerName(structType->getName().str() +
+                                    "_:" + callExpression->getCallerNameRef());
+      calleeFunction =
+          TheModule->getFunction(callExpression->getCallerNameRef());
+      classArg = {value};
+    }
+  }
 
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
@@ -361,25 +374,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
            ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()]) {
     _codeGenerationContext
         ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()] = 1;
-
-    std::vector<llvm::Value *> args;
-
-    for (int i = 0; i < arguments_size; i++) {
-      llvm::Value *arg = nullptr;
-
-      arg =
-          _expressionGenerationFactory
-              ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[i].get());
-
-      if (!arg) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Argument not found in function call expression ");
-        return nullptr;
-      }
-
-      args.push_back(arg);
-    }
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         callExpression->getLocation());
@@ -419,7 +413,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   }
   llvm::Value *rhsValue = nullptr;
 
-  for (uint64_t i = 0; i < llvmArrayArgs.size(); i++) {
+  for (uint64_t i = 0; i < llvmArrayArgs.size() - classArg.size(); i++) {
     bool retFlag;
     llvm::Value *retVal =
         handleExpression(calleeFunction, i, callExpression, rhsValue,
@@ -427,6 +421,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     if (retFlag)
       return retVal;
     functionArgs.push_back(rhsValue);
+  }
+
+  for (auto &arg : classArg) {
+    functionArgs.push_back(arg);
   }
 
   // // Callefunction param types and args check for type are same or not

@@ -22,13 +22,27 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       functionDeclaration->getLocation());
 
   _codeGenerationContext->getReturnAllocaStack().push(0);
-  llvm::Function *F =
-      TheModule->getFunction(functionDeclaration->getFunctionNameRef());
+
+  std::string FUNCTION_NAME = functionDeclaration->getFunctionNameRef();
+
+  llvm::Function *F = TheModule->getFunction(FUNCTION_NAME);
+
+  if (!F && functionDeclaration->isMemberFunction()) {
+    auto [value, type] =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+
+    if (type && value && llvm::isa<llvm::StructType>(type)) {
+      auto structType = llvm::cast<llvm::StructType>(type);
+      FUNCTION_NAME = structType->getName().str() + "_:" + FUNCTION_NAME;
+      functionDeclaration->setFunctionName(FUNCTION_NAME);
+      F = TheModule->getFunction(FUNCTION_NAME);
+    }
+  }
 
   if (!F) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Function " + functionDeclaration->getFunctionNameRef() +
-        " is not declared");
+
+    _codeGenerationContext->getLogger()->LogError("Function " + FUNCTION_NAME +
+                                                  " is not declared");
 
     return nullptr;
   }
@@ -65,8 +79,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   llvm::LLVMContext *TheContext = _codeGenerationContext->getContext().get();
 
   const std::vector<std::unique_ptr<LLVMType>> &llvmArgsTypes =
-      _codeGenerationContext->getArgsTypeHandler()->getArgsType(
-          functionDeclaration->getFunctionNameRef());
+      _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
   for (size_t i = 0; i < parameterNames.size(); i++) {
 
@@ -182,16 +195,15 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
       ->generateStatement(functionDeclaration->getBodyRef().get());
 
-  llvm::Type *returnType =
-      _codeGenerationContext->getReturnTypeHandler()
-          ->getReturnType(functionDeclaration->getFunctionNameRef())
-          ->getType();
+  llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnType(FUNCTION_NAME)
+                               ->getType();
   if (returnType != llvm::Type::getVoidTy(*TheContext) &&
       _codeGenerationContext->getReturnAllocaStack().top() == 0) {
     _codeGenerationContext->getLogger()->LogError(
         "Function return type is not Nothing, return expression not found in "
         "function " +
-        functionDeclaration->getFunctionNameRef());
+        FUNCTION_NAME);
 
     return nullptr;
   }
@@ -210,11 +222,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   _codeGenerationContext->getReturnAllocaStack().pop();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(
-      functionDeclaration->getFunctionNameRef(), F);
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME, F);
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(
-      functionDeclaration->getFunctionNameRef(), nullptr);
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
+                                                          nullptr);
 
   return nullptr;
 }
@@ -224,6 +235,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
 
+  std::string FUNCTION_NAME = fd->getFunctionNameRef();
   std::vector<llvm::Type *> argTypes;
   for (int i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
@@ -233,9 +245,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   llvm::FunctionType *FT = llvm::FunctionType::get(returnType, argTypes, false);
 
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             fd->getFunctionNameRef(), *TheModule);
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, FUNCTION_NAME, *TheModule);
 
   llvm::BasicBlock *entryBlock =
       llvm::BasicBlock::Create(*TheContext, "entry", F);
@@ -284,10 +295,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getTypeChain()->removeHandler();
   _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(
-      fd->getFunctionNameRef(), F);
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(
-      fd->getFunctionNameRef(), nullptr);
+  _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME, F);
+  _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
+                                                          nullptr);
 
   return nullptr;
 }

@@ -15,6 +15,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   bool _isExposed;
   std::unique_ptr<BoundExpression> _returnType;
   bool _isOnlyDeclared = false;
+  bool _isMemberFunction = false;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -35,6 +36,10 @@ public:
     _returnType = std::move(returnType);
   }
 
+  inline void setIsMemberFunction(bool isMemberFunction) {
+    _isMemberFunction = isMemberFunction;
+  }
+
   inline auto getParametersRef() const
       -> const std::vector<std::unique_ptr<BoundVariableDeclaration>> & {
     return _parameters;
@@ -50,6 +55,8 @@ public:
       -> const std::unique_ptr<BoundExpression> & {
     return _returnType;
   }
+
+  inline auto isMemberFunction() const -> bool { return _isMemberFunction; }
 
   inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 

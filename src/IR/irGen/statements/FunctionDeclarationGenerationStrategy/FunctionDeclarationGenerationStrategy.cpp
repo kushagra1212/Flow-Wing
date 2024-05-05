@@ -27,12 +27,16 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 }
 
 llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
-    BoundStatement *statement, std::vector<llvm::Type *> initalArgTypes) {
+    BoundStatement *statement, std::vector<llvm::Type *> classArgs,
+    std::string className) {
   BoundFunctionDeclaration *fd =
       static_cast<BoundFunctionDeclaration *>(statement);
+  const std::string FUNCTION_NAME =
+      classArgs.size() == 0 ? fd->getFunctionNameRef()
+                            : className + "_:" + fd->getFunctionNameRef();
+  fd->setFunctionName(FUNCTION_NAME);
 
-  bool isFunctionAlreadyDeclared =
-      TheModule->getFunction(fd->getFunctionNameRef());
+  bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
@@ -51,7 +55,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
+            FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
 
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -108,7 +112,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            fd->getFunctionNameRef(),
+            FUNCTION_NAME,
             std::make_unique<LLVMArrayType>(
                 parmTypePointer, parmType,
                 _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
@@ -132,7 +136,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            fd->getFunctionNameRef(),
+            FUNCTION_NAME,
             std::make_unique<LLVMObjectType>(parmTypePointer, structType));
     } else {
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
@@ -141,11 +145,13 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            fd->getFunctionNameRef(), std::make_unique<LLVMType>(parmType));
+            FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
     }
   }
-  for (auto &arg : initalArgTypes) {
+  for (auto arg : classArgs) {
     argTypes.push_back(arg);
+    _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+        FUNCTION_NAME, std::make_unique<LLVMType>(arg));
   }
   llvm::FunctionType *FT = nullptr;
   llvm::Function *F = nullptr;
@@ -163,12 +169,12 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
       returnType = elementType;
       FT = llvm::FunctionType::get(returnType, argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                 fd->getFunctionNameRef(), *TheModule);
+                                 FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-          fd->getFunctionNameRef(), std::make_unique<LLVMType>(returnType));
+          FUNCTION_NAME, std::make_unique<LLVMType>(returnType));
       returnInfo =
-          fd->getFunctionNameRef() + ":rt:pr:" +
+          FUNCTION_NAME + ":rt:pr:" +
           std::to_string(
               _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
                   elementType));
@@ -184,7 +190,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
             _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
                 boundArrayTypeExpression->getElementType());
         returnInfo =
-            fd->getFunctionNameRef() + ":rt:ay:" +
+            FUNCTION_NAME + ":rt:ay:" +
             std::to_string(
                 _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
                     elementType)) +
@@ -197,7 +203,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
         elementType = _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
-        returnInfo = fd->getFunctionNameRef() +
+        returnInfo = FUNCTION_NAME +
                      ":rt:ay:" + objectTypeExpression->getTypeName().c_str() +
                      ":sz:";
       }
@@ -226,13 +232,12 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       FT = llvm::FunctionType::get(returnType, argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                 fd->getFunctionNameRef(), *TheModule);
+                                 FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-          fd->getFunctionNameRef(),
-          std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
-                                          returnDimentions,
-                                          boundArrayTypeExpression));
+          FUNCTION_NAME, std::make_unique<LLVMArrayType>(
+                             returnType, arrayType, elementType,
+                             returnDimentions, boundArrayTypeExpression));
 
       for (int64_t k = 0; k < returnDimentions.size(); k++) {
         returnInfo += std::to_string(returnDimentions[k]) + ":";
@@ -251,14 +256,14 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
       FT = llvm::FunctionType::get(returnType, argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                                 fd->getFunctionNameRef(), *TheModule);
+                                 FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-          fd->getFunctionNameRef(),
+          FUNCTION_NAME,
           std::make_unique<LLVMObjectType>(returnType, structType));
 
-      returnInfo = fd->getFunctionNameRef() +
-                   ":rt:ob:" + boundObjectTypeExpression->getTypeName();
+      returnInfo =
+          FUNCTION_NAME + ":rt:ob:" + boundObjectTypeExpression->getTypeName();
 
       break;
     }
@@ -275,8 +280,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
                               llvm::MDString::get(*TheContext, returnInfo)));
 
   const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs =
-      _codeGenerationContext->getArgsTypeHandler()->getArgsType(
-          fd->getFunctionNameRef());
+      _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
   for (unsigned i = 0; i < F->arg_size(); ++i) {
     llvm::Argument *arg = F->getArg(i);
@@ -321,7 +325,7 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
   //     F->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
   //   }
 
-  _codeGenerationContext->addBoundedUserFunction(fd->getFunctionNameRef(), fd);
+  _codeGenerationContext->addBoundedUserFunction(FUNCTION_NAME, fd);
 
   return FT;
 }
