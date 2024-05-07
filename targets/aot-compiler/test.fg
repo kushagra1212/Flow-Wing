@@ -3,13 +3,17 @@ class Animal {
    var x:int
    var k:str
   init(y:int) -> nthg {
-    print(y)
+    x = y
+    print("Constructor Called\n")
+  
   }
   getX() -> int {
-    return 2
+ return 2
   }
 }
 var d:Animal = new Animal(2)
+print(d.getX())
+
 
 
 

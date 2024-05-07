@@ -43,6 +43,13 @@ public:
     return _dotExpressionList;
   }
 
+  inline auto removeDotExpressionFromFront()
+      -> std::unique_ptr<BoundExpression> {
+    auto dotExpression = std::move(_dotExpressionList.front());
+    _dotExpressionList.erase(_dotExpressionList.begin());
+    return std::move(dotExpression);
+  }
+
   inline void addDotExpression(std::unique_ptr<BoundExpression> dotExpression) {
     _dotExpressionList.push_back(std::move(dotExpression));
   }

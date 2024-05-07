@@ -31,6 +31,13 @@ public:
                                 std::vector<llvm::Value *> indices,
                                 llvm::StructType *type);
 
+  llvm::Value *getVariable(llvm::Value *v, llvm::Type *variableType,
+                           const std::string &variableName);
+
+  llvm::Value *getClassMemberValue(std::string className,
+                                   std::string memberName,
+                                   llvm::Value *classPtr);
+
   inline auto
   setVariableExpression(BoundVariableExpression *variableExpression) {
     _variableExpression = variableExpression;

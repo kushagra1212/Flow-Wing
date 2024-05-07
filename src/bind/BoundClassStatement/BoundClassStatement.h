@@ -39,6 +39,16 @@ public:
       -> std::vector<std::unique_ptr<BoundStatement>> & {
     return _memberFunctions;
   }
+
+  inline auto getInitializerMemberFunction() -> BoundFunctionDeclaration * {
+    for (auto &fun : _memberFunctions) {
+      BoundFunctionDeclaration *fd =
+          static_cast<BoundFunctionDeclaration *>(fun.get());
+      if (fd->getFunctionNameRef() == "init")
+        return fd;
+    }
+    return nullptr;
+  }
 };
 
 #endif // __FLOW_WING_BOUND_CLASS_STATEMENT__

@@ -779,12 +779,9 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
 void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     llvm::StructType *objectType, llvm::Value *alloca) {
   std::string typeName = objectType->getStructName().str();
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
 
   uint64_t index = 0;
-  for (const auto &[bLitExpr, bExpr] :
-       boundCustomTypeStatement->getKeyPairs()) {
+  for (const auto &items : objectType->elements()) {
 
     llvm::Value *innerElementPtr =
         Builder->CreateStructGEP(objectType, alloca, index);

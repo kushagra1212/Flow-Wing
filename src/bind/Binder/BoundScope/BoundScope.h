@@ -1,6 +1,7 @@
 #pragma once
 #include "../../../Common.h"
 #include "../../../utils/Utils.h"
+#include "../../BoundClassStatement/BoundClassStatement.h"
 #include "../../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -10,6 +11,7 @@ public:
   std::unordered_map<std::string, BoundVariableDeclaration *> variables;
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
+  std::unordered_map<std::string, BoundClassStatement *> classes;
 
   bool breakable, continuable;
   int functionCounted;
@@ -51,4 +53,9 @@ public:
 
   bool tryDeclareCustomType(BoundCustomTypeStatement *customType);
   BoundCustomTypeStatement *tryGetCustomType(const std::string &name);
+
+  // Handle Class Declaration
+
+  bool tryDeclareClass(BoundClassStatement *customType);
+  BoundClassStatement *tryGetClass(const std::string &name);
 };

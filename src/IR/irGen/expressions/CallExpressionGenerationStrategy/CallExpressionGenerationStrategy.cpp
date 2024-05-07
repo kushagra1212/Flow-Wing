@@ -350,9 +350,12 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   llvm::Function *calleeFunction =
       TheModule->getFunction(callExpression->getCallerNameRef());
   std::vector<llvm::Value *> classArg = {};
+  llvm::Value *_classPtr = nullptr;
+  llvm::Type *_classType = nullptr;
   {
     auto [value, classType] =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
+
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       callExpression->setCallerName(structType->getName().str() +
@@ -360,6 +363,23 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       calleeFunction =
           TheModule->getFunction(callExpression->getCallerNameRef());
       classArg = {value};
+    } else if (!value && !classType &&
+               _codeGenerationContext->_classTypes.find(
+                   callExpression->getCallerNameRef()) !=
+                   _codeGenerationContext->_classTypes.end()) {
+      value = _codeGenerationContext
+                  ->_classTypes[callExpression->getCallerNameRef()]
+                  ->getObjectPtr();
+      classType = _codeGenerationContext
+                      ->_classTypes[callExpression->getCallerNameRef()]
+                      ->getClassType();
+      callExpression->setCallerName(callExpression->getCallerNameRef() +
+                                    "_:" + "init");
+      calleeFunction =
+          TheModule->getFunction(callExpression->getCallerNameRef());
+      classArg = {value};
+      _classPtr = value;
+      _classType = classType;
     }
   }
 
@@ -392,8 +412,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   }
   std::vector<llvm::Value *> functionArgs;
 
-  calleeFunction = TheModule->getFunction(callExpression->getCallerNameRef());
-
   _codeGenerationContext
       ->getRecursiveFunctionsMap()[callExpression->getCallerNameRef()] = 0;
 
@@ -403,7 +421,19 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(
           callExpression->getCallerNameRef());
 
-  if (functionType->getNumParams() != llvmArrayArgs.size()) {
+  if ((classArg.size()) &&
+      functionType->getNumParams() != llvmArrayArgs.size()) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Calling Class Initializer " + callExpression->getCallerNameRef() +
+        " with " +
+        std::to_string(functionType->getNumParams() - classArg.size()) +
+        " arguments but Expected " + std::to_string(llvmArrayArgs.size()));
+
+    return nullptr;
+  }
+
+  if (!classArg.size() &&
+      functionType->getNumParams() != llvmArrayArgs.size()) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
@@ -534,28 +564,34 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
   llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
 
-  llvm::ArrayType *arrayType = nullptr;
-  llvm::Type *elementType = nullptr;
-  std::vector<uint64_t> actualSizes;
-  _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
-                                               elementType, actualSizes);
+  if (!_classType) {
+    llvm::ArrayType *arrayType = nullptr;
+    llvm::Type *elementType = nullptr;
+    std::vector<uint64_t> actualSizes;
+    _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
+                                                 elementType, actualSizes);
 
-  if (arrayType != nullptr) {
-    _codeGenerationContext->getValueStackHandler()->push("", callIn, "array",
-                                                         arrayType);
+    if (arrayType != nullptr) {
+      _codeGenerationContext->getValueStackHandler()->push("", callIn, "array",
+                                                           arrayType);
 
-    return callIn;
+      return callIn;
+    }
+    llvm::StructType *structType = nullptr;
+    _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
+    if (structType != nullptr) {
+      _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
+                                                           structType);
+      return callIn;
+    }
+
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", callIn, "primitive", calleeFunction->getReturnType());
+  } else {
+    _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
+                                                         "struct", _classType);
   }
-  llvm::StructType *structType = nullptr;
-  _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
-  if (structType != nullptr) {
-    _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
-                                                         structType);
-    return callIn;
-  }
 
-  _codeGenerationContext->getValueStackHandler()->push(
-      "", callIn, "primitive", calleeFunction->getReturnType());
   return callIn;
 }
 

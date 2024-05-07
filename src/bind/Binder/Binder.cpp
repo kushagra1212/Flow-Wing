@@ -409,6 +409,8 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
         std::move(this->bindFunctionDeclaration(fun.get())));
   }
 
+  this->root->tryDeclareClass(boundClassStat.get());
+
   return std::move(boundClassStat);
 }
 
@@ -779,8 +781,28 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     boundCallExpression->addArgument(
         std::move(bindExpression(callExpression->getArguments()[i].get())));
   }
-  BoundFunctionDeclaration *declared_fd =
-      this->root->tryGetFunction(boundCallExpression->getCallerNameRef());
+
+  BoundFunctionDeclaration *declared_fd = nullptr;
+  BoundClassStatement *boundClassStatement =
+      this->root->tryGetClass(boundCallExpression->getCallerNameRef());
+  if (boundClassStatement) {
+    declared_fd = boundClassStatement->getInitializerMemberFunction();
+
+    if (!declared_fd) {
+      _diagnosticHandler->addDiagnostic(Diagnostic(
+          "Class " + boundCallExpression->getCallerNameRef() +
+              " does not have an initializer, Add Default or Parameterized "
+              "Initializer in Class Body",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          boundCallExpression->getCallerIdentifierPtr()->getLocation()));
+    }
+
+  } else {
+    declared_fd =
+        this->root->tryGetFunction(boundCallExpression->getCallerNameRef());
+  }
+
   if (!declared_fd && !isAInBuiltinFunction) {
     _diagnosticHandler->addDiagnostic(Diagnostic(
         "Function " + boundCallExpression->getCallerNameRef() +
@@ -1076,16 +1098,18 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
 
     boundObjectTypeExpression->setTypeName(name);
 
-    if (!this->root->tryGetCustomType(name)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Type " + name + " Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-                         ->getTokenPtr()
-                         ->getSourceLocation()));
+    if (!this->root->tryGetClass(name)) {
+      if (!this->root->tryGetCustomType(name)) {
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Type " + name + " Not Found",
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Semantic,
+                       objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+                           ->getTokenPtr()
+                           ->getSourceLocation()));
 
-      return std::move(boundObjectTypeExpression);
+        return std::move(boundObjectTypeExpression);
+      }
     }
 
     boundObjectTypeExpression->setObjectTypeIdentifier(

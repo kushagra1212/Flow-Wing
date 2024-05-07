@@ -97,6 +97,14 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
         _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
 
+    if (this->_codeGenerationContext->_classTypes.find(
+            objectTypeExpression->getTypeName()) ==
+        this->_codeGenerationContext->_classTypes.end()) {
+      structType = _codeGenerationContext
+                       ->_classTypes[objectTypeExpression->getTypeName()]
+                       ->getClassType();
+    }
+
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
@@ -237,6 +245,14 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
         _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
 
+    if (_codeGenerationContext->_classTypes.find(
+            objectTypeExpression->getTypeName()) !=
+        this->_codeGenerationContext->_classTypes.end()) {
+      structType = _codeGenerationContext
+                       ->_classTypes[objectTypeExpression->getTypeName()]
+                       ->getClassType();
+    }
+
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
@@ -260,6 +276,13 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {intPtr, structType});
       assignmentEGS->initDefaultValue(structType, intPtr);
+
+      if (_codeGenerationContext->_classTypes.find(
+              objectTypeExpression->getTypeName()) !=
+          _codeGenerationContext->_classTypes.end()) {
+        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
+            ->setObjectPtr(intPtr);
+      }
 
       if (!variableDeclaration->getInitializerPtr().get())
         return intPtr;

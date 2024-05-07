@@ -13,6 +13,7 @@ private:
   std::unordered_map<std::string, uint64_t> _vTableElementsIndexMap;
   llvm::StructType *_classType;
   llvm::StructType *_vTableType;
+  llvm::Value *_objectPtr;
 
 public:
   Class(std::string className) : _className(className) {}
@@ -31,6 +32,9 @@ public:
   inline auto doesElementExist(std::string key) -> bool {
     return _classElementsIndexMap.find(key) != _classElementsIndexMap.end();
   }
+
+  inline auto setObjectPtr(llvm::Value *ptr) { _objectPtr = ptr; }
+  inline auto getObjectPtr() -> llvm::Value * { return _objectPtr; }
 
   inline auto getElement(std::string key)
       -> std::tuple<llvm::Type *, uint64_t, std::string, llvm::StructType *> {

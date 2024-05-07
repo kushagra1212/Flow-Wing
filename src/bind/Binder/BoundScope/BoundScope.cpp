@@ -119,6 +119,26 @@ bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
   return false;
 }
 
+// Class
+BoundClassStatement *BoundScope::tryGetClass(const std::string &name) {
+  if (this->classes.find(name) != this->classes.end()) {
+    return this->classes[name];
+  }
+  if (this->parent == nullptr) {
+    return nullptr;
+  }
+  return this->parent->tryGetClass(name);
+}
+
+bool BoundScope::tryDeclareClass(BoundClassStatement *_class) {
+  if (this->classes.find(_class->getClassName()) == this->classes.end()) {
+    this->classes[_class->getClassName()] = _class;
+    return true;
+  }
+
+  return false;
+}
+
 // Functions
 
 bool BoundScope::tryDeclareMemberFunction(BoundFunctionDeclaration *function) {
