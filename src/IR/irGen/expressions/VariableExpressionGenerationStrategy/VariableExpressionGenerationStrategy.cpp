@@ -65,13 +65,20 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
       }
 
       std::string className = parObjTypeType->getStructName().str();
-      std::string classMemberName = std::any_cast<std::string>(
-          ((BoundLiteralExpression<std::any> *)_variableExpression
-               ->getDotExpressionList()[0]
-               .get())
-              ->getValue());
+      if (_variableExpression->getDotExpressionList()[0]->getKind() ==
+          BinderKindUtils::BoundNodeKind::LiteralExpression) {
+        std::string classMemberName = std::any_cast<std::string>(
+            ((BoundLiteralExpression<std::any> *)_variableExpression
+                 ->getDotExpressionList()[0]
+                 .get())
+                ->getValue());
 
-      return getClassMemberValue(className, classMemberName, v);
+        return getClassMemberValue(className, classMemberName, v);
+      } else if (_variableExpression->getDotExpressionList()[0]->getKind() ==
+                 BinderKindUtils::BoundNodeKind::CallExpression) {
+        // return getClassMemberFunctionValue(className,
+        // _variableExpression->getDotExpressionList()[0].get());
+      }
     }
 
     if (_variableExpression->getDotExpressionList().size() == 0) {

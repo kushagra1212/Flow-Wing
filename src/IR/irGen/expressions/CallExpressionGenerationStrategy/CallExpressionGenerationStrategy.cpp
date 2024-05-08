@@ -357,11 +357,17 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
+      //! Need Refactor
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       callExpression->setCallerName(structType->getName().str() +
                                     "_:" + callExpression->getCallerNameRef());
+
       calleeFunction =
-          TheModule->getFunction(callExpression->getCallerNameRef());
+          _codeGenerationContext->_classTypes[structType->getName().str()]
+              ->getFunctionPtr(callExpression->getCallerNameRef(), Builder,
+                               value);
+
+      // //
       classArg = {value};
     } else if (!value && !classType &&
                _codeGenerationContext->_classTypes.find(

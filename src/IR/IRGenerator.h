@@ -85,7 +85,6 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/IR/Constants.h"
-#include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ManagedStatic.h"

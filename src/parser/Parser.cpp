@@ -1226,13 +1226,22 @@ std::unique_ptr<VariableExpressionSyntax> Parser::parseVariableExpression() {
 
       variExp->addDotExpression(std::move(localIndexExpression));
     } else {
-      std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-          std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-      std::any value = localIdentifierToken->getValue();
 
-      variExp->addDotExpression(
-          std::make_unique<LiteralExpressionSyntax<std::any>>(
-              std::move(localIdentifierToken), value));
+      if (this->getCurrent()->getKind() ==
+              SyntaxKindUtils::SyntaxKind::IdentifierToken &&
+          this->peek(1)->getKind() ==
+              SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+        variExp->addDotExpression(std::move(this->parseNameorCallExpression()));
+      } else {
+
+        std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken = std::move(
+            this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        std::any value = localIdentifierToken->getValue();
+
+        variExp->addDotExpression(
+            std::make_unique<LiteralExpressionSyntax<std::any>>(
+                std::move(localIdentifierToken), value));
+      }
     }
   }
 

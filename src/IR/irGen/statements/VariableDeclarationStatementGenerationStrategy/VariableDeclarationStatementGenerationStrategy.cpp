@@ -98,7 +98,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
             objectTypeExpression->getTypeName());
 
     if (this->_codeGenerationContext->_classTypes.find(
-            objectTypeExpression->getTypeName()) ==
+            objectTypeExpression->getTypeName()) !=
         this->_codeGenerationContext->_classTypes.end()) {
       structType = _codeGenerationContext
                        ->_classTypes[objectTypeExpression->getTypeName()]
@@ -128,6 +128,32 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {intPtr, structType});
       assignmentEGS->initDefaultValue(structType, intPtr);
+
+      if (_codeGenerationContext->_classTypes.find(
+              objectTypeExpression->getTypeName()) !=
+          _codeGenerationContext->_classTypes.end()) {
+        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
+            ->setObjectPtr(intPtr);
+
+        llvm::CallInst *vTablePtr = Builder->CreateCall(
+            fun, llvm::ConstantInt::get(
+                     llvm::Type::getInt64Ty(*TheContext),
+                     _codeGenerationContext->getMapper()->getSizeOf(
+                         _codeGenerationContext
+                             ->_classTypes[objectTypeExpression->getTypeName()]
+                             ->getVTableType())));
+        vTablePtr->setTailCall(false);
+        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
+            ->addVTablePtr(vTablePtr, TheModule, Builder);
+
+        Builder->CreateStore(
+            vTablePtr,
+            Builder->CreateGEP(
+                structType, intPtr,
+                {Builder->getInt32(0),
+                 Builder->getInt32(structType->getStructNumElements() - 1)}));
+      }
+
       if (!variableDeclaration->getInitializerPtr().get())
         return intPtr;
       return assignmentEGS->handleAssignExpression(
@@ -282,6 +308,24 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           _codeGenerationContext->_classTypes.end()) {
         _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
             ->setObjectPtr(intPtr);
+
+        llvm::CallInst *vTablePtr = Builder->CreateCall(
+            fun, llvm::ConstantInt::get(
+                     llvm::Type::getInt64Ty(*TheContext),
+                     _codeGenerationContext->getMapper()->getSizeOf(
+                         _codeGenerationContext
+                             ->_classTypes[objectTypeExpression->getTypeName()]
+                             ->getVTableType())));
+        vTablePtr->setTailCall(false);
+        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
+            ->addVTablePtr(vTablePtr, TheModule, Builder);
+
+        Builder->CreateStore(
+            vTablePtr,
+            Builder->CreateGEP(
+                structType, intPtr,
+                {Builder->getInt32(0),
+                 Builder->getInt32(structType->getStructNumElements() - 1)}));
       }
 
       if (!variableDeclaration->getInitializerPtr().get())

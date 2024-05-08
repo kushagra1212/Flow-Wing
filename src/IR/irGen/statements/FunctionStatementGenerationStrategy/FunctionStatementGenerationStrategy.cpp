@@ -227,7 +227,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
 
-  return nullptr;
+  return F;
 }
 
 llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(

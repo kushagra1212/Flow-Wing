@@ -145,6 +145,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   Builder->CreateBr(returnBlock);
   Builder->SetInsertPoint(returnBlock);
+
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
@@ -181,9 +182,10 @@ void IRGenerator::generateEvaluateGlobalStatement(
         for (auto &variDec : boundClassStatement->getMemberVariablesRef()) {
           classVariables.push_back(variDec->getVariableName());
         }
-        if (!functionDeclaration->isOnlyDeclared())
-          _functionStatementGenerationStrategy->generate(
+        if (!functionDeclaration->isOnlyDeclared()) {
+          llvm::Value *F = _functionStatementGenerationStrategy->generate(
               functionDeclaration, {"self"}, classType, classVariables);
+        }
       }
     }
   }

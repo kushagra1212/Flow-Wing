@@ -29,8 +29,6 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   std::unique_ptr<Class> classObject =
       std::make_unique<Class>(boundClassStatement->getClassName());
 
-  std::vector<llvm::Type *> vTableElements = {};
-
   std::vector<llvm::Type *> classElements = {};
   std::unique_ptr<CustomTypeStatementGenerationStrategy>
       customTypeStatementGenerationStrategy =
@@ -46,6 +44,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
     classObject->setElementIndex(
         boundClassStatement->getMemberVariablesRef()[i]->getVariableName(), i);
   }
+  //? Pointer to VTable
   classElements.push_back(llvm::Type::getInt8PtrTy(*TheContext));
 
   llvm::StructType *classType = llvm::StructType::create(
@@ -56,24 +55,31 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
   uint64_t count = 0;
+
   for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());
 
     if (!fd->isOnlyDeclared()) {
-      vTableElements.push_back(functionDeclarationGenerationStrategy->generate(
-          fd, {llvm::Type::getInt8PtrTy(*TheContext)},
-          boundClassStatement->getClassName()));
+
+      llvm::FunctionType *functionType =
+          functionDeclarationGenerationStrategy->generate(
+              fd, {llvm::Type::getInt8PtrTy(*TheContext)},
+              boundClassStatement->getClassName());
+      classObject->addFunctionType(functionType);
+
+      classObject->addFunctionName(fd->getFunctionNameRef());
+
       classObject->setVTableElementIndex(fd->getFunctionNameRef(), count);
       count++;
     }
   }
-
-  llvm::StructType *_vTableType =
-      llvm::StructType::create(*TheContext, vTableElements,
-                               "vTable_" + boundClassStatement->getClassName());
-
+  std::vector<llvm::Type *> vTableElementsType(
+      count, llvm::Type::getInt8PtrTy(*TheContext));
+  llvm::StructType *_vTableType = llvm::StructType::create(
+      *TheContext, vTableElementsType,
+      boundClassStatement->getClassName() + "vTable_type");
   classObject->setVTableType(_vTableType);
   classObject->setClassType(classType);
 

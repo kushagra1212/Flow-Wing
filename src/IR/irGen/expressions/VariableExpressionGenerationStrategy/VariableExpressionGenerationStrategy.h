@@ -38,6 +38,9 @@ public:
                                    std::string memberName,
                                    llvm::Value *classPtr);
 
+  llvm::Value *getClassMemberFunctionValue(std::string className,
+                                           std::string memberName,
+                                           llvm::Value *classPtr);
   inline auto
   setVariableExpression(BoundVariableExpression *variableExpression) {
     _variableExpression = variableExpression;
