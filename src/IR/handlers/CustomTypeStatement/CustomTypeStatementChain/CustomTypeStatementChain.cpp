@@ -1,7 +1,7 @@
 #include "CustomTypeStatementChain.h"
 
-BoundCustomTypeStatement *CustomTypeStatementChain::getExpr(
-    const std::string &name) {
+BoundCustomTypeStatement *
+CustomTypeStatementChain::getExpr(const std::string &name) {
   std::stack<std::unique_ptr<CustomTypeStatementTable>> currentHandler;
   BoundCustomTypeStatement *exp = nullptr;
   while (!handlers.empty()) {
@@ -27,5 +27,22 @@ void CustomTypeStatementChain::setExpr(const std::string &name,
   if (!handlers.empty()) {
     std::unique_ptr<CustomTypeStatementTable> &handler = handlers.top();
     handler->setExp(name, value);
+  }
+}
+
+void CustomTypeStatementChain::setGlobalExpr(const std::string &name,
+                                             BoundCustomTypeStatement *value) {
+  std::stack<std::unique_ptr<CustomTypeStatementTable>> currentHandler;
+  while (!handlers.empty()) {
+    std::unique_ptr<CustomTypeStatementTable> &handler = handlers.top();
+    currentHandler.push(std::move(handler));
+    handlers.pop();
+  }
+
+  currentHandler.top()->setExp(name, value);
+
+  while (!currentHandler.empty()) {
+    handlers.push(std::move(currentHandler.top()));
+    currentHandler.pop();
   }
 }

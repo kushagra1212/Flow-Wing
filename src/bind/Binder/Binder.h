@@ -99,7 +99,8 @@ public:
   bindGlobalStatement(GlobalStatementSyntax *syntax);
 
   std::unique_ptr<BoundStatement>
-  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
+  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
+                          std::string className = "");
 
   std::unique_ptr<BoundStatement> bindStatement(StatementSyntax *syntax);
 
@@ -110,7 +111,8 @@ public:
   bindBlockStatement(BlockStatementSyntax *blockStatement);
 
   std::unique_ptr<BoundVariableDeclaration>
-  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration);
+  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
+                          std::string className = "");
   std::unique_ptr<BoundStatement>
   bindIfStatement(IfStatementSyntax *ifStatement);
 
@@ -186,7 +188,8 @@ public:
       -> std::unordered_map<std::string, int>;
 
   void handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
-                               BoundFunctionDeclaration *fd);
+                               BoundFunctionDeclaration *fd,
+                               std::string className);
 };
 
 #endif // __BIND_BINDER_H__

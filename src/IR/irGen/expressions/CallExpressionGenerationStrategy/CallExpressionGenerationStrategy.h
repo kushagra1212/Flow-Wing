@@ -19,6 +19,12 @@ public:
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
   llvm::Value *
+  generateCommonCallExpression(BoundCallExpression *callExpression,
+                               llvm::Function *calleeFunction,
+                               std::__1::vector<llvm::Value *> &classArg,
+                               llvm::Type *_classType, llvm::Value *_classPtr);
+
+  llvm::Value *
   handleExpression(llvm::Function *calleeFunction, uint64_t i,
                    BoundCallExpression *callExpression, llvm::Value *&rhsValue,
                    llvm::FunctionType *functionType,

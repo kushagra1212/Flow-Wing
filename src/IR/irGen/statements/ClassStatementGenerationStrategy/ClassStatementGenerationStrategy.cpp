@@ -26,26 +26,48 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       boundClassStatement->getLocation());
 
-  std::unique_ptr<Class> classObject =
-      std::make_unique<Class>(boundClassStatement->getClassName());
-
-  std::vector<llvm::Type *> classElements = {};
   std::unique_ptr<CustomTypeStatementGenerationStrategy>
       customTypeStatementGenerationStrategy =
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
+
+  for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
+       i++) {
+    BoundCustomTypeStatement *customTypeStatement =
+        static_cast<BoundCustomTypeStatement *>(
+            boundClassStatement->getCustomTypesRef()[i].get());
+    std::string typeName = boundClassStatement->getClassName() +
+                           "_:" + customTypeStatement->getTypeNameAsString();
+
+    customTypeStatement->setTypeNameAsString(typeName);
+
+    customTypeStatementGenerationStrategy->generateForClassElement(
+        customTypeStatement, boundClassStatement->getClassName());
+  }
+
+  std::unique_ptr<Class> classObject =
+      std::make_unique<Class>(boundClassStatement->getClassName());
+  for (auto &keyPair : boundClassStatement->getKeyPairsRef()) {
+    classObject->addKeyTypePair(keyPair.first, keyPair.second);
+  }
+  std::vector<llvm::Type *> classElements = {};
+
   for (int64_t i = 0; i < boundClassStatement->getMemberVariablesRef().size();
        i++) {
 
-    classElements.push_back(customTypeStatementGenerationStrategy->getType(
-        boundClassStatement->getMemberVariablesRef()[i]
-            ->getTypeExpression()
-            .get()));
+    classElements.push_back(
+        customTypeStatementGenerationStrategy->getClassElementType(
+            boundClassStatement->getMemberVariablesRef()[i]
+                ->getTypeExpression()
+                .get(),
+            boundClassStatement->getClassName()));
     classObject->setElementIndex(
         boundClassStatement->getMemberVariablesRef()[i]->getVariableName(), i);
   }
+
   //? Pointer to VTable
-  classElements.push_back(llvm::Type::getInt8PtrTy(*TheContext));
+  //! Using Alernate Approach
+  //   classElements.push_back(llvm::Type::getInt8PtrTy(*TheContext));
 
   llvm::StructType *classType = llvm::StructType::create(
       *TheContext, classElements, boundClassStatement->getClassName());
@@ -62,25 +84,15 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
         boundClassStatement->getMemberFunctionsRef()[i].get());
 
     if (!fd->isOnlyDeclared()) {
-
-      llvm::FunctionType *functionType =
-          functionDeclarationGenerationStrategy->generate(
-              fd, {llvm::Type::getInt8PtrTy(*TheContext)},
-              boundClassStatement->getClassName());
-      classObject->addFunctionType(functionType);
-
-      classObject->addFunctionName(fd->getFunctionNameRef());
-
+      llvm::Function *F = functionDeclarationGenerationStrategy->generate(
+          fd, {llvm::Type::getInt8PtrTy(*TheContext)},
+          boundClassStatement->getClassName());
+      classObject->insertFunctionType(fd->getFunctionNameRef(), F);
       classObject->setVTableElementIndex(fd->getFunctionNameRef(), count);
       count++;
     }
   }
-  std::vector<llvm::Type *> vTableElementsType(
-      count, llvm::Type::getInt8PtrTy(*TheContext));
-  llvm::StructType *_vTableType = llvm::StructType::create(
-      *TheContext, vTableElementsType,
-      boundClassStatement->getClassName() + "vTable_type");
-  classObject->setVTableType(_vTableType);
+
   classObject->setClassType(classType);
 
   _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =

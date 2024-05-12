@@ -12,7 +12,7 @@ public:
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
   std::unordered_map<std::string, BoundClassStatement *> classes;
-
+  std::string _className = "";
   bool breakable, continuable;
   int functionCounted;
 
@@ -58,4 +58,16 @@ public:
 
   bool tryDeclareClass(BoundClassStatement *customType);
   BoundClassStatement *tryGetClass(const std::string &name);
+
+  inline auto getClassName() -> std::string {
+    if (this->_className != "")
+      return this->_className;
+
+    if (this->parent)
+      return this->parent->getClassName();
+
+    return "";
+  }
+
+  inline auto setClassName(const std::string &name) { _className = name; }
 };

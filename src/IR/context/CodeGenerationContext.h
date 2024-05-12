@@ -23,7 +23,7 @@
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/Support/TargetSelect.h"
-
+class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
 public:

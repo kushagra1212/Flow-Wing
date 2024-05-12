@@ -169,10 +169,11 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           llvm::isa<llvm::PointerType>(value->getType())) {
         std::string typeName =
             _codeGenerationContext->getValueStackHandler()->getTypeName();
+        llvm::StructType *structType = llvm::cast<llvm::StructType>(
+            _codeGenerationContext->getValueStackHandler()->getLLVMType());
         _codeGenerationContext->getValueStackHandler()->popAll();
 
-        return printObject(
-            value, _codeGenerationContext->getTypeChain()->getType(typeName));
+        return printObject(value, structType);
       }
 
       if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
@@ -359,36 +360,50 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
       //! Need Refactor
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
-      callExpression->setCallerName(structType->getName().str() +
-                                    "_:" + callExpression->getCallerNameRef());
+      // callExpression->setCallerName(classType->getStructName().str() +
+      //                               "_:" +
+      //                               callExpression->getCallerNameRef());
+      std::string funName = callExpression->getCallerNameRef();
+      if (funName.find(structType->getStructName().str() + "_:") !=
+          std::string::npos) {
+        calleeFunction =
+            TheModule->getFunction(callExpression->getCallerNameRef());
+        // _codeGenerationContext->_classTypes[structType->getName().str()]
+        //     ->getFunctionPtr(callExpression->getCallerNameRef(), Builder,
+        //                      TheModule);
 
-      calleeFunction =
-          _codeGenerationContext->_classTypes[structType->getName().str()]
-              ->getFunctionPtr(callExpression->getCallerNameRef(), Builder,
-                               value);
-
-      // //
-      classArg = {value};
+        // //
+        classArg = {value};
+      }
     } else if (!value && !classType &&
-               _codeGenerationContext->_classTypes.find(
-                   callExpression->getCallerNameRef()) !=
-                   _codeGenerationContext->_classTypes.end()) {
-      value = _codeGenerationContext
-                  ->_classTypes[callExpression->getCallerNameRef()]
-                  ->getObjectPtr();
-      classType = _codeGenerationContext
-                      ->_classTypes[callExpression->getCallerNameRef()]
-                      ->getClassType();
-      callExpression->setCallerName(callExpression->getCallerNameRef() +
-                                    "_:" + "init");
-      calleeFunction =
-          TheModule->getFunction(callExpression->getCallerNameRef());
-      classArg = {value};
-      _classPtr = value;
-      _classType = classType;
+               callExpression->getCallerNameRef().find("_:init") !=
+                   std::string::npos) {
+
+      std::string className = callExpression->getCallerNameRef();
+      className = className.substr(0, className.find("_:init"));
+      if (_codeGenerationContext->_classTypes.find(className) !=
+          _codeGenerationContext->_classTypes.end()) {
+        value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
+        classType =
+            _codeGenerationContext->_classTypes[className]->getClassType();
+
+        calleeFunction =
+            TheModule->getFunction(callExpression->getCallerNameRef());
+        classArg = {value};
+        _classPtr = value;
+        _classType = classType;
+      }
     }
   }
 
+  return generateCommonCallExpression(callExpression, calleeFunction, classArg,
+                                      _classType, _classPtr);
+}
+
+llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
+    BoundCallExpression *callExpression, llvm::Function *calleeFunction,
+    std::__1::vector<llvm::Value *> &classArg, llvm::Type *_classType,
+    llvm::Value *_classPtr) {
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
   BoundFunctionDeclaration *definedFunction =
@@ -462,112 +477,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   for (auto &arg : classArg) {
     functionArgs.push_back(arg);
   }
-
-  // // Callefunction param types and args check for type are same or not
-  // // Meata data
-  // for (unsigned i = 0; i < calleeFunction->arg_size(); ++i) {
-  //   // Create the metadata key that includes the argument index
-  //   std::string argKey = "argInfo" + std::to_string(i);
-  //   llvm::Value *argValue = calleeFunction->getArg(i);
-
-  //   // Get the metadata
-  //   llvm::MDNode *metadata = calleeFunction->getMetadata(argKey);
-  //   if (metadata) {
-  //     // If the metadata exists,
-  //     llvm::MDString *argInfoMD =
-  //         llvm::cast<llvm::MDString>(metadata->getOperand(0));
-  //     std::vector<std::string> vars;
-  //     Utils::split(argInfoMD->getString().str(), ":", vars);
-
-  //     if (vars.size() >= 4 && vars[1] == "ay") {
-  //       llvm::Type *_res = isGlobalArray(args[i]);
-  //       _res = _res ? _res : isLocalArray(args[i]);
-
-  //       if (!_res) {
-  //         _codeGenerationContext->getLogger()->LogError(
-  //             "Expected Array of " + Utils::CE(vars[2]) +
-  //             " in function call expression " +
-  //             Utils::CE(callExpression->getCallerNameRef()) + " as parameter
-  //             " + Utils::CE(argValue->getName().str()) + ", but found " +
-  //             _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                 args[i]->getType()));
-  //         return nullptr;
-  //       }
-  //       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(_res);
-
-  //       llvm::Type *argArrayElementType =
-  //           _codeGenerationContext->getArrayElementTypeMetadata(args[i]);
-
-  //       std::vector<size_t> argArraySizes;
-  //       _codeGenerationContext->getArraySizeMetadata(args[i], argArraySizes);
-
-  //       std::vector<size_t> paramArraySizes;
-
-  //       for (int j = 4; j < vars.size(); j++) {
-  //         paramArraySizes.push_back(std::stoll(vars[j]));
-  //       }
-
-  //       if (paramArraySizes.size() != argArraySizes.size()) {
-  //         _codeGenerationContext->getLogger()->LogError(
-  //             "Expected Array of Dimension " +
-  //             std::to_string(paramArraySizes.size()) +
-  //             " in function call expression " +
-  //             Utils::CE(callExpression->getCallerNameRef()) + " as parameter
-  //             " + Utils::CE(argValue->getName().str()) +
-  //             ", but found Array of Dimension " +
-  //             std::to_string(argArraySizes.size()));
-
-  //         return nullptr;
-  //       }
-
-  //       for (int j = 0; j < paramArraySizes.size(); j++) {
-  //         if (paramArraySizes[j] != argArraySizes[j]) {
-  //           _codeGenerationContext->getLogger()->LogError(
-  //               "Expected Array's Dimension " + std::to_string(j) +
-  //               " size to be " + std::to_string(paramArraySizes[j]) +
-  //               " in function call expression " +
-  //               Utils::CE(callExpression->getCallerNameRef()) +
-  //               " as parameter " + Utils::CE(argValue->getName().str()) +
-  //               ", but found " + std::to_string(argArraySizes[j]));
-
-  //           return nullptr;
-  //         }
-  //       }
-
-  //       if (vars[2] != _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                          argArrayElementType)) {
-  //         _codeGenerationContext->getLogger()->LogError(
-  //             "Expected Array of " + Utils::CE(vars[2]) +
-  //             " in function call expression " +
-  //             Utils::CE(callExpression->getCallerNameRef()) + " as parameter
-  //             " + Utils::CE(argValue->getName().str()) + ", but found Array
-  //             of " +
-  //             Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                 argArrayElementType)));
-
-  //         return nullptr;
-  //       }
-
-  //     } else if (vars.size() == 3 && vars[0] == "obj") {
-  //       std::string typeName = vars[2];
-  //     } else {
-  //       if (_codeGenerationContext->getDynamicType()->isDyn(
-  //               args[i]->getType()) &&
-  //           vars[2] != _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                          args[i]->getType())) {
-  //         _codeGenerationContext->getLogger()->LogError(
-  //             "Argument Type " +
-  //             _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                 args[i]->getType()) +
-  //             " does not match with " + vars[2] + " for parameter " +
-  //             Utils::CE(argValue->getName().str()));
-  //         return nullptr;
-  //       }
-  //     }
-  //   }
-  //   // END
-  // }
-
   llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
 
   if (!_classType) {
@@ -1274,6 +1183,25 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
   BoundCustomTypeStatement *boundCustomTypeStatement =
       _codeGenerationContext->getCustomTypeChain()->getExpr(
           parObjType->getStructName().str());
+
+  if (!boundCustomTypeStatement) {
+
+    if (_codeGenerationContext->_classTypes.find(
+            parObjType->getStructName().str()) !=
+        _codeGenerationContext->_classTypes.end()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "variable of class " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
+          " can not be printed directly, use member functions instead");
+      return nullptr;
+    }
+
+    _codeGenerationContext->getLogger()->LogError(
+        "variable of type " +
+        _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
+        " not found in variable expression ");
+    return nullptr;
+  }
 
   uint64_t i = 0;
 

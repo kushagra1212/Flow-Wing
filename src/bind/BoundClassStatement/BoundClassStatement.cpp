@@ -10,6 +10,11 @@ BinderKindUtils::BoundNodeKind BoundClassStatement::getKind() const {
 
 std::vector<BoundNode *> BoundClassStatement::getChildren() {
   if (this->_children.empty()) {
+
+    for (auto &m : _customTypes) {
+      _children.push_back(m.get());
+    }
+
     for (auto &m : _memberVariables) {
       _children.push_back(m.get());
     }

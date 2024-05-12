@@ -13,6 +13,11 @@ const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
 
     if (_classNameIdentifier)
       _children.push_back(_classNameIdentifier.get());
+
+    for (const auto &type : _customTypeStatements) {
+      _children.push_back(type.get());
+    }
+
     for (const auto &m : _classDataMembers) {
       _children.push_back(m.get());
     }
@@ -31,6 +36,10 @@ ClassStatementSyntax::getSourceLocation() const {
 
   if (_classNameIdentifier)
     return _classNameIdentifier->getSourceLocation();
+
+  for (const auto &m : _customTypeStatements) {
+    return m->getSourceLocation();
+  }
 
   for (const auto &m : _classDataMembers) {
     return m->getSourceLocation();

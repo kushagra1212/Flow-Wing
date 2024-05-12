@@ -441,6 +441,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   llvm::Value *rhsValue = nullptr;
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
     rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
@@ -577,6 +578,19 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
       handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
     } else {
+
+      if (_lhsType != rhsType) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Type mismatch in variable Assignment " + _lhsVariableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType));
+
+        return EXIT_FAILURE;
+      }
+
       Builder->CreateStore(rhsValue, _lhsPtr);
     }
 

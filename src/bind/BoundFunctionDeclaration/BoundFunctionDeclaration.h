@@ -16,6 +16,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::unique_ptr<BoundExpression> _returnType;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
+  std::string _classItBelongTo = "";
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -30,6 +31,10 @@ public:
 
   inline void setOnlyDeclared(bool isOnlyDeclared) {
     _isOnlyDeclared = isOnlyDeclared;
+  }
+
+  inline void setClassItBelongTo(const std::string &classItBelongTo) {
+    _classItBelongTo = classItBelongTo;
   }
 
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
@@ -61,6 +66,10 @@ public:
   inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _isExposed; }
+
+  inline auto getClassItBelongTo() const -> const std::string & {
+    return _classItBelongTo;
+  }
 };
 
 #endif

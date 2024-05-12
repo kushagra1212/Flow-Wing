@@ -32,11 +32,11 @@ Binder::bindBlockStatement(BlockStatementSyntax *blockStatement) {
   return std::move(boundBlockStatement);
 }
 
-std::unique_ptr<BoundVariableDeclaration> Binder::bindVariableDeclaration(
-    VariableDeclarationSyntax *variableDeclaration) {
+std::unique_ptr<BoundVariableDeclaration>
+Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
+                                std::string className) {
   std::string variable_str = std::any_cast<std::string>(
       variableDeclaration->getIdentifierRef()->getValue());
-
   bool isConst = false;
 
   if (variableDeclaration->getKeywordRef()) {
@@ -49,14 +49,31 @@ std::unique_ptr<BoundVariableDeclaration> Binder::bindVariableDeclaration(
           variableDeclaration->getSourceLocation(), variable_str, isConst,
           variableDeclaration->isExposed());
 
+  variable->setIdentifier(std::make_unique<BoundLiteralExpression<std::any>>(
+      variableDeclaration->getIdentifierRef()->getSourceLocation(),
+      variableDeclaration->getIdentifierRef()->getValue(),
+      variableDeclaration->getIdentifierRef()->getKind()));
+
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
         std::move(bindTypeExpression(variableDeclaration->getTypeRef().get()));
+
+    if (boundTypeExpression->getKind() ==
+        BinderKindUtils::BoundObjectTypeExpression) {
+      BoundObjectTypeExpression *objectTypeExpression =
+          static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
+      BoundClassStatement *boundClassStatement =
+          this->root->tryGetClass(objectTypeExpression->getTypeName());
+      if (boundClassStatement) {
+        className = boundClassStatement->getClassName();
+      }
+    }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
   }
 
   variable->setHasNewKeyword(variableDeclaration->getHasNewKeyWord());
+  variable->setClassItBelongsTo(className);
 
   if (variableDeclaration->getInitializerRef()) {
     std::unique_ptr<BoundExpression> boundInitializerExpression = std::move(
@@ -380,18 +397,28 @@ std::unique_ptr<BoundExpression> Binder::bindBracketedExpression(
 std::unique_ptr<BoundStatement>
 Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
-
   std::unique_ptr<BoundClassStatement> boundClassStat =
       std::make_unique<BoundClassStatement>(
           classStatement->getSourceLocation());
+
   std::string className = std::any_cast<std::string>(
       classStatement->getClassNameIdentifierRef()->getValue());
 
+  this->root->setClassName(className);
   boundClassStat->setClassName(className);
+  for (const auto &cusType : classStatement->getCustomTypeStatementsRef()) {
+    boundClassStat->addCustomType(
+        std::move(this->bindCustomTypeStatement(cusType.get())));
+  }
 
   for (const auto &var : classStatement->getDataMembersRef()) {
-    auto boundMemberVariable =
-        std::move(this->bindVariableDeclaration(var.get()));
+    auto boundMemberVariable = std::move(this->bindVariableDeclaration(
+        var.get(), boundClassStat->getClassName()));
+
+    boundClassStat->addKeyTypePair(
+        boundMemberVariable->getIdentifierRef().get(),
+        (boundMemberVariable->getTypeExpression().get()));
+
     this->root->tryDeclareVariable("self." +
                                        boundMemberVariable->getVariableName(),
                                    boundMemberVariable.get());
@@ -400,17 +427,20 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(true);
+
     boundClassStat->addMemberFunction(
-        std::move(this->bindFunctionDeclaration(fun.get())));
+        std::move(this->bindFunctionDeclaration(fun.get(), className)));
   }
+  this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(false);
     boundClassStat->addMemberFunction(
-        std::move(this->bindFunctionDeclaration(fun.get())));
+        std::move(this->bindFunctionDeclaration(fun.get(), className)));
   }
 
-  this->root->tryDeclareClass(boundClassStat.get());
+  this->root = std::move(this->root->parent);
 
+  this->root->tryDeclareClass(boundClassStat.get());
   return std::move(boundClassStat);
 }
 
@@ -747,8 +777,10 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
           (callExpression->getIdentifierPtr().get()))
           .release());
 
-  const std::string functionName =
+  const std::string oldFunctionName =
       std::any_cast<std::string>(boundIdentifier->getValue());
+
+  std::string functionName = oldFunctionName;
   bool isAInBuiltinFunction = BuiltInFunction::isBuiltInFunction(functionName);
 
   if (isAInBuiltinFunction) {
@@ -771,58 +803,90 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     }
   }
 
+  BoundFunctionDeclaration *declared_fd = nullptr;
+  std::string className = this->root->getClassName();
+  if (!isAInBuiltinFunction && className != "") {
+
+    functionName = className + "_:" + functionName;
+    BoundClassStatement *boundClassStatement =
+        this->root->tryGetClass(className);
+
+    if (boundClassStatement) {
+      declared_fd = boundClassStatement->getMemberFunction(functionName);
+    }
+  } else if (!isAInBuiltinFunction) {
+    BoundClassStatement *boundClassStatement =
+        this->root->tryGetClass(functionName);
+    if (boundClassStatement) {
+      functionName = functionName + "_:" + "init";
+      declared_fd = boundClassStatement->getMemberFunction(functionName);
+      if (!declared_fd) {
+        _diagnosticHandler->addDiagnostic(Diagnostic(
+            "Class " + functionName +
+                " does not have an initializer, Add Default or "
+                "Parameterized Initializer in Class Body ",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                callExpression->getIdentifierPtr()->getTokenPtr().get())));
+      }
+
+      if (declared_fd &&
+          callExpression->getArguments().size() !=
+              declared_fd->getParametersRef().size() &&
+          !isAInBuiltinFunction) {
+        _diagnosticHandler->addDiagnostic(Diagnostic(
+            "Class initializer " + functionName + " requires " +
+                std::to_string(declared_fd->getParametersRef().size()) +
+                " arguments",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                callExpression->getIdentifierPtr()->getTokenPtr().get())));
+      }
+    }
+  }
+
+  // if in class -> b, cf, nf
+  // not in class -> b, nf
+
+  if (!declared_fd && !isAInBuiltinFunction) {
+    functionName = oldFunctionName;
+    declared_fd = this->root->tryGetFunction(functionName);
+  }
+
+  if (!declared_fd && !isAInBuiltinFunction) {
+    _diagnosticHandler->addDiagnostic(
+        Diagnostic("Function " + functionName + " does not exist",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   callExpression->getIdentifierPtr()->getSourceLocation()));
+  }
+
+  if (declared_fd &&
+      callExpression->getArguments().size() !=
+          declared_fd->getParametersRef().size() &&
+      !isAInBuiltinFunction) {
+    _diagnosticHandler->addDiagnostic(Diagnostic(
+        "Function " + functionName + " requires " +
+            std::to_string(declared_fd->getParametersRef().size()) +
+            " arguments",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
+  }
+
   std::unique_ptr<BoundCallExpression> boundCallExpression =
       std::make_unique<BoundCallExpression>(
           callExpression->getSourceLocation());
+
+  boundIdentifier->setValue(functionName);
 
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
   for (int i = 0; i < callExpression->getArguments().size(); i++) {
     boundCallExpression->addArgument(
         std::move(bindExpression(callExpression->getArguments()[i].get())));
-  }
-
-  BoundFunctionDeclaration *declared_fd = nullptr;
-  BoundClassStatement *boundClassStatement =
-      this->root->tryGetClass(boundCallExpression->getCallerNameRef());
-  if (boundClassStatement) {
-    declared_fd = boundClassStatement->getInitializerMemberFunction();
-
-    if (!declared_fd) {
-      _diagnosticHandler->addDiagnostic(Diagnostic(
-          "Class " + boundCallExpression->getCallerNameRef() +
-              " does not have an initializer, Add Default or Parameterized "
-              "Initializer in Class Body",
-          DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
-          boundCallExpression->getCallerIdentifierPtr()->getLocation()));
-    }
-
-  } else {
-    declared_fd =
-        this->root->tryGetFunction(boundCallExpression->getCallerNameRef());
-  }
-
-  if (!declared_fd && !isAInBuiltinFunction) {
-    _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + boundCallExpression->getCallerNameRef() +
-            " does not exist",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        boundCallExpression->getCallerIdentifierPtr()->getLocation()));
-  }
-
-  if (declared_fd &&
-      boundCallExpression->getArgumentsRef().size() !=
-          declared_fd->getParametersRef().size() &&
-      !isAInBuiltinFunction) {
-    _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + boundCallExpression->getCallerNameRef() + " requires " +
-            std::to_string(declared_fd->getParametersRef().size()) +
-            " arguments",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        boundCallExpression->getCallerIdentifierPtr()->getLocation()));
   }
 
   return std::move(boundCallExpression);
@@ -947,7 +1011,6 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
-
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
     if (dotExpression->getKind() ==
@@ -971,8 +1034,26 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
       }
       boundVariableExpression->addDotExpression(std::move(localBoundIndexExp));
     } else {
-      boundVariableExpression->addDotExpression(
-          std::move(bindExpression(dotExpression.get())));
+      if (dotExpression->getKind() ==
+          SyntaxKindUtils::SyntaxKind::CallExpression) {
+        CallExpressionSyntax *callExpression =
+            static_cast<CallExpressionSyntax *>(dotExpression.get());
+
+        if (variable->getClassItBelongsTo() != "") {
+
+          std::any fName = variable->getClassItBelongsTo() + "_:" +
+                           std::any_cast<std::string>(
+                               callExpression->getIdentifierPtr()->getValue());
+
+          callExpression->getIdentifierPtr()->setValue((fName));
+        }
+
+        boundVariableExpression->addDotExpression(
+            std::move(bindCallExpression(callExpression)));
+      } else {
+        boundVariableExpression->addDotExpression(
+            std::move(bindExpression(dotExpression.get())));
+      }
     }
   }
 
@@ -980,9 +1061,14 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
 }
 
 void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
-                                     BoundFunctionDeclaration *fd) {
+                                     BoundFunctionDeclaration *fd,
+                                     std::string className) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
-  const std::string &function_name = syntax->getIdentifierTokenPtr()->getText();
+  const std::string &function_name =
+      className != ""
+          ? className + "_:" + syntax->getIdentifierTokenPtr()->getText()
+          : syntax->getIdentifierTokenPtr()->getText();
+
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Function " + function_name + " Already Exists",
@@ -1000,6 +1086,7 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
     fd->addParameter(std::move(varDeclaration));
   }
+  fd->setClassItBelongTo(className);
   fd->setReturnType(std::move(bindTypeExpression(
       (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
 
@@ -1020,25 +1107,26 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
 }
 
 std::unique_ptr<BoundStatement>
-Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax) {
+Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
+                                std::string className) {
 
   std::unique_ptr<BoundFunctionDeclaration> fd =
       std::make_unique<BoundFunctionDeclaration>(syntax->getSourceLocation(),
                                                  syntax->isExposed());
 
-  handleFunctionDefAndDec(syntax, fd.get());
+  handleFunctionDefAndDec(syntax, fd.get(), className);
 
   if (syntax->isOnlyDeclared()) {
     const std::string &function_name =
         syntax->getIdentifierTokenPtr()->getText();
-    if (!syntax->isMemberFunction() &&
+    if (syntax->isMemberFunction() &&
         !this->root->tryDeclareFunctionGlobal(fd.get())) {
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
           "Function " + function_name + " Already Declared",
           DiagnosticUtils::DiagnosticLevel::Error,
           DiagnosticUtils::DiagnosticType::Semantic,
           Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
-    } else if (syntax->isMemberFunction() &&
+    } else if (!syntax->isMemberFunction() &&
                !this->root->tryDeclareMemberFunction(fd.get())) {
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
           "Function " + function_name + " Already Declared",

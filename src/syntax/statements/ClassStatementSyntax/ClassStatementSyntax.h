@@ -1,6 +1,7 @@
 #ifndef __FLOW_WING_CLASS_STATEMENT_SYNTAX_H
 #define __FLOW_WING_CLASS_STATEMENT_SYNTAX_H
 #include "../../SyntaxToken.h"
+#include "../CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "../FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../StatementSyntax.h"
 #include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
@@ -11,6 +12,7 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _classNameIdentifier;
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _classDataMembers;
   std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _classMemberFunctions;
+  std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
   bool _isExposed = false;
 
 public:
@@ -32,6 +34,11 @@ public:
   addClassDataMember(std::unique_ptr<VariableDeclarationSyntax> member)
       -> void {
     _classDataMembers.push_back(std::move(member));
+  }
+
+  inline auto addCustomTypeStatement(
+      std::unique_ptr<CustomTypeStatementSyntax> customTypeStatement) -> void {
+    _customTypeStatements.push_back(std::move(customTypeStatement));
   }
 
   inline auto
@@ -58,6 +65,11 @@ public:
   inline auto getClassMemberFunctionsRef()
       -> std::vector<std::unique_ptr<FunctionDeclarationSyntax>> & {
     return _classMemberFunctions;
+  }
+
+  inline auto getCustomTypeStatementsRef()
+      -> std::vector<std::unique_ptr<CustomTypeStatementSyntax>> & {
+    return _customTypeStatements;
   }
 };
 

@@ -10,6 +10,10 @@ class BoundClassStatement : public BoundStatement, public BoundSourceLocation {
   std::string _className;
   std::vector<std::unique_ptr<BoundVariableDeclaration>> _memberVariables;
   std::vector<std::unique_ptr<BoundStatement>> _memberFunctions;
+  std::vector<std::unique_ptr<BoundStatement>> _customTypes;
+  std::vector<
+      std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>>
+      _key_type_pairs;
 
 public:
   BoundClassStatement(const DiagnosticUtils::SourceLocation &location);
@@ -25,8 +29,21 @@ public:
     _memberVariables.push_back(std::move(var));
   }
 
+  inline auto addCustomType(std::unique_ptr<BoundStatement> type) -> void {
+    _customTypes.push_back(std::move(type));
+  }
+
   inline auto addMemberFunction(std::unique_ptr<BoundStatement> fun) -> void {
     _memberFunctions.push_back(std::move(fun));
+  }
+
+  inline auto addKeyTypePair(BoundLiteralExpression<std::any> *key,
+                             BoundTypeExpression *type) -> void {
+    _key_type_pairs.push_back(std::make_pair(key, type));
+  }
+  inline auto getCustomTypesRef()
+      -> std::vector<std::unique_ptr<BoundStatement>> & {
+    return _customTypes;
   }
   inline auto getClassName() -> std::string { return _className; }
 
@@ -40,11 +57,27 @@ public:
     return _memberFunctions;
   }
 
+  inline auto getKeyPairsRef() -> std::vector<
+      std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>> & {
+    return _key_type_pairs;
+  }
+
   inline auto getInitializerMemberFunction() -> BoundFunctionDeclaration * {
     for (auto &fun : _memberFunctions) {
       BoundFunctionDeclaration *fd =
           static_cast<BoundFunctionDeclaration *>(fun.get());
-      if (fd->getFunctionNameRef() == "init")
+      if (fd->getFunctionNameRef() == _className + "_:" + "init")
+        return fd;
+    }
+    return nullptr;
+  }
+
+  inline auto getMemberFunction(std::string functionName)
+      -> BoundFunctionDeclaration * {
+    for (auto &fun : _memberFunctions) {
+      BoundFunctionDeclaration *fd =
+          static_cast<BoundFunctionDeclaration *>(fun.get());
+      if (fd->getFunctionNameRef() == functionName)
         return fd;
     }
     return nullptr;

@@ -104,7 +104,15 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
                        ->_classTypes[objectTypeExpression->getTypeName()]
                        ->getClassType();
     }
+    std::pair<llvm::Value *, llvm::Type *> cl =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
 
+    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
+      llvm::StructType *ct = llvm::cast<llvm::StructType>(cl.second);
+      structType = _codeGenerationContext->getTypeChain()->getType(
+          ct->getStructName().str() +
+          "_:" + objectTypeExpression->getTypeName());
+    }
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
@@ -134,24 +142,6 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
           _codeGenerationContext->_classTypes.end()) {
         _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
             ->setObjectPtr(intPtr);
-
-        llvm::CallInst *vTablePtr = Builder->CreateCall(
-            fun, llvm::ConstantInt::get(
-                     llvm::Type::getInt64Ty(*TheContext),
-                     _codeGenerationContext->getMapper()->getSizeOf(
-                         _codeGenerationContext
-                             ->_classTypes[objectTypeExpression->getTypeName()]
-                             ->getVTableType())));
-        vTablePtr->setTailCall(false);
-        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
-            ->addVTablePtr(vTablePtr, TheModule, Builder);
-
-        Builder->CreateStore(
-            vTablePtr,
-            Builder->CreateGEP(
-                structType, intPtr,
-                {Builder->getInt32(0),
-                 Builder->getInt32(structType->getStructNumElements() - 1)}));
       }
 
       if (!variableDeclaration->getInitializerPtr().get())
@@ -279,6 +269,17 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
                        ->getClassType();
     }
 
+    std::pair<llvm::Value *, llvm::Type *> cl =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+
+    if (!structType && cl.first && cl.second &&
+        llvm::isa<llvm::StructType>(cl.second)) {
+      llvm::StructType *ct = llvm::cast<llvm::StructType>(cl.second);
+      structType = _codeGenerationContext->getTypeChain()->getType(
+          ct->getStructName().str() +
+          "_:" + objectTypeExpression->getTypeName());
+    }
+
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
@@ -308,24 +309,6 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
           _codeGenerationContext->_classTypes.end()) {
         _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
             ->setObjectPtr(intPtr);
-
-        llvm::CallInst *vTablePtr = Builder->CreateCall(
-            fun, llvm::ConstantInt::get(
-                     llvm::Type::getInt64Ty(*TheContext),
-                     _codeGenerationContext->getMapper()->getSizeOf(
-                         _codeGenerationContext
-                             ->_classTypes[objectTypeExpression->getTypeName()]
-                             ->getVTableType())));
-        vTablePtr->setTailCall(false);
-        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
-            ->addVTablePtr(vTablePtr, TheModule, Builder);
-
-        Builder->CreateStore(
-            vTablePtr,
-            Builder->CreateGEP(
-                structType, intPtr,
-                {Builder->getInt32(0),
-                 Builder->getInt32(structType->getStructNumElements() - 1)}));
       }
 
       if (!variableDeclaration->getInitializerPtr().get())

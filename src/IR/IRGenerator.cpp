@@ -182,6 +182,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
         for (auto &variDec : boundClassStatement->getMemberVariablesRef()) {
           classVariables.push_back(variDec->getVariableName());
         }
+
         if (!functionDeclaration->isOnlyDeclared()) {
           llvm::Value *F = _functionStatementGenerationStrategy->generate(
               functionDeclaration, {"self"}, classType, classVariables);

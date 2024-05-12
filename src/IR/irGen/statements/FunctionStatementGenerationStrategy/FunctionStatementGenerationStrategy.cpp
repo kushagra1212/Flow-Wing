@@ -33,7 +33,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
     if (type && value && llvm::isa<llvm::StructType>(type)) {
       auto structType = llvm::cast<llvm::StructType>(type);
-      FUNCTION_NAME = structType->getName().str() + "_:" + FUNCTION_NAME;
       functionDeclaration->setFunctionName(FUNCTION_NAME);
       F = TheModule->getFunction(FUNCTION_NAME);
     }
@@ -81,46 +80,30 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   const std::vector<std::unique_ptr<LLVMType>> &llvmArgsTypes =
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
+  if (parameterNames.size() > paramsSize) {
+
+    llvm::Value *argValue = F->arg_begin() + paramsSize;
+    llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);
+
+    for (int j = 0; j < structT->getNumElements(); j++) {
+      llvm::Type *type = structT->getElementType(j);
+
+      llvm::Value *elementPtr = Builder->CreateGEP(
+          structT, argValue, {Builder->getInt32(0), Builder->getInt32(j)});
+      _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j],
+                                                       {elementPtr, type});
+    }
+
+    _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[paramsSize],
+                                                     {argValue, classType});
+  }
+
   for (size_t i = 0; i < parameterNames.size(); i++) {
 
     llvm::Value *argValue = F->arg_begin() + i;
-
     if (i >= paramsSize) {
-
-      llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);
-
-      for (int j = 0; j < structT->getNumElements(); j++) {
-        llvm::Type *type = structT->getElementType(j);
-
-        llvm::Value *elementPtr = Builder->CreateGEP(
-            structT, argValue, {Builder->getInt32(0), Builder->getInt32(j)});
-        _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j],
-                                                         {elementPtr, type});
-      }
-
-      //   llvm::AllocaInst *Alloca =
-      //       Builder->CreateAlloca(structT, nullptr, parameterNames[i]);
-      //   Builder->CreateStore(argValue, Alloca);
-
-      //   llvm::Value *loaded =
-      //       Builder->CreateGEP(llvm::Type::getInt32Ty(*TheContext), Alloca,
-      //                          {Builder->getInt32(0), Builder->getInt32(0)});
-
-      //   Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), loaded);
-      //   llvm::Value *intPtr = Builder->CreateBitCast(
-      //       argValue, llvm::PointerType::get(classType, 0));
-      //   llvm::Value *ptr = Builder->CreateGEP(
-      //       classType, argValue, {Builder->getInt32(0),
-      //       Builder->getInt32(0)});
-      //   llvm::Value *load = Builder->CreateLoad(
-      //       llvm::Type::getInt32Ty(*TheContext),
-      //       );
-
-      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                       {argValue, classType});
-      continue;
+      break;
     }
-
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         functionDeclaration->getParametersRef()[i]->getLocation());
     if (llvmArgsTypes[i]->isPointer() &&

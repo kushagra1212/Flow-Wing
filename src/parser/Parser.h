@@ -121,8 +121,9 @@ private:
   /*
     EXPRESSIONS
   */
-  std::unique_ptr<ExpressionSyntax> parseIndexExpression();
-  std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
+  std::unique_ptr<ExpressionSyntax> parseIndexExpression(bool isSelf = false);
+  std::unique_ptr<ExpressionSyntax>
+  parseNameorCallExpression(bool isSelf = false);
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed,
                            bool isMemberFunction = false);
@@ -131,7 +132,8 @@ private:
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
-  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
+  std::unique_ptr<ExpressionSyntax>
+  parseVariableExpression(bool isSelf = false);
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();

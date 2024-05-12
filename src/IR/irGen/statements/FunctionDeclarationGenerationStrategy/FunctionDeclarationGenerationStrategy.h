@@ -15,10 +15,9 @@ public:
   FunctionDeclarationGenerationStrategy(CodeGenerationContext *context);
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
-
-  llvm::FunctionType *generate(BoundStatement *statement,
-                               std::vector<llvm::Type *> classArgs = {},
-                               std::string className = "");
+  llvm::Function *generate(BoundStatement *statement,
+                           std::vector<llvm::Type *> classArgs = {},
+                           std::string className = "");
 };
 
 #endif // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__

@@ -25,7 +25,7 @@ CodeGenerationContext ::CodeGenerationContext(
 
   // Initialize
   _typeMapper = std::make_unique<TypeMapper>(_context.get(), _builder.get(),
-                                             _module.get());
+                                             _module.get(), this);
 
   // Initialize  LLVM_Logger
   _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);

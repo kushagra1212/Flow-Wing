@@ -38,8 +38,8 @@ public:
 
   inline auto isConstant() const -> const bool { return _isConstant; }
 
-  inline auto getDotExpressionList() const
-      -> const std::vector<std::unique_ptr<BoundExpression>> & {
+  inline auto getDotExpressionList()
+      -> std::vector<std::unique_ptr<BoundExpression>> & {
     return _dotExpressionList;
   }
 

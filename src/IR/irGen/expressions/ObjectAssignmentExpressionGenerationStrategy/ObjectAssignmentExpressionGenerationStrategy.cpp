@@ -520,7 +520,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
 
     if (propertiesMap.find(propertyName) == propertiesMap.end()) {
       _codeGenerationContext->getLogger()->LogError(
-          "Property " + propertyName + " not found in type " + typeName);
+          "Property " + propertyName + " not found in type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(parStructType));
       return nullptr;
     }
 
@@ -546,6 +547,24 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
       std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
           std::make_unique<AssignmentExpressionGenerationStrategy>(
               _codeGenerationContext);
+
+      std::unique_ptr<CustomTypeStatementGenerationStrategy> customTypeEGS =
+          std::make_unique<CustomTypeStatementGenerationStrategy>(
+              _codeGenerationContext);
+
+      // BoundTypeExpression *typeExp =
+      //     static_cast<BoundTypeExpression *>(bExpr.get());
+
+      // llvm::Type *lhsTypeInSyn = customTypeEGS->getType(
+      //     static_cast<BoundTypeExpression *>(bExpr.get()));
+
+      // if (lhsTypeInSyn && _codeGenerationContext->verifyType(
+      //                         lhsTypeInSyn, parStructType->getElementType(
+      //                                           indexValue)) == EXIT_FAILURE)
+      //                                           {
+
+      //   return nullptr;
+      // }
 
       assignmentEGS->handleAssignExpression(
           innerElementPtr, parStructType->getElementType(indexValue),

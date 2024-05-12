@@ -13,10 +13,12 @@ class BoundVariableDeclaration : public BoundStatement,
 private:
   std::string _variableName;
   std::unique_ptr<BoundExpression> _initializer;
+  std::unique_ptr<BoundLiteralExpression<std::any>> _identifier;
   bool _isConst;
   std::unique_ptr<BoundTypeExpression> _typeExp;
   bool _isExposed;
   bool _hasNewKeyword;
+  std::string _classItBelongsTo;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -48,6 +50,13 @@ public:
     _initializer = std::move(initializer);
   }
 
+  inline auto setClassItBelongsTo(const std::string &classItBelongsTo) {
+    _classItBelongsTo = classItBelongsTo;
+  }
+  inline auto
+  setIdentifier(std::unique_ptr<BoundLiteralExpression<std::any>> identifier) {
+    _identifier = std::move(identifier);
+  }
   inline auto setTypeExpression(std::unique_ptr<BoundTypeExpression> typeExp) {
     _typeExp = std::move(typeExp);
   }
@@ -57,4 +66,13 @@ public:
   }
 
   inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
+
+  inline auto getIdentifierRef()
+      -> std::unique_ptr<BoundLiteralExpression<std::any>> & {
+    return _identifier;
+  }
+
+  inline auto getClassItBelongsTo() -> const std::string & {
+    return _classItBelongsTo;
+  }
 };

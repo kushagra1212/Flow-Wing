@@ -26,15 +26,12 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
   return nullptr;
 }
 
-llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
+llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     BoundStatement *statement, std::vector<llvm::Type *> classArgs,
     std::string className) {
   BoundFunctionDeclaration *fd =
       static_cast<BoundFunctionDeclaration *>(statement);
-  const std::string FUNCTION_NAME =
-      classArgs.size() == 0 ? fd->getFunctionNameRef()
-                            : className + "_:" + fd->getFunctionNameRef();
-  fd->setFunctionName(FUNCTION_NAME);
+  const std::string FUNCTION_NAME = fd->getFunctionNameRef();
 
   bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
 
@@ -47,7 +44,8 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
   std::vector<llvm::Type *> argTypes;
   for (int i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Type *parmType = nullptr;
-
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        fd->getParametersRef()[i]->getLocation());
     if (fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
       parmType = (_codeGenerationContext->getDynamicType()->get());
@@ -130,6 +128,13 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
       llvm::StructType *structType =
           _codeGenerationContext->getTypeChain()->getType(
               objectTypeExpression->getTypeName());
+
+      if (!structType) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Object type " + objectTypeExpression->getTypeName() +
+            " was not found when calling function " + FUNCTION_NAME);
+        return nullptr;
+      }
 
       llvm::Type *parmTypePointer = llvm::PointerType::get(structType, 0);
       argTypes.push_back(parmTypePointer);
@@ -327,5 +332,5 @@ llvm::FunctionType *FunctionDeclarationGenerationStrategy::generate(
 
   _codeGenerationContext->addBoundedUserFunction(FUNCTION_NAME, fd);
 
-  return FT;
+  return F;
 }
