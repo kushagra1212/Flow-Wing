@@ -425,3 +425,89 @@ print(a.obj)
   O(R"({ a : 100 }After Pass
 { a : 100 })");
 }
+
+TEST_F(InoutTest, passingClassExpressionCreation) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main( a:A) -> nthg {
+  print(a.obj)
+  a.obj.a = 21
+  print(a.obj)
+}
+
+main( new A({a:100}))
+
+print("After Pass")
+
+    )");
+
+  O(R"({ a : 100 }{ a : 21 }After Pass)");
+}
+TEST_F(InoutTest, passingClassObjectWithInout) {
+  I(R"(
+
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main(inout a:A) -> nthg {
+  a.obj.a = 21
+}
+var a:A =  new A({a:100})
+print(a.obj)
+main(a)
+print("After Pass")
+print(a.obj)
+    )");
+
+  O(R"({ a : 100 }After Pass{ a : 21 })");
+}
+TEST_F(InoutTest, passingClassObjectWithoutInout) {
+  I(R"(
+
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main( a:A) -> nthg {
+  a.obj.a = 21
+}
+var a:A =  new A({a:100})
+print(a.obj)
+main(a)
+print("After Pass")
+print(a.obj)
+    )");
+
+  O(R"({ a : 100 }After Pass{ a : 100 })");
+}

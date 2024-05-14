@@ -2430,3 +2430,133 @@ s
 [0, 0, 0]
 0NiceNiceOutsidefunction)");
 }
+
+TEST_F(ClassesTests, ReturnClassObjectFromFunction) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA() -> A {
+var d:A= new A({a:100})
+
+ d.obj.a = 21
+  return d
+}
+var a:A =  getA()  
+a.obj = {a:32}
+print(a.obj)
+a = getA()
+print("After Pass")
+print(a.obj)
+)");
+  O(R"({ a : 32 }After Pass{ a : 21 })");
+}
+
+TEST_F(ClassesTests, ReturnClassObjectFromFunction2) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA() -> A {
+var d:A= new A({a:100})
+
+ d.obj.a = 21
+  return d
+}
+var a:A =  getA()  
+a.obj = {a:32}
+print(a.obj)
+a = getA()
+print("After Pass")
+print(a.obj)
+)");
+  O(R"({ a : 32 }After Pass{ a : 21 })");
+}
+TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturining) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA() -> A {
+var d:A= new A({a:100})
+
+ d.obj.a = 21
+  return d
+}
+
+fun getAA() -> A {
+  return getA()
+}
+
+var a:A =  getAA()  
+a.obj = {a:32}
+print(a.obj)
+a = getA()
+print("After Pass")
+print(a.obj)
+)");
+  O(R"({ a : 32 }After Pass{ a : 21 })");
+}
+TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturiningComplexTwo) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA(d:A) -> A {
+
+ d.obj.a = 21
+  return d
+}
+
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.obj)
+)");
+  O(R"({ a : 21 }After Pass{ a : 32 })");
+}

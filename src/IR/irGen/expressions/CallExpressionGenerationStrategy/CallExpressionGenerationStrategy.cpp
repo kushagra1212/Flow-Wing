@@ -164,7 +164,6 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
           }
         }
       }
-
       if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
           llvm::isa<llvm::PointerType>(value->getType())) {
         std::string typeName =
@@ -376,6 +375,33 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
         value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
+
+        if (!value) {
+          auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+          std::unique_ptr<AssignmentExpressionGenerationStrategy>
+              assignmentEGS =
+                  std::make_unique<AssignmentExpressionGenerationStrategy>(
+                      _codeGenerationContext);
+
+          llvm::CallInst *malloc_call = Builder->CreateCall(
+              fun, llvm::ConstantInt::get(
+                       llvm::Type::getInt64Ty(*TheContext),
+                       _codeGenerationContext->getMapper()->getSizeOf(
+                           _codeGenerationContext->_classTypes[className]
+                               ->getClassType())));
+          malloc_call->setTailCall(false);
+
+          // Cast the result of 'malloc' to a pointer to int
+          llvm::Value *intPtr = Builder->CreateBitCast(
+              malloc_call, llvm::PointerType::getUnqual(
+                               llvm::Type::getInt32Ty(*TheContext)));
+          assignmentEGS->initDefaultValue(
+              _codeGenerationContext->_classTypes[className]->getClassType(),
+              intPtr);
+          _codeGenerationContext->_classTypes[className]->setObjectPtr(intPtr);
+        }
+        value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
+
         classType =
             _codeGenerationContext->_classTypes[className]->getClassType();
 
@@ -471,42 +497,51 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   }
   llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
   _codeGenerationContext->getValueStackHandler()->popAll();
-  if (!_classType) {
-    llvm::ArrayType *arrayType = nullptr;
-    llvm::Type *elementType = nullptr;
-    std::vector<uint64_t> actualSizes;
-    _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
-                                                 elementType, actualSizes);
 
-    if (arrayType != nullptr) {
-      _codeGenerationContext->getValueStackHandler()->push("", callIn, "array",
-                                                           arrayType);
-
-      return callIn;
-    }
-    llvm::StructType *structType = nullptr;
-    _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
-
-    if (structType != nullptr) {
-      _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
-                                                           structType);
-      return callIn;
-    }
-
-    llvm::Type *retType = nullptr;
-    _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
-
-    _codeGenerationContext->getValueStackHandler()->push("", callIn,
-                                                         "primitive", retType);
-  } else {
-    if (callExpression->hasNewKeyword()) {
-      _codeGenerationContext->getValueStackHandler()->push(
-          "", _classPtr, "struct", _classType);
-      return _classPtr;
-    } else
-      _codeGenerationContext->getValueStackHandler()->push(
-          "", _classPtr, "struct", _classType);
+  if (callExpression->getCallerNameRef().find("_:init") != std::string::npos) {
+    _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
+                                                         "struct", _classType);
+    return _classPtr;
   }
+
+  // if (!_classType) {
+  llvm::ArrayType *arrayType = nullptr;
+  llvm::Type *elementType = nullptr;
+  std::vector<uint64_t> actualSizes;
+  _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
+                                               elementType, actualSizes);
+
+  if (arrayType != nullptr) {
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "array",
+                                                         arrayType);
+
+    return callIn;
+  }
+  llvm::StructType *structType = nullptr;
+  _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
+
+  if (structType != nullptr) {
+
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
+                                                         structType);
+    return callIn;
+  }
+
+  llvm::Type *retType = nullptr;
+  _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
+
+  _codeGenerationContext->getValueStackHandler()->push("", callIn, "primitive",
+                                                       retType);
+  // } else {
+  //   if (callExpression->hasNewKeyword()) {
+  //     _codeGenerationContext->getValueStackHandler()->push(
+  //         "", _classPtr, "struct", _classType);
+  //     return _classPtr;
+  //   } else {
+  //     _codeGenerationContext->getValueStackHandler()->push(
+  //         "", _classPtr, "struct", _classType);
+  //   }
+  // }
 
   return callIn;
 }
@@ -555,62 +590,27 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     if (llvm::isa<llvm::StructType>(type) || llvm::isa<llvm::ArrayType>(type)) {
 
-      rhsValue = Builder->CreateAlloca(type, nullptr);
-      Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+      if (llvm::isa<llvm::StructType>(type)) {
+        llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+        if (_codeGenerationContext->_classLLVMTypes.find(
+                structType->getStructName().str()) !=
+            _codeGenerationContext->_classLLVMTypes.end()) {
+          rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+        } else {
+          rhsValue = Builder->CreateAlloca(type, nullptr);
+          Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+        }
+      } else {
+
+        rhsValue = Builder->CreateAlloca(type, nullptr);
+        Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+      }
+
     } else {
       rhsValue = Builder->CreateAlloca(type, nullptr);
       Builder->CreateStore(value, rhsValue);
     }
     _codeGenerationContext->getValueStackHandler()->popAll();
-    // rhsValue = Builder->CreateAlloca(
-    //     _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-    //     nullptr);
-    // // Store the result of the call in the local variable
-    // Builder->CreateStore(
-    //     _codeGenerationContext->getValueStackHandler()->getValue(),
-    //     rhsValue);
-    // // rhsValue = localVariable;
-
-    // _codeGenerationContext->getValueStackHandler()->popAll();
-    // if (llvm::isa<llvm::CallInst>(value)) {
-    //   llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
-    //   auto *calledFunction = calledInst->getCalledFunction();
-    //   llvm::ArrayType *arrayType = nullptr;
-    //   llvm::Type *elementType = nullptr;
-    //   std::vector<uint64_t> actualSizes;
-    //   _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
-    //                                                elementType, actualSizes);
-
-    //   if (arrayType != nullptr) {
-    //     llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
-    //     llvm::Value *localVariable = Builder->CreateAlloca(arrayType,
-    //     nullptr);
-
-    //     // Store the result of the call in the local variable
-    //     Builder->CreateStore(loaded, localVariable);
-    //     rhsValue = localVariable;
-    //   } else {
-    //     llvm::StructType *structType = nullptr;
-    //     _codeGenerationContext->getReturnedObjectType(calledFunction,
-    //                                                   structType);
-
-    //     if (structType != nullptr) {
-    //       llvm::LoadInst *loaded = Builder->CreateLoad(structType,
-    //       calledInst); llvm::Value *localVariable =
-    //           Builder->CreateAlloca(structType, nullptr);
-
-    //       // Store the result of the call in the local variable
-    //       Builder->CreateStore(loaded, localVariable);
-    //       rhsValue = localVariable;
-    //     } else {
-    //       llvm::Type *type =
-    //           _codeGenerationContext->getValueStackHandler()->getLLVMType();
-    //       llvm::Value *localVariable = Builder->CreateAlloca(type, nullptr);
-    //       Builder->CreateStore(value, localVariable);
-    //       rhsValue = localVariable;
-    //     }
-    //   }
-    // }
     break;
   }
   default: {

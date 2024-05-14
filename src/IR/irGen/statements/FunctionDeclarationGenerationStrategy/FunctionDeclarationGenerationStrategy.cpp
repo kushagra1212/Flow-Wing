@@ -266,6 +266,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           _codeGenerationContext->getTypeChain()->getType(
               boundObjectTypeExpression->getTypeName());
 
+      if (!structType) {
+
+        structType = _codeGenerationContext
+                         ->_classTypes[boundObjectTypeExpression->getTypeName()]
+                         ->getClassType();
+      }
+
       llvm::Type *returnType = llvm::PointerType::get(structType, 0);
 
       FT = llvm::FunctionType::get(returnType, argTypes, false);
@@ -303,7 +310,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   //       LLVMArrayType *llvmArrayType =
   //           static_cast<LLVMArrayType *>(llvmArrayArgs[i].get());
   //       llvm::ArrayType *arrayType =
-  //           static_cast<llvm::ArrayType *>(llvmArrayType->getElementType());
+  //           static_cast<llvm::ArrayType
+  //           *>(llvmArrayType->getElementType());
 
   //       uint64_t arraySize = arrayType->getNumElements();
 
@@ -313,8 +321,10 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   //                 _codeGenerationContext->getMapper()->getLLVMTypeName(
   //                     llvmArrayType->getArrayElementType()) +
   //                 ":sz:";
-  //       for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++) {
-  //         argInfo += std::to_string(llvmArrayType->getDimensions()[k]) + ":";
+  //       for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++)
+  //       {
+  //         argInfo += std::to_string(llvmArrayType->getDimensions()[k]) +
+  //         ":";
   //       }
   //     } else if (llvmArrayArgs[i]->isPointerToObject()) {
   //       LLVMObjectType *llvmObjType =
@@ -327,14 +337,15 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   //     } else {
   //       // Create a metadata string that describes the argument
   //       argInfo =
-  //           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() +
+  //           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType()
+  //           +
   //           ":" + std::to_string(i) + ":" +
   //           _codeGenerationContext->getMapper()->getLLVMTypeName(
   //               llvmArrayArgs[i]->getType());
   //     }
 
-  //     llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext, argInfo);
-  //     llvm::StringRef Kind = "argInfo" + std::to_string(i);
+  //     llvm::MDString *argInfoMD = llvm::MDString::get(*TheContext,
+  //     argInfo); llvm::StringRef Kind = "argInfo" + std::to_string(i);
   //     // Attach the metadata to the argument
   //     F->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
   //   }

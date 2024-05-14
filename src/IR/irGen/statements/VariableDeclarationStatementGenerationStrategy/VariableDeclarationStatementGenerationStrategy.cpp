@@ -286,7 +286,9 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       return nullptr;
     }
 
-    if (variableDeclaration->getHasNewKeyword()) {
+    if (_codeGenerationContext->_classTypes.find(
+            structType->getStructName().str()) !=
+        _codeGenerationContext->_classTypes.end()) {
 
       auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
 
@@ -304,12 +306,8 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
                                                        {intPtr, structType});
       assignmentEGS->initDefaultValue(structType, intPtr);
 
-      if (_codeGenerationContext->_classTypes.find(
-              objectTypeExpression->getTypeName()) !=
-          _codeGenerationContext->_classTypes.end()) {
-        _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
-            ->setObjectPtr(intPtr);
-      }
+      _codeGenerationContext->_classTypes[structType->getStructName().str()]
+          ->setObjectPtr(intPtr);
 
       if (!variableDeclaration->getInitializerPtr().get())
         return intPtr;

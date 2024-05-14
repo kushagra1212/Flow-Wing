@@ -487,7 +487,10 @@ void CodeGenerationContext::getReturnedObjectType(
   }
   Utils::split(metaData, ":", strs);
   if (strs[2] == "ob") {
-    objectType = this->getTypeChain()->getType(strs[3]);
+    if (_classTypes.find(strs[3]) != _classTypes.end())
+      objectType = _classTypes[strs[3]]->getClassType();
+    else
+      objectType = this->getTypeChain()->getType(strs[3]);
   }
 }
 void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,

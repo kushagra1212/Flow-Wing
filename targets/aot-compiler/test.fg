@@ -1,14 +1,77 @@
-fun getOne() -> int {
-    return 2
+
+  type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
 }
-fun getDeci(num:int) -> deci {
-    return 3.2 * num
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+var gka: k  = {
+  i:1022,
+ o: 102,
+  s: "sora"
+  
 }
 
-print(getDeci(getOne()))
+var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
+var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
+fun getOne(ar:t)->t{
+  ar.x = 100
+  ar.y = "Hello2"
+  ar.a = 5.4
+  ar.b = true 
+  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
+  return ar
+}
+
+fun getTwo(ar:t)->t{
+  ar.x = 200
+  ar.y = "Hello4"
+  ar.b = false 
+  ar.ar = [{u:"s",g:[{d:55.3,s:"no"},{ob:{s:"bye",i:40}}]}]
+  return ar
+}
+
+
+print(arr)
+print("\n")
+arr[1] = getTwo(getOne(arr[0]))
+print(arr)
 /#
+
 type T = {
   a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
 }
 
 class A{
@@ -17,24 +80,32 @@ class A{
   init(obj:T) -> nthg {
     self.obj = obj 
   }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
 }
 
 
-fun main( a:A) -> nthg {
-  print(a.obj)
-  a.obj.a = 21
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
 }
 
-var a:A = new A({a:100})
+fun getAA(a:A) -> A {
+  return getA(a)
+}
 
-main(a)
-
-print("After Pass\n")
+var a:A =  getAA(new A({a:22}))  
 print(a.obj)
-
-
-
-
+a.obj = {a:32}
+print("After Pass")
+var d:B = new B({j:[{a:2}]})
+print(d.getU())
+a.printB(d)
+{
+  a.printB(new B({j:[]}))
+}
 
 
 

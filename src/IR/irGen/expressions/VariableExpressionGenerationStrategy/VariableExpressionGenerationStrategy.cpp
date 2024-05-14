@@ -34,7 +34,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
 llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
     llvm::Type *&variableType, llvm::Value *v,
     const std::string &variableName) {
-
   // When Local Variable is an array type
   if (llvm::isa<llvm::ArrayType>(variableType)) {
 
@@ -213,7 +212,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
 
     if (!isNested)
       return callinst;
-
     llvm::Value *ptr =
         _codeGenerationContext->getValueStackHandler()->getValue();
     llvm::Type *type =
