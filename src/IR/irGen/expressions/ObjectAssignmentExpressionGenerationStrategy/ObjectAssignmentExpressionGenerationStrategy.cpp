@@ -244,28 +244,59 @@ ObjectAssignmentExpressionGenerationStrategy::generateGlobalExpression(
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
     llvm::StructType *parStructType, llvm::Value *lshPtr, llvm::Value *rhsPtr) {
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(
-          parStructType->getStructName().str());
-  uint64_t i = 0;
-  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-    std::string propertyName = std::any_cast<std::string>(bLE->getValue());
-    llvm::Value *LHSinnerElementPtr =
-        Builder->CreateStructGEP(parStructType, lshPtr, i);
-    llvm::Value *RHSinnerElementPtr =
-        Builder->CreateStructGEP(parStructType, rhsPtr, i);
-    llvm::Type *innerElementType = parStructType->getElementType(i);
-    if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-      copyOject(llvm::cast<llvm::StructType>(innerElementType),
-                LHSinnerElementPtr, RHSinnerElementPtr);
-    } else {
-      llvm::Value *loadedRHS =
-          Builder->CreateLoad(innerElementType, RHSinnerElementPtr);
 
-      Builder->CreateStore(loadedRHS, LHSinnerElementPtr);
+  uint64_t i = 0;
+
+  std::string typeName = parStructType->getStructName().str();
+
+  if (_codeGenerationContext->_classTypes.find(typeName) !=
+      _codeGenerationContext->_classTypes.end()) {
+    // parStructType =
+    //     _codeGenerationContext->_classTypes[typeName]->getClassType();
+    for (const auto &[bLE, bTE] :
+         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs()) {
+      std::string propertyName = std::any_cast<std::string>(bLE->getValue());
+      llvm::Value *LHSinnerElementPtr =
+          Builder->CreateStructGEP(parStructType, lshPtr, i);
+      llvm::Value *RHSinnerElementPtr =
+          Builder->CreateStructGEP(parStructType, rhsPtr, i);
+      llvm::Type *innerElementType = parStructType->getElementType(i);
+      if (bTE->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+        copyOject(llvm::cast<llvm::StructType>(innerElementType),
+                  LHSinnerElementPtr, RHSinnerElementPtr);
+      } else {
+        llvm::Value *loadedRHS =
+            Builder->CreateLoad(innerElementType, RHSinnerElementPtr);
+
+        Builder->CreateStore(loadedRHS, LHSinnerElementPtr);
+      }
+      i++;
     }
-    i++;
+  } else {
+    BoundCustomTypeStatement *boundCustomTypeStatement =
+        _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+    for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
+      std::string propertyName = std::any_cast<std::string>(bLE->getValue());
+      llvm::Value *LHSinnerElementPtr =
+          Builder->CreateStructGEP(parStructType, lshPtr, i);
+      llvm::Value *RHSinnerElementPtr =
+          Builder->CreateStructGEP(parStructType, rhsPtr, i);
+      llvm::Type *innerElementType = parStructType->getElementType(i);
+      if (bTE->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+        copyOject(llvm::cast<llvm::StructType>(innerElementType),
+                  LHSinnerElementPtr, RHSinnerElementPtr);
+      } else {
+        llvm::Value *loadedRHS =
+            Builder->CreateLoad(innerElementType, RHSinnerElementPtr);
+
+        Builder->CreateStore(loadedRHS, LHSinnerElementPtr);
+      }
+      i++;
+    }
   }
+
   return nullptr;
 }
 
@@ -496,19 +527,32 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       parObjectExpression->getLocation());
   std::string typeName = parStructType->getStructName().str();
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
 
   uint64_t index = 0;
-  for (const auto &[bLitExpr, bExpr] :
-       boundCustomTypeStatement->getKeyPairs()) {
-    std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
-    propertiesMap[propertyName] = bExpr.get();
-    propertiesMapIndexed[propertyName] = index;
-    index++;
+  if (_codeGenerationContext->_classTypes.find(typeName) !=
+      _codeGenerationContext->_classTypes.end()) {
+    for (const auto &[bLitExpr, bExpr] :
+         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs()) {
+      std::string propertyName =
+          std::any_cast<std::string>(bLitExpr->getValue());
+      propertiesMap[propertyName] = bExpr;
+      propertiesMapIndexed[propertyName] = index;
+      index++;
+    }
+  } else {
+    BoundCustomTypeStatement *boundCustomTypeStatement =
+        _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+    for (const auto &[bLitExpr, bExpr] :
+         boundCustomTypeStatement->getKeyPairs()) {
+      std::string propertyName =
+          std::any_cast<std::string>(bLitExpr->getValue());
+      propertiesMap[propertyName] = bExpr.get();
+      propertiesMapIndexed[propertyName] = index;
+      index++;
+    }
   }
 
   for (const auto &[bLitExpr, bExpr] :

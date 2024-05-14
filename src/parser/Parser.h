@@ -124,6 +124,7 @@ private:
   std::unique_ptr<ExpressionSyntax> parseIndexExpression(bool isSelf = false);
   std::unique_ptr<ExpressionSyntax>
   parseNameorCallExpression(bool isSelf = false);
+  std::unique_ptr<ExpressionSyntax> parseCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed,
                            bool isMemberFunction = false);

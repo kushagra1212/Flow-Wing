@@ -5,7 +5,7 @@
 #include "../LLVMType.h"
 
 class LLVMArrayType : public LLVMType {
- public:
+public:
   LLVMArrayType(llvm::Type *type, llvm::Type *elementType,
                 llvm::Type *arrayElementType,
                 const std::vector<uint64_t> &dimensions,
@@ -21,11 +21,15 @@ class LLVMArrayType : public LLVMType {
 
   inline llvm::Type *getArrayElementType() const { return _arrayElementType; }
 
+  virtual inline llvm::Type *getLLVMType() const override {
+    return _elementType;
+  }
+
   inline BoundArrayTypeExpression *getArrayTypeExpression() const {
     return _arrayTypeExpression;
   }
 
- private:
+private:
   llvm::Type *_type;
   llvm::Type *_elementType;
   std::vector<uint64_t> _dimensions;
@@ -33,4 +37,4 @@ class LLVMArrayType : public LLVMType {
   BoundArrayTypeExpression *_arrayTypeExpression;
 };
 
-#endif  // __FLOWWING__LLVM_ARRAY_TYPE_H__
+#endif // __FLOWWING__LLVM_ARRAY_TYPE_H__

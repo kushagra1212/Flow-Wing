@@ -1,4 +1,49 @@
-type X = {
+fun getOne() -> int {
+    return 2
+}
+fun getDeci(num:int) -> deci {
+    return 3.2 * num
+}
+
+print(getDeci(getOne()))
+/#
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main( a:A) -> nthg {
+  print(a.obj)
+  a.obj.a = 21
+}
+
+var a:A = new A({a:100})
+
+main(a)
+
+print("After Pass\n")
+print(a.obj)
+
+
+
+
+
+
+
+
+
+
+
+
+/#type X = {
   x1: str,
   x2: int
 }
@@ -12,7 +57,17 @@ fun printNice() -> nthg {
 
   fun outsidefun()-> nthg {
       print("Outsidefunction")
-    }
+}
+
+class B {
+var n:int 
+
+  printN() -> nthg {
+        print("This is n: "+n)
+  }
+
+}
+
 class A {
   var a: int
   var b: str
@@ -93,11 +148,23 @@ class A {
 
   printNice() -> nthg {
       print("Nice")
-    }
+  }
+
+  printBsa(b: A) -> nthg {
+    b.a = 1212
+   print("\n\n\n")
+   b.printAll()
+   print(self.b)
+   print(b.a)
+  }
+
+  printBClass(d: B) -> nthg {
+  
+    d.printN()
+  }
 
 }
-{
-    var a: A  = new A(2, "Hello", 3.3, {
+var a: A  = new A(2, "Hello", 3.3, {
   x1: "HI",
   x2: 45
 })
@@ -117,7 +184,16 @@ a.printAll()
 a.printNice()
 printNice()
 outsidefun()
-  }
+var b:A = new A(5,"e",5.5,{
+    x1:"s",
+    x2:22
+})
+a.printBsa(new A(5,"e",5.5,{
+        x1:"s",
+            x2:22
+})
+  )
+print(b.a)
 /#
 class Animal {
    var x:int

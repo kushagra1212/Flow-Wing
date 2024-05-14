@@ -2269,3 +2269,164 @@ HI
 [0, 0, 0]
 0NiceNiceOutsidefunctionNiceNot NiceOutsidefunction)");
 }
+
+TEST_F(ClassesTests,
+       PrintNiceInsideClassFunctionOutsideClassPassingAnotherObjectOfSameType) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+fun printNice() -> nthg {
+    print("Not Nice")
+  }
+
+  fun outsidefun()-> nthg {
+      print("Outsidefunction")
+    }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+  printAll() -> nthg {
+    print(arr[0].j[0].x2)
+    arr[0].j[0].x2= 2
+    print("\n")
+    print(arr[0].j[0].x2)
+    print("\n")
+    arr[0].j[1].x1= "WAY"
+    print(arr[0].j[1].x1)
+    print("\n")
+    print(obj)
+    print("\n")
+    print(obj.x2)
+    print("\n")
+    print(obj.x1)
+    print("\n")
+    print(obj2)
+    print("\n")
+    obj2 = {
+      j: [{
+        x2: 2,
+        x1: "Ge"
+      }],
+      a: [2 fill 1]
+    } 
+    print(obj2)
+    print("\n")
+    obj2 <- {
+
+    } 
+    print(obj2)
+    print("\n")
+    print(obj2.a)
+    print("\n")
+    print(obj2.j[0].x2)
+    printNice()
+    self.printNice()
+    outsidefun()
+  }
+
+  printNice() -> nthg {
+      print("Nice")
+  }
+
+  printBsa(b: A) -> nthg {
+   print("\n\n\n")
+   b.printAll()
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults()
+print("\n")
+print("Before Update\n")
+print(a.arr)
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}])
+print("\n")
+a.printAll()
+a.printNice()
+printNice()
+outsidefun()
+var b:A = new A(5,"e",5.5,{
+    x1:"s",
+    x2:22
+})
+a.printBsa(b)
+)");
+  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0NiceNiceOutsidefunctionNiceNot NiceOutsidefunctioninitCalled
+
+
+0
+2
+WAY
+{ x1 : 's', x2 : 22 }
+22
+s
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0NiceNiceOutsidefunction)");
+}

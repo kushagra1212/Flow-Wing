@@ -72,6 +72,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   llvm::StructType *classType = llvm::StructType::create(
       *TheContext, classElements, boundClassStatement->getClassName());
 
+  _codeGenerationContext->_classLLVMTypes[boundClassStatement->getClassName()] =
+      classType;
   std::unique_ptr<FunctionDeclarationGenerationStrategy>
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(

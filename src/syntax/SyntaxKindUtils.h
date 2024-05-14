@@ -91,6 +91,7 @@ enum SyntaxKind {
   DeclKeyword,
   NewKeyword,
   ClassKeyword,
+  INOUTKeyword,
 
   // Identifiers
   IdentifierToken,

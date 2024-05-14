@@ -490,3 +490,17 @@ void CodeGenerationContext::getReturnedObjectType(
     objectType = this->getTypeChain()->getType(strs[3]);
   }
 }
+void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
+                                                     llvm::Type *&type) {
+  std::string metaData = "";
+  std::vector<std::string> strs;
+  getMetaData("rt", F, metaData);
+  if (metaData == "") {
+    return;
+  }
+  Utils::split(metaData, ":", strs);
+  if (strs[2] == "pr") {
+    type = getMapper()->mapCustomTypeToLLVMType(
+        (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
+  }
+}

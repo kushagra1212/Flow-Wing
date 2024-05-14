@@ -162,6 +162,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::BreakKeyword:
     return "BreakKeyword";
 
+  case SyntaxKind::INOUTKeyword:
+    return "INOUTKeyword";
+
   case SyntaxKind::ReturnKeyword:
     return "ReturnKeyword";
 

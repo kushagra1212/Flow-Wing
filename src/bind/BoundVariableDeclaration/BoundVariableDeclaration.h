@@ -18,6 +18,7 @@ private:
   std::unique_ptr<BoundTypeExpression> _typeExp;
   bool _isExposed;
   bool _hasNewKeyword;
+  bool _hasInOutKeyword = false;
   std::string _classItBelongsTo;
 
 public:
@@ -50,6 +51,10 @@ public:
     _initializer = std::move(initializer);
   }
 
+  inline auto setHasInOutKeyword(bool hasInOutKeyword) {
+    _hasInOutKeyword = hasInOutKeyword;
+  }
+
   inline auto setClassItBelongsTo(const std::string &classItBelongsTo) {
     _classItBelongsTo = classItBelongsTo;
   }
@@ -66,6 +71,8 @@ public:
   }
 
   inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
+
+  inline auto getHasInOutKeyword() -> bool { return _hasInOutKeyword; }
 
   inline auto getIdentifierRef()
       -> std::unique_ptr<BoundLiteralExpression<std::any>> & {

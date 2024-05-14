@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
 #include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"

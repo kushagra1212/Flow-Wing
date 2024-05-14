@@ -112,65 +112,102 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
           "Type mismatch in function parameter " + parameterNames[i]);
     }
 
-    if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
-        llvmArgsTypes[i]->isPointerToArray()) {
-      LLVMArrayType *llvmArrayPtrType =
-          static_cast<LLVMArrayType *>(llvmArgsTypes[i].get());
+    if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
 
-      llvm::ArrayType *arrayType =
-          llvm::cast<llvm::ArrayType>(llvmArrayPtrType->getElementType());
+      if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
+          llvmArgsTypes[i]->isPointerToArray()) {
 
-      llvm::Value *variable =
-          Builder->CreateAlloca(arrayType, nullptr, parameterNames[i]);
+        llvm::ArrayType *arrayType =
+            llvm::cast<llvm::ArrayType>(llvmArgsTypes[i]->getLLVMType());
+        _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                         {argValue, arrayType});
+      } else if (llvmArgsTypes[i]->isPointerToObject()) {
+        llvm::StructType *structType =
+            llvm::cast<llvm::StructType>(llvmArgsTypes[i]->getLLVMType());
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, structType});
+      } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
 
-      _codeGenerationContext->setArrayElementTypeMetadata(
-          variable, llvmArrayPtrType->getArrayElementType());
-
-      _codeGenerationContext->setArraySizeMetadata(
-          variable, llvmArrayPtrType->getDimensions());
-
-      containerAssignmentExpressionGenerationStrategy->createExpression(
-          arrayType, variable, argValue, arrayType,
-          llvmArrayPtrType->getArrayElementType(),
-          llvmArrayPtrType->getDimensions(), llvmArrayPtrType->getDimensions());
-
-      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                       {variable, arrayType});
-
-    } else if (llvmArgsTypes[i]->isPointerToObject()) {
-      LLVMObjectType *llvmObjectType =
-          static_cast<LLVMObjectType *>(llvmArgsTypes[i].get());
-
-      llvm::StructType *structType =
-          llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
-
-      std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
-          objAssignSt =
-              std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-                  _codeGenerationContext);
-
-      llvm::Value *structPtr =
-          Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
-
-      _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                       {structPtr, structType});
-
-      objAssignSt->copyOject(structType, structPtr, argValue);
-
-    } else if (_codeGenerationContext->getDynamicType()->isDyn(
-                   llvmArgsTypes[i]->getType())) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Dynamic type is not supported in function parameter " +
-          parameterNames[i].substr(0, parameterNames[i].find_first_of("[")));
-      return nullptr;
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
+      } else {
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i],
+            {argValue, _codeGenerationContext->getDynamicType()->get()});
+      }
     } else {
-      llvm::AllocaInst *variable = Builder->CreateAlloca(
-          argValue->getType(), nullptr, parameterNames[i]);
-      Builder->CreateStore(argValue, variable);
-      _codeGenerationContext->getAllocaChain()->setPtr(
-          parameterNames[i], {variable, argValue->getType()});
-      _codeGenerationContext->getNamedValueChain()->setNamedValue(
-          parameterNames[i], argValue);
+      if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
+          llvmArgsTypes[i]->isPointerToArray()) {
+        LLVMArrayType *llvmArrayPtrType =
+            static_cast<LLVMArrayType *>(llvmArgsTypes[i].get());
+
+        llvm::ArrayType *arrayType =
+            llvm::cast<llvm::ArrayType>(llvmArrayPtrType->getElementType());
+
+        llvm::Value *variable =
+            Builder->CreateAlloca(arrayType, nullptr, parameterNames[i]);
+
+        _codeGenerationContext->setArrayElementTypeMetadata(
+            variable, llvmArrayPtrType->getArrayElementType());
+
+        _codeGenerationContext->setArraySizeMetadata(
+            variable, llvmArrayPtrType->getDimensions());
+
+        containerAssignmentExpressionGenerationStrategy->createExpression(
+            arrayType, variable, argValue, arrayType,
+            llvmArrayPtrType->getArrayElementType(),
+            llvmArrayPtrType->getDimensions(),
+            llvmArrayPtrType->getDimensions());
+
+        _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                         {variable, arrayType});
+
+      } else if (llvmArgsTypes[i]->isPointerToObject()) {
+        LLVMObjectType *llvmObjectType =
+            static_cast<LLVMObjectType *>(llvmArgsTypes[i].get());
+
+        llvm::StructType *structType =
+            llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
+
+        std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
+            objAssignSt =
+                std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+                    _codeGenerationContext);
+
+        llvm::Value *structPtr =
+            Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {structPtr, structType});
+
+        std::unique_ptr<AssignmentExpressionGenerationStrategy> assignSt =
+            std::make_unique<AssignmentExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
+        objAssignSt->copyOject(structType, structPtr, argValue);
+
+      } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
+        LLVMPrimitiveType *llvmPrimitiveType =
+            static_cast<LLVMPrimitiveType *>(llvmArgsTypes[i].get());
+
+        llvm::AllocaInst *variable = Builder->CreateAlloca(
+            llvmPrimitiveType->getPrimitiveType(), nullptr, parameterNames[i]);
+
+        llvm::Value *loaded = Builder->CreateLoad(
+            llvmPrimitiveType->getPrimitiveType(), argValue);
+        Builder->CreateStore(loaded, variable);
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i],
+            {variable, llvmPrimitiveType->getPrimitiveType()});
+
+        _codeGenerationContext->getNamedValueChain()->setNamedValue(
+            parameterNames[i], loaded);
+      } else {
+        _codeGenerationContext->getLogger()->LogError(
+            "Dynamic type is not supported in function parameter " +
+            parameterNames[i].substr(0, parameterNames[i].find_first_of("[")));
+        return nullptr;
+      }
     }
   }
 

@@ -49,6 +49,10 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
           variableDeclaration->getSourceLocation(), variable_str, isConst,
           variableDeclaration->isExposed());
 
+  if (variableDeclaration->getInoutKeywordRef()) {
+    variable->setHasInOutKeyword(true);
+  }
+
   variable->setIdentifier(std::make_unique<BoundLiteralExpression<std::any>>(
       variableDeclaration->getIdentifierRef()->getSourceLocation(),
       variableDeclaration->getIdentifierRef()->getValue(),
@@ -425,18 +429,21 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
     boundClassStat->addMemberVariable(std::move(boundMemberVariable));
   }
 
+  this->root = std::make_unique<BoundScope>(std::move(this->root));
+  this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(true);
 
     boundClassStat->addMemberFunction(
         std::move(this->bindFunctionDeclaration(fun.get(), className)));
   }
-  this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(false);
     boundClassStat->addMemberFunction(
         std::move(this->bindFunctionDeclaration(fun.get(), className)));
   }
+
+  this->root = std::move(this->root->parent);
 
   this->root = std::move(this->root->parent);
 
@@ -881,7 +888,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
           callExpression->getSourceLocation());
 
   boundIdentifier->setValue(functionName);
-
+  boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
   for (int i = 0; i < callExpression->getArguments().size(); i++) {

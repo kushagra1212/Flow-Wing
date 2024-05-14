@@ -11,6 +11,9 @@ const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
   if (_exposeKeyword)
     _children.push_back(_exposeKeyword.get());
 
+  if (_inout_keyword)
+    _children.push_back(_inout_keyword.get());
+
   if (_keyword)
     _children.push_back(_keyword.get());
 

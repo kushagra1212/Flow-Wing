@@ -36,6 +36,10 @@ public:
   llvm::Value *createExpressionNPDefault(llvm::Value *variable,
                                          const std::string &typeName);
 
+  void handleCreateDef(BoundLiteralExpression<std::any> *bLitExpr,
+                       llvm::StructType *parStructType, llvm::Value *variable,
+                       uint64_t indexValue, BoundTypeExpression *bExpr);
+
   inline auto setVariable(llvm::Value *variable) { _variable = variable; }
 
   inline auto setTypeName(std::string typeName) { _typeName = typeName; }

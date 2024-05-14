@@ -358,21 +358,13 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
-      //! Need Refactor
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
-      // callExpression->setCallerName(classType->getStructName().str() +
-      //                               "_:" +
-      //                               callExpression->getCallerNameRef());
       std::string funName = callExpression->getCallerNameRef();
       if (funName.find(structType->getStructName().str() + "_:") !=
           std::string::npos) {
         calleeFunction =
             TheModule->getFunction(callExpression->getCallerNameRef());
-        // _codeGenerationContext->_classTypes[structType->getName().str()]
-        //     ->getFunctionPtr(callExpression->getCallerNameRef(), Builder,
-        //                      TheModule);
 
-        // //
         classArg = {value};
       }
     } else if (!value && !classType &&
@@ -478,7 +470,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     functionArgs.push_back(arg);
   }
   llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
-
+  _codeGenerationContext->getValueStackHandler()->popAll();
   if (!_classType) {
     llvm::ArrayType *arrayType = nullptr;
     llvm::Type *elementType = nullptr;
@@ -494,17 +486,26 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     }
     llvm::StructType *structType = nullptr;
     _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
+
     if (structType != nullptr) {
       _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
                                                            structType);
       return callIn;
     }
 
-    _codeGenerationContext->getValueStackHandler()->push(
-        "", callIn, "primitive", calleeFunction->getReturnType());
+    llvm::Type *retType = nullptr;
+    _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
+
+    _codeGenerationContext->getValueStackHandler()->push("", callIn,
+                                                         "primitive", retType);
   } else {
-    _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
-                                                         "struct", _classType);
+    if (callExpression->hasNewKeyword()) {
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", _classPtr, "struct", _classType);
+      return _classPtr;
+    } else
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", _classPtr, "struct", _classType);
   }
 
   return callIn;
@@ -529,6 +530,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                                       llvmArrayArgs, arg, retFlag);
     break;
   }
+  case BinderKindUtils::IndexExpression: {
+    retVal = handleIndexExpression(rhsValue, callExpression, i, functionType,
+                                   llvmArrayArgs, arg, retFlag);
+    break;
+  }
   case BinderKindUtils::BoundObjectExpression: {
     retVal = handleObjectExpression(llvmArrayArgs, i, callExpression, arg,
                                     rhsValue, retFlag);
@@ -544,41 +550,67 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         _expressionGenerationFactory
             ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
             ->generateExpression(callExpression->getArgumentsRef()[i].get());
+    llvm::Type *type =
+        _codeGenerationContext->getValueStackHandler()->getLLVMType();
 
-    if (llvm::isa<llvm::CallInst>(value)) {
-      llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
-      auto *calledFunction = calledInst->getCalledFunction();
-      llvm::ArrayType *arrayType = nullptr;
-      llvm::Type *elementType = nullptr;
-      std::vector<uint64_t> actualSizes;
-      _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
-                                                   elementType, actualSizes);
+    if (llvm::isa<llvm::StructType>(type) || llvm::isa<llvm::ArrayType>(type)) {
 
-      if (arrayType != nullptr) {
-        llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
-        llvm::Value *localVariable = Builder->CreateAlloca(arrayType, nullptr);
-
-        // Store the result of the call in the local variable
-        Builder->CreateStore(loaded, localVariable);
-        rhsValue = localVariable;
-      } else {
-        llvm::StructType *structType = nullptr;
-        _codeGenerationContext->getReturnedObjectType(calledFunction,
-                                                      structType);
-
-        if (structType != nullptr) {
-          llvm::LoadInst *loaded = Builder->CreateLoad(structType, calledInst);
-          llvm::Value *localVariable =
-              Builder->CreateAlloca(structType, nullptr);
-
-          // Store the result of the call in the local variable
-          Builder->CreateStore(loaded, localVariable);
-          rhsValue = localVariable;
-        } else {
-          rhsValue = value;
-        }
-      }
+      rhsValue = Builder->CreateAlloca(type, nullptr);
+      Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+    } else {
+      rhsValue = Builder->CreateAlloca(type, nullptr);
+      Builder->CreateStore(value, rhsValue);
     }
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    // rhsValue = Builder->CreateAlloca(
+    //     _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+    //     nullptr);
+    // // Store the result of the call in the local variable
+    // Builder->CreateStore(
+    //     _codeGenerationContext->getValueStackHandler()->getValue(),
+    //     rhsValue);
+    // // rhsValue = localVariable;
+
+    // _codeGenerationContext->getValueStackHandler()->popAll();
+    // if (llvm::isa<llvm::CallInst>(value)) {
+    //   llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
+    //   auto *calledFunction = calledInst->getCalledFunction();
+    //   llvm::ArrayType *arrayType = nullptr;
+    //   llvm::Type *elementType = nullptr;
+    //   std::vector<uint64_t> actualSizes;
+    //   _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
+    //                                                elementType, actualSizes);
+
+    //   if (arrayType != nullptr) {
+    //     llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
+    //     llvm::Value *localVariable = Builder->CreateAlloca(arrayType,
+    //     nullptr);
+
+    //     // Store the result of the call in the local variable
+    //     Builder->CreateStore(loaded, localVariable);
+    //     rhsValue = localVariable;
+    //   } else {
+    //     llvm::StructType *structType = nullptr;
+    //     _codeGenerationContext->getReturnedObjectType(calledFunction,
+    //                                                   structType);
+
+    //     if (structType != nullptr) {
+    //       llvm::LoadInst *loaded = Builder->CreateLoad(structType,
+    //       calledInst); llvm::Value *localVariable =
+    //           Builder->CreateAlloca(structType, nullptr);
+
+    //       // Store the result of the call in the local variable
+    //       Builder->CreateStore(loaded, localVariable);
+    //       rhsValue = localVariable;
+    //     } else {
+    //       llvm::Type *type =
+    //           _codeGenerationContext->getValueStackHandler()->getLLVMType();
+    //       llvm::Value *localVariable = Builder->CreateAlloca(type, nullptr);
+    //       Builder->CreateStore(value, localVariable);
+    //       rhsValue = localVariable;
+    //     }
+    //   }
+    // }
     break;
   }
   default: {
@@ -598,26 +630,49 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
     const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
     llvm::Argument *arg, bool &retFlag) {
   retFlag = true;
-  rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
-          ->generateExpression(callExpression->getArgumentsRef()[i].get());
+
+  _expressionGenerationFactory
+      ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
+      ->generateExpression(callExpression->getArgumentsRef()[i].get());
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+
+  llvm::Type *rhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  rhsValue = Builder->CreateAlloca(rhsType, nullptr);
+
+  Builder->CreateStore(
+      _codeGenerationContext->getValueStackHandler()->getValue(), rhsValue);
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  // if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Type mismatch in '" + callExpression->getCallerNameRef() +
+  //       "' function call expression , Expected 'VARIABLE' of type " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           llvmArrayArgs[i]->getLLVMType()) +
+  //       " in order to work with inout parameters but found a 'CONSTANT' of "
+  //       "type " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType));
+  //   return nullptr;
+  // }
 
   if (!_codeGenerationContext->getDynamicType()->isDyn(
           llvmArrayArgs[i]->getType()) &&
-      llvmArrayArgs[i]->getType() != rhsValue->getType()) {
+      llvmArrayArgs[i]->getLLVMType() != rhsType) {
     _codeGenerationContext->getLogger()->LogError(
         "Expected type " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-            llvmArrayArgs[i]->getType())) +
+            llvmArrayArgs[i]->getLLVMType())) +
         " in function call expression " +
         Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
         Utils::CE(arg->getName().str()) + ", but found type " +
-        Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-            rhsValue->getType())));
+        Utils::CE(
+            _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType)));
     return rhsValue;
   } else if (_codeGenerationContext->getDynamicType()->isDyn(
-                 llvmArrayArgs[i]->getType())) {
+                 llvmArrayArgs[i]->getLLVMType())) {
     _codeGenerationContext->getLogger()->LogError(
         "Dynamic type not supported in function call expression " +
         Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
@@ -643,6 +698,21 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
 
     return nullptr;
   }
+
+  // BoundFunctionDeclaration *functionDeclaration =
+  //     _codeGenerationContext
+  //         ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+  // if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Type mismatch in '" + callExpression->getCallerNameRef() +
+  //       "' function call expression , Expected 'VARIABLE' of type " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           llvmArrayArgs[i]->getLLVMType()) +
+  //       " in order to work with inout parameters but found a 'EXPRESSION' of
+  //       " "type " + _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           llvmArrayArgs[i]->getLLVMType()));
+  //   return nullptr;
+  // }
 
   LLVMArrayType *llvmArrayType =
       static_cast<LLVMArrayType *>(llvmArrayArgs[i].get());
@@ -678,28 +748,81 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
 
   LLVMObjectType *llvmObjectType =
       static_cast<LLVMObjectType *>(llvmArrayArgs[i].get());
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+  // if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Type mismatch in '" + callExpression->getCallerNameRef() +
+  //       "' function call expression , Expected 'VARIABLE' of type " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           llvmArrayArgs[i]->getLLVMType()) +
+  //       " in order to work with inout parameters but found an 'EXPRESSION' of
+  //       " "type " + _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           llvmObjectType->getLLVMType()));
+  //   return nullptr;
+  // }
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignExpGenStrat =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
 
   std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
       std::make_unique<ObjectExpressionGenerationStrategy>(
           _codeGenerationContext);
   objExpGenStrat->setTypeName(llvmObjectType->getStructType()->getName().str());
-  if (_isGlobal) {
-    rhsValue = new llvm::GlobalVariable(
-        *TheModule, llvmObjectType->getStructType(), false,
-        llvm::GlobalValue::ExternalLinkage,
-        llvm::Constant::getNullValue(llvmObjectType->getStructType()));
 
-    objExpGenStrat->setVariable(rhsValue);
+  if (_codeGenerationContext->_classTypes.find(
+          llvmObjectType->getStructType()->getName().str()) !=
+      _codeGenerationContext->_classTypes.end()) {
+    llvm::StructType *classType =
+        _codeGenerationContext
+            ->_classTypes[llvmObjectType->getStructType()->getName().str()]
+            ->getClassType();
+    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+    llvm::CallInst *malloc_call = Builder->CreateCall(
+        fun, llvm::ConstantInt::get(
+                 llvm::Type::getInt64Ty(*TheContext),
+                 _codeGenerationContext->getMapper()->getSizeOf(classType)));
+    malloc_call->setTailCall(false);
+
+    // Cast the result of 'malloc' to a pointer to int
+    llvm::Value *intPtr = Builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+    _codeGenerationContext->getAllocaChain()->setPtr(
+        llvmObjectType->getStructType()->getName().str(), {intPtr, classType});
+    assignExpGenStrat->initDefaultValue(classType, intPtr);
+
+    objExpGenStrat->setVariable(intPtr);
     objExpGenStrat->generateGlobalExpression(
         callExpression->getArgumentsRef()[i].get());
-
   } else {
+    // if (_isGlobal) {
+    //   rhsValue = new llvm::GlobalVariable(
+    //       *TheModule, llvmObjectType->getStructType(), false,
+    //       llvm::GlobalValue::ExternalLinkage,
+    //       llvm::Constant::getNullValue(llvmObjectType->getStructType()));
+
+    //   assignExpGenStrat->initDefaultValue(llvmObjectType->getStructType(),
+    //                                       rhsValue);
+    //   objExpGenStrat->setVariable(rhsValue);
+    //   objExpGenStrat->generateGlobalExpression(
+    //       callExpression->getArgumentsRef()[i].get());
+
+    // } else {
     rhsValue = Builder->CreateAlloca(llvmObjectType->getStructType(), nullptr);
     _codeGenerationContext->getAllocaChain()->setPtr(
         rhsValue->getName().str(), {rhsValue, rhsValue->getType()});
+
+    assignExpGenStrat->initDefaultValue(llvmObjectType->getStructType(),
+                                        rhsValue);
+
     objExpGenStrat->setVariable(rhsValue);
     objExpGenStrat->generateExpression(
         callExpression->getArgumentsRef()[i].get());
+    // }
   }
   retFlag = false;
   return nullptr;
@@ -711,11 +834,14 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
     llvm::Argument *arg, bool &retFlag) {
   retFlag = true;
-  rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
-          ->generateExpression(callExpression->getArgumentsRef()[i].get());
 
+  _expressionGenerationFactory
+      ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
+      ->generateExpression(callExpression->getArgumentsRef()[i].get());
+  rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *varType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  _codeGenerationContext->getValueStackHandler()->popAll();
   BoundVariableExpression *variableExpression =
       static_cast<BoundVariableExpression *>(
           callExpression->getArgumentsRef()[i].get());
@@ -896,6 +1022,24 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     }
   }
   retFlag = false;
+  return nullptr;
+}
+
+llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
+    llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+    llvm::FunctionType *functionType,
+    const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+    llvm::Argument *arg, bool &retFlag) {
+  retFlag = false;
+
+  _expressionGenerationFactory
+      ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
+      ->generateExpression(callExpression->getArgumentsRef()[i].get());
+  rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  llvm::Type *varType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
   return nullptr;
 }
 

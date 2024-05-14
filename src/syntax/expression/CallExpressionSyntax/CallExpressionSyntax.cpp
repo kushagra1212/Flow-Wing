@@ -55,6 +55,10 @@ const SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
 
 const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
   if (this->_children.size() == 0) {
+
+    if (this->_newKeyword) {
+      this->_children.push_back(_newKeyword.get());
+    }
     this->_children.push_back(_identifier.get());
     this->_children.push_back(_openParenthesisToken.get());
 
@@ -70,8 +74,8 @@ const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation CallExpressionSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+CallExpressionSyntax::getSourceLocation() const {
   return this->_identifier->getSourceLocation();
 }
 

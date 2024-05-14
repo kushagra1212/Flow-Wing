@@ -10,6 +10,7 @@
 class VariableDeclarationSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
+  std::unique_ptr<SyntaxToken<std::any>> _inout_keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
   std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
@@ -39,6 +40,10 @@ public:
     _typeExpr = std::move(typeExpr);
   }
 
+  inline auto
+  setInoutKeyword(std::unique_ptr<SyntaxToken<std::any>> inoutKeyword) -> void {
+    _inout_keyword = std::move(inoutKeyword);
+  }
   inline void
   setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword) {
     _exposeKeyword = std::move(exposeKeyword);
@@ -53,6 +58,11 @@ public:
   inline auto getIdentifierRef()
       -> const std::unique_ptr<SyntaxToken<std::any>> & {
     return _identifier;
+  }
+
+  inline auto getInoutKeywordRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _inout_keyword;
   }
 
   inline auto getKeywordRef()

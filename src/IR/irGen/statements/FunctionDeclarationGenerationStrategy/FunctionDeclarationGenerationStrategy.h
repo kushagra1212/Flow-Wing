@@ -7,6 +7,7 @@
 #include "../../../../bind/BoundTypeExpression/BoundTypeExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionDeclarationGenerationStrategy

@@ -108,6 +108,8 @@ public:
                           std::string inExp = " in assignment expression");
   int8_t verifyType(llvm::Type *lhsType, llvm::Type *rhsType,
                     std::string inExp = " in assignment expression");
+
+  void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
   inline auto
   createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
                                       llvm::Type *&arrayElementType) -> void {
@@ -119,6 +121,7 @@ public:
   }
 
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
+  std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;

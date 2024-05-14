@@ -46,10 +46,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         fd->getParametersRef()[i]->getLocation());
+
     if (fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
       parmType = (_codeGenerationContext->getDynamicType()->get());
-      argTypes.push_back(parmType);
+      llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
+      argTypes.push_back(parmTypePointer);
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
@@ -126,8 +128,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
               fd->getParametersRef()[i]->getTypeExpression().get());
 
       llvm::StructType *structType =
-          _codeGenerationContext->getTypeChain()->getType(
-              objectTypeExpression->getTypeName());
+          _codeGenerationContext
+              ->_classLLVMTypes[objectTypeExpression->getTypeName()];
+
+      if (!structType) {
+        structType = _codeGenerationContext->getTypeChain()->getType(
+            objectTypeExpression->getTypeName());
+      }
 
       if (!structType) {
         _codeGenerationContext->getLogger()->LogError(
@@ -146,11 +153,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     } else {
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType());
-      argTypes.push_back(parmType);
+      llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
+      argTypes.push_back(parmTypePointer);
 
       if (!isFunctionAlreadyDeclared)
         _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
+            FUNCTION_NAME,
+            std::make_unique<LLVMPrimitiveType>(parmTypePointer, parmType));
     }
   }
   for (auto arg : classArgs) {

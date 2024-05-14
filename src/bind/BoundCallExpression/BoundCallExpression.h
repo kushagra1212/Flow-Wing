@@ -13,6 +13,7 @@ private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
   std::string _callerName = "";
+  bool _hasNewKeyword = false;
 
 public:
   BoundCallExpression(const DiagnosticUtils::SourceLocation &location);
@@ -30,6 +31,12 @@ public:
   inline auto getCallerNameRef() const -> const std::string & {
     return _callerName;
   }
+
+  inline auto setHasNewKeyword(bool hasNewKeyword) -> void {
+    _hasNewKeyword = hasNewKeyword;
+  }
+
+  inline auto hasNewKeyword() const -> bool { return _hasNewKeyword; }
 
   inline auto setCallerName(std::string name) -> void { _callerName = name; }
 };
