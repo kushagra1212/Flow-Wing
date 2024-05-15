@@ -209,7 +209,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
         TheModule->getFunction(callExpression->getCallerNameRef()), args,
         _codeGenerationContext->_classTypes[className]->getClassType(),
         outerElementPtr);
-
     if (!isNested)
       return callinst;
     llvm::Value *ptr =

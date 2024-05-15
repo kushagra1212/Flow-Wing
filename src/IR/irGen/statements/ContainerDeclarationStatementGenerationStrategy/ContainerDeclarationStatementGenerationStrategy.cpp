@@ -10,25 +10,19 @@ ContainerDeclarationStatementGenerationStrategy::
         CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
 
-llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
-    BoundStatement *statement) {
-  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
+llvm::Value *
+ContainerDeclarationStatementGenerationStrategy::generateCommonStatement() {
 
-  BoundArrayTypeExpression *arrayTypeExpression =
-      static_cast<BoundArrayTypeExpression *>(
-          contVarDec->getTypeExpression().get());
+  this->calcActualContainerSize(_arrayTypeExpression);
 
-  this->calcActualContainerSize(arrayTypeExpression);
-  _containerName = contVarDec->getVariableName();
-
-  if (arrayTypeExpression->isTrivialType()) {
+  if (_arrayTypeExpression->isTrivialType()) {
     _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        arrayTypeExpression->getElementType());
+        _arrayTypeExpression->getElementType());
 
   } else {
     BoundObjectTypeExpression *objectTypeExpression =
         static_cast<BoundObjectTypeExpression *>(
-            arrayTypeExpression->getNonTrivialElementType().get());
+            _arrayTypeExpression->getNonTrivialElementType().get());
 
     _elementType = _codeGenerationContext->getTypeChain()->getType(
         objectTypeExpression->getTypeName());
@@ -44,43 +38,52 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
 
-  if (contVarDec->getHasNewKeyword()) {
-
-    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
-
-    llvm::CallInst *malloc_call = Builder->CreateCall(
-        fun, llvm::ConstantInt::get(
-                 llvm::Type::getInt64Ty(*TheContext),
-                 _codeGenerationContext->getMapper()->getSizeOf(arrayType)));
-    malloc_call->setTailCall(false);
-
-    // Cast the result of 'malloc' to a pointer to int
-    llvm::Value *intPtr = Builder->CreateBitCast(
-        malloc_call,
-        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-    _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
-                                                     {intPtr, arrayType});
-    assignmentStrategy->initDefaultValue(arrayType, intPtr);
-    if (!contVarDec->getInitializerPtr().get())
-      return intPtr;
-    return assignmentStrategy->handleAssignExpression(
-        intPtr, arrayType, _containerName,
-        contVarDec->getInitializerPtr().get());
-  }
-
-  llvm::AllocaInst *alloca =
-      Builder->CreateAlloca(arrayType, nullptr, _containerName);
+  llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
+      arrayType, _containerName, _memoryKind);
 
   _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
-                                                   {alloca, arrayType});
-  assignmentStrategy->initDefaultValue(arrayType, alloca);
-  if (!contVarDec->getInitializerPtr().get())
-    return alloca;
+                                                   {ptr, arrayType});
+  assignmentStrategy->initDefaultValue(arrayType, ptr);
+  if (!_initializer)
+    return ptr;
 
-  BinderKindUtils::BoundNodeKind kind =
-      contVarDec->getInitializerPtr()->getKind();
   return assignmentStrategy->handleAssignExpression(
-      alloca, arrayType, _containerName, contVarDec->getInitializerPtr().get());
+      ptr, arrayType, _containerName, _initializer);
+}
+
+llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
+
+  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
+
+  if (contVarDec->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    contVarDec->setMemoryKind(BinderKindUtils::MemoryKind::Stack);
+
+  initialize(contVarDec);
+
+  return this->generateCommonStatement();
+}
+
+void ContainerDeclarationStatementGenerationStrategy::initialize(
+    BoundVariableDeclaration *contVarDec) {
+  _containerName = contVarDec->getVariableName();
+  _initializer = contVarDec->getInitializerPtr().get();
+  _arrayTypeExpression = static_cast<BoundArrayTypeExpression *>(
+      contVarDec->getTypeExpression().get());
+  _memoryKind = contVarDec->getMemoryKind();
+}
+
+llvm::Value *
+ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
+  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
+
+  if (contVarDec->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    contVarDec->setMemoryKind(BinderKindUtils::MemoryKind::Global);
+
+  initialize(contVarDec);
+
+  return this->generateCommonStatement();
 }
 
 llvm::Value *
@@ -88,43 +91,12 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundArrayTypeExpression *arrayTypeExpression,
     const std::string &containerName, BoundExpression *initializer) {
 
-  this->calcActualContainerSize(arrayTypeExpression);
+  _containerName = containerName;
+  _initializer = initializer;
+  _arrayTypeExpression = arrayTypeExpression;
+  _memoryKind = BinderKindUtils::MemoryKind::Stack;
 
-  if (arrayTypeExpression->isTrivialType()) {
-    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        arrayTypeExpression->getElementType());
-
-  } else {
-    BoundObjectTypeExpression *objectTypeExpression =
-        static_cast<BoundObjectTypeExpression *>(
-            arrayTypeExpression->getNonTrivialElementType().get());
-
-    _elementType = _codeGenerationContext->getTypeChain()->getType(
-        objectTypeExpression->getTypeName());
-  }
-  llvm::ArrayType *arrayType = nullptr;
-
-  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
-                                            _elementType);
-
-  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
-
-  llvm::AllocaInst *alloca =
-      Builder->CreateAlloca(arrayType, nullptr, containerName);
-
-  _codeGenerationContext->getAllocaChain()->setPtr(containerName,
-                                                   {alloca, arrayType});
-
-  BinderKindUtils::BoundNodeKind kind = initializer->getKind();
-
-  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
-      std::make_unique<AssignmentExpressionGenerationStrategy>(
-          _codeGenerationContext);
-
-  assignmentStrategy->initDefaultValue(arrayType, alloca);
-
-  return assignmentStrategy->handleAssignExpression(alloca, arrayType,
-                                                    containerName, initializer);
+  return this->generateCommonStatement();
 }
 
 llvm::Value *
@@ -377,83 +349,6 @@ ContainerDeclarationStatementGenerationStrategy::generateBracketLocalExpression(
   }
 
   return nullptr;
-}
-llvm::Value *
-ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
-  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
-
-  BoundArrayTypeExpression *arrayTypeExpression =
-      static_cast<BoundArrayTypeExpression *>(
-          contVarDec->getTypeExpression().get());
-
-  this->calcActualContainerSize(arrayTypeExpression);
-  _containerName = contVarDec->getVariableName();
-
-  if (arrayTypeExpression->isTrivialType()) {
-    _elementType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        arrayTypeExpression->getElementType());
-
-  } else {
-    BoundObjectTypeExpression *objectTypeExpression =
-        static_cast<BoundObjectTypeExpression *>(
-            arrayTypeExpression->getNonTrivialElementType().get());
-
-    _elementType = _codeGenerationContext->getTypeChain()->getType(
-        objectTypeExpression->getTypeName());
-  }
-  llvm::ArrayType *arrayType = nullptr;
-
-  _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
-                                            _elementType);
-
-  llvm::Constant *_defaultVal = llvm::Constant::getNullValue(arrayType);
-
-  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentStrategy =
-      std::make_unique<AssignmentExpressionGenerationStrategy>(
-          _codeGenerationContext);
-
-  if (contVarDec->getHasNewKeyword()) {
-
-    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
-
-    llvm::CallInst *malloc_call = Builder->CreateCall(
-        fun, llvm::ConstantInt::get(
-                 llvm::Type::getInt64Ty(*TheContext),
-                 _codeGenerationContext->getMapper()->getSizeOf(arrayType)));
-    malloc_call->setTailCall(false);
-
-    // Cast the result of 'malloc' to a pointer to int
-    llvm::Value *intPtr = Builder->CreateBitCast(
-        malloc_call,
-        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-    _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
-                                                     {intPtr, arrayType});
-    assignmentStrategy->initDefaultValue(arrayType, intPtr);
-
-    if (!contVarDec->getInitializerPtr().get())
-      return intPtr;
-
-    return assignmentStrategy->handleAssignExpression(
-        intPtr, arrayType, _containerName,
-        contVarDec->getInitializerPtr().get());
-  }
-
-  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-      *TheModule, arrayType, false, llvm::GlobalValue::ExternalWeakLinkage,
-      _defaultVal, _containerName);
-
-  assignmentStrategy->initDefaultValue(arrayType, _globalVariable);
-
-  if (!contVarDec->getInitializerPtr().get())
-    return _globalVariable;
-
-  BinderKindUtils::BoundNodeKind kind =
-      contVarDec->getInitializerPtr()->getKind();
-
-  return assignmentStrategy->handleAssignExpression(
-      _globalVariable, arrayType, _containerName,
-      contVarDec->getInitializerPtr().get());
 }
 
 void ContainerDeclarationStatementGenerationStrategy::calcActualContainerSize(

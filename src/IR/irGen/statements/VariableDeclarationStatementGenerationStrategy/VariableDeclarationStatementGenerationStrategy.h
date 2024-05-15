@@ -33,6 +33,9 @@ public:
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
+  llvm::Value *
+  generateCommonStatement(BoundVariableDeclaration *variableDeclaration);
+
 private:
   std::string _variableName;
   llvm::Value *_rhsValue;

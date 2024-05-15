@@ -131,14 +131,24 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           _codeGenerationContext
               ->_classLLVMTypes[objectTypeExpression->getTypeName()];
 
+      std::string typeName = "";
       if (!structType) {
-        structType = _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+        typeName = className != ""
+                       ? className +
+                             FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                             objectTypeExpression->getTypeName()
+                       : objectTypeExpression->getTypeName();
+        structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+        if (!structType) {
+          typeName = objectTypeExpression->getTypeName();
+          structType =
+              _codeGenerationContext->getTypeChain()->getType(typeName);
+        }
       }
 
       if (!structType) {
         _codeGenerationContext->getLogger()->LogError(
-            "Object type " + objectTypeExpression->getTypeName() +
+            "Object type " + typeName +
             " was not found when calling function " + FUNCTION_NAME);
         return nullptr;
       }

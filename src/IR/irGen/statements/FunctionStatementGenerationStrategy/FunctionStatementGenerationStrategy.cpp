@@ -200,8 +200,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             parameterNames[i],
             {variable, llvmPrimitiveType->getPrimitiveType()});
 
-        _codeGenerationContext->getNamedValueChain()->setNamedValue(
-            parameterNames[i], loaded);
+        // _codeGenerationContext->getNamedValueChain()->setNamedValue(
+        //     parameterNames[i], loaded);
       } else {
         _codeGenerationContext->getLogger()->LogError(
             "Dynamic type is not supported in function parameter " +
@@ -242,7 +242,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   _codeGenerationContext->getReturnAllocaStack().pop();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME, F);
+  //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
+  //   F);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
@@ -303,8 +304,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
     _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
         variable, argValue, argValue->getType(), parameterNames[i]);
 
-    _codeGenerationContext->getNamedValueChain()->setNamedValue(
-        parameterNames[i], argValue);
+    // _codeGenerationContext->getNamedValueChain()->setNamedValue(
+    //     parameterNames[i], argValue);
   }
 
   _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
@@ -315,7 +316,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getTypeChain()->removeHandler();
   _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME, F);
+  //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
+  //   F);
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
 

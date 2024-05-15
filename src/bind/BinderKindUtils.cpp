@@ -92,6 +92,21 @@ std::string BinderKindUtils::to_string(BoundUnaryOperatorKind kind) {
   }
 }
 
+std::string BinderKindUtils::to_string(MemoryKind kind) {
+  switch (kind) {
+  case Heap:
+    return "Heap";
+  case Stack:
+    return "Stack";
+  case Global:
+    return "Global";
+  case None:
+    return "None";
+  default:
+    return "NotDefined";
+  }
+}
+
 std::string BinderKindUtils::to_string(BoundBinaryOperatorKind kind) {
   switch (kind) {
   case Addition:

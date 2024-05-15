@@ -57,7 +57,7 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);
-    llvm::Value *rtValueLLVM =
+    llvm::Value *returnValue =
         _codeGenerationContext->getValueStackHandler()->getValue();
     llvm::Type *rtypeLLVM =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
@@ -65,7 +65,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     if (returnType->isPointerToObject()) {
       LLVMObjectType *llvmObjectType =
           static_cast<LLVMObjectType *>(returnType);
-
       if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
         errorMessage =
             "Return Type Mismatch " +

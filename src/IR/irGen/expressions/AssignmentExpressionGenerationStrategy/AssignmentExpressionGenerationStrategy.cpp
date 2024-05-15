@@ -327,49 +327,50 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
   return handleAssignmentExpression(assignmentExpression);
 }
 
-bool AssignmentExpressionGenerationStrategy::
-    canGenerateLiteralExpressionAssignment(
-        BoundAssignmentExpression *assignmentExpression) {
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
+// bool AssignmentExpressionGenerationStrategy::
+//     canGenerateLiteralExpressionAssignment(
+//         BoundAssignmentExpression *assignmentExpression) {
+//   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       assignmentExpression->getLocation());
 
-  _variableExpression = static_cast<BoundVariableExpression *>(
-      assignmentExpression->getLeftPtr().get());
+//   _variableExpression = static_cast<BoundVariableExpression *>(
+//       assignmentExpression->getLeftPtr().get());
 
-  _variableName = _variableExpression->getVariableNameRef();
+//   _variableName = _variableExpression->getVariableNameRef();
 
-  llvm::Value *val =
-      _codeGenerationContext->getNamedValueChain()->getNamedValue(
-          _variableName);
-  _variableType =
-      assignmentExpression->getVariable()->getTypeExpression()->getSyntaxType();
-  _isGlobal = false;
+//   llvm::Value *val =
+//       _codeGenerationContext->getNamedValueChain()->getNamedValue(
+//           _variableName);
+//   _variableType =
+//       assignmentExpression->getVariable()->getTypeExpression()->getSyntaxType();
+//   _isGlobal = false;
 
-  if (!val) {
-    // Variable not found locally, handle error
+//   if (!val) {
+//     // Variable not found locally, handle error
 
-    _allocaInst =
-        _codeGenerationContext->getAllocaChain()->getPtr(_variableName).first;
+//     _allocaInst =
+//         _codeGenerationContext->getAllocaChain()->getPtr(_variableName).first;
 
-    if (_allocaInst) {
-      return true;
-    }
+//     if (_allocaInst) {
+//       return true;
+//     }
 
-    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
+//     _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
 
-    if (_previousGlobalVariable) {
-      _isGlobal = true;
-      return true;
-    }
+//     if (_previousGlobalVariable) {
+//       _isGlobal = true;
+//       return true;
+//     }
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression '" + _variableName + "'");
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Variable not found in assignment expression '" + _variableName +
+//         "'");
 
-    return false;
-  }
+//     return false;
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 int8_t AssignmentExpressionGenerationStrategy::populateLHS(
     BoundAssignmentExpression *&assignmentExpression) {

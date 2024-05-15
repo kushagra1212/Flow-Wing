@@ -24,6 +24,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "IR/constants/FlowWingUtilsConstants.h"
 // TODO: Add support for Windows
 // #include <windows.h>
 #include <unistd.h>

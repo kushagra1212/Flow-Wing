@@ -30,8 +30,8 @@ public:
   //   llvm::Value *handleGlobalLiteralExpressionAssignment(
   //       BoundAssignmentExpression *assignmentExpression);
 
-  bool canGenerateLiteralExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+  // bool canGenerateLiteralExpressionAssignment(
+  //     BoundAssignmentExpression *assignmentExpression);
 
   // Primitve Local Variable Assignment
 

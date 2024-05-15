@@ -76,6 +76,10 @@ enum BoundBinaryOperatorKind {
   AssignmentToken
 };
 
+enum MemoryKind { Stack, Heap, Global, None };
+
+std::string to_string(MemoryKind kind);
+
 std::string to_string(BoundNodeKind kind);
 
 std::string to_string(BoundUnaryOperatorKind kind);

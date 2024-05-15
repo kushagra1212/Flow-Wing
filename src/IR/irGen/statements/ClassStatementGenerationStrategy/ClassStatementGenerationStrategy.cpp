@@ -37,7 +37,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
         static_cast<BoundCustomTypeStatement *>(
             boundClassStatement->getCustomTypesRef()[i].get());
     std::string typeName = boundClassStatement->getClassName() +
-                           "_:" + customTypeStatement->getTypeNameAsString();
+                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                           customTypeStatement->getTypeNameAsString();
 
     customTypeStatement->setTypeNameAsString(typeName);
 

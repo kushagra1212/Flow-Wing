@@ -66,7 +66,8 @@ public:
     for (auto &fun : _memberFunctions) {
       BoundFunctionDeclaration *fd =
           static_cast<BoundFunctionDeclaration *>(fun.get());
-      if (fd->getFunctionNameRef() == _className + "_:" + "init")
+      if (fd->getFunctionNameRef() ==
+          _className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init")
         return fd;
     }
     return nullptr;

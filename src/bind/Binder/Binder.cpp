@@ -75,8 +75,8 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
 
     variable->setTypeExpression(std::move(boundTypeExpression));
   }
-
-  variable->setHasNewKeyword(variableDeclaration->getHasNewKeyWord());
+  if (variableDeclaration->getHasNewKeyWord())
+    variable->setMemoryKind(BinderKindUtils::MemoryKind::Heap);
   variable->setClassItBelongsTo(className);
 
   if (variableDeclaration->getInitializerRef()) {
@@ -814,7 +814,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   std::string className = this->root->getClassName();
   if (!isAInBuiltinFunction && className != "") {
 
-    functionName = className + "_:" + functionName;
+    functionName = className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                   functionName;
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(className);
 
@@ -825,7 +826,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(functionName);
     if (boundClassStatement) {
-      functionName = functionName + "_:" + "init";
+      functionName =
+          functionName + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init";
       declared_fd = boundClassStatement->getMemberFunction(functionName);
       if (!declared_fd) {
         _diagnosticHandler->addDiagnostic(Diagnostic(
@@ -1048,7 +1050,8 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
 
         if (variable->getClassItBelongsTo() != "") {
 
-          std::any fName = variable->getClassItBelongsTo() + "_:" +
+          std::any fName = variable->getClassItBelongsTo() +
+                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                            std::any_cast<std::string>(
                                callExpression->getIdentifierPtr()->getValue());
 
@@ -1073,7 +1076,8 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
   this->root = std::make_unique<BoundScope>(std::move(this->root));
   const std::string &function_name =
       className != ""
-          ? className + "_:" + syntax->getIdentifierTokenPtr()->getText()
+          ? className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                syntax->getIdentifierTokenPtr()->getText()
           : syntax->getIdentifierTokenPtr()->getText();
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {

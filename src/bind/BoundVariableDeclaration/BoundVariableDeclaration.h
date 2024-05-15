@@ -7,9 +7,10 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundTypeExpression/BoundTypeExpression.h"
-
+#include "../MemoryNode.h"
 class BoundVariableDeclaration : public BoundStatement,
-                                 public BoundSourceLocation {
+                                 public BoundSourceLocation,
+                                 public MemoryNode {
 private:
   std::string _variableName;
   std::unique_ptr<BoundExpression> _initializer;
@@ -17,14 +18,16 @@ private:
   bool _isConst;
   std::unique_ptr<BoundTypeExpression> _typeExp;
   bool _isExposed;
-  bool _hasNewKeyword;
   bool _hasInOutKeyword = false;
   std::string _classItBelongsTo;
+  BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
                            const std::string &variableName, bool isConst,
                            bool isExposed);
+
+  BinderKindUtils::MemoryKind getMemoryKind() const override;
 
   std::unique_ptr<BoundExpression> getInitializer();
 
@@ -55,6 +58,10 @@ public:
     _hasInOutKeyword = hasInOutKeyword;
   }
 
+  inline auto setMemoryKind(BinderKindUtils::MemoryKind memoryKind) {
+    _memoryKind = memoryKind;
+  }
+
   inline auto setClassItBelongsTo(const std::string &classItBelongsTo) {
     _classItBelongsTo = classItBelongsTo;
   }
@@ -65,12 +72,6 @@ public:
   inline auto setTypeExpression(std::unique_ptr<BoundTypeExpression> typeExp) {
     _typeExp = std::move(typeExp);
   }
-
-  inline auto setHasNewKeyword(bool hasNewKeyword) {
-    _hasNewKeyword = hasNewKeyword;
-  }
-
-  inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
 
   inline auto getHasInOutKeyword() -> bool { return _hasInOutKeyword; }
 

@@ -91,9 +91,11 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
     } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
                    boundArrayTypeExpression->getNonTrivialElementType()
                        .get())) {
-      std::string typeName = _className != ""
-                                 ? _className + "_:" + objectType->getTypeName()
-                                 : objectType->getTypeName();
+      std::string typeName =
+          _className != ""
+              ? _className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                    objectType->getTypeName()
+              : objectType->getTypeName();
 
       elementType = _codeGenerationContext->getTypeChain()->getType(typeName);
 
@@ -142,7 +144,8 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
         bOT->getLocation());
     std::string typeName =
         _className != ""
-            ? _className + "_:" + std::any_cast<std::string>(bLE->getValue())
+            ? _className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                  std::any_cast<std::string>(bLE->getValue())
             : std::any_cast<std::string>(bLE->getValue());
     llvm::StructType *type =
         _codeGenerationContext->getTypeChain()->getType(typeName);

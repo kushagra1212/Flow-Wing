@@ -486,36 +486,30 @@ bool ObjectAssignmentExpressionGenerationStrategy::
   _lhsVarExpr = static_cast<BoundVariableExpression *>(
       assignmentExpression->getLeftPtr().get());
 
-  llvm::Value *val =
-      _codeGenerationContext->getNamedValueChain()->getNamedValue(
-          _lhsVarExpr->getVariableNameRef());
-
   _isGlobal = false;
 
-  if (!val) {
-    // Variable not found locally, handle error
+  // Variable not found locally, handle error
 
-    _lhsVar = _codeGenerationContext->getAllocaChain()
-                  ->getPtr(_lhsVarExpr->getVariableNameRef())
-                  .first;
+  _lhsVar = _codeGenerationContext->getAllocaChain()
+                ->getPtr(_lhsVarExpr->getVariableNameRef())
+                .first;
 
-    if (_lhsVar) {
-      return true;
-    }
-
-    _lhsVar = TheModule->getGlobalVariable(_lhsVarExpr->getVariableNameRef());
-
-    if (_lhsVar) {
-      _isGlobal = true;
-      return true;
-    }
-
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression '" +
-        _lhsVarExpr->getVariableNameRef() + "'");
-
-    return false;
+  if (_lhsVar) {
+    return true;
   }
+
+  _lhsVar = TheModule->getGlobalVariable(_lhsVarExpr->getVariableNameRef());
+
+  if (_lhsVar) {
+    _isGlobal = true;
+    return true;
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Variable not found in assignment expression '" +
+      _lhsVarExpr->getVariableNameRef() + "'");
+
+  return false;
 
   return true;
 }

@@ -1,65 +1,84 @@
-
-  type obj = {
-    i:int,
-    s:str
-  }
-type k = {
-  o: int,
-  s: str,
-  d: deci,
-  i: int,
-  ob:obj
-}
-type par = {
-  u: str,
-  g: k[2]
-}
-type t = {
-  x: int,
-  y: str,
-  a: deci,
-  b: bool,
-  ar: par[1]
-}
-var gka: k  = {
-  i:1022,
- o: 102,
-  s: "sora"
-  
-}
-
-var arr:t[2] = [{x:2,y:"hello",a:3.3,b:true,ar:[{u:"get",g:[gka]}]}]
-var sec:t[3] = [{a:3.5,ar:[{g:[{s:"god",i:12,ob:{s:"some",i:200}}]}]}]
-fun getOne(ar:t)->t{
-  ar.x = 100
-  ar.y = "Hello2"
-  ar.a = 5.4
-  ar.b = true 
-  ar.ar = [1 fill {g:[{d:43.3,s:"go"},{ob:{s:"hi",i:20}}]}]
-  return ar
-}
-
-fun getTwo(ar:t)->t{
-  ar.x = 200
-  ar.y = "Hello4"
-  ar.b = false 
-  ar.ar = [{u:"s",g:[{d:55.3,s:"no"},{ob:{s:"bye",i:40}}]}]
-  return ar
-}
-
-
-print(arr)
-print("\n")
-arr[1] = getTwo(getOne(arr[0]))
-print(arr)
-/#
-
 type T = {
   a:int 
 }
 
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA(d:A) -> A {
+  
+ d.obj.a = 21
+  return d
+}
+
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.obj)
+/#type X = {    
+    x1: str,  
+    x2: int   
+}             
+   
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+type X = { 
+    x1: str, 
+    x2: int  
+}      
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+    var obj: X 
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()  
+/#type T = {
+  a:int 
+}
+
 type K = {
-  j:T[2]
+  j:T[2][2]
 }
 
 class B {
@@ -95,18 +114,14 @@ fun getA(d:A) -> A {
 fun getAA(a:A) -> A {
   return getA(a)
 }
-
-var a:A =  getAA(new A({a:22}))  
+fun createA() -> A {
+  return new A({a:22})
+}
+var a:A =  createA() 
 print(a.obj)
 a.obj = {a:32}
 print("After Pass")
-var d:B = new B({j:[{a:2}]})
-print(d.getU())
-a.printB(d)
-{
-  a.printB(new B({j:[]}))
-}
-
+print(a.printB( new B({j:[{a:2}]})))
 
 
 

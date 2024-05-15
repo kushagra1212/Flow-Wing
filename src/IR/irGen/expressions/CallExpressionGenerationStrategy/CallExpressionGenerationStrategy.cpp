@@ -17,7 +17,6 @@ llvm::Value *CallExpressionGenerationStrategy::generateExpression(
   if (BuiltInFunction::isBuiltInFunction(callExpression->getCallerNameRef())) {
     return this->buildInFunctionCall(callExpression);
   }
-
   return this->userDefinedFunctionCall(callExpression);
 }
 
@@ -352,6 +351,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
   std::vector<llvm::Value *> classArg = {};
   llvm::Value *_classPtr = nullptr;
   llvm::Type *_classType = nullptr;
+
   {
     auto [value, classType] =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
@@ -359,19 +359,22 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       std::string funName = callExpression->getCallerNameRef();
-      if (funName.find(structType->getStructName().str() + "_:") !=
+      if (funName.find(structType->getStructName().str() +
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) !=
           std::string::npos) {
         calleeFunction =
             TheModule->getFunction(callExpression->getCallerNameRef());
-
         classArg = {value};
       }
     } else if (!value && !classType &&
-               callExpression->getCallerNameRef().find("_:init") !=
+               callExpression->getCallerNameRef().find(
+                   FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
                    std::string::npos) {
 
       std::string className = callExpression->getCallerNameRef();
-      className = className.substr(0, className.find("_:init"));
+      className = className.substr(
+          0, className.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                            "init"));
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
         value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
@@ -498,7 +501,9 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   llvm::Value *callIn = Builder->CreateCall(calleeFunction, functionArgs);
   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  if (callExpression->getCallerNameRef().find("_:init") != std::string::npos) {
+  if (callExpression->getCallerNameRef().find(
+          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+      std::string::npos) {
     _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
                                                          "struct", _classType);
     return _classPtr;
@@ -517,11 +522,10 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
 
     return callIn;
   }
+
   llvm::StructType *structType = nullptr;
   _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
-
   if (structType != nullptr) {
-
     _codeGenerationContext->getValueStackHandler()->push("", callIn, "struct",
                                                          structType);
     return callIn;
@@ -590,22 +594,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     if (llvm::isa<llvm::StructType>(type) || llvm::isa<llvm::ArrayType>(type)) {
 
-      if (llvm::isa<llvm::StructType>(type)) {
-        llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
-        if (_codeGenerationContext->_classLLVMTypes.find(
-                structType->getStructName().str()) !=
-            _codeGenerationContext->_classLLVMTypes.end()) {
-          rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-        } else {
-          rhsValue = Builder->CreateAlloca(type, nullptr);
-          Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
-        }
-      } else {
-
-        rhsValue = Builder->CreateAlloca(type, nullptr);
-        Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
-      }
-
+      rhsValue = Builder->CreateAlloca(type, nullptr);
+      Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
     } else {
       rhsValue = Builder->CreateAlloca(type, nullptr);
       Builder->CreateStore(value, rhsValue);

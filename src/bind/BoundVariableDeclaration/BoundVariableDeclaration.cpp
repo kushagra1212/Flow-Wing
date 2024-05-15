@@ -14,6 +14,10 @@ BinderKindUtils::BoundNodeKind BoundVariableDeclaration::getKind() const {
   return BinderKindUtils::BoundNodeKind::VariableDeclaration;
 }
 
+BinderKindUtils::MemoryKind BoundVariableDeclaration::getMemoryKind() const {
+  return _memoryKind;
+};
+
 bool BoundVariableDeclaration::isConst() const { return _isConst; }
 
 std::vector<BoundNode *> BoundVariableDeclaration::getChildren() {

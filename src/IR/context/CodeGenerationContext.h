@@ -109,6 +109,9 @@ public:
   int8_t verifyType(llvm::Type *lhsType, llvm::Type *rhsType,
                     std::string inExp = " in assignment expression");
 
+  llvm::Value *createMemoryGetPtr(llvm::Type *type, std::string variableName,
+                                  BinderKindUtils::MemoryKind memoryKind);
+
   void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
   inline auto
   createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,

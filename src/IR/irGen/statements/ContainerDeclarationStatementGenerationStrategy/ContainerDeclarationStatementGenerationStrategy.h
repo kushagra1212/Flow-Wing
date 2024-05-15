@@ -16,7 +16,10 @@ public:
       CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
+  void initialize(BoundVariableDeclaration *contVarDec);
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  llvm::Value *generateCommonStatement();
 
   llvm::Value *generateBracketGlobalExpression(
       BoundBracketedExpression *bracketedExpression);
@@ -52,6 +55,14 @@ private:
   std::string _containerName;
   llvm::LoadInst *_loadedValue;
   llvm::Value *_allocaInst;
+
+  BoundExpression *_initializer;
+  BinderKindUtils::MemoryKind _memoryKind;
+  BoundArrayTypeExpression *_arrayTypeExpression;
+
+  const std::string ON_HEAP = "on_heap";
+  const std::string ON_STACK = "on_stack";
+  const std::string ON_GLOBAL = "on_global";
 };
 
 #endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__

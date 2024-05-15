@@ -485,7 +485,9 @@ void CodeGenerationContext::getReturnedObjectType(
   if (metaData == "") {
     return;
   }
+
   Utils::split(metaData, ":", strs);
+
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())
       objectType = _classTypes[strs[3]]->getClassType();
@@ -505,5 +507,39 @@ void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
   if (strs[2] == "pr") {
     type = getMapper()->mapCustomTypeToLLVMType(
         (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
+  }
+}
+
+llvm::Value *CodeGenerationContext::createMemoryGetPtr(
+    llvm::Type *type, std::string variableName,
+    BinderKindUtils::MemoryKind memoryKind) {
+  switch (memoryKind) {
+  case BinderKindUtils::MemoryKind::Heap: {
+    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+    llvm::CallInst *malloc_call = this->_builder->CreateCall(
+        fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
+                                    this->getMapper()->getSizeOf(type)));
+    malloc_call->setTailCall(false);
+
+    // Cast the result of 'malloc' to a pointer to int
+    return this->_builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*this->_context)));
+  }
+  case BinderKindUtils::MemoryKind::Stack: {
+    return this->_builder->CreateAlloca(type, nullptr, variableName);
+  }
+  case BinderKindUtils::MemoryKind::Global: {
+    return new llvm::GlobalVariable(
+        *this->_module, type, false, llvm::GlobalValue::ExternalWeakLinkage,
+        llvm::Constant::getNullValue(type), variableName);
+  }
+
+  default:
+    this->getLogger()->LogError(
+        "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
+        " for " + variableName + " in " + __PRETTY_FUNCTION__);
+    return nullptr;
   }
 }
