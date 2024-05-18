@@ -377,33 +377,24 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
                             "init"));
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
-        value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
 
-        if (!value) {
-          auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+        if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+          value = _codeGenerationContext->getValueStackHandler()->getValue();
+          _codeGenerationContext->getValueStackHandler()->popAll();
+        } else {
           std::unique_ptr<AssignmentExpressionGenerationStrategy>
               assignmentEGS =
                   std::make_unique<AssignmentExpressionGenerationStrategy>(
                       _codeGenerationContext);
 
-          llvm::CallInst *malloc_call = Builder->CreateCall(
-              fun, llvm::ConstantInt::get(
-                       llvm::Type::getInt64Ty(*TheContext),
-                       _codeGenerationContext->getMapper()->getSizeOf(
-                           _codeGenerationContext->_classTypes[className]
-                               ->getClassType())));
-          malloc_call->setTailCall(false);
+          value = _codeGenerationContext->createMemoryGetPtr(
+              _codeGenerationContext->_classTypes[className]->getClassType(),
+              "", BinderKindUtils::MemoryKind::Heap);
 
-          // Cast the result of 'malloc' to a pointer to int
-          llvm::Value *intPtr = Builder->CreateBitCast(
-              malloc_call, llvm::PointerType::getUnqual(
-                               llvm::Type::getInt32Ty(*TheContext)));
           assignmentEGS->initDefaultValue(
               _codeGenerationContext->_classTypes[className]->getClassType(),
-              intPtr);
-          _codeGenerationContext->_classTypes[className]->setObjectPtr(intPtr);
+              value);
         }
-        value = _codeGenerationContext->_classTypes[className]->getObjectPtr();
 
         classType =
             _codeGenerationContext->_classTypes[className]->getClassType();

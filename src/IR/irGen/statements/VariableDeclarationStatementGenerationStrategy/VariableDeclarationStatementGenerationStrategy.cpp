@@ -116,25 +116,39 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     if (_codeGenerationContext->_classTypes.find(
             structType->getStructName().str()) !=
         _codeGenerationContext->_classTypes.end()) {
+      // if (variableDeclaration->getInitializerPtr() &&
+      //     variableDeclaration->getInitializerPtr()->getKind() ==
+      //         BinderKindUtils::CallExpression) {
 
-      if (variableDeclaration->getInitializerPtr()->getKind() ==
-          BinderKindUtils::CallExpression) {
+      //   std::unique_ptr<ExpressionGenerationFactory>
+      //       expressionGenerationFactory =
+      //           std::make_unique<ExpressionGenerationFactory>(
+      //               _codeGenerationContext);
 
-        std::unique_ptr<ExpressionGenerationFactory>
-            expressionGenerationFactory =
-                std::make_unique<ExpressionGenerationFactory>(
-                    _codeGenerationContext);
-        llvm::Value *ptr =
-            expressionGenerationFactory
-                ->createStrategy(BinderKindUtils::CallExpression)
-                ->generateExpression(
-                    variableDeclaration->getInitializerPtr().get());
-        // _codeGenerationContext->_classTypes[objectTypeExpression->getTypeName()]
-        //     ->setObjectPtr(ptr);
-        _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                         {ptr, structType});
-        return ptr;
-      }
+      //   BoundCallExpression *callExpression =
+      //       static_cast<BoundCallExpression *>(
+      //           variableDeclaration->getInitializerPtr().get());
+
+      //   if (callExpression->getCallerNameRef().find(
+      //           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") ==
+      //       std::string::npos) {
+      //     llvm::Value *ptr =
+      //         expressionGenerationFactory
+      //             ->createStrategy(BinderKindUtils::CallExpression)
+      //             ->generateExpression(
+      //                 variableDeclaration->getInitializerPtr().get());
+
+      //     // llvm::Value *ptr =
+      //     //     _codeGenerationContext->getValueStackHandler()->getValue();
+      //     // _codeGenerationContext->getValueStackHandler()->popAll();
+
+      //     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+      //                                                      {ptr,
+      //                                                      structType});
+
+      //     return ptr;
+      //   }
+      // }
 
       llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
           structType, _variableName, variableDeclaration->getMemoryKind());
@@ -143,8 +157,12 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
                                                        {ptr, structType});
       assignmentEGS->initDefaultValue(structType, ptr);
 
-      _codeGenerationContext->_classTypes[structType->getStructName().str()]
-          ->setObjectPtr(ptr);
+      if (variableDeclaration->getInitializerPtr().get()->getKind() ==
+          BinderKindUtils::CallExpression) {
+
+        _codeGenerationContext->getValueStackHandler()->push("", ptr, "struct",
+                                                             structType);
+      }
 
       if (!variableDeclaration->getInitializerPtr().get())
         return ptr;

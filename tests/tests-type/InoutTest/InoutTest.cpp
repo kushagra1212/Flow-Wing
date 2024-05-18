@@ -511,3 +511,199 @@ print(a.obj)
 
   O(R"({ a : 100 }After Pass{ a : 100 })");
 }
+TEST_F(InoutTest, objectTypeWithoutInoutType1) {
+  I(R"(
+type T = {
+  a:int
+}
+
+fun getA(d:T) -> T {
+  d.a = 21
+  return d
+}
+fun getAA(d:T) -> T {
+  var x:T = getA(d)
+  print(x)
+  return x
+}
+var b:T = {a:10} 
+
+var d:T = getAA(b)
+print(d)
+    )");
+
+  O(R"({ a : 21 }{ a : 21 })");
+}
+TEST_F(InoutTest, objectTypeWithInoutType1) {
+  I(R"(
+type T = {
+  a:int
+}
+
+fun getA(inout d:T) -> T {
+  d.a = 21
+  return d
+}
+fun getAA(inout d:T) -> T {
+  var x:T = getA(d)
+  print(x)
+  return x
+}
+var b:T = {a:10} 
+
+var d:T = getAA(b)
+print(d)
+    )");
+
+  O(R"({ a : 21 }{ a : 21 })");
+}
+
+TEST_F(InoutTest, objectTypeWithoutInoutType2) {
+  I(R"(
+type T = {
+  a:int
+}
+
+fun getA( d:T) -> T {
+  d.a = 21
+  return d
+}
+fun getAA( d:T) -> T {
+  return  getA(d)
+
+}
+var b:T = {a:10} 
+
+var d:T = getAA(b)
+print(d)
+    )");
+
+  O(R"({ a : 21 })");
+}
+
+TEST_F(InoutTest, objectTypeWithInoutType2) {
+  I(R"(
+type T = {
+  a:int
+}
+
+fun getA(inout d:T) -> T {
+  d.a = 21
+  return d
+}
+fun getAA(inout d:T) -> T {
+  return  getA(d)
+
+}
+var b:T = {a:10} 
+
+var d:T = getAA(b)
+print(d)
+    )");
+
+  O(R"({ a : 21 })");
+}
+
+TEST_F(InoutTest, classesWithoutInout) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA(d:A) -> A {
+  d.obj.a = 21
+
+  return d
+}
+fun getAA(d:A) -> A {
+  var x:A = getA(d)
+  print(x.obj)
+  return x
+}
+var b:A = new A({a:10}) 
+
+var d:A = getAA(b)
+print(d.obj)
+print(b.obj)
+    )");
+
+  O(R"({ a : 21 }{ a : 21 }{ a : 10 })");
+}
+
+TEST_F(InoutTest, classesWithInout) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA(inout d:A) -> A {
+  d.obj.a = 21
+
+  return d
+}
+fun getAA(inout d:A) -> A {
+  var x:A = getA(d)
+  print(x.obj)
+  return x
+}
+var b:A = new A({a:10}) 
+
+var d:A = getAA(b)
+print(d.obj)
+print(b.obj)
+    )");
+
+  O(R"({ a : 21 }{ a : 21 }{ a : 21 })");
+}
+TEST_F(InoutTest, classesWithInoutPartial) {
+  I(R"(
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun getA(inout d:A) -> A {
+  d.obj.a = 21
+
+  return d
+}
+fun getAA( d:A) -> A {
+  var x:A = getA(d)
+  print(x.obj)
+  return x
+}
+var b:A = new A({a:10}) 
+
+var d:A = getAA(b)
+print(d.obj)
+print(b.obj)
+    )");
+
+  O(R"({ a : 21 }{ a : 21 }{ a : 10 })");
+}

@@ -36,7 +36,6 @@ public:
     return _classElementsIndexMap.find(key) != _classElementsIndexMap.end();
   }
 
-  inline auto setObjectPtr(llvm::Value *ptr) { _objectPtr = ptr; }
   inline auto addKeyTypePair(BoundLiteralExpression<std::any> *key,
                              BoundTypeExpression *type) -> void {
     _key_type_pairs.push_back(std::make_pair(key, type));
@@ -45,7 +44,6 @@ public:
       std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>> & {
     return _key_type_pairs;
   }
-  inline auto getObjectPtr() -> llvm::Value * { return _objectPtr; }
 
   inline auto getKeyValue(std::string key)
       -> std::tuple<BoundLiteralExpression<std::any> *, BoundTypeExpression *,

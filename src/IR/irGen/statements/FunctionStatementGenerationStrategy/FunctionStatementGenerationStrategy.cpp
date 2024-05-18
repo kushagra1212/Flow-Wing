@@ -169,22 +169,18 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         llvm::StructType *structType =
             llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
 
-        std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy>
-            objAssignSt =
-                std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-                    _codeGenerationContext);
+        llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
+            structType, parameterNames[i],
+            _codeGenerationContext->_classTypes.find(
+                structType->getName().str()) !=
+                    _codeGenerationContext->_classTypes.end()
+                ? BinderKindUtils::MemoryKind::Heap
+                : BinderKindUtils::MemoryKind::Stack);
 
-        llvm::Value *structPtr =
-            Builder->CreateAlloca(structType, nullptr, parameterNames[i]);
+        Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
 
-        _codeGenerationContext->getAllocaChain()->setPtr(
-            parameterNames[i], {structPtr, structType});
-
-        std::unique_ptr<AssignmentExpressionGenerationStrategy> assignSt =
-            std::make_unique<AssignmentExpressionGenerationStrategy>(
-                _codeGenerationContext);
-
-        objAssignSt->copyOject(structType, structPtr, argValue);
+        _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                         {ptr, structType});
 
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
         LLVMPrimitiveType *llvmPrimitiveType =

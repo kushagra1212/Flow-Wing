@@ -188,7 +188,7 @@ std::unique_ptr<BoundStatement>
 Binder::bindBreakStatement(BreakStatementSyntax *breakStatement) {
   if (!this->root->isBreakable()) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Break Statement Outside of Loop",
+        "Break Statement not within Loop or Switch",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(breakStatement->getBreakKeywordPtr().get())));

@@ -57,7 +57,7 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);
-    llvm::Value *returnValue =
+    llvm::Value *returnLLVMValue =
         _codeGenerationContext->getValueStackHandler()->getValue();
     llvm::Type *rtypeLLVM =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
