@@ -305,6 +305,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "ClassKeyword";
   case SyntaxKind::ClassStatement:
     return "ClassStatement";
+  case SyntaxKind::ExtendsKeyword:
+    return "ExtendsKeyword";
   default:
     return "NotDefined";
   }

@@ -43,7 +43,7 @@ void BuiltInFunction::setupBuiltInFunctions() {
     varDec->setTypeExpression(std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(),
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
-    func->addParameter(std::move(varDec));
+    func->setIsVariadicFunction(true);
     _functions.push_back(std::move(func));
   };
 

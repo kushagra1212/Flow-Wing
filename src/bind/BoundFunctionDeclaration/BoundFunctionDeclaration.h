@@ -17,6 +17,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
   std::string _classItBelongTo = "";
+  bool _isVariadicFunction = false;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -56,6 +57,12 @@ public:
       -> const std::unique_ptr<BoundBlockStatement> & {
     return _body;
   }
+  inline auto setIsVariadicFunction(bool isVariadicFunction) {
+    this->_isVariadicFunction = isVariadicFunction;
+  }
+
+  inline auto isVariadicFunction() const { return _isVariadicFunction; }
+
   inline auto getReturnType() const
       -> const std::unique_ptr<BoundExpression> & {
     return _returnType;

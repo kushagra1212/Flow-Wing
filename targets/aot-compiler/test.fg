@@ -1,3 +1,9 @@
+
+
+
+
+print(1,2,3,"\n\t\"ssdweqdfwe")
+
 type T = {
   a:int 
 }
@@ -35,18 +41,26 @@ fun getA(d:A) -> A {
  d.obj.a = 21
   return d
 }
-
 fun getAA(a:A) -> A {
   return getA(a)
 }
 fun createA() -> A {
   return new A({a:22})
 }
-var a:A =  createA() 
+
+{
+    var a:A = new A({a:1})
 print(a.obj)
+a = createA()
+print(a.obj)
+a = new A({a:322})
+print(a.obj,a.printB(new B({j:[]})))
 a.obj = {a:32}
 print("After Pass")
-print(a.printB( new B({j:[{a:2}]})))
+print(a.printB(new B({j:[{a:2}]})))
+
+
+  }
 /#type X = {
   x1: str,
   x2: int

@@ -794,8 +794,9 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     const std::unique_ptr<BoundFunctionDeclaration> &boundBuiltinFunction =
         BuiltInFunction::getBuiltInFunction(functionName);
 
-    if (callExpression->getArguments().size() !=
-        boundBuiltinFunction->getParametersRef().size()) {
+    if (!boundBuiltinFunction->isVariadicFunction() &&
+        callExpression->getArguments().size() !=
+            boundBuiltinFunction->getParametersRef().size()) {
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
           "Function " + boundBuiltinFunction->getFunctionNameRef() +
               " requires " +

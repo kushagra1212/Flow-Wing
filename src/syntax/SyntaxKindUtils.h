@@ -92,6 +92,7 @@ enum SyntaxKind {
   NewKeyword,
   ClassKeyword,
   INOUTKeyword,
+  ExtendsKeyword,
 
   // Identifiers
   IdentifierToken,

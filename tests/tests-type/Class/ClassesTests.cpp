@@ -2717,3 +2717,184 @@ print(a.printB( new B({j:[{a:2}]})))
 )");
   O(R"({ a : 22 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
+
+TEST_F(ClassesTests, CreatingObjectFromFunctionAssignment) {
+  I(R"(
+type T = {
+  a:int 
+}
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+fun createA() -> A {
+  return new A({a:22})
+}
+var a:A = new A({a:1})
+print(a.obj)
+a = createA()
+print(a.obj)
+a = new A({a:322})
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.printB(new B({j:[{a:2}]})))
+)");
+  O(R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+}
+TEST_F(ClassesTests, CreatingObjectFromFunctionAssignmentLocal) {
+  I(R"(
+
+type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+fun createA() -> A {
+  return new A({a:22})
+}
+
+{
+    var a:A = new A({a:1})
+print(a.obj)
+a = createA()
+print(a.obj)
+a = new A({a:322})
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.printB(new B({j:[{a:2}]})))
+
+  }
+)");
+  O(R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+}
+TEST_F(ClassesTests, CreatingObjectFromFunctionAssignmentLocalVaradicPrint) {
+  I(R"(
+
+
+print(1,2,3,"ssdweqdfwe")
+
+type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+fun createA() -> A {
+  return new A({a:22})
+}
+
+    var a:A = new A({a:1})
+print(a.obj)
+a = createA()
+print(a.obj)
+a = new A({a:322})
+print(a.obj,a.printB(new B({j:[]})))
+a.obj = {a:32}
+print("After Pass")
+print(a.printB(new B({j:[{a:2}]})))
+)");
+  O(R"(123ssdweqdfwe{ a : 1 }{ a : 22 }{ a : 322 }{ j : [{ a : 0 }, { a : 0 }] }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+}

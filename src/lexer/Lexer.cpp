@@ -262,6 +262,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::INOUTKeyword, start, text, "inout");
+  } else if (text == "extends") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ExtendsKeyword, start, text, "extends");
   }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,

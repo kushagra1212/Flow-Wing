@@ -16,6 +16,7 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
+  llvm::Value *handlePrintFunction(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
   llvm::Value *

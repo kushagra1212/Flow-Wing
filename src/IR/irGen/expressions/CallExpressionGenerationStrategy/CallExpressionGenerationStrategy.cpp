@@ -73,211 +73,22 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       callExpression->getCallerNameRef();
 
   if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Print) {
-    if (arguments_size == 1) {
+
+    for (auto &callexp : callExpression->getArgumentsRef()) {
+
       llvm::Value *value =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+          _expressionGenerationFactory->createStrategy(callexp->getKind())
+              ->generateExpression(callexp.get());
 
-      if (!value) {
-        return nullptr;
-      }
-
-      if (!_codeGenerationContext->getValueStackHandler()->isEmpty() &&
-          _codeGenerationContext->getValueStackHandler()->isDynamicType()) {
-
-        llvm::Value *loaded = Builder->CreateLoad(
-            _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-            _codeGenerationContext->getValueStackHandler()->getValue());
-
-        _codeGenerationContext->getValueStackHandler()->popAll();
-
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(loaded),
-                             Builder->getInt1(false)});
-        return nullptr;
-      }
-
-      // if (!_codeGenerationContext->getValueStackHandler()->isEmpty()) {
-      //   llvm::Value *ptr =
-      //       _codeGenerationContext->getValueStackHandler()->getValue();
-      //   llvm::Type *type =
-      //       _codeGenerationContext->getValueStackHandler()->getLLVMType();
-
-      //   _codeGenerationContext->getValueStackHandler()->popAll();
-
-      //   if (llvm::isa<llvm::StructType>(type))
-      //     return printObject(Builder->CreateLoad(type, ptr),
-      //                        llvm::cast<llvm::StructType>(type));
-
-      //   if (llvm::isa<llvm::ArrayType>(type)) {
-      //     llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-      //     _codeGenerationContext->getValueStackHandler()->popAll();
-      //     llvm::Type *elementType = arrayType->getElementType();
-      //     llvm::Type *type = arrayType;
-
-      //     std::vector<uint64_t> sizes;
-      //     while (llvm::ArrayType *arrayType =
-      //                llvm::dyn_cast<llvm::ArrayType>(type)) {
-      //       sizes.push_back(arrayType->getNumElements());
-      //       type = arrayType->getElementType();
-      //     }
-      //     return printArrayAtom(arrayType, ptr, sizes, type);
-      //   }
-      // }
-
-      if (llvm::isa<llvm::CallInst>(value)) {
-        llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
-        auto *calledFunction = calledInst->getCalledFunction();
-        llvm::ArrayType *arrayType = nullptr;
-        llvm::Type *elementType = nullptr;
-        std::vector<uint64_t> actualSizes;
-        _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
-                                                     elementType, actualSizes);
-
-        if (arrayType != nullptr) {
-          llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
-          llvm::Value *localVariable =
-              Builder->CreateAlloca(arrayType, nullptr);
-
-          // Store the result of the call in the local variable
-          Builder->CreateStore(loaded, localVariable);
-
-          printArrayAtom(arrayType, localVariable, actualSizes, elementType);
-          return nullptr;
-        } else {
-          llvm::StructType *structType = nullptr;
-          _codeGenerationContext->getReturnedObjectType(calledFunction,
-                                                        structType);
-
-          if (structType != nullptr) {
-            llvm::LoadInst *loaded =
-                Builder->CreateLoad(structType, calledInst);
-            llvm::Value *localVariable =
-                Builder->CreateAlloca(structType, nullptr);
-
-            // Store the result of the call in the local variable
-            Builder->CreateStore(loaded, localVariable);
-            return printObject(localVariable, structType);
-          }
-        }
-      }
-      if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
-          llvm::isa<llvm::PointerType>(value->getType())) {
-        std::string typeName =
-            _codeGenerationContext->getValueStackHandler()->getTypeName();
-        llvm::StructType *structType = llvm::cast<llvm::StructType>(
-            _codeGenerationContext->getValueStackHandler()->getLLVMType());
-        _codeGenerationContext->getValueStackHandler()->popAll();
-
-        return printObject(value, structType);
-      }
-
-      if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
-        llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
-            _codeGenerationContext->getValueStackHandler()->getLLVMType());
-        llvm::Value *innerElementPtr =
-            _codeGenerationContext->getValueStackHandler()->getValue();
-        _codeGenerationContext->getValueStackHandler()->popAll();
-        llvm::Type *elementType = arrayType->getElementType();
-        llvm::Type *type = arrayType;
-
-        std::vector<uint64_t> sizes;
-        while (llvm::ArrayType *arrayType =
-                   llvm::dyn_cast<llvm::ArrayType>(type)) {
-          sizes.push_back(arrayType->getNumElements());
-          type = arrayType->getElementType();
-        }
-        return printArrayAtom(arrayType, innerElementPtr, sizes, type);
-      }
-
-      if (llvm::isa<llvm::ArrayType>(value->getType())) {
-        llvm::ArrayType *arrayType =
-            llvm::cast<llvm::ArrayType>(value->getType());
-        llvm::Type *elementType = arrayType->getElementType();
-
-        if (!elementType->isIntegerTy(8)) {
-          return printArray(arrayType, elementType, value);
-        }
-      }
-
-      // check if value is element pointer
-      if (llvm::isa<llvm::GetElementPtrInst>(value)) {
-        auto v = static_cast<llvm::GetElementPtrInst *>(value);
-        value = Builder->CreateLoad(v->getResultElementType(), v);
-      }
-
-      // check if value is alloca inst
-      if (llvm::isa<llvm::AllocaInst>(value)) {
-        auto v = static_cast<llvm::AllocaInst *>(value);
-
-        // local array
-        if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
-          llvm::ArrayType *arrayType =
-              llvm::cast<llvm::ArrayType>(v->getAllocatedType());
-          llvm::Type *elementType = arrayType->getElementType();
-
-          if (!elementType->isIntegerTy(8)) {
-            return printArray(arrayType, elementType, v);
-          }
-        }
-
-        if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
-          llvm::StructType *structType =
-              llvm::cast<llvm::StructType>(v->getAllocatedType());
-
-          return printObject(value, structType);
-        }
-
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(value),
-                             Builder->getInt1(false)});
-
-        return nullptr;
-      }
-
-      // check if is Global Variable
-      if (llvm::isa<llvm::GlobalVariable>(value)) {
-        auto v = static_cast<llvm::GlobalVariable *>(value);
-
-        // global array
-        if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
-          llvm::ArrayType *arrayType =
-              llvm::cast<llvm::ArrayType>(v->getValueType());
-          llvm::Type *elementType = arrayType->getElementType();
-
-          if (!elementType->isIntegerTy(8)) {
-            return printArray(arrayType, elementType, v);
-          }
-        }
-        if (llvm::isa<llvm::StructType>(v->getValueType())) {
-          llvm::StructType *structType =
-              llvm::cast<llvm::StructType>(v->getValueType());
-
-          return printObject(value, structType);
-        }
-      }
-      // if (value->getType()->isPointerTy()) {
-      //   printString(value, value->getType());
-      //   return nullptr;
-      // }
-      if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-              value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(value),
-                             Builder->getInt1(false)});
-        return nullptr;
-      }
-
-      return nullptr;
+      handlePrintFunction(value);
     }
+
+    return nullptr;
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Input) {
     if (arguments_size == 0) {
 
       return Builder->CreateCall(
           TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
-
     } else if (arguments_size == 1) {
       llvm::Value *val =
           _expressionGenerationFactory
@@ -338,6 +149,195 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
   _codeGenerationContext->getLogger()->LogError(errorMessage);
   _codeGenerationContext->getLogger()->LogError("Unexpected Function Call ");
+
+  return nullptr;
+}
+
+llvm::Value *
+CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
+  if (!value) {
+    return nullptr;
+  }
+
+  if (!_codeGenerationContext->getValueStackHandler()->isEmpty() &&
+      _codeGenerationContext->getValueStackHandler()->isDynamicType()) {
+
+    llvm::Value *loaded = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(loaded),
+                         Builder->getInt1(false)});
+    return nullptr;
+  }
+
+  // if (!_codeGenerationContext->getValueStackHandler()->isEmpty()) {
+  //   llvm::Value *ptr =
+  //       _codeGenerationContext->getValueStackHandler()->getValue();
+  //   llvm::Type *type =
+  //       _codeGenerationContext->getValueStackHandler()->getLLVMType();
+
+  //   _codeGenerationContext->getValueStackHandler()->popAll();
+
+  //   if (llvm::isa<llvm::StructType>(type))
+  //     return printObject(Builder->CreateLoad(type, ptr),
+  //                        llvm::cast<llvm::StructType>(type));
+
+  //   if (llvm::isa<llvm::ArrayType>(type)) {
+  //     llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+  //     _codeGenerationContext->getValueStackHandler()->popAll();
+  //     llvm::Type *elementType = arrayType->getElementType();
+  //     llvm::Type *type = arrayType;
+
+  //     std::vector<uint64_t> sizes;
+  //     while (llvm::ArrayType *arrayType =
+  //                llvm::dyn_cast<llvm::ArrayType>(type)) {
+  //       sizes.push_back(arrayType->getNumElements());
+  //       type = arrayType->getElementType();
+  //     }
+  //     return printArrayAtom(arrayType, ptr, sizes, type);
+  //   }
+  // }
+
+  if (llvm::isa<llvm::CallInst>(value)) {
+    llvm::CallInst *calledInst = llvm::cast<llvm::CallInst>(value);
+    auto *calledFunction = calledInst->getCalledFunction();
+    llvm::ArrayType *arrayType = nullptr;
+    llvm::Type *elementType = nullptr;
+    std::vector<uint64_t> actualSizes;
+    _codeGenerationContext->getRetrunedArrayType(calledFunction, arrayType,
+                                                 elementType, actualSizes);
+
+    if (arrayType != nullptr) {
+      llvm::LoadInst *loaded = Builder->CreateLoad(arrayType, calledInst);
+      llvm::Value *localVariable = Builder->CreateAlloca(arrayType, nullptr);
+
+      // Store the result of the call in the local variable
+      Builder->CreateStore(loaded, localVariable);
+
+      printArrayAtom(arrayType, localVariable, actualSizes, elementType);
+      return nullptr;
+    } else {
+      llvm::StructType *structType = nullptr;
+      _codeGenerationContext->getReturnedObjectType(calledFunction, structType);
+
+      if (structType != nullptr) {
+        llvm::LoadInst *loaded = Builder->CreateLoad(structType, calledInst);
+        llvm::Value *localVariable = Builder->CreateAlloca(structType, nullptr);
+
+        // Store the result of the call in the local variable
+        Builder->CreateStore(loaded, localVariable);
+        return printObject(localVariable, structType);
+      }
+    }
+  }
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      llvm::isa<llvm::PointerType>(value->getType())) {
+    std::string typeName =
+        _codeGenerationContext->getValueStackHandler()->getTypeName();
+    llvm::StructType *structType = llvm::cast<llvm::StructType>(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    return printObject(value, structType);
+  }
+
+  if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
+    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType());
+    llvm::Value *innerElementPtr =
+        _codeGenerationContext->getValueStackHandler()->getValue();
+    _codeGenerationContext->getValueStackHandler()->popAll();
+    llvm::Type *elementType = arrayType->getElementType();
+    llvm::Type *type = arrayType;
+
+    std::vector<uint64_t> sizes;
+    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
+      sizes.push_back(arrayType->getNumElements());
+      type = arrayType->getElementType();
+    }
+    return printArrayAtom(arrayType, innerElementPtr, sizes, type);
+  }
+
+  if (llvm::isa<llvm::ArrayType>(value->getType())) {
+    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(value->getType());
+    llvm::Type *elementType = arrayType->getElementType();
+
+    if (!elementType->isIntegerTy(8)) {
+      return printArray(arrayType, elementType, value);
+    }
+  }
+
+  // check if value is element pointer
+  if (llvm::isa<llvm::GetElementPtrInst>(value)) {
+    auto v = static_cast<llvm::GetElementPtrInst *>(value);
+    value = Builder->CreateLoad(v->getResultElementType(), v);
+  }
+
+  // check if value is alloca inst
+  if (llvm::isa<llvm::AllocaInst>(value)) {
+    auto v = static_cast<llvm::AllocaInst *>(value);
+
+    // local array
+    if (llvm::isa<llvm::ArrayType>(v->getAllocatedType())) {
+      llvm::ArrayType *arrayType =
+          llvm::cast<llvm::ArrayType>(v->getAllocatedType());
+      llvm::Type *elementType = arrayType->getElementType();
+
+      if (!elementType->isIntegerTy(8)) {
+        return printArray(arrayType, elementType, v);
+      }
+    }
+
+    if (llvm::isa<llvm::StructType>(v->getAllocatedType())) {
+      llvm::StructType *structType =
+          llvm::cast<llvm::StructType>(v->getAllocatedType());
+
+      return printObject(value, structType);
+    }
+
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(value),
+                         Builder->getInt1(false)});
+
+    return nullptr;
+  }
+
+  // check if is Global Variable
+  if (llvm::isa<llvm::GlobalVariable>(value)) {
+    auto v = static_cast<llvm::GlobalVariable *>(value);
+
+    // global array
+    if (llvm::isa<llvm::ArrayType>(v->getValueType())) {
+      llvm::ArrayType *arrayType =
+          llvm::cast<llvm::ArrayType>(v->getValueType());
+      llvm::Type *elementType = arrayType->getElementType();
+
+      if (!elementType->isIntegerTy(8)) {
+        return printArray(arrayType, elementType, v);
+      }
+    }
+    if (llvm::isa<llvm::StructType>(v->getValueType())) {
+      llvm::StructType *structType =
+          llvm::cast<llvm::StructType>(v->getValueType());
+
+      return printObject(value, structType);
+    }
+  }
+  // if (value->getType()->isPointerTy()) {
+  //   printString(value, value->getType());
+  //   return nullptr;
+  // }
+  if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+          value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+                        {_stringTypeConverter->convertExplicit(value),
+                         Builder->getInt1(false)});
+    return nullptr;
+  }
 
   return nullptr;
 }
