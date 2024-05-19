@@ -489,7 +489,18 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
   appendWithSpace();
 
+  if (this->getCurrent()->getKind() ==
+      SyntaxKindUtils::SyntaxKind::ExtendsKeyword) {
+    classSyn->setExtendsKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::ExtendsKeyword)));
+    appendWithSpace();
+    classSyn->setParentClassNameIdentifier(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+    appendWithSpace();
+  }
+
   this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+
   INDENT += TAB_SPACE;
   appendNewLine();
   while (this->getCurrent()->getKind() !=

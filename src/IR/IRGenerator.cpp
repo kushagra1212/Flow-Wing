@@ -179,7 +179,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
             static_cast<BoundFunctionDeclaration *>(funDec.get());
         std::vector<std::string> classVariables = {};
 
-        for (auto &variDec : boundClassStatement->getMemberVariablesRef()) {
+        for (auto &variDec : boundClassStatement->getAllMemberVariablesRef()) {
           classVariables.push_back(variDec->getVariableName());
         }
 

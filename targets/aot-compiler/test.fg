@@ -1,7 +1,148 @@
 
+type t1 = {
+      a:str
+}
+
+fun get() -> t1 {
+      var x:t1 = {
+            a:"h"
+      }
+      
+      return x
+}
+print(get())
+
+/#type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
 
 
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
 
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.printB( new B({j:[{a:2}]})))
+/#class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init() -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A() 
+a.printDefaults()
+/#class C {
+  var z:deci 
+
+  init(z: int) -> nthg {
+    self.z = z+2.2
+  }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+
+  init(z:int) -> nthg  {
+    self.z = z 
+  }
+
+  getZ() -> int {
+    return z
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init(x: int) -> nthg {
+    self.x = x 
+  }
+
+  getX() -> int {
+    return x
+  }
+
+  getZ() -> int {
+    return z
+  }
+
+  getS() -> deci {
+    return 45.2
+  }
+
+}
+
+var a:A = new A(2)
+a.printW()
+print(a.getX(),"\n",a.getZ(),"\n",a.getS())
+/#
 print(1,2,3,"\n\t\"ssdweqdfwe")
 
 type T = {

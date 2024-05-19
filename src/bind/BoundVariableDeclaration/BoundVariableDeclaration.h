@@ -41,8 +41,7 @@ public:
 
   const std::string &getVariableName() const;
 
-  inline auto getTypeExpression() const
-      -> const std::unique_ptr<BoundTypeExpression> & {
+  inline auto getTypeExpression() -> std::unique_ptr<BoundTypeExpression> & {
     return _typeExp;
   }
 

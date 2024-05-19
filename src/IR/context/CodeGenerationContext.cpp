@@ -134,11 +134,6 @@ CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
 }
 
-std::unordered_map<std::string, uint64_t> &
-CodeGenerationContext::getGlobalTypeMap() {
-  return _globalTypeMap;
-}
-
 void CodeGenerationContext::addBoundedUserFunction(
     std::string name, BoundFunctionDeclaration *functionDeclaration) {
   _boundedUserFunctions[name] = functionDeclaration;
@@ -183,6 +178,77 @@ void CodeGenerationContext::incrementCount(const std::string name) {
   llvm::Value *newCount = _builder->CreateAdd(
       count, llvm::ConstantInt::get(*_context, llvm::APInt(32, 1, true)));
   _builder->CreateStore(newCount, _module->getGlobalVariable(name));
+}
+
+auto CodeGenerationContext::createVTableMapEntry(
+    std::unordered_map<std::string,
+                       std::tuple<llvm::FunctionType *, uint64_t, std::string>>
+        &vTableElementsMap,
+    std::string className, uint64_t &index) -> void {
+
+  auto classVar = this->_classTypes[className].get();
+
+  if (!classVar)
+    return;
+
+  if (classVar->hasParent()) {
+    createVTableMapEntry(vTableElementsMap, classVar->getParentClassName(),
+                         index);
+  }
+
+  for (auto &element : classVar->getClassMemberFunctionTypeMap()) {
+    std::string fName = element.first;
+    auto functionType = element.second;
+
+    if (fName.find(".init") != std::string::npos)
+      continue;
+
+    fName = fName.substr(
+        fName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) + 1);
+
+    if (vTableElementsMap.find(fName) == vTableElementsMap.end()) {
+
+      std::get<1>(vTableElementsMap[fName]) = index;
+      index++;
+    }
+
+    llvm::FunctionType *previousFunctionType =
+        std::get<0>(vTableElementsMap[fName]);
+
+    if (previousFunctionType) {
+      if (previousFunctionType->getReturnType() !=
+          functionType->getReturnType()) {
+        this->getLogger()->LogError("Function " + fName +
+                                    " has different return type in class " +
+                                    className + " and its parent class " +
+                                    classVar->getParentClassName());
+        return;
+      }
+
+      if (previousFunctionType->getNumParams() !=
+          functionType->getNumParams()) {
+        this->getLogger()->LogError(
+            "Function " + fName +
+            " has different number of parameters in class " + className +
+            " and its parent class " + classVar->getParentClassName());
+        return;
+      }
+
+      for (int i = 0; i < functionType->getNumParams(); i++) {
+        if (previousFunctionType->getParamType(i) !=
+            functionType->getParamType(i)) {
+          this->getLogger()->LogError(
+              "Function " + fName + " has different parameter type in class " +
+              className + " and its parent class " +
+              classVar->getParentClassName());
+          return;
+        }
+      }
+    }
+
+    std::get<0>(vTableElementsMap[fName]) = functionType;
+    std::get<2>(vTableElementsMap[fName]) = className;
+  }
 }
 
 llvm::Constant *

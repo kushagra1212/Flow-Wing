@@ -49,7 +49,6 @@ public:
   std::unordered_map<std::string, int8_t> &getRecursiveFunctionsMap();
   std::unordered_map<std::string, BoundFunctionDeclaration *> &
   getBoundedUserFunctions();
-  std::unordered_map<std::string, uint64_t> &getGlobalTypeMap();
 
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
@@ -126,6 +125,12 @@ public:
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
+  auto createVTableMapEntry(
+      std::unordered_map<
+          std::string, std::tuple<llvm::FunctionType *, uint64_t, std::string>>
+          &vTableElementsMap,
+      std::string className, uint64_t &index) -> void;
+
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
@@ -150,7 +155,6 @@ private:
 
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
-  std::unordered_map<std::string, uint64_t> _globalTypeMap;
 };
 
 #endif // CODEGENERATIONCONTEXT_H

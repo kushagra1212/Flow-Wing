@@ -116,46 +116,33 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     if (_codeGenerationContext->_classTypes.find(
             structType->getStructName().str()) !=
         _codeGenerationContext->_classTypes.end()) {
-      // if (variableDeclaration->getInitializerPtr() &&
-      //     variableDeclaration->getInitializerPtr()->getKind() ==
-      //         BinderKindUtils::CallExpression) {
 
-      //   std::unique_ptr<ExpressionGenerationFactory>
-      //       expressionGenerationFactory =
-      //           std::make_unique<ExpressionGenerationFactory>(
-      //               _codeGenerationContext);
-
-      //   BoundCallExpression *callExpression =
-      //       static_cast<BoundCallExpression *>(
-      //           variableDeclaration->getInitializerPtr().get());
-
-      //   if (callExpression->getCallerNameRef().find(
-      //           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") ==
-      //       std::string::npos) {
-      //     llvm::Value *ptr =
-      //         expressionGenerationFactory
-      //             ->createStrategy(BinderKindUtils::CallExpression)
-      //             ->generateExpression(
-      //                 variableDeclaration->getInitializerPtr().get());
-
-      //     // llvm::Value *ptr =
-      //     //     _codeGenerationContext->getValueStackHandler()->getValue();
-      //     // _codeGenerationContext->getValueStackHandler()->popAll();
-
-      //     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-      //                                                      {ptr,
-      //                                                      structType});
-
-      //     return ptr;
-      //   }
-      // }
+      std::string className = structType->getStructName().str();
 
       llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
           structType, _variableName, variableDeclaration->getMemoryKind());
 
+      assignmentEGS->initDefaultValue(structType, ptr);
+
+      llvm::Value *init = assignmentEGS->handleAssignExpression(
+          ptr, structType, _variableName,
+          variableDeclaration->getInitializerPtr().get());
+      {
+
+        Builder->CreateStore(
+            TheModule->getOrInsertGlobal(
+                _codeGenerationContext->_classTypes[className]->getVTableName(),
+                _codeGenerationContext->_classTypes[className]
+                    ->getVTableType()),
+            Builder->CreateStructGEP(structType, ptr,
+                                     (structType->getNumElements() - 1)));
+
+        _codeGenerationContext->_classTypes[className]->populateVTable(
+            Builder, TheModule, TheContext, ptr);
+      }
+
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {ptr, structType});
-      assignmentEGS->initDefaultValue(structType, ptr);
 
       if (variableDeclaration->getInitializerPtr().get()->getKind() ==
           BinderKindUtils::CallExpression) {
@@ -167,9 +154,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       if (!variableDeclaration->getInitializerPtr().get())
         return ptr;
 
-      return assignmentEGS->handleAssignExpression(
-          ptr, structType, _variableName,
-          variableDeclaration->getInitializerPtr().get());
+      return init;
     }
 
     llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
@@ -187,6 +172,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
   // Handle Global Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+
     llvm::Type *llvmType =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
             _variableType);
@@ -197,6 +183,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     assignmentEGS->initDefaultValue(llvmType, ptr);
     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                      {ptr, llvmType});
+
     if (!_rhsValue)
       return ptr;
     Builder->CreateStore(_rhsValue, ptr);
@@ -259,7 +246,8 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       variableDeclaration->getLocation());
 
-  _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
+  _variableType =
+      variableDeclaration->getTypeExpression().get()->getSyntaxType();
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
       _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {

@@ -410,29 +410,94 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 
   this->root->setClassName(className);
   boundClassStat->setClassName(className);
-  for (const auto &cusType : classStatement->getCustomTypeStatementsRef()) {
-    boundClassStat->addCustomType(
-        std::move(this->bindCustomTypeStatement(cusType.get())));
+  // If It Has Parent
+
+  if (classStatement->getParentClassNameIdentifierRef()) {
+
+    std::string parentClassName = std::any_cast<std::string>(
+        classStatement->getParentClassNameIdentifierRef()->getValue());
+    boundClassStat->setParentClass(this->root->tryGetClass(parentClassName));
+    boundClassStat->setParentClassName(parentClassName);
+
+    BoundClassStatement *parentClassStat =
+        this->root->tryGetClass(parentClassName);
+
+    if (!parentClassStat) {
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Parent Class '" + parentClassName + "' Not Found",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     classStatement->getParentClassNameIdentifierRef()
+                         ->getSourceLocation()));
+
+      return std::move(boundClassStat);
+    }
+
+    for (auto type : parentClassStat->getAllCustomTypesRef()) {
+      boundClassStat->addCustomTypePtr(type);
+    }
+
+    for (auto var : parentClassStat->getAllMemberVariablesRef()) {
+      boundClassStat->addMemberVariablePtr(var);
+    }
+
+    for (auto &func : parentClassStat->getAllFunctionNamesRef()) {
+      boundClassStat->addFunctionName(func);
+    }
   }
 
-  for (const auto &var : classStatement->getDataMembersRef()) {
+  // Class ItsSelf
+  for (auto &cusType : classStatement->getCustomTypeStatementsRef()) {
+    auto boundCustomTypeStatement =
+        std::move(this->bindCustomTypeStatement(cusType.get()));
+
+    boundClassStat->addCustomTypePtr(boundCustomTypeStatement.get());
+
+    boundClassStat->addCustomType(std::move(boundCustomTypeStatement));
+  }
+
+  for (auto &type : boundClassStat->getAllCustomTypesRef()) {
+
+    BoundCustomTypeStatement *customTypeStatement =
+        static_cast<BoundCustomTypeStatement *>(type);
+    std::string typeName = className +
+                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                           customTypeStatement->getTypeNameAsString();
+
+    customTypeStatement->setTypeNameAsString(typeName);
+  }
+
+  std::unordered_map<std::string, int> varMemberMap;
+
+  for (auto &var : classStatement->getDataMembersRef()) {
     auto boundMemberVariable = std::move(this->bindVariableDeclaration(
         var.get(), boundClassStat->getClassName()));
 
-    boundClassStat->addKeyTypePair(
-        boundMemberVariable->getIdentifierRef().get(),
-        (boundMemberVariable->getTypeExpression().get()));
+    boundClassStat->addMemberVariablePtr(boundMemberVariable.get());
 
-    this->root->tryDeclareVariable("self." +
-                                       boundMemberVariable->getVariableName(),
-                                   boundMemberVariable.get());
+    varMemberMap[boundMemberVariable->getVariableName()] = 1;
+
     boundClassStat->addMemberVariable(std::move(boundMemberVariable));
+  }
+
+  for (auto &var : boundClassStat->getAllMemberVariablesRef()) {
+
+    boundClassStat->addKeyTypePair(var->getIdentifierRef().get(),
+                                   (var->getTypeExpression().get()));
+    this->root->tryDeclareVariable("self." + var->getVariableName(), var);
+    if (!varMemberMap[var->getVariableName()]) {
+      this->root->tryDeclareVariable(var->getVariableName(), var);
+    }
   }
 
   this->root = std::make_unique<BoundScope>(std::move(this->root));
   this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(true);
+
+    boundClassStat->addFunctionName(
+        std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
 
     boundClassStat->addMemberFunction(
         std::move(this->bindFunctionDeclaration(fun.get(), className)));
@@ -615,7 +680,7 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
 
   BoundVariableDeclaration *variable = root->tryGetVariable(variableName);
 
-  if (variable->getTypeExpression()->getSyntaxType() !=
+  if (variable->getTypeExpression().get()->getSyntaxType() !=
       SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableName + " is not a array",
@@ -814,11 +879,11 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   BoundFunctionDeclaration *declared_fd = nullptr;
   std::string className = this->root->getClassName();
   if (!isAInBuiltinFunction && className != "") {
+    BoundClassStatement *boundClassStatement =
+        this->root->tryGetClass(className);
 
     functionName = className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                    functionName;
-    BoundClassStatement *boundClassStatement =
-        this->root->tryGetClass(className);
 
     if (boundClassStatement) {
       declared_fd = boundClassStatement->getMemberFunction(functionName);
@@ -827,6 +892,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(functionName);
     if (boundClassStatement) {
+
       functionName =
           functionName + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init";
       declared_fd = boundClassStatement->getMemberFunction(functionName);
@@ -853,6 +919,34 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
             DiagnosticUtils::DiagnosticType::Semantic,
             Utils::getSourceLocation(
                 callExpression->getIdentifierPtr()->getTokenPtr().get())));
+      }
+    } else {
+      std::string clName = functionName.substr(0, functionName.find("."));
+      BoundClassStatement *boundClassStatement =
+          this->root->tryGetClass(clName);
+      std::string fLastName = functionName.substr(functionName.find(".") + 1);
+
+      if (boundClassStatement) {
+        fLastName =
+            boundClassStatement->getActualFunctionNameIfExists(fLastName);
+      }
+
+      if (fLastName != "") {
+        functionName = fLastName;
+        std::unique_ptr<BoundCallExpression> boundCallExpression =
+            std::make_unique<BoundCallExpression>(
+                callExpression->getSourceLocation());
+
+        boundIdentifier->setValue(functionName);
+        boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
+        boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
+
+        for (int i = 0; i < callExpression->getArguments().size(); i++) {
+          boundCallExpression->addArgument(std::move(
+              bindExpression(callExpression->getArguments()[i].get())));
+        }
+
+        return std::move(boundCallExpression);
       }
     }
   }
@@ -995,7 +1089,7 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
     return nullptr;
   }
 
-  if (variable->getTypeExpression()->getKind() ==
+  if (variable->getTypeExpression().get()->getKind() ==
       BinderKindUtils::BoundObjectExpression) {
     BoundObjectTypeExpression *boundObjTypeExp =
         static_cast<BoundObjectTypeExpression *>(

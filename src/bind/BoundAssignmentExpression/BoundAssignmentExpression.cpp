@@ -51,6 +51,6 @@ std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getRightPtr() {
   return this->_right;
 }
 
-const BoundVariableDeclaration *BoundAssignmentExpression::getVariable() const {
+BoundVariableDeclaration *BoundAssignmentExpression::getVariable() {
   return _variable;
 }

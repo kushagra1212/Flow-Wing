@@ -41,7 +41,7 @@ public:
 
   std::unique_ptr<BoundExpression> &getRightPtr();
 
-  const BoundVariableDeclaration *getVariable() const;
+  BoundVariableDeclaration *getVariable();
 
   inline bool getNeedDefaulInitilization() { return _needDefaulInitilization; }
 };

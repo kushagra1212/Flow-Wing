@@ -17,6 +17,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
 
   if (!_variableExpression ||
       _variableExpression->getDotExpressionList().size() - pos == 0) {
+
     return handleSingleVariable(variableType, v, variableName);
   }
 
@@ -203,12 +204,16 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
         std::make_unique<CallExpressionGenerationStrategy>(
             _codeGenerationContext);
     std::vector<llvm::Value *> args = {outerElementPtr};
-
+    llvm::Function *fn =
+        TheModule->getFunction(callExpression->getCallerNameRef());
     llvm::Value *callinst = call->generateCommonCallExpression(
-        callExpression,
-        TheModule->getFunction(callExpression->getCallerNameRef()), args,
+        callExpression, fn, args,
         _codeGenerationContext->_classTypes[className]->getClassType(),
-        outerElementPtr);
+        outerElementPtr,
+        _codeGenerationContext->_classTypes[className]->getFunctionPtr(
+            Builder, TheModule, TheContext, callExpression->getCallerNameRef(),
+            outerElementPtr));
+
     if (!isNested)
       return callinst;
     llvm::Value *ptr =
@@ -265,7 +270,6 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   if (!itsClass && !boundCustomTypeStatement) {
     return logError();
   }
-
   auto [bLE, bTE, atIndex] =
       itsClass ? classObj->getKeyValue(dotPropertyName)
                : boundCustomTypeStatement->getKeyValue(dotPropertyName);

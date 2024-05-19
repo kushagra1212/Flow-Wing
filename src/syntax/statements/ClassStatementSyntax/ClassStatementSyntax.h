@@ -9,7 +9,9 @@
 class ClassStatementSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _classKeyword;
+  std::unique_ptr<SyntaxToken<std::any>> _extendsKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _classNameIdentifier;
+  std::unique_ptr<SyntaxToken<std::any>> _parentClassNameIdentifier;
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _classDataMembers;
   std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _classMemberFunctions;
   std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
@@ -30,6 +32,18 @@ public:
       -> void {
     _classNameIdentifier = std::move(classNameIden);
   }
+
+  inline auto setParentClassNameIdentifier(
+      std::unique_ptr<SyntaxToken<std::any>> parentClassNameIden) -> void {
+    _parentClassNameIdentifier = std::move(parentClassNameIden);
+  }
+
+  inline auto
+  setExtendsKeyword(std::unique_ptr<SyntaxToken<std::any>> extendsKeyword)
+      -> void {
+    _extendsKeyword = std::move(extendsKeyword);
+  }
+
   inline auto
   addClassDataMember(std::unique_ptr<VariableDeclarationSyntax> member)
       -> void {
@@ -57,6 +71,17 @@ public:
       -> std::unique_ptr<SyntaxToken<std::any>> & {
     return _classNameIdentifier;
   }
+
+  inline auto getParentClassNameIdentifierRef()
+      -> std::unique_ptr<SyntaxToken<std::any>> & {
+    return _parentClassNameIdentifier;
+  }
+
+  inline auto getExtendsKeywordRef()
+      -> std::unique_ptr<SyntaxToken<std::any>> & {
+    return _extendsKeyword;
+  }
+
   inline auto getDataMembersRef()
       -> std::vector<std::unique_ptr<VariableDeclarationSyntax>> & {
     return _classDataMembers;
