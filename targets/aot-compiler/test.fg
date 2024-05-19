@@ -1,25 +1,9 @@
-
-type t1 = {
-      a:str
-}
-
-fun get() -> t1 {
-      var x:t1 = {
-            a:"h"
-      }
-      
-      return x
-}
-print(get())
-
-/#type T = {
+type T = {
   a:int 
 }
-
 type K = {
   j:T[2]
 }
-
 class B {
   var u:K
 
@@ -58,7 +42,19 @@ var a:A =  getAA(new A({a:22}))
 print(a.obj)
 a.obj = {a:32}
 print("After Pass")
-print(a.printB( new B({j:[{a:2}]})))
+var d:B = new B({j:[{a:2}]})
+print(d.getU())
+
+/#type obj  = {
+    a:int,
+    b:str,
+    c:deci,
+    d:bool,
+    p:int[2]
+}
+var o:obj[2] = new [{a:2}]
+o[1].p[1] = 10
+print(o)
 /#class A {
   var a: int
   var b: str

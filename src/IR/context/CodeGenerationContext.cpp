@@ -327,6 +327,10 @@ void CodeGenerationContext::setMetadata(const std::string kind, llvm::Value *v,
 
 void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
                                         std::string &metaData) {
+
+  if (!v) {
+    return;
+  }
   llvm::MDNode *metaNode = nullptr;
 
   if (llvm::isa<llvm::GlobalVariable>(v)) {
@@ -522,6 +526,10 @@ void CodeGenerationContext::getRetrunedArrayType(
     return;
   }
   Utils::split(metaData, ":", strs);
+  if (strs.size() == 0) {
+    return;
+  }
+
   if (strs[2] == "ay") {
     arrayElementType = getTypeChain()->getType(strs[3]);
 
@@ -553,6 +561,9 @@ void CodeGenerationContext::getReturnedObjectType(
   }
 
   Utils::split(metaData, ":", strs);
+
+  if (strs.size() == 0)
+    return;
 
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())

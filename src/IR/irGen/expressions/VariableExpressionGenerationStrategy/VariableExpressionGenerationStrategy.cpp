@@ -62,8 +62,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
     //       " using dot operator in variable " + variableName);
     //   return nullptr;
     // }
-    _codeGenerationContext->getValueStackHandler()->push(
-        structType->getStructName().str(), v, "struct", structType);
+    _codeGenerationContext->getValueStackHandler()->push(variableName, v,
+                                                         "struct", structType);
 
     return v;
   }
