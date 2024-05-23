@@ -25,7 +25,9 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement() {
             _arrayTypeExpression->getNonTrivialElementType().get());
 
     _elementType = _codeGenerationContext->getTypeChain()->getType(
-        objectTypeExpression->getTypeName());
+        objectTypeExpression->getTypeName(),
+        _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+            objectTypeExpression->getTypeName()));
   }
   llvm::ArrayType *arrayType = nullptr;
 

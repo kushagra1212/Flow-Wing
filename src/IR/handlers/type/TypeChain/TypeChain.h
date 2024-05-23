@@ -13,7 +13,8 @@ public:
 
   void removeHandler();
 
-  llvm::StructType *getType(const std::string &name);
+  llvm::StructType *getType(const std::string &name,
+                            std::string typeNameFromClass);
   bool updateType(const std::string &name, llvm::StructType *typeValue);
   void setType(const std::string &name, llvm::StructType *typeValue);
 

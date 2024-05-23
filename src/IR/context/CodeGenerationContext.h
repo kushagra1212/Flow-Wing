@@ -125,6 +125,23 @@ public:
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
+  inline auto setCurrentClassName(std::string className) -> void {
+    _currentClassName = className;
+  }
+
+  inline auto getCurrentClassName() -> std::string { return _currentClassName; }
+
+  inline auto resetCurrentClassName() -> void { _currentClassName = ""; }
+
+  inline auto getTypeNameDefinedInCurrentClass(std::string typeName)
+      -> std::string {
+    if (_currentClassName != "") {
+      return this->_classTypes[_currentClassName]->tryGetCustomTypeName(
+          typeName);
+    }
+    return "";
+  }
+
   auto createVTableMapEntry(
       std::unordered_map<
           std::string, std::tuple<llvm::FunctionType *, uint64_t, std::string>>
@@ -155,6 +172,8 @@ private:
 
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
+
+  std::string _currentClassName = "";
 };
 
 #endif // CODEGENERATIONCONTEXT_H

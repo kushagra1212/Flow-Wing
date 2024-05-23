@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "IR/constants/FlowWingUtilsConstants.h"
+#include "utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
 // TODO: Add support for Windows
 // #include <windows.h>
 #include <unistd.h>

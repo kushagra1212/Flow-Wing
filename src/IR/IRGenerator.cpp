@@ -138,9 +138,18 @@ void IRGenerator::generateEvaluateGlobalStatement(
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
     BinderKindUtils::BoundNodeKind kind = statement->getKind();
+    bool generateStatement = true;
+    if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+      BoundFunctionDeclaration *functionDeclaration =
+          static_cast<BoundFunctionDeclaration *>(
+              blockStatement->getStatements()[i].get());
+      if (!functionDeclaration->isOnlyDeclared())
+        generateStatement = false;
+    }
 
-    _statementGenerationFactory->createStrategy(kind)->generateGlobalStatement(
-        statement);
+    if (generateStatement)
+      _statementGenerationFactory->createStrategy(kind)
+          ->generateGlobalStatement(statement);
   }
 
   Builder->CreateBr(returnBlock);

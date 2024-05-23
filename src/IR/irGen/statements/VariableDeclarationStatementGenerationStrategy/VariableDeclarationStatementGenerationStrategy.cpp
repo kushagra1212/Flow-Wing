@@ -88,16 +88,19 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
     llvm::StructType *structType =
         _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+            objectTypeExpression->getTypeName(),
+            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+                objectTypeExpression->getTypeName()));
 
     std::pair<llvm::Value *, llvm::Type *> cl =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
     if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
-      llvm::StructType *ct = llvm::cast<llvm::StructType>(cl.second);
-      structType = _codeGenerationContext->getTypeChain()->getType(
-          ct->getStructName().str() +
-          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-          objectTypeExpression->getTypeName());
+      // llvm::StructType *ct = llvm::cast<llvm::StructType>(cl.second);
+      // structType = _codeGenerationContext->getTypeChain()->getType(
+      //     ct->getStructName().str() +
+      //         FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+      //         objectTypeExpression->getTypeName(),
+      //     "");
     }
 
     if (!structType && _codeGenerationContext->_classTypes.find(
@@ -124,6 +127,13 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
       assignmentEGS->initDefaultValue(structType, ptr);
 
+      if (variableDeclaration->getInitializerPtr().get()->getKind() ==
+          BinderKindUtils::CallExpression) {
+
+        _codeGenerationContext->getValueStackHandler()->push("", ptr, "struct",
+                                                             structType);
+      }
+
       llvm::Value *init = assignmentEGS->handleAssignExpression(
           ptr, structType, _variableName,
           variableDeclaration->getInitializerPtr().get());
@@ -143,13 +153,6 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {ptr, structType});
-
-      if (variableDeclaration->getInitializerPtr().get()->getKind() ==
-          BinderKindUtils::CallExpression) {
-
-        _codeGenerationContext->getValueStackHandler()->push("", ptr, "struct",
-                                                             structType);
-      }
 
       if (!variableDeclaration->getInitializerPtr().get())
         return ptr;

@@ -571,7 +571,9 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
   appendWithSpace();
 
-  std::any val = typeToken->getValue();
+  std::any val = std::any_cast<std::string>(typeToken->getValue()) +
+                 FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                 IDGenerator::CustomTypeIDGenerator::instance()->nextString();
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
       std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(typeToken),

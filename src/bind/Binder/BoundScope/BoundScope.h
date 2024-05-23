@@ -58,7 +58,7 @@ public:
 
   bool tryDeclareClass(BoundClassStatement *customType);
   BoundClassStatement *tryGetClass(const std::string &name);
-
+  bool isInsideInitFunction();
   inline auto getClassName() -> std::string {
     if (this->_className != "")
       return this->_className;
@@ -70,4 +70,9 @@ public:
   }
 
   inline auto setClassName(const std::string &name) { _className = name; }
+
+  inline auto setInsideInitFunction(bool value) { _insideInitFunction = value; }
+
+private:
+  bool _insideInitFunction = false;
 };

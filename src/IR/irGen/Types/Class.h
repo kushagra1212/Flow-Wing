@@ -1,14 +1,15 @@
 #ifndef __FLOWING_CLASS_H__
 #define __FLOWING_CLASS_H__
 
+#include "../../../bind/BoundClassStatement/BoundClassStatement.h"
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
-
 class Class {
 private:
   std::string _className;
+  BoundClassStatement *_boundClassStatement;
   //   std::vector<llvm::Type *> _vTableElements;
   //   std::vector<llvm::Type *> _classElements;
   std::unordered_map<std::string, uint64_t> _classElementsIndexMap;
@@ -24,12 +25,15 @@ private:
   std::string _vTableName;
   std::string _parentClassName;
 
+  Class *_parent = nullptr;
+
   std::vector<
       std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>>
       _key_type_pairs;
 
 public:
-  Class(std::string className) : _className(className) {}
+  Class(std::string className, BoundClassStatement *boundClassStatement)
+      : _className(className), _boundClassStatement(boundClassStatement) {}
   inline auto setClassType(llvm::StructType *type) { _classType = type; }
   inline auto getClassType() -> llvm::StructType * { return _classType; }
   inline auto setElementIndex(std::string key, uint64_t index) {
@@ -43,6 +47,10 @@ public:
   inline auto setVTableType(llvm::StructType *type) { _vTableType = type; }
 
   inline auto setParentClassName(std::string name) { _parentClassName = name; }
+
+  inline auto setParent(Class *parent) { _parent = parent; }
+
+  inline auto getParent() -> Class * { return _parent; }
 
   inline auto hasParent() -> bool { return _parentClassName != ""; }
 
@@ -164,6 +172,46 @@ public:
     return builder->CreateLoad(
         llvm::PointerType::getInt8PtrTy(*context),
         builder->CreateStructGEP(_vTableType, vTablePtr, index));
+  }
+
+  inline auto tryGetCustomTypeName(std::string typeName) -> std::string {
+    auto cusType = _boundClassStatement->tryGetCustomLocalType(
+        this->_className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+        typeName);
+
+    if (cusType)
+      return cusType->getTypeNameAsString();
+
+    if (this->hasParent()) {
+      return this->getParent()->tryGetCustomTypeName(typeName);
+    }
+
+    return "";
+  }
+
+  inline auto
+  callAllParentsConstructor(llvm::IRBuilder<> *builder, llvm::Module *module,
+                            std::__1::vector<llvm::Value *> &classArg,
+                            llvm::Value *_classPtr, std::string className)
+      -> void {
+
+    if (this->hasParent()) {
+      this->getParent()->callAllParentsConstructor(builder, module, classArg,
+                                                   _classPtr, className);
+    }
+
+    if (className != _className) {
+      std::string fName = _className +
+                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                          "init" + "0";
+      auto function = module->getFunction(fName);
+
+      if (function) {
+        builder->CreateCall(function, classArg);
+      } else {
+        return;
+      }
+    }
   }
 };
 

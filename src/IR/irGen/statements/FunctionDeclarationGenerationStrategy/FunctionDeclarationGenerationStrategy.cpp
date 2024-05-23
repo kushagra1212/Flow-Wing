@@ -87,7 +87,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                 arrayTypeExpression->getNonTrivialElementType().get());
 
         parmType = _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+            objectTypeExpression->getTypeName(),
+            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+                objectTypeExpression->getTypeName()));
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
@@ -138,11 +140,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                              FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                              objectTypeExpression->getTypeName()
                        : objectTypeExpression->getTypeName();
-        structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+        structType = _codeGenerationContext->getTypeChain()->getType(
+            typeName,
+            _codeGenerationContext->getTypeNameDefinedInCurrentClass(typeName));
         if (!structType) {
           typeName = objectTypeExpression->getTypeName();
           structType =
-              _codeGenerationContext->getTypeChain()->getType(typeName);
+              _codeGenerationContext->getTypeChain()->getType(typeName, "");
         }
       }
 
@@ -226,7 +230,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                 boundArrayTypeExpression->getNonTrivialElementType().get());
 
         elementType = _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+            objectTypeExpression->getTypeName(),
+            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+                objectTypeExpression->getTypeName()));
         returnInfo = FUNCTION_NAME +
                      ":rt:ay:" + objectTypeExpression->getTypeName().c_str() +
                      ":sz:";
@@ -274,7 +280,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       llvm::StructType *structType =
           _codeGenerationContext->getTypeChain()->getType(
-              boundObjectTypeExpression->getTypeName());
+              boundObjectTypeExpression->getTypeName(),
+              _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+                  boundObjectTypeExpression->getTypeName()));
 
       if (!structType) {
 

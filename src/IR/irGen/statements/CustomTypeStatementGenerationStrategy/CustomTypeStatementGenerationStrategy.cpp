@@ -41,21 +41,19 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
   structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
-
+  std::string typeName = boundCustomTypeStatement->getTypeNameAsString().substr(
+      0, boundCustomTypeStatement->getTypeNameAsString().find("."));
   if (_isGlobal) {
-    _codeGenerationContext->getTypeChain()->setGlobalType(
-        boundCustomTypeStatement->getTypeNameAsString(), structType);
+
+    _codeGenerationContext->getTypeChain()->setGlobalType(typeName, structType);
 
     _codeGenerationContext->getCustomTypeChain()->setGlobalExpr(
-        boundCustomTypeStatement->getTypeNameAsString(),
-        boundCustomTypeStatement);
+        typeName, boundCustomTypeStatement);
   } else {
-    _codeGenerationContext->getTypeChain()->setType(
-        boundCustomTypeStatement->getTypeNameAsString(), structType);
+    _codeGenerationContext->getTypeChain()->setType(typeName, structType);
 
     _codeGenerationContext->getCustomTypeChain()->setExpr(
-        boundCustomTypeStatement->getTypeNameAsString(),
-        boundCustomTypeStatement);
+        typeName, boundCustomTypeStatement);
   }
 
   return nullptr;
@@ -69,7 +67,7 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateGlobalStatement(
 
 llvm::Type *
 CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
-
+  _className = _codeGenerationContext->getCurrentClassName();
   switch (bTE->getKind()) {
 
   case BinderKindUtils::BoundTypeExpression: {
@@ -91,17 +89,20 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
     } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
                    boundArrayTypeExpression->getNonTrivialElementType()
                        .get())) {
-      std::string typeName =
-          _className != ""
-              ? _className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                    objectType->getTypeName()
-              : objectType->getTypeName();
+      std::string typeName = objectType->getTypeName();
+      std::string typeNameFromClass = "";
+      if (_className != "") {
+        typeNameFromClass = _codeGenerationContext->_classTypes[_className]
+                                ->tryGetCustomTypeName(typeName);
+      }
 
-      elementType = _codeGenerationContext->getTypeChain()->getType(typeName);
+      elementType = _codeGenerationContext->getTypeChain()->getType(
+          typeName, typeNameFromClass);
 
       if (!elementType) {
         typeName = objectType->getTypeName();
-        elementType = _codeGenerationContext->getTypeChain()->getType(typeName);
+        elementType =
+            _codeGenerationContext->getTypeChain()->getType(typeName, "");
       }
     }
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -142,16 +143,20 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bOT->getLocation());
-    std::string typeName =
-        _className != ""
-            ? _className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                  std::any_cast<std::string>(bLE->getValue())
-            : std::any_cast<std::string>(bLE->getValue());
-    llvm::StructType *type =
-        _codeGenerationContext->getTypeChain()->getType(typeName);
+    std::string typeName = std::any_cast<std::string>(bLE->getValue());
+    llvm::StructType *type = nullptr;
+    std::string typeNameFromClass = "";
+    if (_className != "") {
+      typeNameFromClass =
+          _codeGenerationContext->_classTypes[_className]->tryGetCustomTypeName(
+              typeName);
+    }
+    type = _codeGenerationContext->getTypeChain()->getType(typeName,
+                                                           typeNameFromClass);
+
     if (!type) {
       typeName = std::any_cast<std::string>(bLE->getValue());
-      type = _codeGenerationContext->getTypeChain()->getType(typeName);
+      type = _codeGenerationContext->getTypeChain()->getType(typeName, "");
     }
 
     if (!type) {
@@ -174,8 +179,18 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
 
 llvm::Value *CustomTypeStatementGenerationStrategy::generateForClassElement(
     BoundStatement *statement, std::string className) {
+
+  BoundCustomTypeStatement *boundCustomTypeStatement =
+      static_cast<BoundCustomTypeStatement *>(statement);
+
+  std::string wholeTypeName = boundCustomTypeStatement->getTypeNameAsString();
   _isGlobal = true;
   _className = className;
+
+  if (wholeTypeName.find(".") != std::string::npos)
+    boundCustomTypeStatement->setTypeNameAsString(
+        wholeTypeName.substr(wholeTypeName.find(".") + 1));
+
   return this->generateStatement(statement);
 }
 

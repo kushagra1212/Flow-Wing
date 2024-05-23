@@ -13,7 +13,6 @@ class BoundClassStatement : public BoundStatement, public BoundSourceLocation {
   std::vector<std::unique_ptr<BoundVariableDeclaration>> _memberVariables;
 
   std::vector<BoundVariableDeclaration *> _allMemberVariables;
-  std::vector<BoundStatement *> _allCustomTypes;
 
   std::vector<std::string> _allFunctionNames;
   std::unordered_map<std::string, uint64_t> _allFunctionNamesMap;
@@ -79,24 +78,6 @@ public:
     _customTypes.push_back(std::move(type));
   }
 
-  inline auto addCustomTypePtr(BoundStatement *type) -> void {
-
-    for (auto &v : _allCustomTypes) {
-
-      BoundCustomTypeStatement *customTypeV =
-          dynamic_cast<BoundCustomTypeStatement *>(v);
-
-      BoundCustomTypeStatement *customType =
-          dynamic_cast<BoundCustomTypeStatement *>(type);
-      if (customTypeV->getTypeName() == customType->getTypeName()) {
-        v = type;
-        return;
-      }
-    }
-
-    _allCustomTypes.push_back(type);
-  }
-
   inline auto addMemberFunction(std::unique_ptr<BoundStatement> fun) -> void {
     _memberFunctions.push_back(std::move(fun));
   }
@@ -135,8 +116,33 @@ public:
     return _allMemberVariables;
   }
 
-  inline auto getAllCustomTypesRef() -> std::vector<BoundStatement *> & {
-    return _allCustomTypes;
+  inline auto tryGetCustomLocalType(std::string typeName)
+      -> BoundCustomTypeStatement * {
+    for (auto &v : _customTypes) {
+      BoundCustomTypeStatement *customType =
+          dynamic_cast<BoundCustomTypeStatement *>(v.get());
+
+      if (customType->getTypeNameAsString() == typeName) {
+        return customType;
+      }
+    }
+    return nullptr;
+  }
+
+  inline auto tryGetCustomType(std::string typeName)
+      -> BoundCustomTypeStatement * {
+
+    auto type = this->tryGetCustomLocalType(typeName);
+    if (type) {
+      return type;
+    }
+
+    if (this->_parentClass) {
+
+      return this->_parentClass->tryGetCustomType(typeName);
+    }
+
+    return nullptr;
   }
 
   inline auto getMemberFunctionsRef()

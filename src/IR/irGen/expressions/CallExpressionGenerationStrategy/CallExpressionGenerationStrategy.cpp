@@ -383,9 +383,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     if (value && classType && llvm::isa<llvm::StructType>(classType)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       std::string funName = callExpression->getCallerNameRef();
-      if (funName.find(structType->getStructName().str() +
-                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) !=
+
+      if (funName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) !=
           std::string::npos) {
+
         calleeFunction =
             TheModule->getFunction(callExpression->getCallerNameRef());
         classArg = {value};
@@ -396,9 +397,11 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
                    std::string::npos) {
 
       std::string className = callExpression->getCallerNameRef();
+
       className = className.substr(
-          0, className.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                            "init"));
+          0, className.find(
+                 FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                 std::to_string(callExpression->getArgumentsRef().size())));
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
 
@@ -449,6 +452,9 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         classArg = {value};
         _classPtr = value;
         _classType = classType;
+        _codeGenerationContext->_classTypes[className]
+            ->callAllParentsConstructor(Builder, TheModule, classArg, _classPtr,
+                                        className);
       }
     }
   }
@@ -803,15 +809,16 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
   std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
       std::make_unique<ObjectExpressionGenerationStrategy>(
           _codeGenerationContext);
-  objExpGenStrat->setTypeName(llvmObjectType->getStructType()->getName().str());
 
-  if (_codeGenerationContext->_classTypes.find(
-          llvmObjectType->getStructType()->getName().str()) !=
+  std::string objectTypeName =
+      llvmObjectType->getStructType()->getName().str().substr(
+          0, llvmObjectType->getStructType()->getName().str().find('.'));
+  objExpGenStrat->setTypeName(objectTypeName);
+
+  if (_codeGenerationContext->_classTypes.find(objectTypeName) !=
       _codeGenerationContext->_classTypes.end()) {
     llvm::StructType *classType =
-        _codeGenerationContext
-            ->_classTypes[llvmObjectType->getStructType()->getName().str()]
-            ->getClassType();
+        _codeGenerationContext->_classTypes[objectTypeName]->getClassType();
     auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
 
     llvm::CallInst *malloc_call = Builder->CreateCall(
@@ -824,8 +831,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
     llvm::Value *intPtr = Builder->CreateBitCast(
         malloc_call,
         llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-    _codeGenerationContext->getAllocaChain()->setPtr(
-        llvmObjectType->getStructType()->getName().str(), {intPtr, classType});
+    _codeGenerationContext->getAllocaChain()->setPtr(objectTypeName,
+                                                     {intPtr, classType});
     assignExpGenStrat->initDefaultValue(classType, intPtr);
 
     objExpGenStrat->setVariable(intPtr);
@@ -1003,15 +1010,16 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
 
     LLVMObjectType *llvmObjType =
         static_cast<LLVMObjectType *>(llvmArrayArgs[i].get());
-
-    if (objTypeExpr->getTypeName() !=
-        llvmObjType->getStructType()->getName().str()) {
+    std::string structTypeName =
+        llvmObjType->getStructType()->getName().str().substr(
+            0, llvmObjType->getStructType()->getName().str().find('.'));
+    if (objTypeExpr->getTypeName() != structTypeName) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected Object of type " + Utils::CE(objTypeExpr->getTypeName()) +
           " in function call expression " +
           Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
           Utils::CE(arg->getName().str()) + ", but found object of type " +
-          Utils::CE(llvmObjType->getStructType()->getName().str()));
+          Utils::CE(structTypeName));
       return nullptr;
     }
 

@@ -288,8 +288,8 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
           customTypeStatement->getSourceLocation(),
           customTypeStatement->isExposed());
 
-  const std::string &name =
-      customTypeStatement->getTypeNameRef()->getTokenPtr()->getText();
+  std::string name = std::any_cast<std::string>(
+      customTypeStatement->getTypeNameRef()->getValue());
 
   std::unique_ptr<BoundLiteralExpression<std::any>> boundLiteralExpression =
       std::move(
@@ -329,10 +329,11 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
   }
 
   if (!this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Duplicate Custom Type" + name, DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        customTypeStatement->getTypeNameRef()->getSourceLocation()));
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Duplicate Custom Type " + name.substr(0, name.find(".")),
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
   }
 
   return std::move(boundCustomTypeStatement);
@@ -410,15 +411,13 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 
   this->root->setClassName(className);
   boundClassStat->setClassName(className);
+
   // If It Has Parent
 
   if (classStatement->getParentClassNameIdentifierRef()) {
 
     std::string parentClassName = std::any_cast<std::string>(
         classStatement->getParentClassNameIdentifierRef()->getValue());
-    boundClassStat->setParentClass(this->root->tryGetClass(parentClassName));
-    boundClassStat->setParentClassName(parentClassName);
-
     BoundClassStatement *parentClassStat =
         this->root->tryGetClass(parentClassName);
 
@@ -434,11 +433,10 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
       return std::move(boundClassStat);
     }
 
-    for (auto type : parentClassStat->getAllCustomTypesRef()) {
-      boundClassStat->addCustomTypePtr(type);
-    }
+    boundClassStat->setParentClass(parentClassStat);
+    boundClassStat->setParentClassName(parentClassName);
 
-    for (auto var : parentClassStat->getAllMemberVariablesRef()) {
+    for (auto &var : parentClassStat->getAllMemberVariablesRef()) {
       boundClassStat->addMemberVariablePtr(var);
     }
 
@@ -449,23 +447,20 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 
   // Class ItsSelf
   for (auto &cusType : classStatement->getCustomTypeStatementsRef()) {
+
+    //! Mutating The Custom Type typeName to className +
+    //! FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX
+    // std::string typeName =
+    //     std::any_cast<std::string>(cusType->getTypeNameRef()->getValue()) +
+    //     FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+    //     IDGenerator::CustomTypeIDGenerator::instance()->nextString();
+
+    // cusType->setTypeNameString(typeName);
+
     auto boundCustomTypeStatement =
         std::move(this->bindCustomTypeStatement(cusType.get()));
 
-    boundClassStat->addCustomTypePtr(boundCustomTypeStatement.get());
-
     boundClassStat->addCustomType(std::move(boundCustomTypeStatement));
-  }
-
-  for (auto &type : boundClassStat->getAllCustomTypesRef()) {
-
-    BoundCustomTypeStatement *customTypeStatement =
-        static_cast<BoundCustomTypeStatement *>(type);
-    std::string typeName = className +
-                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                           customTypeStatement->getTypeNameAsString();
-
-    customTypeStatement->setTypeNameAsString(typeName);
   }
 
   std::unordered_map<std::string, int> varMemberMap;
@@ -852,6 +847,32 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   const std::string oldFunctionName =
       std::any_cast<std::string>(boundIdentifier->getValue());
 
+  if (oldFunctionName == "super" && !this->root->isInsideInitFunction()) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Can not call 'super' function directly inside any member function "
+        "other than init function",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(
+            callExpression->getIdentifierPtr()->getTokenPtr().get())));
+
+    return std::move(boundIdentifier);
+  }
+
+  if (oldFunctionName == "init" ||
+      oldFunctionName.substr(
+          oldFunctionName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) +
+          1) == "init") {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Can not call 'init' function directly inside or outside of class",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(
+            callExpression->getIdentifierPtr()->getTokenPtr().get())));
+
+    return std::move(boundIdentifier);
+  }
+
   std::string functionName = oldFunctionName;
   bool isAInBuiltinFunction = BuiltInFunction::isBuiltInFunction(functionName);
 
@@ -878,7 +899,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   BoundFunctionDeclaration *declared_fd = nullptr;
   std::string className = this->root->getClassName();
-  if (!isAInBuiltinFunction && className != "") {
+
+  if (!isAInBuiltinFunction && className != "" && oldFunctionName != "super") {
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(className);
 
@@ -889,13 +911,43 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
       declared_fd = boundClassStatement->getMemberFunction(functionName);
     }
   } else if (!isAInBuiltinFunction) {
+
+    if (oldFunctionName == "super") {
+      functionName = className;
+    }
+
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(functionName);
+
     if (boundClassStatement) {
 
-      functionName =
-          functionName + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init";
-      declared_fd = boundClassStatement->getMemberFunction(functionName);
+      if (oldFunctionName == "super") {
+
+        if (boundClassStatement->getParentClassName() == "") {
+          this->_diagnosticHandler->addDiagnostic(Diagnostic(
+              "Could not find super class of class " + functionName +
+                  ", "
+                  "Add super class to class declaration",
+              DiagnosticUtils::DiagnosticLevel::Error,
+              DiagnosticUtils::DiagnosticType::Semantic,
+              Utils::getSourceLocation(
+                  callExpression->getIdentifierPtr()->getTokenPtr().get())));
+
+          return std::move(boundIdentifier);
+        }
+
+        functionName = boundClassStatement->getParentClassName() +
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                       std::to_string(callExpression->getArguments().size());
+        declared_fd = boundClassStatement->getParentClass()->getMemberFunction(
+            functionName);
+      } else {
+        functionName = functionName +
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                       std::to_string(callExpression->getArguments().size());
+      }
+      if (!declared_fd)
+        declared_fd = boundClassStatement->getMemberFunction(functionName);
       if (!declared_fd) {
         _diagnosticHandler->addDiagnostic(Diagnostic(
             "Class " + functionName +
@@ -1169,7 +1221,7 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
                                      BoundFunctionDeclaration *fd,
                                      std::string className) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
-  const std::string &function_name =
+  std::string function_name =
       className != ""
           ? className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                 syntax->getIdentifierTokenPtr()->getText()
@@ -1183,6 +1235,14 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
   }
   fd->setIsMemberFunction(syntax->isMemberFunction());
+
+  if (function_name.substr(
+          function_name.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) +
+          1) == "init") {
+    function_name += std::to_string(syntax->getParametersPtr().size());
+    this->root->setInsideInitFunction(true);
+  }
+
   fd->setFunctionName(function_name);
   for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =
@@ -1199,8 +1259,8 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
   if (syntax->isOnlyDeclared()) {
     fd->setOnlyDeclared(true);
   } else {
-    this->root->incrementFunctionCount();
 
+    this->root->incrementFunctionCount();
     std::unique_ptr<BoundBlockStatement> boundBody(
         (BoundBlockStatement *)bindStatement(syntax->getBodyPtr().get())
             .release());
@@ -1209,6 +1269,8 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
 
     this->root->decrementFunctionCount();
   }
+
+  this->root->setInsideInitFunction(false);
   this->root = std::move(this->root->parent);
 }
 
@@ -1285,24 +1347,41 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
         std::make_unique<BoundObjectTypeExpression>(
             objectTypeExpressionSyntax->getSourceLocation(),
             objectTypeExpressionSyntax->getTypeRef()->getKind());
-    const std::string &name =
-        objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-            ->getTokenPtr()
-            ->getText();
 
-    boundObjectTypeExpression->setTypeName(name);
+    boundObjectTypeExpression->setObjectTypeIdentifier(
+        std::move(bindLiteralExpression(
+            objectTypeExpressionSyntax->getObjectTypeIdentifierRef().get())));
 
-    if (!this->root->tryGetClass(name)) {
-      if (!this->root->tryGetCustomType(name)) {
-        this->_diagnosticHandler->addDiagnostic(
-            Diagnostic("Type " + name + " Not Found",
-                       DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Semantic,
-                       objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+    std::string name = objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
                            ->getTokenPtr()
-                           ->getSourceLocation()));
+                           ->getText();
 
-        return std::move(boundObjectTypeExpression);
+    if (this->root->getClassName() != "" &&
+        this->root->getClassName() != name) {
+      name = this->root->getClassName() +
+             FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + name;
+
+      BoundClassStatement *bCS =
+          this->root->tryGetClass(this->root->getClassName());
+      if (bCS && bCS->tryGetCustomType(name)) {
+        boundObjectTypeExpression->setTypeName(name);
+      }
+    } else {
+
+      boundObjectTypeExpression->setTypeName(name);
+
+      if (!this->root->tryGetClass(name)) {
+        if (!this->root->tryGetCustomType(name)) {
+          this->_diagnosticHandler->addDiagnostic(Diagnostic(
+              "Type " + name + " Not Found",
+              DiagnosticUtils::DiagnosticLevel::Error,
+              DiagnosticUtils::DiagnosticType::Semantic,
+              objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+                  ->getTokenPtr()
+                  ->getSourceLocation()));
+
+          return std::move(boundObjectTypeExpression);
+        }
       }
     }
 

@@ -6,15 +6,28 @@ void TypeChain::addHandler(std::unique_ptr<TypeTable> handler) {
 
 void TypeChain::removeHandler() { handlers.pop(); }
 
-llvm::StructType *TypeChain::getType(const std::string &name) {
+llvm::StructType *TypeChain::getType(const std::string &name,
+                                     std::string typeNameFromClass) {
+
+  std::string typeName = name.substr(0, name.find('.'));
+
   std::stack<std::unique_ptr<TypeTable>> currentHandler;
   llvm::StructType *typeValue = nullptr;
   while (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
-    typeValue = handler->getType(name);
+    typeValue = handler->getType(typeName);
     if (typeValue) {
       break;
     }
+
+    if (typeNameFromClass != "") {
+      typeValue = handler->getType(typeNameFromClass);
+    }
+
+    if (typeValue) {
+      break;
+    }
+
     currentHandler.push(std::move(handler));
     handlers.pop();
   }

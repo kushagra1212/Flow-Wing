@@ -424,7 +424,9 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
 
     llvm::StructType *elementType =
         (_codeGenerationContext->getTypeChain()->getType(
-            boundObjectTypeExpression->getTypeName()));
+            boundObjectTypeExpression->getTypeName(),
+            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
+                boundObjectTypeExpression->getTypeName())));
 
     const std::string var_name =
         variableElementPtr->getName().str() + "." + propertyKey;

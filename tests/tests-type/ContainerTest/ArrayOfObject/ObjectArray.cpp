@@ -1378,4 +1378,35 @@ print(r.g[0].ob)
 000.00000000000000{ i : 0, s : '' })");
 }
 
+TEST_F(ObjectArray, TypeTests) {
+  I(R"(
+type x = {
+    a:int 
+  }
+
+  var a:x
+fun def() -> int {
+  type x = {
+      a:int,
+      j:str
+    }
+  var y:x
+  print("print y ",y)
+  return 0
+  }
+
+{
+  type x = {s:str}
+ {
+    var a:x 
+    print("print a in block ",a)
+  } 
+  }
+print("print a gloabl",a)
+def()
+    )");
+
+  O(R"(print a in block { s : '' }print a gloabl{ a : 0 }print y { a : 0, j : '' })");
+}
+
 #endif

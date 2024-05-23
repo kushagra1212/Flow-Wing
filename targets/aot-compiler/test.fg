@@ -1,61 +1,50 @@
-type T = {
-  a:int 
-}
-type K = {
-  j:T[2]
-}
-class B {
-  var u:K
 
-  init(u:K) -> nthg {
-    self.u = u
+type X = {    
+    x1: str,  
+}             
+   type X = {    
+    x1: str,  
+}             
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+ 
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
   }
-
-  getU() -> K {
-    return u
-  }
-}
-
-class A{
-  var obj:T 
-
-  init(obj:T) -> nthg {
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+    var obj: X 
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
     self.obj = obj 
   }
 
-  printB(b:B) -> nthg {
-    print(b.getU())
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
   }
+
 }
 
-
-fun getA(d:A) -> A {
- d.obj.a = 21
-  return d
-}
-
-fun getAA(a:A) -> A {
-  return getA(a)
-}
-
-var a:A =  getAA(new A({a:22}))  
-print(a.obj)
-a.obj = {a:32}
-print("After Pass")
-var d:B = new B({j:[{a:2}]})
-print(d.getU())
-
-/#type obj  = {
-    a:int,
-    b:str,
-    c:deci,
-    d:bool,
-    p:int[2]
-}
-var o:obj[2] = new [{a:2}]
-o[1].p[1] = 10
-print(o)
-/#class A {
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+/#
+class A {
   var a: int
   var b: str
   var d: deci
@@ -71,9 +60,10 @@ print(o)
   }
   var arr:X[2] 
   init() -> nthg {
-    var obj:X
+    type X = {a:int}
+    var ob:X
     print("Pinting u: ")
-    print(obj)
+    print(ob)
   }
   printDefaults()-> nthg {
     print(a)
@@ -87,12 +77,29 @@ print(o)
 }
 var a: A  = new A() 
 a.printDefaults()
-/#class C {
-  var z:deci 
+/#type d  = {
+f:str,
+e:int,
+}
 
-  init(z: int) -> nthg {
+class C {
+  var z:deci 
+  var v:str
+ type d = { 
+    a:int  
+  }        
+
+  var x:d
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called",z)
     self.z = z+2.2
+    print(x)
   }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
   printW() -> nthg {
     print("world")
   }
@@ -100,44 +107,64 @@ a.printDefaults()
 
 class B extends C {
   var z:int
+  var j:deci
+  
+var p:d
+  init() -> nthg  {
+    z =1
+    print("print y from B",self.p) 
+    print(j,"\nB Constructor is Called",self.z)
+  }
 
-  init(z:int) -> nthg  {
-    self.z = z 
+  printFromB()-> nthg {
+    print("Print from B\n")
   }
 
   getZ() -> int {
-    return z
+    
+    return z+2
   }
   getS() -> deci {
     return 2.4
   }
 }
 
-
 class A extends B {
   var x: int
   var y: deci
-  init(x: int) -> nthg {
-    self.x = x 
+  var u:d
+  init(y:deci ) -> nthg {
+    u  = {a:2}
+    self.y = y
+    print("\nA Constructor is Called",self.z)
+    print(v)
   }
 
   getX() -> int {
+
     return x
   }
 
   getZ() -> int {
+ 
     return z
   }
 
   getS() -> deci {
-    return 45.2
+    return y
   }
 
 }
+{
+ 
 
-var a:A = new A(2)
-a.printW()
-print(a.getX(),"\n",a.getZ(),"\n",a.getS())
+var a:A = new A(4.4)
+
+var i:d = {f:"Hello"}
+print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
+print("\n",i)
+print(a.u,"\n",a.y)
+  }
 /#
 print(1,2,3,"\n\t\"ssdweqdfwe")
 

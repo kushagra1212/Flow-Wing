@@ -41,6 +41,18 @@ bool BoundScope::isBreakable() {
   return this->parent->isBreakable();
 }
 
+bool BoundScope::isInsideInitFunction() {
+  if (this->_insideInitFunction) {
+    return true;
+  }
+
+  if (this->parent == nullptr) {
+    return false;
+  }
+
+  return this->parent->isInsideInitFunction();
+}
+
 bool BoundScope::isContinuable() {
   if (this->continuable) {
     return true;
@@ -100,20 +112,28 @@ bool BoundScope::tryAssignVariable(const std::string &name,
 
 BoundCustomTypeStatement *
 BoundScope::tryGetCustomType(const std::string &name) {
-  if (this->customTypes.find(name) != this->customTypes.end()) {
-    return this->customTypes[name];
-  }
-  if (this->parent == nullptr) {
-    return nullptr;
-  }
-  return this->parent->tryGetCustomType(name);
+  std::string typeName = name.substr(0, name.find("."));
+
+  if (this->customTypes.find(typeName) != this->customTypes.end())
+    return this->customTypes[typeName];
+
+  if (this->parent)
+    return this->parent->tryGetCustomType(typeName);
+
+  return nullptr;
 }
 
 bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
-  if (this->customTypes.find(customType->getTypeNameAsString()) ==
-      this->customTypes.end()) {
-    this->customTypes[customType->getTypeNameAsString()] = customType;
+
+  std::string typeName = customType->getTypeNameAsString().substr(
+      0, customType->getTypeNameAsString().find("."));
+  if (this->customTypes.find(typeName) == this->customTypes.end()) {
+    this->customTypes[typeName] = customType;
     return true;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareCustomType(customType);
   }
 
   return false;

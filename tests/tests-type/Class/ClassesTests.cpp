@@ -2898,3 +2898,383 @@ print(a.printB(new B({j:[{a:2}]})))
 )");
   O(R"(123ssdweqdfwe{ a : 1 }{ a : 22 }{ a : 322 }{ j : [{ a : 0 }, { a : 0 }] }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
+
+TEST_F(ClassesTests, ClassTestBasicInheritanceWithSuper) {
+  I(R"(
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called\n",z)
+    self.z = z+2.2
+  }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1 
+    print(j,"B Constructor is Called\n",self.z)
+  }
+
+  getZ() -> int {
+    
+    return z
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init() -> nthg {
+    super()
+    print("A Constructor is Called\n",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return 45.2
+  }
+
+}
+
+var a:A = new A()
+print(a.z)
+
+)");
+  O(R"(C Constructor is Called
+22.200000000000000.00000000000000B Constructor is Called
+10.00000000000000B Constructor is Called
+1A Constructor is Called
+1Hello1)");
+}
+
+TEST_F(ClassesTests, ClassTestBasicInheritanceWithSuper2) {
+  I(R"(
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called\n",z)
+    self.z = z+2.2
+  }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1
+    super(3)
+    print(j,"B Constructor is Called\n",self.z)
+  }
+
+  getZ() -> int {
+    
+    return z
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init() -> nthg {
+
+    print("A Constructor is Called\n",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return 45.2
+  }
+
+}
+
+var a:A = new A()
+print(a.z)
+)");
+  O(R"(C Constructor is Called
+22.20000000000000Called super30.00000000000000B Constructor is Called
+1A Constructor is Called
+1Hello1)");
+}
+
+TEST_F(ClassesTests, ClassTestBasicInheritanceWithConstructor) {
+  I(R"(
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called",z)
+    self.z = z+2.2
+  }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1
+  
+    print(j,"\nB Constructor is Called",self.z)
+  }
+
+  getZ() -> int {
+    
+    return z
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init() -> nthg {
+
+    print("\nA Constructor is Called",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return 45.2
+  }
+
+}
+
+var a:A = new A()
+print(a.z)
+)");
+  O(R"(C Constructor is Called22.200000000000000.00000000000000
+B Constructor is Called1
+A Constructor is Called1Hello1)");
+}
+
+TEST_F(ClassesTests, ClassTestBasicInheritanceWithConstructorFunctionCheck) {
+  I(R"(
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called",z)
+    self.z = z+2.2
+  }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1
+  
+    print(j,"\nB Constructor is Called",self.z)
+  }
+
+  printFromB()-> nthg {
+    print("Print from B\n")
+  }
+
+  getZ() -> int {
+    
+    return z+2
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init(y:deci ) -> nthg {
+    self.y = y
+    print("\nA Constructor is Called",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return y
+  }
+
+}
+
+var a:A = new A(4.4)
+print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
+)");
+  O(R"(C Constructor is Called22.200000000000000.00000000000000
+B Constructor is Called1
+A Constructor is Called1Hello
+1
+4.40000000000000
+0
+Print from B
+
+world)");
+}
+TEST_F(ClassesTests,
+       ClassTestBasicInheritanceWithConstructorFunctionCheckWithScope) {
+  I(R"(
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called",z)
+    self.z = z+2.2
+  }
+  init(x:int) -> nthg {
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
+  }
+}
+
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1
+  
+    print(j,"\nB Constructor is Called",self.z)
+  }
+
+  printFromB()-> nthg {
+    print("Print from B\n")
+  }
+
+  getZ() -> int {
+    
+    return z+2
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
+
+
+class A extends B {
+  var x: int
+  var y: deci
+  init(y:deci ) -> nthg {
+    self.y = y
+    print("\nA Constructor is Called",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return y
+  }
+
+}
+{
+
+var a:A = new A(4.4)
+print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
+}
+)");
+  O(R"(C Constructor is Called22.200000000000000.00000000000000
+B Constructor is Called1
+A Constructor is Called1Hello
+1
+4.40000000000000
+0
+Print from B
+
+world)");
+}
