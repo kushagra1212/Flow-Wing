@@ -80,7 +80,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   const std::vector<std::unique_ptr<LLVMType>> &llvmArgsTypes =
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
-  if (parameterNames.size() > paramsSize) {
+  if (parameterNames.size() > paramsSize && classVariables.size()) {
 
     llvm::Value *argValue = F->arg_begin() + paramsSize;
     llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);

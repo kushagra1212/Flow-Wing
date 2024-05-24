@@ -88,9 +88,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
     llvm::StructType *structType =
         _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName(),
-            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                objectTypeExpression->getTypeName()));
+            objectTypeExpression->getTypeName());
 
     std::pair<llvm::Value *, llvm::Type *> cl =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
@@ -117,10 +115,12 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       return nullptr;
     }
     if (_codeGenerationContext->_classTypes.find(
-            structType->getStructName().str()) !=
+            structType->getStructName().str().substr(
+                0, structType->getStructName().str().find("."))) !=
         _codeGenerationContext->_classTypes.end()) {
 
-      std::string className = structType->getStructName().str();
+      std::string className = structType->getStructName().str().substr(
+          0, structType->getStructName().str().find("."));
 
       llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
           structType, _variableName, variableDeclaration->getMemoryKind());

@@ -7,6 +7,7 @@ ObjectExpressionGenerationStrategy::ObjectExpressionGenerationStrategy(
 llvm::Value *ObjectExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   _codeGenerationContext->getValueStackHandler()->popAll();
+  _typeName = _typeName.substr(0, _typeName.find("."));
   createExpressionNPDefault(_variable, _typeName);
 
   if (expression->getKind() == BinderKindUtils::VariableExpression) {
@@ -29,7 +30,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateExpression(
 llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   this->_variableIsGlobal = true;
-
+  _typeName = _typeName.substr(0, _typeName.find("."));
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   createExpressionNPDefault(_variable, _typeName);
@@ -41,8 +42,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   return objectAssignmentGES->assignObject(
       static_cast<BoundObjectExpression *>(expression), _variable,
       _codeGenerationContext->getTypeChain()->getType(
-          _typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(_typeName)),
+          _typeName.substr(0, _typeName.find("."))),
       _variable->getName().str());
   // if (expression->getKind() == BinderKindUtils::VariableExpression) {
   //   return generateVariableExp(expression);
@@ -78,8 +78,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
 
   llvm::StructType *lhsStructType =
       _codeGenerationContext->getTypeChain()->getType(
-          _typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(_typeName));
+          _typeName.substr(0, _typeName.find(".")));
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
@@ -124,8 +123,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
 
   llvm::StructType *parStructType =
       _codeGenerationContext->getTypeChain()->getType(
-          _typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(_typeName));
+          _typeName.substr(0, _typeName.find(".")));
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
 
@@ -137,7 +135,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
   }
 
   if (_codeGenerationContext->getValueStackHandler()->getTypeName() !=
-      _typeName) {
+      _typeName.substr(0, _typeName.find("."))) {
     _codeGenerationContext->getLogger()->LogError(
         "Expected a object of type " + _typeName + " but got " +
         _codeGenerationContext->getValueStackHandler()->getTypeName());
@@ -163,22 +161,25 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
 
   llvm::StructType *parStructType =
       _codeGenerationContext->getTypeChain()->getType(
-          typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(_typeName));
+          typeName.substr(0, typeName.find(".")));
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          typeName.substr(0, typeName.find(".")));
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
 
   uint64_t index = 0;
-  if (_codeGenerationContext->_classTypes.find(typeName) !=
+  if (_codeGenerationContext->_classTypes.find(
+          typeName.substr(0, typeName.find("."))) !=
       _codeGenerationContext->_classTypes.end()) {
     // parStructType =
     //     _codeGenerationContext->_classTypes[typeName]->getClassType();
     for (const auto &[bLitExpr, bExpr] :
-         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs()) {
+         _codeGenerationContext
+             ->_classTypes[typeName.substr(0, typeName.find("."))]
+             ->getKeyTypePairs()) {
       std::string propertyName =
           std::any_cast<std::string>(bLitExpr->getValue());
       propertiesMap[propertyName] = bExpr;
@@ -227,7 +228,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
     // }
 
     std::string key =
-        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
+        boundCustomTypeStatement->getTypeNameAsString().substr(
+            0, boundCustomTypeStatement->getTypeNameAsString().find(".")) +
+        "." + propertyName;
     const size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
     if (index == -1) {
@@ -254,9 +257,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
 
       llvm::StructType *innerElementType =
           (_codeGenerationContext->getTypeChain()->getType(
-              boundObjectTypeExpression->getTypeName(),
-              _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                  boundObjectTypeExpression->getTypeName())));
+              boundObjectTypeExpression->getTypeName().substr(
+                  0, boundObjectTypeExpression->getTypeName().find("."))));
 
       std::string var_name = variable->getName().str() + "." + propertyName;
       // llvm::Value *var = nullptr;
@@ -438,20 +440,24 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNPDefault(
 
   llvm::StructType *parStructType =
       _codeGenerationContext->getTypeChain()->getType(
-          typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(typeName));
+          typeName.substr(0, _typeName.find(".")));
 
   auto boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          typeName.substr(0, _typeName.find(".")));
 
   uint64_t indexValue = 0;
   if (!boundCustomTypeStatement &&
-      _codeGenerationContext->_classTypes.find(typeName) !=
+      _codeGenerationContext->_classTypes.find(
+          typeName.substr(0, _typeName.find("."))) !=
           _codeGenerationContext->_classTypes.end()) {
-    parStructType =
-        _codeGenerationContext->_classTypes[typeName]->getClassType();
+    parStructType = _codeGenerationContext
+                        ->_classTypes[typeName.substr(0, _typeName.find("."))]
+                        ->getClassType();
     for (const auto &[bLE, bTE] :
-         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs()) {
+         _codeGenerationContext
+             ->_classTypes[typeName.substr(0, _typeName.find("."))]
+             ->getKeyTypePairs()) {
       handleCreateDef(bLE, parStructType, variable, indexValue, bTE);
       indexValue++;
     }
@@ -480,12 +486,12 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
 
     llvm::StructType *lshStructType =
         (_codeGenerationContext->getTypeChain()->getType(
-            boundObjectTypeExpression->getTypeName(),
-            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                boundObjectTypeExpression->getTypeName())));
+            boundObjectTypeExpression->getTypeName().substr(
+                0, boundObjectTypeExpression->getTypeName().find("."))));
 
-    this->createExpressionNPDefault(innerElementPtr,
-                                    lshStructType->getName().str());
+    this->createExpressionNPDefault(
+        innerElementPtr, lshStructType->getName().str().substr(
+                             0, lshStructType->getName().str().find(".")));
   } else if (bExpr->getSyntaxType() ==
              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
 
@@ -515,7 +521,9 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
           arrayType, innerElementPtr, _defaultVal);
     } else {
       // _defaultVal = llvm::Constant::getNullValue(type);
-      createExpressionNPDefault(innerElementPtr, type->getStructName().str());
+      createExpressionNPDefault(innerElementPtr,
+                                type->getStructName().str().substr(
+                                    0, type->getStructName().str().find(".")));
     }
   } else {
 
@@ -538,11 +546,11 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
 
   llvm::StructType *parStructType =
       _codeGenerationContext->getTypeChain()->getType(
-          typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(typeName));
+          typeName.substr(0, _typeName.find(".")));
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          typeName.substr(0, _typeName.find(".")));
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   uint64_t index = 0;
@@ -594,7 +602,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
     }
 
     std::string key =
-        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
+        boundCustomTypeStatement->getTypeNameAsString().substr(
+            0, boundCustomTypeStatement->getTypeNameAsString().find(".")) +
+        "." + propertyName;
     const size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
     if (index == -1) {
@@ -619,9 +629,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
 
       llvm::StructType *elementType =
           (_codeGenerationContext->getTypeChain()->getType(
-              boundObjectTypeExpression->getTypeName(),
-              _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                  boundObjectTypeExpression->getTypeName())));
+              boundObjectTypeExpression->getTypeName().substr(
+                  0, boundObjectTypeExpression->getTypeName().find("."))));
 
       std::string var_name = variable->getName().str() + "." + propertyName;
       llvm::Value *var = nullptr;
@@ -693,10 +702,10 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
     const bool isGlobal) {
   llvm::StructType *structType =
       _codeGenerationContext->getTypeChain()->getType(
-          typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(typeName));
+          typeName.substr(0, typeName.find(".")));
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          typeName.substr(0, typeName.find(".")));
 
   uint64_t index = 0;
 
@@ -719,9 +728,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
 
       llvm::StructType *elementType =
           (_codeGenerationContext->getTypeChain()->getType(
-              bOT->getTypeName(),
-              _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                  bOT->getTypeName())));
+              bOT->getTypeName().substr(0, bOT->getTypeName().find("."))));
 
       std::string var_name = variable->getName().str() + "." + propertyName;
 
@@ -786,11 +793,11 @@ ObjectExpressionGenerationStrategy::generateVariableAccessThroughPtr(
     llvm::Value *LOADED) {
   llvm::StructType *structType =
       _codeGenerationContext->getTypeChain()->getType(
-          typeName,
-          _codeGenerationContext->getTypeNameDefinedInCurrentClass(typeName));
+          typeName.substr(0, typeName.find(".")));
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+      _codeGenerationContext->getCustomTypeChain()->getExpr(
+          typeName.substr(0, typeName.find(".")));
 
   uint64_t index = 0;
 
@@ -812,9 +819,7 @@ ObjectExpressionGenerationStrategy::generateVariableAccessThroughPtr(
 
       llvm::StructType *innerStructType =
           (_codeGenerationContext->getTypeChain()->getType(
-              bOT->getTypeName(),
-              _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                  bOT->getTypeName())));
+              bOT->getTypeName().substr(0, bOT->getTypeName().find("."))));
 
       std::string var_name =
           LOADED_VARIABLE->getName().str() + "." + propertyName;

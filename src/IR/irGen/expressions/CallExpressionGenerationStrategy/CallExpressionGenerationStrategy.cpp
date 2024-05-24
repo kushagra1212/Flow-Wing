@@ -1367,12 +1367,14 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
       _codeGenerationContext->getCustomTypeChain()->getExpr(
-          parObjType->getStructName().str());
+          parObjType->getStructName().str().substr(
+              0, parObjType->getStructName().str().find(".")));
 
   if (!boundCustomTypeStatement) {
 
     if (_codeGenerationContext->_classTypes.find(
-            parObjType->getStructName().str()) !=
+            parObjType->getStructName().str().substr(
+                0, parObjType->getStructName().str().find("."))) !=
         _codeGenerationContext->_classTypes.end()) {
       _codeGenerationContext->getLogger()->LogError(
           "variable of class " +
@@ -1399,7 +1401,9 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
         {Builder->CreateGlobalStringPtr(propertyKey), Builder->getInt1(false)});
     printUnit(" : ", " : ");
     std::string key =
-        boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
+        boundCustomTypeStatement->getTypeNameAsString().substr(
+            0, boundCustomTypeStatement->getTypeNameAsString().find(".")) +
+        "." + propertyKey;
     size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
     if (index == -1) {

@@ -531,8 +531,8 @@ void CodeGenerationContext::getRetrunedArrayType(
   }
 
   if (strs[2] == "ay") {
-    arrayElementType = getTypeChain()->getType(
-        strs[3], this->getTypeNameDefinedInCurrentClass(strs[3]));
+    arrayElementType =
+        getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
 
     if (!arrayElementType)
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
@@ -570,8 +570,8 @@ void CodeGenerationContext::getReturnedObjectType(
     if (_classTypes.find(strs[3]) != _classTypes.end())
       objectType = _classTypes[strs[3]]->getClassType();
     else
-      objectType = this->getTypeChain()->getType(
-          strs[3], this->getTypeNameDefinedInCurrentClass(strs[3]));
+      objectType =
+          this->getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
   }
 }
 void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,

@@ -170,6 +170,16 @@ void IRGenerator::generateEvaluateGlobalStatement(
         _functionStatementGenerationStrategy->generateGlobalStatement(
             functionDeclaration);
     } else if (kind == BinderKindUtils::BoundNodeKind::BoundClassStatement) {
+      // Add handlers
+      _codeGenerationContext->getNamedValueChain()->addHandler(
+          new NamedValueTable());
+      _codeGenerationContext->getAllocaChain()->addHandler(
+          std::make_unique<AllocaTable>());
+      _codeGenerationContext->getTypeChain()->addHandler(
+          std::make_unique<TypeTable>());
+      _codeGenerationContext->getCustomTypeChain()->addHandler(
+          std::make_unique<CustomTypeStatementTable>());
+
       BoundClassStatement *boundClassStatement =
           static_cast<BoundClassStatement *>(
               blockStatement->getStatements()[i].get());
@@ -183,6 +193,32 @@ void IRGenerator::generateEvaluateGlobalStatement(
             "Class " + boundClassStatement->getClassName() + " not found");
         continue;
       }
+      _codeGenerationContext->setCurrentClassName(
+          boundClassStatement->getClassName());
+
+      for (auto &[customTypeName, type] :
+           _codeGenerationContext
+               ->_classTypes[boundClassStatement->getClassName()]
+               ->getCustomTypeMap()) {
+        _codeGenerationContext->getTypeChain()->setType(customTypeName, type);
+      }
+
+      for (auto &[custumTypeName, customTypeStat] :
+           _codeGenerationContext
+               ->_classTypes[boundClassStatement->getClassName()]
+               ->getCustomTypeStatementMap()) {
+        _codeGenerationContext->getCustomTypeChain()->setExpr(custumTypeName,
+                                                              customTypeStat);
+      }
+
+      for (auto &[propertyKey, propertyIndex] :
+           _codeGenerationContext
+               ->_classTypes[boundClassStatement->getClassName()]
+               ->getCustomTypePropertyMap()) {
+        _codeGenerationContext->getTypeChain()->setIndex(propertyKey,
+                                                         propertyIndex);
+      }
+
       for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
         BoundFunctionDeclaration *functionDeclaration =
             static_cast<BoundFunctionDeclaration *>(funDec.get());
@@ -197,6 +233,13 @@ void IRGenerator::generateEvaluateGlobalStatement(
               functionDeclaration, {"self"}, classType, classVariables);
         }
       }
+      // Rest
+      _codeGenerationContext->resetCurrentClassName();
+      // Remove handlers
+      _codeGenerationContext->getNamedValueChain()->removeHandler();
+      _codeGenerationContext->getAllocaChain()->removeHandler();
+      _codeGenerationContext->getTypeChain()->removeHandler();
+      _codeGenerationContext->getCustomTypeChain()->removeHandler();
     }
   }
 

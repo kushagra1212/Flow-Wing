@@ -125,7 +125,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
                   _codeGenerationContext);
       return objectExpressionGenerationStrategy->createExpressionNP(
           assignmentExpression->getRightPtr().get(), lshValue,
-          lhsStructType->getStructName().str());
+          lhsStructType->getStructName().str().substr(
+              0, lhsStructType->getStructName().str().find(".")));
     } else {
       _codeGenerationContext->getLogger()->LogError(
           "Right hand side value expected to be an object of type " +
@@ -247,7 +248,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
 
   uint64_t i = 0;
 
-  std::string typeName = parStructType->getStructName().str();
+  std::string typeName = parStructType->getStructName().str().substr(
+      0, parStructType->getStructName().str().find("."));
 
   if (_codeGenerationContext->_classTypes.find(typeName) !=
       _codeGenerationContext->_classTypes.end()) {
@@ -357,7 +359,8 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
       _codeGenerationContext->getCustomTypeChain()->getExpr(
-          parStructType->getStructName().str());
+          parStructType->getStructName().str().substr(
+              0, parStructType->getStructName().str().find(".")));
 
   std::unordered_map<std::string, BoundTypeExpression *> boundTypeExpressionMap;
 
@@ -384,7 +387,9 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
     return nullptr;
   }
   std::string key =
-      boundCustomTypeStatement->getTypeNameAsString() + "." + propertyKey;
+      boundCustomTypeStatement->getTypeNameAsString().substr(
+          0, boundCustomTypeStatement->getTypeNameAsString().find(".")) +
+      "." + propertyKey;
   size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
 
   llvm::Type *type = parStructType->getElementType(index);
@@ -424,9 +429,8 @@ ObjectAssignmentExpressionGenerationStrategy::_deprecated_assignObject(
 
     llvm::StructType *elementType =
         (_codeGenerationContext->getTypeChain()->getType(
-            boundObjectTypeExpression->getTypeName(),
-            _codeGenerationContext->getTypeNameDefinedInCurrentClass(
-                boundObjectTypeExpression->getTypeName())));
+            boundObjectTypeExpression->getTypeName().substr(
+                0, boundObjectTypeExpression->getTypeName().find("."))));
 
     const std::string var_name =
         variableElementPtr->getName().str() + "." + propertyKey;
@@ -522,7 +526,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       parObjectExpression->getLocation());
-  std::string typeName = parStructType->getStructName().str();
+  std::string typeName = parStructType->getStructName().str().substr(
+      0, parStructType->getStructName().str().find("."));
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   std::unordered_map<std::string, uint64_t> propertiesMapIndexed;

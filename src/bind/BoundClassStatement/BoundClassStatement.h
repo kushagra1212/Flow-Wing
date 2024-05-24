@@ -122,7 +122,8 @@ public:
       BoundCustomTypeStatement *customType =
           dynamic_cast<BoundCustomTypeStatement *>(v.get());
 
-      if (customType->getTypeNameAsString() == typeName) {
+      if (customType->getTypeNameAsString().substr(
+              0, customType->getTypeNameAsString().find(".")) == typeName) {
         return customType;
       }
     }

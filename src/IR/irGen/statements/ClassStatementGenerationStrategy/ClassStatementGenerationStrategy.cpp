@@ -32,12 +32,33 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   std::unique_ptr<Class> classObjectSave = std::make_unique<Class>(
       boundClassStatement->getClassName(), boundClassStatement);
 
-  classObjectSave->setParentClassName(
-      boundClassStatement->getParentClassName());
+  //! Initialize parent class
+  {
+    classObjectSave->setParentClassName(
+        boundClassStatement->getParentClassName());
 
-  classObjectSave->setParent(
-      _codeGenerationContext->_classTypes[classObjectSave->getParentClassName()]
-          .get());
+    classObjectSave->setParent(
+        _codeGenerationContext
+            ->_classTypes[classObjectSave->getParentClassName()]
+            .get());
+
+    if (classObjectSave->hasParent()) {
+      Class *parent = classObjectSave->getParent();
+      for (auto &[typeName, type] : parent->getCustomTypeMap()) {
+        classObjectSave->addCustomType(typeName, type);
+      }
+
+      for (auto &[typeName, customTypeStat] :
+           parent->getCustomTypeStatementMap()) {
+        classObjectSave->addCustomTypeStatement(typeName, customTypeStat);
+      }
+
+      for (auto &[propertyKeyName, propertyIndex] :
+           parent->getCustomTypePropertyMap()) {
+        classObjectSave->addCustomTypeProperty(propertyKeyName, propertyIndex);
+      }
+    }
+  }
 
   _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =
       std::move(classObjectSave);
@@ -52,8 +73,36 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
 
   for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
        i++) {
-    customTypeStatementGenerationStrategy->generateGlobalStatement(
+    customTypeStatementGenerationStrategy->generateStatement(
         boundClassStatement->getCustomTypesRef()[i].get());
+    BoundCustomTypeStatement *boundCustomTypeStatement =
+        static_cast<BoundCustomTypeStatement *>(
+            boundClassStatement->getCustomTypesRef()[i].get());
+
+    std::string typeName =
+        boundCustomTypeStatement->getTypeNameAsString().substr(
+            0, boundCustomTypeStatement->getTypeNameAsString().find("."));
+    classObject->addCustomType(
+        typeName, _codeGenerationContext->getTypeChain()->getType(typeName));
+    classObject->addCustomTypeStatement(
+        typeName,
+        _codeGenerationContext->getCustomTypeChain()->getExpr(typeName));
+    {
+      size_t index = 0;
+
+      for (auto &[boundLiteralExpression, bTE] :
+           boundCustomTypeStatement->getKeyPairs()) {
+
+        const std::string propertyName =
+            std::any_cast<std::string>(boundLiteralExpression->getValue());
+
+        const std::string key = typeName + "." + propertyName;
+
+        classObject->addCustomTypeProperty(key, index);
+
+        index++;
+      }
+    }
   }
 
   std::vector<llvm::Type *> classElements = {};

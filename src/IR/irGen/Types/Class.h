@@ -19,6 +19,11 @@ private:
                      std::tuple<llvm::FunctionType *, uint64_t, std::string>>
       _vTableElementsMap;
   std::unordered_map<std::string, llvm::Function *> _classFunctionMap;
+  std::unordered_map<std::string, llvm::StructType *> _customTypeMap;
+  std::unordered_map<std::string, uint64_t> _customTypePropertyMap;
+
+  std::unordered_map<std::string, BoundCustomTypeStatement *>
+      _customTypeStatementMap;
 
   llvm::StructType *_classType;
   llvm::StructType *_vTableType;
@@ -47,6 +52,35 @@ public:
   inline auto setVTableType(llvm::StructType *type) { _vTableType = type; }
 
   inline auto setParentClassName(std::string name) { _parentClassName = name; }
+
+  inline auto addCustomType(std::string name, llvm::StructType *type) -> void {
+    _customTypeMap[name] = type;
+  }
+
+  inline auto getCustomTypeMap()
+      -> std::unordered_map<std::string, llvm::StructType *> & {
+    return _customTypeMap;
+  }
+
+  inline auto addCustomTypeStatement(std::string name,
+                                     BoundCustomTypeStatement *statement)
+      -> void {
+    _customTypeStatementMap[name] = statement;
+  }
+
+  inline auto getCustomTypeStatementMap()
+      -> std::unordered_map<std::string, BoundCustomTypeStatement *> & {
+    return _customTypeStatementMap;
+  }
+
+  inline auto addCustomTypeProperty(std::string name, uint64_t index) -> void {
+    _customTypePropertyMap[name] = index;
+  }
+
+  inline auto getCustomTypePropertyMap()
+      -> std::unordered_map<std::string, uint64_t> & {
+    return _customTypePropertyMap;
+  }
 
   inline auto setParent(Class *parent) { _parent = parent; }
 
@@ -180,7 +214,8 @@ public:
         typeName);
 
     if (cusType)
-      return cusType->getTypeNameAsString();
+      return cusType->getTypeNameAsString().substr(
+          0, cusType->getTypeNameAsString().find("."));
 
     if (this->hasParent()) {
       return this->getParent()->tryGetCustomTypeName(typeName);
