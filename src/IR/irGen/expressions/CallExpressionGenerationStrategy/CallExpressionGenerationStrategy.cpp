@@ -809,9 +809,9 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
       llvmObjectType->getStructType()->getName().str().substr(
           0, llvmObjectType->getStructType()->getName().str().find('.'));
   objExpGenStrat->setTypeName(objectTypeName);
-
   if (_codeGenerationContext->_classTypes.find(objectTypeName) !=
       _codeGenerationContext->_classTypes.end()) {
+    std::cout << objectTypeName << std::endl;
     llvm::StructType *classType =
         _codeGenerationContext->_classTypes[objectTypeName]->getClassType();
     auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
@@ -1008,13 +1008,33 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     std::string structTypeName =
         llvmObjType->getStructType()->getName().str().substr(
             0, llvmObjType->getStructType()->getName().str().find('.'));
-    if (objTypeExpr->getTypeName() != structTypeName) {
+
+    if (_codeGenerationContext->_classTypes.find(structTypeName) !=
+        _codeGenerationContext->_classTypes.end()) {
+
+      if (!_codeGenerationContext
+               ->_classTypes[objTypeExpr->getTypeName().substr(
+                   0, objTypeExpr->getTypeName().find("."))]
+               ->isChildOf(structTypeName)) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Expected Object of type " + Utils::CE(structTypeName) +
+            " in function call expression " +
+            Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+            ", but found object of type " +
+            Utils::CE(objTypeExpr->getTypeName().substr(
+                0, objTypeExpr->getTypeName().find("."))));
+        return nullptr;
+      }
+
+    } else if (objTypeExpr->getTypeName() != structTypeName) {
       _codeGenerationContext->getLogger()->LogError(
-          "Expected Object of type " + Utils::CE(objTypeExpr->getTypeName()) +
+          "Expected Object of type " + Utils::CE(structTypeName) +
           " in function call expression " +
           Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-          Utils::CE(arg->getName().str()) + ", but found object of type " +
-          Utils::CE(structTypeName));
+          ", but found object of type " +
+          Utils::CE(objTypeExpr->getTypeName().substr(
+              0, objTypeExpr->getTypeName().find("."))));
       return nullptr;
     }
 

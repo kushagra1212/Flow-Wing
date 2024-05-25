@@ -497,7 +497,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
       return Builder->CreateStore(rhsValue, _lhsPtr);
     }
-
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
 

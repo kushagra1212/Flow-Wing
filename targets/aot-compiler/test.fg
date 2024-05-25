@@ -1,53 +1,103 @@
-type T = {
-  a:int 
-}
-type K = {
-  j:T[2]
-}
-class B {
-  var u:K
-
-  init(u:K) -> nthg {
-    self.u = u
+ type T2 = {
+   d:deci 
   }
 
-  getU() -> K {
-    return u
+ type T1 = {
+    a:int,
+    b:str,
+    c:T2,
+    d:T2[2]
+  }
+class A {
+type T3A = {
+  u:str,
+}
+ var x:T1 
+ var a:T3A
+  init(x:T1) -> nthg {
+    self.x = x
+    a = {u:"Nice"}
+  }
+  printNice()-> nthg {
+    print("Hi Printint Nice")
+  } 
+
+  printX() -> nthg {
+    print(self.x)
   }
 }
 
-class A{
-  var obj:T 
+class B extends A  {
 
-  init(obj:T) -> nthg {
-    self.obj = obj 
+var a:deci
+var j:int
+var s:str
+var k:deci
+var u:int
+
+init(y:T1) -> nthg {
+
+  super(y)
+  j = 2
+  a = 2.2
+  s = "hi"
+}
+
+  printX()-> nthg {
+  print(u) 
+    print(a,"\n",j,"\n",s,"\n",k)
+      print("Not printing it ")
+    }
+}
+fun getB() -> B {
+    var b:B  = new B({a:5})
+    return b 
+}
+var b:A = new A({a:2})
+b.printX()
+b.printNice()
+print(b.x)
+
+/#class Animal {
+  var age:int 
+  var species:str 
+  init(age:int) -> nthg {
+    self.age = age
+  }
+  getAge() -> int {
+    return self.age
+  }
+  printSpecies() -> nthg { 
+    print("Species: ",species)
+  }
+}
+class Dog extends Animal {
+   var breed:str 
+  
+  init(age:int) -> nthg {
+    super(age)
   }
 
-  printB(b:B) -> nthg {
-    print(b.getU())
+  getAge() ->int {
+    return 7*self.age  
+  }
+  printBreed() -> nthg { 
+    print("breed "+breed)
   }
 }
+fun printAge(a: Animal) ->nthg{
+  print("I'm "+a.getAge()+" years old!\n")
+}
+fun main() -> nthg {
+  var animal:Animal = new Animal(2)
+  var  dog:Dog = new Dog(2)
 
+  printAge(animal) 
+  printAge(dog) 
+}
 
-fun getA(d:A) -> A {
- d.obj.a = 21
-  return d
-}
-fun getAA(a:A) -> A {
-  return getA(a)
-}
-fun createA() -> A {
-  return new A({a:22})
-}
-var a:A = new A({a:1})
-print(a.obj)
-a = createA()
-print(a.obj)
-a = new A({a:322})
-print(a.obj)
-a.obj = {a:32}
-print("After Pass")
-print(a.printB(new B({j:[{a:2}]})))
+main()
+
 /#
  type T2 = {
    d:deci 
@@ -70,7 +120,9 @@ type T3A = {
     self.x = x
     a = {u:"Nice"}
   }
-  
+  printNice()-> nthg {
+    print("Hi Printint Nice")
+  } 
 
   printX() -> nthg {
     print(self.x)
@@ -88,20 +140,35 @@ var u:int
 init(y:T1) -> nthg {
 
 super(y)
-j = 2
-a = 2.2
-s = "hi"
+  j = 2
+  a = 2.2
+  s = "hi"
 }
 
-  printX()-> nthg {
+printX()-> nthg {
   print(u) 
     print(a,"\n",j,"\n",s,"\n",k)
       print("Not printing it ")
     }
 }
+fun getB() -> B {
+    var b:B  = new B({a:5})
 
-var b:B = new B({a:2})
+    return b 
+}
+
+fun getA() -> A {
+  var b:A = new A({a:2})
+
+  return b
+}
+var b:A = getB() 
 b.printX()
+b.printNice()
+print(b.x)
+b = getA()
+b.printX()
+b.printNice()
 print(b.x)
 
 /#

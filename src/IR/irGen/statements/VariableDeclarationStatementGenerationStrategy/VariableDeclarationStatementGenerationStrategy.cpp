@@ -136,7 +136,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
         if (callExpression->getCallerNameRef().find(
                 FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
             std::string::npos) {
-          std::string className = callExpression->getCallerNameRef();
+          className = callExpression->getCallerNameRef();
 
           className = className.substr(
               0, className.find(
@@ -165,7 +165,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       if (ptr == nullptr) {
         ptr = _codeGenerationContext->createMemoryGetPtr(
             _codeGenerationContext->_classTypes[className]->getClassType(),
-            _variableName, variableDeclaration->getMemoryKind());
+            _variableName, BinderKindUtils::MemoryKind::Heap);
 
         assignmentEGS->initDefaultValue(
             _codeGenerationContext->_classTypes[className]->getClassType(),

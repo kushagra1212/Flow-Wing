@@ -89,6 +89,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getClassMember(
           memberName)) {
     auto [elementType, elementIndex, elementName, classType] =
         _codeGenerationContext->_classTypes[className]->getElement(memberName);
+
     llvm::Value *elementPtr =
         Builder->CreateStructGEP(parObjTypeType, v, elementIndex);
 

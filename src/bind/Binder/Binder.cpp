@@ -1012,8 +1012,11 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   if (!declared_fd && !isAInBuiltinFunction) {
+
+    std::string type = "Function";
+
     _diagnosticHandler->addDiagnostic(
-        Diagnostic("Function " + functionName + " does not exist",
+        Diagnostic(type + " " + functionName + " does not exist",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
                    callExpression->getIdentifierPtr()->getSourceLocation()));
