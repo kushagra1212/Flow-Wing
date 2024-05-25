@@ -79,9 +79,11 @@ private:
   match(const SyntaxKindUtils::SyntaxKind &kind);
   SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
+  SyntaxKindUtils::SyntaxKind getKind();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
   std::string _formattedSourceCode = "";
   std::string INDENT = "";
+  //
 
   inline void appendWithSpace() { _formattedSourceCode += ONE_SPACE; }
   inline void removeWithSpace() {
@@ -90,8 +92,7 @@ private:
   }
   inline void appendNewLine() {
     if (this->getCurrent() &&
-        this->getCurrent()->getKind() !=
-            SyntaxKindUtils::SyntaxKind::CommentStatement) {
+        this->getKind() != SyntaxKindUtils::SyntaxKind::CommentStatement) {
       _formattedSourceCode += NEW_LINE;
     } else
       appendWithSpace();
@@ -100,6 +101,7 @@ private:
   /*
     STATEMENTS
   */
+
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();

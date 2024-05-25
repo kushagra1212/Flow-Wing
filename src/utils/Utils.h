@@ -51,6 +51,7 @@ void prettyPrint(BoundStatement *statement, std::string indent = "",
                  bool isLast = true);
 void prettyPrint(BoundNode *statement, std::string indent = "",
                  bool isLast = true);
+void prettyPrint(std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);
 

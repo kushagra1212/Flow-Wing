@@ -1,63 +1,73 @@
- type T2 = {
-   d:deci 
+
+/; single line comment
+{
+
+    /; comment here
+}
+/#type T2 = {
+  d: deci
+}
+type T1 = {
+  a: int,
+  b: str,
+  c: T2,
+  d: T2[2]
+}
+class A {
+  type T3A = {
+    u: str,
+  }
+  var x: T1
+  var a: T3A
+  init(x: T1) -> nthg {
+    self.x = x 
+    a = {
+      u: "Nice"
+    } 
   }
 
- type T1 = {
-    a:int,
-    b:str,
-    c:T2,
-    d:T2[2]
-  }
-class A {
-type T3A = {
-  u:str,
-}
- var x:T1 
- var a:T3A
-  init(x:T1) -> nthg {
-    self.x = x
-    a = {u:"Nice"}
-  }
-  printNice()-> nthg {
+  printNice() -> nthg {
     print("Hi Printint Nice")
-  } 
+  }
 
   printX() -> nthg {
     print(self.x)
   }
+
+}
+class B extends A {
+  var a: deci
+  var j: int
+  var s: str
+  var k: deci
+  var u: int
+  init(y: T1) -> nthg {
+    super(y)
+    j = 2 
+    a = 2.2 
+    s = "hi" 
+  }
+
+  printX() -> nthg {
+    print(u)
+    print(a, "\n", j, "\n", s, "\n", k)
+    print("Not printing it ")
+  }
+
 }
 
-class B extends A  {
-
-var a:deci
-var j:int
-var s:str
-var k:deci
-var u:int
-
-init(y:T1) -> nthg {
-
-  super(y)
-  j = 2
-  a = 2.2
-  s = "hi"
-}
-
-  printX()-> nthg {
-  print(u) 
-    print(a,"\n",j,"\n",s,"\n",k)
-      print("Not printing it ")
-    }
-}
 fun getB() -> B {
-    var b:B  = new B({a:5})
-    return b 
+  var b: B = new B({
+    a: 5
+  })
+  return b
 }
-var b:A = new A({a:2})
+var b: A = new A({
+  a: 2
+})
 b.printX()
 b.printNice()
-print(b.x)
-
+print(b.x) 
 /#class Animal {
   var age:int 
   var species:str 
