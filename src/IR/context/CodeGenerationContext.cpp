@@ -451,6 +451,14 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
                                                llvm::StructType *rhsType,
                                                std::string inExp) {
 
+  if (this->_classTypes[lhsType->getStructName().str()] &&
+      this->_classTypes[rhsType->getStructName().str()]) {
+
+    if (this->_classTypes[rhsType->getStructName().str()]->isChildOf(
+            lhsType->getStructName().str()))
+      return EXIT_SUCCESS;
+  }
+
   if (lhsType != rhsType) {
     this->getLogger()->LogError(
         "Type mismatch Expected " +

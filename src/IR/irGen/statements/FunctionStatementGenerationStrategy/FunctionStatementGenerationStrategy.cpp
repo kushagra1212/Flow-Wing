@@ -85,12 +85,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     llvm::Value *argValue = F->arg_begin() + paramsSize;
     llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);
 
-    for (int j = 0; j < structT->getNumElements(); j++) {
+    for (int j = 1; j < structT->getNumElements(); j++) {
       llvm::Type *type = structT->getElementType(j);
 
       llvm::Value *elementPtr = Builder->CreateGEP(
           structT, argValue, {Builder->getInt32(0), Builder->getInt32(j)});
-      _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j],
+      _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});
     }
 

@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"

@@ -1,201 +1,9 @@
 type T = {
   a:int 
 }
-
-class A{
-  var obj:T 
-
-  init(obj:T) -> nthg {
-    self.obj = obj 
-  }
-}
-
-
-fun getA(inout d:A) -> A {
-  d.obj.a = 21
-
-  return d
-}
-fun getAA( d:A) -> A {
-  var x:A = getA(d)
-  print(x.obj)
-  return x
-}
-var b:A = new A({a:10}) 
-
-var d:A = getAA(b)
-print(d.obj)
-print(b.obj)
-/#
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  type X = {
-    x1: str,
-    x2: int
-  }
-  var obj: X 
-  type Complex = {
-    a:int[3],
-    j:X[2]
-  }
-  var arr:X[2] 
-  init() -> nthg {
-    var obj:X
-    print("Pinting u: ")
-    print(obj)
-  }
-  printDefaults()-> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-    print(arr)
-  }
-}
-var a: A  = new A() 
-a.printDefaults()
-
-/#type d  = {
-f:str,
-e:int,
-}
-class C {
-  var z:deci 
-  var v:str
- type d = { 
-    a:int  
-  }        
-
-  var x:d
-  init() -> nthg {
-    z  = 22.2
-    v ="Hello"
-    print("C Constructor is Called",z)
-    self.z = z+2.2
-    print(x)
-  }
-  init(x:int) -> nthg {
-print("Called super",x)
-    }
-  printW() -> nthg {
-    print("world")
-  }
-}
-
-
-
-
-
-
- 
-
-var a:C = new C()
-
-var i:d = {f:"Hello"}
-
-/#print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
-print("\n",i)
-print(a.u,"\n",a.y)
-
-/#
-type X = {    
-    x1: str,  
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-type X = { 
-    x1: str, 
-    x2: int  
-}      
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-    var obj: X 
-    print("Pinting u: ")
-    print(obj)
-    print(a)
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-/#
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  type X = {
-    x1: str,
-    x2: int
-  }
-  var obj: X 
-  type Complex = {
-    a:int[3],
-    j:X[2]
-  }
-  var arr:X[2] 
-  init() -> nthg {
-    type X = {a:int}
-    var ob:X
-    print("Pinting u: ")
-    print(ob)
-  }
-  printDefaults()-> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-    print(arr)
-  }
-}
-var a: A  = new A() 
-a.printDefaults()
-/#
-
-/#
-print(1,2,3,"\n\t\"ssdweqdfwe")
-
-type T = {
-  a:int 
-}
-
 type K = {
   j:T[2]
 }
-
 class B {
   var u:K
 
@@ -231,292 +39,74 @@ fun getAA(a:A) -> A {
 fun createA() -> A {
   return new A({a:22})
 }
-
-{
-    var a:A = new A({a:1})
+var a:A = new A({a:1})
 print(a.obj)
 a = createA()
 print(a.obj)
 a = new A({a:322})
-print(a.obj,a.printB(new B({j:[]})))
+print(a.obj)
 a.obj = {a:32}
 print("After Pass")
 print(a.printB(new B({j:[{a:2}]})))
-
-
-  }
-/#type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-fun printNice() -> nthg {
-    print("Not Nice")
+/#
+ type T2 = {
+   d:deci 
   }
 
-  fun outsidefun()-> nthg {
-      print("Outsidefunction")
+ type T1 = {
+    a:int,
+    b:str,
+    c:T2,
+    d:T2[2]
+  }
+class A {
+type T3A = {
+  u:str,
+}
+
+ var x:T1 
+ var a:T3A
+  init(x:T1) -> nthg {
+    self.x = x
+    a = {u:"Nice"}
+  }
+  
+
+  printX() -> nthg {
+    print(self.x)
+  }
+}
+
+class B extends A  {
+
+var a:deci
+var j:int
+var s:str
+var k:deci
+var u:int
+
+init(y:T1) -> nthg {
+
+super(y)
+j = 2
+a = 2.2
+s = "hi"
+}
+
+  printX()-> nthg {
+  print(u) 
+    print(a,"\n",j,"\n",s,"\n",k)
+      print("Not printing it ")
     }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-  printAll() -> nthg {
-    print(arr[0].j[0].x2)
-    arr[0].j[0].x2= 2
-    print("\n")
-    print(arr[0].j[0].x2)
-    print("\n")
-    arr[0].j[1].x1= "WAY"
-    print(arr[0].j[1].x1)
-    print("\n")
-    print(obj)
-    print("\n")
-    print(obj.x2)
-    print("\n")
-    print(obj.x1)
-    print("\n")
-    print(obj2)
-    print("\n")
-    obj2 = {
-      j: [{
-        x2: 2,
-        x1: "Ge"
-      }],
-      a: [2 fill 1]
-    } 
-    print(obj2)
-    print("\n")
-    obj2 <- {
-
-    } 
-    print(obj2)
-    print("\n")
-    print(obj2.a)
-    print("\n")
-    print(obj2.j[0].x2)
-    printNice()
-    self.printNice()
-    outsidefun()
-  }
-
-  printNice() -> nthg {
-      print("Nice")
-  }
-
-  printBsa(b: A) -> nthg {
-   print("\n\n\n")
-   b.printAll()
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults()
-print("\n")
-print("Before Update\n")
-print(a.arr)
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}])
-print("\n")
-a.printAll()
-a.printNice()
-printNice()
-outsidefun()
-var b:A = new A(5,"e",5.5,{
-    x1:"s",
-    x2:22
-})
-a.printBsa(b)
-
-/#type T = {
-  a:int 
 }
 
-class A{
-  var obj:T 
+var b:B = new B({a:2})
+b.printX()
+print(b.x)
 
-  init(obj:T) -> nthg {
-    self.obj = obj 
-  }
-}
-
-
-fun getA(inout d:A) -> A {
-  d.obj.a = 21
-
-  return d
-}
-fun getAA(inout d:A) -> A {
-  var x:A = getA(d)
-  print(x.obj)
-  return x
-}
-var b:A = new A({a:10}) 
-
-var d:A = getAA(b)
-print(d.obj)
-print(b.obj)
 /#
-fun getAA(a:A) -> A {
-  var g:A = getA(a)
-  return g
-}
-/#
-var a:A =  getAA(new A({a:22}))  
-print(a.obj)
-a.obj = {a:32}
-print("After Pass")
-print(a.obj)
-/#type X = {    
-    x1: str,  
-    x2: int   
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
 
-
-type X = { 
-    x1: str, 
-    x2: int  
-}      
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-    var obj: X 
-    print("Pinting u: ")
-    print(obj)
-    print(a)
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()  
-/#type T = {
-  a:int 
-}
-
-type K = {
-  j:T[2][2]
-}
-
-class B {
-  var u:K
-
-  init(u:K) -> nthg {
-    self.u = u
-  }
-
-  getU() -> K {
-    return u
-  }
-}
-
-class A{
-  var obj:T 
-
-  init(obj:T) -> nthg {
-    self.obj = obj 
-  }
-
-  printB(b:B) -> nthg {
-    print(b.getU())
-  }
-}
-
-
-fun getA(d:A) -> A {
- d.obj.a = 21
-  return d
-}
-
-fun getAA(a:A) -> A {
-  return getA(a)
-}
-fun createA() -> A {
-  return new A({a:22})
-}
-var a:A =  createA() 
-print(a.obj)
-a.obj = {a:32}
-print("After Pass")
-print(a.printB( new B({j:[{a:2}]})))
-
-
-
-
-
-
-
-/#type X = {
+type X = {
   x1: str,
   x2: int
 }

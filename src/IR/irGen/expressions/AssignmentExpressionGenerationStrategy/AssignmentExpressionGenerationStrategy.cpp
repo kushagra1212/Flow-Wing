@@ -464,6 +464,40 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       return nullptr;
     }
 
+    llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(_lhsType);
+    llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(rhsType);
+
+    if (_codeGenerationContext
+            ->_classTypes[lhsStructType->getStructName().str()]) {
+
+      // if (exp && exp->getKind() == BinderKindUtils::CallExpression) {
+      //   BoundCallExpression *callExpression =
+      //       static_cast<BoundCallExpression *>(exp);
+
+      //   if (callExpression->getCallerNameRef().find(
+      //           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+      //       std::string::npos) {
+      //     return nullptr;
+      //   }
+      // }
+
+      // llvm::Value *ptrPtr = Builder->CreateStructGEP(lhsStructType, _lhsPtr,
+      // 0); Builder->CreateStore(
+      //     TheModule->getOrInsertGlobal(
+      //         _codeGenerationContext
+      //             ->_classTypes[rhsStructType->getStructName().str()]
+      //             ->getVTableName(),
+      //         _codeGenerationContext
+      //             ->_classTypes[rhsStructType->getStructName().str()]
+      //             ->getVTableType()),
+      //     ptrPtr);
+
+      // _codeGenerationContext->_classTypes[rhsStructType->getStructName().str()]
+      //     ->populateVTable(Builder, TheModule, TheContext, ptrPtr);
+
+      return Builder->CreateStore(rhsValue, _lhsPtr);
+    }
+
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
 
@@ -610,7 +644,8 @@ AssignmentExpressionGenerationStrategy::handleAssignmentByObjectExpression(
 
   if (!llvm::isa<llvm::StructType>(_lhsType)) {
     _codeGenerationContext->getLogger()->LogError(
-        "Left hand side value must be an object in assignment expression, but "
+        "Left hand side value must be an object in assignment expression, "
+        "but "
         "found " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType));
     return nullptr;

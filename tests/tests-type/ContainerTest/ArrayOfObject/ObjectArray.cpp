@@ -1408,5 +1408,41 @@ def()
 
   O(R"(print a in block { s : '' }print a gloabl{ a : 0 }print y { a : 0, j : '' })");
 }
+TEST_F(ObjectArray, TypeTestsMultiDimension) {
+  I(R"(
 
+type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2][2]
+}
+var j:K ={j:[[{a:2}]]}
+
+print(j)
+    )");
+
+  O(R"({ j : [[{ a : 2 }, { a : 0 }], [{ a : 0 }, { a : 0 }]] })");
+}
+
+TEST_F(ObjectArray, TypeTestsMultiDimensionLocal) {
+  I(R"(
+
+{
+  type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2][2]
+}
+var j:K ={j:[[{a:2}]]}
+
+print(j)
+}
+    )");
+
+  O(R"({ j : [[{ a : 2 }, { a : 0 }], [{ a : 0 }, { a : 0 }]] })");
+}
 #endif

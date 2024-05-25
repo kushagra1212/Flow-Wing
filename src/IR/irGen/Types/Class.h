@@ -104,10 +104,13 @@ public:
                     uint64_t> {
     uint64_t index = 0;
     for (auto &pair : this->_key_type_pairs) {
-      std::string name = std::any_cast<std::string>(pair.first->getValue());
-      if (name == key) {
-        return {pair.first, pair.second, index};
+      if (pair.first) {
+        std::string name = std::any_cast<std::string>(pair.first->getValue());
+        if (name == key) {
+          return {pair.first, pair.second, index};
+        }
       }
+
       index++;
     }
 
@@ -161,13 +164,11 @@ public:
 
   inline auto populateVTable(llvm::IRBuilder<> *builder,
                              llvm::Module *TheModule,
-                             llvm::LLVMContext *context, llvm::Value *ptr)
+                             llvm::LLVMContext *context, llvm::Value *ptrPtr)
       -> void {
 
-    llvm::Value *vTablePtr = builder->CreateLoad(
-        llvm::PointerType::getInt8PtrTy(*context),
-        builder->CreateStructGEP(_classType, ptr,
-                                 _classType->getNumElements() - 1));
+    llvm::Value *vTablePtr =
+        builder->CreateLoad(llvm::PointerType::getInt8PtrTy(*context), ptrPtr);
 
     for (auto &element : _vTableElementsMap) {
 
@@ -191,10 +192,9 @@ public:
                              std::string functionName, llvm::Value *ptr)
       -> llvm::Value * {
 
-    llvm::Value *vTablePtr = builder->CreateLoad(
-        llvm::PointerType::getInt8PtrTy(*context),
-        builder->CreateStructGEP(_classType, ptr,
-                                 _classType->getNumElements() - 1));
+    llvm::Value *vTablePtr =
+        builder->CreateLoad(llvm::PointerType::getInt8PtrTy(*context),
+                            builder->CreateStructGEP(_classType, ptr, 0));
     std::string fName = functionName.substr(functionName.find(".") + 1);
     if (!_vTableElementsMap.count(fName)) {
 
@@ -222,6 +222,15 @@ public:
     }
 
     return "";
+  }
+
+  inline auto isChildOf(std::string className) -> bool {
+
+    if (this->hasParent()) {
+      return this->getParent()->isChildOf(className);
+    }
+
+    return this->_className == className;
   }
 
   inline auto

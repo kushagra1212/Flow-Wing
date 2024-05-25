@@ -114,6 +114,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
       return nullptr;
     }
+
     if (_codeGenerationContext->_classTypes.find(
             structType->getStructName().str().substr(
                 0, structType->getStructName().str().find("."))) !=
@@ -122,41 +123,86 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       std::string className = structType->getStructName().str().substr(
           0, structType->getStructName().str().find("."));
 
-      llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
-          structType, _variableName, variableDeclaration->getMemoryKind());
+      llvm::Value *init = nullptr;
+      llvm::Value *ptr = nullptr;
 
-      assignmentEGS->initDefaultValue(structType, ptr);
+      if (variableDeclaration->getInitializerPtr().get() &&
+          variableDeclaration->getInitializerPtr().get()->getKind() ==
+              BinderKindUtils::CallExpression) {
+        BoundCallExpression *callExpression =
+            static_cast<BoundCallExpression *>(
+                variableDeclaration->getInitializerPtr().get());
 
-      if (variableDeclaration->getInitializerPtr().get()->getKind() ==
-          BinderKindUtils::CallExpression) {
+        if (callExpression->getCallerNameRef().find(
+                FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+            std::string::npos) {
+          std::string className = callExpression->getCallerNameRef();
 
+          className = className.substr(
+              0, className.find(
+                     FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                     std::to_string(callExpression->getArgumentsRef().size())));
+
+          if (_codeGenerationContext->_classTypes.find(className) !=
+              _codeGenerationContext->_classTypes.end()) {
+
+            ptr = _codeGenerationContext->createMemoryGetPtr(
+                _codeGenerationContext->_classTypes[className]->getClassType(),
+                "", BinderKindUtils::MemoryKind::Heap);
+
+            assignmentEGS->initDefaultValue(
+                _codeGenerationContext->_classTypes[className]->getClassType(),
+                ptr);
+
+          } else {
+            _codeGenerationContext->getLogger()->LogError("Class " + className +
+                                                          " not found");
+            return nullptr;
+          }
+        }
+      }
+
+      if (ptr == nullptr) {
+        ptr = _codeGenerationContext->createMemoryGetPtr(
+            _codeGenerationContext->_classTypes[className]->getClassType(),
+            _variableName, variableDeclaration->getMemoryKind());
+
+        assignmentEGS->initDefaultValue(
+            _codeGenerationContext->_classTypes[className]->getClassType(),
+            ptr);
+      }
+
+      if (variableDeclaration->getInitializerPtr().get() &&
+          variableDeclaration->getInitializerPtr().get()->getKind() ==
+              BinderKindUtils::CallExpression) {
         _codeGenerationContext->getValueStackHandler()->push("", ptr, "struct",
                                                              structType);
       }
-
-      llvm::Value *init = assignmentEGS->handleAssignExpression(
-          ptr, structType, _variableName,
-          variableDeclaration->getInitializerPtr().get());
       {
-
+        llvm::Value *ptrPtr = Builder->CreateStructGEP(
+            _codeGenerationContext->_classTypes[className]->getClassType(), ptr,
+            0);
         Builder->CreateStore(
             TheModule->getOrInsertGlobal(
                 _codeGenerationContext->_classTypes[className]->getVTableName(),
                 _codeGenerationContext->_classTypes[className]
                     ->getVTableType()),
-            Builder->CreateStructGEP(structType, ptr,
-                                     (structType->getNumElements() - 1)));
+            ptrPtr);
 
         _codeGenerationContext->_classTypes[className]->populateVTable(
-            Builder, TheModule, TheContext, ptr);
+            Builder, TheModule, TheContext, ptrPtr);
       }
+
+      if (variableDeclaration->getInitializerPtr().get())
+        init = assignmentEGS->handleAssignExpression(
+            ptr, structType, _variableName,
+            variableDeclaration->getInitializerPtr().get());
 
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                        {ptr, structType});
 
       if (!variableDeclaration->getInitializerPtr().get())
         return ptr;
-
       return init;
     }
 

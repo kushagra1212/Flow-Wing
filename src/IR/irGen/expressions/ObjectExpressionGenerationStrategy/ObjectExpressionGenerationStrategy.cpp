@@ -552,6 +552,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpression(
       _codeGenerationContext->getCustomTypeChain()->getExpr(
           typeName.substr(0, _typeName.find(".")));
 
+  std::cout << typeName;
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   uint64_t index = 0;
   for (const auto &[bLitExpr, bExpr] :

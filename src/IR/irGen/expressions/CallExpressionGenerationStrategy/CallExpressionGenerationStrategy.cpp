@@ -423,24 +423,19 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
               value);
 
           {
-
+            llvm::Value *ptrPtr = Builder->CreateStructGEP(
+                _codeGenerationContext->_classTypes[className]->getClassType(),
+                value, 0);
             Builder->CreateStore(
                 TheModule->getOrInsertGlobal(
                     _codeGenerationContext->_classTypes[className]
                         ->getVTableName(),
                     _codeGenerationContext->_classTypes[className]
                         ->getVTableType()),
-                Builder->CreateStructGEP(
-                    _codeGenerationContext->_classTypes[className]
-                        ->getClassType(),
-                    value,
-                    (_codeGenerationContext->_classTypes[className]
-                         ->getClassType()
-                         ->getNumElements() -
-                     1)));
+                ptrPtr);
 
             _codeGenerationContext->_classTypes[className]->populateVTable(
-                Builder, TheModule, TheContext, value);
+                Builder, TheModule, TheContext, ptrPtr);
           }
         }
 
@@ -1298,10 +1293,9 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
         innerValue =
             _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
                 elementPtr, v->getName().str());
-      } else if (llvm::isa<llvm::StructType>(arrayType->getElementType())) {
+      } else if (llvm::isa<llvm::StructType>(elementType)) {
 
-        printObject(elementPtr,
-                    llvm::cast<llvm::StructType>(arrayType->getElementType()));
+        printObject(elementPtr, llvm::cast<llvm::StructType>(elementType));
       } else {
         // Typed Container Element
         innerValue = Builder->CreateLoad(elementType, elementPtr);

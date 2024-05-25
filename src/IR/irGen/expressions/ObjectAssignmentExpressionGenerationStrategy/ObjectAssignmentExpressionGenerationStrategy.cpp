@@ -257,7 +257,6 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
     //     _codeGenerationContext->_classTypes[typeName]->getClassType();
     for (const auto &[bLE, bTE] :
          _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs()) {
-      std::string propertyName = std::any_cast<std::string>(bLE->getValue());
       llvm::Value *LHSinnerElementPtr =
           Builder->CreateStructGEP(parStructType, lshPtr, i);
       llvm::Value *RHSinnerElementPtr =
@@ -279,7 +278,6 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyOject(
     BoundCustomTypeStatement *boundCustomTypeStatement =
         _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
     for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-      std::string propertyName = std::any_cast<std::string>(bLE->getValue());
       llvm::Value *LHSinnerElementPtr =
           Builder->CreateStructGEP(parStructType, lshPtr, i);
       llvm::Value *RHSinnerElementPtr =
@@ -546,10 +544,12 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
   } else {
     BoundCustomTypeStatement *boundCustomTypeStatement =
         _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
+
     for (const auto &[bLitExpr, bExpr] :
          boundCustomTypeStatement->getKeyPairs()) {
       std::string propertyName =
           std::any_cast<std::string>(bLitExpr->getValue());
+
       propertiesMap[propertyName] = bExpr.get();
       propertiesMapIndexed[propertyName] = index;
       index++;

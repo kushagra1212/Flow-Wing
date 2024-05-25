@@ -20,7 +20,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
 
     return handleSingleVariable(variableType, v, variableName);
   }
-
   // When Variable is a struct type
   if (llvm::isa<llvm::StructType>(variableType)) {
     return getObjectValueNF(v, pos, variableName,
@@ -118,7 +117,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-
       if (atIndex == -1) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
@@ -130,9 +128,9 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
 
       llvm::Value *elementPtr =
           Builder->CreateStructGEP(classType, cl.first, atIndex);
-
       if (_variableExpression &&
           _variableExpression->getDotExpressionList().size() != 0) {
+
         return this->getVariable(elementPtr, elementType, variableName);
       }
 
@@ -237,7 +235,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
         "Variable " + dotPropertyName +
         " not found in variable expression Expected to be a member of "
         "class " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(parObjTypeType));
+        _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType));
 
     return nullptr;
   }
@@ -276,6 +274,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   if (!itsClass && !boundCustomTypeStatement) {
     return logError();
   }
+
   auto [bLE, bTE, atIndex] =
       itsClass ? classObj->getKeyValue(dotPropertyName)
                : boundCustomTypeStatement->getKeyValue(dotPropertyName);
