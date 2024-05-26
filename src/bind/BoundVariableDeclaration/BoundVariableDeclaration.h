@@ -19,6 +19,7 @@ private:
   std::unique_ptr<BoundTypeExpression> _typeExp;
   bool _isExposed;
   bool _hasInOutKeyword = false;
+  bool _hasAsKeyword = false;
   std::string _classItBelongsTo;
   BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
 
@@ -64,6 +65,11 @@ public:
   inline auto setClassItBelongsTo(const std::string &classItBelongsTo) {
     _classItBelongsTo = classItBelongsTo;
   }
+
+  inline auto setHasAsKeyword(bool hasAsKeyword) {
+    _hasAsKeyword = hasAsKeyword;
+  }
+
   inline auto
   setIdentifier(std::unique_ptr<BoundLiteralExpression<std::any>> identifier) {
     _identifier = std::move(identifier);
@@ -82,4 +88,6 @@ public:
   inline auto getClassItBelongsTo() -> const std::string & {
     return _classItBelongsTo;
   }
+
+  inline auto getHasAsKeyword() -> bool { return _hasAsKeyword; }
 };

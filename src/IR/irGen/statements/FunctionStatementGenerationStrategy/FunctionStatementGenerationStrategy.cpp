@@ -199,11 +199,19 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         // _codeGenerationContext->getNamedValueChain()->setNamedValue(
         //     parameterNames[i], loaded);
       } else {
-        _codeGenerationContext->getLogger()->LogError(
-            "Dynamic type is not supported in function parameter " +
-            parameterNames[i].substr(0, parameterNames[i].find_first_of("[")));
-        return nullptr;
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {
+                                   argValue,
+                                   llvmArgsTypes[i]->getType(),
+                               });
       }
+      //   else {
+      //     _codeGenerationContext->getLogger()->LogError(
+      //         "Dynamic type is not supported in function parameter " +
+      //         parameterNames[i].substr(0,
+      //         parameterNames[i].find_first_of("[")));
+      //     return nullptr;
+      //   }
     }
   }
 

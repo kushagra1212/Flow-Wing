@@ -164,12 +164,18 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType());
       llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
-      argTypes.push_back(parmTypePointer);
-
-      if (!isFunctionAlreadyDeclared)
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME,
-            std::make_unique<LLVMPrimitiveType>(parmTypePointer, parmType));
+      if (fd->getParametersRef()[i]->getHasAsKeyword()) {
+        argTypes.push_back(parmType);
+        if (!isFunctionAlreadyDeclared)
+          _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+              FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
+      } else {
+        argTypes.push_back(parmTypePointer);
+        if (!isFunctionAlreadyDeclared)
+          _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+              FUNCTION_NAME,
+              std::make_unique<LLVMPrimitiveType>(parmTypePointer, parmType));
+      }
     }
   }
   for (auto arg : classArgs) {

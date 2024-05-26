@@ -15,16 +15,24 @@ const screenWidth: int  = 1000
 const screenHeight: int = 500
 const side: int = 10
 
+fun getN() -> int {
+  return 2
+}
+
 fun getFoodPosition() -> Position {
   var pos: Position = { 
-    x: getRandomNumber(0,screenWidth - 1), 
-    y: getRandomNumber(0,screenHeight - 1)
+    x: getN(), 
+    y: getN()
   }
   pos.x =  pos.x -  pos.x % side
   pos.y = pos.y - pos.y % side
   return pos
 }
 
+const KEY_RIGHT: int = 262 /; Key: Cursor right
+const KEY_LEFT: int = 263 /; Key: Cursor left
+const KEY_DOWN:int = 264 /; Key: Cursor down
+const KEY_UP: int   = 265 /; Key: Cursor up
 
 
 fun main() -> int {
@@ -32,8 +40,8 @@ fun main() -> int {
 
     const speed = 10
     var tail: int = 1
-    var posX: int[1000000] = [1000000 fill -1]
-    var posY: int[1000000] = [1000000 fill -1]
+    var posX: int[10000] = [10000 fill -1]
+    var posY: int[10000] = [10000 fill -1]
 
   
     posX[0] = 0

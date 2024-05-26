@@ -3,16 +3,16 @@ fun COLOR(r: int, g: int, b: int, a: int) -> int {
   return a*256*256*256 + b*256*256 + g*256 + r
 }
 
-fun InitWindow(width:int,height:int,title:str) -> nthg decl
-fun SetTargetFPS(fps:int) -> nthg decl
-fun ClearBackground(color: int) -> nthg decl
+fun InitWindow(width: as int,height: as int,title: as str) -> nthg decl
+fun SetTargetFPS(fps: as int) -> nthg decl
+fun ClearBackground(color: as int) -> nthg decl
 fun WindowShouldClose() -> bool decl
 fun BeginDrawing() -> nthg decl
-fun DrawRectangle(posX: int, posY: int, width: int, height: int, color: int) -> nthg decl
+fun DrawRectangle(posX: as int, posY: as int, width: as int, height: as int, color:as int) -> nthg decl
 fun EndDrawing() -> nthg decl
 fun CloseWindow() -> nthg decl
 
-/; window releated
+/; window releated  
 
 fun GetScreenHeight() -> int decl 
 fun GetScreenWidth() -> int decl
@@ -20,25 +20,21 @@ fun GetScreenWidth() -> int decl
 
 /; Draw Shapes
 /; Draw Circle
-fun DrawCircle(centerX: int, centerY: int, radius: deci32, color: int) -> nthg decl
+fun DrawCircle(centerX: as int, centerY: as int, radius: as deci32, color: as int) -> nthg decl
 
 /; Text Drawing Function
-fun DrawText(text: str, posX: int, posY: int, fontSize: int, color: int) -> nthg decl
+fun DrawText(text: as str, posX: as int, posY: as int, fontSize: as int, color: as int) -> nthg decl
 
 /; Input-related functions: keyboard
-fun IsKeyPressed(key: int) -> bool decl
-fun IsKeyDown(key: int) -> bool decl
+fun IsKeyPressed(key: as int) -> bool decl
+fun IsKeyDown(key: as int) -> bool decl
 /; Format Text
-fun TextFormat(text: str) -> str decl
+fun TextFormat(text: as str) -> str decl
 
-const KEY_RIGHT: int = 262 /; Key: Cursor right
-const KEY_LEFT: int = 263 /; Key: Cursor left
-const KEY_DOWN:int = 264 /; Key: Cursor down
-const KEY_UP: int   = 265 /; Key: Cursor up
 
 fun rand() -> int decl
 fun time() -> int decl
-fun srand(x: int) -> nthg decl
+fun srand(x: as int) -> nthg decl
 
 fun getRandomNumber(start: int, end: int) -> int {
    return rand() % (end - start + 1) + start

@@ -53,6 +53,10 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
     variable->setHasInOutKeyword(true);
   }
 
+  if (variableDeclaration->getAsKeywordRef()) {
+    variable->setHasAsKeyword(true);
+  }
+
   variable->setIdentifier(std::make_unique<BoundLiteralExpression<std::any>>(
       variableDeclaration->getIdentifierRef()->getSourceLocation(),
       variableDeclaration->getIdentifierRef()->getValue(),

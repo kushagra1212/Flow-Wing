@@ -14,6 +14,7 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
   std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
+  std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
   std::unique_ptr<ExpressionSyntax> _initializer;
   std::unique_ptr<TypeExpressionSyntax> _typeExpr;
   bool _hasNewKeyword = false;
@@ -38,6 +39,10 @@ public:
 
   inline void setTypeExpr(std::unique_ptr<TypeExpressionSyntax> typeExpr) {
     _typeExpr = std::move(typeExpr);
+  }
+
+  inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword) {
+    _asKeyword = std::move(asKeyword);
   }
 
   inline auto
@@ -72,6 +77,11 @@ public:
 
   inline auto getTypeRef() -> const std::unique_ptr<TypeExpressionSyntax> & {
     return _typeExpr;
+  }
+
+  inline auto getAsKeywordRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _asKeyword;
   }
 
   inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {

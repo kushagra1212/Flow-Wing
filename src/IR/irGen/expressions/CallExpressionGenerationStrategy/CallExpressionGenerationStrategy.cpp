@@ -578,7 +578,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   llvm::Type *retType = nullptr;
   _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
 
-  _codeGenerationContext->getValueStackHandler()->push("", callIn, "primitive",
+  _codeGenerationContext->getValueStackHandler()->push("", callIn, "constant",
                                                        retType);
   // } else {
   //   if (callExpression->hasNewKeyword()) {
@@ -641,8 +641,17 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
       rhsValue = Builder->CreateAlloca(type, nullptr);
       Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
     } else {
-      rhsValue = Builder->CreateAlloca(type, nullptr);
-      Builder->CreateStore(value, rhsValue);
+
+      BoundFunctionDeclaration *functionDeclaration =
+          _codeGenerationContext
+              ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+      if (functionDeclaration->getParametersRef()[i]->getHasAsKeyword()) {
+        rhsValue = Builder->CreateLoad(
+            type, _codeGenerationContext->getValueStackHandler()->getValue());
+      } else {
+        rhsValue = Builder->CreateAlloca(type, nullptr);
+        Builder->CreateStore(value, rhsValue);
+      }
     }
     _codeGenerationContext->getValueStackHandler()->popAll();
     break;
@@ -674,10 +683,15 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
 
   llvm::Type *rhsType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  rhsValue = Builder->CreateAlloca(rhsType, nullptr);
 
-  Builder->CreateStore(
-      _codeGenerationContext->getValueStackHandler()->getValue(), rhsValue);
+  if (functionDeclaration->getParametersRef()[i]->getHasAsKeyword()) {
+
+    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else {
+    rhsValue = Builder->CreateAlloca(rhsType, nullptr);
+    Builder->CreateStore(
+        _codeGenerationContext->getValueStackHandler()->getValue(), rhsValue);
+  }
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   // if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
@@ -874,7 +888,21 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
       ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
       ->generateExpression(callExpression->getArgumentsRef()[i].get());
   rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-  llvm::Type *varType =
+
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+  if (functionDeclaration->getParametersRef()[i]->getHasAsKeyword()) {
+
+    rhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  } else {
+
+    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  }
+
+  llvm ::Type *varType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
   _codeGenerationContext->getValueStackHandler()->popAll();
   BoundVariableExpression *variableExpression =
@@ -1092,6 +1120,15 @@ llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
       ->createStrategy(callExpression->getArgumentsRef()[i]->getKind())
       ->generateExpression(callExpression->getArgumentsRef()[i].get());
   rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+  if (functionDeclaration->getParametersRef()[i]->getHasAsKeyword()) {
+
+    rhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  }
   llvm::Type *varType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
   _codeGenerationContext->getValueStackHandler()->popAll();

@@ -1,23 +1,23 @@
-/; 
-{/; new
-/#
 
-
-r32e23
-r32e233
-r32e23
-
+type Position = {
+  x: int,
+  y: int
 }
-/; swdwdwq\wd'qwdd"d"
-#/
 
-}/#
+const screenWidth: int  = 1000
+const screenHeight: int = 500
+const side: int = 10
 
-This function is the main function#/
+fun getN() -> int {
+  return 2
+}
 
-
-fun main() -> nthg {/; printin 
-
-  print("print")/; print function
-
+fun getFoodPosition() -> Position {
+  var pos: Position = { 
+    x: getN(), 
+    y: getN()
+  }
+  pos.x =  pos.x -  pos.x % side
+  pos.y = pos.y - pos.y % side
+  return pos
 }

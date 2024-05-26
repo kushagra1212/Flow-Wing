@@ -951,6 +951,11 @@ Parser::parseVariableDeclaration(bool isFuncDec) {
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     appendWithSpace();
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+      varDec->setAsKeyword(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+      appendWithSpace();
+    }
     typeExpr = std::move(this->parseTypeExpression());
   }
   varDec->setTypeExpr(std::move(typeExpr));
