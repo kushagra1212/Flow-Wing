@@ -117,6 +117,8 @@ public:
       BoundBlockStatement *blockStatement,
       std::string blockName = FLOWWING_GLOBAL_ENTRY_POINT);
 
+  void defineClass(BoundClassStatement *boundClassStatement, int &retFlag);
+
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
   const int32_t hasErrors() const;

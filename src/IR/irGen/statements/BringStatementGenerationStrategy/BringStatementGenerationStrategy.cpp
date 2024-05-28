@@ -78,6 +78,34 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
     }
   }
 
+  //
+  std::unique_ptr<ClassStatementGenerationStrategy> classGenStrat =
+      std::make_unique<ClassStatementGenerationStrategy>(
+          _codeGenerationContext);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
+  for (const auto &_class : bringStatement->getGlobalScopePtr()->classes) {
+
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        _class.second->getLocation());
+
+    if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(_class.first) &&
+          !_class.second->isExposed()) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Object Type " + _class.first + " is not exposed in the file " +
+            onlyFileName);
+        return nullptr;
+      }
+
+      classGenStrat->generateGlobalStatement(_class.second);
+
+    } else {
+      classGenStrat->generateGlobalStatement(_class.second);
+    }
+  }
+
   // Variable Declaration
   std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
       varDecGenStrat =

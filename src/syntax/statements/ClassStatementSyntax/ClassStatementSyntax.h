@@ -8,6 +8,7 @@
 
 class ClassStatementSyntax : public StatementSyntax {
 private:
+  std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _classKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _extendsKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _classNameIdentifier;
@@ -15,7 +16,6 @@ private:
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _classDataMembers;
   std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _classMemberFunctions;
   std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
-  bool _isExposed = false;
 
 public:
   ClassStatementSyntax();
@@ -36,6 +36,12 @@ public:
   inline auto setParentClassNameIdentifier(
       std::unique_ptr<SyntaxToken<std::any>> parentClassNameIden) -> void {
     _parentClassNameIdentifier = std::move(parentClassNameIden);
+  }
+
+  inline auto
+  setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword)
+      -> void {
+    _exposeKeyword = std::move(exposeKeyword);
   }
 
   inline auto
@@ -61,12 +67,6 @@ public:
     _classMemberFunctions.push_back(std::move(function));
   }
 
-  inline auto setIsExposed(bool isExposed) -> void {
-    this->_isExposed = isExposed;
-  }
-
-  inline auto isExposed() -> bool { return _isExposed; }
-
   inline auto getClassNameIdentifierRef()
       -> std::unique_ptr<SyntaxToken<std::any>> & {
     return _classNameIdentifier;
@@ -90,6 +90,11 @@ public:
   inline auto getClassMemberFunctionsRef()
       -> std::vector<std::unique_ptr<FunctionDeclarationSyntax>> & {
     return _classMemberFunctions;
+  }
+
+  inline auto getExposeKeywordRef()
+      -> std::unique_ptr<SyntaxToken<std::any>> & {
+    return _exposeKeyword;
   }
 
   inline auto getCustomTypeStatementsRef()

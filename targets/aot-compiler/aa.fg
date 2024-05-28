@@ -1,0 +1,10 @@
+class A {
+  var x: int 
+
+
+  init() -> nthg  {
+    print("Hello World")
+  }
+}
+
+

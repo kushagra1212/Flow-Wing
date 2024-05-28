@@ -8,6 +8,10 @@ const SyntaxKindUtils::SyntaxKind ClassStatementSyntax::getKind() const {
 const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
+
+    if (_exposeKeyword)
+      _children.push_back(_exposeKeyword.get());
+
     if (_classKeyword)
       _children.push_back(_classKeyword.get());
 
@@ -37,6 +41,10 @@ const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
 
 const DiagnosticUtils::SourceLocation
 ClassStatementSyntax::getSourceLocation() const {
+
+  if (_exposeKeyword)
+    return _exposeKeyword->getSourceLocation();
+
   if (_classKeyword)
     return _classKeyword->getSourceLocation();
 

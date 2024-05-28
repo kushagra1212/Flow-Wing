@@ -47,15 +47,15 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         fd->getParametersRef()[i]->getLocation());
 
+    llvm::Type *_argType = nullptr;
+    std::unique_ptr<LLVMType> argLLVMType = nullptr;
+
     if (fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
       parmType = (_codeGenerationContext->getDynamicType()->get());
-      llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
-      argTypes.push_back(parmTypePointer);
 
-      if (!isFunctionAlreadyDeclared)
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
+      _argType = llvm::PointerType::get(parmType, 0);
+      argLLVMType = std::make_unique<LLVMType>(parmType);
 
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -106,18 +106,18 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
         parmType = llvm::ArrayType::get(parmType, dimensions[k]);
       }
-      llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
 
-      argTypes.push_back(parmTypePointer);
-
-      if (!isFunctionAlreadyDeclared)
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME,
-            std::make_unique<LLVMArrayType>(
-                parmTypePointer, parmType,
-                _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                    containerElementType),
-                dimensions, arrayTypeExpression));
+      if (fd->getParametersRef()[i]->getHasAsKeyword()) {
+        _argType = parmType;
+        argLLVMType = std::make_unique<LLVMType>(parmType);
+      } else {
+        _argType = llvm::PointerType::get(parmType, 0);
+        argLLVMType = std::make_unique<LLVMArrayType>(
+            _argType, parmType,
+            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+                containerElementType),
+            dimensions, arrayTypeExpression);
+      }
 
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
@@ -153,30 +153,31 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
         return nullptr;
       }
 
-      llvm::Type *parmTypePointer = llvm::PointerType::get(structType, 0);
-      argTypes.push_back(parmTypePointer);
+      if (fd->getParametersRef()[i]->getHasAsKeyword()) {
+        _argType = structType;
+        argLLVMType = std::make_unique<LLVMType>(structType);
+      } else {
+        _argType = llvm::PointerType::get(structType, 0);
+        argLLVMType = std::make_unique<LLVMObjectType>(_argType, structType);
+      }
 
-      if (!isFunctionAlreadyDeclared)
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME,
-            std::make_unique<LLVMObjectType>(parmTypePointer, structType));
     } else {
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType());
-      llvm::Type *parmTypePointer = llvm::PointerType::get(parmType, 0);
+
       if (fd->getParametersRef()[i]->getHasAsKeyword()) {
-        argTypes.push_back(parmType);
-        if (!isFunctionAlreadyDeclared)
-          _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-              FUNCTION_NAME, std::make_unique<LLVMType>(parmType));
+        _argType = parmType;
+        argLLVMType = std::make_unique<LLVMType>(parmType);
       } else {
-        argTypes.push_back(parmTypePointer);
-        if (!isFunctionAlreadyDeclared)
-          _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-              FUNCTION_NAME,
-              std::make_unique<LLVMPrimitiveType>(parmTypePointer, parmType));
+        _argType = llvm::PointerType::get(parmType, 0);
+        argLLVMType = std::make_unique<LLVMPrimitiveType>(_argType, parmType);
       }
     }
+    argTypes.push_back(_argType);
+
+    if (!isFunctionAlreadyDeclared)
+      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+          FUNCTION_NAME, std::move(argLLVMType));
   }
   for (auto arg : classArgs) {
     argTypes.push_back(arg);

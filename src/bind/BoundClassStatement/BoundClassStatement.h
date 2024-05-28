@@ -2,9 +2,13 @@
 #define __FLOW_WING_BOUND_CLASS_STATEMENT__
 
 #include "../../syntax/CompilationUnitSyntax.h"
-#include "../Binder/BoundScopeGlobal/BoundScopeGlobal.h"
+#include "../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
+#include "../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundTypeExpression/BoundTypeExpression.h"
+#include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundClassStatement : public BoundStatement, public BoundSourceLocation {
   std::string _className;
@@ -22,6 +26,7 @@ class BoundClassStatement : public BoundStatement, public BoundSourceLocation {
   std::vector<
       std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>>
       _key_type_pairs;
+  bool _isExposed;
 
 public:
   BoundClassStatement(const DiagnosticUtils::SourceLocation &location);
@@ -72,6 +77,8 @@ public:
   inline auto hasFunctionName(std::string name) -> bool {
     return _allFunctionNamesMap.find(name) != _allFunctionNamesMap.end();
   }
+
+  inline auto setIsExposed(bool isExposed) -> void { _isExposed = isExposed; }
 
   inline auto addCustomType(std::unique_ptr<BoundStatement> type) -> void {
 
@@ -200,6 +207,7 @@ public:
     }
     return "";
   }
+  inline auto isExposed() -> bool { return _isExposed; }
 };
 
 #endif // __FLOW_WING_BOUND_CLASS_STATEMENT__

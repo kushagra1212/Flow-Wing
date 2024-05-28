@@ -1,0 +1,147 @@
+; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib'
+source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
+
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_NULL = external global i8
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT = global i32 0
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_CONTINUE_COUNT = global i32 0
+@iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
+
+declare i32 @compare_strings(ptr, ptr)
+
+declare ptr @concat_strings(ptr, ptr)
+
+declare ptr @dtos(double)
+
+declare i1 @equal_strings(ptr, ptr)
+
+declare ptr @get_input()
+
+declare ptr @get_malloc_ptr_of_int_constant(i32)
+
+declare ptr @get_malloc_ptr_of_string_constant(ptr)
+
+declare i1 @greater_than_or_equal_strings(ptr, ptr)
+
+declare i1 @greater_than_strings(ptr, ptr)
+
+declare ptr @itos(i32)
+
+declare i1 @less_than_or_equal_strings(ptr, ptr)
+
+declare i1 @less_than_strings(ptr, ptr)
+
+declare void @print(ptr, i1)
+
+declare i32 @string_length(ptr)
+
+declare double @string_to_double(ptr)
+
+declare i32 @string_to_int(ptr)
+
+declare i64 @string_to_long(ptr)
+
+declare void @raise_exception(ptr)
+
+declare ptr @malloc()
+
+define i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib() {
+entry:
+  br label %returnBlock
+
+returnBlock:                                      ; preds = %entry
+  ret i32 0
+}
+
+declare !rt !0 void @InitWindow(i32, i32, ptr)
+
+declare !rt !1 void @SetTargetFPS(i32)
+
+declare !rt !2 void @ClearBackground(i32)
+
+declare !rt !3 i1 @WindowShouldClose()
+
+declare !rt !4 void @BeginDrawing()
+
+declare !rt !5 void @DrawRectangle(i32, i32, i32, i32, i32)
+
+declare !rt !6 void @EndDrawing()
+
+declare !rt !7 void @CloseWindow()
+
+declare !rt !8 i32 @GetScreenHeight()
+
+declare !rt !9 i32 @GetScreenWidth()
+
+declare !rt !10 void @DrawCircle(i32, i32, float, i32)
+
+declare !rt !11 void @DrawText(ptr, i32, i32, i32, i32)
+
+declare !rt !12 i1 @IsKeyPressed(i32)
+
+declare !rt !13 i1 @IsKeyDown(i32)
+
+declare !rt !14 ptr @TextFormat(ptr)
+
+declare !rt !15 i32 @rand()
+
+declare !rt !16 i32 @time()
+
+declare !rt !17 void @srand(i32)
+
+define i32 @getRandomNumber(ptr %0, ptr %1) !rt !18 {
+entry:
+  %start = alloca i32, align 4
+  %2 = load i32, ptr %0, align 4
+  store i32 %2, ptr %start, align 4
+  %end = alloca i32, align 4
+  %3 = load i32, ptr %1, align 4
+  store i32 %3, ptr %end, align 4
+  br label %nestedBlock
+
+afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
+  ret i32 0
+
+nestedBlock:                                      ; preds = %entry
+  br label %returnBlock
+
+checkContinueBlock:                               ; preds = %mergeBlock
+  br label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock
+  %4 = call i32 @rand()
+  %end1 = load i32, ptr %end, align 4
+  %start2 = load i32, ptr %start, align 4
+  %5 = sub i32 %end1, %start2
+  %6 = add i32 %5, 1
+  %7 = srem i32 %4, %6
+  %start3 = load i32, ptr %start, align 4
+  %8 = add i32 %7, %start3
+  ret i32 %8
+
+mergeBlock:                                       ; No predecessors!
+  %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
+  %10 = icmp eq i32 %9, 0
+  br i1 %10, label %checkContinueBlock, label %afterNestedBlock
+}
+
+!0 = !{!"InitWindow:rt:pr:27"}
+!1 = !{!"SetTargetFPS:rt:pr:27"}
+!2 = !{!"ClearBackground:rt:pr:27"}
+!3 = !{!"WindowShouldClose:rt:pr:34"}
+!4 = !{!"BeginDrawing:rt:pr:27"}
+!5 = !{!"DrawRectangle:rt:pr:27"}
+!6 = !{!"EndDrawing:rt:pr:27"}
+!7 = !{!"CloseWindow:rt:pr:27"}
+!8 = !{!"GetScreenHeight:rt:pr:28"}
+!9 = !{!"GetScreenWidth:rt:pr:28"}
+!10 = !{!"DrawCircle:rt:pr:27"}
+!11 = !{!"DrawText:rt:pr:27"}
+!12 = !{!"IsKeyPressed:rt:pr:34"}
+!13 = !{!"IsKeyDown:rt:pr:34"}
+!14 = !{!"TextFormat:rt:pr:33"}
+!15 = !{!"rand:rt:pr:28"}
+!16 = !{!"time:rt:pr:28"}
+!17 = !{!"srand:rt:pr:27"}
+!18 = !{!"getRandomNumber:rt:pr:28"}

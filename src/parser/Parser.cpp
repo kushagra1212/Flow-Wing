@@ -478,8 +478,8 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
       std::make_unique<ClassStatementSyntax>();
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-    this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword);
-    classSyn->setIsExposed(true);
+    classSyn->setExposeKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
   }
 
   classSyn->setClassKeyword(
@@ -522,11 +522,15 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
       break;
     }
 
-    default:
-      classSyn->addClassMemberFunction(std::move(
-          this->parseFunctionDeclaration(classSyn->isExposed(), true)));
+    default: {
+      bool isExposed = false;
+      if (classSyn->getExposeKeywordRef())
+        isExposed = true;
+      classSyn->addClassMemberFunction(
+          std::move(this->parseFunctionDeclaration(isExposed, true)));
+    }
 
-      break;
+    break;
     }
     appendNewLine();
   }

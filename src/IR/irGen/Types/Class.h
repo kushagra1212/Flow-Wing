@@ -154,9 +154,11 @@ public:
   inline auto createVTable(std::string className, llvm::Module *TheModule)
       -> void {
     _vTableName = "vtable." + className + "." + "fg";
-    new llvm::GlobalVariable(
-        *TheModule, _vTableType, false, llvm::GlobalValue::ExternalLinkage,
-        llvm::ConstantAggregateZero::get(_vTableType), _vTableName);
+
+    new llvm::GlobalVariable(*TheModule, _vTableType, false,
+                             llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                             llvm::ConstantAggregateZero::get(_vTableType),
+                             _vTableName);
   }
 
   inline auto getVTableName() -> std::string { return _vTableName; }

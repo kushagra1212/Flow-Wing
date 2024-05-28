@@ -1,0 +1,7 @@
+expose var x: int  =  2
+x = 5
+
+print(x)
+fun my() -> nthg {
+  print("Hello")
+}

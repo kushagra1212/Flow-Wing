@@ -32,8 +32,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "ExpressionStatement";
   case BlockStatement:
     return "BlockStatement";
-  case BoundClassStatement:
-    return "BoundClassStatement";
+  case ClassStatement:
+    return "ClassStatement";
 
   case IfStatement:
     return "IfStatement";

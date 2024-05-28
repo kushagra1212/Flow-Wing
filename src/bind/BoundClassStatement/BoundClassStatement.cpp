@@ -5,7 +5,7 @@ BoundClassStatement::BoundClassStatement(
     : BoundSourceLocation(location) {}
 
 BinderKindUtils::BoundNodeKind BoundClassStatement::getKind() const {
-  return BinderKindUtils::BoundNodeKind::BoundClassStatement;
+  return BinderKindUtils::BoundNodeKind::ClassStatement;
 }
 
 std::vector<BoundNode *> BoundClassStatement::getChildren() {

@@ -619,7 +619,8 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
   }
   case BinderKindUtils::MemoryKind::Global: {
     return new llvm::GlobalVariable(
-        *this->_module, type, false, llvm::GlobalValue::ExternalWeakLinkage,
+        *this->_module, type, false,
+        llvm::GlobalValue::LinkageTypes::CommonLinkage,
         llvm::Constant::getNullValue(type), variableName);
   }
 

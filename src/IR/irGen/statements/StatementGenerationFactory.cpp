@@ -58,7 +58,7 @@ StatementGenerationFactory::createStrategy(
   case BinderKindUtils::BoundNodeKind::CustomTypeStatement:
     return std::make_unique<CustomTypeStatementGenerationStrategy>(
         _codeGenerationContext);
-  case BinderKindUtils::BoundNodeKind::BoundClassStatement:
+  case BinderKindUtils::BoundNodeKind::ClassStatement:
     return std::make_unique<ClassStatementGenerationStrategy>(
         _codeGenerationContext);
   default: {

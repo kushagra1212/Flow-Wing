@@ -62,6 +62,16 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       variableDeclaration->getIdentifierRef()->getValue(),
       variableDeclaration->getIdentifierRef()->getKind()));
 
+  if (className != "" && variableDeclaration->getInitializerRef()) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Cannot initialize variable in class directly, use init "
+        "constructor instead",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        variableDeclaration->getInitializerRef()->getSourceLocation()));
+    return std::move(variable);
+  }
+
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
         std::move(bindTypeExpression(variableDeclaration->getTypeRef().get()));
@@ -416,6 +426,10 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
   this->root->setClassName(className);
   boundClassStat->setClassName(className);
 
+  if (classStatement->getExposeKeywordRef()) {
+    boundClassStat->setIsExposed(true);
+  }
+
   // If It Has Parent
 
   if (classStatement->getParentClassNameIdentifierRef()) {
@@ -617,7 +631,16 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
                          bringStatement->getBringKeywordPtr().get())));
     }
   }
-
+  for (auto &_class : globalScope->classes) {
+    if (!this->root->tryDeclareClass(_class.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Class " + _class.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+  }
   for (auto &customType : globalScope->customTypes) {
     if (!this->root->tryDeclareCustomType(customType.second)) {
       this->_diagnosticHandler->addDiagnostic(
@@ -1479,6 +1502,7 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
     binder->root->variables = previousGlobalScope->variables;
     binder->root->functions = previousGlobalScope->functions;
     binder->root->customTypes = previousGlobalScope->customTypes;
+    binder->root->classes = previousGlobalScope->classes;
     prevVariablesValues = previousGlobalScope->variablesValues;
   }
   std::unique_ptr<BoundBlockStatement> _globalBoundBlockStatement =
@@ -1538,7 +1562,8 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   return std::make_unique<BoundScopeGlobal>(
       std::move(previousGlobalScope), binder->root->variables,
       prevVariablesValues, binder->root->functions, binder->root->customTypes,
-      diagnosticHandler, std::move(_globalBoundBlockStatement));
+      binder->root->classes, diagnosticHandler,
+      std::move(_globalBoundBlockStatement));
 }
 
 // Utils
