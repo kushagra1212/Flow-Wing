@@ -165,10 +165,18 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
-  assignmentExpressionGenerationStrategy
-      ->handlePrimitiveLocalVariableAssignment(
-          variableName, SyntaxKindUtils::SyntaxKind::Int32Keyword,
-          incrementedValue);
+  //   assignmentExpressionGenerationStrategy
+  //       ->handlePrimitiveLocalVariableAssignment(
+  //           variableName, SyntaxKindUtils::SyntaxKind::Int32Keyword,
+  //           incrementedValue);
+
+  {
+    llvm::Value *v =
+        _codeGenerationContext->getAllocaChain()->getPtr(variableName).first;
+    _codeGenerationContext->getNamedValueChain()->updateNamedValue(
+        variableName, incrementedValue);
+    Builder->CreateStore(incrementedValue, v);
+  }
 
   Builder->CreateBr(loopCondition);
 

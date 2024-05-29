@@ -17,12 +17,13 @@
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
+#include "../irGen/Types/Class.h"
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/Support/TargetSelect.h"
-
+class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
 public:
@@ -48,7 +49,6 @@ public:
   std::unordered_map<std::string, int8_t> &getRecursiveFunctionsMap();
   std::unordered_map<std::string, BoundFunctionDeclaration *> &
   getBoundedUserFunctions();
-  std::unordered_map<std::string, uint64_t> &getGlobalTypeMap();
 
   std::string getPrefixedName(std::string name);
   const std::string &getSourceFileName() const;
@@ -107,6 +107,11 @@ public:
                           std::string inExp = " in assignment expression");
   int8_t verifyType(llvm::Type *lhsType, llvm::Type *rhsType,
                     std::string inExp = " in assignment expression");
+
+  llvm::Value *createMemoryGetPtr(llvm::Type *type, std::string variableName,
+                                  BinderKindUtils::MemoryKind memoryKind);
+
+  void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
   inline auto
   createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
                                       llvm::Type *&arrayElementType) -> void {
@@ -116,6 +121,32 @@ public:
       arrayElementType = arrayType->getElementType();
     }
   }
+
+  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
+  std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
+
+  inline auto setCurrentClassName(std::string className) -> void {
+    _currentClassName = className;
+  }
+
+  inline auto getCurrentClassName() -> std::string { return _currentClassName; }
+
+  inline auto resetCurrentClassName() -> void { _currentClassName = ""; }
+
+  inline auto getTypeNameDefinedInCurrentClass(std::string typeName)
+      -> std::string {
+    if (_currentClassName != "") {
+      return this->_classTypes[_currentClassName]->tryGetCustomTypeName(
+          typeName);
+    }
+    return "";
+  }
+
+  auto createVTableMapEntry(
+      std::unordered_map<
+          std::string, std::tuple<llvm::FunctionType *, uint64_t, std::string>>
+          &vTableElementsMap,
+      std::string className, uint64_t &index) -> void;
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
@@ -141,7 +172,8 @@ private:
 
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
-  std::unordered_map<std::string, uint64_t> _globalTypeMap;
+
+  std::string _currentClassName = "";
 };
 
 #endif // CODEGENERATIONCONTEXT_H

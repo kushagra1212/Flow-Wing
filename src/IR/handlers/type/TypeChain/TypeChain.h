@@ -5,10 +5,10 @@
 #include "../TypeTable/TypeTable.h"
 
 class TypeChain {
- private:
+private:
   std::stack<std::unique_ptr<TypeTable>> handlers;
 
- public:
+public:
   void addHandler(std::unique_ptr<TypeTable> handler);
 
   void removeHandler();
@@ -20,8 +20,10 @@ class TypeChain {
   size_t getIndex(const std::string &name);
   void setIndex(const std::string &name, size_t index);
 
-  llvm::Type *getElementType(const std::string &name);
-  void setElementType(const std::string &name, llvm::Type *type);
+  // Global
+
+  void setGlobalType(const std::string &name, llvm::StructType *typeValue);
+  void setGlobalIndex(const std::string &name, size_t index);
 };
 
-#endif  // FLOWWING_TYPE_CHAIN_H
+#endif // FLOWWING_TYPE_CHAIN_H

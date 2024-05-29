@@ -7,14 +7,18 @@ void TypeChain::addHandler(std::unique_ptr<TypeTable> handler) {
 void TypeChain::removeHandler() { handlers.pop(); }
 
 llvm::StructType *TypeChain::getType(const std::string &name) {
+
+  std::string typeName = name.substr(0, name.find('.'));
+
   std::stack<std::unique_ptr<TypeTable>> currentHandler;
   llvm::StructType *typeValue = nullptr;
   while (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
-    typeValue = handler->getType(name);
+    typeValue = handler->getType(typeName);
     if (typeValue) {
       break;
     }
+
     currentHandler.push(std::move(handler));
     handlers.pop();
   }
@@ -45,7 +49,23 @@ bool TypeChain::updateType(const std::string &name,
     currentHandler.pop();
   }
 
-  return updated;  // Not found in the chain
+  return updated; // Not found in the chain
+}
+
+void TypeChain::setGlobalType(const std::string &name,
+                              llvm::StructType *typeValue) {
+  std::stack<std::unique_ptr<TypeTable>> currentHandler;
+
+  while (!handlers.empty()) {
+    std::unique_ptr<TypeTable> &handler = handlers.top();
+    currentHandler.push(std::move(handler));
+    handlers.pop();
+  }
+  currentHandler.top()->setType(name, typeValue);
+  while (!currentHandler.empty()) {
+    handlers.push(std::move(currentHandler.top()));
+    currentHandler.pop();
+  }
 }
 
 void TypeChain::setType(const std::string &name, llvm::StructType *typeValue) {
@@ -75,36 +95,25 @@ size_t TypeChain::getIndex(const std::string &name) {
 
   return index;
 }
-void TypeChain::setIndex(const std::string &name, size_t index) {
-  if (!handlers.empty()) {
-    std::unique_ptr<TypeTable> &handler = handlers.top();
-    handler->setIndex(name, index);
-  }
-}
 
-llvm::Type *TypeChain::getElementType(const std::string &name) {
+void TypeChain::setGlobalIndex(const std::string &name, size_t index) {
   std::stack<std::unique_ptr<TypeTable>> currentHandler;
-  llvm::Type *type = nullptr;
+
   while (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
-    type = handler->getElementType(name);
-    if (type) {
-      break;
-    }
     currentHandler.push(std::move(handler));
     handlers.pop();
   }
-
+  currentHandler.top()->setIndex(name, index);
   while (!currentHandler.empty()) {
     handlers.push(std::move(currentHandler.top()));
     currentHandler.pop();
   }
-
-  return type;
 }
-void TypeChain::setElementType(const std::string &name, llvm::Type *type) {
+
+void TypeChain::setIndex(const std::string &name, size_t index) {
   if (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
-    handler->setElementType(name, type);
+    handler->setIndex(name, index);
   }
 }

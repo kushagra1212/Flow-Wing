@@ -162,6 +162,12 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::BreakKeyword:
     return "BreakKeyword";
 
+  case SyntaxKind::Askeyword:
+    return "Askeyword";
+
+  case SyntaxKind::INOUTKeyword:
+    return "INOUTKeyword";
+
   case SyntaxKind::ReturnKeyword:
     return "ReturnKeyword";
 
@@ -298,6 +304,12 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "AssignmentToken";
   case SyntaxKind::NewKeyword:
     return "NewKeyword";
+  case SyntaxKind::ClassKeyword:
+    return "ClassKeyword";
+  case SyntaxKind::ClassStatement:
+    return "ClassStatement";
+  case SyntaxKind::ExtendsKeyword:
+    return "ExtendsKeyword";
   default:
     return "NotDefined";
   }

@@ -21,54 +21,31 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
     return true;
   }
 
-  llvm::AllocaInst *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+  // Variable not found, handle error
+  llvm::GlobalVariable *variable = TheModule->getGlobalVariable(_variableName);
 
-  if (v && !(llvm::isa<llvm::ArrayType>(v->getAllocatedType()))) {
+  if (!variable) {
+    _codeGenerationContext->getLogger()->LogError(
+        "variable " + _variableName + " not found in variable expression");
+
+    return false;
+  }
+
+  if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+
     _codeGenerationContext->getLogger()->LogError(
         "variable " + _variableName + " Expected to be of type array of " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
             _arrayElementType)) +
         " but got " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-            v->getAllocatedType())));
+            variable->getValueType())));
+
     return false;
   }
 
-  if (!v) {
-    // Variable not found, handle error
-    llvm::GlobalVariable *variable =
-        TheModule->getGlobalVariable(_variableName);
-
-    if (!variable) {
-      _codeGenerationContext->getLogger()->LogError(
-          "variable " + _variableName + " not found in variable expression");
-
-      return false;
-    }
-
-    if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
-
-      _codeGenerationContext->getLogger()->LogError(
-          "variable " + _variableName + " Expected to be of type array of " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              _arrayElementType)) +
-          " but got " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              variable->getValueType())));
-
-      return false;
-    }
-    // _arrayElementType =
-    //     _codeGenerationContext->getArrayElementTypeMetadata(variable);
-    _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
-    _variable = variable;
-
-    return true;
-  }
-  // _arrayElementType = _codeGenerationContext->getArrayElementTypeMetadata(v);
-  _arrayType = llvm::cast<llvm::ArrayType>(v->getAllocatedType());
-  _variable = v;
+  _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
+  _variable = variable;
 
   return true;
 }
@@ -214,25 +191,27 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
 
     if (variableExpression->getDotExpressionList().size() == 0) {
       _codeGenerationContext->getValueStackHandler()->push(
-          parObjTypeType->getStructName().str(), elementPtr, "struct",
-          parObjTypeType);
+          parObjTypeType->getStructName().str().substr(
+              0, parObjTypeType->getStructName().str().find(".")),
+          elementPtr, "struct", parObjTypeType);
 
       return elementPtr;
     }
     std::unique_ptr<VariableExpressionGenerationStrategy> strategy =
         std::make_unique<VariableExpressionGenerationStrategy>(
             _codeGenerationContext);
-    std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
     strategy->setVariableExpression(variableExpression);
     return strategy->getObjectValueNF(elementPtr, 0, _variable->getName().str(),
-                                      indices, parObjTypeType);
+                                      parObjTypeType);
   }
 
   if (llvm::isa<llvm::StructType>(_arrayType->getElementType())) {
     llvm::StructType *structType =
         llvm::cast<llvm::StructType>(_arrayType->getElementType());
     _codeGenerationContext->getValueStackHandler()->push(
-        structType->getStructName().str(), elementPtr, "struct", structType);
+        structType->getStructName().str().substr(
+            0, structType->getStructName().str().find(".")),
+        elementPtr, "struct", structType);
     return elementPtr;
   }
   _codeGenerationContext->getValueStackHandler()->push(

@@ -25,7 +25,7 @@ CodeGenerationContext ::CodeGenerationContext(
 
   // Initialize
   _typeMapper = std::make_unique<TypeMapper>(_context.get(), _builder.get(),
-                                             _module.get());
+                                             _module.get(), this);
 
   // Initialize  LLVM_Logger
   _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
@@ -134,11 +134,6 @@ CodeGenerationContext::getBoundedUserFunctions() {
   return _boundedUserFunctions;
 }
 
-std::unordered_map<std::string, uint64_t> &
-CodeGenerationContext::getGlobalTypeMap() {
-  return _globalTypeMap;
-}
-
 void CodeGenerationContext::addBoundedUserFunction(
     std::string name, BoundFunctionDeclaration *functionDeclaration) {
   _boundedUserFunctions[name] = functionDeclaration;
@@ -183,6 +178,77 @@ void CodeGenerationContext::incrementCount(const std::string name) {
   llvm::Value *newCount = _builder->CreateAdd(
       count, llvm::ConstantInt::get(*_context, llvm::APInt(32, 1, true)));
   _builder->CreateStore(newCount, _module->getGlobalVariable(name));
+}
+
+auto CodeGenerationContext::createVTableMapEntry(
+    std::unordered_map<std::string,
+                       std::tuple<llvm::FunctionType *, uint64_t, std::string>>
+        &vTableElementsMap,
+    std::string className, uint64_t &index) -> void {
+
+  auto classVar = this->_classTypes[className].get();
+
+  if (!classVar)
+    return;
+
+  if (classVar->hasParent()) {
+    createVTableMapEntry(vTableElementsMap, classVar->getParentClassName(),
+                         index);
+  }
+
+  for (auto &element : classVar->getClassMemberFunctionTypeMap()) {
+    std::string fName = element.first;
+    auto functionType = element.second;
+
+    if (fName.find(".init") != std::string::npos)
+      continue;
+
+    fName = fName.substr(
+        fName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) + 1);
+
+    if (vTableElementsMap.find(fName) == vTableElementsMap.end()) {
+
+      std::get<1>(vTableElementsMap[fName]) = index;
+      index++;
+    }
+
+    llvm::FunctionType *previousFunctionType =
+        std::get<0>(vTableElementsMap[fName]);
+
+    if (previousFunctionType) {
+      if (previousFunctionType->getReturnType() !=
+          functionType->getReturnType()) {
+        this->getLogger()->LogError("Function " + fName +
+                                    " has different return type in class " +
+                                    className + " and its parent class " +
+                                    classVar->getParentClassName());
+        return;
+      }
+
+      if (previousFunctionType->getNumParams() !=
+          functionType->getNumParams()) {
+        this->getLogger()->LogError(
+            "Function " + fName +
+            " has different number of parameters in class " + className +
+            " and its parent class " + classVar->getParentClassName());
+        return;
+      }
+
+      for (int i = 0; i < functionType->getNumParams(); i++) {
+        if (previousFunctionType->getParamType(i) !=
+            functionType->getParamType(i)) {
+          this->getLogger()->LogError(
+              "Function " + fName + " has different parameter type in class " +
+              className + " and its parent class " +
+              classVar->getParentClassName());
+          return;
+        }
+      }
+    }
+
+    std::get<0>(vTableElementsMap[fName]) = functionType;
+    std::get<2>(vTableElementsMap[fName]) = className;
+  }
 }
 
 llvm::Constant *
@@ -261,6 +327,10 @@ void CodeGenerationContext::setMetadata(const std::string kind, llvm::Value *v,
 
 void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
                                         std::string &metaData) {
+
+  if (!v) {
+    return;
+  }
   llvm::MDNode *metaNode = nullptr;
 
   if (llvm::isa<llvm::GlobalVariable>(v)) {
@@ -381,6 +451,14 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
                                                llvm::StructType *rhsType,
                                                std::string inExp) {
 
+  if (this->_classTypes[lhsType->getStructName().str()] &&
+      this->_classTypes[rhsType->getStructName().str()]) {
+
+    if (this->_classTypes[rhsType->getStructName().str()]->isChildOf(
+            lhsType->getStructName().str()))
+      return EXIT_SUCCESS;
+  }
+
   if (lhsType != rhsType) {
     this->getLogger()->LogError(
         "Type mismatch Expected " +
@@ -456,8 +534,13 @@ void CodeGenerationContext::getRetrunedArrayType(
     return;
   }
   Utils::split(metaData, ":", strs);
+  if (strs.size() == 0) {
+    return;
+  }
+
   if (strs[2] == "ay") {
-    arrayElementType = getTypeChain()->getType(strs[3]);
+    arrayElementType =
+        getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
 
     if (!arrayElementType)
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
@@ -485,8 +568,66 @@ void CodeGenerationContext::getReturnedObjectType(
   if (metaData == "") {
     return;
   }
+
   Utils::split(metaData, ":", strs);
+
+  if (strs.size() == 0)
+    return;
+
   if (strs[2] == "ob") {
-    objectType = this->getTypeChain()->getType(strs[3]);
+    if (_classTypes.find(strs[3]) != _classTypes.end())
+      objectType = _classTypes[strs[3]]->getClassType();
+    else
+      objectType =
+          this->getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
+  }
+}
+void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
+                                                     llvm::Type *&type) {
+  std::string metaData = "";
+  std::vector<std::string> strs;
+  getMetaData("rt", F, metaData);
+  if (metaData == "") {
+    return;
+  }
+  Utils::split(metaData, ":", strs);
+  if (strs[2] == "pr") {
+    type = getMapper()->mapCustomTypeToLLVMType(
+        (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
+  }
+}
+
+llvm::Value *CodeGenerationContext::createMemoryGetPtr(
+    llvm::Type *type, std::string variableName,
+    BinderKindUtils::MemoryKind memoryKind) {
+  switch (memoryKind) {
+  case BinderKindUtils::MemoryKind::Heap: {
+    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
+
+    llvm::CallInst *malloc_call = this->_builder->CreateCall(
+        fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
+                                    this->getMapper()->getSizeOf(type)));
+    malloc_call->setTailCall(false);
+
+    // Cast the result of 'malloc' to a pointer to int
+    return this->_builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*this->_context)));
+  }
+  case BinderKindUtils::MemoryKind::Stack: {
+    return this->_builder->CreateAlloca(type, nullptr, variableName);
+  }
+  case BinderKindUtils::MemoryKind::Global: {
+    return new llvm::GlobalVariable(
+        *this->_module, type, false,
+        llvm::GlobalValue::LinkageTypes::CommonLinkage,
+        llvm::Constant::getNullValue(type), variableName);
+  }
+
+  default:
+    this->getLogger()->LogError(
+        "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
+        " for " + variableName + " in " + __PRETTY_FUNCTION__);
+    return nullptr;
   }
 }

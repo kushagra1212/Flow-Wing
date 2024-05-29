@@ -5,20 +5,23 @@
 #include "../CustomTypeStatementTable/CustomTypeStatementTable.h"
 
 class CustomTypeStatementChain {
- private:
+private:
   std::stack<std::unique_ptr<CustomTypeStatementTable>> handlers;
 
- public:
+public:
   inline void addHandler(std::unique_ptr<CustomTypeStatementTable> handler) {
     handlers.push(std::move(handler));
   }
 
   inline void removeHandler() {
-    if (!handlers.empty()) handlers.pop();
+    if (!handlers.empty())
+      handlers.pop();
   }
 
   BoundCustomTypeStatement *getExpr(const std::string &name);
   void setExpr(const std::string &name, BoundCustomTypeStatement *value);
+
+  void setGlobalExpr(const std::string &name, BoundCustomTypeStatement *value);
 };
 
-#endif  // FLOWWING_OBJECT_TYPE_CHAIN_H
+#endif // FLOWWING_OBJECT_TYPE_CHAIN_H

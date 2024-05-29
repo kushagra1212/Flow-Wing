@@ -8,13 +8,12 @@
 #include "../BoundExpression.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
-template <typename T>
-class BoundLiteralExpression : public BoundExpression {
- private:
+template <typename T> class BoundLiteralExpression : public BoundExpression {
+private:
   T value;
   SyntaxKindUtils::SyntaxKind _syntaxKind;
 
- public:
+public:
   BoundLiteralExpression(const DiagnosticUtils::SourceLocation &location,
                          T value);
 
@@ -25,12 +24,13 @@ class BoundLiteralExpression : public BoundExpression {
 
   T getValue();
 
+  void setValue(T value);
+
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
   SyntaxKindUtils::SyntaxKind getSyntaxKind();
 };
-
 
 template <typename T>
 BoundLiteralExpression<T>::BoundLiteralExpression(
@@ -51,9 +51,10 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
   return type1;
 }
 
-template <typename T>
-T BoundLiteralExpression<T>::getValue() {
-  return value;
+template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
+
+template <typename T> void BoundLiteralExpression<T>::setValue(T value) {
+  this->value = value;
 }
 
 template <typename T>

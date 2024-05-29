@@ -4,302 +4,308 @@ AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-llvm::Value *AssignmentExpressionGenerationStrategy::
-    handleTypedPrmitiveGlobalVariableAssignment(
-        llvm::GlobalVariable *variable, const std::string &variableName,
-        const SyntaxKindUtils::SyntaxKind &variableType,
-        llvm::Value *rhsValue) {
-  if (!_codeGenerationContext->getMapper()->isEquivalentType(
-          variableType, rhsValue->getType())) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type mismatch in variable Assignment " + variableName +
-        " Expected type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-        " but got type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            rhsValue->getType()));
+// llvm::Value *AssignmentExpressionGenerationStrategy::
+//     handleTypedPrmitiveGlobalVariableAssignment(
+//         llvm::GlobalVariable *variable, const std::string &variableName,
+//         const SyntaxKindUtils::SyntaxKind &variableType,
+//         llvm::Value *rhsValue) {
+//   if (!_codeGenerationContext->getMapper()->isEquivalentType(
+//           variableType, rhsValue->getType())) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Type mismatch in variable Assignment " + variableName +
+//         " Expected type " +
+//         _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+//         " but got type " +
+//         _codeGenerationContext->getMapper()->getLLVMTypeName(
+//             rhsValue->getType()));
 
-    return nullptr;
-  }
+//     return nullptr;
+//   }
 
-  Builder->CreateStore(rhsValue, variable);
-  return nullptr;
-}
+//   Builder->CreateStore(rhsValue, variable);
+//   return nullptr;
+// }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handlePrimitiveGlobalVariableAssignment(
-    llvm::GlobalVariable *variable, const std::string &variableName,
-    const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue) {
-  // Handle Static Primitive Global Variable (TYPED)
-  if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
-    return handleTypedPrmitiveGlobalVariableAssignment(variable, variableName,
-                                                       variableType, rhsValue);
-  }
+// llvm::Value *
+// AssignmentExpressionGenerationStrategy::handlePrimitiveGlobalVariableAssignment(
+//     llvm::GlobalVariable *variable, const std::string &variableName,
+//     const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue) {
+//   // Handle Static Primitive Global Variable (TYPED)
+//   if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
+//     return handleTypedPrmitiveGlobalVariableAssignment(variable,
+//     variableName,
+//                                                        variableType,
+//                                                        rhsValue);
+//   }
 
-  // Handle Dynamic Primitive Global Variable (DYNAMIC)
+//   // Handle Dynamic Primitive Global Variable (DYNAMIC)
 
-  return handleDynamicPrimitiveVariableAssignment(variable, variableName,
-                                                  rhsValue);
-}
+//   return handleDynamicPrimitiveVariableAssignment(variable, variableName,
+//                                                   rhsValue);
+// }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
-    BoundAssignmentExpression *assignmentExpression) {
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
-  if (!canGenerateLiteralExpressionAssignment(assignmentExpression)) {
-    return nullptr;
-  }
+// llvm::Value *
+// AssignmentExpressionGenerationStrategy::handleGlobalLiteralExpressionAssignment(
+//     BoundAssignmentExpression *assignmentExpression) {
+//   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       assignmentExpression->getLocation());
+//   if (!canGenerateLiteralExpressionAssignment(assignmentExpression)) {
+//     return nullptr;
+//   }
 
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    auto assignStrategy =
-        std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
+//   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+//     auto assignStrategy =
+//         std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+//             _codeGenerationContext);
 
-    return assignStrategy->generateGlobalExpression(assignmentExpression);
-  }
+//     return assignStrategy->generateGlobalExpression(assignmentExpression);
+//   }
 
-  // Handle Static Container Global Variable (TYPED)
-  if (_variableType != SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE &&
-      !_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+//   // Handle Static Container Global Variable (TYPED)
+//   if (_variableType != SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE &&
+//       !_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
 
-    auto assignStrategy =
-        std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
+//     auto assignStrategy =
+//         std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+//             _codeGenerationContext);
 
-    return assignStrategy->generateGlobalExpression(assignmentExpression);
+//     return assignStrategy->generateGlobalExpression(assignmentExpression);
 
-    auto strategy = _expressionGenerationFactory->createStrategy(
-        assignmentExpression->getRightPtr().get()->getKind());
+//     auto strategy = _expressionGenerationFactory->createStrategy(
+//         assignmentExpression->getRightPtr().get()->getKind());
 
-    auto bracketdStrategy =
-        dynamic_cast<BracketedExpressionGenerationStrategy *>(strategy.get());
+//     auto bracketdStrategy =
+//         dynamic_cast<BracketedExpressionGenerationStrategy
+//         *>(strategy.get());
 
-    if (!bracketdStrategy) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected bracketed expression in assignment expression");
-      return nullptr;
-    }
+//     if (!bracketdStrategy) {
+//       _codeGenerationContext->getLogger()->LogError(
+//           "Expected bracketed expression in assignment expression");
+//       return nullptr;
+//     }
 
-    bracketdStrategy->setPreviousGlobalVariable(_previousGlobalVariable);
-    bracketdStrategy->setContainerName(_variableName);
+//     bracketdStrategy->setPreviousGlobalVariable(_previousGlobalVariable);
+//     bracketdStrategy->setContainerName(_variableName);
 
-    return bracketdStrategy->generateGlobalExpression(
-        assignmentExpression->getRightPtr().get());
-  }
+//     return bracketdStrategy->generateGlobalExpression(
+//         assignmentExpression->getRightPtr().get());
+//   }
 
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
-          ->generateExpression(assignmentExpression->getRightPtr().get());
+//   llvm::Value *rhsValue =
+//       _expressionGenerationFactory
+//           ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+//           ->generateExpression(assignmentExpression->getRightPtr().get());
 
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
+//   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       assignmentExpression->getLocation());
 
-  if (!rhsValue) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Right hand side value not found in assignment expression ");
+//   if (!rhsValue) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Right hand side value not found in assignment expression ");
 
-    return nullptr;
-  }
-  return handlePrimitiveGlobalVariableAssignment(
-      _previousGlobalVariable, _variableName, _variableType, rhsValue);
-}
+//     return nullptr;
+//   }
+//   return handlePrimitiveGlobalVariableAssignment(
+//       _previousGlobalVariable, _variableName, _variableType, rhsValue);
+// }
 
-llvm::Value *AssignmentExpressionGenerationStrategy::
-    handleTypedPrmitiveLocalVariableAssignment(
-        const std::string &variableName,
-        const SyntaxKindUtils::SyntaxKind &variableType,
-        llvm::Value *rhsValue) {
-  if (!_codeGenerationContext->getMapper()->isEquivalentType(
-          variableType, rhsValue->getType())) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type mismatch in variable Assignment " + variableName +
-        " Expected type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
-        " but got type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            rhsValue->getType()));
+// llvm::Value *AssignmentExpressionGenerationStrategy::
+//     handleTypedPrmitiveLocalVariableAssignment(
+//         const std::string &variableName,
+//         const SyntaxKindUtils::SyntaxKind &variableType,
+//         llvm::Value *rhsValue) {
+//   if (!_codeGenerationContext->getMapper()->isEquivalentType(
+//           variableType, rhsValue->getType())) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Type mismatch in variable Assignment " + variableName +
+//         " Expected type " +
+//         _codeGenerationContext->getMapper()->getLLVMTypeName(variableType) +
+//         " but got type " +
+//         _codeGenerationContext->getMapper()->getLLVMTypeName(
+//             rhsValue->getType()));
 
-    return nullptr;
-  }
+//     return nullptr;
+//   }
 
-  llvm::Value *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+//   llvm::Value *v =
+//       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
-  _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
-                                                                 rhsValue);
+//   _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
+//                                                                  rhsValue);
 
-  Builder->CreateStore(rhsValue, v);
+//   Builder->CreateStore(rhsValue, v);
 
-  return rhsValue;
-}
+//   return rhsValue;
+// }
 
-llvm::Value *AssignmentExpressionGenerationStrategy::
-    handleUnTypedPrmitiveLocalVariableAssignment(
-        const std::string &variableName, llvm::Value *rhsValue) {
-  llvm::Value *v =
-      _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
+// llvm::Value *AssignmentExpressionGenerationStrategy::
+//     handleUnTypedPrmitiveLocalVariableAssignment(
+//         const std::string &variableName, llvm::Value *rhsValue) {
+//   llvm::Value *v =
+//       _codeGenerationContext->getAllocaChain()->getAllocaInst(variableName);
 
-  _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
-                                                                 rhsValue);
+//   _codeGenerationContext->getNamedValueChain()->updateNamedValue(variableName,
+//                                                                  rhsValue);
 
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      v, rhsValue, rhsValue->getType(), variableName);
-  return rhsValue;
-}
+//   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+//       v, rhsValue, rhsValue->getType(), variableName);
+//   return rhsValue;
+// }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handlePrimitiveLocalVariableAssignment(
-    const std::string &variableName,
-    const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue) {
-  // Handle Static Primitive Local Variable (TYPED)
-  if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
-    return handleTypedPrmitiveLocalVariableAssignment(variableName,
-                                                      variableType, rhsValue);
-  }
+// llvm::Value *
+// AssignmentExpressionGenerationStrategy::handlePrimitiveLocalVariableAssignment(
+//     const std::string &variableName,
+//     const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue) {
+//   // Handle Static Primitive Local Variable (TYPED)
+//   if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
+//     return handleTypedPrmitiveLocalVariableAssignment(variableName,
+//                                                       variableType,
+//                                                       rhsValue);
+//   }
 
-  // Handle Dynamic Primitive Local Variable (DYNAMIC)
-  return handleUnTypedPrmitiveLocalVariableAssignment(variableName, rhsValue);
-}
+//   // Handle Dynamic Primitive Local Variable (DYNAMIC)
+//   return handleUnTypedPrmitiveLocalVariableAssignment(variableName,
+//   rhsValue);
+// }
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
-    BoundAssignmentExpression *assignmentExpression) {
-  if (!canGenerateLiteralExpressionAssignment(assignmentExpression)) {
-    return nullptr;
-  }
-  if (_isGlobal) {
-    return handleGlobalLiteralExpressionAssignment(assignmentExpression);
-  }
+// llvm::Value *
+// AssignmentExpressionGenerationStrategy::handleLiteralExpressionAssignment(
+//     BoundAssignmentExpression *assignmentExpression) {
+//   if (!canGenerateLiteralExpressionAssignment(assignmentExpression)) {
+//     return nullptr;
+//   }
+//   if (_isGlobal) {
+//     return handleGlobalLiteralExpressionAssignment(assignmentExpression);
+//   }
 
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    auto assignStrategy =
-        std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
+//   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+//     auto assignStrategy =
+//         std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
+//             _codeGenerationContext);
 
-    return assignStrategy->generateExpression(assignmentExpression);
-  }
-  // Handle Static Container local Variable (TYPED)
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
-    // Container Copy
-    if (assignmentExpression->getRightPtr().get()->getKind() ==
-        BinderKindUtils::VariableExpression) {
-      auto assignStrategy =
-          std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
-              _codeGenerationContext);
+//     return assignStrategy->generateExpression(assignmentExpression);
+//   }
+//   // Handle Static Container local Variable (TYPED)
+//   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+//     // Container Copy
+//     if (assignmentExpression->getRightPtr().get()->getKind() ==
+//         BinderKindUtils::VariableExpression) {
+//       auto assignStrategy =
+//           std::make_unique<ContainerAssignmentExpressionGenerationStrategy>(
+//               _codeGenerationContext);
 
-      assignStrategy->setVariable(_allocaInst);
-      assignStrategy->setContainerName(_variableName);
+//       assignStrategy->setVariable(_allocaInst);
+//       assignStrategy->setContainerName(_variableName);
 
-      return assignStrategy->generateExpression(
-          assignmentExpression->getRightPtr().get());
-    }
+//       return assignStrategy->generateExpression(
+//           assignmentExpression->getRightPtr().get());
+//     }
 
-    auto strategy = _expressionGenerationFactory->createStrategy(
-        assignmentExpression->getRightPtr().get()->getKind());
+//     auto strategy = _expressionGenerationFactory->createStrategy(
+//         assignmentExpression->getRightPtr().get()->getKind());
 
-    auto bracketdStrategy =
-        dynamic_cast<BracketedExpressionGenerationStrategy *>(strategy.get());
+//     auto bracketdStrategy =
+//         dynamic_cast<BracketedExpressionGenerationStrategy
+//         *>(strategy.get());
 
-    if (!bracketdStrategy) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected bracketed expression in assignment expression");
-      return nullptr;
-    }
+//     if (!bracketdStrategy) {
+//       _codeGenerationContext->getLogger()->LogError(
+//           "Expected bracketed expression in assignment expression");
+//       return nullptr;
+//     }
 
-    bracketdStrategy->setContainerName(_variableName);
-    if (llvm::isa<llvm::AllocaInst>(_allocaInst)) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Something went wrong now an variable " + _variableName);
-    }
-    bracketdStrategy->setAllocatedVariable(
-        llvm::cast<llvm::AllocaInst>(_allocaInst));
-    return bracketdStrategy->generateExpression(
-        assignmentExpression->getRightPtr().get());
-  }
+//     bracketdStrategy->setContainerName(_variableName);
+//     if (llvm::isa<llvm::AllocaInst>(_allocaInst)) {
+//       _codeGenerationContext->getLogger()->LogError(
+//           "Something went wrong now an variable " + _variableName);
+//     }
+//     bracketdStrategy->setAllocatedVariable(
+//         llvm::cast<llvm::AllocaInst>(_allocaInst));
+//     return bracketdStrategy->generateExpression(
+//         assignmentExpression->getRightPtr().get());
+//   }
 
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
-          ->generateExpression(assignmentExpression->getRightPtr().get());
+//   llvm::Value *rhsValue =
+//       _expressionGenerationFactory
+//           ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+//           ->generateExpression(assignmentExpression->getRightPtr().get());
 
-  if (!rhsValue) {
-    _codeGenerationContext->callREF(
-        "Right hand side value not found in assignment expression ");
+//   if (!rhsValue) {
+//     _codeGenerationContext->callREF(
+//         "Right hand side value not found in assignment expression ");
 
-    return nullptr;
-  }
+//     return nullptr;
+//   }
 
-  return handlePrimitiveLocalVariableAssignment(_variableName, _variableType,
-                                                rhsValue);
-}
+//   return handlePrimitiveLocalVariableAssignment(_variableName, _variableType,
+//                                                 rhsValue);
+// }
 
 // CONTAINER ASSIGNMENT EXPRESSION GENERATION STRATEGY
 
-llvm::Value *
-AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
-    BoundAssignmentExpression *assignmentExpression) {
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
+// llvm::Value *
+// AssignmentExpressionGenerationStrategy::handleIndexExpressionAssignment(
+//     BoundAssignmentExpression *assignmentExpression) {
+//   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       assignmentExpression->getLocation());
 
-  _expressionGenerationFactory
-      ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
-      ->generateExpression(assignmentExpression->getLeftPtr().get());
-  llvm::Value *lhsPtr =
-      _codeGenerationContext->getValueStackHandler()->getValue();
-  llvm::Type *lhsType =
-      _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Assignment to constant  is not supported");
-    return nullptr;
-  }
-  llvm::Value *lhsValue = Builder->CreateLoad(lhsType, lhsPtr);
-  _codeGenerationContext->getValueStackHandler()->popAll();
+//   _expressionGenerationFactory
+//       ->createStrategy(assignmentExpression->getLeftPtr().get()->getKind())
+//       ->generateExpression(assignmentExpression->getLeftPtr().get());
+//   llvm::Value *lhsPtr =
+//       _codeGenerationContext->getValueStackHandler()->getValue();
+//   llvm::Type *lhsType =
+//       _codeGenerationContext->getValueStackHandler()->getLLVMType();
+//   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Assignment to constant  is not supported");
+//     return nullptr;
+//   }
+//   llvm::Value *lhsValue = Builder->CreateLoad(lhsType, lhsPtr);
+//   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  _expressionGenerationFactory
-      ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
-      ->generateExpression(assignmentExpression->getRightPtr().get());
+//   _expressionGenerationFactory
+//       ->createStrategy(assignmentExpression->getRightPtr().get()->getKind())
+//       ->generateExpression(assignmentExpression->getRightPtr().get());
 
-  llvm::Value *rhsPtr =
-      _codeGenerationContext->getValueStackHandler()->getValue();
-  llvm::Type *rhsType =
-      _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  llvm::Value *rhsValue = nullptr;
+//   llvm::Value *rhsPtr =
+//       _codeGenerationContext->getValueStackHandler()->getValue();
+//   llvm::Type *rhsType =
+//       _codeGenerationContext->getValueStackHandler()->getLLVMType();
+//   llvm::Value *rhsValue = nullptr;
 
-  if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
-    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-  } else {
-    rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
-  }
+//   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+//     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+//   } else {
+//     rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
+//   }
 
-  _codeGenerationContext->getValueStackHandler()->popAll();
+//   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  if (!rhsValue) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Right hand side value not found in assignment expression ");
-    return nullptr;
-  }
+//   if (!rhsValue) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Right hand side value not found in assignment expression ");
+//     return nullptr;
+//   }
 
-  if (!lhsValue) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Left hand side value not found in assignment expression ");
-    return nullptr;
-  }
-  if (llvm::isa<llvm::ArrayType>(lhsType) &&
-      llvm::isa<llvm::ArrayType>(rhsType)) {
+//   if (!lhsValue) {
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Left hand side value not found in assignment expression ");
+//     return nullptr;
+//   }
+//   if (llvm::isa<llvm::ArrayType>(lhsType) &&
+//       llvm::isa<llvm::ArrayType>(rhsType)) {
 
-    if (_codeGenerationContext->verifyArrayType(
-            llvm::cast<llvm::ArrayType>(lhsType),
-            llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
-      return nullptr;
-  }
+//     if (_codeGenerationContext->verifyArrayType(
+//             llvm::cast<llvm::ArrayType>(lhsType),
+//             llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
+//       return nullptr;
+//   }
 
-  Builder->CreateStore(rhsValue, lhsPtr);
+//   Builder->CreateStore(rhsValue, lhsPtr);
 
-  return rhsValue;
-}
+//   return rhsValue;
+// }
 
 llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
@@ -321,49 +327,50 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
   return handleAssignmentExpression(assignmentExpression);
 }
 
-bool AssignmentExpressionGenerationStrategy::
-    canGenerateLiteralExpressionAssignment(
-        BoundAssignmentExpression *assignmentExpression) {
-  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      assignmentExpression->getLocation());
+// bool AssignmentExpressionGenerationStrategy::
+//     canGenerateLiteralExpressionAssignment(
+//         BoundAssignmentExpression *assignmentExpression) {
+//   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       assignmentExpression->getLocation());
 
-  _variableExpression = static_cast<BoundVariableExpression *>(
-      assignmentExpression->getLeftPtr().get());
+//   _variableExpression = static_cast<BoundVariableExpression *>(
+//       assignmentExpression->getLeftPtr().get());
 
-  _variableName = _variableExpression->getVariableNameRef();
+//   _variableName = _variableExpression->getVariableNameRef();
 
-  llvm::Value *val =
-      _codeGenerationContext->getNamedValueChain()->getNamedValue(
-          _variableName);
-  _variableType =
-      assignmentExpression->getVariable()->getTypeExpression()->getSyntaxType();
-  _isGlobal = false;
+//   llvm::Value *val =
+//       _codeGenerationContext->getNamedValueChain()->getNamedValue(
+//           _variableName);
+//   _variableType =
+//       assignmentExpression->getVariable()->getTypeExpression()->getSyntaxType();
+//   _isGlobal = false;
 
-  if (!val) {
-    // Variable not found locally, handle error
+//   if (!val) {
+//     // Variable not found locally, handle error
 
-    _allocaInst =
-        _codeGenerationContext->getAllocaChain()->getAllocaInst(_variableName);
+//     _allocaInst =
+//         _codeGenerationContext->getAllocaChain()->getPtr(_variableName).first;
 
-    if (_allocaInst) {
-      return true;
-    }
+//     if (_allocaInst) {
+//       return true;
+//     }
 
-    _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
+//     _previousGlobalVariable = TheModule->getGlobalVariable(_variableName);
 
-    if (_previousGlobalVariable) {
-      _isGlobal = true;
-      return true;
-    }
+//     if (_previousGlobalVariable) {
+//       _isGlobal = true;
+//       return true;
+//     }
 
-    _codeGenerationContext->getLogger()->LogError(
-        "Variable not found in assignment expression '" + _variableName + "'");
+//     _codeGenerationContext->getLogger()->LogError(
+//         "Variable not found in assignment expression '" + _variableName +
+//         "'");
 
-    return false;
-  }
+//     return false;
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 int8_t AssignmentExpressionGenerationStrategy::populateLHS(
     BoundAssignmentExpression *&assignmentExpression) {
@@ -435,6 +442,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   llvm::Value *rhsValue = nullptr;
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
+
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
     rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
@@ -456,6 +464,39 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       return nullptr;
     }
 
+    llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(_lhsType);
+    llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(rhsType);
+
+    if (_codeGenerationContext
+            ->_classTypes[lhsStructType->getStructName().str()]) {
+
+      // if (exp && exp->getKind() == BinderKindUtils::CallExpression) {
+      //   BoundCallExpression *callExpression =
+      //       static_cast<BoundCallExpression *>(exp);
+
+      //   if (callExpression->getCallerNameRef().find(
+      //           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+      //       std::string::npos) {
+      //     return nullptr;
+      //   }
+      // }
+
+      // llvm::Value *ptrPtr = Builder->CreateStructGEP(lhsStructType, _lhsPtr,
+      // 0); Builder->CreateStore(
+      //     TheModule->getOrInsertGlobal(
+      //         _codeGenerationContext
+      //             ->_classTypes[rhsStructType->getStructName().str()]
+      //             ->getVTableName(),
+      //         _codeGenerationContext
+      //             ->_classTypes[rhsStructType->getStructName().str()]
+      //             ->getVTableType()),
+      //     ptrPtr);
+
+      // _codeGenerationContext->_classTypes[rhsStructType->getStructName().str()]
+      //     ->populateVTable(Builder, TheModule, TheContext, ptrPtr);
+
+      return Builder->CreateStore(rhsValue, _lhsPtr);
+    }
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
 
@@ -571,6 +612,19 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
       handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
     } else {
+
+      if (_lhsType != rhsType) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Type mismatch in variable Assignment " + _lhsVariableName +
+            " Expected type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType) +
+            " but got type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType));
+
+        return EXIT_FAILURE;
+      }
+
       Builder->CreateStore(rhsValue, _lhsPtr);
     }
 
@@ -589,7 +643,8 @@ AssignmentExpressionGenerationStrategy::handleAssignmentByObjectExpression(
 
   if (!llvm::isa<llvm::StructType>(_lhsType)) {
     _codeGenerationContext->getLogger()->LogError(
-        "Left hand side value must be an object in assignment expression, but "
+        "Left hand side value must be an object in assignment expression, "
+        "but "
         "found " +
         _codeGenerationContext->getMapper()->getLLVMTypeName(_lhsType));
     return nullptr;
@@ -773,12 +828,9 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
 void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     llvm::StructType *objectType, llvm::Value *alloca) {
   std::string typeName = objectType->getStructName().str();
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(typeName);
 
   uint64_t index = 0;
-  for (const auto &[bLitExpr, bExpr] :
-       boundCustomTypeStatement->getKeyPairs()) {
+  for (const auto &items : objectType->elements()) {
 
     llvm::Value *innerElementPtr =
         Builder->CreateStructGEP(objectType, alloca, index);

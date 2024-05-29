@@ -1,8 +1,10 @@
 #include "TypeMapper.h"
 
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
-                       llvm::Module *module)
-    : _context(context), _builder(builder), _module(module) {
+                       llvm::Module *module,
+                       CodeGenerationContext *codeGenerationContext)
+    : _context(context), _builder(builder), _module(module),
+      _codeGenerationContext(codeGenerationContext) {
   _typeMappings = {
       {(llvm::Type *)llvm::Type::getInt1Ty(*context),
        SyntaxKindUtils::SyntaxKind::BoolKeyword},
@@ -105,6 +107,13 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
   if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
     if (llvm::isa<llvm::StructType>(type)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+      if (_codeGenerationContext->_classTypes.find(
+              structType->getName().str()) !=
+          _codeGenerationContext->_classTypes.end()) {
+        return COLORED_STRING::GET("<Class<" + structType->getName().str() +
+                                       ">>",
+                                   YELLOW_TEXT, RED_TEXT);
+      }
       return COLORED_STRING::GET("<Object<" + structType->getName().str() +
                                      ">>",
                                  YELLOW_TEXT, RED_TEXT);

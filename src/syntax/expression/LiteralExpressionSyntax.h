@@ -5,18 +5,18 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 
-template <typename T>
-class LiteralExpressionSyntax : public ExpressionSyntax {
- private:
+template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
+private:
   std::unique_ptr<SyntaxToken<std::any>> _token;
   T _value;
 
- public:
+public:
   LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
                           T value);
   const std::string getKindText();
   const SyntaxKindUtils::SyntaxKind getSyntaxKind();
   const T &getValue();
+  void setValue(T value);
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -24,7 +24,6 @@ class LiteralExpressionSyntax : public ExpressionSyntax {
 
   std::unique_ptr<SyntaxToken<std::any>> &getTokenPtr();
 };
-
 
 template <typename T>
 LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
@@ -45,11 +44,13 @@ const std::string LiteralExpressionSyntax<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->getKind());
 }
 
-template <typename T>
-const T &LiteralExpressionSyntax<T>::getValue() {
+template <typename T> const T &LiteralExpressionSyntax<T>::getValue() {
   return this->_value;
 }
+template <typename T> void LiteralExpressionSyntax<T>::setValue(T value) {
 
+  this->_value = value;
+}
 template <typename T>
 const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
   return SyntaxKindUtils::SyntaxKind::LiteralExpression;

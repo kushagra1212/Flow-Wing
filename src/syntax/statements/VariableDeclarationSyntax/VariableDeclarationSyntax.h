@@ -10,9 +10,11 @@
 class VariableDeclarationSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
+  std::unique_ptr<SyntaxToken<std::any>> _inout_keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifier;
   std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
+  std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
   std::unique_ptr<ExpressionSyntax> _initializer;
   std::unique_ptr<TypeExpressionSyntax> _typeExpr;
   bool _hasNewKeyword = false;
@@ -39,6 +41,14 @@ public:
     _typeExpr = std::move(typeExpr);
   }
 
+  inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword) {
+    _asKeyword = std::move(asKeyword);
+  }
+
+  inline auto
+  setInoutKeyword(std::unique_ptr<SyntaxToken<std::any>> inoutKeyword) -> void {
+    _inout_keyword = std::move(inoutKeyword);
+  }
   inline void
   setExposeKeyword(std::unique_ptr<SyntaxToken<std::any>> exposeKeyword) {
     _exposeKeyword = std::move(exposeKeyword);
@@ -55,6 +65,11 @@ public:
     return _identifier;
   }
 
+  inline auto getInoutKeywordRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _inout_keyword;
+  }
+
   inline auto getKeywordRef()
       -> const std::unique_ptr<SyntaxToken<std::any>> & {
     return _keyword;
@@ -62,6 +77,11 @@ public:
 
   inline auto getTypeRef() -> const std::unique_ptr<TypeExpressionSyntax> & {
     return _typeExpr;
+  }
+
+  inline auto getAsKeywordRef()
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _asKeyword;
   }
 
   inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {

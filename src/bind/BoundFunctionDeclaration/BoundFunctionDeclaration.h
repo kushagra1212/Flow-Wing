@@ -15,6 +15,9 @@ class BoundFunctionDeclaration : public BoundStatement,
   bool _isExposed;
   std::unique_ptr<BoundExpression> _returnType;
   bool _isOnlyDeclared = false;
+  bool _isMemberFunction = false;
+  std::string _classItBelongTo = "";
+  bool _isVariadicFunction = false;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -27,10 +30,20 @@ public:
   void setFunctionName(const std::string &functionName);
   void setFunctionBody(std::unique_ptr<BoundBlockStatement> body);
 
-  inline void setOnlyDeclared() { _isOnlyDeclared = true; }
+  inline void setOnlyDeclared(bool isOnlyDeclared) {
+    _isOnlyDeclared = isOnlyDeclared;
+  }
+
+  inline void setClassItBelongTo(const std::string &classItBelongTo) {
+    _classItBelongTo = classItBelongTo;
+  }
 
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
     _returnType = std::move(returnType);
+  }
+
+  inline void setIsMemberFunction(bool isMemberFunction) {
+    _isMemberFunction = isMemberFunction;
   }
 
   inline auto getParametersRef() const
@@ -44,14 +57,26 @@ public:
       -> const std::unique_ptr<BoundBlockStatement> & {
     return _body;
   }
+  inline auto setIsVariadicFunction(bool isVariadicFunction) {
+    this->_isVariadicFunction = isVariadicFunction;
+  }
+
+  inline auto isVariadicFunction() const { return _isVariadicFunction; }
+
   inline auto getReturnType() const
       -> const std::unique_ptr<BoundExpression> & {
     return _returnType;
   }
 
+  inline auto isMemberFunction() const -> bool { return _isMemberFunction; }
+
   inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _isExposed; }
+
+  inline auto getClassItBelongTo() const -> const std::string & {
+    return _classItBelongTo;
+  }
 };
 
 #endif

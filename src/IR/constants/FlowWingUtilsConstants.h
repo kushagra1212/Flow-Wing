@@ -5,6 +5,7 @@
 
 namespace FLOWWING::UTILS::CONSTANTS {
 extern const std::string GLOBAL_VARIABLE_PREFIX;
-};
+extern const std::string MEMBER_FUN_PREFIX;
+}; // namespace FLOWWING::UTILS::CONSTANTS
 
-#endif  // __FLOWWING_UTILS_CONSTANTS_H__
+#endif // __FLOWWING_UTILS_CONSTANTS_H__

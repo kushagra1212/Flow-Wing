@@ -5,10 +5,10 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 
 class BoundTypeExpression : public BoundExpression {
- private:
+private:
   SyntaxKindUtils::SyntaxKind _type;
 
- public:
+public:
   BoundTypeExpression(const DiagnosticUtils::SourceLocation &location,
                       const SyntaxKindUtils::SyntaxKind &type);
 

@@ -12,6 +12,17 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  llvm::Type *getType(BoundTypeExpression *btE);
+  llvm::Type *getClassElementType(BoundTypeExpression *bTE,
+                                  std::string className);
+
+  llvm::Value *generateForClassElement(BoundStatement *statement,
+                                       std::string className);
+
+private:
+  bool _isGlobal = false;
+  std::string _className = "";
 };
 
 #endif // __FLOWWING_CUSTOM_TYPE_STATEMENT_STRATEGY_H__

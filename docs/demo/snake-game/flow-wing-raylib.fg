@@ -1,0 +1,53 @@
+
+type Texture = {
+  id:int,
+  width:int,
+  height:int,
+  mipmaps:int,
+  format:int
+}
+
+fun InitWindow(width: as int,height: as int,title: as str) -> nthg decl
+fun SetTargetFPS(fps: as int) -> nthg decl
+fun ClearBackground(color: as int) -> nthg decl
+fun WindowShouldClose() -> bool decl
+fun BeginDrawing() -> nthg decl
+fun DrawRectangle(posX: as int, posY: as int, width: as int, height: as int, color:as int) -> nthg decl
+fun EndDrawing() -> nthg decl
+fun CloseWindow() -> nthg decl
+
+/; window releated  
+
+fun GetScreenHeight() -> int decl 
+fun GetScreenWidth() -> int decl
+
+
+/; Draw Shapes
+/; Draw Circle
+fun DrawCircle(centerX: as int, centerY: as int, radius: as deci32, color: as int) -> nthg decl
+
+/; Text Drawing Function
+fun DrawText(text: as str, posX: as int, posY: as int, fontSize: as int, color: as int) -> nthg decl
+
+/; Input-related functions: keyboard
+fun IsKeyPressed(key: as int) -> bool decl
+fun IsKeyDown(key: as int) -> bool decl
+/; Format Text
+fun TextFormat(text: as str) -> str decl
+
+
+/; Texture functions
+fun LoadTexture(fileName: as str) -> Texture decl
+
+/; Texture Drawing Functions 
+fun DrawTexture(texture: as Texture, posX: as int, posY: as int, color: as int) -> nthg decl
+
+
+
+fun rand() -> int decl
+fun time() -> int decl
+fun srand(x: as int) -> nthg decl
+
+fun getRandomNumber(start: int, end: int) -> int {
+   return rand() % (end - start + 1) + start
+}

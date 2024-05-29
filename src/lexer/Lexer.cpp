@@ -254,6 +254,22 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::NewKeyword, start, text, "new");
+  } else if (text == "class") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ClassKeyword, start, text, "class");
+  } else if (text == "inout") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::INOUTKeyword, start, text, "inout");
+  } else if (text == "extends") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::ExtendsKeyword, start, text, "extends");
+  } else if (text == "as") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::Askeyword, start, text, "as");
   }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
@@ -283,7 +299,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readEndOfFile() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
-  std::string text = "\n";
+  std::string text = "";
   int lineN = this->lineNumber;
   int pos = this->position + 1;
   text += this->getCurrent();
@@ -331,7 +347,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readMultiLineComment() {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
-  std::string text = "\n";
+  std::string text = "";
   int lineN = this->lineNumber;
   int pos = this->position + 1;
   text += this->getCurrent();
@@ -354,9 +370,11 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSingleLineComment() {
       this->next();
     }
   }
-  text += '\n';
-  this->lineNumber++;
-  this->position = 0;
+  if (this->getCurrent() == endOfLine) {
+    text += "\n";
+    this->lineNumber++;
+    this->position = 0;
+  }
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), lineN,
       SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);

@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
@@ -20,47 +21,52 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   // Specialized for BoundAssignmentExpression
-  llvm::Value *handleLiteralExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+  //   llvm::Value *handleLiteralExpressionAssignment(
+  //       BoundAssignmentExpression *assignmentExpression);
 
-  llvm::Value *handleIndexExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+  //   llvm::Value *handleIndexExpressionAssignment(
+  //       BoundAssignmentExpression *assignmentExpression);
 
   // Global Specialized for BoundAssignmentExpression
-  llvm::Value *handleGlobalLiteralExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+  //   llvm::Value *handleGlobalLiteralExpressionAssignment(
+  //       BoundAssignmentExpression *assignmentExpression);
 
-  bool canGenerateLiteralExpressionAssignment(
-      BoundAssignmentExpression *assignmentExpression);
+  // bool canGenerateLiteralExpressionAssignment(
+  //     BoundAssignmentExpression *assignmentExpression);
 
   // Primitve Local Variable Assignment
 
-  llvm::Value *handleTypedPrmitiveLocalVariableAssignment(
-      const std::string &variableName,
-      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
+  //   llvm::Value *handleTypedPrmitiveLocalVariableAssignment(
+  //       const std::string &variableName,
+  //       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value
+  //       *rhsValue);
 
-  llvm::Value *
-  handleUnTypedPrmitiveLocalVariableAssignment(const std::string &variableName,
-                                               llvm::Value *rhsValue);
+  //   llvm::Value *
+  //   handleUnTypedPrmitiveLocalVariableAssignment(const std::string
+  //   &variableName,
+  //                                                llvm::Value *rhsValue);
 
-  llvm::Value *handlePrimitiveLocalVariableAssignment(
-      const std::string &variableName,
-      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
+  //   llvm::Value *handlePrimitiveLocalVariableAssignment(
+  //       const std::string &variableName,
+  //       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value
+  //       *rhsValue);
 
   // Primitive Global Variable Assignment
 
-  llvm::Value *handleTypedPrmitiveGlobalVariableAssignment(
-      llvm::GlobalVariable *variable, const std::string &variableName,
-      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
+  //   llvm::Value *handleTypedPrmitiveGlobalVariableAssignment(
+  //       llvm::GlobalVariable *variable, const std::string &variableName,
+  //       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value
+  //       *rhsValue);
 
   llvm::Value *
   handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
                                            const std::string &variableName,
                                            llvm::Value *rhsValue);
 
-  llvm::Value *handlePrimitiveGlobalVariableAssignment(
-      llvm::GlobalVariable *variable, const std::string &variableName,
-      const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
+  //   llvm::Value *handlePrimitiveGlobalVariableAssignment(
+  //       llvm::GlobalVariable *variable, const std::string &variableName,
+  //       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value
+  //       *rhsValue);
 
   llvm::Value *
   handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);

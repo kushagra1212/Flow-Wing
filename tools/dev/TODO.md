@@ -1,3 +1,8 @@
+## Bug
+- multidimentional nessated array 
+- class initilizer when during inheritance
+- class inheriance
+
 ## Current Work
 
 - Array inside Object (test all cases)

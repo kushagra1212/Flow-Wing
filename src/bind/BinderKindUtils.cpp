@@ -32,6 +32,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "ExpressionStatement";
   case BlockStatement:
     return "BlockStatement";
+  case ClassStatement:
+    return "ClassStatement";
 
   case IfStatement:
     return "IfStatement";
@@ -85,6 +87,21 @@ std::string BinderKindUtils::to_string(BoundUnaryOperatorKind kind) {
     return "LogicalNegation";
   case BitwiseNegation:
     return "BitwiseNegation";
+  default:
+    return "NotDefined";
+  }
+}
+
+std::string BinderKindUtils::to_string(MemoryKind kind) {
+  switch (kind) {
+  case Heap:
+    return "Heap";
+  case Stack:
+    return "Stack";
+  case Global:
+    return "Global";
+  case None:
+    return "None";
   default:
     return "NotDefined";
   }

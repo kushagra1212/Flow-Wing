@@ -20,7 +20,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   llvm::AllocaInst *v =
       Builder->CreateAlloca(llvmType, nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName, v);
+  _codeGenerationContext->getAllocaChain()->setPtr(variableName, {v, llvmType});
 
   Builder->CreateStore(rhsValue, v);
 
@@ -34,8 +34,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
       Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
                             nullptr, variableName.c_str());
 
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(variableName,
-                                                          variable);
+  _codeGenerationContext->getAllocaChain()->setPtr(
+      variableName,
+      {variable, _codeGenerationContext->getDynamicType()->get()});
 
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
       variable, rhsValue, rhsValue->getType(), variableName);
@@ -48,8 +49,6 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(variableName,
-                                                              rhsValue);
 
   // Handle Local Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
@@ -61,134 +60,10 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   return handleUnTypedPrimitiveLocalVariableDeclr(variableName, rhsValue);
 }
 
-llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
-    BoundStatement *statement) {
-  BoundVariableDeclaration *variableDeclaration =
-      static_cast<BoundVariableDeclaration *>(statement);
-  if (!canGenerateStatement(statement)) {
-    return nullptr;
-  }
-
-  _codeGenerationContext->getNamedValueChain()->setNamedValue(_variableName,
-                                                              _rhsValue);
-
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
-    std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
-        contDecGenStrat =
-            std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
-                _codeGenerationContext);
-
-    return contDecGenStrat->generateStatement(statement);
-  }
-  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
-      std::make_unique<AssignmentExpressionGenerationStrategy>(
-          _codeGenerationContext);
-  if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-
-    BoundVariableDeclaration *variableDeclaration =
-        static_cast<BoundVariableDeclaration *>(statement);
-
-    BoundObjectTypeExpression *objectTypeExpression =
-        static_cast<BoundObjectTypeExpression *>(
-            variableDeclaration->getTypeExpression().get());
-
-    llvm::StructType *structType =
-        _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
-
-    if (!structType) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Object type " + objectTypeExpression->getTypeName() + " not found");
-      return nullptr;
-    }
-
-    if (variableDeclaration->getHasNewKeyword()) {
-
-      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
-
-      llvm::CallInst *malloc_call = Builder->CreateCall(
-          fun, llvm::ConstantInt::get(
-                   llvm::Type::getInt64Ty(*TheContext),
-                   _codeGenerationContext->getMapper()->getSizeOf(structType)));
-      malloc_call->setTailCall(false);
-
-      // Cast the result of 'malloc' to a pointer to int
-      llvm::Value *intPtr = Builder->CreateBitCast(
-          malloc_call,
-          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                       {intPtr, structType});
-      assignmentEGS->initDefaultValue(structType, intPtr);
-
-      return assignmentEGS->handleAssignExpression(
-          intPtr, structType, _variableName,
-          variableDeclaration->getInitializerPtr().get());
-    }
-
-    llvm::AllocaInst *var =
-        Builder->CreateAlloca(structType, nullptr, _variableName);
-
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
-    assignmentEGS->initDefaultValue(structType, var);
-    return assignmentEGS->handleAssignExpression(
-        var, structType, _variableName,
-        variableDeclaration->getInitializerPtr().get());
-  }
-
-  if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
-    llvm::Type *llvmType =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            _variableType);
-
-    if (variableDeclaration->getHasNewKeyword()) {
-
-      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
-
-      llvm::CallInst *malloc_call = Builder->CreateCall(
-          fun, llvm::ConstantInt::get(
-                   llvm::Type::getInt64Ty(*TheContext),
-                   _codeGenerationContext->getMapper()->getSizeOf(llvmType)));
-      malloc_call->setTailCall(false);
-
-      // Cast the result of 'malloc' to a pointer to int
-      llvm::Value *intPtr = Builder->CreateBitCast(
-          malloc_call,
-          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                       {intPtr, llvmType});
-      assignmentEGS->initDefaultValue(llvmType, intPtr);
-
-      Builder->CreateStore(_rhsValue, intPtr);
-      return _rhsValue;
-    }
-
-    llvm::AllocaInst *var =
-        Builder->CreateAlloca(llvmType, nullptr, _variableName);
-    assignmentEGS->initDefaultValue(llvmType, var);
-    _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
-
-    Builder->CreateStore(_rhsValue, var);
-
-    return _rhsValue;
-  }
-
-  //    Dynamic Typed Variable
-
-  llvm::AllocaInst *var = Builder->CreateAlloca(
-      _codeGenerationContext->getDynamicType()->get(), nullptr, _variableName);
-
-  _codeGenerationContext->getAllocaChain()->setAllocaInst(_variableName, var);
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      var, _rhsValue, _rhsValue->getType(), _variableName);
-
-  return _rhsValue;
-}
-
 llvm::Value *
-VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
-  BoundVariableDeclaration *variableDeclaration =
-      static_cast<BoundVariableDeclaration *>(statement);
+VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
+    BoundVariableDeclaration *variableDeclaration) {
+
   if (!canGenerateStatement(variableDeclaration)) {
     return nullptr;
   }
@@ -199,15 +74,13 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
             std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
                 _codeGenerationContext);
 
-    return contDecGenStrat->generateGlobalStatement(statement);
+    return contDecGenStrat->generateGlobalStatement(variableDeclaration);
   }
   std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    BoundVariableDeclaration *variableDeclaration =
-        static_cast<BoundVariableDeclaration *>(statement);
 
     BoundObjectTypeExpression *objectTypeExpression =
         static_cast<BoundObjectTypeExpression *>(
@@ -217,96 +90,196 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
         _codeGenerationContext->getTypeChain()->getType(
             objectTypeExpression->getTypeName());
 
+    std::pair<llvm::Value *, llvm::Type *> cl =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
+      // llvm::StructType *ct = llvm::cast<llvm::StructType>(cl.second);
+      // structType = _codeGenerationContext->getTypeChain()->getType(
+      //     ct->getStructName().str() +
+      //         FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+      //         objectTypeExpression->getTypeName(),
+      //     "");
+    }
+
+    if (!structType && _codeGenerationContext->_classTypes.find(
+                           objectTypeExpression->getTypeName()) !=
+                           this->_codeGenerationContext->_classTypes.end()) {
+      structType = _codeGenerationContext
+                       ->_classTypes[objectTypeExpression->getTypeName()]
+                       ->getClassType();
+    }
+
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Object type " + objectTypeExpression->getTypeName() + " not found");
       return nullptr;
     }
 
-    if (variableDeclaration->getHasNewKeyword()) {
+    if (_codeGenerationContext->_classTypes.find(
+            structType->getStructName().str().substr(
+                0, structType->getStructName().str().find("."))) !=
+        _codeGenerationContext->_classTypes.end()) {
 
-      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+      std::string className = structType->getStructName().str().substr(
+          0, structType->getStructName().str().find("."));
 
-      llvm::CallInst *malloc_call = Builder->CreateCall(
-          fun, llvm::ConstantInt::get(
-                   llvm::Type::getInt64Ty(*TheContext),
-                   _codeGenerationContext->getMapper()->getSizeOf(structType)));
-      malloc_call->setTailCall(false);
+      llvm::Value *init = nullptr;
+      llvm::Value *ptr = nullptr;
 
-      // Cast the result of 'malloc' to a pointer to int
-      llvm::Value *intPtr = Builder->CreateBitCast(
-          malloc_call,
-          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
+      if (variableDeclaration->getInitializerPtr().get() &&
+          variableDeclaration->getInitializerPtr().get()->getKind() ==
+              BinderKindUtils::CallExpression) {
+        BoundCallExpression *callExpression =
+            static_cast<BoundCallExpression *>(
+                variableDeclaration->getInitializerPtr().get());
+
+        if (callExpression->getCallerNameRef().find(
+                FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+            std::string::npos) {
+          className = callExpression->getCallerNameRef();
+
+          className = className.substr(
+              0, className.find(
+                     FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                     std::to_string(callExpression->getArgumentsRef().size())));
+
+          if (_codeGenerationContext->_classTypes.find(className) !=
+              _codeGenerationContext->_classTypes.end()) {
+
+            ptr = _codeGenerationContext->createMemoryGetPtr(
+                _codeGenerationContext->_classTypes[className]->getClassType(),
+                "", BinderKindUtils::MemoryKind::Heap);
+
+            assignmentEGS->initDefaultValue(
+                _codeGenerationContext->_classTypes[className]->getClassType(),
+                ptr);
+
+          } else {
+            _codeGenerationContext->getLogger()->LogError("Class " + className +
+                                                          " not found");
+            return nullptr;
+          }
+        }
+      }
+
+      if (ptr == nullptr) {
+        ptr = _codeGenerationContext->createMemoryGetPtr(
+            _codeGenerationContext->_classTypes[className]->getClassType(),
+            _variableName, BinderKindUtils::MemoryKind::Heap);
+
+        assignmentEGS->initDefaultValue(
+            _codeGenerationContext->_classTypes[className]->getClassType(),
+            ptr);
+      }
+
+      if (variableDeclaration->getInitializerPtr().get() &&
+          variableDeclaration->getInitializerPtr().get()->getKind() ==
+              BinderKindUtils::CallExpression) {
+        _codeGenerationContext->getValueStackHandler()->push("", ptr, "struct",
+                                                             structType);
+      }
+      {
+        llvm::Value *ptrPtr = Builder->CreateStructGEP(
+            _codeGenerationContext->_classTypes[className]->getClassType(), ptr,
+            0);
+        Builder->CreateStore(
+            TheModule->getOrInsertGlobal(
+                _codeGenerationContext->_classTypes[className]->getVTableName(),
+                _codeGenerationContext->_classTypes[className]
+                    ->getVTableType()),
+            ptrPtr);
+
+        _codeGenerationContext->_classTypes[className]->populateVTable(
+            Builder, TheModule, TheContext, ptrPtr);
+      }
+
+      if (variableDeclaration->getInitializerPtr().get())
+        init = assignmentEGS->handleAssignExpression(
+            ptr, structType, _variableName,
+            variableDeclaration->getInitializerPtr().get());
+
       _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                       {intPtr, structType});
-      assignmentEGS->initDefaultValue(structType, intPtr);
+                                                       {ptr, structType});
 
-      return assignmentEGS->handleAssignExpression(
-          intPtr, structType, _variableName,
-          variableDeclaration->getInitializerPtr().get());
+      if (!variableDeclaration->getInitializerPtr().get())
+        return ptr;
+      return init;
     }
 
-    llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, structType, false, llvm::GlobalValue::ExternalWeakLinkage,
-        llvm::Constant::getNullValue(structType), _variableName);
+    llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
+        structType, _variableName, variableDeclaration->getMemoryKind());
 
-    assignmentEGS->initDefaultValue(structType, _globalVariable);
-
+    assignmentEGS->initDefaultValue(structType, ptr);
+    _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                     {ptr, structType});
+    if (!variableDeclaration->getInitializerPtr().get())
+      return ptr;
     return assignmentEGS->handleAssignExpression(
-        _globalVariable, structType, _variableName,
+        ptr, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
   }
 
   // Handle Global Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+
     llvm::Type *llvmType =
         _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
             _variableType);
-    if (variableDeclaration->getHasNewKeyword()) {
 
-      auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
+    llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
+        llvmType, _variableName, variableDeclaration->getMemoryKind());
 
-      llvm::CallInst *malloc_call = Builder->CreateCall(
-          fun, llvm::ConstantInt::get(
-                   llvm::Type::getInt64Ty(*TheContext),
-                   _codeGenerationContext->getMapper()->getSizeOf(llvmType)));
-      malloc_call->setTailCall(false);
+    assignmentEGS->initDefaultValue(llvmType, ptr);
+    _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                     {ptr, llvmType});
 
-      // Cast the result of 'malloc' to a pointer to int
-      llvm::Value *intPtr = Builder->CreateBitCast(
-          malloc_call,
-          llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
-      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                       {intPtr, llvmType});
-      assignmentEGS->initDefaultValue(llvmType, intPtr);
-
-      Builder->CreateStore(_rhsValue, intPtr);
-      return _rhsValue;
-    }
-
-    llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-        *TheModule, llvmType, false, llvm::GlobalValue::ExternalWeakLinkage,
-        llvm::Constant::getNullValue(llvmType), _variableName);
-
-    assignmentEGS->initDefaultValue(llvmType, _globalVariable);
-
-    Builder->CreateStore(_rhsValue, _globalVariable);
+    if (!_rhsValue)
+      return ptr;
+    Builder->CreateStore(_rhsValue, ptr);
 
     return _rhsValue;
   }
 
-  // Handle Global Dynamic Typed Variable
-  llvm::GlobalVariable *_globalVariable = new llvm::GlobalVariable(
-      *TheModule, _codeGenerationContext->getDynamicType()->get(), false,
-      llvm::GlobalValue::ExternalWeakLinkage,
-      llvm::Constant::getNullValue(
-          _codeGenerationContext->getDynamicType()->get()),
-      _variableName);
+  if (!_rhsValue) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected a right hand side value in the expression, but found "
+        "nothing");
+    return nullptr;
+  }
+
+  llvm::Value *dynVarPtr = _codeGenerationContext->createMemoryGetPtr(
+      _codeGenerationContext->getDynamicType()->get(), _variableName,
+      variableDeclaration->getMemoryKind());
+
+  _codeGenerationContext->getAllocaChain()->setPtr(
+      _variableName,
+      {dynVarPtr, _codeGenerationContext->getDynamicType()->get()});
 
   _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      _globalVariable, _rhsValue, _rhsValue->getType(), _variableName);
+      dynVarPtr, _rhsValue, _rhsValue->getType(), _variableName);
 
   return _rhsValue;
+}
+
+llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
+  BoundVariableDeclaration *variableDeclaration =
+      static_cast<BoundVariableDeclaration *>(statement);
+  if (variableDeclaration->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    variableDeclaration->setMemoryKind(BinderKindUtils::MemoryKind::Stack);
+
+  return this->generateCommonStatement(variableDeclaration);
+}
+llvm::Value *
+VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
+
+  BoundVariableDeclaration *variableDeclaration =
+      static_cast<BoundVariableDeclaration *>(statement);
+  if (variableDeclaration->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    variableDeclaration->setMemoryKind(BinderKindUtils::MemoryKind::Global);
+
+  return this->generateCommonStatement(variableDeclaration);
 }
 
 bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
@@ -322,15 +295,14 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       variableDeclaration->getLocation());
 
-  if (!initializerExp) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Rhs of variable " + _variableName + " is not an expression");
-    return false;
-  }
-  _variableType = variableDeclaration->getTypeExpression()->getSyntaxType();
+  _variableType =
+      variableDeclaration->getTypeExpression().get()->getSyntaxType();
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
       _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+    return true;
+  }
+  if (!initializerExp) {
     return true;
   }
 

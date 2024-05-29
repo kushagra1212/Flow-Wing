@@ -796,7 +796,31 @@ TEST_F(ObjectTest, AssignValueSimpleObject2) {
     "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
     "}");
 }
+TEST_F(ObjectTest, AssignValueSimpleObject2Constant) {
+  I(R"(
+  type Position = {
+  x: int,
+  y: int
+}
 
+const screenWidth: int  = 1000
+const screenHeight: int = 500
+const side: int = 10
+
+fun getN() -> int {
+  return 2
+}
+  var pos: Position = { 
+    x: getN(), 
+    y: getN()
+  }
+  print(pos.x)
+  pos.x =  pos.x -  pos.x % side
+  pos.y = pos.y - pos.y % side
+    )");
+
+  O("2");
+}
 // TEST_F(ObjectTest, AssignCompleteObject) {
 //   I(R"(
 //         type type1 = {

@@ -36,6 +36,7 @@ enum BoundNodeKind {
   BringStatement,
   ContainerStatement,
   CustomTypeStatement,
+  ClassStatement,
 
   // declarations
 
@@ -74,6 +75,10 @@ enum BoundBinaryOperatorKind {
   IntegerDivision,
   AssignmentToken
 };
+
+enum MemoryKind { Stack, Heap, Global, None };
+
+std::string to_string(MemoryKind kind);
 
 std::string to_string(BoundNodeKind kind);
 

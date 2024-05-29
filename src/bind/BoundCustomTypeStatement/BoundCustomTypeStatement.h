@@ -35,6 +35,10 @@ public:
         std::make_pair(std::move(key), std::move(type)));
   }
 
+  inline auto setTypeNameAsString(std::string typeName) -> void {
+    this->_typeName->setValue(typeName);
+  }
+
   /*
     Getters
   */
@@ -51,6 +55,20 @@ public:
       std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
                             std::unique_ptr<BoundTypeExpression>>> & {
     return this->_key_type_pairs;
+  }
+
+  inline auto getKeyValue(std::string key)
+      -> std::tuple<BoundLiteralExpression<std::any> *, BoundTypeExpression *,
+                    uint64_t> {
+    uint64_t index = 0;
+    for (auto &pair : this->_key_type_pairs) {
+      if (std::any_cast<std::string>(pair.first->getValue()) == key) {
+        return {pair.first.get(), pair.second.get(), index};
+      }
+      index++;
+    }
+
+    return {nullptr, nullptr, -1};
   }
 
   inline auto isExposed() -> bool { return this->_isExposed; }

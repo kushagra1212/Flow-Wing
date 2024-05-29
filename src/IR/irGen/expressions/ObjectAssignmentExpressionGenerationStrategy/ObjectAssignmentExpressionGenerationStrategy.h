@@ -3,6 +3,7 @@
 
 #include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
+#include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 

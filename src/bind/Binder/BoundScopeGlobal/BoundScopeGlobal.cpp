@@ -6,11 +6,13 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::unordered_map<std::string, std::any> variablesValues,
     std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
     std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
+    std::unordered_map<std::string, BoundClassStatement *> classes,
     FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
     : variables(variables), functions(functions), customTypes(customTypes),
-      variablesValues(variablesValues), globalStatement(std::move(statement)),
-      previous(std::move(previous)), _diagnosticHandler(diagnosticHandler) {}
+      classes(classes), variablesValues(variablesValues),
+      globalStatement(std::move(statement)), previous(std::move(previous)),
+      _diagnosticHandler(diagnosticHandler) {}
 
 bool BoundScopeGlobal::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {

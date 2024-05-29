@@ -4,11 +4,11 @@
 #include "../BoundTypeExpression.h"
 
 class BoundObjectTypeExpression : public BoundTypeExpression {
- private:
+private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _objectTypeIdentifier;
   std::string _typeName;
 
- public:
+public:
   BoundObjectTypeExpression(const DiagnosticUtils::SourceLocation &location,
                             const SyntaxKindUtils::SyntaxKind &type);
 
@@ -21,11 +21,14 @@ class BoundObjectTypeExpression : public BoundTypeExpression {
     this->_objectTypeIdentifier = std::move(objectTypeIdentifier);
   }
 
-  inline auto setTypeName(const std::string &typeName) -> void {
-    this->_typeName = typeName;
+  inline auto setTypeName(std::string typeName) -> void {
+    this->_objectTypeIdentifier->setValue(typeName);
   }
 
-  inline auto getTypeName() -> const std::string & { return this->_typeName; }
+  inline auto getTypeName() -> const std::string {
+
+    return std::any_cast<std::string>(this->_objectTypeIdentifier->getValue());
+  }
 
   inline auto getObjectTypeIdentifier()
       -> const std::unique_ptr<BoundLiteralExpression<std::any>> & {
@@ -33,4 +36,4 @@ class BoundObjectTypeExpression : public BoundTypeExpression {
   }
 };
 
-#endif  // __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__
+#endif // __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__

@@ -23,6 +23,7 @@ private:
   std::unique_ptr<ExpressionSyntax> _returnExpression;
   std::unique_ptr<SyntaxToken<std::any>> _declKeyword;
   bool _isOnlyDeclared = false;
+  bool _isMemberFunction = false;
 
 public:
   std::unique_ptr<SyntaxToken<std::any>> getFunctionKeyword();
@@ -50,11 +51,15 @@ public:
     _exposedKeyword = std::move(exposedKeyword);
   }
 
+  auto setIsOnlyDeclared(bool is) { _isOnlyDeclared = is; }
+
   inline auto
   setDeclKeyword(std::unique_ptr<SyntaxToken<std::any>> declKeyword) {
-    _isOnlyDeclared = true;
+    this->setIsOnlyDeclared(true);
     _declKeyword = std::move(declKeyword);
   }
+
+  inline auto setIsMemberFunction(bool is) { _isMemberFunction = is; }
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -82,6 +87,7 @@ public:
   inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _exposedKeyword != nullptr; }
+  inline auto isMemberFunction() const -> bool { return _isMemberFunction; }
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

@@ -1,16 +1,18 @@
 #pragma once
 #include "../../../Common.h"
 #include "../../../utils/Utils.h"
+#include "../../BoundClassStatement/BoundClassStatement.h"
 #include "../../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundScope {
- public:
+public:
   std::unordered_map<std::string, BoundVariableDeclaration *> variables;
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
-
+  std::unordered_map<std::string, BoundClassStatement *> classes;
+  std::string _className = "";
   bool breakable, continuable;
   int functionCounted;
 
@@ -18,7 +20,7 @@ class BoundScope {
 
   BoundScope(std::unique_ptr<BoundScope> parent);
 
- public:
+public:
   void makeBreakableAndContinuable();
   bool isBreakable();
   bool isContinuable();
@@ -43,13 +45,34 @@ class BoundScope {
 
   // Handle Functions
 
-  bool tryDeclareFunction(BoundFunctionDeclaration *function);
-
-  bool tryLookupFunction(const std::string &name);
+  bool tryDeclareMemberFunction(BoundFunctionDeclaration *function);
+  bool tryDeclareFunctionGlobal(BoundFunctionDeclaration *function);
+  BoundFunctionDeclaration *tryGetFunction(const std::string &name);
 
   // Handle Custom Types
 
   bool tryDeclareCustomType(BoundCustomTypeStatement *customType);
-  bool tryLookupCustomType(const std::string &name);
   BoundCustomTypeStatement *tryGetCustomType(const std::string &name);
+
+  // Handle Class Declaration
+
+  bool tryDeclareClass(BoundClassStatement *customType);
+  BoundClassStatement *tryGetClass(const std::string &name);
+  bool isInsideInitFunction();
+  inline auto getClassName() -> std::string {
+    if (this->_className != "")
+      return this->_className;
+
+    if (this->parent)
+      return this->parent->getClassName();
+
+    return "";
+  }
+
+  inline auto setClassName(const std::string &name) { _className = name; }
+
+  inline auto setInsideInitFunction(bool value) { _insideInitFunction = value; }
+
+private:
+  bool _insideInitFunction = false;
 };

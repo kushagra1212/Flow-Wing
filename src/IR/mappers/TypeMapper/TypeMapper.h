@@ -9,8 +9,9 @@
 #include "../../../Common.h"
 #include "../../../utils/Utils.h"
 #include "../../constants/FlowWingIRConstants.h"
+#include "../../context/CodeGenerationContext.h"
 using namespace FLOWWING::IR::CONSTANTS;
-
+class CodeGenerationContext;
 class TypeMapper {
   llvm::LLVMContext *_context;
   llvm::IRBuilder<> *_builder;
@@ -18,10 +19,12 @@ class TypeMapper {
   std::unordered_map<llvm::Type *, SyntaxKindUtils::SyntaxKind> _typeMappings;
   std::unordered_map<SyntaxKindUtils::SyntaxKind, llvm::Type *>
       _reverseTypeMappings;
+  CodeGenerationContext *_codeGenerationContext;
 
 public:
   TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
-             llvm::Module *module);
+             llvm::Module *module,
+             CodeGenerationContext *codeGenerationContext);
 
   SyntaxKindUtils::SyntaxKind mapLLVMTypeToCustomType(llvm::Type *type) const;
   llvm::Type *mapCustomTypeToLLVMType(SyntaxKindUtils::SyntaxKind type) const;

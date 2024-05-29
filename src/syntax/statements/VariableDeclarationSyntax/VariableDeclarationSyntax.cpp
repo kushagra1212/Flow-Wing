@@ -11,11 +11,17 @@ const std::vector<SyntaxNode *> &VariableDeclarationSyntax::getChildren() {
   if (_exposeKeyword)
     _children.push_back(_exposeKeyword.get());
 
+  if (_inout_keyword)
+    _children.push_back(_inout_keyword.get());
+
   if (_keyword)
     _children.push_back(_keyword.get());
 
   if (_identifier)
     _children.push_back(_identifier.get());
+
+  if (_asKeyword)
+    _children.push_back(_asKeyword.get());
 
   if (_typeExpr)
     _children.push_back(_typeExpr.get());
@@ -38,6 +44,8 @@ VariableDeclarationSyntax::getSourceLocation() const {
     return this->_keyword->getSourceLocation();
   if (_identifier)
     return this->_identifier->getSourceLocation();
+  if (_asKeyword)
+    return this->_asKeyword->getSourceLocation();
   if (_typeExpr)
     return this->_typeExpr->getSourceLocation();
   if (_initializer)

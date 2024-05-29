@@ -1,0 +1,24 @@
+bring "call.fg"
+  type T = { 
+      a:int  
+  }          
+class A {
+  var x: int 
+  var b:T = {a:100}
+
+
+  init() -> nthg  {
+    print("Hello World")
+  }
+
+  printX() -> nthg {
+    callMe()
+    print("This is x "+x)
+  }
+}
+
+expose var a:A  =  new A()
+print(a.b)
+a.x = 2
+
+

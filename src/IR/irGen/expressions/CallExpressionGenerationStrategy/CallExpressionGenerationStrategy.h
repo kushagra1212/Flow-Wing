@@ -16,7 +16,13 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
+  llvm::Value *handlePrintFunction(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
+
+  llvm::Value *generateCommonCallExpression(
+      BoundCallExpression *callExpression, llvm::Function *calleeFunction,
+      std::__1::vector<llvm::Value *> &classArg, llvm::Type *_classType,
+      llvm::Value *_classPtr, llvm::Value *calleeValue = nullptr);
 
   llvm::Value *
   handleExpression(llvm::Function *calleeFunction, uint64_t i,
@@ -40,7 +46,11 @@ public:
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
       BoundCallExpression *callExpression, llvm::Argument *arg,
       llvm::Value *&rhsValue, bool &retFlag);
-
+  llvm::Value *handleIndexExpression(
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+      llvm::FunctionType *functionType,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      llvm::Argument *arg, bool &retFlag);
   llvm::Value *handleVariableExpression(
       llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
       llvm::FunctionType *functionType,

@@ -30,9 +30,9 @@ void AOTCompiler::link() {
 
 #if defined(__APPLE__)
 
-  // RAY_LIB_CMD = "-lraylib -framework CoreFoundation -framework "
-  //               "CoreGraphics -framework Cocoa -framework IOKit -framework "
-  //               "CoreVideo ";
+  RAY_LIB_CMD = "-lraylib -framework CoreFoundation -framework "
+                "CoreGraphics -framework Cocoa -framework IOKit -framework "
+                "CoreVideo ";
 #endif
 
   try {

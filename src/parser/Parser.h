@@ -24,6 +24,7 @@
 #include "../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
@@ -78,9 +79,11 @@ private:
   match(const SyntaxKindUtils::SyntaxKind &kind);
   SyntaxToken<std::any> *peek(const int &offset);
   SyntaxToken<std::any> *getCurrent();
+  SyntaxKindUtils::SyntaxKind getKind();
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
   std::string _formattedSourceCode = "";
   std::string INDENT = "";
+  //
 
   inline void appendWithSpace() { _formattedSourceCode += ONE_SPACE; }
   inline void removeWithSpace() {
@@ -89,8 +92,7 @@ private:
   }
   inline void appendNewLine() {
     if (this->getCurrent() &&
-        this->getCurrent()->getKind() !=
-            SyntaxKindUtils::SyntaxKind::CommentStatement) {
+        this->getKind() != SyntaxKindUtils::SyntaxKind::CommentStatement) {
       _formattedSourceCode += NEW_LINE;
     } else
       appendWithSpace();
@@ -99,6 +101,7 @@ private:
   /*
     STATEMENTS
   */
+
   std::unique_ptr<StatementSyntax> parseStatement();
   std::unique_ptr<BlockStatementSyntax> parseBlockStatement();
   std::unique_ptr<BreakStatementSyntax> parseBreakStatement();
@@ -116,20 +119,24 @@ private:
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
-
+  std::unique_ptr<StatementSyntax> parseClassStatement();
   /*
     EXPRESSIONS
   */
-  std::unique_ptr<ExpressionSyntax> parseIndexExpression();
-  std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
+  std::unique_ptr<ExpressionSyntax> parseIndexExpression(bool isSelf = false);
+  std::unique_ptr<ExpressionSyntax>
+  parseNameorCallExpression(bool isSelf = false);
+  std::unique_ptr<ExpressionSyntax> parseCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
-  parseFunctionDeclaration(const bool &isExposed);
+  parseFunctionDeclaration(const bool &isExposed,
+                           bool isMemberFunction = false);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
-  std::unique_ptr<VariableExpressionSyntax> parseVariableExpression();
+  std::unique_ptr<ExpressionSyntax>
+  parseVariableExpression(bool isSelf = false);
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();

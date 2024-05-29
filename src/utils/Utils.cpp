@@ -188,6 +188,26 @@ std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
   return code;
 }
 
+void Utils::prettyPrint(
+    std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
+  const int kindTextWidth = 20;
+  const int textWidth = 20;
+
+  // Print headers
+  std::cout << GREEN_TEXT << std::left << std::setw(kindTextWidth) << "Kind"
+            << std::left << std::setw(textWidth) << "Text" << RESET << "\n";
+  std::cout << std::string(kindTextWidth + textWidth, '-') << "\n";
+
+  // Print token data
+  for (auto &token : tokens) {
+    std::cout << YELLOW_TEXT << std::left << std::setw(kindTextWidth)
+              << token->getKindText() << std::left << RESET
+              << std::setw(textWidth) << token->getText() << "\n";
+  }
+
+  std::cout << std::string(kindTextWidth + textWidth, '-') << "\n";
+}
+
 std::string Utils::getSourceCode(CompilationUnitSyntax *compilationUnit) {
   if (!compilationUnit) {
     return "";

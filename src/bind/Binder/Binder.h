@@ -23,6 +23,7 @@
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 #include "../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "../../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
 #include "../../syntax/statements/ContainerStatementSyntax/ContainerStatementSyntax.h"
 #include "../../syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 #include "../../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
@@ -45,6 +46,7 @@
 #include "../BoundBreakStatement/BoundBreakStatement.h"
 #include "../BoundBringStatement/BoundBringStatement.h"
 #include "../BoundCallExpression/BoundCallExpression.h"
+#include "../BoundClassStatement/BoundClassStatement.h"
 #include "../BoundContainerExpression/BoundContainerExpression.h"
 #include "../BoundContainerStatement/BoundContainerStatement.h"
 #include "../BoundContinueStatement/BoundContinueStatement.h"
@@ -78,11 +80,7 @@
 class Binder {
 private:
   std::unique_ptr<BoundScope> root;
-  std::vector<BoundCallExpression *> _callExpressions;
   FLowWing::DiagnosticHandler *_diagnosticHandler;
-
-  std::unordered_map<std::string, BoundFunctionDeclaration *>
-      dependencyFunctions;
 
 public:
   Binder(std::unique_ptr<BoundScope> root,
@@ -101,7 +99,8 @@ public:
   bindGlobalStatement(GlobalStatementSyntax *syntax);
 
   std::unique_ptr<BoundStatement>
-  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax);
+  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
+                          std::string className = "");
 
   std::unique_ptr<BoundStatement> bindStatement(StatementSyntax *syntax);
 
@@ -112,7 +111,8 @@ public:
   bindBlockStatement(BlockStatementSyntax *blockStatement);
 
   std::unique_ptr<BoundVariableDeclaration>
-  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration);
+  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
+                          std::string className = "");
   std::unique_ptr<BoundStatement>
   bindIfStatement(IfStatementSyntax *ifStatement);
 
@@ -135,6 +135,9 @@ public:
 
   std::unique_ptr<BoundStatement>
   bindBringStatement(BringStatementSyntax *bringStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindClassStatement(ClassStatementSyntax *bringStatement);
 
   std::unique_ptr<BoundStatement>
   bindCustomTypeStatement(CustomTypeStatementSyntax *customTypeStatement);
@@ -183,6 +186,10 @@ public:
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
                     CompilationUnitSyntax *nestedCompilationUnit)
       -> std::unordered_map<std::string, int>;
+
+  void handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
+                               BoundFunctionDeclaration *fd,
+                               std::string className);
 };
 
 #endif // __BIND_BINDER_H__

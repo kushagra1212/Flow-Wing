@@ -29,6 +29,10 @@ public:
     this->_typeName = std::move(typeName);
   }
 
+  inline auto setTypeNameString(std::string typeName) -> void {
+    this->_typeName->setValue(typeName);
+  }
+
   inline auto
   addKeyTypePair(std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
                  std::unique_ptr<TypeExpressionSyntax> type) -> void {

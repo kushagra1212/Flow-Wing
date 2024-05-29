@@ -4,7 +4,7 @@
 #include <llvm/IR/Type.h>
 
 class LLVMType {
- public:
+public:
   LLVMType(llvm::Type *type);
 
   inline llvm::Type *getType() const { return _type; }
@@ -19,12 +19,16 @@ class LLVMType {
     return !(*this == other);
   }
 
+  virtual inline llvm::Type *getLLVMType() const { return _type; }
+
   virtual inline const bool isPointerToArray() const { return false; }
 
   virtual inline const bool isPointerToObject() const { return false; }
 
- private:
+  virtual inline const bool isPointerToPrimitive() const { return false; }
+
+private:
   llvm::Type *_type;
 };
 
-#endif  // __FLOWWING__ARG_TYPE_H__
+#endif // __FLOWWING__ARG_TYPE_H__
