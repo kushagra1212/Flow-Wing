@@ -4,6 +4,141 @@ Flow-Wing is a modern and flexible programming language that uniquely combines d
 
 ## Language Syntax
 
+### Classes
+
+Flow-Wing supports object-oriented programming with class definitions. Classes can contain properties and methods. Here's an example:
+
+```Flow-Wing
+class Animal {
+  var age:int 
+  var species:str 
+  init(age:int) -> nthg {
+    self.age = age
+  }
+  getAge() -> int {
+    return self.age
+  }
+  printSpecies() -> nthg { 
+    print("Species: ", self.species)
+  }
+}
+```
+### Inheritance
+
+Classes can inherit from other classes using the `extends` keyword. Here's an example of a `Dog` class that inherits from `Animal`:
+
+```Flow-Wing
+class Dog extends Animal {
+  var breed:str 
+
+  init(age:int) -> nthg {
+    super(age)
+  }
+
+  getAge() -> int {
+    return 7 * self.age  /; Dog years conversion
+  }
+  printBreed() -> nthg { 
+    print("Breed: ", self.breed)
+  }
+}
+```
+### Using Classes and Functions
+
+Here’s how you can use these classes and functions in a `main` function:
+
+```Flow-Wing
+fun printAge(a: Animal) -> nthg {
+  print("I'm ", a.getAge(), " years old!\n")
+}
+
+fun main() -> nthg {
+  var animal:Animal = new Animal(2)
+  var dog:Dog = new Dog(2)
+
+  animal.species = "Generic Animal"
+  dog.species = "Canine"
+  dog.breed = "Labrador"
+
+  printAge(animal) 
+  printAge(dog) 
+
+  animal.printSpecies()
+  dog.printBreed()
+}
+
+main()
+
+```
+
+In this example, the main function creates instances of Animal and Dog, sets their properties, and calls their methods. This demonstrates the object-oriented capabilities of `Flow-Wing`, including `inheritance` and `method overriding`.
+
+### Complex Types and Containers
+
+Flow-Wing supports defining complex types and using them within containers. Here’s an example to illustrate this:
+
+```Flow-Wing
+type NestedType = {
+  value:int
+}
+
+type ParentType = {
+  name:str,
+  nestedArray:NestedType[5]
+}
+
+type ComplexType = {
+  id:int,
+  message:str,
+  amount:deci,
+  flag:bool,
+  parentArray:ParentType[1]
+}
+
+{
+  var complexArray:ComplexType[2] = [
+    {
+      id:1,
+      message:"hello",
+      amount:3.3,
+      flag:true,
+      parentArray:[
+        {
+          name:"Parent1",
+          nestedArray:[
+            {value:1}, {value:2}, {value:3}, {value:4}, {value:5}
+          ]
+        }
+      ]
+    },
+    {
+      id:2,
+      message:"world",
+      amount:4.4,
+      flag:false,
+      parentArray:[
+        {
+          name:"Parent2",
+          nestedArray:[
+            {value:6}, {value:7}, {value:8}, {value:9}, {value:10}
+          ]
+        }
+      ]
+    }
+  ]
+  print(complexArray)
+}
+
+```
+
+In this example:
+
+- `NestedType` defines a structure with a single integer field.
+- `ParentType` includes a string field and an array of `NestedType`.
+- `ComplexType` combines various primitive types and an array of `ParentType`.
+
+The variable `complexArray` is a container of `ComplexType` with two elements, each containing nested structures. This demonstrates how Flow-Wing handles complex type definitions and their initialization.
+
 ### Variables and Constants
 
 You can declare variables and constants using the `var` and `const` keywords:
