@@ -61,6 +61,19 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       std::make_unique<CustomTypeStatementTable>());
   std::vector<std::string> parameterNames;
 
+  llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnType(FUNCTION_NAME)
+                               ->getType();
+
+  if (llvm::isa<llvm::ArrayType>(_codeGenerationContext->getReturnTypeHandler()
+                                     ->getReturnType(FUNCTION_NAME)
+                                     ->getLLVMType()) ||
+      llvm::isa<llvm::StructType>(_codeGenerationContext->getReturnTypeHandler()
+                                      ->getReturnType(FUNCTION_NAME)
+                                      ->getLLVMType())) {
+    parameterNames.push_back(FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
+  }
+
   for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
     parameterNames.push_back(
         functionDeclaration->getParametersRef()[i]->getVariableName());
@@ -99,20 +112,34 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   }
 
   for (size_t i = 0; i < parameterNames.size(); i++) {
-
+    size_t callIndex = i;
     llvm::Value *argValue = F->arg_begin() + i;
     if (i >= paramsSize) {
       break;
     }
+
+    if (parameterNames[i] == FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME) {
+
+      _codeGenerationContext->getAllocaChain()->setPtr(
+          parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
+
+      continue;
+    }
+
+    if (parameterNames[0] == FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME) {
+      callIndex = i - 1;
+    }
+
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        functionDeclaration->getParametersRef()[i]->getLocation());
+        functionDeclaration->getParametersRef()[callIndex]->getLocation());
     if (llvmArgsTypes[i]->isPointer() &&
         !llvm::isa<llvm::PointerType>(argValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
           "Type mismatch in function parameter " + parameterNames[i]);
     }
 
-    if (functionDeclaration->getParametersRef()[i]->getHasInOutKeyword()) {
+    if (functionDeclaration->getParametersRef()[callIndex]
+            ->getHasInOutKeyword()) {
 
       if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
           llvmArgsTypes[i]->isPointerToArray()) {
@@ -124,6 +151,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       } else if (llvmArgsTypes[i]->isPointerToObject()) {
         llvm::StructType *structType =
             llvm::cast<llvm::StructType>(llvmArgsTypes[i]->getLLVMType());
+
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, structType});
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
@@ -219,9 +247,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
       ->generateStatement(functionDeclaration->getBodyRef().get());
 
-  llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
-                               ->getReturnType(FUNCTION_NAME)
-                               ->getType();
   if (returnType != llvm::Type::getVoidTy(*TheContext) &&
       _codeGenerationContext->getReturnAllocaStack().top() == 0) {
     _codeGenerationContext->getLogger()->LogError(
@@ -232,7 +257,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     return nullptr;
   }
 
-  if (returnType == llvm::Type::getVoidTy(*TheContext)) {
+  if ((parameterNames.size() &&
+       parameterNames[0] == FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME) ||
+      returnType == llvm::Type::getVoidTy(*TheContext)) {
     Builder->CreateRetVoid();
   } else {
     Builder->CreateRet(

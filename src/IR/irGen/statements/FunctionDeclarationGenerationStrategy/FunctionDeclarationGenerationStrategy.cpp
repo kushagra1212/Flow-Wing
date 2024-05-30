@@ -34,6 +34,10 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   const std::string FUNCTION_NAME = fd->getFunctionNameRef();
 
   bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
+  _codeGenerationContext->_functionTypes[FUNCTION_NAME] =
+      std::make_unique<Function>();
+  _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setFunctionName(
+      FUNCTION_NAME);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
@@ -42,6 +46,40 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           std::make_unique<LiteralExpressionGenerationStrategy>(
               _codeGenerationContext);
   std::vector<llvm::Type *> argTypes;
+
+  //? Taking value to return as parameter
+  {
+    BoundTypeExpression *bTE =
+        static_cast<BoundTypeExpression *>(fd->getReturnType().get());
+
+    switch (bTE->getKind()) {
+    case BinderKindUtils::BoundArrayTypeExpression: {
+      std::unique_ptr<CustomTypeStatementGenerationStrategy>
+          customTypeStatementGenerationStrategy =
+              std::make_unique<CustomTypeStatementGenerationStrategy>(
+                  _codeGenerationContext);
+      llvm::Type *type = customTypeStatementGenerationStrategy->getType(bTE);
+      argTypes.push_back(llvm::PointerType::get(type, 0));
+      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+          FUNCTION_NAME, std::make_unique<LLVMType>(type));
+
+      break;
+    }
+    case BinderKindUtils::BoundObjectTypeExpression: {
+      llvm::Type *type = getStructType(
+          static_cast<BoundObjectTypeExpression *>(bTE), className);
+      argTypes.push_back(llvm::PointerType::get(type, 0));
+      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+          FUNCTION_NAME, std::make_unique<LLVMType>(type));
+
+      break;
+    }
+    default: {
+      break;
+    }
+    }
+  }
+
   for (int i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -128,27 +166,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
               fd->getParametersRef()[i]->getTypeExpression().get());
 
       llvm::StructType *structType =
-          _codeGenerationContext
-              ->_classLLVMTypes[objectTypeExpression->getTypeName()];
-
-      std::string typeName = "";
-      if (!structType) {
-        typeName = className != ""
-                       ? className +
-                             FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                             objectTypeExpression->getTypeName()
-                       : objectTypeExpression->getTypeName();
-        structType = _codeGenerationContext->getTypeChain()->getType(typeName);
-        if (!structType) {
-          typeName = objectTypeExpression->getTypeName();
-          structType =
-              _codeGenerationContext->getTypeChain()->getType(typeName);
-        }
-      }
+          getStructType(objectTypeExpression, className);
 
       if (!structType) {
         _codeGenerationContext->getLogger()->LogError(
-            "Object type " + typeName +
+            "Object type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
             " was not found when calling function " + FUNCTION_NAME);
         return nullptr;
       }
@@ -204,6 +227,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME, std::make_unique<LLVMType>(returnType));
+      _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
+          returnType);
       returnInfo =
           FUNCTION_NAME + ":rt:pr:" +
           std::to_string(
@@ -261,7 +286,10 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       }
       llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
 
-      FT = llvm::FunctionType::get(returnType, argTypes, false);
+      //! Returning Void for Array Type and settting the value in parameter
+      //! where we have the pointer to array
+      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
+                                   false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
@@ -269,7 +297,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           FUNCTION_NAME, std::make_unique<LLVMArrayType>(
                              returnType, arrayType, elementType,
                              returnDimentions, boundArrayTypeExpression));
-
+      _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
+          arrayType);
       for (int64_t k = 0; k < returnDimentions.size(); k++) {
         returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
@@ -291,15 +320,18 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       }
 
       llvm::Type *returnType = llvm::PointerType::get(structType, 0);
-
-      FT = llvm::FunctionType::get(returnType, argTypes, false);
+      //! Returning Void for struct Type and settting the value in parameter
+      //! where we have the pointer to struct
+      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
+                                   false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME,
           std::make_unique<LLVMObjectType>(returnType, structType));
-
+      _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
+          structType);
       returnInfo =
           FUNCTION_NAME + ":rt:ob:" + boundObjectTypeExpression->getTypeName();
 
@@ -320,9 +352,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs =
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
-  for (unsigned i = 0; i < F->arg_size(); ++i) {
-    llvm::Argument *arg = F->getArg(i);
-  }
+  // for (unsigned i = 0; i < F->arg_size(); ++i) {
+  //   llvm::Argument *arg = F->getArg(i);
+  // }
   //     if (llvmArrayArgs[i]->isPointerToArray()) {
   //       LLVMArrayType *llvmArrayType =
   //           static_cast<LLVMArrayType *>(llvmArrayArgs[i].get());
@@ -338,7 +370,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   //                 _codeGenerationContext->getMapper()->getLLVMTypeName(
   //                     llvmArrayType->getArrayElementType()) +
   //                 ":sz:";
-  //       for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++)
+  //       for (int64_t k = 0; k < llvmArrayType->getDimensions().size();
+  //       k++)
   //       {
   //         argInfo += std::to_string(llvmArrayType->getDimensions()[k]) +
   //         ":";
@@ -370,4 +403,28 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   _codeGenerationContext->addBoundedUserFunction(FUNCTION_NAME, fd);
 
   return F;
+}
+
+llvm::StructType *FunctionDeclarationGenerationStrategy::getStructType(
+    BoundObjectTypeExpression *objectTypeExpression,
+    std::__1::string &className) {
+
+  llvm::StructType *structType =
+      _codeGenerationContext
+          ->_classLLVMTypes[objectTypeExpression->getTypeName()];
+
+  std::string typeName = "";
+  if (!structType) {
+    typeName = className != ""
+                   ? className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+                         objectTypeExpression->getTypeName()
+                   : objectTypeExpression->getTypeName();
+    structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+    if (!structType) {
+      typeName = objectTypeExpression->getTypeName();
+      structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+    }
+  }
+
+  return structType;
 }

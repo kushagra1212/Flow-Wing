@@ -54,6 +54,26 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
                    "expression is found";
   } else if (returnStat != nullptr) {
     _codeGenerationContext->getValueStackHandler()->popAll();
+
+    auto [rtPtr, rtType] = _codeGenerationContext->getAllocaChain()->getPtr(
+        FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
+    if (rtPtr && rtType) {
+      std::unique_ptr<AssignmentExpressionGenerationStrategy>
+          assignmentExpressionGenerationStrategy =
+              std::make_unique<AssignmentExpressionGenerationStrategy>(
+                  _codeGenerationContext);
+
+      assignmentExpressionGenerationStrategy->handleAssignExpression(
+          rtPtr, rtType, FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME,
+          returnStat);
+
+      Builder->CreateRetVoid();
+
+      _codeGenerationContext->getReturnAllocaStack().top() = 1;
+      Builder->SetInsertPoint(mergeBlock);
+      return rtPtr;
+    }
+
     returnValue =
         _expressionGenerationFactory->createStrategy(returnStat->getKind())
             ->generateExpression(returnStat);

@@ -18,6 +18,7 @@
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
 #include "../irGen/Types/Class.h"
+#include "../irGen/Types/Function.h"
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
@@ -124,6 +125,8 @@ public:
 
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
+
+  std::unordered_map<std::string, std::unique_ptr<Function>> _functionTypes;
 
   inline auto setCurrentClassName(std::string className) -> void {
     _currentClassName = className;

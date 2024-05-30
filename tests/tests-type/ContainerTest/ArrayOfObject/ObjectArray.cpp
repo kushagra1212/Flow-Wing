@@ -1445,4 +1445,108 @@ print(j)
 
   O(R"({ j : [[{ a : 2 }, { a : 0 }], [{ a : 0 }, { a : 0 }]] })");
 }
+TEST_F(ObjectArray, ObjectReturningTest) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestLocal) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+{
+  var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+}
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestLocal2) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+
+  var x:t = main(10)
+print(x){
+x =main(2)
+print(x)
+}
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestType2) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:a}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10{ a : 10 }aa2{ a : 2 })");
+}
 #endif

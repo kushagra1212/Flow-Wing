@@ -432,6 +432,26 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       exp->getLocation());
 
+  if (exp->getKind() == BinderKindUtils::CallExpression &&
+      (llvm::isa<llvm::ArrayType>(_lhsType) ||
+       llvm::isa<llvm::StructType>(_lhsType))) {
+
+    BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
+
+    if (_codeGenerationContext->_classTypes.find(
+            callExp->getCallerNameRef().substr(
+                0, callExp->getCallerNameRef().find(
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
+        _codeGenerationContext->_classTypes.end()) {
+      std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
+          std::make_unique<CallExpressionGenerationStrategy>(
+              _codeGenerationContext);
+
+      callStrategy->setRtPtr({_lhsPtr, _lhsType});
+      return callStrategy->generateExpression(exp);
+    }
+  }
+
   _expressionGenerationFactory->createStrategy(exp->getKind())
       ->generateExpression(exp);
 

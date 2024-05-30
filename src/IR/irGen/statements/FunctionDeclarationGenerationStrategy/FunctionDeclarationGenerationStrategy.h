@@ -8,6 +8,7 @@
 #include "../../../../bind/BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class FunctionDeclarationGenerationStrategy
@@ -19,6 +20,9 @@ public:
   llvm::Function *generate(BoundStatement *statement,
                            std::vector<llvm::Type *> classArgs = {},
                            std::string className = "");
+  llvm::StructType *
+  getStructType(BoundObjectTypeExpression *objectTypeExpression,
+                std::__1::string &className);
 };
 
 #endif // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__

@@ -7,6 +7,7 @@
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"

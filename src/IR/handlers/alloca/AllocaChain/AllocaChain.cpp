@@ -115,8 +115,8 @@ uint64_t AllocaChain::getGlobalTypeIndex(const std::string &name) {
 }
 
 std::pair<llvm::Value *, llvm::Type *>
-AllocaChain::getPtr(const std::string &name) {
-  std::pair<llvm::Value *, llvm::Type *> ptr = {};
+AllocaChain::getPtr(const std::string name) {
+  std::pair<llvm::Value *, llvm::Type *> ptr = {nullptr, nullptr};
 
   std::stack<std::unique_ptr<AllocaTable>> currentHandler;
   while (!handlers.empty()) {

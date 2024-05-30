@@ -3,8 +3,8 @@
 
 #include "../../../../bind/BoundReturnStatement/BoundReturnStatement.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-
 class ReturnStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
   ReturnStatementGenerationStrategy(CodeGenerationContext *context);

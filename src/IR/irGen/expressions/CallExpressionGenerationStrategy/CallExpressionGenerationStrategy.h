@@ -25,34 +25,38 @@ public:
       llvm::Value *_classPtr, llvm::Value *calleeValue = nullptr);
 
   llvm::Value *
-  handleExpression(llvm::Function *calleeFunction, uint64_t i,
-                   BoundCallExpression *callExpression, llvm::Value *&rhsValue,
-                   llvm::FunctionType *functionType,
+  handleExpression(llvm::Function *calleeFunction, uint64_t callArgIndex,
+                   uint64_t llvmArgsIndex, BoundCallExpression *callExpression,
+                   llvm::Value *&rhsValue, llvm::FunctionType *functionType,
                    const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
                    bool &retFlag);
 
   llvm::Value *
   handlePremitive(llvm::Value *&rhsValue, BoundCallExpression *callExpression,
-                  uint64_t i,
+                  uint64_t callArgIndex, uint64_t llvmArgsIndex,
                   const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
                   llvm::Argument *arg, bool &retFlag);
 
   llvm::Value *handleBracketExpression(
-      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      uint64_t callArgIndex, uint64_t llvmArgsIndex,
       BoundCallExpression *callExpression, llvm::Argument *arg,
       llvm::Value *&rhsValue, bool &retFlag);
 
   llvm::Value *handleObjectExpression(
-      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs, uint64_t i,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      uint64_t callArgIndex, uint64_t llvmArgsIndex,
       BoundCallExpression *callExpression, llvm::Argument *arg,
       llvm::Value *&rhsValue, bool &retFlag);
   llvm::Value *handleIndexExpression(
-      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression,
+      uint64_t callArgIndex, uint64_t llvmArgsIndex,
       llvm::FunctionType *functionType,
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
       llvm::Argument *arg, bool &retFlag);
   llvm::Value *handleVariableExpression(
-      llvm::Value *&rhsValue, BoundCallExpression *callExpression, uint64_t i,
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression,
+      uint64_t callArgIndex, uint64_t llvmArgsIndex,
       llvm::FunctionType *functionType,
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
       llvm::Argument *arg, bool &retFlag);
@@ -80,8 +84,13 @@ public:
 
   void printString(llvm::Value *value, llvm::Type *elementType);
 
+  inline auto setRtPtr(std::pair<llvm::Value *, llvm::Type *> rtPtr) {
+    _rtPtr = rtPtr;
+  }
+
 private:
   bool _isGlobal = false;
+  std::pair<llvm::Value *, llvm::Type *> _rtPtr;
 };
 
 #endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
