@@ -17,10 +17,11 @@ class FlowWingAnim {
   var screenWidth: int
   var screenHeight: int
   var screenName: str
-  var fps: int = 30
+  var fps: int
   var colors: COLORS_TYPE
   var KEYS: KEYS_TYPE
   init(screenHeight: int, screenWidth: int, screenName: str, fps: int) -> nthg {
+    self.fps = 60
     self.fps = fps 
     beforeInit()
     self.screenHeight = screenHeight 
@@ -106,9 +107,8 @@ class FlowWingAnim {
   }/; Input-related functions: keyboard
 
   drawTexture(texture: Texture, posX: int, posY: int, color: int) -> nthg {
-    return DrawTexture(texture,posX,posY,color)
+    DrawTexture(texture,posX,posY,color)
   }
-
   loadTexture(fileName: str) -> Texture {
     return LoadTexture(fileName)
   }

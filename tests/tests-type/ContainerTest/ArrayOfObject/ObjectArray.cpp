@@ -1549,4 +1549,75 @@ print(x)
 
   O(R"(aa10{ a : 10 }aa2{ a : 2 })");
 }
+
+TEST_F(ObjectArray, ObjectReturningTestType3) {
+  I(R"(
+type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+fun getB(a:int) ->t[5] {
+  print("aa",a)
+  return [{a:a}]
+}
+
+fun main(b:int) -> t[5] {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t[5] = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10[{ b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 10 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }]aa2[{ b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 2 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }])");
+}
+TEST_F(ObjectArray, ObjectReturningTestType4) {
+  I(R"(
+type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
+  }
+}
+
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
+
+fun main(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main(10)
+print(x.a)
+x =main(2)
+print(x.a)
+    )");
+
+  O(R"(aa10{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 10 }aa2{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 2 })");
+}
 #endif

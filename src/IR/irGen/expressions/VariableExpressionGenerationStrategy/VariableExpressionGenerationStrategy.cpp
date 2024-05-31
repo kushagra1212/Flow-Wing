@@ -208,6 +208,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     std::vector<llvm::Value *> args = {outerElementPtr};
     llvm::Function *fn =
         TheModule->getFunction(callExpression->getCallerNameRef());
+
     llvm::Value *callinst = call->generateCommonCallExpression(
         callExpression, fn, args,
         _codeGenerationContext->_classTypes[className]->getClassType(),

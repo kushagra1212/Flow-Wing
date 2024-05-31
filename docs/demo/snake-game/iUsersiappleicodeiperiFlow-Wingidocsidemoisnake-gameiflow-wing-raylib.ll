@@ -1,6 +1,8 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
 
+%Texture.0 = type { i32, i32, i32, i32, i32 }
+
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_NULL = external global i8
@@ -84,13 +86,17 @@ declare !rt !13 i1 @IsKeyDown(i32)
 
 declare !rt !14 ptr @TextFormat(ptr)
 
-declare !rt !15 i32 @rand()
+declare !rt !15 void @LoadTexture(ptr, ptr)
 
-declare !rt !16 i32 @time()
+declare !rt !16 void @DrawTexture(%Texture.0, i32, i32, i32)
 
-declare !rt !17 void @srand(i32)
+declare !rt !17 i32 @rand()
 
-define i32 @getRandomNumber(ptr %0, ptr %1) !rt !18 {
+declare !rt !18 i32 @time()
+
+declare !rt !19 void @srand(i32)
+
+define i32 @getRandomNumber(ptr %0, ptr %1) !rt !20 {
 entry:
   %start = alloca i32, align 4
   %2 = load i32, ptr %0, align 4
@@ -141,7 +147,9 @@ mergeBlock:                                       ; No predecessors!
 !12 = !{!"IsKeyPressed:rt:pr:34"}
 !13 = !{!"IsKeyDown:rt:pr:34"}
 !14 = !{!"TextFormat:rt:pr:33"}
-!15 = !{!"rand:rt:pr:28"}
-!16 = !{!"time:rt:pr:28"}
-!17 = !{!"srand:rt:pr:27"}
-!18 = !{!"getRandomNumber:rt:pr:28"}
+!15 = !{!"LoadTexture:rt:ob:Texture"}
+!16 = !{!"DrawTexture:rt:pr:27"}
+!17 = !{!"rand:rt:pr:28"}
+!18 = !{!"time:rt:pr:28"}
+!19 = !{!"srand:rt:pr:27"}
+!20 = !{!"getRandomNumber:rt:pr:28"}

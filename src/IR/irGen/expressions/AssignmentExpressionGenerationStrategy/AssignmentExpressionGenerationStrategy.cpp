@@ -438,11 +438,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
-    if (_codeGenerationContext->_classTypes.find(
-            callExp->getCallerNameRef().substr(
-                0, callExp->getCallerNameRef().find(
-                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
-        _codeGenerationContext->_classTypes.end()) {
+    if (callExp->getCallerNameRef().find(".init") == std::string::npos) {
       std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);

@@ -133,7 +133,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
-
+  std::unordered_map<std::string, int8_t> functionMap;
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 

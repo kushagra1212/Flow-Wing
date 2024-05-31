@@ -66,6 +66,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       break;
     }
     case BinderKindUtils::BoundObjectTypeExpression: {
+
       llvm::Type *type = getStructType(
           static_cast<BoundObjectTypeExpression *>(bTE), className);
       argTypes.push_back(llvm::PointerType::get(type, 0));
@@ -201,6 +202,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     if (!isFunctionAlreadyDeclared)
       _codeGenerationContext->getArgsTypeHandler()->addArgsType(
           FUNCTION_NAME, std::move(argLLVMType));
+  }
+
+  if (_codeGenerationContext->_classTypes.find(FUNCTION_NAME.substr(
+          0,
+          FUNCTION_NAME.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
+      _codeGenerationContext->_classTypes.end()) {
+    classArgs = {llvm::Type::getInt8PtrTy(*TheContext)};
   }
   for (auto arg : classArgs) {
     argTypes.push_back(arg);
@@ -349,8 +357,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       "rt", llvm::MDNode::get(*TheContext,
                               llvm::MDString::get(*TheContext, returnInfo)));
 
-  const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs =
-      _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
+  // const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs =
+  //     _codeGenerationContext->getArgsTypeHandler()->getArgsType(FUNCTION_NAME);
 
   // for (unsigned i = 0; i < F->arg_size(); ++i) {
   //   llvm::Argument *arg = F->getArg(i);

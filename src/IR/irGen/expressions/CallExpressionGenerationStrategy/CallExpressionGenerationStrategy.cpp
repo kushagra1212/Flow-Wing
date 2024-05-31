@@ -500,58 +500,78 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(
           callExpression->getCallerNameRef());
 
-  if ((classArg.size()) &&
-      functionType->getNumParams() != llvmArrayArgs.size()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Calling Class Initializer " + callExpression->getCallerNameRef() +
-        " with " +
-        std::to_string(functionType->getNumParams() - classArg.size()) +
-        " arguments but Expected " + std::to_string(llvmArrayArgs.size()));
+  uint64_t argsCount = functionType->getNumParams(),
+           expectedArgsCount = callExpression->getArgumentsRef().size();
 
-    return nullptr;
+  if (_codeGenerationContext->_classTypes.find(
+          callExpression->getCallerNameRef().substr(
+              0, callExpression->getCallerNameRef().find(
+                     FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
+      _codeGenerationContext->_classTypes.end()) {
+    // Its A class Function
+    //? (A1, ClassPtr) | (A1) -> Case 1
+    //? (A0, A1, ClassPtr) | (A1) -> Case 2
+
+    argsCount--; // ClassPtr removed from the args count
+
+    if (callExpression->getCallerNameRef().find(".init") != std::string::npos) {
+      // Its the Initilizer Function
+      //? (A1, ClassPtr) | (A1) -> Case 1
+      if (argsCount != expectedArgsCount) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Calling Class Initializer " + callExpression->getCallerNameRef() +
+            " with " + std::to_string(argsCount) + " arguments but Expected " +
+            std::to_string(expectedArgsCount));
+
+        return nullptr;
+      }
+    }
   }
 
-  if (!classArg.size() &&
-      functionType->getNumParams() != llvmArrayArgs.size()) {
+  if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
+          ->isNonPrimitiveReturnType()) {
+    // If it memeber function of class or a normal function but has the non
+    // primitive return type
+    //? (A0, A1, ClassPtr) | (A1) -> Case 2
+    //? (A0, A1) | (A1) -> Case 3
+    //? (A1) | (A1) -> Case 4
+    argsCount--;
+  }
+
+  if (argsCount != expectedArgsCount) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
-        std::to_string(functionType->getNumParams()) + " arguments but got " +
-        std::to_string(llvmArrayArgs.size()));
+        std::to_string(expectedArgsCount) + " arguments but got " +
+        std::to_string(argsCount));
     return nullptr;
   }
   llvm::Value *rhsValue = nullptr;
-
-  for (uint64_t i = 0; i < llvmArrayArgs.size() - classArg.size(); i++) {
-    uint64_t callArgIndex = i, llvmArgIndex = i;
-
-    if (_codeGenerationContext
-            ->_functionTypes[callExpression->getCallerNameRef()]
-            ->isNonPrimitiveReturnType()) {
-      if (!_rtPtr.first) {
-        _rtPtr.second = _codeGenerationContext
-                            ->_functionTypes[callExpression->getCallerNameRef()]
-                            ->getReturnType();
-        _rtPtr.first = _codeGenerationContext->createMemoryGetPtr(
-            _rtPtr.second, "rtPtr", BinderKindUtils::MemoryKind::Stack);
-      }
-      if (i == 0) {
-        if (_codeGenerationContext->verifyType(
-                _rtPtr.second, llvmArrayArgs[i]->getLLVMType()) ==
-            EXIT_FAILURE) {
-          return nullptr;
-        }
-        rhsValue = _rtPtr.first;
-        functionArgs.push_back(rhsValue);
-        continue;
-      } else {
-        callArgIndex = i - 1;
-      }
+  uint64_t initialLLVMArgIndex = 0;
+  if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
+          ->isNonPrimitiveReturnType()) {
+    if (!_rtPtr.first) {
+      _rtPtr.second = _codeGenerationContext
+                          ->_functionTypes[callExpression->getCallerNameRef()]
+                          ->getReturnType();
+      _rtPtr.first = _codeGenerationContext->createMemoryGetPtr(
+          _rtPtr.second, "rtPtr", BinderKindUtils::MemoryKind::Stack);
     }
+    if (_codeGenerationContext->verifyType(
+            _rtPtr.second, llvmArrayArgs[0]->getLLVMType()) == EXIT_FAILURE) {
+      return nullptr;
+    }
+    initialLLVMArgIndex++;
+    rhsValue = _rtPtr.first;
+    functionArgs.push_back(rhsValue);
+  }
+
+  for (uint64_t i = 0; i < callExpression->getArgumentsRef().size(); i++) {
+    uint64_t callArgIndex = i;
     bool retFlag;
     llvm::Value *retVal = handleExpression(
-        calleeFunction, callArgIndex, llvmArgIndex, callExpression, rhsValue,
-        functionType, llvmArrayArgs, retFlag);
+        calleeFunction, callArgIndex, initialLLVMArgIndex + callArgIndex,
+        callExpression, rhsValue, functionType, llvmArrayArgs, retFlag);
     if (retFlag)
       return retVal;
     functionArgs.push_back(rhsValue);
