@@ -342,7 +342,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           structType);
       returnInfo =
           FUNCTION_NAME + ":rt:ob:" + boundObjectTypeExpression->getTypeName();
-
+      if (_codeGenerationContext->_classTypes.find(FUNCTION_NAME.substr(
+              0, FUNCTION_NAME.find(
+                     FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
+          _codeGenerationContext->_classTypes.end()) {
+        F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
+      }
       break;
     }
     default: {

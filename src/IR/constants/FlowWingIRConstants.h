@@ -34,6 +34,7 @@ namespace INNERS {
 namespace FUNCTIONS {
 
 extern const std::string PRINT;
+extern const std::string PRINT_F;
 extern const std::string CONCAT_STRINGS;
 extern const std::string STRING_LENGTH;
 extern const std::string ITOS;

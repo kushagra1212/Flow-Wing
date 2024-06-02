@@ -7,6 +7,32 @@ type Texture = {
   format:int
 }
 
+/#
+type Rectangle =  {
+    x:deci ,                 /; Rectangle top-left corner position x
+    y:deci ,                 /; Rectangle top-left corner position y
+    width:deci ,             /; Rectangle width
+    height:deci           /; Rectangle height
+}
+
+
+/; Vector2, 2 components
+type Vector2 = {
+     x:deci,             /; Vector x component
+    y:deci                  /; Vector y component
+} 
+#/
+
+type LOG_TYPE =  {
+    ALL:int ,        /; Display all logs
+    TRACE: int,          /; Trace logging, intended for internal use only
+    DEBUG:int ,          /; Debug logging, used for internal debugging, it should be disabled on release builds
+    INFO:int ,           /; Info logging, used for program execution info
+    WARNING:int ,        /; Warning logging, used on recoverable failures
+    ERROR:int ,          /; Error logging, used on unrecoverable failures
+    FATAL:int ,          /; Fatal logging, used to abort program: exit(EXIT_FAILURE)
+    NONE:int             /; Disable logging
+}
 fun InitWindow(width: as int,height: as int,title: as str) -> nthg decl
 fun SetTargetFPS(fps: as int) -> nthg decl
 fun ClearBackground(color: as int) -> nthg decl
@@ -40,10 +66,20 @@ fun TextFormat(text: as str) -> str decl
 fun LoadTexture(fileName: as str) -> Texture decl
 
 /; Texture Drawing Functions 
-fun DrawTexture(texture: as Texture, posX: as int, posY: as int, color: as int) -> nthg decl
+fun DrawTexture(texture:Texture, posX: as int, posY: as int, color: as int) -> nthg decl
 
+fun UnloadTexture(texture: Texture) -> nthg decl
 
+fun DrawTexturePro(texture: Texture, source: as deci32[4], dest:as deci32[4], origin:as deci32[2], rotation: as deci32 , color: as int) -> nthg decl
 
+/; Basic shapes drawing functions
+/;fun DrawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg decl    
+
+/; logs
+fun TraceLog(logLevel: as int, text: as str) -> nthg decl
+
+fun GetTime() -> deci decl
+fun GetFrameTime() -> deci32 decl
 fun rand() -> int decl
 fun time() -> int decl
 fun srand(x: as int) -> nthg decl

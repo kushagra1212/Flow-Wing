@@ -46,14 +46,8 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
     // Create an APFloat object with the double value
-    llvm::APFloat llvmDoubleValue =
-        llvm::cast<llvm::ConstantFP>(value)->getValueAPF();
-    // Convert APFloat to string
-    std::string str;
-    llvm::raw_string_ostream stream(str);
-    llvmDoubleValue.print(stream);
-    stream.flush();
-    return convertStringToi8Ptr(str);
+    return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
+                                {value});
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     llvm::Value *str = _builder->CreateSelect(

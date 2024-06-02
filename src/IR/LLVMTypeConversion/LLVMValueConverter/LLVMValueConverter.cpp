@@ -10,6 +10,7 @@ LLVMValueConverter::LLVMValueConverter(CodeGenerationContext *context)
 llvm::Value *
 LLVMValueConverter::convertToLLVMValue(std::any value,
                                        SyntaxKindUtils::SyntaxKind kind) {
+
   if (value.type() == typeid(int)) {
     return int32ToLLVMValue(std::any_cast<int32_t>(value));
   }
@@ -50,7 +51,6 @@ llvm::Value *
 LLVMValueConverter::stringToLLVMValue(std::string value,
                                       SyntaxKindUtils::SyntaxKind kind) {
   //  if the string contains only decimal numbers
-
   if (kind == SyntaxKindUtils::NumberToken) {
 
     if (Utils::isInteger(value)) {
@@ -151,6 +151,27 @@ LLVMValueConverter::stringToTypedLLVMValue(std::string value,
       }
     }
 
+    char endChar = ' ';
+    if (value.size() > 1 && value[value.size() - 1] == 'd') {
+      endChar = 'd';
+      value.pop_back();
+    }
+    if (Utils::isDouble(value)) {
+      if (endChar == 'd') {
+        llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEsingle(),
+                                      value.c_str());
+        llvm::Constant *llvmValue =
+            llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+
+        return llvmValue;
+      }
+
+      llvm::APFloat llvmDoubleValue(llvm::APFloat::IEEEdouble(), value.c_str());
+      llvm::Constant *llvmValue =
+          llvm::ConstantFP::get(*_llvmContext, llvmDoubleValue);
+
+      return llvmValue;
+    }
     if (Utils::isDouble(value)) {
       switch (type) {
       case SyntaxKindUtils::SyntaxKind::DeciKeyword: {

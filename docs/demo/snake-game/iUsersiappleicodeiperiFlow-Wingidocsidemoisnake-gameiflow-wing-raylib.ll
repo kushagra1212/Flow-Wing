@@ -1,8 +1,6 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
 
-%Texture.0 = type { i32, i32, i32, i32, i32 }
-
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_NULL = external global i8
@@ -35,6 +33,8 @@ declare i1 @less_than_or_equal_strings(ptr, ptr)
 declare i1 @less_than_strings(ptr, ptr)
 
 declare void @print(ptr, i1)
+
+declare void @printf(ptr, ...)
 
 declare i32 @string_length(ptr)
 
@@ -86,17 +86,27 @@ declare !rt !13 i1 @IsKeyDown(i32)
 
 declare !rt !14 ptr @TextFormat(ptr)
 
-declare !rt !15 void @LoadTexture(ptr, ptr)
+declare !rt !15 void @LoadTexture(ptr sret, ptr)
 
-declare !rt !16 void @DrawTexture(%Texture.0, i32, i32, i32)
+declare !rt !16 void @DrawTexture(ptr, i32, i32, i32)
 
-declare !rt !17 i32 @rand()
+declare !rt !17 void @UnloadTexture(ptr)
 
-declare !rt !18 i32 @time()
+declare !rt !18 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float], float, i32)
 
-declare !rt !19 void @srand(i32)
+declare !rt !19 void @TraceLog(i32, ptr)
 
-define i32 @getRandomNumber(ptr %0, ptr %1) !rt !20 {
+declare !rt !20 double @GetTime()
+
+declare !rt !21 float @GetFrameTime()
+
+declare !rt !22 i32 @rand()
+
+declare !rt !23 i32 @time()
+
+declare !rt !24 void @srand(i32)
+
+define i32 @getRandomNumber(ptr %0, ptr %1) !rt !25 {
 entry:
   %start = alloca i32, align 4
   %2 = load i32, ptr %0, align 4
@@ -149,7 +159,12 @@ mergeBlock:                                       ; No predecessors!
 !14 = !{!"TextFormat:rt:pr:33"}
 !15 = !{!"LoadTexture:rt:ob:Texture"}
 !16 = !{!"DrawTexture:rt:pr:27"}
-!17 = !{!"rand:rt:pr:28"}
-!18 = !{!"time:rt:pr:28"}
-!19 = !{!"srand:rt:pr:27"}
-!20 = !{!"getRandomNumber:rt:pr:28"}
+!17 = !{!"UnloadTexture:rt:pr:27"}
+!18 = !{!"DrawTexturePro:rt:pr:27"}
+!19 = !{!"TraceLog:rt:pr:27"}
+!20 = !{!"GetTime:rt:pr:31"}
+!21 = !{!"GetFrameTime:rt:pr:32"}
+!22 = !{!"rand:rt:pr:28"}
+!23 = !{!"time:rt:pr:28"}
+!24 = !{!"srand:rt:pr:27"}
+!25 = !{!"getRandomNumber:rt:pr:28"}

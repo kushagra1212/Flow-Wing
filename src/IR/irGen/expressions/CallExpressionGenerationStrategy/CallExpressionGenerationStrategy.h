@@ -17,6 +17,7 @@ public:
 
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
   llvm::Value *handlePrintFunction(llvm::Value *&value);
+  void printPremitives(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
 
   llvm::Value *generateCommonCallExpression(

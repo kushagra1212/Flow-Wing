@@ -1,98 +1,126 @@
 bring {FlowWingAnim} from "FlowWingAnim.fg"
 
-type Position = {
-  x: int,
-  y: int
-}
-const screenWidth: int = 1000
-const screenHeight: int = 500
+const screenWidth: int = 1024
+const screenHeight: int = 768
+const FPS:int = 12
 const side: int = 10
+type Position = {
+  x: deci32,
+  y: deci32
+}
 
-fun getFoodPosition() -> Position {
-  var pos: Position = {
-    x: getRandomNumber(0, screenWidth - 1),
-    y: getRandomNumber(0, screenHeight - 1)
+
+class Bird {
+const ACTUAL_BIRD_SIZE: deci32 = 360.0d
+var birdSize: deci32 = 90.0d
+const BIRD_TIMMER: deci = 1.0/FPS
+var birdTimmer:deci = BIRD_TIMMER
+const BIRD_SPRITE_SIZE = 9
+var birdSpriteIndex = 0
+var birdTexturePath 
+var isBirdAlive:bool 
+var birdTexture: Texture
+const birdSpritePosition: Position[9] = [{
+  x: 0.0d,
+  y: 0.0d
+}, {
+  x: ACTUAL_BIRD_SIZE * 1,
+  y: 0.0d
+}, {
+  x: ACTUAL_BIRD_SIZE * 2,
+  y: 0.0d
+}, {
+  x: 0.0d,
+  y: ACTUAL_BIRD_SIZE * 1
+}, {
+  x: ACTUAL_BIRD_SIZE * 1,
+  y: ACTUAL_BIRD_SIZE * 1
+}, {
+  x: ACTUAL_BIRD_SIZE * 2,
+  y: ACTUAL_BIRD_SIZE * 1
+}, {
+  x: 0.0d,
+  y: ACTUAL_BIRD_SIZE * 2
+}, {
+  x: ACTUAL_BIRD_SIZE * 1,
+  y: ACTUAL_BIRD_SIZE * 2
+}, {
+  x: ACTUAL_BIRD_SIZE * 2,
+  y: ACTUAL_BIRD_SIZE * 2
+}]
+
+init(birdTexturePath: str) -> nthg {
+  self.birdTexturePath = birdTexturePath
+  self.isBirdAlive = true
+}
+
+setTexture(birdTexture: Texture) -> nthg {
+    self.birdTexture =birdTexture
   }
-  pos.x = pos.x - pos.x % side 
-  pos.y = pos.y - pos.y % side 
-  return pos
+
+getTexturePath() -> str {
+  return self.birdTexturePath
+}
+
+update(frameTime: deci32) -> nthg {
+    birdTimmer = birdTimmer - Decimal(frameTime)
+    if birdTimmer < 0  {
+      birdTimmer =  BIRD_TIMMER
+      birdSpriteIndex = birdSpriteIndex + 1 
+      if birdSpriteIndex >= BIRD_SPRITE_SIZE {
+          birdSpriteIndex = 0
+        }
+    }
+  }
+
+isTextureLoaded() -> bool {
+    return self.birdTexture.id != 0
+  }
+
+ getSource() -> deci32[4] {
+return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y,
+    ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]
+  }
+
+  getDistination() -> deci32[4] {
+return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2),
+    birdSize, birdSize]
+    }
+
+    getOrigin() -> deci32[2] {
+        return  [0.0d, 0.0d]
+      }
+
+      getRotation() -> deci32 {
+          return 0.0d
+        }
+
+        getTexture() -> Texture {
+            return self.birdTexture
+          }
 }
 
 fun main() -> int {
-  const speed = 10
-  var tail: int = 1
-  var posX: int[10000] = [10000 fill -1]
-  var posY: int[10000] = [10000 fill -1]
-  posX[0]= 0
-  posY[0]= 0
-  var foodPos: Position = getFoodPosition()
-  var newPos: Position = {
-    x: posX[0],
-    y: posY[0]
-  }
-  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", 60)
-  print(5)
-  var bird:Texture = fgAnim.loadTexture("/Users/apple/Downloads/images.png")
-
+  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
+  const bird: Bird = new Bird("./bird.png")
   fgAnim.createWindow()
+  bird.setTexture(fgAnim.loadTexture(bird.getTexturePath()))/; Check if textures loaded successfully
 
+  if !bird.isTextureLoaded() {/; If any texture failed to load, print error and exit
 
-  while (!fgAnim.windowShouldClose()) {
-    var isKeyPressed = false
-    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
-      isKeyPressed = true 
-      newPos.y = newPos.y - speed 
-    }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_DOWN) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_DOWN)) {
-      isKeyPressed = true 
-      newPos.y = newPos.y + speed 
-    }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_RIGHT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_RIGHT)) {
-      isKeyPressed = true 
-      newPos.x = newPos.x + speed 
-    }
-    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_LEFT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_LEFT)) {
-      isKeyPressed = true 
-      newPos.x = newPos.x - speed 
-    }
+    fgAnim.traceLog(fgAnim.LOG.ERROR, "Failed to load bird texture")
+    /; Clean up and exit
 
-    if (newPos.x < 0) {
-      newPos.x = 0 
-    }
+    fgAnim.unloadTexture(bird.getTexture())
+    fgAnim.closeWindow()
+    return 1
+  }
 
-    if (newPos.x >= screenWidth - speed) {
-      newPos.x = screenWidth - speed 
-    }
-
-    if (newPos.y < 0) {
-      newPos.y = 0 
-    }
-
-    if (newPos.y >= screenHeight - speed) {
-      newPos.y = screenHeight - speed 
-    }
-
-    if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
-      foodPos = getFoodPosition() 
-      tail = tail + 1 
-    }
-
-    if (isKeyPressed) {
-      for var index: int = tail - 1 to 1 : -1 {
-        posX[index]= posX[index - 1]
-        posY[index]= posY[index - 1]
-      }
-    }
-
-    posX[0]= newPos.x
-    posY[0]= newPos.y
+  while !fgAnim.windowShouldClose()  {
+    bird.update(fgAnim.getFrameTime()) 
     fgAnim.beginDrawing()
     fgAnim.clearBackground(fgAnim.colors.WHITE)
-    for var index: int = 0 to tail - 1 {
-      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)
-    }
-    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)
-    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)
+    fgAnim.drawTexturePro(bird.getTexture(),bird.getSource(),bird.getDistination(),bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
     fgAnim.endDrawing()
   }
   fgAnim.closeWindow()

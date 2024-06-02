@@ -1620,4 +1620,129 @@ print(x.a)
 
   O(R"(aa10{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 10 }aa2{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 2 })");
 }
+TEST_F(ObjectArray, BasicDeci32Test) {
+  I(R"(
+var ar:deci32 = 2.2d 
+print(ar)
+    )");
+
+  O(R"(2.2000000)");
+}
+
+TEST_F(ObjectArray, BasicDeci32TestScoped) {
+  I(R"(
+{
+  var ar:deci32 = 2.2d 
+print(ar)
+}
+    )");
+
+  O(R"(2.2000000)");
+}
+TEST_F(ObjectArray, BasicDeci32TestScoped2) {
+  I(R"(
+
+  var ar:deci32 = 2.2d 
+  {
+print(ar)
+}
+    )");
+
+  O(R"(2.2000000)");
+}
+TEST_F(ObjectArray, BasicDeci32TestScoped2Assignment) {
+  I(R"(
+var ar:deci32 = 2.2d
+{
+  ar = 32.222d
+}
+print(ar)
+    )");
+
+  O(R"(32.2220001)");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignment) {
+  I(R"(
+var ar:deci32 = 2.2d
+
+  ar = 32.222d
+
+print(ar)
+    )");
+
+  O(R"(32.2220001)");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTest) {
+  I(R"(
+var arr:deci32[2] = [2.2d]
+print(arr)
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal) {
+  I(R"(
+{
+  var arr:deci32[2] = [2.2d]
+print(arr)
+}
+
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal2) {
+  I(R"(
+var arr:deci32[2] = [2 fill 2.2d]
+print(arr)
+    )");
+
+  O(R"([2.2000000, 2.2000000])");
+}
+
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal3) {
+  I(R"(
+{
+  var arr:deci32[2] = [2.2d]
+print(arr)
+}
+
+
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal2Function) {
+  I(R"(
+fun printdec(a:deci32[2]) -> nthg {
+    print(a)
+ 
+ }
+
+ printdec([3.2d])
+    )");
+
+  O(R"([3.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, PrintConstantTest) {
+  I(R"(
+print("s")
+    )");
+
+  O(R"(s)");
+}
+TEST_F(ObjectArray,
+       BasicDeci32TestAssignmentArrayTestLocal2FunctionArrayofObject) {
+  I(R"(
+type T ={
+    a:deci32[2]
+  }
+
+var x:T  ={a:[2 fill 2.2d]}
+
+print(x)
+    )");
+
+  O(R"({ a : [2.2000000, 2.2000000] })");
+}
 #endif

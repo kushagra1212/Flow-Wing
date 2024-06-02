@@ -13,6 +13,7 @@
 #include "../context/CodeGenerationContext.h"
 #include "../strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
+#include "../strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
 #include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
@@ -20,7 +21,7 @@
 #include "statements/StatementGenerationFactory.h"
 
 class GenerationStrategy {
- public:
+public:
   CodeGenerationContext *_codeGenerationContext;
 
   llvm::Module *TheModule = nullptr;
@@ -35,6 +36,7 @@ class GenerationStrategy {
   std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
   std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
   std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
+  std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
 
   // Unary Operation Strategy
@@ -44,6 +46,7 @@ class GenerationStrategy {
 
   std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
+  std::unique_ptr<FloatTypeConverter> _floatTypeConverter;
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
   std::unique_ptr<StringTypeConverter> _stringTypeConverter;
 
@@ -53,8 +56,7 @@ class GenerationStrategy {
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
 
   GenerationStrategy(CodeGenerationContext *context)
-      : _codeGenerationContext(context),
-        TheModule(context->getModule().get()),
+      : _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()),
         _llvmValueConverter(std::make_unique<LLVMValueConverter>(context)),
@@ -74,12 +76,15 @@ class GenerationStrategy {
             std::make_unique<DoubleBinaryOperationStrategy>(context)),
         _stringBinaryOperationStrategy(
             std::make_unique<StringBinaryOperationStrategy>(context)),
+        _floatBinaryOperationStrategy(
+            std::make_unique<FloatBinaryOperationStrategy>(context)),
 
         // Initialize the type converters
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
+        _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
 
         // Initialize the value visitor
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
@@ -90,4 +95,4 @@ class GenerationStrategy {
             std::make_unique<StatementGenerationFactory>(context)){};
 };
 
-#endif  // __FLOWWING_GENERATION_STRATEGY_H__
+#endif // __FLOWWING_GENERATION_STRATEGY_H__

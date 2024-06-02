@@ -218,7 +218,6 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
         ptr, structType, _variableName,
         variableDeclaration->getInitializerPtr().get());
   }
-
   // Handle Global Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
 
@@ -228,7 +227,6 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
     llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
         llvmType, _variableName, variableDeclaration->getMemoryKind());
-
     assignmentEGS->initDefaultValue(llvmType, ptr);
     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                      {ptr, llvmType});

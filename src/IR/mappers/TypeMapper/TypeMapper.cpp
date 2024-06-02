@@ -83,6 +83,10 @@ const bool TypeMapper::isDoubleType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::DeciKeyword;
 }
+const bool TypeMapper::isFloatType(llvm::Type *type) const {
+  return mapLLVMTypeToCustomType(type) ==
+         SyntaxKindUtils::SyntaxKind::Deci32Keyword;
+}
 
 const bool TypeMapper::isInt32Type(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
@@ -202,7 +206,7 @@ llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
 
 const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
   return isBoolType(type) || isDoubleType(type) || isInt32Type(type) ||
-         isStringType(type);
+         isStringType(type) || isFloatType(type);
 }
 
 const bool TypeMapper::isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const {

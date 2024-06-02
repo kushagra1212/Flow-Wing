@@ -32,6 +32,7 @@ public:
   const bool isStringType(llvm::Type *type) const;
   const bool isBoolType(llvm::Type *type) const;
   const bool isDoubleType(llvm::Type *type) const;
+  const bool isFloatType(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
   const bool isInt8Type(llvm::Type *type) const;
   const bool isInt64Type(llvm::Type *type) const;

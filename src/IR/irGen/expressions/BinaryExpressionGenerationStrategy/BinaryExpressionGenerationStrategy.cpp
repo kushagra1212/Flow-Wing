@@ -52,6 +52,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
         binaryExpression);
+  } else if (_typeMapper->isFloatType(lhsType) ||
+             _typeMapper->isFloatType(rhsType)) {
+    result = _floatBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), rhsValue),
+        binaryExpression);
   } else if (_typeMapper->isDoubleType(lhsType) ||
              _typeMapper->isDoubleType(rhsType)) {
     result = _doubleBinaryOperationStrategy->performOperation(

@@ -3278,3 +3278,40 @@ Print from B
 
 world)");
 }
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInit) {
+  I(R"(
+type T = {
+    a:int,
+    b:deci
+  }
+
+class A {
+  var x:int = 10
+  var a:deci = 22.2
+  const u:T = {a:43,b:54.2}
+  init(x:int) -> nthg {
+    self.x = x
+  }
+
+  getTT() -> T {
+    var j:T = {a:2}
+    return j
+  }
+
+  getT(s:str ) -> T {
+    print(s)
+
+    return getTT()
+  }
+}
+
+var a:A = new A(2)
+
+print(a.a)
+print(a.x)
+print(a.u)
+)");
+  O(R"(22.200000000000002{ a : 43, b : 54.20000000000000 })");
+}

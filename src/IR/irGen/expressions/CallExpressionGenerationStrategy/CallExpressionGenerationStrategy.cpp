@@ -96,9 +96,11 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArgumentsRef()[0].get()->getKind())
               ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                          {_stringTypeConverter->convertExplicit(val),
-                           Builder->getInt1(false)});
+      // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+      //                     {_stringTypeConverter->convertExplicit(val),
+      //                      Builder->getInt1(false)});
+
+      printPremitives(val);
 
       return Builder->CreateCall(
           TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
@@ -111,18 +113,24 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArgumentsRef()[0].get()->getKind())
               ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      return _stringTypeConverter->convertExplicit(val);
+      llvm::Value *res = _stringTypeConverter->convertExplicit(val);
+      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                           res->getType());
+
+      return res;
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
     if (arguments_size == 1) {
-      llvm::Value *res = nullptr;
       llvm::Value *val =
           _expressionGenerationFactory
               ->createStrategy(
                   callExpression->getArgumentsRef()[0].get()->getKind())
               ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      res = _int32TypeConverter->convertExplicit(val);
+      llvm::Value *res = _int32TypeConverter->convertExplicit(val);
+      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                           res->getType());
+
       return res;
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
@@ -133,7 +141,11 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArgumentsRef()[0].get()->getKind())
               ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      return _boolTypeConverter->convertExplicit(val);
+      llvm::Value *res = _boolTypeConverter->convertExplicit(val);
+      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                           res->getType());
+
+      return res;
     }
   } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Decimal) {
     if (arguments_size == 1) {
@@ -143,7 +155,26 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
                   callExpression->getArgumentsRef()[0].get()->getKind())
               ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      return _doubleTypeConverter->convertExplicit(val);
+      llvm::Value *res = _doubleTypeConverter->convertExplicit(val);
+      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                           res->getType());
+
+      return res;
+    }
+  } else if (callExpression->getCallerNameRef() ==
+             FW::BI::FUNCTION::Decimal32) {
+    if (arguments_size == 1) {
+      llvm::Value *val =
+          _expressionGenerationFactory
+              ->createStrategy(
+                  callExpression->getArgumentsRef()[0].get()->getKind())
+              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+      llvm::Value *res = _floatTypeConverter->convertExplicit(val);
+
+      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                           res->getType());
+
+      return res;
     }
   }
 
@@ -168,9 +199,11 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
 
     _codeGenerationContext->getValueStackHandler()->popAll();
 
-    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                        {_stringTypeConverter->convertExplicit(loaded),
-                         Builder->getInt1(false)});
+    // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+    //                     {_stringTypeConverter->convertExplicit(loaded),
+    //                      Builder->getInt1(false)});
+
+    printPremitives(loaded);
     return nullptr;
   }
 
@@ -323,9 +356,11 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
       return printObject(value, structType);
     }
 
-    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                        {_stringTypeConverter->convertExplicit(value),
-                         Builder->getInt1(false)});
+    // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+    //                     {_stringTypeConverter->convertExplicit(value),
+    //                      Builder->getInt1(false)});
+
+    printPremitives(value);
 
     return nullptr;
   }
@@ -357,13 +392,32 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
   // }
   if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
           value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-    Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                        {_stringTypeConverter->convertExplicit(value),
-                         Builder->getInt1(false)});
+
+    printPremitives(value);
     return nullptr;
   }
 
   return nullptr;
+}
+
+void CallExpressionGenerationStrategy::printPremitives(llvm::Value *&value) {
+  llvm::Value *formatPtr = getUnit("%s", "%s");
+
+  if (value->getType()->isIntegerTy(32)) {
+    formatPtr = getUnit("%d", "%d");
+  } else if (value->getType()->isIntegerTy(64)) {
+    formatPtr = getUnit("%ld", "%lld");
+  } else if (value->getType()->isFloatTy()) {
+    formatPtr = getUnit("%0.7f", "%0.7f");
+  } else if (value->getType()->isDoubleTy()) {
+    formatPtr = getUnit("%0.14f", "%0.14f");
+  } else if (value->getType()->isIntegerTy(1)) {
+    formatPtr = getUnit("%s", "%s");
+    value = _stringTypeConverter->convertExplicit(value);
+  }
+
+  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
+                      {formatPtr, (value)});
 }
 
 llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
@@ -402,17 +456,17 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
           0, className.find(
                  FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
                  std::to_string(callExpression->getArgumentsRef().size())));
+
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
+        std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+            std::make_unique<AssignmentExpressionGenerationStrategy>(
+                _codeGenerationContext);
 
         if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
           value = _codeGenerationContext->getValueStackHandler()->getValue();
           _codeGenerationContext->getValueStackHandler()->popAll();
         } else {
-          std::unique_ptr<AssignmentExpressionGenerationStrategy>
-              assignmentEGS =
-                  std::make_unique<AssignmentExpressionGenerationStrategy>(
-                      _codeGenerationContext);
 
           value = _codeGenerationContext->createMemoryGetPtr(
               _codeGenerationContext->_classTypes[className]->getClassType(),
@@ -441,7 +495,26 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
         classType =
             _codeGenerationContext->_classTypes[className]->getClassType();
+        {
+          BoundClassStatement *classStatement =
+              _codeGenerationContext->_classTypes[className]
+                  ->getBoundClassStatement();
 
+          for (auto &varDec : classStatement->getMemberVariablesRef()) {
+            if (_codeGenerationContext->_classTypes[className]
+                    ->doesElementExist(varDec->getVariableName()) &&
+                varDec->getInitializerPtr().get()) {
+              auto [elementType, index, elementName, _classType] =
+                  _codeGenerationContext->_classTypes[className]->getElement(
+                      varDec->getVariableName());
+              llvm::Value *elementPtr =
+                  Builder->CreateStructGEP(_classType, value, index);
+              assignmentEGS->handleAssignExpression(
+                  elementPtr, elementType, varDec->getVariableName(),
+                  varDec->getInitializerPtr().get());
+            }
+          }
+        }
         calleeFunction =
             TheModule->getFunction(callExpression->getCallerNameRef());
         classArg = {value};
@@ -463,7 +536,6 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     std::__1::vector<llvm::Value *> &classArg, llvm::Type *_classType,
     llvm::Value *_classPtr, llvm::Value *calleeValue) {
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-
   BoundFunctionDeclaration *definedFunction =
       _codeGenerationContext
           ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
@@ -487,7 +559,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
 
     // fgst->generateStatementOnFly(definedFunction, args);
 
-    Builder->SetInsertPoint(currentBlock);
+    // Builder->SetInsertPoint(currentBlock);
   }
   std::vector<llvm::Value *> functionArgs;
 
@@ -569,6 +641,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   for (uint64_t i = 0; i < callExpression->getArgumentsRef().size(); i++) {
     uint64_t callArgIndex = i;
     bool retFlag;
+
     llvm::Value *retVal = handleExpression(
         calleeFunction, callArgIndex, initialLLVMArgIndex + callArgIndex,
         callExpression, rhsValue, functionType, llvmArrayArgs, retFlag);
@@ -683,10 +756,22 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         callExpressionGenerationStrategy =
             std::make_unique<CallExpressionGenerationStrategy>(
                 _codeGenerationContext);
+    if (BuiltInFunction::isBuiltInFunction(cE->getCallerNameRef())) {
+
+      llvm::Value *rt = this->buildInFunctionCall(callExpression);
+      rhsValue = Builder->CreateAlloca(rt->getType(), nullptr);
+      Builder->CreateStore(rt, rhsValue);
+      _codeGenerationContext->getValueStackHandler()->popAll();
+      retFlag = false;
+      return nullptr;
+    }
 
     bool isCassInit = cE->getCallerNameRef().find(".init") != std::string::npos;
 
     if (!isCassInit &&
+        _codeGenerationContext->_functionTypes.find(cE->getCallerNameRef()) !=
+            _codeGenerationContext->_functionTypes.end() &&
+
         _codeGenerationContext->_functionTypes[cE->getCallerNameRef()]
             ->isNonPrimitiveReturnType()) {
 
@@ -721,6 +806,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
       }
     }
     _codeGenerationContext->getValueStackHandler()->popAll();
+    retFlag = false;
     break;
   }
   default: {
@@ -1328,9 +1414,12 @@ void CallExpressionGenerationStrategy::printString(llvm::Value *value,
 
   Builder->SetInsertPoint(endBlock);
 
-  Builder->CreateCall(
-      TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      {_stringTypeConverter->convertExplicit(value), Builder->getInt1(false)});
+  // Builder->CreateCall(
+  //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+  //     {_stringTypeConverter->convertExplicit(value),
+  //     Builder->getInt1(false)});
+
+  printPremitives(value);
 
   Builder->CreateBr(mergeBlock);
 
@@ -1442,10 +1531,12 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
           printString(innerValue, elementType);
         } else
 
-          Builder->CreateCall(
-              TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-              {_stringTypeConverter->convertExplicit(innerValue),
-               Builder->getInt1(false)});
+          // Builder->CreateCall(
+          //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+          //     {_stringTypeConverter->convertExplicit(innerValue),
+          //      Builder->getInt1(false)});
+
+          printPremitives(innerValue);
       }
 
       //! Printing Ends
@@ -1568,9 +1659,11 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
       if (loaded->getType()->isPointerTy()) {
         printString(loadedVal, type);
       } else {
-        Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-                            {_stringTypeConverter->convertExplicit(loadedVal),
-                             Builder->getInt1(false)});
+
+        printPremitives(loadedVal);
+        // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+        //                     {_stringTypeConverter->convertExplicit(loadedVal),
+        //                      Builder->getInt1(false)});
       }
     }
     if (i != boundCustomTypeStatement->getKeyPairs().size() - 1)

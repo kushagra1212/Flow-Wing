@@ -259,6 +259,10 @@ public:
       }
     }
   }
+
+  inline auto getBoundClassStatement() -> BoundClassStatement * {
+    return _boundClassStatement;
+  }
 };
 
 #endif

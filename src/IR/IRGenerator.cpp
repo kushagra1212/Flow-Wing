@@ -67,6 +67,7 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareLessThanOrEqualStringsFn();
   functionDeclarationManager->declareLessThanStringsFn();
   functionDeclarationManager->declarePrintFn();
+  functionDeclarationManager->declarePrintfFn();
   functionDeclarationManager->declareStringLengthFn();
   functionDeclarationManager->declareStringToDoubleFn();
   functionDeclarationManager->declareStringToIntFn();
@@ -205,9 +206,11 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 #ifdef DEBUG
   llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
-  std::unique_ptr<ObjectFile> objectFile =
-      std::make_unique<ObjectFile>(blockName);
-  objectFile->writeModuleToFile(TheModule);
+  if (!this->hasErrors()) {
+    std::unique_ptr<ObjectFile> objectFile =
+        std::make_unique<ObjectFile>(blockName);
+    objectFile->writeModuleToFile(TheModule);
+  }
 #elif RELEASE
   if (!this->hasErrors()) {
     std::unique_ptr<ObjectFile> objectFile =

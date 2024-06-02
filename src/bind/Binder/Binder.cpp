@@ -62,15 +62,15 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       variableDeclaration->getIdentifierRef()->getValue(),
       variableDeclaration->getIdentifierRef()->getKind()));
 
-  if (className != "" && variableDeclaration->getInitializerRef()) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Cannot initialize variable in class directly, use init "
-        "constructor instead",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        variableDeclaration->getInitializerRef()->getSourceLocation()));
-    return std::move(variable);
-  }
+  // if (className != "" && variableDeclaration->getInitializerRef()) {
+  //   this->_diagnosticHandler->addDiagnostic(Diagnostic(
+  //       "Cannot initialize variable in class directly, use init "
+  //       "constructor instead",
+  //       DiagnosticUtils::DiagnosticLevel::Error,
+  //       DiagnosticUtils::DiagnosticType::Semantic,
+  //       variableDeclaration->getInitializerRef()->getSourceLocation()));
+  //   return std::move(variable);
+  // }
 
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =

@@ -43,6 +43,13 @@ void AOTCompiler::link() {
          getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
          " -lbuilt_in_module  -fPIE " + RAY_LIB_CMD + executeCmd);
 
+#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+    (defined(DEBUG) && defined(AOT_MODE))
+
+    std::cout << BLACK_TEXT << "Executing: " << YELLOW << cmd << RESET
+              << std::endl;
+#endif
+
     std::system(cmd.c_str());
 
     // delete object files
