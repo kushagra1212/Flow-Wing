@@ -1,5 +1,6 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim"
+target triple = "x86_64-apple-macosx14.0.0"
 
 %"FlowWingAnim::VTableType" = type { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr }
 %FlowWingAnim = type { ptr, i32, i32, ptr, i32, %COLORS_TYPE.3, %KEYS_TYPE.2, %LOG_TYPE.1 }
@@ -15,7 +16,6 @@ source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWing
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT = global i32 0
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
 @vtable.FlowWingAnim.fg = common global %"FlowWingAnim::VTableType" zeroinitializer
-@0 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
 
 declare i32 @compare_strings(ptr, ptr)
 
@@ -68,13 +68,13 @@ returnBlock:                                      ; preds = %entry
 
 declare i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib()
 
-declare !rt !0 i32 @getRandomNumber(ptr, ptr)
+declare !rt !0 void @getRandomNumber(ptr, ptr, ptr)
 
 declare !rt !1 void @srand(i32)
 
-declare !rt !2 i32 @rand()
+declare !rt !2 void @rand(ptr)
 
-declare !rt !3 float @GetFrameTime()
+declare !rt !3 void @GetFrameTime(ptr)
 
 declare !rt !4 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float], float, i32)
 
@@ -82,19 +82,19 @@ declare !rt !5 void @UnloadTexture(ptr)
 
 declare !rt !6 void @DrawTexture(ptr, i32, i32, i32)
 
-declare !rt !7 double @GetTime()
+declare !rt !7 void @GetTime(ptr)
 
-declare !rt !8 ptr @TextFormat(ptr)
+declare !rt !8 void @TextFormat(ptr, ptr)
 
-declare !rt !9 void @LoadTexture(ptr sret, ptr)
+declare !rt !9 void @LoadTexture(ptr dereferenceable(74), ptr)
 
-declare !rt !10 i1 @IsKeyDown(i32)
+declare !rt !10 void @IsKeyDown(ptr, i32)
 
 declare !rt !11 void @SetTargetFPS(i32)
 
 declare !rt !12 void @DrawText(ptr, i32, i32, i32, i32)
 
-declare !rt !13 i32 @GetScreenHeight()
+declare !rt !13 void @GetScreenHeight(ptr)
 
 declare !rt !14 void @CloseWindow()
 
@@ -102,21 +102,21 @@ declare !rt !15 void @InitWindow(i32, i32, ptr)
 
 declare !rt !16 void @EndDrawing()
 
-declare !rt !17 i1 @IsKeyPressed(i32)
+declare !rt !17 void @IsKeyPressed(ptr, i32)
 
-declare !rt !18 i32 @time()
+declare !rt !18 void @time(ptr)
 
 declare !rt !19 void @BeginDrawing()
 
 declare !rt !20 void @TraceLog(i32, ptr)
 
-declare !rt !21 i1 @WindowShouldClose()
+declare !rt !21 void @WindowShouldClose(ptr)
 
 declare !rt !22 void @DrawRectangle(i32, i32, i32, i32, i32)
 
 declare !rt !23 void @DrawCircle(i32, i32, float, i32)
 
-declare !rt !24 i32 @GetScreenWidth()
+declare !rt !24 void @GetScreenWidth(ptr)
 
 declare !rt !25 void @ClearBackground(i32)
 
@@ -253,110 +253,105 @@ nestedBlock:                                      ; preds = %entry
   store i32 255, ptr %11, align 4
   %12 = alloca i32, align 4
   store i32 255, ptr %12, align 4
-  %13 = call i32 @FlowWingAnim.getColor(ptr %9, ptr %10, ptr %11, ptr %12, ptr %0)
-  store i32 %13, ptr %8, align 4
-  %14 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 1
+  call void @FlowWingAnim.getColor(ptr %8, ptr %9, ptr %10, ptr %11, ptr %12, ptr %0)
+  %13 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 1
+  %14 = alloca i32, align 4
+  store i32 255, ptr %14, align 4
   %15 = alloca i32, align 4
-  store i32 255, ptr %15, align 4
+  store i32 0, ptr %15, align 4
   %16 = alloca i32, align 4
   store i32 0, ptr %16, align 4
   %17 = alloca i32, align 4
-  store i32 0, ptr %17, align 4
-  %18 = alloca i32, align 4
-  store i32 255, ptr %18, align 4
-  %19 = call i32 @FlowWingAnim.getColor(ptr %15, ptr %16, ptr %17, ptr %18, ptr %0)
-  store i32 %19, ptr %14, align 4
-  %20 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 2
+  store i32 255, ptr %17, align 4
+  call void @FlowWingAnim.getColor(ptr %13, ptr %14, ptr %15, ptr %16, ptr %17, ptr %0)
+  %18 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 2
+  %19 = alloca i32, align 4
+  store i32 0, ptr %19, align 4
+  %20 = alloca i32, align 4
+  store i32 255, ptr %20, align 4
   %21 = alloca i32, align 4
   store i32 0, ptr %21, align 4
   %22 = alloca i32, align 4
   store i32 255, ptr %22, align 4
-  %23 = alloca i32, align 4
-  store i32 0, ptr %23, align 4
+  call void @FlowWingAnim.getColor(ptr %18, ptr %19, ptr %20, ptr %21, ptr %22, ptr %0)
+  %23 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 3
   %24 = alloca i32, align 4
-  store i32 255, ptr %24, align 4
-  %25 = call i32 @FlowWingAnim.getColor(ptr %21, ptr %22, ptr %23, ptr %24, ptr %0)
-  store i32 %25, ptr %20, align 4
-  %26 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 3
+  store i32 0, ptr %24, align 4
+  %25 = alloca i32, align 4
+  store i32 0, ptr %25, align 4
+  %26 = alloca i32, align 4
+  store i32 255, ptr %26, align 4
   %27 = alloca i32, align 4
-  store i32 0, ptr %27, align 4
-  %28 = alloca i32, align 4
-  store i32 0, ptr %28, align 4
+  store i32 255, ptr %27, align 4
+  call void @FlowWingAnim.getColor(ptr %23, ptr %24, ptr %25, ptr %26, ptr %27, ptr %0)
+  %28 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 4
   %29 = alloca i32, align 4
-  store i32 255, ptr %29, align 4
+  store i32 0, ptr %29, align 4
   %30 = alloca i32, align 4
-  store i32 255, ptr %30, align 4
-  %31 = call i32 @FlowWingAnim.getColor(ptr %27, ptr %28, ptr %29, ptr %30, ptr %0)
-  store i32 %31, ptr %26, align 4
-  %32 = getelementptr inbounds %COLORS_TYPE.3, ptr %5, i32 0, i32 4
-  %33 = alloca i32, align 4
-  store i32 0, ptr %33, align 4
-  %34 = alloca i32, align 4
-  store i32 82, ptr %34, align 4
-  %35 = alloca i32, align 4
-  store i32 172, ptr %35, align 4
-  %36 = alloca i32, align 4
-  store i32 255, ptr %36, align 4
-  %37 = call i32 @FlowWingAnim.getColor(ptr %33, ptr %34, ptr %35, ptr %36, ptr %0)
-  store i32 %37, ptr %32, align 4
-  %38 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
-  %39 = icmp eq i32 %38, 0
-  br i1 %39, label %checkContinueBlock, label %afterNestedBlock
+  store i32 82, ptr %30, align 4
+  %31 = alloca i32, align 4
+  store i32 172, ptr %31, align 4
+  %32 = alloca i32, align 4
+  store i32 255, ptr %32, align 4
+  call void @FlowWingAnim.getColor(ptr %28, ptr %29, ptr %30, ptr %31, ptr %32, ptr %0)
+  %33 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
+  %34 = icmp eq i32 %33, 0
+  br i1 %34, label %checkContinueBlock, label %afterNestedBlock
 
 checkContinueBlock:                               ; preds = %nestedBlock
-  %40 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
-  %41 = icmp eq i32 %40, 0
-  br i1 %41, label %nestedBlock1, label %afterNestedBlock
+  %35 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
+  %36 = icmp eq i32 %35, 0
+  br i1 %36, label %nestedBlock1, label %afterNestedBlock
 
 nestedBlock1:                                     ; preds = %checkContinueBlock
-  %42 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 0
-  store i32 262, ptr %42, align 4
-  %43 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 1
-  store i32 263, ptr %43, align 4
-  %44 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 2
-  store i32 264, ptr %44, align 4
-  %45 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 3
-  store i32 265, ptr %45, align 4
-  %46 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
-  %47 = icmp eq i32 %46, 0
-  br i1 %47, label %checkContinueBlock2, label %afterNestedBlock
+  %37 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 0
+  store i32 262, ptr %37, align 4
+  %38 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 1
+  store i32 263, ptr %38, align 4
+  %39 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 2
+  store i32 264, ptr %39, align 4
+  %40 = getelementptr inbounds %KEYS_TYPE.2, ptr %6, i32 0, i32 3
+  store i32 265, ptr %40, align 4
+  %41 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
+  %42 = icmp eq i32 %41, 0
+  br i1 %42, label %checkContinueBlock2, label %afterNestedBlock
 
 checkContinueBlock2:                              ; preds = %nestedBlock1
-  %48 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
-  %49 = icmp eq i32 %48, 0
-  br i1 %49, label %nestedBlock3, label %afterNestedBlock
+  %43 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
+  %44 = icmp eq i32 %43, 0
+  br i1 %44, label %nestedBlock3, label %afterNestedBlock
 
 nestedBlock3:                                     ; preds = %checkContinueBlock2
-  %50 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 0
-  store i32 0, ptr %50, align 4
-  %51 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 1
-  store i32 1, ptr %51, align 4
-  %52 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 2
-  store i32 2, ptr %52, align 4
-  %53 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 3
-  store i32 3, ptr %53, align 4
-  %54 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 4
-  store i32 4, ptr %54, align 4
-  %55 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 5
-  store i32 5, ptr %55, align 4
-  %56 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 6
-  store i32 6, ptr %56, align 4
-  %57 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 7
-  store i32 7, ptr %57, align 4
-  %58 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
-  %59 = icmp eq i32 %58, 0
-  br i1 %59, label %checkContinueBlock4, label %afterNestedBlock
+  %45 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 0
+  store i32 0, ptr %45, align 4
+  %46 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 1
+  store i32 1, ptr %46, align 4
+  %47 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 2
+  store i32 2, ptr %47, align 4
+  %48 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 3
+  store i32 3, ptr %48, align 4
+  %49 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 4
+  store i32 4, ptr %49, align 4
+  %50 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 5
+  store i32 5, ptr %50, align 4
+  %51 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 6
+  store i32 6, ptr %51, align 4
+  %52 = getelementptr inbounds %LOG_TYPE.1, ptr %7, i32 0, i32 7
+  store i32 7, ptr %52, align 4
+  %53 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
+  %54 = icmp eq i32 %53, 0
+  br i1 %54, label %checkContinueBlock4, label %afterNestedBlock
 
 checkContinueBlock4:                              ; preds = %nestedBlock3
-  %60 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
-  %61 = icmp eq i32 %60, 0
-  br i1 %61, label %nestedBlock5, label %afterNestedBlock
+  %55 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_CONTINUE_COUNT, align 4
+  %56 = icmp eq i32 %55, 0
+  br i1 %56, label %nestedBlock5, label %afterNestedBlock
 
 nestedBlock5:                                     ; preds = %checkContinueBlock4
   call void @FlowWingAnim.setTargetFPS(ptr %0)
-  %62 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
-  %63 = icmp eq i32 %62, 0
-  br i1 %63, label %checkContinueBlock6, label %afterNestedBlock
+  %57 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
+  %58 = icmp eq i32 %57, 0
+  br i1 %58, label %checkContinueBlock6, label %afterNestedBlock
 
 checkContinueBlock6:                              ; preds = %nestedBlock5
   br label %afterNestedBlock
@@ -388,31 +383,31 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-define i32 @FlowWingAnim.getColor(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4) !rt !29 {
+define void @FlowWingAnim.getColor(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) !rt !29 {
 entry:
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 1
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 2
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 3
-  %8 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 4
-  %9 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 5
-  %10 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 6
-  %11 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 7
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 1
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 2
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 3
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 4
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 5
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 6
+  %12 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 7
   %r = alloca i32, align 4
-  %12 = load i32, ptr %0, align 4
-  store i32 %12, ptr %r, align 4
-  %g = alloca i32, align 4
   %13 = load i32, ptr %1, align 4
-  store i32 %13, ptr %g, align 4
-  %b = alloca i32, align 4
+  store i32 %13, ptr %r, align 4
+  %g = alloca i32, align 4
   %14 = load i32, ptr %2, align 4
-  store i32 %14, ptr %b, align 4
-  %a = alloca i32, align 4
+  store i32 %14, ptr %g, align 4
+  %b = alloca i32, align 4
   %15 = load i32, ptr %3, align 4
-  store i32 %15, ptr %a, align 4
+  store i32 %15, ptr %b, align 4
+  %a = alloca i32, align 4
+  %16 = load i32, ptr %4, align 4
+  store i32 %16, ptr %a, align 4
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i32 0
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -422,24 +417,29 @@ checkContinueBlock:                               ; preds = %mergeBlock
 
 returnBlock:                                      ; preds = %nestedBlock
   %a1 = load i32, ptr %a, align 4
-  %16 = mul i32 %a1, 256
-  %17 = mul i32 %16, 256
+  %17 = load i32, ptr %a, align 4
   %18 = mul i32 %17, 256
-  %b2 = load i32, ptr %b, align 4
-  %19 = mul i32 %b2, 256
+  %19 = mul i32 %18, 256
   %20 = mul i32 %19, 256
-  %21 = add i32 %18, %20
+  %b2 = load i32, ptr %b, align 4
+  %21 = load i32, ptr %b, align 4
+  %22 = mul i32 %21, 256
+  %23 = mul i32 %22, 256
+  %24 = add i32 %20, %23
   %g3 = load i32, ptr %g, align 4
-  %22 = mul i32 %g3, 256
-  %23 = add i32 %21, %22
+  %25 = load i32, ptr %g, align 4
+  %26 = mul i32 %25, 256
+  %27 = add i32 %24, %26
   %r4 = load i32, ptr %r, align 4
-  %24 = add i32 %23, %r4
-  ret i32 %24
+  %28 = load i32, ptr %r, align 4
+  %29 = add i32 %27, %28
+  store i32 %29, ptr %0, align 4
+  ret void
 
 mergeBlock:                                       ; No predecessors!
-  %25 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
-  %26 = icmp eq i32 %25, 0
-  br i1 %26, label %checkContinueBlock, label %afterNestedBlock
+  %30 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
+  %31 = icmp eq i32 %30, 0
+  br i1 %31, label %checkContinueBlock, label %afterNestedBlock
 }
 
 define void @FlowWingAnim.createWindow(ptr %0) !rt !30 {
@@ -504,19 +504,19 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-define i1 @FlowWingAnim.windowShouldClose(ptr %0) !rt !32 {
+define void @FlowWingAnim.windowShouldClose(ptr %0, ptr %1) !rt !32 {
 entry:
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i1 false
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -525,8 +525,8 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %8 = call i1 @WindowShouldClose()
-  ret i1 %8
+  call void @WindowShouldClose(ptr %0)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -655,19 +655,19 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-define double @FlowWingAnim.getTime(ptr %0) !rt !37 {
+define void @FlowWingAnim.getTime(ptr %0, ptr %1) !rt !37 {
 entry:
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret double 0.000000e+00
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -676,8 +676,8 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %8 = call double @GetTime()
-  ret double %8
+  call void @GetTime(ptr %0)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -685,19 +685,19 @@ mergeBlock:                                       ; No predecessors!
   br i1 %10, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define float @FlowWingAnim.getFrameTime(ptr %0) !rt !38 {
+define void @FlowWingAnim.getFrameTime(ptr %0, ptr %1) !rt !38 {
 entry:
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret float 0.000000e+00
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -706,8 +706,8 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %8 = call float @GetFrameTime()
-  ret float %8
+  call void @GetFrameTime(ptr %0)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -715,19 +715,19 @@ mergeBlock:                                       ; No predecessors!
   br i1 %10, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define i32 @FlowWingAnim.getScreenHeight(ptr %0) !rt !39 {
+define void @FlowWingAnim.getScreenHeight(ptr %0, ptr %1) !rt !39 {
 entry:
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i32 0
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -736,8 +736,8 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %8 = call i32 @GetScreenHeight()
-  ret i32 %8
+  call void @GetScreenHeight(ptr %0)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -745,19 +745,19 @@ mergeBlock:                                       ; No predecessors!
   br i1 %10, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define i32 @FlowWingAnim.getScreenWidth(ptr %0) !rt !40 {
+define void @FlowWingAnim.getScreenWidth(ptr %0, ptr %1) !rt !40 {
 entry:
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i32 0
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -766,8 +766,8 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %8 = call i32 @GetScreenWidth()
-  ret i32 %8
+  call void @GetScreenWidth(ptr %0)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -1055,22 +1055,22 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-define i1 @FlowWingAnim.isKeyPressed(ptr %0, ptr %1) !rt !51 {
+define void @FlowWingAnim.isKeyPressed(ptr %0, ptr %1, ptr %2) !rt !51 {
 entry:
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 1
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 2
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 3
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 4
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 5
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 6
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 7
   %key = alloca i32, align 4
-  %9 = load i32, ptr %0, align 4
-  store i32 %9, ptr %key, align 4
+  %10 = load i32, ptr %1, align 4
+  store i32 %10, ptr %key, align 4
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i1 false
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -1080,9 +1080,9 @@ checkContinueBlock:                               ; preds = %mergeBlock
 
 returnBlock:                                      ; preds = %nestedBlock
   %key1 = load i32, ptr %key, align 4
-  %10 = load i32, ptr %key, align 4
-  %11 = call i1 @IsKeyPressed(i32 %10)
-  ret i1 %11
+  %11 = load i32, ptr %key, align 4
+  call void @IsKeyPressed(ptr %0, i32 %11)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %12 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -1090,22 +1090,22 @@ mergeBlock:                                       ; No predecessors!
   br i1 %13, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define i1 @FlowWingAnim.isKeyDown(ptr %0, ptr %1) !rt !52 {
+define void @FlowWingAnim.isKeyDown(ptr %0, ptr %1, ptr %2) !rt !52 {
 entry:
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 1
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 2
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 3
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 4
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 5
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 6
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 7
   %key = alloca i32, align 4
-  %9 = load i32, ptr %0, align 4
-  store i32 %9, ptr %key, align 4
+  %10 = load i32, ptr %1, align 4
+  store i32 %10, ptr %key, align 4
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i1 false
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -1115,9 +1115,9 @@ checkContinueBlock:                               ; preds = %mergeBlock
 
 returnBlock:                                      ; preds = %nestedBlock
   %key1 = load i32, ptr %key, align 4
-  %10 = load i32, ptr %key, align 4
-  %11 = call i1 @IsKeyDown(i32 %10)
-  ret i1 %11
+  %11 = load i32, ptr %key, align 4
+  call void @IsKeyDown(ptr %0, i32 %11)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %12 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4
@@ -1125,22 +1125,22 @@ mergeBlock:                                       ; No predecessors!
   br i1 %13, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define ptr @FlowWingAnim.textFormat(ptr %0, ptr %1) !rt !53 {
+define void @FlowWingAnim.textFormat(ptr %0, ptr %1, ptr %2) !rt !53 {
 entry:
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 1
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 2
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 3
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 4
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 5
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 6
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 7
   %text = alloca ptr, align 8
-  %9 = load ptr, ptr %0, align 8
-  store ptr %9, ptr %text, align 8
+  %10 = load ptr, ptr %1, align 8
+  store ptr %10, ptr %text, align 8
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret ptr @0
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -1150,9 +1150,9 @@ checkContinueBlock:                               ; preds = %mergeBlock
 
 returnBlock:                                      ; preds = %nestedBlock
   %text1 = load ptr, ptr %text, align 8
-  %10 = load ptr, ptr %text, align 8
-  %11 = call ptr @TextFormat(ptr %10)
-  ret ptr %11
+  %11 = load ptr, ptr %text, align 8
+  call void @TextFormat(ptr %0, ptr %11)
+  ret void
 
 mergeBlock:                                       ; No predecessors!
   %12 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim_FLOWWING_BREAK_COUNT, align 4

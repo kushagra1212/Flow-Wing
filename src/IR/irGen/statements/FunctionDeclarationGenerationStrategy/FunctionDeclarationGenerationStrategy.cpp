@@ -364,7 +364,10 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
               0, FUNCTION_NAME.find(
                      FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
           _codeGenerationContext->_classTypes.end()) {
-        F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
+        //        llvm::Attribute::AttrKind kind = ;
+        F->addDereferenceableParamAttr(0, llvm::Attribute::AttrKind::StructRet);
+        // F->addParamAttr(0, llvm::Attribute::AttrKind::NoCapture);
+        // F->addParamAttr(1, llvm::Attribute::AttrKind::StructRet);
       }
       break;
     }

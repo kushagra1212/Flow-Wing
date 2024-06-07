@@ -36,8 +36,9 @@ fun main() -> int {
   fgAnim.createWindow()
 
 
-  while (!fgAnim.windowShouldClose()) {
+  while (!WindowShouldClose()) {
     var isKeyPressed = false
+    
     if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
       isKeyPressed = true 
       newPos.y = newPos.y - speed 

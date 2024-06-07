@@ -37,6 +37,12 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     llvm::Value *r =
         _expressionGenerationFactory->createStrategy(forStepExp->getKind())
             ->generateExpression(forStepExp);
+    if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+      r = Builder->CreateLoad(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+          _codeGenerationContext->getValueStackHandler()->getValue());
+      _codeGenerationContext->getValueStackHandler()->popAll();
+    }
     stepValue = _int32TypeConverter->convertImplicit(r);
   }
 
@@ -46,7 +52,12 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   llvm::Value *upperBound =
       _expressionGenerationFactory->createStrategy(upperBoundExp->getKind())
           ->generateExpression(upperBoundExp);
-
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    upperBound = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
   // Declare Loop Variable
 
   if (forStatement->getInitializationPtr()->getKind() ==

@@ -1,11 +1,10 @@
 ; ModuleID = 'flowmain'
 source_filename = "flowmain"
+target triple = "x86_64-apple-macosx14.0.0"
 
 %"FlowWingAnim::VTableType" = type { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr }
-%"Bird::VTableType" = type { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr }
-%Bird = type { ptr, float, float, double, double, i32, i32, ptr, i1, %Texture.0, [9 x %Position.4] }
-%Texture.0 = type { i32, i32, i32, i32, i32 }
-%Position.4 = type { float, float }
+%Position.4 = type { i32, i32 }
+%DynamicType = type { i32, double, i1, ptr, i8, i64, float }
 %FlowWingAnim = type { ptr, i32, i32, ptr, i32, %COLORS_TYPE.3, %KEYS_TYPE.2, %LOG_TYPE.1 }
 %COLORS_TYPE.3 = type { i32, i32, i32, i32, i32 }
 %KEYS_TYPE.2 = type { i32, i32, i32, i32 }
@@ -20,25 +19,24 @@ source_filename = "flowmain"
 @vtable.FlowWingAnim.fg = common global %"FlowWingAnim::VTableType" zeroinitializer
 @screenWidth = common global i32 0
 @screenHeight = common global i32 0
-@FPS = common global i32 0
 @side = common global i32 0
-@vtable.Bird.fg = common global %"Bird::VTableType" zeroinitializer
-@0 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@1 = private unnamed_addr constant [875 x i8] c"\0A\1B[33m78| \1B[0m\1B[0m    return self.birdTexture.id != 0\0A\1B[0m\1B[33m79| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m80| \1B[0m\1B[0m\0A\1B[0m\1B[33m81| \1B[0m\1B[0m  getSource() -> deci32[4] {\0A\1B[0m\1B[33m82| \1B[0m\1B[31m\1B[1m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[32m\1B[1m                                \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[0m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 82:32\1B[31m \22Index out of bounds of 'birdSpritePosition' in index expression, index value should be between 0 and 9\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@2 = private unnamed_addr constant [953 x i8] c"\0A\1B[33m78| \1B[0m\1B[0m    return self.birdTexture.id != 0\0A\1B[0m\1B[33m79| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m80| \1B[0m\1B[0m\0A\1B[0m\1B[33m81| \1B[0m\1B[0m  getSource() -> deci32[4] {\0A\1B[0m\1B[33m82| \1B[0m\1B[31m\1B[1m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[32m\1B[1m                                                                       \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[0m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 82:71\1B[31m \22Index out of bounds of 'birdSpritePosition' in index expression, index value should be between 0 and 9\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@3 = private unnamed_addr constant [802 x i8] c"\0A\1B[33m82| \1B[0m\1B[0m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[31m\1B[1m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[32m\1B[1m                                     \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m87| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m88| \1B[0m\1B[0m\0A\1B[0m\1B[33m89| \1B[0m\1B[0m  getOrigin() -> deci32[2] {\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    return [0.0d, 0.0d]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 86:37\1B[31m \22Division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@4 = private unnamed_addr constant [843 x i8] c"\0A\1B[33m82| \1B[0m\1B[0m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[31m\1B[1m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[32m\1B[1m                                                  \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m87| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m88| \1B[0m\1B[0m\0A\1B[0m\1B[33m89| \1B[0m\1B[0m  getOrigin() -> deci32[2] {\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    return [0.0d, 0.0d]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 86:50\1B[31m \22Floating point division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@5 = private unnamed_addr constant [890 x i8] c"\0A\1B[33m82| \1B[0m\1B[0m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[31m\1B[1m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[32m\1B[1m                                                                                 \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m87| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m88| \1B[0m\1B[0m\0A\1B[0m\1B[33m89| \1B[0m\1B[0m  getOrigin() -> deci32[2] {\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    return [0.0d, 0.0d]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 86:81\1B[31m \22Division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@6 = private unnamed_addr constant [931 x i8] c"\0A\1B[33m82| \1B[0m\1B[0m    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]\0A\1B[0m\1B[33m83| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m84| \1B[0m\1B[0m\0A\1B[0m\1B[33m85| \1B[0m\1B[0m  getDistination() -> deci32[4] {\0A\1B[0m\1B[33m86| \1B[0m\1B[31m\1B[1m    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]\0A\1B[0m\1B[32m\1B[1m                                                                                              \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m87| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m88| \1B[0m\1B[0m\0A\1B[0m\1B[33m89| \1B[0m\1B[0m  getOrigin() -> deci32[2] {\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    return [0.0d, 0.0d]\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 86:94\1B[31m \22Floating point division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@7 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@8 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@9 = private unnamed_addr constant [23 x i8] c"snake-game-in-flowwing\00", align 1
-@10 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@11 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@12 = private unnamed_addr constant [708 x i8] c"\0A\1B[33m10| \1B[0m\1B[0m}\0A\1B[0m\1B[33m11| \1B[0m\1B[0mclass Bird {\0A\1B[0m\1B[33m12| \1B[0m\1B[0m  const ACTUAL_BIRD_SIZE: deci32 = 360.0d\0A\1B[0m\1B[33m13| \1B[0m\1B[0m  var birdSize: deci32 = 90.0d\0A\1B[0m\1B[33m14| \1B[0m\1B[31m\1B[1m  const BIRD_TIMMER: deci = 1.0 / FPS\0A\1B[0m\1B[32m\1B[1m                                 \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m15| \1B[0m\1B[0m  var birdTimmer: deci   \0A\1B[0m\1B[33m16| \1B[0m\1B[0m  const BIRD_SPRITE_SIZE:int = 9\0A\1B[0m\1B[33m17| \1B[0m\1B[0m  var birdSpriteIndex:int = 0\0A\1B[0m\1B[33m18| \1B[0m\1B[0m  var birdTexturePath:str\0A\1B[0m\1B[31mFile: index.fg [Error] : \1B[1;31mLine 14:33\1B[31m \22Floating point division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/index.fg\0A\1B[0m\00", align 1
-@13 = private unnamed_addr constant [11 x i8] c"./bird.png\00", align 1
-@14 = private unnamed_addr constant [11 x i8] c"./bird.png\00", align 1
-@15 = private unnamed_addr constant [28 x i8] c"Failed to load bird texture\00", align 1
+@BIRD_SIZE = common global float 0.000000e+00
+@0 = private unnamed_addr constant [696 x i8] c"\0A\1B[33m24| \1B[0m\1B[0m  const speed = 10\0A\1B[0m\1B[33m25| \1B[0m\1B[0m  var tail: int = 1\0A\1B[0m\1B[33m26| \1B[0m\1B[0m  var posX: int[10000] = [10000 fill -1]\0A\1B[0m\1B[33m27| \1B[0m\1B[0m  var posY: int[10000] = [10000 fill -1]\0A\1B[0m\1B[33m28| \1B[0m\1B[31m\1B[1m  posX[0]= 0\0A\1B[0m\1B[32m\1B[1m        \0A   ~~~~~~~^\1B[0m\0A\1B[33m29| \1B[0m\1B[0m  posY[0]= 0\0A\1B[0m\1B[33m30| \1B[0m\1B[0m  var foodPos: Position = getFoodPosition()\0A\1B[0m\1B[33m31| \1B[0m\1B[0m  var newPos: Position = {\0A\1B[0m\1B[33m32| \1B[0m\1B[0m    x: posX[0],\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 28:8\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@1 = private unnamed_addr constant [692 x i8] c"\0A\1B[33m25| \1B[0m\1B[0m  var tail: int = 1\0A\1B[0m\1B[33m26| \1B[0m\1B[0m  var posX: int[10000] = [10000 fill -1]\0A\1B[0m\1B[33m27| \1B[0m\1B[0m  var posY: int[10000] = [10000 fill -1]\0A\1B[0m\1B[33m28| \1B[0m\1B[0m  posX[0]= 0\0A\1B[0m\1B[33m29| \1B[0m\1B[31m\1B[1m  posY[0]= 0\0A\1B[0m\1B[32m\1B[1m        \0A   ~~~~~~~^\1B[0m\0A\1B[33m30| \1B[0m\1B[0m  var foodPos: Position = getFoodPosition()\0A\1B[0m\1B[33m31| \1B[0m\1B[0m  var newPos: Position = {\0A\1B[0m\1B[33m32| \1B[0m\1B[0m    x: posX[0],\0A\1B[0m\1B[33m33| \1B[0m\1B[0m    y: posY[0]\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 29:8\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@2 = private unnamed_addr constant [734 x i8] c"\0A\1B[33m28| \1B[0m\1B[0m  posX[0]= 0\0A\1B[0m\1B[33m29| \1B[0m\1B[0m  posY[0]= 0\0A\1B[0m\1B[33m30| \1B[0m\1B[0m  var foodPos: Position = getFoodPosition()\0A\1B[0m\1B[33m31| \1B[0m\1B[0m  var newPos: Position = {\0A\1B[0m\1B[33m32| \1B[0m\1B[31m\1B[1m    x: posX[0],\0A\1B[0m\1B[32m\1B[1m             \0A   ~~~~~~~~~~~~^\1B[0m\0A\1B[33m33| \1B[0m\1B[0m    y: posY[0]\0A\1B[0m\1B[33m34| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m35| \1B[0m\1B[0m  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, \22snake-game-in-flowwing\22, 60)\0A\1B[0m\1B[33m36| \1B[0m\1B[0m  fgAnim.createWindow()\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 32:13\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@3 = private unnamed_addr constant [722 x i8] c"\0A\1B[33m29| \1B[0m\1B[0m  posY[0]= 0\0A\1B[0m\1B[33m30| \1B[0m\1B[0m  var foodPos: Position = getFoodPosition()\0A\1B[0m\1B[33m31| \1B[0m\1B[0m  var newPos: Position = {\0A\1B[0m\1B[33m32| \1B[0m\1B[0m    x: posX[0],\0A\1B[0m\1B[33m33| \1B[0m\1B[31m\1B[1m    y: posY[0]\0A\1B[0m\1B[32m\1B[1m             \0A   ~~~~~~~~~~~~^\1B[0m\0A\1B[33m34| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m35| \1B[0m\1B[0m  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, \22snake-game-in-flowwing\22, 60)\0A\1B[0m\1B[33m36| \1B[0m\1B[0m  fgAnim.createWindow()\0A\1B[0m\1B[33m37| \1B[0m\1B[0m\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 33:13\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@4 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@5 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@6 = private unnamed_addr constant [23 x i8] c"snake-game-in-flowwing\00", align 1
+@7 = private unnamed_addr constant [643 x i8] c"\0A\1B[33m78| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m79| \1B[0m\1B[0m\0A\1B[0m\1B[33m80| \1B[0m\1B[0m    if (isKeyPressed) {\0A\1B[0m\1B[33m81| \1B[0m\1B[0m      for var index: int = tail - 1 to 1 : -1 {\0A\1B[0m\1B[33m82| \1B[0m\1B[31m\1B[1m        posX[index]= posX[index - 1]\0A\1B[0m\1B[32m\1B[1m              \0A   ~~~~~~~~~~~~~^\1B[0m\0A\1B[33m83| \1B[0m\1B[0m        posY[index]= posY[index - 1]\0A\1B[0m\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 82:14\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@8 = private unnamed_addr constant [685 x i8] c"\0A\1B[33m78| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m79| \1B[0m\1B[0m\0A\1B[0m\1B[33m80| \1B[0m\1B[0m    if (isKeyPressed) {\0A\1B[0m\1B[33m81| \1B[0m\1B[0m      for var index: int = tail - 1 to 1 : -1 {\0A\1B[0m\1B[33m82| \1B[0m\1B[31m\1B[1m        posX[index]= posX[index - 1]\0A\1B[0m\1B[32m\1B[1m                                   \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m83| \1B[0m\1B[0m        posY[index]= posY[index - 1]\0A\1B[0m\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 82:35\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@9 = private unnamed_addr constant [659 x i8] c"\0A\1B[33m79| \1B[0m\1B[0m\0A\1B[0m\1B[33m80| \1B[0m\1B[0m    if (isKeyPressed) {\0A\1B[0m\1B[33m81| \1B[0m\1B[0m      for var index: int = tail - 1 to 1 : -1 {\0A\1B[0m\1B[33m82| \1B[0m\1B[0m        posX[index]= posX[index - 1]\0A\1B[0m\1B[33m83| \1B[0m\1B[31m\1B[1m        posY[index]= posY[index - 1]\0A\1B[0m\1B[32m\1B[1m              \0A   ~~~~~~~~~~~~~^\1B[0m\0A\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[33m87| \1B[0m\1B[0m    posX[0]= newPos.x\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 83:14\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@10 = private unnamed_addr constant [701 x i8] c"\0A\1B[33m79| \1B[0m\1B[0m\0A\1B[0m\1B[33m80| \1B[0m\1B[0m    if (isKeyPressed) {\0A\1B[0m\1B[33m81| \1B[0m\1B[0m      for var index: int = tail - 1 to 1 : -1 {\0A\1B[0m\1B[33m82| \1B[0m\1B[0m        posX[index]= posX[index - 1]\0A\1B[0m\1B[33m83| \1B[0m\1B[31m\1B[1m        posY[index]= posY[index - 1]\0A\1B[0m\1B[32m\1B[1m                                   \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[33m87| \1B[0m\1B[0m    posX[0]= newPos.x\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 83:35\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@11 = private unnamed_addr constant [638 x i8] c"\0A\1B[33m83| \1B[0m\1B[0m        posY[index]= posY[index - 1]\0A\1B[0m\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[33m87| \1B[0m\1B[31m\1B[1m    posX[0]= newPos.x\0A\1B[0m\1B[32m\1B[1m          \0A   ~~~~~~~~~^\1B[0m\0A\1B[33m88| \1B[0m\1B[0m    posY[0]= newPos.y\0A\1B[0m\1B[33m89| \1B[0m\1B[0m    fgAnim.beginDrawing()\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    fgAnim.clearBackground(fgAnim.colors.WHITE)\0A\1B[0m\1B[33m91| \1B[0m\1B[0m\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 87:10\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@12 = private unnamed_addr constant [602 x i8] c"\0A\1B[33m84| \1B[0m\1B[0m      }\0A\1B[0m\1B[33m85| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m86| \1B[0m\1B[0m\0A\1B[0m\1B[33m87| \1B[0m\1B[0m    posX[0]= newPos.x\0A\1B[0m\1B[33m88| \1B[0m\1B[31m\1B[1m    posY[0]= newPos.y\0A\1B[0m\1B[32m\1B[1m          \0A   ~~~~~~~~~^\1B[0m\0A\1B[33m89| \1B[0m\1B[0m    fgAnim.beginDrawing()\0A\1B[0m\1B[33m90| \1B[0m\1B[0m    fgAnim.clearBackground(fgAnim.colors.WHITE)\0A\1B[0m\1B[33m91| \1B[0m\1B[0m\0A\1B[0m\1B[33m92| \1B[0m\1B[0m\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 88:10\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@13 = private unnamed_addr constant [875 x i8] c"\0A\1B[33m90| \1B[0m\1B[0m    fgAnim.clearBackground(fgAnim.colors.WHITE)\0A\1B[0m\1B[33m91| \1B[0m\1B[0m\0A\1B[0m\1B[33m92| \1B[0m\1B[0m\0A\1B[0m\1B[33m93| \1B[0m\1B[0m    for var index: int = 0 to tail - 1 {\0A\1B[0m\1B[33m94| \1B[0m\1B[31m\1B[1m      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)\0A\1B[0m\1B[32m\1B[1m                                 \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m95| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m96| \1B[0m\1B[0m    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)\0A\1B[0m\1B[33m97| \1B[0m\1B[0m    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)\0A\1B[0m\1B[33m98| \1B[0m\1B[0m    fgAnim.endDrawing()\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 94:33\1B[31m \22Index out of bounds of 'posX' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@14 = private unnamed_addr constant [901 x i8] c"\0A\1B[33m90| \1B[0m\1B[0m    fgAnim.clearBackground(fgAnim.colors.WHITE)\0A\1B[0m\1B[33m91| \1B[0m\1B[0m\0A\1B[0m\1B[33m92| \1B[0m\1B[0m\0A\1B[0m\1B[33m93| \1B[0m\1B[0m    for var index: int = 0 to tail - 1 {\0A\1B[0m\1B[33m94| \1B[0m\1B[31m\1B[1m      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)\0A\1B[0m\1B[32m\1B[1m                                              \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m95| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m96| \1B[0m\1B[0m    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)\0A\1B[0m\1B[33m97| \1B[0m\1B[0m    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)\0A\1B[0m\1B[33m98| \1B[0m\1B[0m    fgAnim.endDrawing()\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 94:46\1B[31m \22Index out of bounds of 'posY' in index expression, index value should be between 0 and 10000\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
+@15 = private unnamed_addr constant [803 x i8] c"\0A\1B[33m92| \1B[0m\1B[0m\0A\1B[0m\1B[33m93| \1B[0m\1B[0m    for var index: int = 0 to tail - 1 {\0A\1B[0m\1B[33m94| \1B[0m\1B[0m      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)\0A\1B[0m\1B[33m95| \1B[0m\1B[0m    }\0A\1B[0m\1B[33m96| \1B[0m\1B[31m\1B[1m    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)\0A\1B[0m\1B[32m\1B[1m                                      \0A   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\1B[0m\0A\1B[33m97| \1B[0m\1B[0m    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)\0A\1B[0m\1B[33m98| \1B[0m\1B[0m    fgAnim.endDrawing()\0A\1B[0m\1B[33m99| \1B[0m\1B[0m  }\0A\1B[0m\1B[33m100| \1B[0m\1B[0m  fgAnim.closeWindow()\0A\1B[0m\1B[31mFile: snake.fg [Error] : \1B[1;31mLine 96:38\1B[31m \22Division by zero is not allowed\22\1B[0m\0A\1B[33mLocation: /Users/apple/code/per/Flow-Wing/docs/demo/snake-game/snake.fg\0A\1B[0m\00", align 1
 
 declare i32 @compare_strings(ptr, ptr)
 
@@ -84,14 +82,15 @@ define i32 @flowmain() {
 entry:
   %0 = call i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim()
   store i32 0, ptr @screenWidth, align 4
-  store i32 1024, ptr @screenWidth, align 4
+  store i32 1000, ptr @screenWidth, align 4
   store i32 0, ptr @screenHeight, align 4
-  store i32 768, ptr @screenHeight, align 4
-  store i32 0, ptr @FPS, align 4
-  store i32 12, ptr @FPS, align 4
+  store i32 500, ptr @screenHeight, align 4
   store i32 0, ptr @side, align 4
   store i32 10, ptr @side, align 4
-  %1 = call i32 @main()
+  store float 0.000000e+00, ptr @BIRD_SIZE, align 4
+  store float 3.600000e+02, ptr @BIRD_SIZE, align 4
+  %rtPtr = alloca i32, align 4
+  call void @main(ptr %rtPtr)
   br label %returnBlock
 
 returnBlock:                                      ; preds = %entry
@@ -106,13 +105,13 @@ declare !rt !1 void @FlowWingAnim.beforeInit(ptr)
 
 declare !rt !2 void @FlowWingAnim.setTargetFPS(ptr)
 
-declare !rt !3 i32 @FlowWingAnim.getColor(ptr, ptr, ptr, ptr, ptr)
+declare !rt !3 void @FlowWingAnim.getColor(ptr, ptr, ptr, ptr, ptr, ptr)
 
 declare !rt !4 void @FlowWingAnim.createWindow(ptr)
 
 declare !rt !5 void @FlowWingAnim.clearBackground(ptr, ptr)
 
-declare !rt !6 i1 @FlowWingAnim.windowShouldClose(ptr)
+declare !rt !6 void @FlowWingAnim.windowShouldClose(ptr, ptr)
 
 declare !rt !7 void @FlowWingAnim.beginDrawing(ptr)
 
@@ -122,13 +121,13 @@ declare !rt !9 void @FlowWingAnim.endDrawing(ptr)
 
 declare !rt !10 void @FlowWingAnim.closeWindow(ptr)
 
-declare !rt !11 double @FlowWingAnim.getTime(ptr)
+declare !rt !11 void @FlowWingAnim.getTime(ptr, ptr)
 
-declare !rt !12 float @FlowWingAnim.getFrameTime(ptr)
+declare !rt !12 void @FlowWingAnim.getFrameTime(ptr, ptr)
 
-declare !rt !13 i32 @FlowWingAnim.getScreenHeight(ptr)
+declare !rt !13 void @FlowWingAnim.getScreenHeight(ptr, ptr)
 
-declare !rt !14 i32 @FlowWingAnim.getScreenWidth(ptr)
+declare !rt !14 void @FlowWingAnim.getScreenWidth(ptr, ptr)
 
 declare !rt !15 void @FlowWingAnim.drawCircle(ptr, ptr, ptr, ptr, ptr)
 
@@ -144,15 +143,15 @@ declare !rt !20 void @FlowWingAnim.loadTexture(ptr, ptr, ptr)
 
 declare !rt !21 void @FlowWingAnim.unloadTexture(ptr, ptr)
 
-declare !rt !22 i1 @FlowWingAnim.isKeyPressed(ptr, ptr)
+declare !rt !22 void @FlowWingAnim.isKeyPressed(ptr, ptr, ptr)
 
-declare !rt !23 i1 @FlowWingAnim.isKeyDown(ptr, ptr)
+declare !rt !23 void @FlowWingAnim.isKeyDown(ptr, ptr, ptr)
 
-declare !rt !24 ptr @FlowWingAnim.textFormat(ptr, ptr)
+declare !rt !24 void @FlowWingAnim.textFormat(ptr, ptr, ptr)
 
-declare !rt !24 ptr @FlowWingAnim.textFormat.1(ptr, ptr)
+declare !rt !24 void @FlowWingAnim.textFormat.1(ptr, ptr, ptr)
 
-declare !rt !22 i1 @FlowWingAnim.isKeyPressed.2(ptr, ptr)
+declare !rt !22 void @FlowWingAnim.isKeyPressed.2(ptr, ptr, ptr)
 
 declare !rt !21 void @FlowWingAnim.unloadTexture.3(ptr, ptr)
 
@@ -172,19 +171,19 @@ declare !rt !7 void @FlowWingAnim.beginDrawing.9(ptr)
 
 declare !rt !15 void @FlowWingAnim.drawCircle.10(ptr, ptr, ptr, ptr, ptr)
 
-declare !rt !14 i32 @FlowWingAnim.getScreenWidth.11(ptr)
+declare !rt !14 void @FlowWingAnim.getScreenWidth.11(ptr, ptr)
 
-declare !rt !26 i32 @getRandomNumber(ptr, ptr)
+declare !rt !26 void @getRandomNumber(ptr, ptr, ptr)
 
 declare !rt !1 void @FlowWingAnim.beforeInit.12(ptr)
 
-declare !rt !13 i32 @FlowWingAnim.getScreenHeight.13(ptr)
+declare !rt !13 void @FlowWingAnim.getScreenHeight.13(ptr, ptr)
 
 declare !rt !10 void @FlowWingAnim.closeWindow.14(ptr)
 
 declare !rt !9 void @FlowWingAnim.endDrawing.15(ptr)
 
-declare !rt !3 i32 @FlowWingAnim.getColor.16(ptr, ptr, ptr, ptr, ptr)
+declare !rt !3 void @FlowWingAnim.getColor.16(ptr, ptr, ptr, ptr, ptr, ptr)
 
 declare !rt !2 void @FlowWingAnim.setTargetFPS.17(ptr)
 
@@ -194,21 +193,21 @@ declare !rt !27 void @ClearBackground(i32)
 
 declare !rt !28 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float], float, i32)
 
-declare !rt !12 float @FlowWingAnim.getFrameTime.19(ptr)
+declare !rt !12 void @FlowWingAnim.getFrameTime.19(ptr, ptr)
 
 declare !rt !29 void @TraceLog(i32, ptr)
 
-declare !rt !30 i32 @GetScreenWidth()
+declare !rt !30 void @GetScreenWidth(ptr)
 
 declare !rt !31 void @DrawCircle(i32, i32, float, i32)
 
-declare !rt !32 i32 @time()
+declare !rt !32 void @time(ptr)
 
 declare !rt !33 void @BeginDrawing()
 
-declare !rt !34 i1 @IsKeyPressed(i32)
+declare !rt !34 void @IsKeyPressed(ptr, i32)
 
-declare !rt !35 i1 @WindowShouldClose()
+declare !rt !35 void @WindowShouldClose(ptr)
 
 declare !rt !36 void @InitWindow(i32, i32, ptr)
 
@@ -218,27 +217,27 @@ declare !rt !38 void @CloseWindow()
 
 declare !rt !17 void @FlowWingAnim.drawTexture.20(ptr, ptr, ptr, ptr, ptr)
 
-declare !rt !39 i32 @GetScreenHeight()
+declare !rt !39 void @GetScreenHeight(ptr)
 
 declare !rt !18 void @FlowWingAnim.drawTexturePro.21(ptr, ptr, ptr, ptr, ptr, ptr, ptr)
 
-declare !rt !40 float @GetFrameTime()
+declare !rt !40 void @GetFrameTime(ptr)
 
 declare !rt !41 void @DrawText(ptr, i32, i32, i32, i32)
 
-declare !rt !42 double @GetTime()
+declare !rt !42 void @GetTime(ptr)
 
 declare !rt !43 void @UnloadTexture(ptr)
 
-declare !rt !44 ptr @TextFormat(ptr)
+declare !rt !44 void @TextFormat(ptr, ptr)
 
-declare !rt !23 i1 @FlowWingAnim.isKeyDown.22(ptr, ptr)
+declare !rt !23 void @FlowWingAnim.isKeyDown.22(ptr, ptr, ptr)
 
-declare !rt !45 void @LoadTexture(ptr sret, ptr)
+declare !rt !45 void @LoadTexture(ptr dereferenceable(74), ptr)
 
-declare !rt !46 i1 @IsKeyDown(i32)
+declare !rt !46 void @IsKeyDown(ptr, i32)
 
-declare !rt !6 i1 @FlowWingAnim.windowShouldClose.23(ptr)
+declare !rt !6 void @FlowWingAnim.windowShouldClose.23(ptr, ptr)
 
 declare !rt !47 void @DrawRectangle(i32, i32, i32, i32, i32)
 
@@ -246,1230 +245,1593 @@ declare !rt !48 void @DrawTexture(ptr, i32, i32, i32)
 
 declare !rt !49 void @srand(i32)
 
-declare !rt !11 double @FlowWingAnim.getTime.24(ptr)
+declare !rt !11 void @FlowWingAnim.getTime.24(ptr, ptr)
 
 declare !rt !5 void @FlowWingAnim.clearBackground.25(ptr, ptr)
 
-declare !rt !50 i32 @rand()
+declare !rt !50 void @rand(ptr)
 
-define void @Bird.init1(ptr %0, ptr %1) !rt !51 {
+define void @getFoodPosition(ptr dereferenceable(74) %0) !rt !51 {
 entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  %birdTexturePath = alloca ptr, align 8
-  %12 = load ptr, ptr %0, align 8
-  store ptr %12, ptr %birdTexturePath, align 8
   br label %nestedBlock
 
-afterNestedBlock:                                 ; preds = %checkContinueBlock6, %nestedBlock5, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
+afterNestedBlock:                                 ; preds = %checkContinueBlock6, %mergeBlock, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
   ret void
 
 nestedBlock:                                      ; preds = %entry
-  %13 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %birdTexturePath7 = load ptr, ptr %13, align 8
-  %birdTexturePath8 = load ptr, ptr %birdTexturePath, align 8
-  %14 = load ptr, ptr %birdTexturePath, align 8
-  store ptr %14, ptr %13, align 8
-  %15 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %16 = icmp eq i32 %15, 0
-  br i1 %16, label %checkContinueBlock, label %afterNestedBlock
+  %pos = alloca %Position.4, align 8
+  %1 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 0
+  store i32 0, ptr %1, align 4
+  %2 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 1
+  store i32 0, ptr %2, align 4
+  %3 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 0
+  %4 = alloca i32, align 4
+  store i32 0, ptr %4, align 4
+  %screenWidth = load i32, ptr @screenWidth, align 4
+  %5 = load i32, ptr @screenWidth, align 4
+  %6 = sub i32 %5, 1
+  %7 = alloca i32, align 4
+  store i32 %6, ptr %7, align 4
+  call void @getRandomNumber(ptr %3, ptr %4, ptr %7)
+  %8 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 1
+  %9 = alloca i32, align 4
+  store i32 0, ptr %9, align 4
+  %screenHeight = load i32, ptr @screenHeight, align 4
+  %10 = load i32, ptr @screenHeight, align 4
+  %11 = sub i32 %10, 1
+  %12 = alloca i32, align 4
+  store i32 %11, ptr %12, align 4
+  call void @getRandomNumber(ptr %8, ptr %9, ptr %12)
+  %13 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %14 = icmp eq i32 %13, 0
+  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
 
 checkContinueBlock:                               ; preds = %nestedBlock
-  %17 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %18 = icmp eq i32 %17, 0
-  br i1 %18, label %nestedBlock1, label %afterNestedBlock
+  %15 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %16 = icmp eq i32 %15, 0
+  br i1 %16, label %nestedBlock1, label %afterNestedBlock
 
 nestedBlock1:                                     ; preds = %checkContinueBlock
-  %19 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %birdTimmer = load double, ptr %19, align 8
-  %BIRD_TIMMER = load double, ptr %4, align 8
-  %20 = load double, ptr %4, align 8
-  store double %20, ptr %19, align 8
-  %21 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %22 = icmp eq i32 %21, 0
-  br i1 %22, label %checkContinueBlock2, label %afterNestedBlock
+  %17 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 0
+  %x = load i32, ptr %17, align 4
+  %18 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 0
+  %x7 = load i32, ptr %18, align 4
+  %19 = load i32, ptr %18, align 4
+  %20 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 0
+  %x8 = load i32, ptr %20, align 4
+  %21 = load i32, ptr %20, align 4
+  %side = load i32, ptr @side, align 4
+  %22 = load i32, ptr @side, align 4
+  %23 = srem i32 %21, %22
+  %24 = sub i32 %19, %23
+  store i32 %24, ptr %17, align 4
+  %25 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %26 = icmp eq i32 %25, 0
+  br i1 %26, label %checkContinueBlock2, label %afterNestedBlock
 
 checkContinueBlock2:                              ; preds = %nestedBlock1
-  %23 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %24 = icmp eq i32 %23, 0
-  br i1 %24, label %nestedBlock3, label %afterNestedBlock
+  %27 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %28 = icmp eq i32 %27, 0
+  br i1 %28, label %nestedBlock3, label %afterNestedBlock
 
 nestedBlock3:                                     ; preds = %checkContinueBlock2
-  %25 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %isBirdAlive = load i1, ptr %25, align 1
-  store i1 true, ptr %25, align 1
-  %26 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %27 = icmp eq i32 %26, 0
-  br i1 %27, label %checkContinueBlock4, label %afterNestedBlock
+  %29 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 1
+  %y = load i32, ptr %29, align 4
+  %30 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 1
+  %y9 = load i32, ptr %30, align 4
+  %31 = load i32, ptr %30, align 4
+  %32 = getelementptr inbounds %Position.4, ptr %pos, i32 0, i32 1
+  %y10 = load i32, ptr %32, align 4
+  %33 = load i32, ptr %32, align 4
+  %side11 = load i32, ptr @side, align 4
+  %34 = load i32, ptr @side, align 4
+  %35 = srem i32 %33, %34
+  %36 = sub i32 %31, %35
+  store i32 %36, ptr %29, align 4
+  %37 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %38 = icmp eq i32 %37, 0
+  br i1 %38, label %checkContinueBlock4, label %afterNestedBlock
 
 checkContinueBlock4:                              ; preds = %nestedBlock3
-  %28 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %29 = icmp eq i32 %28, 0
-  br i1 %29, label %nestedBlock5, label %afterNestedBlock
+  %39 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %40 = icmp eq i32 %39, 0
+  br i1 %40, label %nestedBlock5, label %afterNestedBlock
 
 nestedBlock5:                                     ; preds = %checkContinueBlock4
-  %30 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  %31 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 0
-  %32 = getelementptr inbounds %Position.4, ptr %31, i32 0, i32 0
-  store float 0.000000e+00, ptr %32, align 4
-  %33 = getelementptr inbounds %Position.4, ptr %31, i32 0, i32 1
-  store float 0.000000e+00, ptr %33, align 4
-  %34 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 1
-  %35 = getelementptr inbounds %Position.4, ptr %34, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE = load float, ptr %2, align 4
-  %36 = fmul float %ACTUAL_BIRD_SIZE, 1.000000e+00
-  store float %36, ptr %35, align 4
-  %37 = getelementptr inbounds %Position.4, ptr %34, i32 0, i32 1
-  store float 0.000000e+00, ptr %37, align 4
-  %38 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 2
-  %39 = getelementptr inbounds %Position.4, ptr %38, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE9 = load float, ptr %2, align 4
-  %40 = fmul float %ACTUAL_BIRD_SIZE9, 2.000000e+00
-  store float %40, ptr %39, align 4
-  %41 = getelementptr inbounds %Position.4, ptr %38, i32 0, i32 1
-  store float 0.000000e+00, ptr %41, align 4
-  %42 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 3
-  %43 = getelementptr inbounds %Position.4, ptr %42, i32 0, i32 0
-  store float 0.000000e+00, ptr %43, align 4
-  %44 = getelementptr inbounds %Position.4, ptr %42, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE10 = load float, ptr %2, align 4
-  %45 = fmul float %ACTUAL_BIRD_SIZE10, 1.000000e+00
-  store float %45, ptr %44, align 4
-  %46 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 4
-  %47 = getelementptr inbounds %Position.4, ptr %46, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE11 = load float, ptr %2, align 4
-  %48 = fmul float %ACTUAL_BIRD_SIZE11, 1.000000e+00
-  store float %48, ptr %47, align 4
-  %49 = getelementptr inbounds %Position.4, ptr %46, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE12 = load float, ptr %2, align 4
-  %50 = fmul float %ACTUAL_BIRD_SIZE12, 1.000000e+00
-  store float %50, ptr %49, align 4
-  %51 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 5
-  %52 = getelementptr inbounds %Position.4, ptr %51, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE13 = load float, ptr %2, align 4
-  %53 = fmul float %ACTUAL_BIRD_SIZE13, 2.000000e+00
-  store float %53, ptr %52, align 4
-  %54 = getelementptr inbounds %Position.4, ptr %51, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE14 = load float, ptr %2, align 4
-  %55 = fmul float %ACTUAL_BIRD_SIZE14, 1.000000e+00
-  store float %55, ptr %54, align 4
-  %56 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 6
-  %57 = getelementptr inbounds %Position.4, ptr %56, i32 0, i32 0
-  store float 0.000000e+00, ptr %57, align 4
-  %58 = getelementptr inbounds %Position.4, ptr %56, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE15 = load float, ptr %2, align 4
-  %59 = fmul float %ACTUAL_BIRD_SIZE15, 2.000000e+00
-  store float %59, ptr %58, align 4
-  %60 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 7
-  %61 = getelementptr inbounds %Position.4, ptr %60, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE16 = load float, ptr %2, align 4
-  %62 = fmul float %ACTUAL_BIRD_SIZE16, 1.000000e+00
-  store float %62, ptr %61, align 4
-  %63 = getelementptr inbounds %Position.4, ptr %60, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE17 = load float, ptr %2, align 4
-  %64 = fmul float %ACTUAL_BIRD_SIZE17, 2.000000e+00
-  store float %64, ptr %63, align 4
-  %65 = getelementptr [9 x %Position.4], ptr %30, i32 0, i32 8
-  %66 = getelementptr inbounds %Position.4, ptr %65, i32 0, i32 0
-  %ACTUAL_BIRD_SIZE18 = load float, ptr %2, align 4
-  %67 = fmul float %ACTUAL_BIRD_SIZE18, 2.000000e+00
-  store float %67, ptr %66, align 4
-  %68 = getelementptr inbounds %Position.4, ptr %65, i32 0, i32 1
-  %ACTUAL_BIRD_SIZE19 = load float, ptr %2, align 4
-  %69 = fmul float %ACTUAL_BIRD_SIZE19, 2.000000e+00
-  store float %69, ptr %68, align 4
-  %70 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %71 = icmp eq i32 %70, 0
-  br i1 %71, label %checkContinueBlock6, label %afterNestedBlock
-
-checkContinueBlock6:                              ; preds = %nestedBlock5
-  br label %afterNestedBlock
-}
-
-define void @Bird.setTexture(ptr %0, ptr %1) !rt !52 {
-entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  %birdTexture = alloca %Texture.0, align 8
-  %12 = load %Texture.0, ptr %0, align 4
-  store %Texture.0 %12, ptr %birdTexture, align 4
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  %13 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %14 = load %Texture.0, ptr %birdTexture, align 4
-  store %Texture.0 %14, ptr %13, align 4
-  %15 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %16 = icmp eq i32 %15, 0
-  br i1 %16, label %checkContinueBlock, label %afterNestedBlock
-
-checkContinueBlock:                               ; preds = %nestedBlock
-  br label %afterNestedBlock
-}
-
-define ptr @Bird.getTexturePath(ptr %0) !rt !53 {
-entry:
-  %1 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 7
-  %8 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 8
-  %9 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 9
-  %10 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret ptr @0
-
-nestedBlock:                                      ; preds = %entry
   br label %returnBlock
 
-checkContinueBlock:                               ; preds = %mergeBlock
+checkContinueBlock6:                              ; preds = %mergeBlock
   br label %afterNestedBlock
 
-returnBlock:                                      ; preds = %nestedBlock
-  %11 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 7
-  %birdTexturePath = load ptr, ptr %11, align 8
-  ret ptr %birdTexturePath
+returnBlock:                                      ; preds = %nestedBlock5
+  %41 = load %Position.4, ptr %pos, align 4
+  store %Position.4 %41, ptr %0, align 4
+  ret void
 
 mergeBlock:                                       ; No predecessors!
-  %12 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %13 = icmp eq i32 %12, 0
-  br i1 %13, label %checkContinueBlock, label %afterNestedBlock
+  %42 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %43 = icmp eq i32 %42, 0
+  br i1 %43, label %checkContinueBlock6, label %afterNestedBlock
 }
 
-define void @Bird.update(ptr %0, ptr %1) !rt !54 {
+define void @main(ptr %0) !rt !52 {
 entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  %frameTime = alloca float, align 4
-  %12 = load float, ptr %0, align 4
-  store float %12, ptr %frameTime, align 4
   br label %nestedBlock
 
-afterNestedBlock:                                 ; preds = %checkContinueBlock2, %afterIfElse, %checkContinueBlock, %nestedBlock
+afterNestedBlock:                                 ; preds = %checkContinueBlock24, %mergeBlock, %checkContinueBlock22, %nestedBlock21, %checkContinueBlock20, %end_block271, %checkContinueBlock18, %nestedBlock17, %checkContinueBlock16, %nestedBlock15, %checkContinueBlock14, %"GlobalIndexExpr::merge52", %checkContinueBlock12, %nestedBlock11, %checkContinueBlock10, %"GlobalIndexExpr::merge44", %checkContinueBlock8, %"GlobalIndexExpr::merge", %checkContinueBlock6, %FillExpr.exit39, %checkContinueBlock4, %FillExpr.exit29, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
   ret void
 
 nestedBlock:                                      ; preds = %entry
-  %birdTimmer = load double, ptr %5, align 8
-  %birdTimmer3 = load double, ptr %5, align 8
-  %frameTime4 = load float, ptr %frameTime, align 4
-  %13 = fpext float %frameTime4 to double
-  %14 = fsub double %birdTimmer3, %13
-  store double %14, ptr %5, align 8
-  %15 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %16 = icmp eq i32 %15, 0
-  br i1 %16, label %checkContinueBlock, label %afterNestedBlock
+  %speed = alloca %DynamicType, align 8
+  %1 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  store i32 10, ptr %1, align 4
+  %2 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %3 = icmp eq i32 %2, 0
+  br i1 %3, label %checkContinueBlock, label %afterNestedBlock
 
 checkContinueBlock:                               ; preds = %nestedBlock
-  %17 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %18 = icmp eq i32 %17, 0
-  br i1 %18, label %nestedBlock1, label %afterNestedBlock
+  %4 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %5 = icmp eq i32 %4, 0
+  br i1 %5, label %nestedBlock1, label %afterNestedBlock
 
 nestedBlock1:                                     ; preds = %checkContinueBlock
-  %birdTimmer5 = load double, ptr %5, align 8
-  %19 = fcmp olt double %birdTimmer5, 0.000000e+00
-  br i1 %19, label %then, label %else
-
-checkContinueBlock2:                              ; preds = %afterIfElse
-  br label %afterNestedBlock
-
-then:                                             ; preds = %nestedBlock1
-  br label %nestedBlock7
-
-else:                                             ; preds = %nestedBlock1
-  br label %afterIfElse
-
-afterIfElse:                                      ; preds = %else, %afterNestedBlock6
-  %20 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %21 = icmp eq i32 %20, 0
-  br i1 %21, label %checkContinueBlock2, label %afterNestedBlock
-
-afterNestedBlock6:                                ; preds = %checkContinueBlock12, %afterIfElse18, %checkContinueBlock10, %nestedBlock9, %checkContinueBlock8, %nestedBlock7
-  br label %afterIfElse
-
-nestedBlock7:                                     ; preds = %then
-  %birdTimmer13 = load double, ptr %5, align 8
-  %BIRD_TIMMER = load double, ptr %4, align 8
-  %22 = load double, ptr %4, align 8
-  store double %22, ptr %5, align 8
-  %23 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %24 = icmp eq i32 %23, 0
-  br i1 %24, label %checkContinueBlock8, label %afterNestedBlock6
-
-checkContinueBlock8:                              ; preds = %nestedBlock7
-  %25 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %26 = icmp eq i32 %25, 0
-  br i1 %26, label %nestedBlock9, label %afterNestedBlock6
-
-nestedBlock9:                                     ; preds = %checkContinueBlock8
-  %birdSpriteIndex = load i32, ptr %7, align 4
-  %birdSpriteIndex14 = load i32, ptr %7, align 4
-  %27 = add i32 %birdSpriteIndex14, 1
-  store i32 %27, ptr %7, align 4
-  %28 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %29 = icmp eq i32 %28, 0
-  br i1 %29, label %checkContinueBlock10, label %afterNestedBlock6
-
-checkContinueBlock10:                             ; preds = %nestedBlock9
-  %30 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %31 = icmp eq i32 %30, 0
-  br i1 %31, label %nestedBlock11, label %afterNestedBlock6
-
-nestedBlock11:                                    ; preds = %checkContinueBlock10
-  %birdSpriteIndex15 = load i32, ptr %7, align 4
-  %BIRD_SPRITE_SIZE = load i32, ptr %6, align 4
-  %32 = icmp sge i32 %birdSpriteIndex15, %BIRD_SPRITE_SIZE
-  br i1 %32, label %then16, label %else17
-
-checkContinueBlock12:                             ; preds = %afterIfElse18
-  br label %afterNestedBlock6
-
-then16:                                           ; preds = %nestedBlock11
-  br label %nestedBlock20
-
-else17:                                           ; preds = %nestedBlock11
-  br label %afterIfElse18
-
-afterIfElse18:                                    ; preds = %else17, %afterNestedBlock19
-  %33 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %34 = icmp eq i32 %33, 0
-  br i1 %34, label %checkContinueBlock12, label %afterNestedBlock6
-
-afterNestedBlock19:                               ; preds = %checkContinueBlock21, %nestedBlock20
-  br label %afterIfElse18
-
-nestedBlock20:                                    ; preds = %then16
-  %birdSpriteIndex22 = load i32, ptr %7, align 4
-  store i32 0, ptr %7, align 4
-  %35 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %36 = icmp eq i32 %35, 0
-  br i1 %36, label %checkContinueBlock21, label %afterNestedBlock19
-
-checkContinueBlock21:                             ; preds = %nestedBlock20
-  br label %afterNestedBlock19
-}
-
-define i1 @Bird.isTextureLoaded(ptr %0) !rt !55 {
-entry:
-  %1 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 7
-  %8 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 8
-  %9 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 9
-  %10 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i1 false
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %11 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 9
-  %12 = getelementptr inbounds %Texture.0, ptr %11, i32 0, i32 0
-  %id = load i32, ptr %12, align 4
-  %13 = icmp ne i32 %id, 0
-  ret i1 %13
-
-mergeBlock:                                       ; No predecessors!
-  %14 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %15 = icmp eq i32 %14, 0
-  br i1 %15, label %checkContinueBlock, label %afterNestedBlock
-}
-
-define void @Bird.getSource(ptr %0, ptr %1) !rt !56 {
-entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %12 = getelementptr [4 x float], ptr %0, i32 0, i32 0
-  %birdSpriteIndex = load i32, ptr %7, align 4
-  %birdSpritePosition = load [9 x %Position.4], ptr %11, align 4
-  %"GlobalIndexExpr::isLessThan" = icmp slt i32 %birdSpriteIndex, 9
-  %"GlobalIndexExpr::isGreaterThan" = icmp sge i32 %birdSpriteIndex, 0
-  %"GlobalIndexExpr::isWithinBounds" = and i1 %"GlobalIndexExpr::isLessThan", %"GlobalIndexExpr::isGreaterThan"
-  br i1 %"GlobalIndexExpr::isWithinBounds", label %"GlobalIndexExpr::then", label %"GlobalIndexExpr::else"
-
-mergeBlock:                                       ; No predecessors!
-  %13 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %14 = icmp eq i32 %13, 0
-  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
-
-"GlobalIndexExpr::then":                          ; preds = %returnBlock
-  br label %"GlobalIndexExpr::merge"
-
-"GlobalIndexExpr::else":                          ; preds = %returnBlock
-  call void @raise_exception(ptr @1)
-  br label %"GlobalIndexExpr::merge"
-
-"GlobalIndexExpr::merge":                         ; preds = %"GlobalIndexExpr::else", %"GlobalIndexExpr::then"
-  %15 = getelementptr [9 x %Position.4], ptr %11, i32 0, i32 %birdSpriteIndex
-  %16 = getelementptr inbounds %Position.4, ptr %15, i32 0, i32 0
-  %x = load float, ptr %16, align 4
-  %17 = load float, ptr %16, align 4
-  store float %17, ptr %12, align 4
-  %18 = getelementptr [4 x float], ptr %0, i32 0, i32 1
-  %birdSpriteIndex1 = load i32, ptr %7, align 4
-  %birdSpritePosition2 = load [9 x %Position.4], ptr %11, align 4
-  %"GlobalIndexExpr::isLessThan6" = icmp slt i32 %birdSpriteIndex1, 9
-  %"GlobalIndexExpr::isGreaterThan7" = icmp sge i32 %birdSpriteIndex1, 0
-  %"GlobalIndexExpr::isWithinBounds8" = and i1 %"GlobalIndexExpr::isLessThan6", %"GlobalIndexExpr::isGreaterThan7"
-  br i1 %"GlobalIndexExpr::isWithinBounds8", label %"GlobalIndexExpr::then3", label %"GlobalIndexExpr::else4"
-
-"GlobalIndexExpr::then3":                         ; preds = %"GlobalIndexExpr::merge"
-  br label %"GlobalIndexExpr::merge5"
-
-"GlobalIndexExpr::else4":                         ; preds = %"GlobalIndexExpr::merge"
-  call void @raise_exception(ptr @2)
-  br label %"GlobalIndexExpr::merge5"
-
-"GlobalIndexExpr::merge5":                        ; preds = %"GlobalIndexExpr::else4", %"GlobalIndexExpr::then3"
-  %19 = getelementptr [9 x %Position.4], ptr %11, i32 0, i32 %birdSpriteIndex1
-  %20 = getelementptr inbounds %Position.4, ptr %19, i32 0, i32 1
-  %y = load float, ptr %20, align 4
-  %21 = load float, ptr %20, align 4
-  store float %21, ptr %18, align 4
-  %22 = getelementptr [4 x float], ptr %0, i32 0, i32 2
-  %ACTUAL_BIRD_SIZE = load float, ptr %2, align 4
-  %23 = load float, ptr %2, align 4
-  store float %23, ptr %22, align 4
-  %24 = getelementptr [4 x float], ptr %0, i32 0, i32 3
-  %ACTUAL_BIRD_SIZE9 = load float, ptr %2, align 4
-  %25 = load float, ptr %2, align 4
-  store float %25, ptr %24, align 4
-  ret void
-}
-
-define void @Bird.getDistination(ptr %0, ptr %1) !rt !57 {
-entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %12 = getelementptr [4 x float], ptr %0, i32 0, i32 0
-  %screenWidth = load i32, ptr @screenWidth, align 4
-  br i1 false, label %if, label %else
-
-mergeBlock:                                       ; No predecessors!
-  %13 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %14 = icmp eq i32 %13, 0
-  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
-
-if:                                               ; preds = %returnBlock
-  call void @raise_exception(ptr @3)
-  br label %merge
-
-else:                                             ; preds = %returnBlock
-  %15 = sitofp i32 %screenWidth to double
-  %16 = fdiv double %15, 3.000000e+00
-  br label %merge
-
-merge:                                            ; preds = %else, %if
-  %birdSize = load float, ptr %3, align 4
-  br i1 false, label %if1, label %else2
-
-if1:                                              ; preds = %merge
-  call void @raise_exception(ptr @4)
-  br label %else2
-
-else2:                                            ; preds = %if1, %merge
-  %17 = fdiv float %birdSize, 2.000000e+00
-  %18 = fptrunc double %16 to float
-  %19 = fsub float %18, %17
-  store float %19, ptr %12, align 4
-  %20 = getelementptr [4 x float], ptr %0, i32 0, i32 1
-  %screenHeight = load i32, ptr @screenHeight, align 4
-  br i1 false, label %if3, label %else4
-
-if3:                                              ; preds = %else2
-  call void @raise_exception(ptr @5)
-  br label %merge5
-
-else4:                                            ; preds = %else2
-  %21 = sitofp i32 %screenHeight to double
-  %22 = fdiv double %21, 2.000000e+00
-  br label %merge5
-
-merge5:                                           ; preds = %else4, %if3
-  %birdSize6 = load float, ptr %3, align 4
-  br i1 false, label %if7, label %else8
-
-if7:                                              ; preds = %merge5
-  call void @raise_exception(ptr @6)
-  br label %else8
-
-else8:                                            ; preds = %if7, %merge5
-  %23 = fdiv float %birdSize6, 2.000000e+00
-  %24 = fptrunc double %22 to float
-  %25 = fsub float %24, %23
-  store float %25, ptr %20, align 4
-  %26 = getelementptr [4 x float], ptr %0, i32 0, i32 2
-  %birdSize9 = load float, ptr %3, align 4
-  %27 = load float, ptr %3, align 4
-  store float %27, ptr %26, align 4
-  %28 = getelementptr [4 x float], ptr %0, i32 0, i32 3
-  %birdSize10 = load float, ptr %3, align 4
-  %29 = load float, ptr %3, align 4
-  store float %29, ptr %28, align 4
-  ret void
-}
-
-define void @Bird.getOrigin(ptr %0, ptr %1) !rt !58 {
-entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %12 = getelementptr [2 x float], ptr %0, i32 0, i32 0
-  store float 0.000000e+00, ptr %12, align 4
-  %13 = getelementptr [2 x float], ptr %0, i32 0, i32 1
-  store float 0.000000e+00, ptr %13, align 4
-  ret void
-
-mergeBlock:                                       ; No predecessors!
-  %14 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %15 = icmp eq i32 %14, 0
-  br i1 %15, label %checkContinueBlock, label %afterNestedBlock
-}
-
-define float @Bird.getRotation(ptr %0) !rt !59 {
-entry:
-  %1 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 1
-  %2 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 2
-  %3 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 3
-  %4 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 4
-  %5 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 5
-  %6 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 6
-  %7 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 7
-  %8 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 8
-  %9 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 9
-  %10 = getelementptr inbounds %Bird, ptr %0, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret float 0.000000e+00
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  ret float 0.000000e+00
-
-mergeBlock:                                       ; No predecessors!
-  %11 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %12 = icmp eq i32 %11, 0
-  br i1 %12, label %checkContinueBlock, label %afterNestedBlock
-}
-
-define void @Bird.getTexture(ptr %0, ptr %1) !rt !60 {
-entry:
-  %2 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 1
-  %3 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 2
-  %4 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 3
-  %5 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 4
-  %6 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 5
-  %7 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 6
-  %8 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 7
-  %9 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 8
-  %10 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %11 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 10
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %12 = getelementptr inbounds %Bird, ptr %1, i32 0, i32 9
-  %13 = load %Texture.0, ptr %12, align 4
-  store %Texture.0 %13, ptr %0, align 4
-  ret void
-
-mergeBlock:                                       ; No predecessors!
-  %14 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %15 = icmp eq i32 %14, 0
-  br i1 %15, label %checkContinueBlock, label %afterNestedBlock
-}
-
-define i32 @main() !rt !61 {
-entry:
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock14, %mergeBlock46, %checkContinueBlock12, %nestedBlock11, %checkContinueBlock10, %end_block44, %checkContinueBlock8, %afterIfElse, %checkContinueBlock6, %nestedBlock5, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %else, %checkContinueBlock, %nestedBlock
-  ret i32 0
-
-nestedBlock:                                      ; preds = %entry
-  %0 = call ptr @malloc(i64 96)
-  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  store ptr @7, ptr %1, align 8
-  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
-  store i32 0, ptr %2, align 4
-  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
-  store i32 0, ptr %3, align 4
-  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
-  store ptr @8, ptr %4, align 8
-  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
-  store i32 0, ptr %5, align 4
-  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %7 = getelementptr inbounds %COLORS_TYPE.3, ptr %6, i32 0, i32 0
-  store i32 0, ptr %7, align 4
-  %8 = getelementptr inbounds %COLORS_TYPE.3, ptr %6, i32 0, i32 1
-  store i32 0, ptr %8, align 4
-  %9 = getelementptr inbounds %COLORS_TYPE.3, ptr %6, i32 0, i32 2
-  store i32 0, ptr %9, align 4
-  %10 = getelementptr inbounds %COLORS_TYPE.3, ptr %6, i32 0, i32 3
-  store i32 0, ptr %10, align 4
-  %11 = getelementptr inbounds %COLORS_TYPE.3, ptr %6, i32 0, i32 4
+  %tail = alloca i32, align 4
+  store i32 0, ptr %tail, align 4
+  store i32 1, ptr %tail, align 4
+  %6 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %7 = icmp eq i32 %6, 0
+  br i1 %7, label %checkContinueBlock2, label %afterNestedBlock
+
+checkContinueBlock2:                              ; preds = %nestedBlock1
+  %8 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %9 = icmp eq i32 %8, 0
+  br i1 %9, label %nestedBlock3, label %afterNestedBlock
+
+nestedBlock3:                                     ; preds = %checkContinueBlock2
+  %posX = alloca [10000 x i32], align 4
+  %10 = alloca i32, align 4
+  %11 = alloca i32, align 4
   store i32 0, ptr %11, align 4
-  %12 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
-  %13 = getelementptr inbounds %KEYS_TYPE.2, ptr %12, i32 0, i32 0
-  store i32 0, ptr %13, align 4
-  %14 = getelementptr inbounds %KEYS_TYPE.2, ptr %12, i32 0, i32 1
-  store i32 0, ptr %14, align 4
-  %15 = getelementptr inbounds %KEYS_TYPE.2, ptr %12, i32 0, i32 2
-  store i32 0, ptr %15, align 4
-  %16 = getelementptr inbounds %KEYS_TYPE.2, ptr %12, i32 0, i32 3
-  store i32 0, ptr %16, align 4
-  %17 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
-  %18 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 0
-  store i32 0, ptr %18, align 4
-  %19 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 1
-  store i32 0, ptr %19, align 4
-  %20 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 2
-  store i32 0, ptr %20, align 4
-  %21 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 3
-  store i32 0, ptr %21, align 4
-  %22 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 4
-  store i32 0, ptr %22, align 4
-  %23 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 5
-  store i32 0, ptr %23, align 4
-  %24 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 6
-  store i32 0, ptr %24, align 4
-  %25 = getelementptr inbounds %LOG_TYPE.1, ptr %17, i32 0, i32 7
-  store i32 0, ptr %25, align 4
-  %26 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  store ptr @vtable.FlowWingAnim.fg, ptr %26, align 8
-  %27 = load ptr, ptr %26, align 8
-  %28 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 23
-  store ptr @FlowWingAnim.setTargetFPS, ptr %28, align 8
-  %29 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 22
-  store ptr @FlowWingAnim.endDrawing, ptr %29, align 8
-  %30 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 21
-  store ptr @FlowWingAnim.createWindow, ptr %30, align 8
-  %31 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 3
-  store ptr @FlowWingAnim.drawCircle, ptr %31, align 8
-  %32 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 20
-  store ptr @FlowWingAnim.drawTexturePro, ptr %32, align 8
-  %33 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 16
-  store ptr @FlowWingAnim.drawRectangle, ptr %33, align 8
-  %34 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 15
-  store ptr @FlowWingAnim.beginDrawing, ptr %34, align 8
-  %35 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 1
-  store ptr @FlowWingAnim.traceLog, ptr %35, align 8
-  %36 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 14
-  store ptr @FlowWingAnim.unloadTexture, ptr %36, align 8
-  %37 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 13
-  store ptr @FlowWingAnim.closeWindow, ptr %37, align 8
-  %38 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 17
-  store ptr @FlowWingAnim.getColor, ptr %38, align 8
-  %39 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 12
-  store ptr @FlowWingAnim.textFormat, ptr %39, align 8
-  %40 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 18
-  store ptr @FlowWingAnim.windowShouldClose, ptr %40, align 8
-  %41 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 5
-  store ptr @FlowWingAnim.getScreenWidth, ptr %41, align 8
-  %42 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 6
-  store ptr @FlowWingAnim.getScreenHeight, ptr %42, align 8
-  %43 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 11
-  store ptr @FlowWingAnim.getTime, ptr %43, align 8
-  %44 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 19
-  store ptr @FlowWingAnim.beforeInit, ptr %44, align 8
-  %45 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 10
-  store ptr @FlowWingAnim.clearBackground, ptr %45, align 8
-  %46 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 7
-  store ptr @FlowWingAnim.drawTexture, ptr %46, align 8
-  %47 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 8
-  store ptr @FlowWingAnim.getFrameTime, ptr %47, align 8
-  %48 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 2
-  store ptr @FlowWingAnim.drawText, ptr %48, align 8
-  %49 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 4
-  store ptr @FlowWingAnim.isKeyDown, ptr %49, align 8
-  %50 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 9
-  store ptr @FlowWingAnim.loadTexture, ptr %50, align 8
-  %51 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %27, i32 0, i32 0
-  store ptr @FlowWingAnim.isKeyPressed, ptr %51, align 8
-  %screenWidth = load i32, ptr @screenWidth, align 4
-  %screenHeight = load i32, ptr @screenHeight, align 4
-  %52 = alloca ptr, align 8
-  store ptr @9, ptr %52, align 8
-  %FPS = load i32, ptr @FPS, align 4
-  call void @FlowWingAnim.init4(ptr @screenWidth, ptr @screenHeight, ptr %52, ptr @FPS, ptr %0)
-  %53 = load %FlowWingAnim, ptr %0, align 8
-  store %FlowWingAnim %53, ptr %0, align 8
-  %54 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %55 = icmp eq i32 %54, 0
-  br i1 %55, label %checkContinueBlock, label %afterNestedBlock
-
-checkContinueBlock:                               ; preds = %nestedBlock
-  %56 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %57 = icmp eq i32 %56, 0
-  br i1 %57, label %nestedBlock1, label %afterNestedBlock
-
-nestedBlock1:                                     ; preds = %checkContinueBlock
-  %58 = call ptr @malloc(i64 144)
-  %59 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  store ptr @10, ptr %59, align 8
-  %60 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 1
-  store float 0.000000e+00, ptr %60, align 4
-  %61 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 2
-  store float 0.000000e+00, ptr %61, align 4
-  %62 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 3
-  store double 0.000000e+00, ptr %62, align 8
-  %63 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 4
-  store double 0.000000e+00, ptr %63, align 8
-  %64 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 5
-  store i32 0, ptr %64, align 4
-  %65 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 6
-  store i32 0, ptr %65, align 4
-  %66 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 7
-  store ptr @11, ptr %66, align 8
-  %67 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 8
-  store i1 false, ptr %67, align 1
-  %68 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 9
-  %69 = getelementptr inbounds %Texture.0, ptr %68, i32 0, i32 0
-  store i32 0, ptr %69, align 4
-  %70 = getelementptr inbounds %Texture.0, ptr %68, i32 0, i32 1
-  store i32 0, ptr %70, align 4
-  %71 = getelementptr inbounds %Texture.0, ptr %68, i32 0, i32 2
-  store i32 0, ptr %71, align 4
-  %72 = getelementptr inbounds %Texture.0, ptr %68, i32 0, i32 3
-  store i32 0, ptr %72, align 4
-  %73 = getelementptr inbounds %Texture.0, ptr %68, i32 0, i32 4
-  store i32 0, ptr %73, align 4
-  %74 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 10
-  %75 = alloca i32, align 4
-  %76 = alloca i32, align 4
-  store i32 0, ptr %76, align 4
   br label %FillExpr.loopStart-0
 
-checkContinueBlock2:                              ; preds = %else
-  %77 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %78 = icmp eq i32 %77, 0
-  br i1 %78, label %nestedBlock3, label %afterNestedBlock
-
-nestedBlock3:                                     ; preds = %checkContinueBlock2
-  %79 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %80 = load ptr, ptr %79, align 8
-  %81 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %80, i32 0, i32 21
-  %82 = load ptr, ptr %81, align 8
-  call void %82(ptr %0)
-  %83 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %84 = icmp eq i32 %83, 0
-  br i1 %84, label %checkContinueBlock4, label %afterNestedBlock
-
-checkContinueBlock4:                              ; preds = %nestedBlock3
-  %85 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %86 = icmp eq i32 %85, 0
-  br i1 %86, label %nestedBlock5, label %afterNestedBlock
+checkContinueBlock4:                              ; preds = %FillExpr.exit29
+  %12 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %13 = icmp eq i32 %12, 0
+  br i1 %13, label %nestedBlock5, label %afterNestedBlock
 
 nestedBlock5:                                     ; preds = %checkContinueBlock4
-  %87 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %88 = load ptr, ptr %87, align 8
-  %89 = getelementptr inbounds %"Bird::VTableType", ptr %88, i32 0, i32 8
-  %90 = load ptr, ptr %89, align 8
-  %91 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %92 = load ptr, ptr %91, align 8
-  %93 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %92, i32 0, i32 9
-  %94 = load ptr, ptr %93, align 8
-  %rtPtr = alloca %Texture.0, align 8
-  %95 = alloca ptr, align 8
-  store ptr @14, ptr %95, align 8
-  call void %94(ptr %rtPtr, ptr %95, ptr %0)
-  call void %90(ptr %rtPtr, ptr %58)
-  %96 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %97 = icmp eq i32 %96, 0
-  br i1 %97, label %checkContinueBlock6, label %afterNestedBlock
+  %posY = alloca [10000 x i32], align 4
+  %14 = alloca i32, align 4
+  %15 = alloca i32, align 4
+  store i32 0, ptr %15, align 4
+  br label %FillExpr.loopStart-030
 
-checkContinueBlock6:                              ; preds = %nestedBlock5
-  %98 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %99 = icmp eq i32 %98, 0
-  br i1 %99, label %nestedBlock7, label %afterNestedBlock
+checkContinueBlock6:                              ; preds = %FillExpr.exit39
+  %16 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %17 = icmp eq i32 %16, 0
+  br i1 %17, label %nestedBlock7, label %afterNestedBlock
 
 nestedBlock7:                                     ; preds = %checkContinueBlock6
-  %100 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %101 = load ptr, ptr %100, align 8
-  %102 = getelementptr inbounds %"Bird::VTableType", ptr %101, i32 0, i32 5
-  %103 = load ptr, ptr %102, align 8
-  %104 = call i1 %103(ptr %58)
-  %105 = xor i1 %104, true
-  br i1 %105, label %then, label %else16
+  %posX40 = load [10000 x i32], ptr %posX, align 4
+  br i1 true, label %"GlobalIndexExpr::then", label %"GlobalIndexExpr::else"
 
-checkContinueBlock8:                              ; preds = %afterIfElse
-  %106 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %107 = icmp eq i32 %106, 0
-  br i1 %107, label %nestedBlock9, label %afterNestedBlock
+checkContinueBlock8:                              ; preds = %"GlobalIndexExpr::merge"
+  %18 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %19 = icmp eq i32 %18, 0
+  br i1 %19, label %nestedBlock9, label %afterNestedBlock
 
 nestedBlock9:                                     ; preds = %checkContinueBlock8
-  br label %"while:conditon"
+  %posY41 = load [10000 x i32], ptr %posY, align 4
+  br i1 true, label %"GlobalIndexExpr::then42", label %"GlobalIndexExpr::else43"
 
-checkContinueBlock10:                             ; preds = %end_block44
-  %108 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %109 = icmp eq i32 %108, 0
-  br i1 %109, label %nestedBlock11, label %afterNestedBlock
+checkContinueBlock10:                             ; preds = %"GlobalIndexExpr::merge44"
+  %20 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %21 = icmp eq i32 %20, 0
+  br i1 %21, label %nestedBlock11, label %afterNestedBlock
 
 nestedBlock11:                                    ; preds = %checkContinueBlock10
-  %110 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %111 = load ptr, ptr %110, align 8
-  %112 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %111, i32 0, i32 13
-  %113 = load ptr, ptr %112, align 8
-  call void %113(ptr %0)
-  %114 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %115 = icmp eq i32 %114, 0
-  br i1 %115, label %checkContinueBlock12, label %afterNestedBlock
+  %foodPos = alloca %Position.4, align 8
+  %22 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 0
+  store i32 0, ptr %22, align 4
+  %23 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 1
+  store i32 0, ptr %23, align 4
+  call void @getFoodPosition(ptr %foodPos)
+  %24 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %25 = icmp eq i32 %24, 0
+  br i1 %25, label %checkContinueBlock12, label %afterNestedBlock
 
 checkContinueBlock12:                             ; preds = %nestedBlock11
-  %116 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %117 = icmp eq i32 %116, 0
-  br i1 %117, label %nestedBlock13, label %afterNestedBlock
+  %26 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %27 = icmp eq i32 %26, 0
+  br i1 %27, label %nestedBlock13, label %afterNestedBlock
 
 nestedBlock13:                                    ; preds = %checkContinueBlock12
-  br label %returnBlock45
+  %newPos = alloca %Position.4, align 8
+  %28 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  store i32 0, ptr %28, align 4
+  %29 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  store i32 0, ptr %29, align 4
+  %30 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %posX45 = load [10000 x i32], ptr %posX, align 4
+  br i1 true, label %"GlobalIndexExpr::then46", label %"GlobalIndexExpr::else47"
 
-checkContinueBlock14:                             ; preds = %mergeBlock46
+checkContinueBlock14:                             ; preds = %"GlobalIndexExpr::merge52"
+  %31 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %32 = icmp eq i32 %31, 0
+  br i1 %32, label %nestedBlock15, label %afterNestedBlock
+
+nestedBlock15:                                    ; preds = %checkContinueBlock14
+  %33 = call ptr @malloc(i64 96)
+  %34 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  store ptr @4, ptr %34, align 8
+  %35 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 1
+  store i32 0, ptr %35, align 4
+  %36 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 2
+  store i32 0, ptr %36, align 4
+  %37 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 3
+  store ptr @5, ptr %37, align 8
+  %38 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 4
+  store i32 0, ptr %38, align 4
+  %39 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 5
+  %40 = getelementptr inbounds %COLORS_TYPE.3, ptr %39, i32 0, i32 0
+  store i32 0, ptr %40, align 4
+  %41 = getelementptr inbounds %COLORS_TYPE.3, ptr %39, i32 0, i32 1
+  store i32 0, ptr %41, align 4
+  %42 = getelementptr inbounds %COLORS_TYPE.3, ptr %39, i32 0, i32 2
+  store i32 0, ptr %42, align 4
+  %43 = getelementptr inbounds %COLORS_TYPE.3, ptr %39, i32 0, i32 3
+  store i32 0, ptr %43, align 4
+  %44 = getelementptr inbounds %COLORS_TYPE.3, ptr %39, i32 0, i32 4
+  store i32 0, ptr %44, align 4
+  %45 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %46 = getelementptr inbounds %KEYS_TYPE.2, ptr %45, i32 0, i32 0
+  store i32 0, ptr %46, align 4
+  %47 = getelementptr inbounds %KEYS_TYPE.2, ptr %45, i32 0, i32 1
+  store i32 0, ptr %47, align 4
+  %48 = getelementptr inbounds %KEYS_TYPE.2, ptr %45, i32 0, i32 2
+  store i32 0, ptr %48, align 4
+  %49 = getelementptr inbounds %KEYS_TYPE.2, ptr %45, i32 0, i32 3
+  store i32 0, ptr %49, align 4
+  %50 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 7
+  %51 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 0
+  store i32 0, ptr %51, align 4
+  %52 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 1
+  store i32 0, ptr %52, align 4
+  %53 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 2
+  store i32 0, ptr %53, align 4
+  %54 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 3
+  store i32 0, ptr %54, align 4
+  %55 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 4
+  store i32 0, ptr %55, align 4
+  %56 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 5
+  store i32 0, ptr %56, align 4
+  %57 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 6
+  store i32 0, ptr %57, align 4
+  %58 = getelementptr inbounds %LOG_TYPE.1, ptr %50, i32 0, i32 7
+  store i32 0, ptr %58, align 4
+  %59 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  store ptr @vtable.FlowWingAnim.fg, ptr %59, align 8
+  %60 = load ptr, ptr %59, align 8
+  %61 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 23
+  store ptr @FlowWingAnim.setTargetFPS, ptr %61, align 8
+  %62 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 22
+  store ptr @FlowWingAnim.endDrawing, ptr %62, align 8
+  %63 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 21
+  store ptr @FlowWingAnim.createWindow, ptr %63, align 8
+  %64 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 3
+  store ptr @FlowWingAnim.drawCircle, ptr %64, align 8
+  %65 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 20
+  store ptr @FlowWingAnim.drawTexturePro, ptr %65, align 8
+  %66 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 16
+  store ptr @FlowWingAnim.drawRectangle, ptr %66, align 8
+  %67 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 15
+  store ptr @FlowWingAnim.beginDrawing, ptr %67, align 8
+  %68 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 1
+  store ptr @FlowWingAnim.traceLog, ptr %68, align 8
+  %69 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 14
+  store ptr @FlowWingAnim.unloadTexture, ptr %69, align 8
+  %70 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 13
+  store ptr @FlowWingAnim.closeWindow, ptr %70, align 8
+  %71 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 17
+  store ptr @FlowWingAnim.getColor, ptr %71, align 8
+  %72 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 12
+  store ptr @FlowWingAnim.textFormat, ptr %72, align 8
+  %73 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 18
+  store ptr @FlowWingAnim.windowShouldClose, ptr %73, align 8
+  %74 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 5
+  store ptr @FlowWingAnim.getScreenWidth, ptr %74, align 8
+  %75 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 6
+  store ptr @FlowWingAnim.getScreenHeight, ptr %75, align 8
+  %76 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 11
+  store ptr @FlowWingAnim.getTime, ptr %76, align 8
+  %77 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 19
+  store ptr @FlowWingAnim.beforeInit, ptr %77, align 8
+  %78 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 10
+  store ptr @FlowWingAnim.clearBackground, ptr %78, align 8
+  %79 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 7
+  store ptr @FlowWingAnim.drawTexture, ptr %79, align 8
+  %80 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 8
+  store ptr @FlowWingAnim.getFrameTime, ptr %80, align 8
+  %81 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 2
+  store ptr @FlowWingAnim.drawText, ptr %81, align 8
+  %82 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 4
+  store ptr @FlowWingAnim.isKeyDown, ptr %82, align 8
+  %83 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 9
+  store ptr @FlowWingAnim.loadTexture, ptr %83, align 8
+  %84 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %60, i32 0, i32 0
+  store ptr @FlowWingAnim.isKeyPressed, ptr %84, align 8
+  %screenWidth = load i32, ptr @screenWidth, align 4
+  %screenHeight = load i32, ptr @screenHeight, align 4
+  %85 = alloca ptr, align 8
+  store ptr @6, ptr %85, align 8
+  %86 = alloca i32, align 4
+  store i32 60, ptr %86, align 4
+  call void @FlowWingAnim.init4(ptr @screenWidth, ptr @screenHeight, ptr %85, ptr %86, ptr %33)
+  %87 = load %FlowWingAnim, ptr %33, align 8
+  store %FlowWingAnim %87, ptr %33, align 8
+  %88 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %89 = icmp eq i32 %88, 0
+  br i1 %89, label %checkContinueBlock16, label %afterNestedBlock
+
+checkContinueBlock16:                             ; preds = %nestedBlock15
+  %90 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %91 = icmp eq i32 %90, 0
+  br i1 %91, label %nestedBlock17, label %afterNestedBlock
+
+nestedBlock17:                                    ; preds = %checkContinueBlock16
+  %92 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %93 = load ptr, ptr %92, align 8
+  %94 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %93, i32 0, i32 21
+  %95 = load ptr, ptr %94, align 8
+  call void %95(ptr %33)
+  %96 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %97 = icmp eq i32 %96, 0
+  br i1 %97, label %checkContinueBlock18, label %afterNestedBlock
+
+checkContinueBlock18:                             ; preds = %nestedBlock17
+  %98 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %99 = icmp eq i32 %98, 0
+  br i1 %99, label %nestedBlock19, label %afterNestedBlock
+
+nestedBlock19:                                    ; preds = %checkContinueBlock18
+  br label %"while:conditon"
+
+checkContinueBlock20:                             ; preds = %end_block271
+  %100 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %101 = icmp eq i32 %100, 0
+  br i1 %101, label %nestedBlock21, label %afterNestedBlock
+
+nestedBlock21:                                    ; preds = %checkContinueBlock20
+  %102 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %103 = load ptr, ptr %102, align 8
+  %104 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %103, i32 0, i32 13
+  %105 = load ptr, ptr %104, align 8
+  call void %105(ptr %33)
+  %106 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %107 = icmp eq i32 %106, 0
+  br i1 %107, label %checkContinueBlock22, label %afterNestedBlock
+
+checkContinueBlock22:                             ; preds = %nestedBlock21
+  %108 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %109 = icmp eq i32 %108, 0
+  br i1 %109, label %nestedBlock23, label %afterNestedBlock
+
+nestedBlock23:                                    ; preds = %checkContinueBlock22
+  br label %returnBlock
+
+checkContinueBlock24:                             ; preds = %mergeBlock
   br label %afterNestedBlock
 
-FillExpr.loopStart-0:                             ; preds = %nestedBlock1
-  store i32 0, ptr %75, align 4
+FillExpr.loopStart-0:                             ; preds = %nestedBlock3
+  store i32 0, ptr %10, align 4
   br label %FillExpr.loopCmp-0
 
 FillExpr.loopCmp-0:                               ; preds = %FillExpr.loopBody-0, %FillExpr.loopStart-0
-  %118 = load i32, ptr %75, align 4
-  %119 = icmp slt i32 %118, 9
-  %120 = load i32, ptr %76, align 4
-  %121 = icmp slt i32 %120, 9
-  %122 = and i1 %119, %121
-  br i1 %122, label %FillExpr.loopBody-0, label %FillExpr.loopEnd-0
+  %110 = load i32, ptr %10, align 4
+  %111 = icmp slt i32 %110, 10000
+  %112 = load i32, ptr %11, align 4
+  %113 = icmp slt i32 %112, 10000
+  %114 = and i1 %111, %113
+  br i1 %114, label %FillExpr.loopBody-0, label %FillExpr.loopEnd-0
 
 FillExpr.loopBody-0:                              ; preds = %FillExpr.loopCmp-0
-  %123 = load i32, ptr %75, align 4
-  %124 = getelementptr [9 x %Position.4], ptr %74, i32 0, i32 %123
-  %125 = getelementptr inbounds %Position.4, ptr %124, i32 0, i32 0
-  store float 0.000000e+00, ptr %125, align 4
-  %126 = getelementptr inbounds %Position.4, ptr %124, i32 0, i32 1
-  store float 0.000000e+00, ptr %126, align 4
-  %127 = load i32, ptr %75, align 4
-  %128 = add i32 %127, 1
-  store i32 %128, ptr %75, align 4
-  %129 = load i32, ptr %76, align 4
-  %130 = add i32 %129, 1
-  store i32 %130, ptr %76, align 4
+  %115 = load i32, ptr %10, align 4
+  %116 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 %115
+  store i32 0, ptr %116, align 4
+  %117 = load i32, ptr %10, align 4
+  %118 = add i32 %117, 1
+  store i32 %118, ptr %10, align 4
+  %119 = load i32, ptr %11, align 4
+  %120 = add i32 %119, 1
+  store i32 %120, ptr %11, align 4
   br label %FillExpr.loopCmp-0
 
 FillExpr.loopEnd-0:                               ; preds = %FillExpr.loopCmp-0
   br label %FillExpr.exit
 
 FillExpr.exit:                                    ; preds = %FillExpr.loopEnd-0
-  %131 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  store ptr @vtable.Bird.fg, ptr %131, align 8
-  %132 = load ptr, ptr %131, align 8
-  %133 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 7
-  store ptr @Bird.getTexturePath, ptr %133, align 8
-  %134 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 5
-  store ptr @Bird.isTextureLoaded, ptr %134, align 8
-  %135 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 8
-  store ptr @Bird.setTexture, ptr %135, align 8
-  %136 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 2
-  store ptr @Bird.getOrigin, ptr %136, align 8
-  %137 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 4
-  store ptr @Bird.getSource, ptr %137, align 8
-  %138 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 6
-  store ptr @Bird.update, ptr %138, align 8
-  %139 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 0
-  store ptr @Bird.getTexture, ptr %139, align 8
-  %140 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 3
-  store ptr @Bird.getDistination, ptr %140, align 8
-  %141 = getelementptr inbounds %"Bird::VTableType", ptr %132, i32 0, i32 1
-  store ptr @Bird.getRotation, ptr %141, align 8
-  %142 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 1
-  store float 3.600000e+02, ptr %142, align 4
-  %143 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 2
-  store float 9.000000e+01, ptr %143, align 4
-  %144 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 3
-  %FPS15 = load i32, ptr @FPS, align 4
-  %145 = sitofp i32 %FPS15 to double
-  %146 = fcmp oeq double %145, 0.000000e+00
-  br i1 %146, label %if, label %else
+  %121 = alloca i32, align 4
+  %122 = alloca i32, align 4
+  store i32 0, ptr %122, align 4
+  br label %FillExpr.loopStart-025
 
-if:                                               ; preds = %FillExpr.exit
-  call void @raise_exception(ptr @12)
-  br label %else
+FillExpr.loopStart-025:                           ; preds = %FillExpr.exit
+  store i32 0, ptr %121, align 4
+  br label %FillExpr.loopCmp-026
 
-else:                                             ; preds = %if, %FillExpr.exit
-  %147 = fdiv double 1.000000e+00, %145
-  store double %147, ptr %144, align 8
-  %148 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 5
-  store i32 9, ptr %148, align 4
-  %149 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 6
-  store i32 0, ptr %149, align 4
-  %150 = alloca ptr, align 8
-  store ptr @13, ptr %150, align 8
-  call void @Bird.init1(ptr %150, ptr %58)
-  %151 = load %Bird, ptr %58, align 8
-  store %Bird %151, ptr %58, align 8
-  %152 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %153 = icmp eq i32 %152, 0
-  br i1 %153, label %checkContinueBlock2, label %afterNestedBlock
+FillExpr.loopCmp-026:                             ; preds = %FillExpr.loopBody-027, %FillExpr.loopStart-025
+  %123 = load i32, ptr %121, align 4
+  %124 = icmp slt i32 %123, 10000
+  %125 = load i32, ptr %122, align 4
+  %126 = icmp slt i32 %125, 10000
+  %127 = and i1 %124, %126
+  br i1 %127, label %FillExpr.loopBody-027, label %FillExpr.loopEnd-028
 
-then:                                             ; preds = %nestedBlock7
-  br label %nestedBlock18
+FillExpr.loopBody-027:                            ; preds = %FillExpr.loopCmp-026
+  %128 = load i32, ptr %121, align 4
+  %129 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 %128
+  store i32 -1, ptr %129, align 4
+  %130 = load i32, ptr %121, align 4
+  %131 = add i32 %130, 1
+  store i32 %131, ptr %121, align 4
+  %132 = load i32, ptr %122, align 4
+  %133 = add i32 %132, 1
+  store i32 %133, ptr %122, align 4
+  br label %FillExpr.loopCmp-026
 
-else16:                                           ; preds = %nestedBlock7
-  br label %afterIfElse
+FillExpr.loopEnd-028:                             ; preds = %FillExpr.loopCmp-026
+  br label %FillExpr.exit29
 
-afterIfElse:                                      ; preds = %else16, %afterNestedBlock17
-  %154 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %155 = icmp eq i32 %154, 0
-  br i1 %155, label %checkContinueBlock8, label %afterNestedBlock
+FillExpr.exit29:                                  ; preds = %FillExpr.loopEnd-028
+  %134 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %135 = icmp eq i32 %134, 0
+  br i1 %135, label %checkContinueBlock4, label %afterNestedBlock
 
-afterNestedBlock17:                               ; preds = %checkContinueBlock25, %mergeBlock, %checkContinueBlock23, %nestedBlock22, %checkContinueBlock21, %nestedBlock20, %checkContinueBlock19, %nestedBlock18
-  br label %afterIfElse
+FillExpr.loopStart-030:                           ; preds = %nestedBlock5
+  store i32 0, ptr %14, align 4
+  br label %FillExpr.loopCmp-031
 
-nestedBlock18:                                    ; preds = %then
-  %156 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %157 = load ptr, ptr %156, align 8
-  %158 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %157, i32 0, i32 1
-  %159 = load ptr, ptr %158, align 8
-  %160 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
-  %161 = getelementptr inbounds %LOG_TYPE.1, ptr %160, i32 0, i32 5
-  %ERROR = load i32, ptr %161, align 4
-  %162 = alloca ptr, align 8
-  store ptr @15, ptr %162, align 8
-  call void %159(ptr %161, ptr %162, ptr %0)
-  %163 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %164 = icmp eq i32 %163, 0
-  br i1 %164, label %checkContinueBlock19, label %afterNestedBlock17
+FillExpr.loopCmp-031:                             ; preds = %FillExpr.loopBody-032, %FillExpr.loopStart-030
+  %136 = load i32, ptr %14, align 4
+  %137 = icmp slt i32 %136, 10000
+  %138 = load i32, ptr %15, align 4
+  %139 = icmp slt i32 %138, 10000
+  %140 = and i1 %137, %139
+  br i1 %140, label %FillExpr.loopBody-032, label %FillExpr.loopEnd-033
 
-checkContinueBlock19:                             ; preds = %nestedBlock18
-  %165 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %166 = icmp eq i32 %165, 0
-  br i1 %166, label %nestedBlock20, label %afterNestedBlock17
+FillExpr.loopBody-032:                            ; preds = %FillExpr.loopCmp-031
+  %141 = load i32, ptr %14, align 4
+  %142 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 %141
+  store i32 0, ptr %142, align 4
+  %143 = load i32, ptr %14, align 4
+  %144 = add i32 %143, 1
+  store i32 %144, ptr %14, align 4
+  %145 = load i32, ptr %15, align 4
+  %146 = add i32 %145, 1
+  store i32 %146, ptr %15, align 4
+  br label %FillExpr.loopCmp-031
 
-nestedBlock20:                                    ; preds = %checkContinueBlock19
-  %167 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %168 = load ptr, ptr %167, align 8
-  %169 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %168, i32 0, i32 14
-  %170 = load ptr, ptr %169, align 8
-  %171 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %172 = load ptr, ptr %171, align 8
-  %173 = getelementptr inbounds %"Bird::VTableType", ptr %172, i32 0, i32 0
-  %174 = load ptr, ptr %173, align 8
-  %rtPtr26 = alloca %Texture.0, align 8
-  call void %174(ptr %rtPtr26, ptr %58)
-  call void %170(ptr %rtPtr26, ptr %0)
-  %175 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %176 = icmp eq i32 %175, 0
-  br i1 %176, label %checkContinueBlock21, label %afterNestedBlock17
+FillExpr.loopEnd-033:                             ; preds = %FillExpr.loopCmp-031
+  br label %FillExpr.exit34
 
-checkContinueBlock21:                             ; preds = %nestedBlock20
-  %177 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+FillExpr.exit34:                                  ; preds = %FillExpr.loopEnd-033
+  %147 = alloca i32, align 4
+  %148 = alloca i32, align 4
+  store i32 0, ptr %148, align 4
+  br label %FillExpr.loopStart-035
+
+FillExpr.loopStart-035:                           ; preds = %FillExpr.exit34
+  store i32 0, ptr %147, align 4
+  br label %FillExpr.loopCmp-036
+
+FillExpr.loopCmp-036:                             ; preds = %FillExpr.loopBody-037, %FillExpr.loopStart-035
+  %149 = load i32, ptr %147, align 4
+  %150 = icmp slt i32 %149, 10000
+  %151 = load i32, ptr %148, align 4
+  %152 = icmp slt i32 %151, 10000
+  %153 = and i1 %150, %152
+  br i1 %153, label %FillExpr.loopBody-037, label %FillExpr.loopEnd-038
+
+FillExpr.loopBody-037:                            ; preds = %FillExpr.loopCmp-036
+  %154 = load i32, ptr %147, align 4
+  %155 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 %154
+  store i32 -1, ptr %155, align 4
+  %156 = load i32, ptr %147, align 4
+  %157 = add i32 %156, 1
+  store i32 %157, ptr %147, align 4
+  %158 = load i32, ptr %148, align 4
+  %159 = add i32 %158, 1
+  store i32 %159, ptr %148, align 4
+  br label %FillExpr.loopCmp-036
+
+FillExpr.loopEnd-038:                             ; preds = %FillExpr.loopCmp-036
+  br label %FillExpr.exit39
+
+FillExpr.exit39:                                  ; preds = %FillExpr.loopEnd-038
+  %160 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %161 = icmp eq i32 %160, 0
+  br i1 %161, label %checkContinueBlock6, label %afterNestedBlock
+
+"GlobalIndexExpr::then":                          ; preds = %nestedBlock7
+  br label %"GlobalIndexExpr::merge"
+
+"GlobalIndexExpr::else":                          ; preds = %nestedBlock7
+  call void @raise_exception(ptr @0)
+  br label %"GlobalIndexExpr::merge"
+
+"GlobalIndexExpr::merge":                         ; preds = %"GlobalIndexExpr::else", %"GlobalIndexExpr::then"
+  %162 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 0
+  %163 = load i32, ptr %162, align 4
+  store i32 0, ptr %162, align 4
+  %164 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %165 = icmp eq i32 %164, 0
+  br i1 %165, label %checkContinueBlock8, label %afterNestedBlock
+
+"GlobalIndexExpr::then42":                        ; preds = %nestedBlock9
+  br label %"GlobalIndexExpr::merge44"
+
+"GlobalIndexExpr::else43":                        ; preds = %nestedBlock9
+  call void @raise_exception(ptr @1)
+  br label %"GlobalIndexExpr::merge44"
+
+"GlobalIndexExpr::merge44":                       ; preds = %"GlobalIndexExpr::else43", %"GlobalIndexExpr::then42"
+  %166 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 0
+  %167 = load i32, ptr %166, align 4
+  store i32 0, ptr %166, align 4
+  %168 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %169 = icmp eq i32 %168, 0
+  br i1 %169, label %checkContinueBlock10, label %afterNestedBlock
+
+"GlobalIndexExpr::then46":                        ; preds = %nestedBlock13
+  br label %"GlobalIndexExpr::merge48"
+
+"GlobalIndexExpr::else47":                        ; preds = %nestedBlock13
+  call void @raise_exception(ptr @2)
+  br label %"GlobalIndexExpr::merge48"
+
+"GlobalIndexExpr::merge48":                       ; preds = %"GlobalIndexExpr::else47", %"GlobalIndexExpr::then46"
+  %170 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 0
+  %171 = load i32, ptr %170, align 4
+  %172 = load i32, ptr %170, align 4
+  store i32 %172, ptr %30, align 4
+  %173 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %posY49 = load [10000 x i32], ptr %posY, align 4
+  br i1 true, label %"GlobalIndexExpr::then50", label %"GlobalIndexExpr::else51"
+
+"GlobalIndexExpr::then50":                        ; preds = %"GlobalIndexExpr::merge48"
+  br label %"GlobalIndexExpr::merge52"
+
+"GlobalIndexExpr::else51":                        ; preds = %"GlobalIndexExpr::merge48"
+  call void @raise_exception(ptr @3)
+  br label %"GlobalIndexExpr::merge52"
+
+"GlobalIndexExpr::merge52":                       ; preds = %"GlobalIndexExpr::else51", %"GlobalIndexExpr::then50"
+  %174 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 0
+  %175 = load i32, ptr %174, align 4
+  %176 = load i32, ptr %174, align 4
+  store i32 %176, ptr %173, align 4
+  %177 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
   %178 = icmp eq i32 %177, 0
-  br i1 %178, label %nestedBlock22, label %afterNestedBlock17
+  br i1 %178, label %checkContinueBlock14, label %afterNestedBlock
 
-nestedBlock22:                                    ; preds = %checkContinueBlock21
-  %179 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %180 = load ptr, ptr %179, align 8
-  %181 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %180, i32 0, i32 13
-  %182 = load ptr, ptr %181, align 8
-  call void %182(ptr %0)
-  %183 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %184 = icmp eq i32 %183, 0
-  br i1 %184, label %checkContinueBlock23, label %afterNestedBlock17
-
-checkContinueBlock23:                             ; preds = %nestedBlock22
-  %185 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %186 = icmp eq i32 %185, 0
-  br i1 %186, label %nestedBlock24, label %afterNestedBlock17
-
-nestedBlock24:                                    ; preds = %checkContinueBlock23
-  br label %returnBlock
-
-checkContinueBlock25:                             ; preds = %mergeBlock
-  br label %afterNestedBlock17
-
-returnBlock:                                      ; preds = %nestedBlock24
-  ret i32 1
-
-mergeBlock:                                       ; No predecessors!
-  %187 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %188 = icmp eq i32 %187, 0
-  br i1 %188, label %checkContinueBlock25, label %afterNestedBlock17
-
-"while:conditon":                                 ; preds = %afterNestedBlock27, %nestedBlock9
-  %189 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %190 = icmp eq i32 %189, 0
-  br i1 %190, label %end_block, label %decrement_block
+"while:conditon":                                 ; preds = %afterNestedBlock53, %nestedBlock19
+  %179 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %180 = icmp eq i32 %179, 0
+  br i1 %180, label %end_block, label %decrement_block
 
 "while:body":                                     ; preds = %end_block
-  br label %nestedBlock28
+  br label %nestedBlock54
 
-while.end:                                        ; preds = %afterNestedBlock27, %end_block
-  %191 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %192 = icmp eq i32 %191, 0
-  br i1 %192, label %end_block44, label %decrement_block43
+while.end:                                        ; preds = %afterNestedBlock53, %end_block
+  %181 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %182 = icmp eq i32 %181, 0
+  br i1 %182, label %end_block271, label %decrement_block270
 
 decrement_block:                                  ; preds = %"while:conditon"
-  %193 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %194 = sub i32 %193, 1
-  store i32 %194, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %183 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %184 = sub i32 %183, 1
+  store i32 %184, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
   br label %end_block
 
 end_block:                                        ; preds = %decrement_block, %"while:conditon"
-  %195 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %196 = load ptr, ptr %195, align 8
-  %197 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %196, i32 0, i32 18
-  %198 = load ptr, ptr %197, align 8
-  %199 = call i1 %198(ptr %0)
-  %200 = xor i1 %199, true
-  br i1 %200, label %"while:body", label %while.end
+  %rtPtr = alloca i1, align 1
+  call void @WindowShouldClose(ptr %rtPtr)
+  %185 = load i1, ptr %rtPtr, align 1
+  %186 = xor i1 %185, true
+  br i1 %186, label %"while:body", label %while.end
 
-afterNestedBlock27:                               ; preds = %checkContinueBlock37, %nestedBlock36, %checkContinueBlock35, %nestedBlock34, %checkContinueBlock33, %nestedBlock32, %checkContinueBlock31, %nestedBlock30, %checkContinueBlock29, %nestedBlock28
-  %201 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %202 = icmp eq i32 %201, 0
-  br i1 %202, label %"while:conditon", label %while.end
+afterNestedBlock53:                               ; preds = %checkContinueBlock85, %nestedBlock84, %checkContinueBlock83, %nestedBlock82, %checkContinueBlock81, %merge, %checkContinueBlock79, %end_block263, %checkContinueBlock77, %nestedBlock76, %checkContinueBlock75, %nestedBlock74, %checkContinueBlock73, %"GlobalIndexExpr::merge228", %checkContinueBlock71, %"GlobalIndexExpr::merge223", %checkContinueBlock69, %afterIfElse176, %checkContinueBlock67, %afterIfElse166, %checkContinueBlock65, %afterIfElse154, %checkContinueBlock63, %afterIfElse145, %checkContinueBlock61, %afterIfElse136, %checkContinueBlock59, %afterIfElse127, %checkContinueBlock57, %afterIfElse, %checkContinueBlock55, %nestedBlock54
+  %187 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %188 = icmp eq i32 %187, 0
+  br i1 %188, label %"while:conditon", label %while.end
 
-nestedBlock28:                                    ; preds = %"while:body"
-  %203 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
+nestedBlock54:                                    ; preds = %"while:body"
+  %isKeyPressed = alloca %DynamicType, align 8
+  %189 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  store i1 false, ptr %189, align 1
+  %190 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %191 = icmp eq i32 %190, 0
+  br i1 %191, label %checkContinueBlock55, label %afterNestedBlock53
+
+checkContinueBlock55:                             ; preds = %nestedBlock54
+  %192 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %193 = icmp eq i32 %192, 0
+  br i1 %193, label %nestedBlock56, label %afterNestedBlock53
+
+nestedBlock56:                                    ; preds = %checkContinueBlock55
+  %194 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %195 = load ptr, ptr %194, align 8
+  %196 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %195, i32 0, i32 0
+  %197 = load ptr, ptr %196, align 8
+  %rtPtr86 = alloca i1, align 1
+  %198 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %199 = getelementptr inbounds %KEYS_TYPE.2, ptr %198, i32 0, i32 3
+  %KEY_UP = load i32, ptr %199, align 4
+  call void %197(ptr %rtPtr86, ptr %199, ptr %33)
+  %200 = load i1, ptr %rtPtr86, align 1
+  %201 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %202 = load ptr, ptr %201, align 8
+  %203 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %202, i32 0, i32 4
   %204 = load ptr, ptr %203, align 8
-  %205 = getelementptr inbounds %"Bird::VTableType", ptr %204, i32 0, i32 6
-  %206 = load ptr, ptr %205, align 8
-  %207 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %208 = load ptr, ptr %207, align 8
-  %209 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %208, i32 0, i32 8
-  %210 = load ptr, ptr %209, align 8
-  %211 = call float %210(ptr %0)
-  call void %206(float %211, ptr %58)
-  %212 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %213 = icmp eq i32 %212, 0
-  br i1 %213, label %checkContinueBlock29, label %afterNestedBlock27
+  %rtPtr87 = alloca i1, align 1
+  %205 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %206 = getelementptr inbounds %KEYS_TYPE.2, ptr %205, i32 0, i32 3
+  %KEY_UP88 = load i32, ptr %206, align 4
+  call void %204(ptr %rtPtr87, ptr %206, ptr %33)
+  %207 = load i1, ptr %rtPtr87, align 1
+  %208 = select i1 %200, i1 true, i1 %207
+  br i1 %208, label %then, label %orIf0
 
-checkContinueBlock29:                             ; preds = %nestedBlock28
+checkContinueBlock57:                             ; preds = %afterIfElse
+  %209 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %210 = icmp eq i32 %209, 0
+  br i1 %210, label %nestedBlock58, label %afterNestedBlock53
+
+nestedBlock58:                                    ; preds = %checkContinueBlock57
+  %211 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x124 = load i32, ptr %211, align 4
+  %212 = load i32, ptr %211, align 4
+  %213 = icmp slt i32 %212, 0
+  br i1 %213, label %then125, label %else126
+
+checkContinueBlock59:                             ; preds = %afterIfElse127
   %214 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
   %215 = icmp eq i32 %214, 0
-  br i1 %215, label %nestedBlock30, label %afterNestedBlock27
+  br i1 %215, label %nestedBlock60, label %afterNestedBlock53
 
-nestedBlock30:                                    ; preds = %checkContinueBlock29
-  %216 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %217 = load ptr, ptr %216, align 8
-  %218 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %217, i32 0, i32 15
-  %219 = load ptr, ptr %218, align 8
-  call void %219(ptr %0)
-  %220 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %221 = icmp eq i32 %220, 0
-  br i1 %221, label %checkContinueBlock31, label %afterNestedBlock27
+nestedBlock60:                                    ; preds = %checkContinueBlock59
+  %216 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x132 = load i32, ptr %216, align 4
+  %217 = load i32, ptr %216, align 4
+  %screenWidth133 = load i32, ptr @screenWidth, align 4
+  %218 = load i32, ptr @screenWidth, align 4
+  %219 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %220 = load i32, ptr %219, align 4
+  %221 = sub i32 %218, %220
+  %222 = icmp sge i32 %217, %221
+  br i1 %222, label %then134, label %else135
 
-checkContinueBlock31:                             ; preds = %nestedBlock30
-  %222 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %223 = icmp eq i32 %222, 0
-  br i1 %223, label %nestedBlock32, label %afterNestedBlock27
+checkContinueBlock61:                             ; preds = %afterIfElse136
+  %223 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %224 = icmp eq i32 %223, 0
+  br i1 %224, label %nestedBlock62, label %afterNestedBlock53
 
-nestedBlock32:                                    ; preds = %checkContinueBlock31
-  %224 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %225 = load ptr, ptr %224, align 8
-  %226 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %225, i32 0, i32 10
-  %227 = load ptr, ptr %226, align 8
-  %228 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %229 = getelementptr inbounds %COLORS_TYPE.3, ptr %228, i32 0, i32 0
-  %WHITE = load i32, ptr %229, align 4
-  call void %227(ptr %229, ptr %0)
-  %230 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %231 = icmp eq i32 %230, 0
-  br i1 %231, label %checkContinueBlock33, label %afterNestedBlock27
+nestedBlock62:                                    ; preds = %checkContinueBlock61
+  %225 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y142 = load i32, ptr %225, align 4
+  %226 = load i32, ptr %225, align 4
+  %227 = icmp slt i32 %226, 0
+  br i1 %227, label %then143, label %else144
 
-checkContinueBlock33:                             ; preds = %nestedBlock32
-  %232 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %233 = icmp eq i32 %232, 0
-  br i1 %233, label %nestedBlock34, label %afterNestedBlock27
+checkContinueBlock63:                             ; preds = %afterIfElse145
+  %228 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %229 = icmp eq i32 %228, 0
+  br i1 %229, label %nestedBlock64, label %afterNestedBlock53
 
-nestedBlock34:                                    ; preds = %checkContinueBlock33
-  %234 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %235 = load ptr, ptr %234, align 8
-  %236 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %235, i32 0, i32 20
-  %237 = load ptr, ptr %236, align 8
-  %238 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %239 = load ptr, ptr %238, align 8
-  %240 = getelementptr inbounds %"Bird::VTableType", ptr %239, i32 0, i32 0
-  %241 = load ptr, ptr %240, align 8
-  %rtPtr38 = alloca %Texture.0, align 8
-  call void %241(ptr %rtPtr38, ptr %58)
-  %242 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %243 = load ptr, ptr %242, align 8
-  %244 = getelementptr inbounds %"Bird::VTableType", ptr %243, i32 0, i32 4
-  %245 = load ptr, ptr %244, align 8
-  %rtPtr39 = alloca [4 x float], align 4
-  call void %245(ptr %rtPtr39, ptr %58)
-  %246 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %247 = load ptr, ptr %246, align 8
-  %248 = getelementptr inbounds %"Bird::VTableType", ptr %247, i32 0, i32 3
-  %249 = load ptr, ptr %248, align 8
-  %rtPtr40 = alloca [4 x float], align 4
-  call void %249(ptr %rtPtr40, ptr %58)
-  %250 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %251 = load ptr, ptr %250, align 8
-  %252 = getelementptr inbounds %"Bird::VTableType", ptr %251, i32 0, i32 2
-  %253 = load ptr, ptr %252, align 8
-  %rtPtr41 = alloca [2 x float], align 4
-  call void %253(ptr %rtPtr41, ptr %58)
-  %254 = getelementptr inbounds %Bird, ptr %58, i32 0, i32 0
-  %255 = load ptr, ptr %254, align 8
-  %256 = getelementptr inbounds %"Bird::VTableType", ptr %255, i32 0, i32 1
-  %257 = load ptr, ptr %256, align 8
-  %258 = call float %257(ptr %58)
-  %259 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
-  %260 = getelementptr inbounds %COLORS_TYPE.3, ptr %259, i32 0, i32 0
-  %WHITE42 = load i32, ptr %260, align 4
-  call void %237(ptr %rtPtr38, ptr %rtPtr39, ptr %rtPtr40, ptr %rtPtr41, float %258, ptr %260, ptr %0)
-  %261 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %262 = icmp eq i32 %261, 0
-  br i1 %262, label %checkContinueBlock35, label %afterNestedBlock27
+nestedBlock64:                                    ; preds = %checkContinueBlock63
+  %230 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y150 = load i32, ptr %230, align 4
+  %231 = load i32, ptr %230, align 4
+  %screenHeight151 = load i32, ptr @screenHeight, align 4
+  %232 = load i32, ptr @screenHeight, align 4
+  %233 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %234 = load i32, ptr %233, align 4
+  %235 = sub i32 %232, %234
+  %236 = icmp sge i32 %231, %235
+  br i1 %236, label %then152, label %else153
 
-checkContinueBlock35:                             ; preds = %nestedBlock34
-  %263 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
-  %264 = icmp eq i32 %263, 0
-  br i1 %264, label %nestedBlock36, label %afterNestedBlock27
+checkContinueBlock65:                             ; preds = %afterIfElse154
+  %237 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %238 = icmp eq i32 %237, 0
+  br i1 %238, label %nestedBlock66, label %afterNestedBlock53
 
-nestedBlock36:                                    ; preds = %checkContinueBlock35
-  %265 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 0
-  %266 = load ptr, ptr %265, align 8
-  %267 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %266, i32 0, i32 22
-  %268 = load ptr, ptr %267, align 8
-  call void %268(ptr %0)
-  %269 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %270 = icmp eq i32 %269, 0
-  br i1 %270, label %checkContinueBlock37, label %afterNestedBlock27
+nestedBlock66:                                    ; preds = %checkContinueBlock65
+  %239 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x160 = load i32, ptr %239, align 4
+  %240 = load i32, ptr %239, align 4
+  %241 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 0
+  %x161 = load i32, ptr %241, align 4
+  %242 = load i32, ptr %241, align 4
+  %243 = icmp eq i32 %240, %242
+  %244 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y162 = load i32, ptr %244, align 4
+  %245 = load i32, ptr %244, align 4
+  %246 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 1
+  %y163 = load i32, ptr %246, align 4
+  %247 = load i32, ptr %246, align 4
+  %248 = icmp eq i32 %245, %247
+  %249 = select i1 %243, i1 %248, i1 false
+  br i1 %249, label %then164, label %else165
 
-checkContinueBlock37:                             ; preds = %nestedBlock36
-  br label %afterNestedBlock27
+checkContinueBlock67:                             ; preds = %afterIfElse166
+  %250 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %251 = icmp eq i32 %250, 0
+  br i1 %251, label %nestedBlock68, label %afterNestedBlock53
 
-decrement_block43:                                ; preds = %while.end
-  %271 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %272 = sub i32 %271, 1
-  store i32 %272, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  br label %end_block44
+nestedBlock68:                                    ; preds = %checkContinueBlock67
+  %252 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  %253 = load i1, ptr %252, align 1
+  br i1 %253, label %then174, label %else175
 
-end_block44:                                      ; preds = %decrement_block43, %while.end
-  %273 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %274 = icmp eq i32 %273, 0
-  br i1 %274, label %checkContinueBlock10, label %afterNestedBlock
+checkContinueBlock69:                             ; preds = %afterIfElse176
+  %254 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %255 = icmp eq i32 %254, 0
+  br i1 %255, label %nestedBlock70, label %afterNestedBlock53
 
-returnBlock45:                                    ; preds = %nestedBlock13
-  ret i32 0
+nestedBlock70:                                    ; preds = %checkContinueBlock69
+  %posX220 = load [10000 x i32], ptr %posX, align 4
+  br i1 true, label %"GlobalIndexExpr::then221", label %"GlobalIndexExpr::else222"
 
-mergeBlock46:                                     ; No predecessors!
-  %275 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
-  %276 = icmp eq i32 %275, 0
-  br i1 %276, label %checkContinueBlock14, label %afterNestedBlock
+checkContinueBlock71:                             ; preds = %"GlobalIndexExpr::merge223"
+  %256 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %257 = icmp eq i32 %256, 0
+  br i1 %257, label %nestedBlock72, label %afterNestedBlock53
+
+nestedBlock72:                                    ; preds = %checkContinueBlock71
+  %posY225 = load [10000 x i32], ptr %posY, align 4
+  br i1 true, label %"GlobalIndexExpr::then226", label %"GlobalIndexExpr::else227"
+
+checkContinueBlock73:                             ; preds = %"GlobalIndexExpr::merge228"
+  %258 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %259 = icmp eq i32 %258, 0
+  br i1 %259, label %nestedBlock74, label %afterNestedBlock53
+
+nestedBlock74:                                    ; preds = %checkContinueBlock73
+  %260 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %261 = load ptr, ptr %260, align 8
+  %262 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %261, i32 0, i32 15
+  %263 = load ptr, ptr %262, align 8
+  call void %263(ptr %33)
+  %264 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %265 = icmp eq i32 %264, 0
+  br i1 %265, label %checkContinueBlock75, label %afterNestedBlock53
+
+checkContinueBlock75:                             ; preds = %nestedBlock74
+  %266 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %267 = icmp eq i32 %266, 0
+  br i1 %267, label %nestedBlock76, label %afterNestedBlock53
+
+nestedBlock76:                                    ; preds = %checkContinueBlock75
+  %268 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %269 = load ptr, ptr %268, align 8
+  %270 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %269, i32 0, i32 10
+  %271 = load ptr, ptr %270, align 8
+  %272 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 5
+  %273 = getelementptr inbounds %COLORS_TYPE.3, ptr %272, i32 0, i32 0
+  %WHITE = load i32, ptr %273, align 4
+  call void %271(ptr %273, ptr %33)
+  %274 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %275 = icmp eq i32 %274, 0
+  br i1 %275, label %checkContinueBlock77, label %afterNestedBlock53
+
+checkContinueBlock77:                             ; preds = %nestedBlock76
+  %276 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %277 = icmp eq i32 %276, 0
+  br i1 %277, label %nestedBlock78, label %afterNestedBlock53
+
+nestedBlock78:                                    ; preds = %checkContinueBlock77
+  %tail230 = load i32, ptr %tail, align 4
+  %278 = load i32, ptr %tail, align 4
+  %279 = sub i32 %278, 1
+  %index231 = alloca i32, align 4
+  store i32 0, ptr %index231, align 4
+  store i32 0, ptr %index231, align 4
+  br label %"ForLoop::loopCondition232"
+
+checkContinueBlock79:                             ; preds = %end_block263
+  %280 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %281 = icmp eq i32 %280, 0
+  br i1 %281, label %nestedBlock80, label %afterNestedBlock53
+
+nestedBlock80:                                    ; preds = %checkContinueBlock79
+  %282 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %283 = load ptr, ptr %282, align 8
+  %284 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %283, i32 0, i32 3
+  %285 = load ptr, ptr %284, align 8
+  %screenWidth264 = load i32, ptr @screenWidth, align 4
+  %286 = load i32, ptr @screenWidth, align 4
+  br i1 false, label %if, label %else265
+
+checkContinueBlock81:                             ; preds = %merge
+  %287 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %288 = icmp eq i32 %287, 0
+  br i1 %288, label %nestedBlock82, label %afterNestedBlock53
+
+nestedBlock82:                                    ; preds = %checkContinueBlock81
+  %289 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %290 = load ptr, ptr %289, align 8
+  %291 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %290, i32 0, i32 16
+  %292 = load ptr, ptr %291, align 8
+  %293 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 0
+  %x266 = load i32, ptr %293, align 4
+  %294 = getelementptr inbounds %Position.4, ptr %foodPos, i32 0, i32 1
+  %y267 = load i32, ptr %294, align 4
+  %side268 = load i32, ptr @side, align 4
+  %side269 = load i32, ptr @side, align 4
+  %295 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 5
+  %296 = getelementptr inbounds %COLORS_TYPE.3, ptr %295, i32 0, i32 2
+  %GREEN = load i32, ptr %296, align 4
+  call void %292(ptr %293, ptr %294, ptr @side, ptr @side, ptr %296, ptr %33)
+  %297 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %298 = icmp eq i32 %297, 0
+  br i1 %298, label %checkContinueBlock83, label %afterNestedBlock53
+
+checkContinueBlock83:                             ; preds = %nestedBlock82
+  %299 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %300 = icmp eq i32 %299, 0
+  br i1 %300, label %nestedBlock84, label %afterNestedBlock53
+
+nestedBlock84:                                    ; preds = %checkContinueBlock83
+  %301 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %302 = load ptr, ptr %301, align 8
+  %303 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %302, i32 0, i32 22
+  %304 = load ptr, ptr %303, align 8
+  call void %304(ptr %33)
+  %305 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %306 = icmp eq i32 %305, 0
+  br i1 %306, label %checkContinueBlock85, label %afterNestedBlock53
+
+checkContinueBlock85:                             ; preds = %nestedBlock84
+  br label %afterNestedBlock53
+
+then:                                             ; preds = %nestedBlock56
+  br label %nestedBlock99
+
+orIf0:                                            ; preds = %nestedBlock56
+  %307 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %308 = load ptr, ptr %307, align 8
+  %309 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %308, i32 0, i32 0
+  %310 = load ptr, ptr %309, align 8
+  %rtPtr89 = alloca i1, align 1
+  %311 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %312 = getelementptr inbounds %KEYS_TYPE.2, ptr %311, i32 0, i32 2
+  %KEY_DOWN = load i32, ptr %312, align 4
+  call void %310(ptr %rtPtr89, ptr %312, ptr %33)
+  %313 = load i1, ptr %rtPtr89, align 1
+  %314 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %315 = load ptr, ptr %314, align 8
+  %316 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %315, i32 0, i32 4
+  %317 = load ptr, ptr %316, align 8
+  %rtPtr90 = alloca i1, align 1
+  %318 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %319 = getelementptr inbounds %KEYS_TYPE.2, ptr %318, i32 0, i32 2
+  %KEY_DOWN91 = load i32, ptr %319, align 4
+  call void %317(ptr %rtPtr90, ptr %319, ptr %33)
+  %320 = load i1, ptr %rtPtr90, align 1
+  %321 = select i1 %313, i1 true, i1 %320
+  br i1 %321, label %orIfThen0, label %orIf1
+
+orIf1:                                            ; preds = %orIf0
+  %322 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %323 = load ptr, ptr %322, align 8
+  %324 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %323, i32 0, i32 0
+  %325 = load ptr, ptr %324, align 8
+  %rtPtr92 = alloca i1, align 1
+  %326 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %327 = getelementptr inbounds %KEYS_TYPE.2, ptr %326, i32 0, i32 0
+  %KEY_RIGHT = load i32, ptr %327, align 4
+  call void %325(ptr %rtPtr92, ptr %327, ptr %33)
+  %328 = load i1, ptr %rtPtr92, align 1
+  %329 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %330 = load ptr, ptr %329, align 8
+  %331 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %330, i32 0, i32 4
+  %332 = load ptr, ptr %331, align 8
+  %rtPtr93 = alloca i1, align 1
+  %333 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %334 = getelementptr inbounds %KEYS_TYPE.2, ptr %333, i32 0, i32 0
+  %KEY_RIGHT94 = load i32, ptr %334, align 4
+  call void %332(ptr %rtPtr93, ptr %334, ptr %33)
+  %335 = load i1, ptr %rtPtr93, align 1
+  %336 = select i1 %328, i1 true, i1 %335
+  br i1 %336, label %orIfThen1, label %orIf2
+
+orIf2:                                            ; preds = %orIf1
+  %337 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %338 = load ptr, ptr %337, align 8
+  %339 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %338, i32 0, i32 0
+  %340 = load ptr, ptr %339, align 8
+  %rtPtr95 = alloca i1, align 1
+  %341 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %342 = getelementptr inbounds %KEYS_TYPE.2, ptr %341, i32 0, i32 1
+  %KEY_LEFT = load i32, ptr %342, align 4
+  call void %340(ptr %rtPtr95, ptr %342, ptr %33)
+  %343 = load i1, ptr %rtPtr95, align 1
+  %344 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %345 = load ptr, ptr %344, align 8
+  %346 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %345, i32 0, i32 4
+  %347 = load ptr, ptr %346, align 8
+  %rtPtr96 = alloca i1, align 1
+  %348 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 6
+  %349 = getelementptr inbounds %KEYS_TYPE.2, ptr %348, i32 0, i32 1
+  %KEY_LEFT97 = load i32, ptr %349, align 4
+  call void %347(ptr %rtPtr96, ptr %349, ptr %33)
+  %350 = load i1, ptr %rtPtr96, align 1
+  %351 = select i1 %343, i1 true, i1 %350
+  br i1 %351, label %orIfThen2, label %else
+
+orIfThen0:                                        ; preds = %orIf0
+  br label %nestedBlock105
+
+orIfThen1:                                        ; preds = %orIf1
+  br label %nestedBlock112
+
+orIfThen2:                                        ; preds = %orIf2
+  br label %nestedBlock118
+
+else:                                             ; preds = %orIf2
+  br label %afterIfElse
+
+afterIfElse:                                      ; preds = %else, %afterNestedBlock117, %afterNestedBlock111, %afterNestedBlock104, %afterNestedBlock98
+  %352 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %353 = icmp eq i32 %352, 0
+  br i1 %353, label %checkContinueBlock57, label %afterNestedBlock53
+
+afterNestedBlock98:                               ; preds = %checkContinueBlock102, %nestedBlock101, %checkContinueBlock100, %nestedBlock99
+  br label %afterIfElse
+
+nestedBlock99:                                    ; preds = %then
+  %354 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  %355 = load i1, ptr %354, align 1
+  %356 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  store i1 true, ptr %356, align 1
+  %357 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %358 = icmp eq i32 %357, 0
+  br i1 %358, label %checkContinueBlock100, label %afterNestedBlock98
+
+checkContinueBlock100:                            ; preds = %nestedBlock99
+  %359 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %360 = icmp eq i32 %359, 0
+  br i1 %360, label %nestedBlock101, label %afterNestedBlock98
+
+nestedBlock101:                                   ; preds = %checkContinueBlock100
+  %361 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y = load i32, ptr %361, align 4
+  %362 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y103 = load i32, ptr %362, align 4
+  %363 = load i32, ptr %362, align 4
+  %364 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %365 = load i32, ptr %364, align 4
+  %366 = sub i32 %363, %365
+  store i32 %366, ptr %361, align 4
+  %367 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %368 = icmp eq i32 %367, 0
+  br i1 %368, label %checkContinueBlock102, label %afterNestedBlock98
+
+checkContinueBlock102:                            ; preds = %nestedBlock101
+  br label %afterNestedBlock98
+
+afterNestedBlock104:                              ; preds = %checkContinueBlock108, %nestedBlock107, %checkContinueBlock106, %nestedBlock105
+  br label %afterIfElse
+
+nestedBlock105:                                   ; preds = %orIfThen0
+  %369 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  %370 = load i1, ptr %369, align 1
+  %371 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  store i1 true, ptr %371, align 1
+  %372 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %373 = icmp eq i32 %372, 0
+  br i1 %373, label %checkContinueBlock106, label %afterNestedBlock104
+
+checkContinueBlock106:                            ; preds = %nestedBlock105
+  %374 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %375 = icmp eq i32 %374, 0
+  br i1 %375, label %nestedBlock107, label %afterNestedBlock104
+
+nestedBlock107:                                   ; preds = %checkContinueBlock106
+  %376 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y109 = load i32, ptr %376, align 4
+  %377 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y110 = load i32, ptr %377, align 4
+  %378 = load i32, ptr %377, align 4
+  %379 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %380 = load i32, ptr %379, align 4
+  %381 = add i32 %378, %380
+  store i32 %381, ptr %376, align 4
+  %382 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %383 = icmp eq i32 %382, 0
+  br i1 %383, label %checkContinueBlock108, label %afterNestedBlock104
+
+checkContinueBlock108:                            ; preds = %nestedBlock107
+  br label %afterNestedBlock104
+
+afterNestedBlock111:                              ; preds = %checkContinueBlock115, %nestedBlock114, %checkContinueBlock113, %nestedBlock112
+  br label %afterIfElse
+
+nestedBlock112:                                   ; preds = %orIfThen1
+  %384 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  %385 = load i1, ptr %384, align 1
+  %386 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  store i1 true, ptr %386, align 1
+  %387 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %388 = icmp eq i32 %387, 0
+  br i1 %388, label %checkContinueBlock113, label %afterNestedBlock111
+
+checkContinueBlock113:                            ; preds = %nestedBlock112
+  %389 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %390 = icmp eq i32 %389, 0
+  br i1 %390, label %nestedBlock114, label %afterNestedBlock111
+
+nestedBlock114:                                   ; preds = %checkContinueBlock113
+  %391 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x = load i32, ptr %391, align 4
+  %392 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x116 = load i32, ptr %392, align 4
+  %393 = load i32, ptr %392, align 4
+  %394 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %395 = load i32, ptr %394, align 4
+  %396 = add i32 %393, %395
+  store i32 %396, ptr %391, align 4
+  %397 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %398 = icmp eq i32 %397, 0
+  br i1 %398, label %checkContinueBlock115, label %afterNestedBlock111
+
+checkContinueBlock115:                            ; preds = %nestedBlock114
+  br label %afterNestedBlock111
+
+afterNestedBlock117:                              ; preds = %checkContinueBlock121, %nestedBlock120, %checkContinueBlock119, %nestedBlock118
+  br label %afterIfElse
+
+nestedBlock118:                                   ; preds = %orIfThen2
+  %399 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  %400 = load i1, ptr %399, align 1
+  %401 = getelementptr inbounds %DynamicType, ptr %isKeyPressed, i32 0, i32 2
+  store i1 true, ptr %401, align 1
+  %402 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %403 = icmp eq i32 %402, 0
+  br i1 %403, label %checkContinueBlock119, label %afterNestedBlock117
+
+checkContinueBlock119:                            ; preds = %nestedBlock118
+  %404 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %405 = icmp eq i32 %404, 0
+  br i1 %405, label %nestedBlock120, label %afterNestedBlock117
+
+nestedBlock120:                                   ; preds = %checkContinueBlock119
+  %406 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x122 = load i32, ptr %406, align 4
+  %407 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x123 = load i32, ptr %407, align 4
+  %408 = load i32, ptr %407, align 4
+  %409 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %410 = load i32, ptr %409, align 4
+  %411 = sub i32 %408, %410
+  store i32 %411, ptr %406, align 4
+  %412 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %413 = icmp eq i32 %412, 0
+  br i1 %413, label %checkContinueBlock121, label %afterNestedBlock117
+
+checkContinueBlock121:                            ; preds = %nestedBlock120
+  br label %afterNestedBlock117
+
+then125:                                          ; preds = %nestedBlock58
+  br label %nestedBlock129
+
+else126:                                          ; preds = %nestedBlock58
+  br label %afterIfElse127
+
+afterIfElse127:                                   ; preds = %else126, %afterNestedBlock128
+  %414 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %415 = icmp eq i32 %414, 0
+  br i1 %415, label %checkContinueBlock59, label %afterNestedBlock53
+
+afterNestedBlock128:                              ; preds = %checkContinueBlock130, %nestedBlock129
+  br label %afterIfElse127
+
+nestedBlock129:                                   ; preds = %then125
+  %416 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x131 = load i32, ptr %416, align 4
+  store i32 0, ptr %416, align 4
+  %417 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %418 = icmp eq i32 %417, 0
+  br i1 %418, label %checkContinueBlock130, label %afterNestedBlock128
+
+checkContinueBlock130:                            ; preds = %nestedBlock129
+  br label %afterNestedBlock128
+
+then134:                                          ; preds = %nestedBlock60
+  br label %nestedBlock138
+
+else135:                                          ; preds = %nestedBlock60
+  br label %afterIfElse136
+
+afterIfElse136:                                   ; preds = %else135, %afterNestedBlock137
+  %419 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %420 = icmp eq i32 %419, 0
+  br i1 %420, label %checkContinueBlock61, label %afterNestedBlock53
+
+afterNestedBlock137:                              ; preds = %checkContinueBlock139, %nestedBlock138
+  br label %afterIfElse136
+
+nestedBlock138:                                   ; preds = %then134
+  %421 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x140 = load i32, ptr %421, align 4
+  %screenWidth141 = load i32, ptr @screenWidth, align 4
+  %422 = load i32, ptr @screenWidth, align 4
+  %423 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %424 = load i32, ptr %423, align 4
+  %425 = sub i32 %422, %424
+  store i32 %425, ptr %421, align 4
+  %426 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %427 = icmp eq i32 %426, 0
+  br i1 %427, label %checkContinueBlock139, label %afterNestedBlock137
+
+checkContinueBlock139:                            ; preds = %nestedBlock138
+  br label %afterNestedBlock137
+
+then143:                                          ; preds = %nestedBlock62
+  br label %nestedBlock147
+
+else144:                                          ; preds = %nestedBlock62
+  br label %afterIfElse145
+
+afterIfElse145:                                   ; preds = %else144, %afterNestedBlock146
+  %428 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %429 = icmp eq i32 %428, 0
+  br i1 %429, label %checkContinueBlock63, label %afterNestedBlock53
+
+afterNestedBlock146:                              ; preds = %checkContinueBlock148, %nestedBlock147
+  br label %afterIfElse145
+
+nestedBlock147:                                   ; preds = %then143
+  %430 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y149 = load i32, ptr %430, align 4
+  store i32 0, ptr %430, align 4
+  %431 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %432 = icmp eq i32 %431, 0
+  br i1 %432, label %checkContinueBlock148, label %afterNestedBlock146
+
+checkContinueBlock148:                            ; preds = %nestedBlock147
+  br label %afterNestedBlock146
+
+then152:                                          ; preds = %nestedBlock64
+  br label %nestedBlock156
+
+else153:                                          ; preds = %nestedBlock64
+  br label %afterIfElse154
+
+afterIfElse154:                                   ; preds = %else153, %afterNestedBlock155
+  %433 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %434 = icmp eq i32 %433, 0
+  br i1 %434, label %checkContinueBlock65, label %afterNestedBlock53
+
+afterNestedBlock155:                              ; preds = %checkContinueBlock157, %nestedBlock156
+  br label %afterIfElse154
+
+nestedBlock156:                                   ; preds = %then152
+  %435 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y158 = load i32, ptr %435, align 4
+  %screenHeight159 = load i32, ptr @screenHeight, align 4
+  %436 = load i32, ptr @screenHeight, align 4
+  %437 = getelementptr inbounds %DynamicType, ptr %speed, i32 0, i32 0
+  %438 = load i32, ptr %437, align 4
+  %439 = sub i32 %436, %438
+  store i32 %439, ptr %435, align 4
+  %440 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %441 = icmp eq i32 %440, 0
+  br i1 %441, label %checkContinueBlock157, label %afterNestedBlock155
+
+checkContinueBlock157:                            ; preds = %nestedBlock156
+  br label %afterNestedBlock155
+
+then164:                                          ; preds = %nestedBlock66
+  br label %nestedBlock168
+
+else165:                                          ; preds = %nestedBlock66
+  br label %afterIfElse166
+
+afterIfElse166:                                   ; preds = %else165, %afterNestedBlock167
+  %442 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %443 = icmp eq i32 %442, 0
+  br i1 %443, label %checkContinueBlock67, label %afterNestedBlock53
+
+afterNestedBlock167:                              ; preds = %checkContinueBlock171, %nestedBlock170, %checkContinueBlock169, %nestedBlock168
+  br label %afterIfElse166
+
+nestedBlock168:                                   ; preds = %then164
+  call void @getFoodPosition(ptr %foodPos)
+  %444 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %445 = icmp eq i32 %444, 0
+  br i1 %445, label %checkContinueBlock169, label %afterNestedBlock167
+
+checkContinueBlock169:                            ; preds = %nestedBlock168
+  %446 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %447 = icmp eq i32 %446, 0
+  br i1 %447, label %nestedBlock170, label %afterNestedBlock167
+
+nestedBlock170:                                   ; preds = %checkContinueBlock169
+  %tail172 = load i32, ptr %tail, align 4
+  %tail173 = load i32, ptr %tail, align 4
+  %448 = load i32, ptr %tail, align 4
+  %449 = add i32 %448, 1
+  store i32 %449, ptr %tail, align 4
+  %450 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %451 = icmp eq i32 %450, 0
+  br i1 %451, label %checkContinueBlock171, label %afterNestedBlock167
+
+checkContinueBlock171:                            ; preds = %nestedBlock170
+  br label %afterNestedBlock167
+
+then174:                                          ; preds = %nestedBlock68
+  br label %nestedBlock178
+
+else175:                                          ; preds = %nestedBlock68
+  br label %afterIfElse176
+
+afterIfElse176:                                   ; preds = %else175, %afterNestedBlock177
+  %452 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %453 = icmp eq i32 %452, 0
+  br i1 %453, label %checkContinueBlock69, label %afterNestedBlock53
+
+afterNestedBlock177:                              ; preds = %checkContinueBlock179, %end_block219
+  br label %afterIfElse176
+
+nestedBlock178:                                   ; preds = %then174
+  %index = alloca i32, align 4
+  store i32 0, ptr %index, align 4
+  %tail180 = load i32, ptr %tail, align 4
+  %454 = load i32, ptr %tail, align 4
+  %455 = sub i32 %454, 1
+  store i32 %455, ptr %index, align 4
+  br label %"ForLoop::loopCondition"
+
+checkContinueBlock179:                            ; preds = %end_block219
+  br label %afterNestedBlock177
+
+"ForLoop::loopCondition":                         ; preds = %afterNestedBlock184, %nestedBlock178
+  %456 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %457 = icmp eq i32 %456, 0
+  br i1 %457, label %end_block182, label %decrement_block181
+
+"ForLoop::loopBody":                              ; preds = %"ForLoop::breakLoop"
+  br label %nestedBlock185
+
+"ForLoop::afterLoop":                             ; preds = %"ForLoop::breakLoop", %"ForLoop::Conditon::mergeBlock"
+  %458 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %459 = icmp eq i32 %458, 0
+  br i1 %459, label %end_block219, label %decrement_block218
+
+"ForLoop::breakLoop":                             ; preds = %"ForLoop::Conditon::mergeBlock"
+  %460 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %461 = icmp eq i32 %460, 0
+  br i1 %461, label %"ForLoop::loopBody", label %"ForLoop::afterLoop"
+
+decrement_block181:                               ; preds = %"ForLoop::loopCondition"
+  %462 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %463 = sub i32 %462, 1
+  store i32 %463, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  br label %end_block182
+
+end_block182:                                     ; preds = %decrement_block181, %"ForLoop::loopCondition"
+  %index183 = load i32, ptr %index, align 4
+  br i1 true, label %"ForLoop::Conditon::trueBlock", label %"ForLoop::Conditon::falseBlock"
+
+"ForLoop::Conditon::trueBlock":                   ; preds = %end_block182
+  %464 = icmp sge i32 %index183, 1
+  br label %"ForLoop::Conditon::mergeBlock"
+
+"ForLoop::Conditon::falseBlock":                  ; preds = %end_block182
+  %465 = icmp sle i32 %index183, 1
+  br label %"ForLoop::Conditon::mergeBlock"
+
+"ForLoop::Conditon::mergeBlock":                  ; preds = %"ForLoop::Conditon::falseBlock", %"ForLoop::Conditon::trueBlock"
+  %466 = phi i1 [ %464, %"ForLoop::Conditon::trueBlock" ], [ %465, %"ForLoop::Conditon::falseBlock" ]
+  br i1 %466, label %"ForLoop::breakLoop", label %"ForLoop::afterLoop"
+
+afterNestedBlock184:                              ; preds = %checkContinueBlock188, %"GlobalIndexExpr::merge214", %checkContinueBlock186, %"GlobalIndexExpr::merge198"
+  %467 = add i32 %index183, -1
+  store i32 %467, ptr %index, align 4
+  br label %"ForLoop::loopCondition"
+
+nestedBlock185:                                   ; preds = %"ForLoop::loopBody"
+  %index189 = load i32, ptr %index, align 4
+  %posX190 = load [10000 x i32], ptr %posX, align 4
+  %"GlobalIndexExpr::isLessThan" = icmp slt i32 %index189, 10000
+  %"GlobalIndexExpr::isGreaterThan" = icmp sge i32 %index189, 0
+  %"GlobalIndexExpr::isWithinBounds" = and i1 %"GlobalIndexExpr::isLessThan", %"GlobalIndexExpr::isGreaterThan"
+  br i1 %"GlobalIndexExpr::isWithinBounds", label %"GlobalIndexExpr::then191", label %"GlobalIndexExpr::else192"
+
+checkContinueBlock186:                            ; preds = %"GlobalIndexExpr::merge198"
+  %468 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %469 = icmp eq i32 %468, 0
+  br i1 %469, label %nestedBlock187, label %afterNestedBlock184
+
+nestedBlock187:                                   ; preds = %checkContinueBlock186
+  %index202 = load i32, ptr %index, align 4
+  %posY203 = load [10000 x i32], ptr %posY, align 4
+  %"GlobalIndexExpr::isLessThan207" = icmp slt i32 %index202, 10000
+  %"GlobalIndexExpr::isGreaterThan208" = icmp sge i32 %index202, 0
+  %"GlobalIndexExpr::isWithinBounds209" = and i1 %"GlobalIndexExpr::isLessThan207", %"GlobalIndexExpr::isGreaterThan208"
+  br i1 %"GlobalIndexExpr::isWithinBounds209", label %"GlobalIndexExpr::then204", label %"GlobalIndexExpr::else205"
+
+checkContinueBlock188:                            ; preds = %"GlobalIndexExpr::merge214"
+  br label %afterNestedBlock184
+
+"GlobalIndexExpr::then191":                       ; preds = %nestedBlock185
+  br label %"GlobalIndexExpr::merge193"
+
+"GlobalIndexExpr::else192":                       ; preds = %nestedBlock185
+  call void @raise_exception(ptr @7)
+  br label %"GlobalIndexExpr::merge193"
+
+"GlobalIndexExpr::merge193":                      ; preds = %"GlobalIndexExpr::else192", %"GlobalIndexExpr::then191"
+  %470 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 %index189
+  %471 = load i32, ptr %470, align 4
+  %index194 = load i32, ptr %index, align 4
+  %472 = load i32, ptr %index, align 4
+  %473 = sub i32 %472, 1
+  %posX195 = load [10000 x i32], ptr %posX, align 4
+  %"GlobalIndexExpr::isLessThan199" = icmp slt i32 %473, 10000
+  %"GlobalIndexExpr::isGreaterThan200" = icmp sge i32 %473, 0
+  %"GlobalIndexExpr::isWithinBounds201" = and i1 %"GlobalIndexExpr::isLessThan199", %"GlobalIndexExpr::isGreaterThan200"
+  br i1 %"GlobalIndexExpr::isWithinBounds201", label %"GlobalIndexExpr::then196", label %"GlobalIndexExpr::else197"
+
+"GlobalIndexExpr::then196":                       ; preds = %"GlobalIndexExpr::merge193"
+  br label %"GlobalIndexExpr::merge198"
+
+"GlobalIndexExpr::else197":                       ; preds = %"GlobalIndexExpr::merge193"
+  call void @raise_exception(ptr @8)
+  br label %"GlobalIndexExpr::merge198"
+
+"GlobalIndexExpr::merge198":                      ; preds = %"GlobalIndexExpr::else197", %"GlobalIndexExpr::then196"
+  %474 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 %473
+  %475 = load i32, ptr %474, align 4
+  %476 = load i32, ptr %474, align 4
+  store i32 %476, ptr %470, align 4
+  %477 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %478 = icmp eq i32 %477, 0
+  br i1 %478, label %checkContinueBlock186, label %afterNestedBlock184
+
+"GlobalIndexExpr::then204":                       ; preds = %nestedBlock187
+  br label %"GlobalIndexExpr::merge206"
+
+"GlobalIndexExpr::else205":                       ; preds = %nestedBlock187
+  call void @raise_exception(ptr @9)
+  br label %"GlobalIndexExpr::merge206"
+
+"GlobalIndexExpr::merge206":                      ; preds = %"GlobalIndexExpr::else205", %"GlobalIndexExpr::then204"
+  %479 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 %index202
+  %480 = load i32, ptr %479, align 4
+  %index210 = load i32, ptr %index, align 4
+  %481 = load i32, ptr %index, align 4
+  %482 = sub i32 %481, 1
+  %posY211 = load [10000 x i32], ptr %posY, align 4
+  %"GlobalIndexExpr::isLessThan215" = icmp slt i32 %482, 10000
+  %"GlobalIndexExpr::isGreaterThan216" = icmp sge i32 %482, 0
+  %"GlobalIndexExpr::isWithinBounds217" = and i1 %"GlobalIndexExpr::isLessThan215", %"GlobalIndexExpr::isGreaterThan216"
+  br i1 %"GlobalIndexExpr::isWithinBounds217", label %"GlobalIndexExpr::then212", label %"GlobalIndexExpr::else213"
+
+"GlobalIndexExpr::then212":                       ; preds = %"GlobalIndexExpr::merge206"
+  br label %"GlobalIndexExpr::merge214"
+
+"GlobalIndexExpr::else213":                       ; preds = %"GlobalIndexExpr::merge206"
+  call void @raise_exception(ptr @10)
+  br label %"GlobalIndexExpr::merge214"
+
+"GlobalIndexExpr::merge214":                      ; preds = %"GlobalIndexExpr::else213", %"GlobalIndexExpr::then212"
+  %483 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 %482
+  %484 = load i32, ptr %483, align 4
+  %485 = load i32, ptr %483, align 4
+  store i32 %485, ptr %479, align 4
+  %486 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %487 = icmp eq i32 %486, 0
+  br i1 %487, label %checkContinueBlock188, label %afterNestedBlock184
+
+decrement_block218:                               ; preds = %"ForLoop::afterLoop"
+  %488 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %489 = sub i32 %488, 1
+  store i32 %489, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  br label %end_block219
+
+end_block219:                                     ; preds = %decrement_block218, %"ForLoop::afterLoop"
+  %490 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %491 = icmp eq i32 %490, 0
+  br i1 %491, label %checkContinueBlock179, label %afterNestedBlock177
+
+"GlobalIndexExpr::then221":                       ; preds = %nestedBlock70
+  br label %"GlobalIndexExpr::merge223"
+
+"GlobalIndexExpr::else222":                       ; preds = %nestedBlock70
+  call void @raise_exception(ptr @11)
+  br label %"GlobalIndexExpr::merge223"
+
+"GlobalIndexExpr::merge223":                      ; preds = %"GlobalIndexExpr::else222", %"GlobalIndexExpr::then221"
+  %492 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 0
+  %493 = load i32, ptr %492, align 4
+  %494 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 0
+  %x224 = load i32, ptr %494, align 4
+  %495 = load i32, ptr %494, align 4
+  store i32 %495, ptr %492, align 4
+  %496 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %497 = icmp eq i32 %496, 0
+  br i1 %497, label %checkContinueBlock71, label %afterNestedBlock53
+
+"GlobalIndexExpr::then226":                       ; preds = %nestedBlock72
+  br label %"GlobalIndexExpr::merge228"
+
+"GlobalIndexExpr::else227":                       ; preds = %nestedBlock72
+  call void @raise_exception(ptr @12)
+  br label %"GlobalIndexExpr::merge228"
+
+"GlobalIndexExpr::merge228":                      ; preds = %"GlobalIndexExpr::else227", %"GlobalIndexExpr::then226"
+  %498 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 0
+  %499 = load i32, ptr %498, align 4
+  %500 = getelementptr inbounds %Position.4, ptr %newPos, i32 0, i32 1
+  %y229 = load i32, ptr %500, align 4
+  %501 = load i32, ptr %500, align 4
+  store i32 %501, ptr %498, align 4
+  %502 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %503 = icmp eq i32 %502, 0
+  br i1 %503, label %checkContinueBlock73, label %afterNestedBlock53
+
+"ForLoop::loopCondition232":                      ; preds = %afterNestedBlock242, %nestedBlock78
+  %504 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %505 = icmp eq i32 %504, 0
+  br i1 %505, label %end_block237, label %decrement_block236
+
+"ForLoop::loopBody233":                           ; preds = %"ForLoop::breakLoop235"
+  br label %nestedBlock243
+
+"ForLoop::afterLoop234":                          ; preds = %"ForLoop::breakLoop235", %"ForLoop::Conditon::mergeBlock241"
+  %506 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %507 = icmp eq i32 %506, 0
+  br i1 %507, label %end_block263, label %decrement_block262
+
+"ForLoop::breakLoop235":                          ; preds = %"ForLoop::Conditon::mergeBlock241"
+  %508 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %509 = icmp eq i32 %508, 0
+  br i1 %509, label %"ForLoop::loopBody233", label %"ForLoop::afterLoop234"
+
+decrement_block236:                               ; preds = %"ForLoop::loopCondition232"
+  %510 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %511 = sub i32 %510, 1
+  store i32 %511, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  br label %end_block237
+
+end_block237:                                     ; preds = %decrement_block236, %"ForLoop::loopCondition232"
+  %index238 = load i32, ptr %index231, align 4
+  br i1 false, label %"ForLoop::Conditon::trueBlock239", label %"ForLoop::Conditon::falseBlock240"
+
+"ForLoop::Conditon::trueBlock239":                ; preds = %end_block237
+  %512 = icmp sge i32 %index238, %279
+  br label %"ForLoop::Conditon::mergeBlock241"
+
+"ForLoop::Conditon::falseBlock240":               ; preds = %end_block237
+  %513 = icmp sle i32 %index238, %279
+  br label %"ForLoop::Conditon::mergeBlock241"
+
+"ForLoop::Conditon::mergeBlock241":               ; preds = %"ForLoop::Conditon::falseBlock240", %"ForLoop::Conditon::trueBlock239"
+  %514 = phi i1 [ %512, %"ForLoop::Conditon::trueBlock239" ], [ %513, %"ForLoop::Conditon::falseBlock240" ]
+  br i1 %514, label %"ForLoop::breakLoop235", label %"ForLoop::afterLoop234"
+
+afterNestedBlock242:                              ; preds = %checkContinueBlock244, %"GlobalIndexExpr::merge257"
+  %515 = add i32 %index238, 1
+  store i32 %515, ptr %index231, align 4
+  br label %"ForLoop::loopCondition232"
+
+nestedBlock243:                                   ; preds = %"ForLoop::loopBody233"
+  %516 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 0
+  %517 = load ptr, ptr %516, align 8
+  %518 = getelementptr inbounds %"FlowWingAnim::VTableType", ptr %517, i32 0, i32 16
+  %519 = load ptr, ptr %518, align 8
+  %index245 = load i32, ptr %index231, align 4
+  %posX246 = load [10000 x i32], ptr %posX, align 4
+  %"GlobalIndexExpr::isLessThan250" = icmp slt i32 %index245, 10000
+  %"GlobalIndexExpr::isGreaterThan251" = icmp sge i32 %index245, 0
+  %"GlobalIndexExpr::isWithinBounds252" = and i1 %"GlobalIndexExpr::isLessThan250", %"GlobalIndexExpr::isGreaterThan251"
+  br i1 %"GlobalIndexExpr::isWithinBounds252", label %"GlobalIndexExpr::then247", label %"GlobalIndexExpr::else248"
+
+checkContinueBlock244:                            ; preds = %"GlobalIndexExpr::merge257"
+  br label %afterNestedBlock242
+
+"GlobalIndexExpr::then247":                       ; preds = %nestedBlock243
+  br label %"GlobalIndexExpr::merge249"
+
+"GlobalIndexExpr::else248":                       ; preds = %nestedBlock243
+  call void @raise_exception(ptr @13)
+  br label %"GlobalIndexExpr::merge249"
+
+"GlobalIndexExpr::merge249":                      ; preds = %"GlobalIndexExpr::else248", %"GlobalIndexExpr::then247"
+  %520 = getelementptr [10000 x i32], ptr %posX, i32 0, i32 %index245
+  %521 = load i32, ptr %520, align 4
+  %index253 = load i32, ptr %index231, align 4
+  %posY254 = load [10000 x i32], ptr %posY, align 4
+  %"GlobalIndexExpr::isLessThan258" = icmp slt i32 %index253, 10000
+  %"GlobalIndexExpr::isGreaterThan259" = icmp sge i32 %index253, 0
+  %"GlobalIndexExpr::isWithinBounds260" = and i1 %"GlobalIndexExpr::isLessThan258", %"GlobalIndexExpr::isGreaterThan259"
+  br i1 %"GlobalIndexExpr::isWithinBounds260", label %"GlobalIndexExpr::then255", label %"GlobalIndexExpr::else256"
+
+"GlobalIndexExpr::then255":                       ; preds = %"GlobalIndexExpr::merge249"
+  br label %"GlobalIndexExpr::merge257"
+
+"GlobalIndexExpr::else256":                       ; preds = %"GlobalIndexExpr::merge249"
+  call void @raise_exception(ptr @14)
+  br label %"GlobalIndexExpr::merge257"
+
+"GlobalIndexExpr::merge257":                      ; preds = %"GlobalIndexExpr::else256", %"GlobalIndexExpr::then255"
+  %522 = getelementptr [10000 x i32], ptr %posY, i32 0, i32 %index253
+  %523 = load i32, ptr %522, align 4
+  %side = load i32, ptr @side, align 4
+  %side261 = load i32, ptr @side, align 4
+  %524 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 5
+  %525 = getelementptr inbounds %COLORS_TYPE.3, ptr %524, i32 0, i32 3
+  %BLUE = load i32, ptr %525, align 4
+  call void %519(ptr %520, ptr %522, ptr @side, ptr @side, ptr %525, ptr %33)
+  %526 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %527 = icmp eq i32 %526, 0
+  br i1 %527, label %checkContinueBlock244, label %afterNestedBlock242
+
+decrement_block262:                               ; preds = %"ForLoop::afterLoop234"
+  %528 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %529 = sub i32 %528, 1
+  store i32 %529, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  br label %end_block263
+
+end_block263:                                     ; preds = %decrement_block262, %"ForLoop::afterLoop234"
+  %530 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %531 = icmp eq i32 %530, 0
+  br i1 %531, label %checkContinueBlock79, label %afterNestedBlock53
+
+if:                                               ; preds = %nestedBlock80
+  call void @raise_exception(ptr @15)
+  br label %merge
+
+else265:                                          ; preds = %nestedBlock80
+  %532 = sdiv i32 %286, 5
+  br label %merge
+
+merge:                                            ; preds = %else265, %if
+  %533 = alloca i32, align 4
+  store i32 %532, ptr %533, align 4
+  %534 = alloca i32, align 4
+  store i32 120, ptr %534, align 4
+  %535 = alloca float, align 4
+  store float 3.500000e+01, ptr %535, align 4
+  %536 = getelementptr inbounds %FlowWingAnim, ptr %33, i32 0, i32 5
+  %537 = getelementptr inbounds %COLORS_TYPE.3, ptr %536, i32 0, i32 4
+  %DARKBLUE = load i32, ptr %537, align 4
+  call void %285(ptr %533, ptr %534, ptr %535, ptr %537, ptr %33)
+  %538 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %539 = icmp eq i32 %538, 0
+  br i1 %539, label %checkContinueBlock81, label %afterNestedBlock53
+
+decrement_block270:                               ; preds = %while.end
+  %540 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %541 = sub i32 %540, 1
+  store i32 %541, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  br label %end_block271
+
+end_block271:                                     ; preds = %decrement_block270, %while.end
+  %542 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %543 = icmp eq i32 %542, 0
+  br i1 %543, label %checkContinueBlock20, label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock23
+  store i32 0, ptr %0, align 4
+  ret void
+
+mergeBlock:                                       ; No predecessors!
+  %544 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %545 = icmp eq i32 %544, 0
+  br i1 %545, label %checkContinueBlock24, label %afterNestedBlock
 }
 
 !0 = !{!"FlowWingAnim.init4:rt:pr:27"}
@@ -1523,14 +1885,5 @@ mergeBlock46:                                     ; No predecessors!
 !48 = !{!"DrawTexture:rt:pr:27"}
 !49 = !{!"srand:rt:pr:27"}
 !50 = !{!"rand:rt:pr:28"}
-!51 = !{!"Bird.init1:rt:pr:27"}
-!52 = !{!"Bird.setTexture:rt:pr:27"}
-!53 = !{!"Bird.getTexturePath:rt:pr:33"}
-!54 = !{!"Bird.update:rt:pr:27"}
-!55 = !{!"Bird.isTextureLoaded:rt:pr:34"}
-!56 = !{!"Bird.getSource:rt:ay:32:sz:4:"}
-!57 = !{!"Bird.getDistination:rt:ay:32:sz:4:"}
-!58 = !{!"Bird.getOrigin:rt:ay:32:sz:2:"}
-!59 = !{!"Bird.getRotation:rt:pr:32"}
-!60 = !{!"Bird.getTexture:rt:ob:Texture"}
-!61 = !{!"main:rt:pr:28"}
+!51 = !{!"getFoodPosition:rt:ob:Position"}
+!52 = !{!"main:rt:pr:28"}

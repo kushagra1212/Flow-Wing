@@ -1,5 +1,6 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
+target triple = "x86_64-apple-macosx14.0.0"
 
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
@@ -62,7 +63,7 @@ declare !rt !1 void @SetTargetFPS(i32)
 
 declare !rt !2 void @ClearBackground(i32)
 
-declare !rt !3 i1 @WindowShouldClose()
+declare !rt !3 void @WindowShouldClose(ptr)
 
 declare !rt !4 void @BeginDrawing()
 
@@ -72,21 +73,21 @@ declare !rt !6 void @EndDrawing()
 
 declare !rt !7 void @CloseWindow()
 
-declare !rt !8 i32 @GetScreenHeight()
+declare !rt !8 void @GetScreenHeight(ptr)
 
-declare !rt !9 i32 @GetScreenWidth()
+declare !rt !9 void @GetScreenWidth(ptr)
 
 declare !rt !10 void @DrawCircle(i32, i32, float, i32)
 
 declare !rt !11 void @DrawText(ptr, i32, i32, i32, i32)
 
-declare !rt !12 i1 @IsKeyPressed(i32)
+declare !rt !12 void @IsKeyPressed(ptr, i32)
 
-declare !rt !13 i1 @IsKeyDown(i32)
+declare !rt !13 void @IsKeyDown(ptr, i32)
 
-declare !rt !14 ptr @TextFormat(ptr)
+declare !rt !14 void @TextFormat(ptr, ptr)
 
-declare !rt !15 void @LoadTexture(ptr sret, ptr)
+declare !rt !15 void @LoadTexture(ptr dereferenceable(74), ptr)
 
 declare !rt !16 void @DrawTexture(ptr, i32, i32, i32)
 
@@ -96,28 +97,28 @@ declare !rt !18 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float],
 
 declare !rt !19 void @TraceLog(i32, ptr)
 
-declare !rt !20 double @GetTime()
+declare !rt !20 void @GetTime(ptr)
 
-declare !rt !21 float @GetFrameTime()
+declare !rt !21 void @GetFrameTime(ptr)
 
-declare !rt !22 i32 @rand()
+declare !rt !22 void @rand(ptr)
 
-declare !rt !23 i32 @time()
+declare !rt !23 void @time(ptr)
 
 declare !rt !24 void @srand(i32)
 
-define i32 @getRandomNumber(ptr %0, ptr %1) !rt !25 {
+define void @getRandomNumber(ptr %0, ptr %1, ptr %2) !rt !25 {
 entry:
   %start = alloca i32, align 4
-  %2 = load i32, ptr %0, align 4
-  store i32 %2, ptr %start, align 4
-  %end = alloca i32, align 4
   %3 = load i32, ptr %1, align 4
-  store i32 %3, ptr %end, align 4
+  store i32 %3, ptr %start, align 4
+  %end = alloca i32, align 4
+  %4 = load i32, ptr %2, align 4
+  store i32 %4, ptr %end, align 4
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret i32 0
+  ret void
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -126,20 +127,26 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %4 = call i32 @rand()
+  %rtPtr = alloca i32, align 4
+  call void @rand(ptr %rtPtr)
+  %5 = load i32, ptr %rtPtr, align 4
   %end1 = load i32, ptr %end, align 4
+  %6 = load i32, ptr %end, align 4
   %start2 = load i32, ptr %start, align 4
-  %5 = sub i32 %end1, %start2
-  %6 = add i32 %5, 1
-  %7 = srem i32 %4, %6
+  %7 = load i32, ptr %start, align 4
+  %8 = sub i32 %6, %7
+  %9 = add i32 %8, 1
+  %10 = srem i32 %5, %9
   %start3 = load i32, ptr %start, align 4
-  %8 = add i32 %7, %start3
-  ret i32 %8
+  %11 = load i32, ptr %start, align 4
+  %12 = add i32 %10, %11
+  store i32 %12, ptr %0, align 4
+  ret void
 
 mergeBlock:                                       ; No predecessors!
-  %9 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
-  %10 = icmp eq i32 %9, 0
-  br i1 %10, label %checkContinueBlock, label %afterNestedBlock
+  %13 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
+  %14 = icmp eq i32 %13, 0
+  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
 }
 
 !0 = !{!"InitWindow:rt:pr:27"}

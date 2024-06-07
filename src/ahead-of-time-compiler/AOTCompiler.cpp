@@ -35,6 +35,26 @@ void AOTCompiler::link() {
                 "CoreVideo ";
 #endif
 
+#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+    (defined(DEBUG) && defined(AOT_MODE))
+  std::vector<std::string> llFiles = Utils::getAllFilesInDirectoryWithExtension(
+      std::filesystem::current_path(), ".ll", false);
+
+  for (auto llFile : llFiles) {
+    std::string cmd = CLANG_PATH.string() + " " + llFile + " -emit-llvm -c " +
+                      " -o " + llFile.substr(0, llFile.length() - 3) + ".bc";
+    std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
+              << std::endl;
+    const int status = std::system(cmd.c_str());
+
+    if (status != 0) {
+      std::cerr << Utils::CE("Failed to compile: ") << llFile << std::endl;
+      return;
+    }
+  }
+
+#endif
+
   try {
     std::string cmd =
         (CLANG_PATH.string() + " -O3 -o " +
@@ -46,8 +66,8 @@ void AOTCompiler::link() {
 #if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
 
-    std::cout << BLACK_TEXT << "Executing: " << YELLOW << cmd << RESET
-              << std::endl;
+    std::cout << YELLOW_TEXT << "Linking: " << GREEN
+              << getObjectFilesJoinedAsString() << RESET << std::endl;
 #endif
 
     std::system(cmd.c_str());

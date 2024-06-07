@@ -37,7 +37,12 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
       _expressionGenerationFactory
           ->createStrategy(whileStatement->getConditionPtr().get()->getKind())
           ->generateExpression(whileStatement->getConditionPtr().get());
-
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    conditionValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
   // Load the condition
 
   if (conditionValue == nullptr) {
@@ -56,7 +61,12 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
       _statementGenerationFactory
           ->createStrategy(whileStatement->getBodyPtr().get()->getKind())
           ->generateStatement(whileStatement->getBodyPtr().get());
-
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    result = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
   Builder->CreateCondBr(
       _codeGenerationContext->isCountZero(
           _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),
