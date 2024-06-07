@@ -231,13 +231,16 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                      {ptr, llvmType});
 
-    if (!_rhsValue)
+    if (!variableDeclaration->getInitializerPtr().get())
       return ptr;
-    Builder->CreateStore(_rhsValue, ptr);
 
-    return _rhsValue;
+    return assignmentEGS->handleAssignExpression(
+        ptr, llvmType, _variableName,
+        variableDeclaration->getInitializerPtr().get());
   }
-
+  // _rhsValue =
+  //     _expressionGenerationFactory->createStrategy(initializerExp->getKind())
+  //         ->generateExpression(initializerExp);
   if (!_rhsValue) {
     _codeGenerationContext->getLogger()->LogError(
         "Expected a right hand side value in the expression, but found "
@@ -297,7 +300,8 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
       variableDeclaration->getTypeExpression().get()->getSyntaxType();
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
-      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
+      _codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
     return true;
   }
   if (!initializerExp) {
@@ -314,8 +318,8 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
 
     _rhsValue = literalExpressionGenerationStrategy->generateTypedExpression(
         initializerExp, _variableType);
-
   } else {
+
     _rhsValue =
         _expressionGenerationFactory->createStrategy(initializerExp->getKind())
             ->generateExpression(initializerExp);

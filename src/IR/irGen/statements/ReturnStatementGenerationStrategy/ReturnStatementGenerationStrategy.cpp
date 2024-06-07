@@ -43,7 +43,7 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   SyntaxKindUtils::SyntaxKind returnTypeCustomType =
       _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-          returnType->getType());
+          returnType->getLLVMType());
   if (returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
       returnStat == nullptr) {
     errorMessage = "Function return type is not Nothing, return "

@@ -75,7 +75,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
   if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Print) {
 
     for (auto &callexp : callExpression->getArgumentsRef()) {
-
+      _codeGenerationContext->getValueStackHandler()->popAll();
       llvm::Value *value =
           _expressionGenerationFactory->createStrategy(callexp->getKind())
               ->generateExpression(callexp.get());
@@ -84,97 +84,125 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     }
 
     return nullptr;
-  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Input) {
-    if (arguments_size == 0) {
+  } else {
+    // if (!_rtPtr.first) {
+    //   _rtPtr.second = _codeGenerationContext
+    //                       ->_functionTypes[callExpression->getCallerNameRef()]
+    //                       ->getReturnType();
 
-      return Builder->CreateCall(
+    //   if (!_rtPtr.second->isVoidTy())
+    //     _rtPtr.first = _codeGenerationContext->createMemoryGetPtr(
+    //         _rtPtr.second, "rtPtr", BinderKindUtils::MemoryKind::Stack);
+    // }
+
+    if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Input) {
+      if (arguments_size == 1) {
+
+        llvm::Value *val = nullptr;
+        val = _expressionGenerationFactory
+                  ->createStrategy(
+                      callExpression->getArgumentsRef()[0].get()->getKind())
+                  ->generateExpression(
+                      callExpression->getArgumentsRef()[0].get());
+        //}
+
+        if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+          val = Builder->CreateLoad(
+              _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+              _codeGenerationContext->getValueStackHandler()->getValue());
+
+          _codeGenerationContext->getValueStackHandler()->popAll();
+        }
+
+        printPremitives(val);
+      }
+      llvm::Value *res = Builder->CreateCall(
           TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
-    } else if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
 
-      // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-      //                     {_stringTypeConverter->convertExplicit(val),
-      //                      Builder->getInt1(false)});
+      // if (_rtPtr.second) {
+      return handleInBuiltFunctionReturnValue(res, callExpression);
+      // } else {
+      //   std::unique_ptr<CallExpressionGenerationStrategy> cgst =
+      //       std::make_unique<CallExpressionGenerationStrategy>(
+      //           _codeGenerationContext);
 
-      printPremitives(val);
+      //   return cgst->handleInBuiltFunctionReturnValue(res, callExpression);
+      // }
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::String) {
+      if (arguments_size == 1) {
 
-      return Builder->CreateCall(
-          TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
-    }
-  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::String) {
-    if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+        llvm::Value *val = nullptr;
+        handleInBuiltFunctionCall(callExpression, val);
 
-      llvm::Value *res = _stringTypeConverter->convertExplicit(val);
-      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                           res->getType());
+        llvm::Value *res = _stringTypeConverter->convertExplicit(val);
+        // if (_rtPtr.second) {
+        return handleInBuiltFunctionReturnValue(res, callExpression);
+        // } else {
+        //   std::unique_ptr<CallExpressionGenerationStrategy> cgst =
+        //       std::make_unique<CallExpressionGenerationStrategy>(
+        //           _codeGenerationContext);
 
-      return res;
-    }
-  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
-    if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+        //   return cgst->handleInBuiltFunctionReturnValue(res, callExpression);
+        // }
+      }
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
+      if (arguments_size == 1) {
 
-      llvm::Value *res = _int32TypeConverter->convertExplicit(val);
-      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                           res->getType());
+        llvm::Value *val = nullptr;
+        handleInBuiltFunctionCall(callExpression, val);
 
-      return res;
-    }
-  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
-    if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+        llvm::Value *res = _int32TypeConverter->convertExplicit(val);
 
-      llvm::Value *res = _boolTypeConverter->convertExplicit(val);
-      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                           res->getType());
+        // if (_rtPtr.second) {
+        return handleInBuiltFunctionReturnValue(res, callExpression);
+        // } else {
+        //   std::unique_ptr<CallExpressionGenerationStrategy> cgst =
+        //       std::make_unique<CallExpressionGenerationStrategy>(
+        //           _codeGenerationContext);
 
-      return res;
-    }
-  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Decimal) {
-    if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+        //   return cgst->handleInBuiltFunctionReturnValue(res, callExpression);
+        // }
+      }
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
+      if (arguments_size == 1) {
 
-      llvm::Value *res = _doubleTypeConverter->convertExplicit(val);
-      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                           res->getType());
+        llvm::Value *val = nullptr;
+        handleInBuiltFunctionCall(callExpression, val);
 
-      return res;
-    }
-  } else if (callExpression->getCallerNameRef() ==
-             FW::BI::FUNCTION::Decimal32) {
-    if (arguments_size == 1) {
-      llvm::Value *val =
-          _expressionGenerationFactory
-              ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
-      llvm::Value *res = _floatTypeConverter->convertExplicit(val);
+        llvm::Value *res = _boolTypeConverter->convertExplicit(val);
 
-      _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                           res->getType());
+        return handleInBuiltFunctionReturnValue(res, callExpression);
+      }
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal) {
+      if (arguments_size == 1) {
 
-      return res;
+        llvm::Value *val = nullptr;
+        handleInBuiltFunctionCall(callExpression, val);
+
+        llvm::Value *res = _doubleTypeConverter->convertExplicit(val);
+
+        // if (_rtPtr.second) {
+        return handleInBuiltFunctionReturnValue(res, callExpression);
+        // } else {
+        //   std::unique_ptr<CallExpressionGenerationStrategy> cgst =
+        //       std::make_unique<CallExpressionGenerationStrategy>(
+        //           _codeGenerationContext);
+
+        //   return cgst->handleInBuiltFunctionReturnValue(res, callExpression);
+        // }
+      }
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal32) {
+      if (arguments_size == 1) {
+
+        llvm::Value *val = nullptr;
+        handleInBuiltFunctionCall(callExpression, val);
+
+        llvm::Value *res = _floatTypeConverter->convertExplicit(val);
+
+        return handleInBuiltFunctionReturnValue(res, callExpression);
+      }
     }
   }
 
@@ -184,6 +212,56 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
   return nullptr;
 }
 
+llvm::Value *CallExpressionGenerationStrategy::handleInBuiltFunctionReturnValue(
+    llvm::Value *res, BoundCallExpression *callExpression) {
+  if (_rtPtr.second) {
+    if (_codeGenerationContext->verifyType(
+            _rtPtr.second, res->getType(),
+            " when calling " + callExpression->getCallerNameRef() +
+                " function") == EXIT_FAILURE) {
+      return nullptr;
+    }
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", _rtPtr.first, "primary", _rtPtr.second);
+
+    Builder->CreateStore(res, _rtPtr.first);
+
+    return _rtPtr.first;
+  } else {
+    _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                         res->getType());
+    return res;
+  }
+}
+
+void CallExpressionGenerationStrategy::handleInBuiltFunctionCall(
+    BoundCallExpression *callExpression, llvm::Value *&val) {
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      callExpression->getLocation());
+
+  // if (callExpression->getArgumentsRef()[0].get()->getKind() ==
+  //     BinderKindUtils::CallExpression) {
+  //   std::unique_ptr<CallExpressionGenerationStrategy> cgst =
+  //       std::make_unique<CallExpressionGenerationStrategy>(
+  //           _codeGenerationContext);
+  //   cgst->generateExpression(callExpression->getArgumentsRef()[0].get());
+
+  //   val = Builder->CreateLoad(
+  //       _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+  //       _codeGenerationContext->getValueStackHandler()->getValue());
+  //   _codeGenerationContext->getValueStackHandler()->popAll();
+  // } else {
+  val = _expressionGenerationFactory
+            ->createStrategy(
+                callExpression->getArgumentsRef()[0].get()->getKind())
+            ->generateExpression(callExpression->getArgumentsRef()[0].get());
+  //}
+
+  // }
+  //
+}
+
 llvm::Value *
 CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
   if (!value) {
@@ -191,7 +269,8 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
   }
 
   if (!_codeGenerationContext->getValueStackHandler()->isEmpty() &&
-      _codeGenerationContext->getValueStackHandler()->isDynamicType()) {
+      (_codeGenerationContext->getValueStackHandler()->isDynamicType() ||
+       _codeGenerationContext->getValueStackHandler()->isPrimaryType())) {
 
     llvm::Value *loaded = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
@@ -584,8 +663,9 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     //? (A1, ClassPtr) | (A1) -> Case 1
     //? (A0, A1, ClassPtr) | (A1) -> Case 2
 
-    argsCount--; // ClassPtr removed from the args count
+    // ClassPtr removed from the args count
 
+    argsCount--;
     if (callExpression->getCallerNameRef().find(".init") != std::string::npos) {
       // Its the Initilizer Function
       //? (A1, ClassPtr) | (A1) -> Case 1
@@ -601,7 +681,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   }
 
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonPrimitiveReturnType()) {
+          ->isNonVoidReturn()) {
     // If it memeber function of class or a normal function but has the non
     // primitive return type
     //? (A0, A1, ClassPtr) | (A1) -> Case 2
@@ -621,7 +701,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   llvm::Value *rhsValue = nullptr;
   uint64_t initialLLVMArgIndex = 0;
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonPrimitiveReturnType()) {
+          ->isNonVoidReturn()) {
     if (!_rtPtr.first) {
       _rtPtr.second = _codeGenerationContext
                           ->_functionTypes[callExpression->getCallerNameRef()]
@@ -670,34 +750,45 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   }
 
   // if (!_classType) {
-  llvm::ArrayType *arrayType = nullptr;
-  llvm::Type *elementType = nullptr;
-  std::vector<uint64_t> actualSizes;
-  _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
-                                               elementType, actualSizes);
+  // llvm::ArrayType *arrayType = nullptr;
+  // llvm::Type *elementType = nullptr;
+  // std::vector<uint64_t> actualSizes;
+  // _codeGenerationContext->getRetrunedArrayType(calleeFunction, arrayType,
+  //                                              elementType, actualSizes);
 
-  if (arrayType != nullptr) {
+  // if (arrayType != nullptr) {
 
+  if (_rtPtr.second && _rtPtr.second->isArrayTy())
     _codeGenerationContext->getValueStackHandler()->push(
         "", _rtPtr.first, "array", _rtPtr.second);
-
-    return callIn;
-  }
-
-  llvm::StructType *structType = nullptr;
-  _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
-  if (structType != nullptr) {
-
+  else if (_rtPtr.second && _rtPtr.second->isStructTy())
     _codeGenerationContext->getValueStackHandler()->push(
         "", _rtPtr.first, "struct", _rtPtr.second);
-    return callIn;
-  }
+  else if (_rtPtr.second) {
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", _rtPtr.first, "primary", _rtPtr.second);
+  } else
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", nullptr, "nothing", llvm::Type::getVoidTy(*TheContext));
 
-  llvm::Type *retType = nullptr;
-  _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
+  return _rtPtr.first;
+  // }
 
-  _codeGenerationContext->getValueStackHandler()->push("", callIn, "constant",
-                                                       retType);
+  // llvm::StructType *structType = nullptr;
+  // _codeGenerationContext->getReturnedObjectType(calleeFunction, structType);
+  // if (structType != nullptr) {
+
+  //   _codeGenerationContext->getValueStackHandler()->push(
+  //       "", _rtPtr.first, "struct", _rtPtr.second);
+  //   return callIn;
+  // }
+
+  // llvm::Type *retType = nullptr;
+  // _codeGenerationContext->getReturnedPrimitiveType(calleeFunction, retType);
+
+  // _codeGenerationContext->getValueStackHandler()->push("", callIn,
+  // "constant",
+  //                                                      retType);
   // } else {
   //   if (callExpression->hasNewKeyword()) {
   //     _codeGenerationContext->getValueStackHandler()->push(
@@ -709,7 +800,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   //   }
   // }
 
-  return callIn;
+  // return callIn;
 }
 
 llvm::Value *CallExpressionGenerationStrategy::handleExpression(
@@ -756,6 +847,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         callExpressionGenerationStrategy =
             std::make_unique<CallExpressionGenerationStrategy>(
                 _codeGenerationContext);
+
     if (BuiltInFunction::isBuiltInFunction(cE->getCallerNameRef())) {
 
       llvm::Value *rt = this->buildInFunctionCall(callExpression);
@@ -768,31 +860,30 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     bool isCassInit = cE->getCallerNameRef().find(".init") != std::string::npos;
 
-    if (!isCassInit &&
-        _codeGenerationContext->_functionTypes.find(cE->getCallerNameRef()) !=
-            _codeGenerationContext->_functionTypes.end() &&
-
-        _codeGenerationContext->_functionTypes[cE->getCallerNameRef()]
-            ->isNonPrimitiveReturnType()) {
+    if (!isCassInit) {
 
       callExpressionGenerationStrategy->setRtPtr(
           {rhsValue,
            _codeGenerationContext->_functionTypes[cE->getCallerNameRef()]
                ->getReturnType()});
     }
+
     llvm::Value *value =
         callExpressionGenerationStrategy->generateExpression(cE);
     llvm::Type *type =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
 
-    if (llvm::isa<llvm::StructType>(type) || llvm::isa<llvm::ArrayType>(type)) {
-      if (isCassInit) {
+    if (!isCassInit && type->isVoidTy()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Function " + cE->getCallerNameRef() + " does not return a value");
 
-        rhsValue = Builder->CreateAlloca(type, nullptr);
-        Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
-      }
+      return nullptr;
+    }
+
+    if (isCassInit) {
+      rhsValue = Builder->CreateAlloca(type, nullptr);
+      Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
     } else {
-
       BoundFunctionDeclaration *functionDeclaration =
           _codeGenerationContext
               ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
@@ -801,8 +892,9 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         rhsValue = Builder->CreateLoad(
             type, _codeGenerationContext->getValueStackHandler()->getValue());
       } else {
-        rhsValue = Builder->CreateAlloca(type, nullptr);
-        Builder->CreateStore(value, rhsValue);
+        rhsValue = value;
+        // rhsValue = Builder->CreateAlloca(type, nullptr);
+        // Builder->CreateStore(value, rhsValue);
       }
     }
     _codeGenerationContext->getValueStackHandler()->popAll();
@@ -881,9 +973,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
     _codeGenerationContext->getLogger()->LogError(
         "Dynamic type not supported in function call expression " +
         Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        Utils::CE(arg->getName().str())
-
-    );
+        Utils::CE(arg->getName().str()));
     return rhsValue;
   }
   retFlag = false;
@@ -984,7 +1074,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
   objExpGenStrat->setTypeName(objectTypeName);
   if (_codeGenerationContext->_classTypes.find(objectTypeName) !=
       _codeGenerationContext->_classTypes.end()) {
-    std::cout << objectTypeName << std::endl;
+
     llvm::StructType *classType =
         _codeGenerationContext->_classTypes[objectTypeName]->getClassType();
     auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
@@ -1044,35 +1134,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     llvm::Argument *arg, bool &retFlag) {
   retFlag = true;
 
-  _expressionGenerationFactory
-      ->createStrategy(
-          callExpression->getArgumentsRef()[callArgIndex]->getKind())
-      ->generateExpression(
-          callExpression->getArgumentsRef()[callArgIndex].get());
-  rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-
-  BoundFunctionDeclaration *functionDeclaration =
-      _codeGenerationContext
-          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
-  if (functionDeclaration->getParametersRef()[callArgIndex]
-          ->getHasAsKeyword()) {
-
-    rhsValue = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-  } else {
-
-    rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-  }
-
-  llvm ::Type *varType =
-      _codeGenerationContext->getValueStackHandler()->getLLVMType();
-  _codeGenerationContext->getValueStackHandler()->popAll();
-  BoundVariableExpression *variableExpression =
-      static_cast<BoundVariableExpression *>(
-          callExpression->getArgumentsRef()[callArgIndex].get());
-
-  if (!variableExpression) {
+  if (!callExpression->getArgumentsRef()[callArgIndex]) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
@@ -1081,44 +1143,64 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     return nullptr;
   }
 
-  if (llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
-      variableExpression->getVariableTypeRef()->getSyntaxType() !=
-          SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Expected Array in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        Utils::CE(arg->getName().str()) + ", but found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            variableExpression->getVariableTypeRef()->getSyntaxType()));
-    return nullptr;
+  BoundVariableExpression *variableExpression =
+      static_cast<BoundVariableExpression *>(
+          callExpression->getArgumentsRef()[callArgIndex].get());
+
+  _expressionGenerationFactory
+      ->createStrategy(
+          callExpression->getArgumentsRef()[callArgIndex]->getKind())
+      ->generateExpression(
+          callExpression->getArgumentsRef()[callArgIndex].get());
+
+  rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
+
+  llvm ::Type *varType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+
+  if (functionDeclaration->getParametersRef()[callArgIndex]
+          ->getHasAsKeyword()) {
+
+    rhsValue = Builder->CreateLoad(varType, rhsValue);
   }
 
-  if (llvmArrayArgs[llvmArgsIndex]->isPointerToObject() &&
-      variableExpression->getVariableTypeRef()->getSyntaxType() !=
-          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Expected Object in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        Utils::CE(arg->getName().str()) + ", but found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            variableExpression->getVariableTypeRef()->getSyntaxType()));
-    return nullptr;
-  }
+  // if (llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
+  //     variableExpression->getVariableTypeRef()->getSyntaxType() !=
+  //         SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Expected Array in function call expression " +
+  //       Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+  //       Utils::CE(arg->getName().str()) + ", but found " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           variableExpression->getVariableTypeRef()->getSyntaxType()));
+  //   return nullptr;
+  // }
+
+  // if (llvmArrayArgs[llvmArgsIndex]->isPointerToObject() &&
+  //     variableExpression->getVariableTypeRef()->getSyntaxType() !=
+  //         SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+  //   _codeGenerationContext->getLogger()->LogError(
+  //       "Expected Object in function call expression " +
+  //       Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+  //       Utils::CE(arg->getName().str()) + ", but found " +
+  //       _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //           variableExpression->getVariableTypeRef()->getSyntaxType()));
+  //   return nullptr;
+  // }
 
   if (llvmArrayArgs[llvmArgsIndex]->isPointerToArray()) {
-    BoundArrayTypeExpression *arrayTypeExpression =
-        static_cast<BoundArrayTypeExpression *>(
-            variableExpression->getVariableTypeRef());
 
-    llvm::Type *varElementType =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            arrayTypeExpression->getElementType());
     LLVMArrayType *llvmArrayType =
         static_cast<LLVMArrayType *>(llvmArrayArgs[llvmArgsIndex].get());
-    llvm::ArrayType *arrayType =
-        static_cast<llvm::ArrayType *>(llvmArrayType->getElementType());
-
-    uint64_t arraySize = arrayType->getNumElements();
+    llvm::ArrayType *FArrayType =
+        static_cast<llvm::ArrayType *>(llvmArrayType->getLLVMType());
+    llvm::ArrayType *arrayType = static_cast<llvm::ArrayType *>(varType);
 
     llvm::Type *_res = isGlobalArray(rhsValue);
     _res = _res ? _res : isLocalArray(rhsValue);
@@ -1135,136 +1217,141 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
               rhsValue->getType()));
       return nullptr;
     }
-    if (varElementType != llvmArrayType->getArrayElementType()) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected Array of " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              llvmArrayType->getArrayElementType())) +
-          " in function call expression " +
-          Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-          Utils::CE(arg->getName().str()) + ", but found Array of " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              varElementType)));
 
-      return nullptr;
-    }
-
-    if (arrayTypeExpression->getDimensions().size() !=
-        llvmArrayType->getDimensions().size()) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected Array of size " +
-          std::to_string(llvmArrayType->getDimensions().size()) +
-          " in function call expression " +
-          Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-          Utils::CE(arg->getName().str()) + ", but found Array of size " +
-          std::to_string(arrayTypeExpression->getDimensions().size()));
-      return nullptr;
-    }
-    std::unique_ptr<LiteralExpressionGenerationStrategy>
-        literalExpressionGenerationStrategy =
-            std::make_unique<LiteralExpressionGenerationStrategy>(
-                _codeGenerationContext);
-
-    for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++) {
-      llvm::Value *arraySize =
-          literalExpressionGenerationStrategy->generateExpression(
-              arrayTypeExpression->getDimensions()[k].get());
-
-      if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Array size must be a constant integer");
-        return nullptr;
-      }
-
-      int64_t size = llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
-      if (size != llvmArrayType->getDimensions()[k]) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Expected Array's Dimension " + std::to_string(k + 1) +
-            " size to be " + std::to_string(llvmArrayType->getDimensions()[k]) +
+    if (_codeGenerationContext->verifyArrayType(
+            FArrayType, arrayType,
             " in function call expression " +
-            Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-            Utils::CE(arg->getName().str()) + ", but found " +
-            std::to_string(size));
-
-        return nullptr;
-      }
+                callExpression->getCallerNameRef()) == EXIT_FAILURE) {
+      return nullptr;
     }
-  } else if (llvmArrayArgs[llvmArgsIndex]->isPointerToObject()) {
-    BoundObjectTypeExpression *objTypeExpr =
-        static_cast<BoundObjectTypeExpression *>(
-            variableExpression->getVariableTypeRef());
+
+    // if (varElementType != varType) {
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Expected Array of " +
+    //       Utils::CE(
+    //           _codeGenerationContext->getMapper()->getLLVMTypeName(varType))
+    //           +
+    //       " in function call expression " +
+    //       Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+    //       Utils::CE(arg->getName().str()) + ", but found Array of " +
+    //       Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
+    //           varElementType)));
+
+    //   return nullptr;
+    // }
+
+    // if (arrayTypeExpression->getDimensions().size() !=
+    //     llvmArrayType->getDimensions().size()) {
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Expected Array of size " +
+    //       std::to_string(llvmArrayType->getDimensions().size()) +
+    //       " in function call expression " +
+    //       Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+    //       Utils::CE(arg->getName().str()) + ", but found Array of size " +
+    //       std::to_string(arrayTypeExpression->getDimensions().size()));
+    //   return nullptr;
+    // }
+    // std::unique_ptr<LiteralExpressionGenerationStrategy>
+    //     literalExpressionGenerationStrategy =
+    //         std::make_unique<LiteralExpressionGenerationStrategy>(
+    //             _codeGenerationContext);
+
+    // for (int64_t k = 0; k < llvmArrayType->getDimensions().size(); k++) {
+    //   llvm::Value *arraySize =
+    //       literalExpressionGenerationStrategy->generateExpression(
+    //           arrayTypeExpression->getDimensions()[k].get());
+
+    //   if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Array size must be a constant integer");
+    //     return nullptr;
+    //   }
+
+    //   int64_t size =
+    //   llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue(); if (size !=
+    //   llvmArrayType->getDimensions()[k]) {
+    //     _codeGenerationContext->getLogger()->LogError(
+    //         "Expected Array's Dimension " + std::to_string(k + 1) +
+    //         " size to be " +
+    //         std::to_string(llvmArrayType->getDimensions()[k]) + " in function
+    //         call expression " + Utils::CE(callExpression->getCallerNameRef())
+    //         + " as parameter " + Utils::CE(arg->getName().str()) + ", but
+    //         found " + std::to_string(size));
+
+    //     return nullptr;
+    //   }
+    // }
+  } else if (llvmArrayArgs[llvmArgsIndex]->isPointerToObject() &&
+             llvm::isa<llvm::StructType>(varType)) {
 
     LLVMObjectType *llvmObjType =
         static_cast<LLVMObjectType *>(llvmArrayArgs[llvmArgsIndex].get());
-    std::string structTypeName =
-        llvmObjType->getStructType()->getName().str().substr(
-            0, llvmObjType->getStructType()->getName().str().find('.'));
+    llvm::StructType *fParamStructType = llvmObjType->getStructType();
 
-    if (_codeGenerationContext->_classTypes.find(structTypeName) !=
+    llvm::StructType *structType = llvm::cast<llvm::StructType>(varType);
+    std::string structName = structType->getStructName().str();
+    if (_codeGenerationContext->_classTypes.find(
+            structType->getStructName().str().substr(
+                0, structType->getStructName().str().find(
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
         _codeGenerationContext->_classTypes.end()) {
 
       if (!_codeGenerationContext
-               ->_classTypes[objTypeExpr->getTypeName().substr(
-                   0, objTypeExpr->getTypeName().find("."))]
-               ->isChildOf(structTypeName)) {
-
+               ->_classTypes[structName.substr(
+                   0, structName.find(
+                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))]
+               ->isChildOf(fParamStructType->getStructName().str().substr(
+                   0, fParamStructType->getStructName().str().find(
+                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX)))) {
         _codeGenerationContext->getLogger()->LogError(
-            "Expected Object of type " + Utils::CE(structTypeName) +
+            "Expected Object of type " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(
+                fParamStructType) +
             " in function call expression " +
             Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
             ", but found object of type " +
-            Utils::CE(objTypeExpr->getTypeName().substr(
-                0, objTypeExpr->getTypeName().find("."))));
+            _codeGenerationContext->getMapper()->getLLVMTypeName(structType));
         return nullptr;
       }
-
-    } else if (objTypeExpr->getTypeName() != structTypeName) {
+    } else if (fParamStructType->getStructName().str() != structName) {
       _codeGenerationContext->getLogger()->LogError(
-          "Expected Object of type " + Utils::CE(structTypeName) +
+          "Expected Object of type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
           " in function call expression " +
           Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
           ", but found object of type " +
-          Utils::CE(objTypeExpr->getTypeName().substr(
-              0, objTypeExpr->getTypeName().find("."))));
+          _codeGenerationContext->getMapper()->getLLVMTypeName(
+              fParamStructType));
       return nullptr;
     }
 
-    // std::unique_ptr<ObjectExpressionGenerationStrategy> objExpGenStrat =
-    //     std::make_unique<ObjectExpressionGenerationStrategy>(
-    //         _codeGenerationContext);
+  } else if (llvmArrayArgs[llvmArgsIndex]->isPointerToPrimitive()) {
+    LLVMPrimitiveType *llvmPrimitiveType =
+        static_cast<LLVMPrimitiveType *>(llvmArrayArgs[llvmArgsIndex].get());
 
-    // llvm::Value *structPtr = nullptr;
-
-    // if (_isGlobal) {
-    //   structPtr = new llvm::GlobalVariable(
-    //       *TheModule, llvmObjType->getStructType(), false,
-    //       llvm::GlobalValue::ExternalLinkage,
-    //       llvm::Constant::getNullValue(llvmObjType->getStructType()));
-
-    // } else {
-    //   structPtr =
-    //       Builder->CreateAlloca(llvmObjType->getStructType(), nullptr);
-    //   _codeGenerationContext->getAllocaChain()->setAllocaInst(
-    //       structPtr->getName().str(), (llvm::AllocaInst *)structPtr);
-    // }
-
-    // objExpGenStrat->generateVariable(structPtr,
-    // structType->getName().str(),
-    //                                  rhsValue, false);
-
-    // rhsValue = structPtr;
-
-  } else {
-    if (llvmArrayArgs[llvmArgsIndex]->getType() != rhsValue->getType()) {
+    if (llvmPrimitiveType->getLLVMType() != varType) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected type " +
           Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              llvmArrayArgs[llvmArgsIndex]->getType())) +
+              llvmPrimitiveType->getLLVMType())) +
           " in function call expression " +
           Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
           Utils::CE(arg->getName().str()) + ", but found type " +
+          Utils::CE(
+              _codeGenerationContext->getMapper()->getLLVMTypeName(varType)));
+      return nullptr;
+    }
+  } else {
+    if (llvmArrayArgs[llvmArgsIndex]->getLLVMType() != varType) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected type " +
           Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType())));
+              llvmArrayArgs[llvmArgsIndex]->getLLVMType())) +
+          " in function call expression " +
+          Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
+          Utils::CE(arg->getName().str()) + ", but found type " +
+          Utils::CE(
+              _codeGenerationContext->getMapper()->getLLVMTypeName(varType)));
       return nullptr;
     }
   }

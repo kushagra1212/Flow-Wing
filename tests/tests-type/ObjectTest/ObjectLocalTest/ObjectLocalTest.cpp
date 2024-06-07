@@ -3001,5 +3001,34 @@ arr[0].ar[0].g = getGKA()
 
 [{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
+TEST_F(
+    ObjectLocalTest,
+    ArrayInObjectPropertySingleDimensionUsingVariableReturnFromPassingFunctionParamIn1) {
+  I(R"(
+
+  type T = {
+      x:int 
+    }
+    fun  getC() -> T {
+      return  {x:2}
+    }
+
+    fun setC(x:T) -> nthg {
+      print(x)
+    }
+setC(getC())
+print(getC())
+/#
+    fun  getC() -> int {
+      return  3
+    }
+
+    fun setC(x:int) -> nthg {
+      print(x)
+      }
+setC(getC())
+  )");
+  O(R"({ x : 2 }{ x : 2 })");
+}
 
 #endif

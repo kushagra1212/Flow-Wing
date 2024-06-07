@@ -122,13 +122,13 @@ declare !rt !25 void @ClearBackground(i32)
 
 define void @FlowWingAnim.init4(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4) !rt !26 {
 entry:
-  %5 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 1
-  %6 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 2
-  %7 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 3
-  %8 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 4
-  %9 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 5
-  %10 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 6
-  %11 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 7
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 1
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 2
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 3
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 4
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 5
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 6
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 7
   %screenHeight = alloca i32, align 4
   %12 = load i32, ptr %0, align 4
   store i32 %12, ptr %screenHeight, align 4
@@ -231,13 +231,13 @@ checkContinueBlock10:                             ; preds = %nestedBlock9
 
 define void @FlowWingAnim.beforeInit(ptr %0) !rt !27 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock6, %nestedBlock5, %checkContinueBlock4, %nestedBlock3, %checkContinueBlock2, %nestedBlock1, %checkContinueBlock, %nestedBlock
@@ -364,13 +364,13 @@ checkContinueBlock6:                              ; preds = %nestedBlock5
 
 define void @FlowWingAnim.setTargetFPS(ptr %0) !rt !28 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
@@ -390,13 +390,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define i32 @FlowWingAnim.getColor(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4) !rt !29 {
 entry:
-  %5 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 1
-  %6 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 2
-  %7 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 3
-  %8 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 4
-  %9 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 5
-  %10 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 6
-  %11 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 7
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 1
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 2
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 3
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 4
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 5
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 6
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 7
   %r = alloca i32, align 4
   %12 = load i32, ptr %0, align 4
   store i32 %12, ptr %r, align 4
@@ -444,13 +444,13 @@ mergeBlock:                                       ; No predecessors!
 
 define void @FlowWingAnim.createWindow(ptr %0) !rt !30 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
@@ -477,13 +477,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.clearBackground(ptr %0, ptr %1) !rt !31 {
 entry:
-  %2 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   %color = alloca i32, align 4
   %9 = load i32, ptr %0, align 4
   store i32 %9, ptr %color, align 4
@@ -506,13 +506,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define i1 @FlowWingAnim.windowShouldClose(ptr %0) !rt !32 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
@@ -536,13 +536,13 @@ mergeBlock:                                       ; No predecessors!
 
 define void @FlowWingAnim.beginDrawing(ptr %0) !rt !33 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
@@ -560,13 +560,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.drawRectangle(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) !rt !34 {
 entry:
-  %6 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 1
-  %7 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 2
-  %8 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 3
-  %9 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 4
-  %10 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 5
-  %11 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 6
-  %12 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 7
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 1
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 2
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 3
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 4
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 5
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 6
+  %12 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 7
   %posX = alloca i32, align 4
   %13 = load i32, ptr %0, align 4
   store i32 %13, ptr %posX, align 4
@@ -609,13 +609,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.endDrawing(ptr %0) !rt !35 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
@@ -633,13 +633,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.closeWindow(ptr %0) !rt !36 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %nestedBlock
@@ -657,13 +657,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define double @FlowWingAnim.getTime(ptr %0) !rt !37 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
@@ -687,13 +687,13 @@ mergeBlock:                                       ; No predecessors!
 
 define float @FlowWingAnim.getFrameTime(ptr %0) !rt !38 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
@@ -717,13 +717,13 @@ mergeBlock:                                       ; No predecessors!
 
 define i32 @FlowWingAnim.getScreenHeight(ptr %0) !rt !39 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
@@ -747,13 +747,13 @@ mergeBlock:                                       ; No predecessors!
 
 define i32 @FlowWingAnim.getScreenWidth(ptr %0) !rt !40 {
 entry:
-  %1 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 1
-  %2 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 2
-  %3 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 3
-  %4 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 4
-  %5 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 5
-  %6 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 6
-  %7 = getelementptr %FlowWingAnim, ptr %0, i32 0, i32 7
+  %1 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 1
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 2
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 3
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 4
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 5
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 6
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %0, i32 0, i32 7
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
@@ -777,13 +777,13 @@ mergeBlock:                                       ; No predecessors!
 
 define void @FlowWingAnim.drawCircle(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4) !rt !41 {
 entry:
-  %5 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 1
-  %6 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 2
-  %7 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 3
-  %8 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 4
-  %9 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 5
-  %10 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 6
-  %11 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 7
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 1
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 2
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 3
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 4
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 5
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 6
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 7
   %centerX = alloca i32, align 4
   %12 = load i32, ptr %0, align 4
   store i32 %12, ptr %centerX, align 4
@@ -821,13 +821,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.drawText(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) !rt !42 {
 entry:
-  %6 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 1
-  %7 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 2
-  %8 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 3
-  %9 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 4
-  %10 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 5
-  %11 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 6
-  %12 = getelementptr %FlowWingAnim, ptr %5, i32 0, i32 7
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 1
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 2
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 3
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 4
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 5
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 6
+  %12 = getelementptr inbounds %FlowWingAnim, ptr %5, i32 0, i32 7
   %text = alloca ptr, align 8
   %13 = load ptr, ptr %0, align 8
   store ptr %13, ptr %text, align 8
@@ -870,13 +870,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.drawTexture(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4) !rt !43 {
 entry:
-  %5 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 1
-  %6 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 2
-  %7 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 3
-  %8 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 4
-  %9 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 5
-  %10 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 6
-  %11 = getelementptr %FlowWingAnim, ptr %4, i32 0, i32 7
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 1
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 2
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 3
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 4
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 5
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 6
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %4, i32 0, i32 7
   %texture = alloca %Texture.0, align 8
   %12 = load %Texture.0, ptr %0, align 4
   store %Texture.0 %12, ptr %texture, align 4
@@ -912,13 +912,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.drawTexturePro(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5, ptr %6) !rt !44 {
 entry:
-  %7 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 1
-  %8 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 2
-  %9 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 3
-  %10 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 4
-  %11 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 5
-  %12 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 6
-  %13 = getelementptr %FlowWingAnim, ptr %6, i32 0, i32 7
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 1
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 2
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 3
+  %10 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 4
+  %11 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 5
+  %12 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 6
+  %13 = getelementptr inbounds %FlowWingAnim, ptr %6, i32 0, i32 7
   %texture = alloca %Texture.0, align 8
   %14 = load %Texture.0, ptr %0, align 4
   store %Texture.0 %14, ptr %texture, align 4
@@ -961,13 +961,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.traceLog(ptr %0, ptr %1, ptr %2) !rt !48 {
 entry:
-  %3 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 1
-  %4 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 2
-  %5 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 3
-  %6 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 4
-  %7 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 5
-  %8 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 6
-  %9 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 7
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 1
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 2
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 3
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 4
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 5
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 6
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 7
   %logLevel = alloca i32, align 4
   %10 = load i32, ptr %0, align 4
   store i32 %10, ptr %logLevel, align 4
@@ -995,13 +995,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define void @FlowWingAnim.loadTexture(ptr %0, ptr %1, ptr %2) !rt !49 {
 entry:
-  %3 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 1
-  %4 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 2
-  %5 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 3
-  %6 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 4
-  %7 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 5
-  %8 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 6
-  %9 = getelementptr %FlowWingAnim, ptr %2, i32 0, i32 7
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 1
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 2
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 3
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 4
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 5
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 6
+  %9 = getelementptr inbounds %FlowWingAnim, ptr %2, i32 0, i32 7
   %fileName = alloca ptr, align 8
   %10 = load ptr, ptr %1, align 8
   store ptr %10, ptr %fileName, align 8
@@ -1030,13 +1030,13 @@ mergeBlock:                                       ; No predecessors!
 
 define void @FlowWingAnim.unloadTexture(ptr %0, ptr %1) !rt !50 {
 entry:
-  %2 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   %9 = call ptr @malloc(i64 20)
   %10 = load %Texture.0, ptr %0, align 4
   store %Texture.0 %10, ptr %9, align 4
@@ -1057,13 +1057,13 @@ checkContinueBlock:                               ; preds = %nestedBlock
 
 define i1 @FlowWingAnim.isKeyPressed(ptr %0, ptr %1) !rt !51 {
 entry:
-  %2 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   %key = alloca i32, align 4
   %9 = load i32, ptr %0, align 4
   store i32 %9, ptr %key, align 4
@@ -1092,13 +1092,13 @@ mergeBlock:                                       ; No predecessors!
 
 define i1 @FlowWingAnim.isKeyDown(ptr %0, ptr %1) !rt !52 {
 entry:
-  %2 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   %key = alloca i32, align 4
   %9 = load i32, ptr %0, align 4
   store i32 %9, ptr %key, align 4
@@ -1127,13 +1127,13 @@ mergeBlock:                                       ; No predecessors!
 
 define ptr @FlowWingAnim.textFormat(ptr %0, ptr %1) !rt !53 {
 entry:
-  %2 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 1
-  %3 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 2
-  %4 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 3
-  %5 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 4
-  %6 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 5
-  %7 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 6
-  %8 = getelementptr %FlowWingAnim, ptr %1, i32 0, i32 7
+  %2 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 1
+  %3 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 2
+  %4 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 3
+  %5 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 4
+  %6 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 5
+  %7 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 6
+  %8 = getelementptr inbounds %FlowWingAnim, ptr %1, i32 0, i32 7
   %text = alloca ptr, align 8
   %9 = load ptr, ptr %0, align 8
   store ptr %9, ptr %text, align 8

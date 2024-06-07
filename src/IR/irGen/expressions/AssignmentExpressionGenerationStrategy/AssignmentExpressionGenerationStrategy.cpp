@@ -432,9 +432,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       exp->getLocation());
 
-  if (exp->getKind() == BinderKindUtils::CallExpression &&
-      (llvm::isa<llvm::ArrayType>(_lhsType) ||
-       llvm::isa<llvm::StructType>(_lhsType))) {
+  if (exp->getKind() == BinderKindUtils::CallExpression) {
 
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
@@ -442,7 +440,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
-
       callStrategy->setRtPtr({_lhsPtr, _lhsType});
       return callStrategy->generateExpression(exp);
     }

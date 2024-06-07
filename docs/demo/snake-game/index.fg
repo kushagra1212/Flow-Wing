@@ -2,125 +2,124 @@ bring {FlowWingAnim} from "FlowWingAnim.fg"
 
 const screenWidth: int = 1024
 const screenHeight: int = 768
-const FPS:int = 12
+const FPS: int = 12
 const side: int = 10
 type Position = {
   x: deci32,
   y: deci32
 }
-
-
 class Bird {
-const ACTUAL_BIRD_SIZE: deci32 = 360.0d
-var birdSize: deci32 = 90.0d
-const BIRD_TIMMER: deci = 1.0/FPS
-var birdTimmer:deci = BIRD_TIMMER
-const BIRD_SPRITE_SIZE = 9
-var birdSpriteIndex = 0
-var birdTexturePath 
-var isBirdAlive:bool 
-var birdTexture: Texture
-const birdSpritePosition: Position[9] = [{
-  x: 0.0d,
-  y: 0.0d
-}, {
-  x: ACTUAL_BIRD_SIZE * 1,
-  y: 0.0d
-}, {
-  x: ACTUAL_BIRD_SIZE * 2,
-  y: 0.0d
-}, {
-  x: 0.0d,
-  y: ACTUAL_BIRD_SIZE * 1
-}, {
-  x: ACTUAL_BIRD_SIZE * 1,
-  y: ACTUAL_BIRD_SIZE * 1
-}, {
-  x: ACTUAL_BIRD_SIZE * 2,
-  y: ACTUAL_BIRD_SIZE * 1
-}, {
-  x: 0.0d,
-  y: ACTUAL_BIRD_SIZE * 2
-}, {
-  x: ACTUAL_BIRD_SIZE * 1,
-  y: ACTUAL_BIRD_SIZE * 2
-}, {
-  x: ACTUAL_BIRD_SIZE * 2,
-  y: ACTUAL_BIRD_SIZE * 2
-}]
-
-init(birdTexturePath: str) -> nthg {
-  self.birdTexturePath = birdTexturePath
-  self.isBirdAlive = true
-}
-
-setTexture(birdTexture: Texture) -> nthg {
-    self.birdTexture =birdTexture
+  const ACTUAL_BIRD_SIZE: deci32 = 360.0d
+  var birdSize: deci32 = 90.0d
+  const BIRD_TIMMER: deci = 1.0 / FPS
+  var birdTimmer: deci   
+  const BIRD_SPRITE_SIZE:int = 9
+  var birdSpriteIndex:int = 0
+  var birdTexturePath:str
+  var isBirdAlive: bool
+  var birdTexture: Texture
+  var birdSpritePosition: Position[9] 
+  init(birdTexturePath: str) -> nthg {
+    self.birdTexturePath = birdTexturePath 
+    self.birdTimmer = BIRD_TIMMER
+    self.isBirdAlive = true 
+    self.birdSpritePosition = [{
+    x: 0.0d,
+    y: 0.0d
+  }, {
+    x: ACTUAL_BIRD_SIZE * 1,
+    y: 0.0d
+  }, {
+    x: ACTUAL_BIRD_SIZE * 2,
+    y: 0.0d
+  }, {
+    x: 0.0d,
+    y: ACTUAL_BIRD_SIZE * 1
+  }, {
+    x: ACTUAL_BIRD_SIZE * 1,
+    y: ACTUAL_BIRD_SIZE * 1
+  }, {
+    x: ACTUAL_BIRD_SIZE * 2,
+    y: ACTUAL_BIRD_SIZE * 1
+  }, {
+    x: 0.0d,
+    y: ACTUAL_BIRD_SIZE * 2
+  }, {
+    x: ACTUAL_BIRD_SIZE * 1,
+    y: ACTUAL_BIRD_SIZE * 2
+  }, {
+    x: ACTUAL_BIRD_SIZE * 2,
+    y: ACTUAL_BIRD_SIZE * 2
+  }]
   }
 
-getTexturePath() -> str {
-  return self.birdTexturePath
-}
+  setTexture(birdTexture: Texture) -> nthg {
+    self.birdTexture = birdTexture 
+  }
 
-update(frameTime: deci32) -> nthg {
-    birdTimmer = birdTimmer - Decimal(frameTime)
-    if birdTimmer < 0  {
-      birdTimmer =  BIRD_TIMMER
+  getTexturePath() -> str {
+    return self.birdTexturePath
+  }
+
+  update(frameTime: deci32) -> nthg {
+    birdTimmer = birdTimmer - Decimal(frameTime) 
+    if birdTimmer < 0 {
+      birdTimmer = BIRD_TIMMER 
       birdSpriteIndex = birdSpriteIndex + 1 
       if birdSpriteIndex >= BIRD_SPRITE_SIZE {
-          birdSpriteIndex = 0
-        }
+        birdSpriteIndex = 0 
+      }
+
     }
+
   }
 
-isTextureLoaded() -> bool {
+  isTextureLoaded() -> bool {
     return self.birdTexture.id != 0
   }
 
- getSource() -> deci32[4] {
-return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y,
-    ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]
+  getSource() -> deci32[4] {
+    return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]
   }
 
   getDistination() -> deci32[4] {
-return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2),
-    birdSize, birdSize]
-    }
+    return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]
+  }
 
-    getOrigin() -> deci32[2] {
-        return  [0.0d, 0.0d]
-      }
+  getOrigin() -> deci32[2] {
+    return [0.0d, 0.0d]
+  }
 
-      getRotation() -> deci32 {
-          return 0.0d
-        }
+  getRotation() -> deci32 {
+    return 0.0d
+  }
 
-        getTexture() -> Texture {
-            return self.birdTexture
-          }
+  getTexture() -> Texture {
+    return self.birdTexture
+  }
+
 }
 
 fun main() -> int {
   const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
   const bird: Bird = new Bird("./bird.png")
   fgAnim.createWindow()
-  bird.setTexture(fgAnim.loadTexture(bird.getTexturePath()))/; Check if textures loaded successfully
-
+  bird.setTexture(fgAnim.loadTexture("./bird.png"))/; Check if textures loaded successfully
+  
   if !bird.isTextureLoaded() {/; If any texture failed to load, print error and exit
 
-    fgAnim.traceLog(fgAnim.LOG.ERROR, "Failed to load bird texture")
-    /; Clean up and exit
+    fgAnim.traceLog(fgAnim.LOG.ERROR, "Failed to load bird texture")/; Clean up and exit
 
     fgAnim.unloadTexture(bird.getTexture())
     fgAnim.closeWindow()
     return 1
   }
 
-  while !fgAnim.windowShouldClose()  {
-    bird.update(fgAnim.getFrameTime()) 
+  while !fgAnim.windowShouldClose() {
+  bird.update(fgAnim.getFrameTime())
     fgAnim.beginDrawing()
     fgAnim.clearBackground(fgAnim.colors.WHITE)
-    fgAnim.drawTexturePro(bird.getTexture(),bird.getSource(),bird.getDistination(),bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
+ fgAnim.drawTexturePro(bird.getTexture(), bird.getSource(), bird.getDistination(), bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
     fgAnim.endDrawing()
   }
   fgAnim.closeWindow()

@@ -3315,3 +3315,226 @@ print(a.u)
 )");
   O(R"(22.200000000000002{ a : 43, b : 54.20000000000000 })");
 }
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun) {
+  I(R"(
+type T = {
+    a:int 
+}
+class A {
+var i:deci32
+var x:int 
+var s:str 
+var t:T
+var g:T[2]
+init(s: str) -> nthg{
+  self.s = s 
+}
+
+getT() -> T {
+    return t  
+  }
+
+getTA() -> T[2] {
+    return g
+  }
+}
+
+fun printT(t: T) -> nthg {
+  print(t)
+}
+fun printTAr(ta:T[2]) -> nthg {
+    print(ta)
+  }
+
+var a:A = new A("Hello")
+
+printT(a.getT())
+printTAr(a.getTA())
+)");
+  O(R"({ a : 0 }[{ a : 0 }, { a : 0 }])");
+}
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun2) {
+  I(R"(
+
+type T = {
+    a:int,
+    b:str
+}
+class A {
+var i:deci32
+var x:int 
+var s:str 
+var t:T
+var g:T[2]
+init(s: str) -> nthg{
+  self.s = s 
+}
+
+getT(b:str) -> T {
+   t.b = b
+   return t  
+  }
+
+getTA(b:str ) -> T[2] {
+  g[0].b =b 
+    return g
+  }
+}
+
+fun printT(t: T) -> nthg {
+  print(t)
+}
+fun printTAr(ta:T[2]) -> nthg {
+    print(ta)
+  }
+
+var a:A = new A("Hello")
+
+printT(a.getT("IH"))
+printTAr(a.getTA("Hi"))
+)");
+  O(R"({ a : 0, b : 'IH' }[{ a : 0, b : 'Hi' }, { a : 0, b : '' }])");
+}
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun3) {
+  I(R"(
+ type T  = {
+      x:int,
+      d:str 
+    }
+class Animal {
+  var age:int 
+  var species:str
+
+
+  var t:T 
+  init(age:int) -> nthg {
+    self.age = age
+    self.t = {d:"Hi",x:12}
+  }
+  getAge() -> int {
+    return self.age
+  }
+  printSpecies() -> nthg { 
+    print("Species: ",species)
+  }
+}
+class Dog extends Animal {
+   var breed:str 
+  
+  init(age:int) -> nthg {
+    super(age)
+  }
+
+  getAge() ->int {
+    return 7*self.age  
+  }
+  printBreed() -> nthg { 
+    print("breed "+breed)
+  }
+
+
+  getT() -> T {
+      return self.t
+    }
+}
+fun printAge(a: Animal) ->nthg{
+ print("I'm "+a.getAge()+" years old!\n")
+}
+fun main() -> nthg {
+  var animal:Animal = new Animal(2)
+  var  dog:Dog = new Dog(2)
+var x:int = dog.getAge()
+print("x ",x)
+print(dog.getT())
+print(dog.getAge())
+print(animal.getAge())
+printAge(animal) 
+ printAge(dog) 
+}
+main()
+
+)");
+  O(R"(x 14{ x : 12, d : 'Hi' }142I'm 2 years old!
+I'm 14 years old!
+)");
+}
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun4) {
+  I(R"(
+   type T = {
+    a:int,
+    b:str
+}
+class A {
+var s:str 
+var k:T
+var x:int
+init(s: str) -> nthg{
+  self.s = s 
+}
+  getHell() -> str {
+      return "Hell"
+    }
+  setHell(s:str) -> nthg {
+    
+      print(s)
+    }
+
+
+      getC() -> int {
+      return  3
+    }
+  setC(i:int) -> nthg{
+    
+      print(i)
+    }
+      getT() -> T {
+        var x:T = {b:"hel"}
+      return x 
+    }
+  setT(i:T) -> nthg{
+    
+      print(i)
+    }
+
+   getX(x:int ) -> int  {
+      return x 
+    } 
+
+   getXX() -> int  {
+      return 3 
+    }
+
+    setX(x:int ) -> nthg {
+        self.x = x
+      print("x: ",x)
+      }
+
+      getXXX(x:int) -> int {
+          return x
+        }
+}
+
+
+
+var a:A = new A("Hello")
+
+a.setC(a.getC())
+print(a.getC())
+a.setHell(a.getHell())
+print(a.getHell())
+a.setT(a.getT())
+print(a.getT())
+print(a.getX(a.getXX()))
+a.setX(a.getX(a.getXX()))
+a.setX(a.getX(a.getXXX(5))) 
+)");
+  O(R"(33HellHell{ a : 0, b : 'hel' }{ a : 0, b : 'hel' }3x: 3x: 5)");
+}

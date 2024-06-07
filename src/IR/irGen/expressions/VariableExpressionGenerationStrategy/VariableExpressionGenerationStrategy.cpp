@@ -70,7 +70,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
   llvm::Value *varValue = Builder->CreateLoad(variableType, v, variableName);
   // when Primitive Typed Global Variable (Value)
 
-  _codeGenerationContext->getValueStackHandler()->push("", v, "primitive",
+  _codeGenerationContext->getValueStackHandler()->push("", v, "primary",
                                                        variableType);
 
   return varValue;
@@ -184,7 +184,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     bool itsClass) {
 
   std::string dotPropertyName = getPropertyName(listIndex);
-
   itsClass = _codeGenerationContext->_classTypes.find(
                  parObjType->getStructName().str().substr(
                      0, parObjType->getStructName().str().find("."))) !=

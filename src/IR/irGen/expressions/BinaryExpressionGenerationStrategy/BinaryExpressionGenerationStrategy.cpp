@@ -21,6 +21,11 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         "Binary Expression is not supported for objects as of now");
     return nullptr;
   }
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    lhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  }
 
   TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
 
@@ -34,6 +39,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     _codeGenerationContext->getLogger()->LogError(
         "Binary Expression is not supported for objects as of now");
     return nullptr;
+  }
+
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    rhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   if (!lhsValue || !rhsValue) {

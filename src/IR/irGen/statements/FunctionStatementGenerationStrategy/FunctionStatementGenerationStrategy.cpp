@@ -12,12 +12,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
 llvm::Value *FunctionStatementGenerationStrategy::generate(
     BoundStatement *statement, std::vector<std::string> classParams,
     llvm::Type *classType, std::vector<std::string> classVariables) {
+
   BoundFunctionDeclaration *functionDeclaration =
       static_cast<BoundFunctionDeclaration *>(statement);
 
-  //   if (!functionDeclaration->getParametersRef().size()) {
-  //     return nullptr;
-  //   }
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       functionDeclaration->getLocation());
 
@@ -63,14 +61,11 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
                                ->getReturnType(FUNCTION_NAME)
-                               ->getType();
+                               ->getLLVMType();
 
-  if (llvm::isa<llvm::ArrayType>(_codeGenerationContext->getReturnTypeHandler()
-                                     ->getReturnType(FUNCTION_NAME)
-                                     ->getLLVMType()) ||
-      llvm::isa<llvm::StructType>(_codeGenerationContext->getReturnTypeHandler()
-                                      ->getReturnType(FUNCTION_NAME)
-                                      ->getLLVMType())) {
+  if (_codeGenerationContext->getReturnTypeHandler()
+          ->getReturnType(FUNCTION_NAME)
+          ->getLLVMType() != llvm::Type::getVoidTy(*TheContext)) {
     parameterNames.push_back(FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
   }
 
@@ -84,10 +79,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     parameterNames.push_back(classParam);
   }
 
-  std::unique_ptr<ContainerAssignmentExpressionGenerationStrategy>
-      containerAssignmentExpressionGenerationStrategy(
-          new ContainerAssignmentExpressionGenerationStrategy(
-              _codeGenerationContext));
   llvm::LLVMContext *TheContext = _codeGenerationContext->getContext().get();
 
   const std::vector<std::unique_ptr<LLVMType>> &llvmArgsTypes =
@@ -101,8 +92,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     for (int j = 1; j < structT->getNumElements(); j++) {
       llvm::Type *type = structT->getElementType(j);
 
-      llvm::Value *elementPtr = Builder->CreateGEP(
-          structT, argValue, {Builder->getInt32(0), Builder->getInt32(j)});
+      llvm::Value *elementPtr = Builder->CreateStructGEP(structT, argValue, j);
       _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});
     }
@@ -166,6 +156,11 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     } else {
       if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
           llvmArgsTypes[i]->isPointerToArray()) {
+        std::unique_ptr<ContainerAssignmentExpressionGenerationStrategy>
+            containerAssignmentExpressionGenerationStrategy = std::make_unique<
+                ContainerAssignmentExpressionGenerationStrategy>(
+                _codeGenerationContext);
+
         LLVMArrayType *llvmArrayPtrType =
             static_cast<LLVMArrayType *>(llvmArgsTypes[i].get());
 
