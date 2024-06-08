@@ -41,6 +41,7 @@ private:
   std::string _variableName;
   llvm::Value *_rhsValue;
   SyntaxKindUtils::SyntaxKind _variableType;
+  bool _isGlobal = false;
 };
 
 #endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

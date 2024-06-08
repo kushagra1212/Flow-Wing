@@ -17,6 +17,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateExpression(
   if (BuiltInFunction::isBuiltInFunction(callExpression->getCallerNameRef())) {
     return this->buildInFunctionCall(callExpression);
   }
+
   return this->userDefinedFunctionCall(callExpression);
 }
 
@@ -605,7 +606,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       }
     }
   }
-
   return generateCommonCallExpression(callExpression, calleeFunction, classArg,
                                       _classType, _classPtr);
 }
@@ -681,7 +681,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   }
 
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonVoidReturn()) {
+          ->isNonPrimitiveReturnType()) {
     // If it memeber function of class or a normal function but has the non
     // primitive return type
     //? (A0, A1, ClassPtr) | (A1) -> Case 2
@@ -701,7 +701,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   llvm::Value *rhsValue = nullptr;
   uint64_t initialLLVMArgIndex = 0;
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonVoidReturn()) {
+          ->isNonPrimitiveReturnType()) {
     if (!_rtPtr.first) {
       _rtPtr.second = _codeGenerationContext
                           ->_functionTypes[callExpression->getCallerNameRef()]
@@ -715,6 +715,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     }
     initialLLVMArgIndex++;
     rhsValue = _rtPtr.first;
+
     functionArgs.push_back(rhsValue);
   }
 
@@ -739,6 +740,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     callIn = Builder->CreateCall(functionType, calleeValue, functionArgs);
   else
     callIn = Builder->CreateCall(calleeFunction, functionArgs);
+
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (callExpression->getCallerNameRef().find(
@@ -747,6 +749,16 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
                                                          "struct", _classType);
     return _classPtr;
+  }
+
+  if (!_codeGenerationContext
+           ->_functionTypes[callExpression->getCallerNameRef()]
+           ->isNonPrimitiveReturnType()) {
+
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "constant",
+                                                         callIn->getType());
+
+    return callIn;
   }
 
   // if (!_classType) {
@@ -860,7 +872,9 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     bool isCassInit = cE->getCallerNameRef().find(".init") != std::string::npos;
 
-    if (!isCassInit) {
+    if (!isCassInit &&
+        _codeGenerationContext->_functionTypes[cE->getCallerNameRef()]
+            ->isNonPrimitiveReturnType()) {
 
       callExpressionGenerationStrategy->setRtPtr(
           {rhsValue,
@@ -868,22 +882,19 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                ->getReturnType()});
     }
 
+    _codeGenerationContext->getValueStackHandler()->popAll();
     llvm::Value *value =
         callExpressionGenerationStrategy->generateExpression(cE);
     llvm::Type *type =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
 
-    if (!isCassInit && type->isVoidTy()) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Function " + cE->getCallerNameRef() + " does not return a value");
+    if (llvm::isa<llvm::StructType>(type) || llvm::isa<llvm::ArrayType>(type)) {
 
-      return nullptr;
-    }
-
-    if (isCassInit) {
       rhsValue = Builder->CreateAlloca(type, nullptr);
       Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+
     } else {
+
       BoundFunctionDeclaration *functionDeclaration =
           _codeGenerationContext
               ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
@@ -892,9 +903,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         rhsValue = Builder->CreateLoad(
             type, _codeGenerationContext->getValueStackHandler()->getValue());
       } else {
-        rhsValue = value;
-        // rhsValue = Builder->CreateAlloca(type, nullptr);
-        // Builder->CreateStore(value, rhsValue);
+        rhsValue = Builder->CreateAlloca(type, nullptr);
+        Builder->CreateStore(value, rhsValue);
       }
     }
     _codeGenerationContext->getValueStackHandler()->popAll();
@@ -1077,18 +1087,10 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
 
     llvm::StructType *classType =
         _codeGenerationContext->_classTypes[objectTypeName]->getClassType();
-    auto fun = TheModule->getFunction(INNERS::FUNCTIONS::MALLOC);
 
-    llvm::CallInst *malloc_call = Builder->CreateCall(
-        fun, llvm::ConstantInt::get(
-                 llvm::Type::getInt64Ty(*TheContext),
-                 _codeGenerationContext->getMapper()->getSizeOf(classType)));
-    malloc_call->setTailCall(false);
+    llvm::Value *intPtr = _codeGenerationContext->createMemoryGetPtr(
+        classType, "", BinderKindUtils::MemoryKind::Heap);
 
-    // Cast the result of 'malloc' to a pointer to int
-    llvm::Value *intPtr = Builder->CreateBitCast(
-        malloc_call,
-        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*TheContext)));
     _codeGenerationContext->getAllocaChain()->setPtr(objectTypeName,
                                                      {intPtr, classType});
     assignExpGenStrat->initDefaultValue(classType, intPtr);

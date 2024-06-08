@@ -75,21 +75,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       break;
     }
-
-    case BinderKindUtils::BoundTypeExpression: {
-
-      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-        llvm::Type *type =
-            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                bTE->getSyntaxType());
-        argTypes.push_back(llvm::PointerType::get(type, 0));
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME, std::make_unique<LLVMType>(type));
-      }
-
-      break;
-    }
     default: {
+
       break;
     }
     }
@@ -242,18 +229,22 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       llvm::Type *elementType =
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
-      returnType = llvm::PointerType::get(elementType, 0);
+      returnType = elementType;
 
-      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
-                                   false);
+      FT = llvm::FunctionType::get(returnType, argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
+      if (!returnType->isVoidTy() &&
+          _codeGenerationContext->getMapper()->isPrimitiveType(returnType)) {
+
+        //   F->addDereferenceableParamAttr(-1,
+        //   llvm::Attribute::AttrKind::ByRef);
+      }
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-          FUNCTION_NAME,
-          std::make_unique<LLVMPrimitiveType>(returnType, elementType));
+          FUNCTION_NAME, std::make_unique<LLVMType>(returnType));
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
-          elementType);
+          returnType);
       returnInfo =
           FUNCTION_NAME + ":rt:pr:" +
           std::to_string(
@@ -326,8 +317,6 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       for (int64_t k = 0; k < returnDimentions.size(); k++) {
         returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
-      //    F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
-      // NoCapture()
       break;
     }
     case BinderKindUtils::BoundObjectTypeExpression: {

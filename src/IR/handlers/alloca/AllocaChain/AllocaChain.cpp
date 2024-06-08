@@ -165,3 +165,20 @@ void AllocaChain::setPtr(const std::string &name,
     handler->setPtr(name, ptr);
   }
 }
+
+void AllocaChain::setGlobalPtr(const std::string &name,
+                               std::pair<llvm::Value *, llvm::Type *> ptr) {
+  std::stack<std::unique_ptr<AllocaTable>> currentHandler;
+  while (!handlers.empty()) {
+    std::unique_ptr<AllocaTable> &handler = handlers.top();
+    if (handlers.size() == 1) {
+      handler->setPtr(name, ptr);
+    }
+    currentHandler.push(std::move(handler));
+    handlers.pop();
+  }
+  while (!currentHandler.empty()) {
+    handlers.push(std::move(currentHandler.top()));
+    currentHandler.pop();
+  }
+}

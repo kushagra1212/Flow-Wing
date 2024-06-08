@@ -432,8 +432,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       exp->getLocation());
 
-  if (exp->getKind() == BinderKindUtils::CallExpression) {
-
+  if (exp->getKind() == BinderKindUtils::CallExpression &&
+      (llvm::isa<llvm::ArrayType>(_lhsType) ||
+       llvm::isa<llvm::StructType>(_lhsType))) {
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
     if (callExp->getCallerNameRef().find(".init") == std::string::npos) {
@@ -455,7 +456,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   llvm::Value *rhsValue = nullptr;
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
-
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
     rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
@@ -464,7 +464,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (_lhsDynamicPtr) {
-
     return handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr,
                                                     _lhsVariableName, rhsValue);
   }
@@ -515,7 +514,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
   if (llvm::isa<llvm::ArrayType>(_lhsType) &&
       llvm::isa<llvm::ArrayType>(rhsType)) {
-
     if (_codeGenerationContext->verifyArrayType(
             llvm::cast<llvm::ArrayType>(_lhsType),
             llvm::cast<llvm::ArrayType>(rhsType)) == EXIT_FAILURE)
@@ -525,7 +523,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
   }
 
   if (_lhsType != rhsType) {
-
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable Assignment " + _lhsVariableName +
         " Expected type " +

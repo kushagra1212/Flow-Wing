@@ -63,12 +63,14 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
                                ->getReturnType(FUNCTION_NAME)
                                ->getLLVMType();
 
-  if (_codeGenerationContext->getReturnTypeHandler()
-          ->getReturnType(FUNCTION_NAME)
-          ->getLLVMType() != llvm::Type::getVoidTy(*TheContext)) {
+  if (llvm::isa<llvm::ArrayType>(_codeGenerationContext->getReturnTypeHandler()
+                                     ->getReturnType(FUNCTION_NAME)
+                                     ->getLLVMType()) ||
+      llvm::isa<llvm::StructType>(_codeGenerationContext->getReturnTypeHandler()
+                                      ->getReturnType(FUNCTION_NAME)
+                                      ->getLLVMType())) {
     parameterNames.push_back(FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
   }
-
   for (size_t i = 0; i < functionDeclaration->getParametersRef().size(); i++) {
     parameterNames.push_back(
         functionDeclaration->getParametersRef()[i]->getVariableName());

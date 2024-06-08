@@ -3464,6 +3464,80 @@ main()
 I'm 14 years old!
 )");
 }
+
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun4LocalandGlobal) {
+  I(R"(
+    type T = {
+    a:int,
+    b:str
+}
+class A {
+var s:str 
+var k:T
+var x:int
+init(s: str) -> nthg{
+  self.s = s 
+}
+  getHell() -> str {
+      return "Hell"
+    }
+  setHell(s:str) -> nthg {
+    
+   /;   print(s)
+    }
+
+
+      getC() -> int {
+      return  3
+    }
+  setC(i:int) -> nthg{
+    
+     /;  print(i)
+    }
+      getT() -> T {
+        var x:T = {b:"hel"}
+      return x 
+    }
+  setT(i:T) -> nthg{
+    
+      /; print(i)
+    }
+
+   getX(x:int ) -> int  {
+      return x 
+    } 
+
+   getXX() -> int  {
+      return 3 
+    }
+
+    setX(x:int ) -> nthg {
+        self.x = x
+      print("x: ",x)
+      }
+
+      getXXX(x:int) -> int {
+          return x
+        }
+}
+
+
+
+var a:A = new A("Hello")
+
+fun main() -> int {
+
+   print(a.s) 
+    return 0 
+  }
+
+  main()
+)");
+  O(R"(Hello)");
+}
+
 TEST_F(
     ClassesTests,
     ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun4) {

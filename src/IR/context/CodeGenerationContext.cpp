@@ -61,16 +61,16 @@ CodeGenerationContext ::CodeGenerationContext(
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
 
-  for (auto &function : BuiltInFunction::getBuiltInFunctions()) {
-    _functionTypes[function->getFunctionNameRef()] =
-        std::make_unique<Function>();
+  // for (auto &function : BuiltInFunction::getBuiltInFunctions()) {
+  //   _functionTypes[function->getFunctionNameRef()] =
+  //       std::make_unique<Function>();
 
-    _functionTypes[function->getFunctionNameRef()]->setFunctionName(
-        function->getFunctionNameRef());
-    _functionTypes[function->getFunctionNameRef()]->setReturnType(
-        _typeMapper->mapCustomTypeToLLVMType(
-            BuiltInFunction::getReturnType(function->getFunctionNameRef())));
-  }
+  //   _functionTypes[function->getFunctionNameRef()]->setFunctionName(
+  //       function->getFunctionNameRef());
+  //   _functionTypes[function->getFunctionNameRef()]->setReturnType(
+  //       _typeMapper->mapCustomTypeToLLVMType(
+  //           BuiltInFunction::getReturnType(function->getFunctionNameRef())));
+  // }
 };
 
 std::unique_ptr<llvm::IRBuilder<>> &CodeGenerationContext::getBuilder() {

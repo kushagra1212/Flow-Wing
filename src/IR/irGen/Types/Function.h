@@ -19,7 +19,10 @@ public:
     this->_returnType = returnType;
   }
 
-  inline auto isNonVoidReturn() -> bool { return !_returnType->isVoidTy(); }
+  inline auto isNonPrimitiveReturnType() -> bool {
+    return llvm::isa<llvm::StructType>(_returnType) ||
+           llvm::isa<llvm::ArrayType>(_returnType);
+  }
 
 private:
   std::string _functionName;

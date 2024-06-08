@@ -274,7 +274,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-
+  _isGlobal = true;
   BoundVariableDeclaration *variableDeclaration =
       static_cast<BoundVariableDeclaration *>(statement);
   if (variableDeclaration->getMemoryKind() == BinderKindUtils::MemoryKind::None)
@@ -300,8 +300,7 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
       variableDeclaration->getTypeExpression().get()->getSyntaxType();
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
-      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
-      _codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+      _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
     return true;
   }
   if (!initializerExp) {

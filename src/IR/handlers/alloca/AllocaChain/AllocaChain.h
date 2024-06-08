@@ -35,6 +35,8 @@ public:
 
   void setPtr(const std::string &name,
               std::pair<llvm::Value *, llvm::Type *> ptr);
+  void setGlobalPtr(const std::string &name,
+                    std::pair<llvm::Value *, llvm::Type *> ptr);
 };
 
 #endif // FLOWWING_ALLOCACHAIN_H
