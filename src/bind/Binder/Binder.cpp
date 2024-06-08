@@ -1264,7 +1264,12 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         DiagnosticUtils::DiagnosticType::Semantic,
         Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
   }
+
   fd->setIsMemberFunction(syntax->isMemberFunction());
+
+  if (syntax->getAsKeyword()) {
+    fd->setHasAsReturnType(true);
+  }
 
   if (function_name.substr(
           function_name.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) +

@@ -15,15 +15,27 @@ public:
 
   inline auto getReturnType() -> llvm::Type * { return _returnType; }
 
-  inline auto setReturnType(llvm::Type *returnType) -> void {
+  inline auto setReturnType(llvm::Type *returnType, bool hasAsReturnType)
+      -> void {
     this->_returnType = returnType;
+    this->_hasAsReturnType = hasAsReturnType;
   }
 
-  inline auto isNonVoidReturn() -> bool { return !_returnType->isVoidTy(); }
+  inline auto isHavingReturnTypeAsParamater() -> bool {
+
+    if (_hasAsReturnType)
+      return false;
+
+    if (_returnType->isVoidTy())
+      return false;
+
+    return true;
+  }
 
 private:
   std::string _functionName;
   llvm::Type *_returnType;
+  bool _hasAsReturnType = false;
 };
 
 #endif

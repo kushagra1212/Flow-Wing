@@ -63,7 +63,7 @@ declare !rt !1 void @SetTargetFPS(i32)
 
 declare !rt !2 void @ClearBackground(i32)
 
-declare !rt !3 void @WindowShouldClose(ptr)
+declare !rt !3 i1 @WindowShouldClose()
 
 declare !rt !4 void @BeginDrawing()
 
@@ -73,21 +73,21 @@ declare !rt !6 void @EndDrawing()
 
 declare !rt !7 void @CloseWindow()
 
-declare !rt !8 void @GetScreenHeight(ptr)
+declare !rt !8 i32 @GetScreenHeight()
 
-declare !rt !9 void @GetScreenWidth(ptr)
+declare !rt !9 i32 @GetScreenWidth()
 
 declare !rt !10 void @DrawCircle(i32, i32, float, i32)
 
 declare !rt !11 void @DrawText(ptr, i32, i32, i32, i32)
 
-declare !rt !12 void @IsKeyPressed(ptr, i32)
+declare !rt !12 i1 @IsKeyPressed(i32)
 
-declare !rt !13 void @IsKeyDown(ptr, i32)
+declare !rt !13 i1 @IsKeyDown(i32)
 
-declare !rt !14 void @TextFormat(ptr, ptr)
+declare !rt !14 ptr @TextFormat(ptr)
 
-declare !rt !15 void @LoadTexture(ptr dereferenceable(74), ptr)
+declare !rt !15 void @LoadTexture(ptr sret, ptr)
 
 declare !rt !16 void @DrawTexture(ptr, i32, i32, i32)
 
@@ -97,13 +97,13 @@ declare !rt !18 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float],
 
 declare !rt !19 void @TraceLog(i32, ptr)
 
-declare !rt !20 void @GetTime(ptr)
+declare !rt !20 double @GetTime()
 
-declare !rt !21 void @GetFrameTime(ptr)
+declare !rt !21 float @GetFrameTime()
 
-declare !rt !22 void @rand(ptr)
+declare !rt !22 i32 @rand()
 
-declare !rt !23 void @time(ptr)
+declare !rt !23 i32 @time()
 
 declare !rt !24 void @srand(i32)
 
@@ -127,9 +127,7 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %rtPtr = alloca i32, align 4
-  call void @rand(ptr %rtPtr)
-  %5 = load i32, ptr %rtPtr, align 4
+  %5 = call i32 @rand()
   %end1 = load i32, ptr %end, align 4
   %6 = load i32, ptr %end, align 4
   %start2 = load i32, ptr %start, align 4

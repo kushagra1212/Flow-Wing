@@ -64,8 +64,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
                                ->getLLVMType();
 
   if (_codeGenerationContext->getReturnTypeHandler()
-          ->getReturnType(FUNCTION_NAME)
-          ->getLLVMType() != llvm::Type::getVoidTy(*TheContext)) {
+          ->isHavingReturnTypeAsParameter(FUNCTION_NAME)) {
     parameterNames.push_back(FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
   }
 

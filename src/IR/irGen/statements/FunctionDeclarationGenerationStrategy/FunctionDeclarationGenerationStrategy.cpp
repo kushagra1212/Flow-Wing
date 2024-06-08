@@ -48,7 +48,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   std::vector<llvm::Type *> argTypes;
 
   //? Taking value to return as parameter
-  {
+  if (!fd->hasAsReturnType()) {
     BoundTypeExpression *bTE =
         static_cast<BoundTypeExpression *>(fd->getReturnType().get());
 
@@ -244,16 +244,19 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
               bTE->getSyntaxType());
       returnType = llvm::PointerType::get(elementType, 0);
 
-      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
-                                   false);
+      FT = llvm::FunctionType::get(fd->hasAsReturnType()
+                                       ? elementType
+                                       : llvm::Type::getVoidTy(*TheContext),
+                                   argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME,
-          std::make_unique<LLVMPrimitiveType>(returnType, elementType));
+          std::make_unique<LLVMPrimitiveType>(returnType, elementType),
+          fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
-          elementType);
+          elementType, fd->hasAsReturnType());
       returnInfo =
           FUNCTION_NAME + ":rt:pr:" +
           std::to_string(
@@ -312,22 +315,30 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       //! Returning Void for Array Type and settting the value in parameter
       //! where we have the pointer to array
-      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
-                                   false);
+      FT = llvm::FunctionType::get(fd->hasAsReturnType()
+                                       ? returnType
+                                       : llvm::Type::getVoidTy(*TheContext),
+                                   argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
-          FUNCTION_NAME, std::make_unique<LLVMArrayType>(
-                             returnType, arrayType, elementType,
-                             returnDimentions, boundArrayTypeExpression));
+          FUNCTION_NAME,
+          std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
+                                          returnDimentions,
+                                          boundArrayTypeExpression),
+          fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
-          arrayType);
+          arrayType, fd->hasAsReturnType());
       for (int64_t k = 0; k < returnDimentions.size(); k++) {
         returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
-      //    F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
-      // NoCapture()
+
+      // if (fd->hasAsReturnType()) {
+      //   F->addDereferenceableParamAttr(-1,
+      //   llvm::Attribute::AttrKind::NonNull);
+      // }
+
       break;
     }
     case BinderKindUtils::BoundObjectTypeExpression: {
@@ -348,16 +359,19 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       llvm::Type *returnType = llvm::PointerType::get(structType, 0);
       //! Returning Void for struct Type and settting the value in parameter
       //! where we have the pointer to struct
-      FT = llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext), argTypes,
-                                   false);
+      FT = llvm::FunctionType::get(fd->hasAsReturnType()
+                                       ? returnType
+                                       : llvm::Type::getVoidTy(*TheContext),
+                                   argTypes, false);
       F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME,
-          std::make_unique<LLVMObjectType>(returnType, structType));
+          std::make_unique<LLVMObjectType>(returnType, structType),
+          fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
-          structType);
+          structType, fd->hasAsReturnType());
       returnInfo =
           FUNCTION_NAME + ":rt:ob:" + boundObjectTypeExpression->getTypeName();
       if (_codeGenerationContext->_classTypes.find(FUNCTION_NAME.substr(
@@ -365,9 +379,11 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                      FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
           _codeGenerationContext->_classTypes.end()) {
         //        llvm::Attribute::AttrKind kind = ;
-        F->addDereferenceableParamAttr(0, llvm::Attribute::AttrKind::StructRet);
-        // F->addParamAttr(0, llvm::Attribute::AttrKind::NoCapture);
-        // F->addParamAttr(1, llvm::Attribute::AttrKind::StructRet);
+        F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
+        // F->addDereferenceableParamAttr(0,
+        // llvm::Attribute::AttrKind::StructRet); F->addParamAttr(0,
+        // llvm::Attribute::AttrKind::NoCapture); F->addParamAttr(1,
+        // llvm::Attribute::AttrKind::StructRet);
       }
       break;
     }

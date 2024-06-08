@@ -69,7 +69,8 @@ CodeGenerationContext ::CodeGenerationContext(
         function->getFunctionNameRef());
     _functionTypes[function->getFunctionNameRef()]->setReturnType(
         _typeMapper->mapCustomTypeToLLVMType(
-            BuiltInFunction::getReturnType(function->getFunctionNameRef())));
+            BuiltInFunction::getReturnType(function->getFunctionNameRef())),
+        false);
   }
 };
 

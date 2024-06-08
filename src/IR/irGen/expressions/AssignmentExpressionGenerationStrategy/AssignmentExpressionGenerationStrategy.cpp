@@ -436,7 +436,12 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
-    if (callExp->getCallerNameRef().find(".init") == std::string::npos) {
+    if (callExp->getCallerNameRef().find(".init") == std::string::npos &&
+        _codeGenerationContext->_functionTypes.find(
+            callExp->getCallerNameRef()) !=
+            _codeGenerationContext->_functionTypes.end() &&
+        _codeGenerationContext->_functionTypes[callExp->getCallerNameRef()]
+            ->isHavingReturnTypeAsParamater()) {
       std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);

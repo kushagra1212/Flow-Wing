@@ -18,8 +18,11 @@ private:
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _parameters;
 
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
+
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
   std::unique_ptr<BlockStatementSyntax> _body;
+
+  std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
   std::unique_ptr<ExpressionSyntax> _returnExpression;
   std::unique_ptr<SyntaxToken<std::any>> _declKeyword;
   bool _isOnlyDeclared = false;
@@ -59,6 +62,10 @@ public:
     _declKeyword = std::move(declKeyword);
   }
 
+  inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword) {
+    _asKeyword = std::move(asKeyword);
+  }
+
   inline auto setIsMemberFunction(bool is) { _isMemberFunction = is; }
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
@@ -88,6 +95,11 @@ public:
 
   inline auto isExposed() const -> bool { return _exposedKeyword != nullptr; }
   inline auto isMemberFunction() const -> bool { return _isMemberFunction; }
+
+  inline auto getAsKeyword() const
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _asKeyword;
+  }
 };
 
 #endif // FUNCTIONDECLARATIONSYNTAX_H

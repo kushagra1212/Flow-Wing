@@ -681,7 +681,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   }
 
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonVoidReturn()) {
+          ->isHavingReturnTypeAsParamater()) {
     // If it memeber function of class or a normal function but has the non
     // primitive return type
     //? (A0, A1, ClassPtr) | (A1) -> Case 2
@@ -701,7 +701,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
   llvm::Value *rhsValue = nullptr;
   uint64_t initialLLVMArgIndex = 0;
   if (_codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
-          ->isNonVoidReturn()) {
+          ->isHavingReturnTypeAsParamater()) {
     if (!_rtPtr.first) {
       _rtPtr.second = _codeGenerationContext
                           ->_functionTypes[callExpression->getCallerNameRef()]
@@ -747,6 +747,14 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     _codeGenerationContext->getValueStackHandler()->push("", _classPtr,
                                                          "struct", _classType);
     return _classPtr;
+  }
+
+  if (!_codeGenerationContext
+           ->_functionTypes[callExpression->getCallerNameRef()]
+           ->isHavingReturnTypeAsParamater()) {
+    _codeGenerationContext->getValueStackHandler()->push("", callIn, "constant",
+                                                         callIn->getType());
+    return callIn;
   }
 
   // if (!_classType) {
@@ -849,8 +857,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                 _codeGenerationContext);
 
     if (BuiltInFunction::isBuiltInFunction(cE->getCallerNameRef())) {
-
-      llvm::Value *rt = this->buildInFunctionCall(callExpression);
+      llvm::Value *rt =
+          callExpressionGenerationStrategy->generateExpression(cE);
       rhsValue = Builder->CreateAlloca(rt->getType(), nullptr);
       Builder->CreateStore(rt, rhsValue);
       _codeGenerationContext->getValueStackHandler()->popAll();

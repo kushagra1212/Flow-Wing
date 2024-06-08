@@ -2,7 +2,7 @@ bring {FlowWingAnim} from "FlowWingAnim.fg"
 
 const screenWidth: int = 1024
 const screenHeight: int = 768
-const FPS: int = 12
+const FPS: int = 60
 const side: int = 10
 type Position = {
   x: deci32,
@@ -11,7 +11,7 @@ type Position = {
 class Bird {
   const ACTUAL_BIRD_SIZE: deci32 = 360.0d
   var birdSize: deci32 = 90.0d
-  const BIRD_TIMMER: deci = 1.0 / FPS
+  var BIRD_TIMMER: deci = 5 / FPS
   var birdTimmer: deci   
   const BIRD_SPRITE_SIZE:int = 9
   var birdSpriteIndex:int = 0
@@ -53,6 +53,8 @@ class Bird {
   }]
   }
 
+  var pos:Position 
+
   setTexture(birdTexture: Texture) -> nthg {
     self.birdTexture = birdTexture 
   }
@@ -69,7 +71,7 @@ class Bird {
       if birdSpriteIndex >= BIRD_SPRITE_SIZE {
         birdSpriteIndex = 0 
       }
-
+      pos.y = pos.y + frameTime * (1+1*(-150))
     }
 
   }
@@ -87,7 +89,7 @@ class Bird {
   }
 
   getOrigin() -> deci32[2] {
-    return [0.0d, 0.0d]
+    return [self.pos.x, self.pos.y]
   }
 
   getRotation() -> deci32 {
@@ -98,15 +100,32 @@ class Bird {
     return self.birdTexture
   }
 
+  updateY(frameTime: deci32) -> nthg {
+    pos.y = pos.y + frameTime * (1 + 1*(300))
+  }
+
 }
 
 fun main() -> int {
   const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
-  const bird: Bird = new Bird("./bird.png")
+  const bird: Bird = new Bird("./assets/bird.png")
   fgAnim.createWindow()
-  bird.setTexture(fgAnim.loadTexture("./bird.png"))/; Check if textures loaded successfully
-  
-  if !bird.isTextureLoaded() {/; If any texture failed to load, print error and exit
+  bird.setTexture(fgAnim.loadTexture("./assets/bird.png"))/; Check if textures loaded successfully
+  var backgroundTexture: Texture = fgAnim.loadTexture("./assets/skyBackground.png")
+  var cloudTexture: Texture = fgAnim.loadTexture("./assets/3clouds.png")
+  var mountL1Texture: Texture = fgAnim.loadTexture("./assets/mountain/1mountL1.png")
+  var mountL2Texture:Texture = fgAnim.loadTexture("./assets/mountain/1mountL2.png")
+  var mount2L2Texture:Texture = fgAnim.loadTexture("./assets/mountain/2mountL2.png")
+  var mount1L3Texture:Texture = fgAnim.loadTexture("./assets/mountain/1mountL3.png")
+
+  var mountL1Pos1:Position = {x:Decimal32(screenWidth/4),y:0.0d}
+  var mountL1Pos2:Position = {x:Decimal32(-1*screenWidth),y:0.0d}
+
+  var mountL2Pos1:Position = {x:Decimal32(-1*screenWidth),y:0.0d}
+  var mount2L2Pos1:Position = {x:Decimal32(-1*screenWidth-getRandomNumber(Int32(screenWidth/4),Int32(screenWidth/2))),y:0.0d}
+  var mount1L3Pos1:Position = {x:Decimal32(-1*screenWidth-getRandomNumber(Int32(screenWidth/4),Int32(screenWidth))),y:0.0d}
+
+  if !bird.isTextureLoaded() || backgroundTexture.id == 0 {/; If any texture failed to load, print error and exit
 
     fgAnim.traceLog(fgAnim.LOG.ERROR, "Failed to load bird texture")/; Clean up and exit
 
@@ -116,11 +135,77 @@ fun main() -> int {
   }
 
   while !fgAnim.windowShouldClose() {
-  bird.update(fgAnim.getFrameTime())
+    bird.update(fgAnim.getFrameTime())
+    
+    {
+      mountL1Pos1.x = mountL1Pos1.x + fgAnim.getFrameTime()*60
+      mountL1Pos2.x = mountL1Pos2.x + fgAnim.getFrameTime()*60
+
+      if mountL1Pos1.x > screenWidth+screenWidth/2 {
+        mountL1Pos1.x = Decimal32(-1*screenWidth)
+      }
+
+    if mountL1Pos2.x >  screenWidth+screenWidth/2     {
+      mountL2Pos1.x =Decimal32(-1*screenWidth)
+    }
+    }
+
+    {
+
+      mountL2Pos1.x = mountL2Pos1.x + fgAnim.getFrameTime()*20
+
+     if mountL2Pos1.x >  screenWidth+screenWidth/2     {
+        mountL2Pos1.x =Decimal32(-1*screenWidth)
+      }
+    }
+
+    {
+
+      mount2L2Pos1.x = mount2L2Pos1.x + fgAnim.getFrameTime()*10
+
+     if mount2L2Pos1.x >  screenWidth+screenWidth/2     {
+        mount2L2Pos1.x = Decimal32(-1*screenWidth-getRandomNumber(Int32(screenWidth/4),Int32(screenWidth)))
+      }
+    }
+
+
+        {
+
+      mount1L3Pos1.x = mount1L3Pos1.x + fgAnim.getFrameTime()*5
+
+     if mount1L3Pos1.x >  screenWidth+screenWidth/2     {
+        mount1L3Pos1.x = Decimal32(-1*screenWidth-getRandomNumber(Int32(screenWidth/4),Int32(screenWidth/2)))
+      }
+    }
+
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
+      bird.updateY(fgAnim.getFrameTime())
+    }
+
     fgAnim.beginDrawing()
     fgAnim.clearBackground(fgAnim.colors.WHITE)
- fgAnim.drawTexturePro(bird.getTexture(), bird.getSource(), bird.getDistination(), bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
-    fgAnim.endDrawing()
+    fgAnim.drawTexturePro(backgroundTexture,[0.0d,0.0d,3840.0d,2160.0d],[0.0d,0.0d,Decimal32(screenWidth),Decimal32(screenHeight)],[0.0d,0.0d],0.0d,fgAnim.colors.WHITE)
+
+    /; Cloud
+    fgAnim.drawTexturePro(cloudTexture,[0.0d,0.0d,1280.0d,720.0d],[0.0d,0.0d,Decimal32((1280)/(720)*screenHeight/2),Decimal32(screenHeight/2)],[0.0d,0.0d],0.0d,fgAnim.colors.WHITE)
+
+    /; mount1L2 
+    fgAnim.drawTexturePro(mountL2Texture,[0.0d,0.0d,5975.0d,1607.0d],[0.0d,Decimal32(screenHeight/2),Decimal32(screenWidth/2),Decimal32(screenHeight/5)],[mountL2Pos1.x,mountL2Pos1.y],0.0d,fgAnim.colors.WHITE)
+
+    /; 2mount1L2 
+    fgAnim.drawTexturePro(mount2L2Texture,[0.0d,0.0d,4461.0d,1989.0d],[0.0d,Decimal32(screenHeight/2),Decimal32(screenWidth/2),Decimal32(screenHeight/5)],[mount2L2Pos1.x,mount2L2Pos1.y],0.0d,fgAnim.colors.WHITE)
+
+    /; 1mount1L3
+    fgAnim.drawTexturePro(mount2L2Texture,[0.0d,0.0d,6005.0d,2376.0d],[0.0d,Decimal32(screenHeight/2),Decimal32(screenWidth/2),Decimal32(screenHeight/5)],[mount1L3Pos1.x,mount1L3Pos1.y],0.0d,fgAnim.colors.WHITE)
+
+    /; muont1L1
+    fgAnim.drawTexturePro(mountL1Texture,[0.0d,0.0d,8982.0d,1542.0d],[0.0d,Decimal32(screenHeight/2),Decimal32(screenWidth+screenWidth/2),Decimal32(screenHeight/5)],[mountL1Pos1.x,mountL1Pos1.y],0.0d,fgAnim.colors.WHITE)
+    fgAnim.drawTexturePro(mountL1Texture,[0.0d,0.0d,8982.0d,1542.0d],[0.0d,Decimal32(screenHeight/2),Decimal32(screenWidth+screenWidth/2),Decimal32(screenHeight/5)],[mountL1Pos2.x,mountL1Pos2.y],0.0d,fgAnim.colors.WHITE)
+
+
+    fgAnim.drawTexturePro(bird.getTexture(), bird.getSource(), bird.getDistination(), bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
+    
+     fgAnim.endDrawing()
   }
   fgAnim.closeWindow()
   return 0
