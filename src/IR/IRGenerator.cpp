@@ -37,6 +37,11 @@ IRGenerator::IRGenerator(
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
       this->_codeGenerationContext.get());
 
+  // Initialize Variable Declaration Strategy
+  _variableDeclarationStatementGenerationStrategy =
+      std::make_unique<VariableDeclarationStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+
   // Initialize the file save strategy
 
   //.ll file save strategy
@@ -117,6 +122,28 @@ const int32_t IRGenerator::hasErrors() const {
   return _llvmLogger->getErrorCount();
 }
 
+void IRGenerator::declareVariables(BoundStatement *statement) {
+
+  for (auto &children : statement->getChildren()) {
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+    } else {
+      declareVariables(children);
+    }
+  }
+}
+
+void IRGenerator::declareVariables(BoundNode *node) {
+
+  for (auto &children : node->getChildren()) {
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+    } else {
+      declareVariables(children);
+    }
+  }
+}
+
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
   llvm::FunctionType *FT =
@@ -134,6 +161,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
+  // declareVariables(blockStatement);
+  // Declare All Global Variables
+
   std::unordered_map<std::string, int8_t> functionMap;
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
@@ -203,8 +233,10 @@ void IRGenerator::generateEvaluateGlobalStatement(
     //   }
     // }
   }
-
+#if DEBUG
+  this->printIR();
   _codeGenerationContext->verifyModule(TheModule);
+#endif
 
 #ifdef DEBUG
   if (!this->hasErrors()) {

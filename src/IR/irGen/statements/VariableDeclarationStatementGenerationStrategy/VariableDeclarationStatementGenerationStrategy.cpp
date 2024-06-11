@@ -193,13 +193,26 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
             Builder, TheModule, TheContext, ptrPtr);
       }
 
-      if (variableDeclaration->getInitializerPtr().get())
+      if (variableDeclaration->getInitializerPtr().get()) {
+
         init = assignmentEGS->handleAssignExpression(
             ptr, structType, _variableName,
             variableDeclaration->getInitializerPtr().get());
+      }
 
-      _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                       {ptr, structType});
+      if (_isGlobal) {
+        llvm::Value *gVar = _codeGenerationContext->createMemoryGetPtr(
+            llvm::Type::getInt64PtrTy(*TheContext), _variableName,
+            BinderKindUtils::MemoryKind::Global);
+
+        Builder->CreateStore(ptr, gVar);
+        _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                         {gVar, structType});
+      } else {
+
+        _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+                                                         {ptr, structType});
+      }
 
       if (!variableDeclaration->getInitializerPtr().get())
         return ptr;
@@ -268,7 +281,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::generateStatement(
       static_cast<BoundVariableDeclaration *>(statement);
   if (variableDeclaration->getMemoryKind() == BinderKindUtils::MemoryKind::None)
     variableDeclaration->setMemoryKind(BinderKindUtils::MemoryKind::Stack);
-
+  _isGlobal = false;
   return this->generateCommonStatement(variableDeclaration);
 }
 llvm::Value *
@@ -279,7 +292,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       static_cast<BoundVariableDeclaration *>(statement);
   if (variableDeclaration->getMemoryKind() == BinderKindUtils::MemoryKind::None)
     variableDeclaration->setMemoryKind(BinderKindUtils::MemoryKind::Global);
-
+  _isGlobal = true;
   return this->generateCommonStatement(variableDeclaration);
 }
 

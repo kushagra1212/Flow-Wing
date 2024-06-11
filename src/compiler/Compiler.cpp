@@ -309,10 +309,6 @@ void Compiler::compile(std::vector<std::string> &text,
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
-#ifdef DEBUG
-    _evaluator->printIR();
-#endif
-
     // _evaluator->executeGeneratedCode();
 
     //_evaluator->getIRParserPtr()->printIR();

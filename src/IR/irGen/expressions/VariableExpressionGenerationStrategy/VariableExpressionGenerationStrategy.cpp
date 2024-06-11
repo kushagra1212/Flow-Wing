@@ -149,6 +149,21 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
       _codeGenerationContext->getAllocaChain()->getPtr(variableName);
 
   if (var.first && var.second) {
+    if (llvm::isa<llvm::PointerType>(var.first->getType()) &&
+        var.first->getType() == llvm::Type::getInt64PtrTy(*TheContext) &&
+        llvm::isa<llvm::StructType>(var.second) &&
+        llvm::isa<llvm::GlobalVariable>(var.first)) {
+      llvm::StructType *classType = llvm::cast<llvm::StructType>(var.second);
+      std::string className = classType->getStructName().str().substr(
+          0, classType->getStructName().str().find(
+                 FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX));
+      if (_codeGenerationContext->_classTypes.find(className) !=
+          _codeGenerationContext->_classTypes.end()) {
+        var.first = Builder->CreateLoad(llvm::Type::getInt64PtrTy(*TheContext),
+                                        var.first);
+      }
+    }
+
     return this->getVariable(var.first, var.second, variableName);
   } else {
     return this->getGlobalVariableValue(
@@ -504,5 +519,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
 
 llvm::Value *VariableExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
+
   return this->generateExpression(expression);
 }

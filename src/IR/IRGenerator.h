@@ -124,6 +124,9 @@ public:
   const int32_t hasErrors() const;
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
+  void declareVariables(BoundStatement *statement);
+  void declareVariables(BoundNode *statement);
+
 private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
@@ -145,6 +148,8 @@ private:
       _functionStatementGenerationStrategy;
 
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
+  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+      _variableDeclarationStatementGenerationStrategy;
 
   // File Save Strategy
 

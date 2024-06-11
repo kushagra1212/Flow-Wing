@@ -3559,7 +3559,7 @@ init(s: str) -> nthg{
     }
   setHell(s:str) -> nthg {
     
-   /;   print(s)
+  print(s)
     }
 
 
@@ -3568,7 +3568,7 @@ init(s: str) -> nthg{
     }
   setC(i:int) -> nthg{
     
-     /;  print(i)
+   print(i)
     }
       getT() -> T {
         var x:T = {b:"hel"}
@@ -3576,7 +3576,7 @@ init(s: str) -> nthg{
     }
   setT(i:T) -> nthg{
     
-      /; print(i)
+     print(i)
     }
 
    getX(x:int ) -> int  {
@@ -3610,4 +3610,38 @@ fun main() -> int {
   main()
 )");
   O(R"(Hello)");
+}
+TEST_F(
+    ClassesTests,
+    ClassTestBasicInheritanceWithConstructorFunctionCheckWithScopeinitilizationBeforeInitRetrun4LocalandGlobal2) {
+  I(R"(
+  class A{
+    var x:int 
+
+    init() -> nthg {
+         x = 3 
+    }
+
+    getX()->int {
+        return x
+      }
+
+  }
+
+var a:A = new A() 
+
+fun getX() -> int {
+    return a.x 
+  }
+
+
+{
+if(true){
+    var x:int 
+}
+var x:int 
+print(getX())
+}
+)");
+  O(R"(3)");
 }
