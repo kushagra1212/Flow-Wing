@@ -63,7 +63,7 @@ CodeGenerationContext ::CodeGenerationContext(
 
   for (auto &function : BuiltInFunction::getBuiltInFunctions()) {
     _functionTypes[function->getFunctionNameRef()] =
-        std::make_unique<Function>();
+        std::make_unique<FlowWing::Function>();
 
     _functionTypes[function->getFunctionNameRef()]->setFunctionName(
         function->getFunctionNameRef());
@@ -641,5 +641,30 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
         "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
         " for " + variableName + " in " + __PRETTY_FUNCTION__);
     return nullptr;
+  }
+}
+
+void CodeGenerationContext::verifyFunction(llvm::Function *F,
+                                           const std::string &FUNCTION_NAME) {
+  std::string errorInfo;
+  llvm::raw_string_ostream errorStream(errorInfo);
+  if (llvm::verifyFunction(*F, &errorStream)) {
+    errorStream.flush();
+    this->getLogger()->LogError("Error verifying function " + FUNCTION_NAME +
+                                errorInfo);
+  } else {
+    this->getLogger()->LogInfo("Function " + FUNCTION_NAME +
+                               " verified successfully");
+  }
+}
+
+void CodeGenerationContext::verifyModule(llvm::Module *M) {
+  std::string errorInfo;
+  llvm::raw_string_ostream errorStream(errorInfo);
+  if (llvm::verifyModule(*M, &errorStream)) {
+    errorStream.flush();
+    this->getLogger()->LogError("Error verifying module " + errorInfo);
+  } else {
+    this->getLogger()->LogInfo("Module verified successfully");
   }
 }

@@ -5,6 +5,7 @@
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
 
+namespace FlowWing {
 class Function {
 public:
   inline auto setFunctionName(std::string functionName) -> void {
@@ -37,5 +38,6 @@ private:
   llvm::Type *_returnType;
   bool _hasAsReturnType = false;
 };
+} // namespace FlowWing
 
 #endif

@@ -1,6 +1,6 @@
 #include "FunctionTest.h"
 
-FunctionTest::FunctionTest() { _test = std::move(FlowWing::getTest()); }
+FunctionTest::FunctionTest() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void FunctionTest::SetUp() { _test->SetUp(); }
 

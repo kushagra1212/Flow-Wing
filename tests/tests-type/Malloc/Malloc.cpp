@@ -1,6 +1,6 @@
 #include "Malloc.h"
 
-Malloc::Malloc() { _test = std::move(FlowWing::getTest()); }
+Malloc::Malloc() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void Malloc::SetUp() { _test->SetUp(); }
 

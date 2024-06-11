@@ -2,6 +2,8 @@
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
 target triple = "x86_64-apple-macosx14.0.0"
 
+%Texture.0 = type { i32, i32, i32, i32, i32 }
+
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_GLOBAL_NULL = external global i8
@@ -47,7 +49,7 @@ declare i64 @string_to_long(ptr)
 
 declare void @raise_exception(ptr)
 
-declare ptr @malloc()
+declare ptr @malloc(i64)
 
 define i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib() {
 entry:
@@ -87,7 +89,7 @@ declare !rt !13 i1 @IsKeyDown(i32)
 
 declare !rt !14 ptr @TextFormat(ptr)
 
-declare !rt !15 void @LoadTexture(ptr sret, ptr)
+declare !rt !15 void @LoadTexture(ptr sret(%Texture.0) align 4, ptr)
 
 declare !rt !16 void @DrawTexture(ptr, i32, i32, i32)
 
@@ -133,18 +135,30 @@ returnBlock:                                      ; preds = %nestedBlock
   %start2 = load i32, ptr %start, align 4
   %7 = load i32, ptr %start, align 4
   %8 = sub i32 %6, %7
-  %9 = add i32 %8, 1
-  %10 = srem i32 %5, %9
+  %9 = alloca i32, align 4
+  store i32 %8, ptr %9, align 4
+  %10 = load i32, ptr %9, align 4
+  %11 = add i32 %10, 1
+  %12 = alloca i32, align 4
+  store i32 %11, ptr %12, align 4
+  %13 = load i32, ptr %12, align 4
+  %14 = srem i32 %5, %13
+  %15 = alloca i32, align 4
+  store i32 %14, ptr %15, align 4
+  %16 = load i32, ptr %15, align 4
   %start3 = load i32, ptr %start, align 4
-  %11 = load i32, ptr %start, align 4
-  %12 = add i32 %10, %11
-  store i32 %12, ptr %0, align 4
+  %17 = load i32, ptr %start, align 4
+  %18 = add i32 %16, %17
+  %19 = alloca i32, align 4
+  store i32 %18, ptr %19, align 4
+  %20 = load i32, ptr %19, align 4
+  store i32 %20, ptr %0, align 4
   ret void
 
 mergeBlock:                                       ; No predecessors!
-  %13 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
-  %14 = icmp eq i32 %13, 0
-  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
+  %21 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
+  %22 = icmp eq i32 %21, 0
+  br i1 %22, label %checkContinueBlock, label %afterNestedBlock
 }
 
 !0 = !{!"InitWindow:rt:pr:27"}

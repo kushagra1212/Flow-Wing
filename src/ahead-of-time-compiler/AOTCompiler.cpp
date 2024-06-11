@@ -47,10 +47,10 @@ void AOTCompiler::link() {
               << std::endl;
     const int status = std::system(cmd.c_str());
 
-    // if (status != 0) {
-    //   std::cerr << Utils::CE("Failed to compile: ") << llFile << std::endl;
-    //   return;
-    // }
+    if (status != 0) {
+      std::cerr << Utils::CE("Failed to compile: ") << llFile << std::endl;
+      return;
+    }
   }
 
 #endif

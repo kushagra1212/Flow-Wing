@@ -1,6 +1,8 @@
 #include "ContainerTest.h"
 
-ContainerTest::ContainerTest() { _test = std::move(FlowWing::getTest()); }
+ContainerTest::ContainerTest() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void ContainerTest::SetUp() { _test->SetUp(); }
 

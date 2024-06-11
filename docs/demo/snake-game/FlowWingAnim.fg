@@ -129,9 +129,9 @@ getFrameTime() -> deci32 {
     DrawTexture(texture,posX,posY,color)
   }
 
-  drawTexturePro(texture: Texture, source: deci32[4], dest: deci32[4], origin: deci32[2], rotation: deci32 , color: int) -> nthg {
+  drawTexturePro(inout texture: Texture,inout source: deci32[4], inout dest: deci32[4],inout origin: deci32[2],inout rotation: deci32 ,inout color: int) -> nthg {
       DrawTexturePro(texture, source, dest, origin, rotation,color)
-    }
+  }
 
 /#
   drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg {
@@ -165,5 +165,9 @@ getFrameTime() -> deci32 {
   }
 
 }
+
+  fun drawTexturePro( texture: Texture, source: deci32[4],  dest: deci32[4],inout origin: deci32[2],inout rotation: deci32 ,inout color: int) -> nthg {
+      DrawTexturePro(texture, source, dest, origin, rotation,color)
+  }
 
 

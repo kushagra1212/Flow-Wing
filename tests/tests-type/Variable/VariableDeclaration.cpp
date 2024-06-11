@@ -1,7 +1,7 @@
 #include "VariableDeclaration.h"
 
 VariableDeclaration::VariableDeclaration() {
-  _test = std::move(FlowWing::getTest());
+  _test = std::move(Tests::FlowWing::getTest());
 }
 
 void VariableDeclaration::SetUp() { _test->SetUp(); }

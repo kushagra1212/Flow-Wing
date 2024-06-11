@@ -204,9 +204,12 @@ void IRGenerator::generateEvaluateGlobalStatement(
     // }
   }
 
+  _codeGenerationContext->verifyModule(TheModule);
+
 #ifdef DEBUG
-  llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
   if (!this->hasErrors()) {
+
+    llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
     objectFile->writeModuleToFile(TheModule);

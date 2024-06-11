@@ -35,7 +35,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
   bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
   _codeGenerationContext->_functionTypes[FUNCTION_NAME] =
-      std::make_unique<Function>();
+      std::make_unique<FlowWing::Function>();
   _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setFunctionName(
       FUNCTION_NAME);
 
@@ -46,6 +46,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           std::make_unique<LiteralExpressionGenerationStrategy>(
               _codeGenerationContext);
   std::vector<llvm::Type *> argTypes;
+  std::vector<std::pair<uint64_t, llvm::Type *>> attributeTypes;
 
   //? Taking value to return as parameter
   if (!fd->hasAsReturnType()) {
@@ -109,7 +110,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       _argType = llvm::PointerType::get(parmType, 0);
       argLLVMType = std::make_unique<LLVMType>(parmType);
-
+      attributeTypes.push_back({argTypes.size(), parmType});
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
                    ->getSyntaxType() ==
@@ -171,7 +172,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                 containerElementType),
             dimensions, arrayTypeExpression);
       }
-
+      attributeTypes.push_back({argTypes.size(), parmType});
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()
                    ->getSyntaxType() ==
@@ -210,6 +211,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
         _argType = llvm::PointerType::get(parmType, 0);
         argLLVMType = std::make_unique<LLVMPrimitiveType>(_argType, parmType);
       }
+      attributeTypes.push_back({argTypes.size(), parmType});
     }
     argTypes.push_back(_argType);
 
@@ -334,6 +336,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
         returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
 
+      attributeTypes.push_back({argTypes.size(), arrayType});
       // if (fd->hasAsReturnType()) {
       //   F->addDereferenceableParamAttr(-1,
       //   llvm::Attribute::AttrKind::NonNull);
@@ -379,7 +382,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                      FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
           _codeGenerationContext->_classTypes.end()) {
         //        llvm::Attribute::AttrKind kind = ;
-        F->addParamAttr(0, llvm::Attribute::AttrKind::StructRet);
+
+        llvm::AttrBuilder attribute(*TheContext);
+        attribute.addTypeAttr(llvm::Attribute::AttrKind::StructRet, structType);
+        attribute.addAlignmentAttr(4);
+        F->addParamAttrs(0, attribute);
+
+        attributeTypes.push_back({argTypes.size(), structType});
         // F->addDereferenceableParamAttr(0,
         // llvm::Attribute::AttrKind::StructRet); F->addParamAttr(0,
         // llvm::Attribute::AttrKind::NoCapture); F->addParamAttr(1,
@@ -394,6 +403,17 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     }
     }
   }
+  // for (auto &[index, argType] : attributeTypes) {
+  //   llvm::AttrBuilder attribute(*TheContext);
+  //   attribute.addTypeAttr(llvm::Attribute::AttrKind::ByRef, argType);
+  //   F->addParamAttrs(index, attribute);
+  // }
+
+  // for (int64_t i = 0; i < F->getFunctionType()->getNumParams(); ++i) {
+
+  //   F->addParamAttr(i, llvm::Attribute::AttrKind::NoUndef);
+  // }
+
   // Return type metadata
   F->setMetadata(
       "rt", llvm::MDNode::get(*TheContext,
@@ -449,7 +469,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   //     // Attach the metadata to the argument
   //     F->setMetadata(Kind, llvm::MDNode::get(*TheContext, argInfoMD));
   //   }
-
+  _codeGenerationContext->verifyFunction(F, FUNCTION_NAME);
   _codeGenerationContext->addBoundedUserFunction(FUNCTION_NAME, fd);
 
   return F;

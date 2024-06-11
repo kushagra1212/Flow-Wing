@@ -1,6 +1,6 @@
 #include "Comment.h"
 
-CommentTest::CommentTest() { _test = std::move(FlowWing::getTest()); }
+CommentTest::CommentTest() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void CommentTest::SetUp() { _test->SetUp(); }
 

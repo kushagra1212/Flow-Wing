@@ -2,8 +2,9 @@
 #define USER_FUNCTIONS_H
 
 #include "../../Common.h"
-
+namespace Tests {
 namespace FlowWing {
+
 class Function : public ::testing::Test {
 protected:
   Function();
@@ -17,5 +18,6 @@ protected:
   std::unique_ptr<BaseTest> _test;
 };
 } // namespace FlowWing
+} // namespace Tests
 
 #endif // IN_BUILT_FUNCTIONS_H

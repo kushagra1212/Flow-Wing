@@ -23,7 +23,9 @@
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "utils/ValueStack/ValueStackHandler.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
+
 class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
@@ -126,7 +128,8 @@ public:
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
-  std::unordered_map<std::string, std::unique_ptr<Function>> _functionTypes;
+  std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
+      _functionTypes;
 
   inline auto setCurrentClassName(std::string className) -> void {
     _currentClassName = className;
@@ -150,6 +153,10 @@ public:
           std::string, std::tuple<llvm::FunctionType *, uint64_t, std::string>>
           &vTableElementsMap,
       std::string className, uint64_t &index) -> void;
+
+  // verifiers
+  void verifyFunction(llvm::Function *F, const std::string &FUNCTION_NAME);
+  void verifyModule(llvm::Module *M);
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;

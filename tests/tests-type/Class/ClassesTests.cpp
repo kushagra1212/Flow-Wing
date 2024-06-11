@@ -1,6 +1,6 @@
 #include "ClassesTests.h"
 
-ClassesTests::ClassesTests() { _test = std::move(FlowWing::getTest()); }
+ClassesTests::ClassesTests() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void ClassesTests::SetUp() { _test->SetUp(); }
 

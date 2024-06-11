@@ -256,6 +256,14 @@ void CallExpressionGenerationStrategy::handleInBuiltFunctionCall(
             ->createStrategy(
                 callExpression->getArgumentsRef()[0].get()->getKind())
             ->generateExpression(callExpression->getArgumentsRef()[0].get());
+
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+
+    val = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
   //}
 
   // }
@@ -994,9 +1002,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
     BoundCallExpression *callExpression, llvm::Argument *arg,
     llvm::Value *&rhsValue, bool &retFlag) {
   retFlag = true;
-  if (!llvmArrayArgs[llvmArgsIndex]->isPointerToArray()) {
+  if (!llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
+      !llvm::isa<llvm::ArrayType>(
+          llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
     _codeGenerationContext->getLogger()->LogError(
-        "You are passing Array to function call expression " +
+        "Expected an array in function call expression " +
         Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
         Utils::CE(arg->getName().str()) + ", but it is not an Array");
 
@@ -1018,20 +1028,31 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
   //   return nullptr;
   // }
 
-  LLVMArrayType *llvmArrayType =
-      static_cast<LLVMArrayType *>(llvmArrayArgs[llvmArgsIndex].get());
+  llvm::Type *arrayType = llvmArrayArgs[llvmArgsIndex]->getLLVMType();
 
   auto contStrategy =
       std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
           _codeGenerationContext);
+  llvm::Type *arrayElementType = arrayType;
+  std::vector<uint64_t> sizes;
+  _codeGenerationContext->createArraySizesAndArrayElementType(sizes,
+                                                              arrayElementType);
 
   contStrategy->generateCommonStatement(
-      llvmArrayType->getArrayTypeExpression(), arg->getName().str(),
+      sizes, arrayElementType, arg->getName().str(),
       callExpression->getArgumentsRef()[callArgIndex].get());
 
   rhsValue = _codeGenerationContext->getAllocaChain()
                  ->getPtr(arg->getName().str())
                  .first;
+  BoundFunctionDeclaration *functionDeclaration =
+      _codeGenerationContext
+          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+  if (functionDeclaration->getParametersRef()[callArgIndex]
+          ->getHasAsKeyword()) {
+
+    rhsValue = Builder->CreateLoad(arrayType, rhsValue);
+  }
   retFlag = false;
   return nullptr;
 }
@@ -1171,12 +1192,6 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
   BoundFunctionDeclaration *functionDeclaration =
       _codeGenerationContext
           ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
-
-  if (functionDeclaration->getParametersRef()[callArgIndex]
-          ->getHasAsKeyword()) {
-
-    rhsValue = Builder->CreateLoad(varType, rhsValue);
-  }
 
   // if (llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
   //     variableExpression->getVariableTypeRef()->getSyntaxType() !=
@@ -1362,6 +1377,12 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
               _codeGenerationContext->getMapper()->getLLVMTypeName(varType)));
       return nullptr;
     }
+  }
+
+  if (functionDeclaration->getParametersRef()[callArgIndex]
+          ->getHasAsKeyword()) {
+
+    rhsValue = Builder->CreateLoad(varType, rhsValue);
   }
   retFlag = false;
   return nullptr;

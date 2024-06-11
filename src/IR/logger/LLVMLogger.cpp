@@ -26,6 +26,25 @@ void LLVMLogger::logLLVMWarning(llvm::Error E) {
   });
 }
 
+void LLVMLogger::logLLVMInfo(llvm::Error E) {
+  llvm::handleAllErrors(std::move(E), [&](llvm::ErrorInfoBase &EIB) {
+    llvm::errs() << GREEN_TEXT << _llvmInfoMsg << GREEN << EIB.message()
+                 << RESET << "\n";
+  });
+}
+
+void LLVMLogger::LogInfo(const std::string &infoMessage) {
+
+  const std::string &message = _diagnosticHandler->getLogString(
+      Diagnostic(infoMessage, DiagnosticUtils::DiagnosticLevel::Info,
+                 DiagnosticUtils::DiagnosticType::CodeGen, _location));
+
+  this->logLLVMInfo(llvm::make_error<llvm::StringError>(
+      message, llvm::inconvertibleErrorCode()));
+
+  // llvm::createStringError(llvm::inconvertibleErrorCode(), message)
+}
+
 void LLVMLogger::LogError(const std::string &errorMessage,
                           const DiagnosticUtils::SourceLocation &location) {
 

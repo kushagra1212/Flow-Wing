@@ -68,6 +68,18 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 // ExecutionEngine
+#include "llvm//IR/Value.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/raw_ostream.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
@@ -78,18 +90,6 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/SourceMgr.h>
-
-#include "llvm//IR/Value.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/GenericValue.h"
-#include "llvm/ExecutionEngine/Interpreter.h"
-#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/ManagedStatic.h"
-#include "llvm/Support/Signals.h"
-#include "llvm/Support/raw_ostream.h"
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>

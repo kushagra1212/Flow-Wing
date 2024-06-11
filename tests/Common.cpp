@@ -1,5 +1,5 @@
 #include "Common.h"
-
+namespace Tests {
 namespace FlowWing {
 std::unique_ptr<BaseTest> getTest() {
   std::unique_ptr<BaseTest> _test;
@@ -18,3 +18,4 @@ std::unique_ptr<BaseTest> getTest() {
   return _test;
 }
 } // namespace FlowWing
+} // namespace Tests

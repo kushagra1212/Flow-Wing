@@ -1,6 +1,8 @@
 #include "ObjectLocalTest.h"
 
-ObjectLocalTest::ObjectLocalTest() { _test = std::move(FlowWing::getTest()); }
+ObjectLocalTest::ObjectLocalTest() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void ObjectLocalTest::SetUp() { _test->SetUp(); }
 

@@ -1,7 +1,7 @@
 #include "If-Or-If-Else.h"
 
 IfORIFELSEReplTest::IfORIFELSEReplTest() {
-  _test = std::move(FlowWing::getTest());
+  _test = std::move(Tests::FlowWing::getTest());
 }
 
 void IfORIFELSEReplTest::SetUp() { _test->SetUp(); }

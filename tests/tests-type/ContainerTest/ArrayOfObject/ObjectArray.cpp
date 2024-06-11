@@ -1,6 +1,6 @@
 #include "ObjectArray.h"
 
-ObjectArray::ObjectArray() { _test = std::move(FlowWing::getTest()); }
+ObjectArray::ObjectArray() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void ObjectArray::SetUp() { _test->SetUp(); }
 

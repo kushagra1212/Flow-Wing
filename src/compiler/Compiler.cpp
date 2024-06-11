@@ -309,9 +309,9 @@ void Compiler::compile(std::vector<std::string> &text,
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
-    // #ifdef DEBUG
+#ifdef DEBUG
     _evaluator->printIR();
-    // #endif
+#endif
 
     // _evaluator->executeGeneratedCode();
 

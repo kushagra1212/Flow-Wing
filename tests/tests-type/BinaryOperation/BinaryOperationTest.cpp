@@ -1,7 +1,7 @@
 #include "BinaryOperationTest.h"
 
 BinaryOperationTest::BinaryOperationTest() {
-  _test = std::move(FlowWing::getTest());
+  _test = std::move(Tests::FlowWing::getTest());
 }
 
 void BinaryOperationTest::SetUp() { _test->SetUp(); }

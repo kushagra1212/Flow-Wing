@@ -1,6 +1,6 @@
 #include "JITFunction.h"
 
-JITFunction::JITFunction() { _test = std::move(FlowWing::getTest()); }
+JITFunction::JITFunction() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void JITFunction::SetUp() { _test->SetUp(); }
 

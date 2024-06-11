@@ -20,6 +20,7 @@ public:
   llvm::Function *generate(BoundStatement *statement,
                            std::vector<llvm::Type *> classArgs = {},
                            std::string className = "");
+
   llvm::StructType *
   getStructType(BoundObjectTypeExpression *objectTypeExpression,
                 std::__1::string &className);
