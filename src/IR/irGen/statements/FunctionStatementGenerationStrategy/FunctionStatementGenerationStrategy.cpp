@@ -190,25 +190,21 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
         llvm::StructType *structType =
             llvm::cast<llvm::StructType>(llvmObjectType->getStructType());
-        if (_codeGenerationContext->_classTypes.find(
-                structType->getName().str()) !=
-            _codeGenerationContext->_classTypes.end()) {
-          llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
-              structType, parameterNames[i],
-              _codeGenerationContext->_classTypes.find(
-                  structType->getName().str()) !=
-                      _codeGenerationContext->_classTypes.end()
-                  ? BinderKindUtils::MemoryKind::Heap
-                  : BinderKindUtils::MemoryKind::Stack);
 
-          Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
+        llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
+            structType, parameterNames[i],
+            _codeGenerationContext->_classTypes.find(
+                structType->getName().str().substr(
+                    0, structType->getName().find(
+                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
+                    _codeGenerationContext->_classTypes.end()
+                ? BinderKindUtils::MemoryKind::Heap
+                : BinderKindUtils::MemoryKind::Stack);
 
-          _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                           {ptr, structType});
-        } else {
-          _codeGenerationContext->getAllocaChain()->setPtr(
-              parameterNames[i], {argValue, structType});
-        }
+        Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
+
+        _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                         {ptr, structType});
 
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
         LLVMPrimitiveType *llvmPrimitiveType =
