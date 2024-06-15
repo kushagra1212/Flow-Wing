@@ -46,8 +46,9 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement() {
   ptr = _codeGenerationContext->createMemoryGetPtr(arrayType, _containerName,
                                                    _memoryKind);
   assignmentStrategy->initDefaultValue(arrayType, ptr);
-  // } else {
   _variableDeclExpr->setLLVMVariable({ptr, arrayType});
+  //   return ptr;
+  // } else {
   _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
                                                    {ptr, arrayType});
 

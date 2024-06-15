@@ -8,15 +8,9 @@ llvm::Value *
 ClassStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   return nullptr;
 }
-llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
 
-  // Add handlers
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
-  _codeGenerationContext->getAllocaChain()->addHandler(
-      std::make_unique<AllocaTable>());
-
+llvm::Value *
+ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   BoundClassStatement *boundClassStatement =
       static_cast<BoundClassStatement *>(statement);
 
@@ -74,6 +68,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
 
   _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =
       std::move(classObjectSave);
+
   auto classObject =
       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
           .get();
@@ -85,8 +80,9 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
 
   for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
        i++) {
-    customTypeStatementGenerationStrategy->generateStatement(
+    customTypeStatementGenerationStrategy->generateCustomType(
         boundClassStatement->getCustomTypesRef()[i].get());
+
     BoundCustomTypeStatement *boundCustomTypeStatement =
         static_cast<BoundCustomTypeStatement *>(
             boundClassStatement->getCustomTypesRef()[i].get());
@@ -193,11 +189,13 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   classObject->createVTable(classType->getStructName().str(), TheModule);
   classObject->setClassType(classType);
 
-  // Rest
+  // Reset current class name
   _codeGenerationContext->resetCurrentClassName();
-  // Remove handlers
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
-  _codeGenerationContext->getAllocaChain()->removeHandler();
+
+  return nullptr;
+}
+llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
 
   return nullptr;
 }

@@ -42,6 +42,15 @@ IRGenerator::IRGenerator(
       std::make_unique<VariableDeclarationStatementGenerationStrategy>(
           this->_codeGenerationContext.get());
 
+  // Initialize Custom Type Statement Strategy
+  _customTypeStatementGenerationStrategy =
+      std::make_unique<CustomTypeStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+  // Initialize Class Statement Strategy
+  _classStatementGenerationStrategy =
+      std::make_unique<ClassStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+
   // Initialize the file save strategy
 
   //.ll file save strategy
@@ -147,6 +156,50 @@ void IRGenerator::declareVariables(BoundNode *node, const bool isGlobal) {
   }
 }
 
+void IRGenerator::declareCustomType(BoundStatement *statement) {
+
+  for (auto &children : statement->getChildren()) {
+    if (!children)
+      continue;
+
+    switch (children->getKind()) {
+    case BinderKindUtils::BoundNodeKind::CustomTypeStatement: {
+      _customTypeStatementGenerationStrategy->generateCustomType(
+          static_cast<BoundCustomTypeStatement *>(children));
+      break;
+    }
+    case BinderKindUtils::BoundNodeKind::ClassStatement: {
+
+      auto boundClassStatement = static_cast<BoundClassStatement *>(children);
+      for (int64_t i = 0;
+           i < boundClassStatement->getMemberFunctionsRef().size(); i++) {
+        declareCustomType(
+            boundClassStatement->getMemberFunctionsRef()[i].get());
+      }
+      _classStatementGenerationStrategy->generateClassType(boundClassStatement);
+      break;
+    }
+    default: {
+      declareCustomType(children);
+      break;
+    }
+    }
+  }
+}
+
+void IRGenerator::declareCustomType(BoundNode *node) {
+
+  for (auto &children : node->getChildren()) {
+    if (children && children->getKind() ==
+                        BinderKindUtils::BoundNodeKind::CustomTypeStatement) {
+      _customTypeStatementGenerationStrategy->generateCustomType(
+          static_cast<BoundCustomTypeStatement *>(children));
+    } else if (children) {
+      declareCustomType(children);
+    }
+  }
+}
+
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
   llvm::FunctionType *FT =
@@ -164,7 +217,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
-  declareVariables(blockStatement, true);
+  declareCustomType(blockStatement);
   // Declare All Global Variables
 
   std::unordered_map<std::string, int8_t> functionMap;

@@ -12,6 +12,8 @@
 #include "../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../IR/handlers/value/ValueHandler.h"
 #include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
+#include "../IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
+#include "../IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
@@ -127,6 +129,9 @@ public:
   void declareVariables(BoundStatement *statement, const bool isGlobal);
   void declareVariables(BoundNode *statement, const bool isGlobal);
 
+  void declareCustomType(BoundStatement *statement);
+  void declareCustomType(BoundNode *statement);
+
 private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
@@ -150,6 +155,10 @@ private:
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
   std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
       _variableDeclarationStatementGenerationStrategy;
+  std::unique_ptr<CustomTypeStatementGenerationStrategy>
+      _customTypeStatementGenerationStrategy;
+  std::unique_ptr<ClassStatementGenerationStrategy>
+      _classStatementGenerationStrategy;
 
   // File Save Strategy
 

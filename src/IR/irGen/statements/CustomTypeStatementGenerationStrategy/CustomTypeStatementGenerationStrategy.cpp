@@ -8,8 +8,18 @@ CustomTypeStatementGenerationStrategy::CustomTypeStatementGenerationStrategy(
 
 llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
     BoundStatement *expression) {
+  return nullptr;
+}
+
+llvm::Value *CustomTypeStatementGenerationStrategy::generateGlobalStatement(
+    BoundStatement *statement) {
+  return this->generateStatement(statement);
+}
+
+llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
+    BoundStatement *statement) {
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      static_cast<BoundCustomTypeStatement *>(expression);
+      static_cast<BoundCustomTypeStatement *>(statement);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       boundCustomTypeStatement->getLocation());
@@ -52,11 +62,6 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
           .build();
 
   return nullptr;
-}
-
-llvm::Value *CustomTypeStatementGenerationStrategy::generateGlobalStatement(
-    BoundStatement *statement) {
-  return this->generateStatement(statement);
 }
 
 llvm::Type *

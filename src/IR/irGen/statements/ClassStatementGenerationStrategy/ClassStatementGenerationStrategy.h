@@ -15,6 +15,7 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+  llvm::Value *generateClassType(BoundStatement *statement);
 };
 
 #endif //__FLOWWING_CLASS_STATEMENT_STRATEGY_H__
