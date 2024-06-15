@@ -302,9 +302,6 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
           customTypeStatement->getSourceLocation(),
           customTypeStatement->isExposed());
 
-  std::string name = std::any_cast<std::string>(
-      customTypeStatement->getTypeNameRef()->getValue());
-
   std::unique_ptr<BoundLiteralExpression<std::any>> boundLiteralExpression =
       std::move(
           bindLiteralExpression(customTypeStatement->getTypeNameRef().get()));
@@ -320,13 +317,15 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
                                  ->getText();
 
     if (attributes.find(key) != attributes.end()) {
-      this->_diagnosticHandler->addDiagnostic(Diagnostic(
-          "Duplicate Attribute key " + key + " in Custom Type" + name,
-          DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
-          customTypeStatement->getKeyTypePairsRef()[i]
-              ->getKey()
-              ->getSourceLocation()));
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Duplicate Attribute key " + key + " in Custom Type" +
+                         Utils::getActualTypeName(
+                             boundCustomTypeStatement->getTypeNameAsString()),
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     customTypeStatement->getKeyTypePairsRef()[i]
+                         ->getKey()
+                         ->getSourceLocation()));
       return std::move(boundCustomTypeStatement);
     }
     attributes[key] = 1;
@@ -344,7 +343,9 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
 
   if (!this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
     this->_diagnosticHandler->addDiagnostic(
-        Diagnostic("Duplicate Custom Type " + name.substr(0, name.find(".")),
+        Diagnostic("Duplicate Custom Type " +
+                       Utils::getActualTypeName(
+                           boundCustomTypeStatement->getTypeNameAsString()),
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
                    customTypeStatement->getTypeNameRef()->getSourceLocation()));
@@ -1391,38 +1392,29 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
                            ->getTokenPtr()
                            ->getText();
 
-    if (this->root->getClassName() != "" &&
-        this->root->getClassName() != name) {
-      name = this->root->getClassName() +
-             FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + name;
+    //? name -> class Type or Object Type
 
-      BoundClassStatement *bCS =
-          this->root->tryGetClass(this->root->getClassName());
-      if (bCS && bCS->tryGetCustomType(name)) {
-        boundObjectTypeExpression->setTypeName(name);
-      }
-    } else {
+    BoundCustomTypeStatement *bCT = this->root->tryGetCustomType(name);
 
-      boundObjectTypeExpression->setTypeName(name);
+    if (!bCT && !this->root->tryGetClass(name)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Type " + name + " Not Found",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+                         ->getTokenPtr()
+                         ->getSourceLocation()));
 
-      if (!this->root->tryGetClass(name)) {
-        if (!this->root->tryGetCustomType(name)) {
-          this->_diagnosticHandler->addDiagnostic(Diagnostic(
-              "Type " + name + " Not Found",
-              DiagnosticUtils::DiagnosticLevel::Error,
-              DiagnosticUtils::DiagnosticType::Semantic,
-              objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-                  ->getTokenPtr()
-                  ->getSourceLocation()));
-
-          return std::move(boundObjectTypeExpression);
-        }
-      }
+      return std::move(boundObjectTypeExpression);
     }
 
-    boundObjectTypeExpression->setObjectTypeIdentifier(
-        std::move(bindLiteralExpression(
-            objectTypeExpressionSyntax->getObjectTypeIdentifierRef().get())));
+    if (bCT) {
+      boundObjectTypeExpression->setObjectTypeIdentifier(
+          std::move(bindLiteralExpression(
+              objectTypeExpressionSyntax->getObjectTypeIdentifierRef().get())));
+
+      boundObjectTypeExpression->setTypeName(bCT->getTypeNameAsString());
+    }
 
     return std::move(boundObjectTypeExpression);
   }

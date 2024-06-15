@@ -446,6 +446,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
       callStrategy->setRtPtr({_lhsPtr, _lhsType});
+
       return callStrategy->generateExpression(exp);
     }
   }
@@ -485,8 +486,9 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
     llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(_lhsType);
     llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(rhsType);
 
-    if (_codeGenerationContext
-            ->_classTypes[lhsStructType->getStructName().str()]) {
+    if (_codeGenerationContext->_classTypes.find(
+            lhsStructType->getStructName().str()) !=
+        _codeGenerationContext->_classTypes.end()) {
 
       // if (exp && exp->getKind() == BinderKindUtils::CallExpression) {
       //   BoundCallExpression *callExpression =

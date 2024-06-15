@@ -122,24 +122,27 @@ const int32_t IRGenerator::hasErrors() const {
   return _llvmLogger->getErrorCount();
 }
 
-void IRGenerator::declareVariables(BoundStatement *statement) {
+void IRGenerator::declareVariables(BoundStatement *statement,
+                                   const bool isGlobal) {
 
   for (auto &children : statement->getChildren()) {
+    if (!children)
+      continue;
     if (children->getKind() ==
         BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      // _variableDeclarationStatementGenerationStrategy->generateGlobalStatement(
+      //     children);
     } else {
-      declareVariables(children);
+      declareVariables(children, false);
     }
   }
 }
 
-void IRGenerator::declareVariables(BoundNode *node) {
+void IRGenerator::declareVariables(BoundNode *node, const bool isGlobal) {
 
   for (auto &children : node->getChildren()) {
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-    } else {
-      declareVariables(children);
+    if (children && children->getKind() ==
+                        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
     }
   }
 }
@@ -161,7 +164,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
-  // declareVariables(blockStatement);
+  declareVariables(blockStatement, true);
   // Declare All Global Variables
 
   std::unordered_map<std::string, int8_t> functionMap;
@@ -189,6 +192,20 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
+  // for (auto &[key, value] : _codeGenerationContext->_typesMap) {
+  //   std::cout << key << " "
+  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //                    value.getStructType() ? value.getStructType()
+  //                                          : value.getType())
+  //             << std::endl;
+  // }
+  // std::cout << "class\n";
+  // for (auto &[key, value] : _codeGenerationContext->_classTypes) {
+  //   std::cout << key << " k "
+  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //                    value->getClassType())
+  //             << std::endl;
+  // }
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
@@ -274,10 +291,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
       new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
 
   llvm::StructType *classType =
       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
@@ -294,25 +307,35 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  for (auto &[customTypeName, type] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypeMap()) {
-    _codeGenerationContext->getTypeChain()->setType(customTypeName, type);
-  }
+  // for (auto &[customTypeName, type] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypeMap()) {
+  //   _codeGenerationContext->_typesMap[customTypeName] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(customTypeName)
+  //           .setType(type)
+  //           .build();
+  // }
 
-  for (auto &[custumTypeName, customTypeStat] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypeStatementMap()) {
-    _codeGenerationContext->getCustomTypeChain()->setExpr(custumTypeName,
-                                                          customTypeStat);
-  }
+  // for (auto &[customTypeName, customTypeStat] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypeStatementMap()) {
+  //   _codeGenerationContext->_typesMap[customTypeName] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(customTypeName)
+  //           .setCustomType(customTypeStat)
+  //           .build();
+  // }
 
-  for (auto &[propertyKey, propertyIndex] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypePropertyMap()) {
-    _codeGenerationContext->getTypeChain()->setIndex(propertyKey,
-                                                     propertyIndex);
-  }
+  // for (auto &[propertyKey, propertyIndex] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypePropertyMap()) {
+  //   _codeGenerationContext->_typesMap[propertyKey] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(propertyKey)
+  //           .setIndex(propertyIndex)
+  //           .build();
+  // }
 
   for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
     BoundFunctionDeclaration *functionDeclaration =
@@ -333,8 +356,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   // Remove handlers
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 }
 
 int IRGenerator::executeGeneratedCode() {

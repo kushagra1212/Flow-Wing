@@ -16,10 +16,6 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
       new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
 
   BoundClassStatement *boundClassStatement =
       static_cast<BoundClassStatement *>(statement);
@@ -42,27 +38,38 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
             ->_classTypes[classObjectSave->getParentClassName()]
             .get());
 
-    if (classObjectSave->hasParent()) {
-      Class *parent = classObjectSave->getParent();
-      for (auto &[typeName, type] : parent->getCustomTypeMap()) {
-        classObjectSave->addCustomType(typeName, type);
-        _codeGenerationContext->getTypeChain()->setType(typeName, type);
-      }
+    // if (classObjectSave->hasParent()) {
+    //   Class *parent = classObjectSave->getParent();
+    //   for (auto &[typeName, type] : parent->getCustomTypeMap()) {
+    //     // classObjectSave->addCustomType(typeName, type);
+    //     // _codeGenerationContext->_typesMap[typeName] =
+    //     //     FlowWing::Type::TypeBuilder()
+    //     //         .setName(typeName)
+    //     //         .setType(type)
+    //     //         .build();
+    //   }
 
-      for (auto &[typeName, customTypeStat] :
-           parent->getCustomTypeStatementMap()) {
-        classObjectSave->addCustomTypeStatement(typeName, customTypeStat);
-        _codeGenerationContext->getCustomTypeChain()->setExpr(typeName,
-                                                              customTypeStat);
-      }
+    //   for (auto &[typeName, customTypeStat] :
+    //        parent->getCustomTypeStatementMap()) {
+    //     // classObjectSave->addCustomTypeStatement(typeName, customTypeStat);
+    //     // _codeGenerationContext->_typesMap[typeName] =
+    //     //     FlowWing::Type::TypeBuilder()
+    //     //         .setName(typeName)
+    //     //         .setCustomType(customTypeStat)
+    //     //         .build();
+    //   }
 
-      for (auto &[propertyKeyName, propertyIndex] :
-           parent->getCustomTypePropertyMap()) {
-        classObjectSave->addCustomTypeProperty(propertyKeyName, propertyIndex);
-        _codeGenerationContext->getTypeChain()->setIndex(propertyKeyName,
-                                                         propertyIndex);
-      }
-    }
+    //   for (auto &[propertyKeyName, propertyIndex] :
+    //        parent->getCustomTypePropertyMap()) {
+    //     classObjectSave->addCustomTypeProperty(propertyKeyName,
+    //     propertyIndex);
+    //     // _codeGenerationContext->_typesMap[propertyKeyName] =
+    //     //     FlowWing::Type::TypeBuilder()
+    //     //         .setName(propertyKeyName)
+    //     //         .setIndex(propertyIndex)
+    //     //         .build();
+    //   }
+    // }
   }
 
   _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =
@@ -84,14 +91,19 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
         static_cast<BoundCustomTypeStatement *>(
             boundClassStatement->getCustomTypesRef()[i].get());
 
-    std::string typeName =
-        boundCustomTypeStatement->getTypeNameAsString().substr(
-            0, boundCustomTypeStatement->getTypeNameAsString().find("."));
-    classObject->addCustomType(
-        typeName, _codeGenerationContext->getTypeChain()->getType(typeName));
-    classObject->addCustomTypeStatement(
-        typeName,
-        _codeGenerationContext->getCustomTypeChain()->getExpr(typeName));
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        boundCustomTypeStatement->getLocation());
+
+    std::string typeName = boundCustomTypeStatement->getTypeNameAsString();
+
+    if (!_codeGenerationContext->getType(typeName).getStructType()) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected an object type " + Utils::getActualTypeName(typeName),
+          boundCustomTypeStatement->getLocation());
+      return nullptr;
+    }
+
+    classObject->addMemberVariableTypeName(typeName);
     {
       size_t index = 0;
 
@@ -102,8 +114,9 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
         const std::string key = typeName + "." + propertyName;
-
-        classObject->addCustomTypeProperty(key, index);
+        _codeGenerationContext->_typesMap[key] =
+            FlowWing::Type::TypeBuilder().setName(key).setIndex(index).build();
+        classObject->addMemberVariableTypeName(key);
 
         index++;
       }
@@ -185,7 +198,6 @@ llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
   // Remove handlers
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
+
   return nullptr;
 }

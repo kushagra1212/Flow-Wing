@@ -86,9 +86,11 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
         static_cast<BoundObjectTypeExpression *>(
             variableDeclaration->getTypeExpression().get());
 
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        objectTypeExpression->getLocation());
     llvm::StructType *structType =
-        _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+        _codeGenerationContext->getType(objectTypeExpression->getTypeName())
+            .getStructType();
 
     std::pair<llvm::Value *, llvm::Type *> cl =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
@@ -115,14 +117,9 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       return nullptr;
     }
 
-    if (_codeGenerationContext->_classTypes.find(
-            structType->getStructName().str().substr(
-                0, structType->getStructName().str().find("."))) !=
-        _codeGenerationContext->_classTypes.end()) {
+    if (_codeGenerationContext->isValidClassType(structType)) {
 
-      std::string className = structType->getStructName().str().substr(
-          0, structType->getStructName().str().find("."));
-
+      std::string className = (structType->getStructName().str());
       llvm::Value *init = nullptr;
       llvm::Value *ptr = nullptr;
 
@@ -194,7 +191,6 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       }
 
       if (variableDeclaration->getInitializerPtr().get()) {
-
         init = assignmentEGS->handleAssignExpression(
             ptr, structType, _variableName,
             variableDeclaration->getInitializerPtr().get());
@@ -202,16 +198,20 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 
       if (_isGlobal) {
         llvm::Value *gVar = _codeGenerationContext->createMemoryGetPtr(
-            llvm::Type::getInt64PtrTy(*TheContext), _variableName,
+            llvm::Type::getInt8PtrTy(*TheContext), _variableName,
             BinderKindUtils::MemoryKind::Global);
 
         Builder->CreateStore(ptr, gVar);
         _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                          {gVar, structType});
       } else {
+        llvm::Value *lVar = _codeGenerationContext->createMemoryGetPtr(
+            llvm::Type::getInt8PtrTy(*TheContext), _variableName,
+            BinderKindUtils::MemoryKind::Stack);
 
+        Builder->CreateStore(ptr, lVar);
         _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                         {ptr, structType});
+                                                         {lVar, structType});
       }
 
       if (!variableDeclaration->getInitializerPtr().get())

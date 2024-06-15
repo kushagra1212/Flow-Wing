@@ -8,18 +8,15 @@
 
 #include "../../utils/BuiltInFunction/BuiltInFunction.h"
 #include "../TypeBuilder/StructTypeBuilder/StructTypeBuilder.h"
-#include "../handlers/CustomTypeStatement/CustomTypeStatementChain/CustomTypeStatementChain.h"
-#include "../handlers/CustomTypeStatement/CustomTypeStatementTable/CustomTypeStatementTable.h"
 #include "../handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../handlers/alloca/AllocaTable/AllocaTable.h"
-#include "../handlers/type/TypeChain/TypeChain.h"
-#include "../handlers/type/TypeTable/TypeTable.h"
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
 #include "../irGen/Types/Class.h"
 #include "../irGen/Types/Function.h"
 #include "../irGen/Types/ReturnTypeHandler.h"
+#include "../irGen/Types/Type.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
 #include "utils/ValueStack/ValueStackHandler.h"
@@ -41,8 +38,6 @@ public:
 
   std::unique_ptr<ValueChain> &getNamedValueChain();
   std::unique_ptr<AllocaChain> &getAllocaChain();
-  std::unique_ptr<TypeChain> &getTypeChain();
-  std::unique_ptr<CustomTypeStatementChain> &getCustomTypeChain();
 
   std::unique_ptr<ArgsTypeHandler> &getArgsTypeHandler();
   std::unique_ptr<ReturnTypeHandler> &getReturnTypeHandler();
@@ -128,6 +123,8 @@ public:
   std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
+  // custom struct types
+  std::unordered_map<std::string, FlowWing::Type> _typesMap;
   std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
       _functionTypes;
 
@@ -139,15 +136,6 @@ public:
 
   inline auto resetCurrentClassName() -> void { _currentClassName = ""; }
 
-  inline auto getTypeNameDefinedInCurrentClass(std::string typeName)
-      -> std::string {
-    if (_currentClassName != "") {
-      return this->_classTypes[_currentClassName]->tryGetCustomTypeName(
-          typeName);
-    }
-    return "";
-  }
-
   auto createVTableMapEntry(
       std::unordered_map<
           std::string, std::tuple<llvm::FunctionType *, uint64_t, std::string>>
@@ -158,6 +146,30 @@ public:
   void verifyFunction(llvm::Function *F, const std::string &FUNCTION_NAME);
   void verifyModule(llvm::Module *M);
 
+  inline auto isValidClassType(llvm::StructType *type) -> bool {
+    return this->_classTypes.find((type->getStructName().str())) !=
+               this->_classTypes.end() &&
+           this->_classTypes[(type->getStructName().str())];
+  }
+
+  inline auto isCustomTypeExists(const std::string &typeName) -> bool {
+    return this->_typesMap.find(typeName) != this->_typesMap.end();
+  }
+
+  inline auto getType(const std::string &typeName) -> FlowWing::Type {
+    const bool isClassType =
+        this->_classTypes.find(typeName) != this->_classTypes.end();
+    if (!isCustomTypeExists(typeName) && !isClassType) {
+
+      this->getLogger()->LogError("Type " + typeName +
+                                  " is not defined in this scope");
+
+      return FlowWing::Type();
+    }
+
+    return this->_typesMap[typeName];
+  }
+
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
@@ -167,8 +179,6 @@ private:
 
   std::unique_ptr<ValueChain> _namedValueChain;
   std::unique_ptr<AllocaChain> _allocaChain;
-  std::unique_ptr<TypeChain> _typeChain;
-  std::unique_ptr<CustomTypeStatementChain> _customTypeExpressionChain;
   std::unique_ptr<ValueStackHandler> _valueStackHandler;
 
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;

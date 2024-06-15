@@ -191,8 +191,7 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
 
     if (variableExpression->getDotExpressionList().size() == 0) {
       _codeGenerationContext->getValueStackHandler()->push(
-          parObjTypeType->getStructName().str().substr(
-              0, parObjTypeType->getStructName().str().find(".")),
+          Utils::getActualTypeName(parObjTypeType->getStructName().str()),
           elementPtr, "struct", parObjTypeType);
 
       return elementPtr;
@@ -209,9 +208,8 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
     llvm::StructType *structType =
         llvm::cast<llvm::StructType>(_arrayType->getElementType());
     _codeGenerationContext->getValueStackHandler()->push(
-        structType->getStructName().str().substr(
-            0, structType->getStructName().str().find(".")),
-        elementPtr, "struct", structType);
+        Utils::getActualTypeName(structType->getStructName().str()), elementPtr,
+        "struct", structType);
     return elementPtr;
   }
   _codeGenerationContext->getValueStackHandler()->push(

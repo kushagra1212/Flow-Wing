@@ -124,8 +124,8 @@ public:
   const int32_t hasErrors() const;
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
-  void declareVariables(BoundStatement *statement);
-  void declareVariables(BoundNode *statement);
+  void declareVariables(BoundStatement *statement, const bool isGlobal);
+  void declareVariables(BoundNode *statement, const bool isGlobal);
 
 private:
   llvm::LLVMContext *TheContext;

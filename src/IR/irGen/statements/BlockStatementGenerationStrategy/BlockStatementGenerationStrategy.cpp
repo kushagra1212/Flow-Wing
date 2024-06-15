@@ -17,12 +17,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
-
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
   // create and load variable
 
@@ -92,8 +86,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   // this->_NamedValuesStack.pop();
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
   return nullptr;
 }
 

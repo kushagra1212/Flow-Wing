@@ -38,15 +38,6 @@ CodeGenerationContext ::CodeGenerationContext(
   _allocaChain = std::make_unique<AllocaChain>();
   _allocaChain->addHandler(std::make_unique<AllocaTable>());
 
-  // Initialize the Type chain
-  _typeChain = std::make_unique<TypeChain>();
-  _typeChain->addHandler(std::make_unique<TypeTable>());
-
-  // Initialize the ObjectTypeExpression chain
-  _customTypeExpressionChain = std::make_unique<CustomTypeStatementChain>();
-  _customTypeExpressionChain->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
-
   // initialize the ArgsTypeHandler
   _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
 
@@ -122,15 +113,6 @@ std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
 
 std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
   return _allocaChain;
-}
-
-std::unique_ptr<TypeChain> &CodeGenerationContext::getTypeChain() {
-  return _typeChain;
-}
-
-std::unique_ptr<CustomTypeStatementChain> &
-CodeGenerationContext::getCustomTypeChain() {
-  return _customTypeExpressionChain;
 }
 
 const std::unique_ptr<StructTypeBuilder> &
@@ -551,8 +533,7 @@ void CodeGenerationContext::getRetrunedArrayType(
   }
 
   if (strs[2] == "ay") {
-    arrayElementType =
-        getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
+    arrayElementType = this->getType(strs[3]).getType();
 
     if (!arrayElementType)
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
@@ -589,9 +570,16 @@ void CodeGenerationContext::getReturnedObjectType(
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())
       objectType = _classTypes[strs[3]]->getClassType();
-    else
-      objectType =
-          this->getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
+    else {
+
+      if (!(this->getType(strs[3]).getStructType())) {
+        this->getLogger()->LogError("Expected a object of type " +
+                                    Utils::getActualTypeName(strs[3]));
+        return;
+      }
+
+      objectType = this->getType(strs[3]).getStructType();
+    }
   }
 }
 void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,

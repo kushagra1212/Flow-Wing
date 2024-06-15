@@ -113,8 +113,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
     if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
       llvm::StructType *classType = llvm::cast<llvm::StructType>(cl.second);
-      std::string className = classType->getStructName().str().substr(
-          0, classType->getStructName().str().find("."));
+      std::string className =
+          Utils::getActualTypeName(classType->getStructName().str());
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
@@ -150,16 +150,15 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
 
   if (var.first && var.second) {
     if (llvm::isa<llvm::PointerType>(var.first->getType()) &&
-        var.first->getType() == llvm::Type::getInt64PtrTy(*TheContext) &&
-        llvm::isa<llvm::StructType>(var.second) &&
-        llvm::isa<llvm::GlobalVariable>(var.first)) {
+        var.first->getType() == llvm::Type::getInt8PtrTy(*TheContext) &&
+        llvm::isa<llvm::StructType>(var.second)) {
       llvm::StructType *classType = llvm::cast<llvm::StructType>(var.second);
       std::string className = classType->getStructName().str().substr(
           0, classType->getStructName().str().find(
                  FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX));
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
-        var.first = Builder->CreateLoad(llvm::Type::getInt64PtrTy(*TheContext),
+        var.first = Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext),
                                         var.first);
       }
     }
@@ -199,10 +198,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     bool itsClass) {
 
   std::string dotPropertyName = getPropertyName(listIndex);
-  itsClass = _codeGenerationContext->_classTypes.find(
-                 parObjType->getStructName().str().substr(
-                     0, parObjType->getStructName().str().find("."))) !=
-             _codeGenerationContext->_classTypes.end();
+  itsClass = _codeGenerationContext->isValidClassType(parObjType);
 
   bool isNested =
       _variableExpression->getDotExpressionList().size() > listIndex + 1;
@@ -213,8 +209,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         _variableExpression->getDotExpressionList()[listIndex].get());
 
-    std::string className = parObjType->getStructName().str().substr(
-        0, parObjType->getStructName().str().find("."));
+    std::string className =
+        Utils::getActualTypeName(parObjType->getStructName().str());
 
     std::unique_ptr<CallExpressionGenerationStrategy> call =
         std::make_unique<CallExpressionGenerationStrategy>(
@@ -242,10 +238,9 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     return getVariable(ptr, type, dotPropertyName, listIndex + 1);
   }
 
-  if (itsClass && !_codeGenerationContext
-                       ->_classTypes[parObjType->getStructName().str().substr(
-                           0, parObjType->getStructName().str().find("."))]
-                       ->doesElementExist(dotPropertyName)) {
+  if (itsClass &&
+      !_codeGenerationContext->_classTypes[(parObjType->getStructName().str())]
+           ->doesElementExist(dotPropertyName)) {
 
     _codeGenerationContext->getLogger()->LogError(
         "Variable " + dotPropertyName +
@@ -274,16 +269,15 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   };
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(
-          parObjType->getStructName().str().substr(
-              0, parObjType->getStructName().str().find(".")));
+      _codeGenerationContext->getType(parObjType->getStructName().str())
+          .getCustomType();
 
   Class *classObj = nullptr;
 
   if (itsClass) {
     classObj = _codeGenerationContext
-                   ->_classTypes[parObjType->getStructName().str().substr(
-                       0, parObjType->getStructName().str().find("."))]
+                   ->_classTypes[Utils::getActualTypeName(
+                       parObjType->getStructName().str())]
                    .get();
   }
 

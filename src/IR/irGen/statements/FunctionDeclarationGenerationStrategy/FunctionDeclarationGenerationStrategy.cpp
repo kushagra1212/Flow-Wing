@@ -140,8 +140,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
             static_cast<BoundObjectTypeExpression *>(
                 arrayTypeExpression->getNonTrivialElementType().get());
 
-        parmType = _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+        parmType =
+            _codeGenerationContext->getType(objectTypeExpression->getTypeName())
+                .getType();
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
@@ -286,8 +287,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
             static_cast<BoundObjectTypeExpression *>(
                 boundArrayTypeExpression->getNonTrivialElementType().get());
 
-        elementType = _codeGenerationContext->getTypeChain()->getType(
-            objectTypeExpression->getTypeName());
+        elementType =
+            _codeGenerationContext->getType(objectTypeExpression->getTypeName())
+                .getType();
         returnInfo = FUNCTION_NAME +
                      ":rt:ay:" + objectTypeExpression->getTypeName().c_str() +
                      ":sz:";
@@ -348,9 +350,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       BoundObjectTypeExpression *boundObjectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(fd->getReturnType().get());
 
+      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+          boundObjectTypeExpression->getLocation());
       llvm::StructType *structType =
-          _codeGenerationContext->getTypeChain()->getType(
-              boundObjectTypeExpression->getTypeName());
+          (_codeGenerationContext
+               ->getType(boundObjectTypeExpression->getTypeName())
+               .getStructType());
 
       if (!structType) {
 
@@ -359,6 +364,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                          ->getClassType();
       }
 
+      if (!structType) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Expected an object of type " +
+            Utils::getActualTypeName(boundObjectTypeExpression->getTypeName()));
+        return nullptr;
+      }
       llvm::Type *returnType = llvm::PointerType::get(structType, 0);
       //! Returning Void for struct Type and settting the value in parameter
       //! where we have the pointer to struct
@@ -485,14 +497,15 @@ llvm::StructType *FunctionDeclarationGenerationStrategy::getStructType(
 
   std::string typeName = "";
   if (!structType) {
-    typeName = className != ""
-                   ? className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                         objectTypeExpression->getTypeName()
-                   : objectTypeExpression->getTypeName();
-    structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+    typeName = objectTypeExpression->getTypeName();
+
+    structType = _codeGenerationContext->getType(typeName).getStructType();
     if (!structType) {
-      typeName = objectTypeExpression->getTypeName();
-      structType = _codeGenerationContext->getTypeChain()->getType(typeName);
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected an object type " + Utils::getActualTypeName(typeName) +
+          " but, got " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(structType));
+      return nullptr;
     }
   }
 

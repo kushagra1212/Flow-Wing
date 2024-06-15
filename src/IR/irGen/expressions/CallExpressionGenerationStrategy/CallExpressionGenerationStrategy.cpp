@@ -554,7 +554,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
           value = _codeGenerationContext->getValueStackHandler()->getValue();
           _codeGenerationContext->getValueStackHandler()->popAll();
         } else {
-
           value = _codeGenerationContext->createMemoryGetPtr(
               _codeGenerationContext->_classTypes[className]->getClassType(),
               "", BinderKindUtils::MemoryKind::Heap);
@@ -1098,11 +1097,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
           _codeGenerationContext);
 
   std::string objectTypeName =
-      llvmObjectType->getStructType()->getName().str().substr(
-          0, llvmObjectType->getStructType()->getName().str().find('.'));
+      llvmObjectType->getStructType()->getStructName().str();
   objExpGenStrat->setTypeName(objectTypeName);
   if (_codeGenerationContext->_classTypes.find(objectTypeName) !=
-      _codeGenerationContext->_classTypes.end()) {
+          _codeGenerationContext->_classTypes.end() &&
+      _codeGenerationContext->_classTypes[objectTypeName]) {
 
     llvm::StructType *classType =
         _codeGenerationContext->_classTypes[objectTypeName]->getClassType();
@@ -1705,16 +1704,12 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
   printUnit("{ ", "{ ");
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getCustomTypeChain()->getExpr(
-          parObjType->getStructName().str().substr(
-              0, parObjType->getStructName().str().find(".")));
+      _codeGenerationContext->getType(parObjType->getStructName().str())
+          .getCustomType();
 
   if (!boundCustomTypeStatement) {
 
-    if (_codeGenerationContext->_classTypes.find(
-            parObjType->getStructName().str().substr(
-                0, parObjType->getStructName().str().find("."))) !=
-        _codeGenerationContext->_classTypes.end()) {
+    if (_codeGenerationContext->isValidClassType(parObjType)) {
       _codeGenerationContext->getLogger()->LogError(
           "variable of class " +
           _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
@@ -1730,7 +1725,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
   }
 
   uint64_t i = 0;
-
+  const std::string KEY_PRIFIX =
+      boundCustomTypeStatement->getTypeNameAsString();
   for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
     std::string typeName = std::any_cast<std::string>(bLE->getValue());
     std::string propertyKey = std::any_cast<std::string>(bLE->getValue());
@@ -1739,11 +1735,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
         TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
         {Builder->CreateGlobalStringPtr(propertyKey), Builder->getInt1(false)});
     printUnit(" : ", " : ");
-    std::string key =
-        boundCustomTypeStatement->getTypeNameAsString().substr(
-            0, boundCustomTypeStatement->getTypeNameAsString().find(".")) +
-        "." + propertyKey;
-    size_t index = _codeGenerationContext->getTypeChain()->getIndex(key);
+    std::string key = KEY_PRIFIX + "." + propertyKey;
+    size_t index = _codeGenerationContext->getType(key).getIndex();
 
     if (index == -1) {
       _codeGenerationContext->getLogger()->LogError(

@@ -24,10 +24,11 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement() {
         static_cast<BoundObjectTypeExpression *>(
             _arrayTypeExpression->getNonTrivialElementType().get());
 
-    _elementType = _codeGenerationContext->getTypeChain()->getType(
-        objectTypeExpression->getTypeName().substr(
-            0, objectTypeExpression->getTypeName().find(".")));
+    _elementType =
+        _codeGenerationContext->getType(objectTypeExpression->getTypeName())
+            .getStructType();
   }
+
   llvm::ArrayType *arrayType = nullptr;
 
   _codeGenerationContext->getMultiArrayType(arrayType, _actualSizes,
@@ -39,30 +40,23 @@ ContainerDeclarationStatementGenerationStrategy::generateCommonStatement() {
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
 
-  llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
-      arrayType, _containerName, _memoryKind);
+  llvm::Value *ptr = nullptr;
 
+  // if (_isDeclarationNeeded) {
+  ptr = _codeGenerationContext->createMemoryGetPtr(arrayType, _containerName,
+                                                   _memoryKind);
+  assignmentStrategy->initDefaultValue(arrayType, ptr);
+  // } else {
+  _variableDeclExpr->setLLVMVariable({ptr, arrayType});
   _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
                                                    {ptr, arrayType});
-  assignmentStrategy->initDefaultValue(arrayType, ptr);
+
   if (!_initializer)
     return ptr;
 
   return assignmentStrategy->handleAssignExpression(
       ptr, arrayType, _containerName, _initializer);
-}
-
-llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
-    BoundStatement *statement) {
-
-  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
-
-  if (contVarDec->getMemoryKind() == BinderKindUtils::MemoryKind::None)
-    contVarDec->setMemoryKind(BinderKindUtils::MemoryKind::Stack);
-
-  initialize(contVarDec);
-
-  return this->generateCommonStatement();
+  // }
 }
 
 void ContainerDeclarationStatementGenerationStrategy::initialize(
@@ -74,17 +68,44 @@ void ContainerDeclarationStatementGenerationStrategy::initialize(
   _memoryKind = contVarDec->getMemoryKind();
 }
 
+llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
+
+  _variableDeclExpr = static_cast<BoundVariableDeclaration *>(statement);
+
+  if (_variableDeclExpr->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    _variableDeclExpr->setMemoryKind(BinderKindUtils::MemoryKind::Stack);
+
+  initialize(_variableDeclExpr);
+
+  return this->generateCommonStatement();
+}
+
 llvm::Value *
 ContainerDeclarationStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-  auto contVarDec = static_cast<BoundVariableDeclaration *>(statement);
+  _variableDeclExpr = static_cast<BoundVariableDeclaration *>(statement);
 
-  if (contVarDec->getMemoryKind() == BinderKindUtils::MemoryKind::None)
-    contVarDec->setMemoryKind(BinderKindUtils::MemoryKind::Global);
+  if (_variableDeclExpr->getMemoryKind() == BinderKindUtils::MemoryKind::None)
+    _variableDeclExpr->setMemoryKind(BinderKindUtils::MemoryKind::Global);
 
-  initialize(contVarDec);
+  initialize(_variableDeclExpr);
 
   return this->generateCommonStatement();
+}
+
+llvm::Value *ContainerDeclarationStatementGenerationStrategy::declareLocal(
+    BoundStatement *statement) {
+
+  _isDeclarationNeeded = true;
+  return this->generateStatement(statement);
+}
+
+llvm::Value *ContainerDeclarationStatementGenerationStrategy::declareGlobal(
+    BoundStatement *statement) {
+
+  _isDeclarationNeeded = true;
+  return this->generateGlobalStatement(statement);
 }
 
 llvm::Value *

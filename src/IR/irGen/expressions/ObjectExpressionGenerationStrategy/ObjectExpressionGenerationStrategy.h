@@ -29,9 +29,9 @@ public:
                                 const std::string &typeName,
                                 llvm::Value *fromVar, const bool isGlobal);
 
-  llvm::Value *generateVariableAccessThroughPtr(llvm::Value *variable,
-                                                const std::string &typeName,
-                                                llvm::Value *fromVar);
+  // llvm::Value *generateVariableAccessThroughPtr(llvm::Value *variable,
+  //                                               const std::string &typeName,
+  //                                               llvm::Value *fromVar);
 
   llvm::Value *createExpressionNPDefault(llvm::Value *variable,
                                          const std::string &typeName);

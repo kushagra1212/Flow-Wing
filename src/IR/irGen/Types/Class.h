@@ -13,17 +13,15 @@ private:
   //   std::vector<llvm::Type *> _vTableElements;
   //   std::vector<llvm::Type *> _classElements;
   std::unordered_map<std::string, uint64_t> _classElementsIndexMap;
+
+  std::unordered_map<std::string, int8_t> _memberVariablesTypeNameMap;
+
   std::unordered_map<std::string, llvm::FunctionType *>
       _classMemberFunctionTypeMap;
   std::unordered_map<std::string,
                      std::tuple<llvm::FunctionType *, uint64_t, std::string>>
       _vTableElementsMap;
   std::unordered_map<std::string, llvm::Function *> _classFunctionMap;
-  std::unordered_map<std::string, llvm::StructType *> _customTypeMap;
-  std::unordered_map<std::string, uint64_t> _customTypePropertyMap;
-
-  std::unordered_map<std::string, BoundCustomTypeStatement *>
-      _customTypeStatementMap;
 
   llvm::StructType *_classType;
   llvm::StructType *_vTableType;
@@ -52,35 +50,6 @@ public:
   inline auto setVTableType(llvm::StructType *type) { _vTableType = type; }
 
   inline auto setParentClassName(std::string name) { _parentClassName = name; }
-
-  inline auto addCustomType(std::string name, llvm::StructType *type) -> void {
-    _customTypeMap[name] = type;
-  }
-
-  inline auto getCustomTypeMap()
-      -> std::unordered_map<std::string, llvm::StructType *> & {
-    return _customTypeMap;
-  }
-
-  inline auto addCustomTypeStatement(std::string name,
-                                     BoundCustomTypeStatement *statement)
-      -> void {
-    _customTypeStatementMap[name] = statement;
-  }
-
-  inline auto getCustomTypeStatementMap()
-      -> std::unordered_map<std::string, BoundCustomTypeStatement *> & {
-    return _customTypeStatementMap;
-  }
-
-  inline auto addCustomTypeProperty(std::string name, uint64_t index) -> void {
-    _customTypePropertyMap[name] = index;
-  }
-
-  inline auto getCustomTypePropertyMap()
-      -> std::unordered_map<std::string, uint64_t> & {
-    return _customTypePropertyMap;
-  }
 
   inline auto setParent(Class *parent) { _parent = parent; }
 
@@ -210,22 +179,6 @@ public:
         builder->CreateStructGEP(_vTableType, vTablePtr, index));
   }
 
-  inline auto tryGetCustomTypeName(std::string typeName) -> std::string {
-    auto cusType = _boundClassStatement->tryGetCustomLocalType(
-        this->_className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-        typeName);
-
-    if (cusType)
-      return cusType->getTypeNameAsString().substr(
-          0, cusType->getTypeNameAsString().find("."));
-
-    if (this->hasParent()) {
-      return this->getParent()->tryGetCustomTypeName(typeName);
-    }
-
-    return "";
-  }
-
   inline auto isChildOf(std::string className) -> bool {
 
     if (this->hasParent()) {
@@ -262,6 +215,10 @@ public:
 
   inline auto getBoundClassStatement() -> BoundClassStatement * {
     return _boundClassStatement;
+  }
+
+  inline auto addMemberVariableTypeName(std::string name) -> void {
+    _memberVariablesTypeNameMap[name] = 1;
   }
 };
 

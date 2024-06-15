@@ -395,11 +395,9 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
             std::make_unique<ObjectExpressionGenerationStrategy>(
                 _codeGenerationContext);
 
-        objExpGenStrategy->generateVariable(
-            elementPtr,
-            _elementType->getStructName().str().substr(
-                0, _elementType->getStructName().str().find(".")),
-            _elementToFill, _isGlobal);
+        objExpGenStrategy->generateVariable(elementPtr,
+                                            _elementType->getStructName().str(),
+                                            _elementToFill, _isGlobal);
       } else
         Builder->CreateStore(elementToFill, elementPtr);
 

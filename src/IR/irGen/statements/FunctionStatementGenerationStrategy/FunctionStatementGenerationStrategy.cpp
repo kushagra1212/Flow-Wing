@@ -53,10 +53,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
       new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
+
   std::vector<std::string> parameterNames;
 
   llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
@@ -141,8 +138,21 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         llvm::StructType *structType =
             llvm::cast<llvm::StructType>(llvmArgsTypes[i]->getLLVMType());
 
-        _codeGenerationContext->getAllocaChain()->setPtr(
-            parameterNames[i], {argValue, structType});
+        if (_codeGenerationContext->isValidClassType(structType)) {
+          llvm::Value *lVar = _codeGenerationContext->createMemoryGetPtr(
+              llvm::Type::getInt8PtrTy(*TheContext), parameterNames[i],
+              BinderKindUtils::MemoryKind::Stack);
+
+          Builder->CreateStore(argValue, lVar);
+
+          _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                           {lVar, structType});
+        } else {
+
+          _codeGenerationContext->getAllocaChain()->setPtr(
+              parameterNames[i], {argValue, structType});
+        }
+
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
 
         _codeGenerationContext->getAllocaChain()->setPtr(
@@ -193,18 +203,26 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
         llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
             structType, parameterNames[i],
-            _codeGenerationContext->_classTypes.find(
-                structType->getName().str().substr(
-                    0, structType->getName().find(
-                           FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
-                    _codeGenerationContext->_classTypes.end()
+            _codeGenerationContext->isValidClassType(structType)
                 ? BinderKindUtils::MemoryKind::Heap
                 : BinderKindUtils::MemoryKind::Stack);
 
         Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
 
-        _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                         {ptr, structType});
+        if (_codeGenerationContext->isValidClassType(structType)) {
+          llvm::Value *lVar = _codeGenerationContext->createMemoryGetPtr(
+              llvm::Type::getInt8PtrTy(*TheContext), parameterNames[i],
+              BinderKindUtils::MemoryKind::Stack);
+
+          Builder->CreateStore(ptr, lVar);
+
+          _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                           {lVar, structType});
+        } else {
+
+          _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
+                                                           {ptr, structType});
+        }
 
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
         LLVMPrimitiveType *llvmPrimitiveType =
@@ -269,8 +287,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
   _codeGenerationContext->getReturnAllocaStack().pop();
 
@@ -312,9 +328,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-
   std::vector<std::string> parameterNames;
 
   for (int i = 0; i < fd->getParametersRef().size(); i++) {
@@ -345,8 +358,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 
   //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
   //   F);

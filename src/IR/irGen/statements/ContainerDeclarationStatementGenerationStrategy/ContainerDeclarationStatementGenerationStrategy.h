@@ -24,6 +24,9 @@ public:
   llvm::Value *generateBracketGlobalExpression(
       BoundBracketedExpression *bracketedExpression);
 
+  llvm::Value *declareLocal(BoundStatement *statement);
+  llvm::Value *declareGlobal(BoundStatement *statement);
+
   llvm::Value *
   generateBracketLocalExpression(BoundBracketedExpression *bracketedExpression);
 
@@ -59,10 +62,13 @@ private:
   BoundExpression *_initializer;
   BinderKindUtils::MemoryKind _memoryKind;
   BoundArrayTypeExpression *_arrayTypeExpression;
+  BoundVariableDeclaration *_variableDeclExpr;
 
   const std::string ON_HEAP = "on_heap";
   const std::string ON_STACK = "on_stack";
   const std::string ON_GLOBAL = "on_global";
+
+  bool _isDeclarationNeeded = false;
 };
 
 #endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
