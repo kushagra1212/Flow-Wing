@@ -74,9 +74,6 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
 llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
     BoundExpression *expression) {
 
-  std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
-      std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
-          _codeGenerationContext);
   llvm::Value *rhsValue =
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);
@@ -166,7 +163,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
       _codeGenerationContext->getValueStackHandler()->getValue();
   _codeGenerationContext->getValueStackHandler()->popAll();
 
-  return strategy->copyOject(parStructType, _variable, rhsPtr);
+  return strategy->copyObject(parStructType, _variable, rhsPtr);
 }
 
 llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(

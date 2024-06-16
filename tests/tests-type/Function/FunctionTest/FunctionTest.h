@@ -1,7 +1,7 @@
 #ifndef __FUNCTION_TEST_LOCAL_TEST_H__
 #define __FUNCTION_TEST_LOCAL_TEST_H__
 
-#include "../../../../Common.h"
+#include "../../../Common.h"
 
 class FunctionTest : public ::testing::Test {
 protected:

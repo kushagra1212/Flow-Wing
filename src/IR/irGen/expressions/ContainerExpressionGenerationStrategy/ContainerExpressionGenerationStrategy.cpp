@@ -114,13 +114,13 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateGlobalExpression(
 }
 
 llvm::Value *ContainerExpressionGenerationStrategy::createLocalExpression(
-    llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+    llvm::Type *arrayType, llvm::AllocaInst *v,
     BoundContainerExpression *containerExpression) {
 
   _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
-                                                   {_allocaInst, arrayType});
+                                                   {v, arrayType});
 
-  return createExpression(arrayType, _allocaInst, containerExpression);
+  return createExpression(arrayType, v, containerExpression);
 }
 
 llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(

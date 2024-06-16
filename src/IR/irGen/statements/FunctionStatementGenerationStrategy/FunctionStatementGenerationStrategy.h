@@ -7,6 +7,7 @@
 #include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
@@ -17,10 +18,17 @@ public:
   llvm::Value *generateStatementOnFly(BoundFunctionDeclaration *node,
                                       std::vector<llvm::Value *> callArgs);
 
+  void declareVariables(BoundStatement *statement);
+  void declareVariables(BoundNode *statement);
+
   llvm::Value *generate(BoundStatement *statement,
                         std::vector<std::string> classParams = {},
                         llvm::Type *classType = nullptr,
                         std::vector<std::string> classVariables = {});
+
+private:
+  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+      _variableDeclarationStatementGenerationStrategy;
 };
 
 #endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

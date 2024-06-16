@@ -137,10 +137,17 @@ void IRGenerator::declareVariables(BoundStatement *statement,
   for (auto &children : statement->getChildren()) {
     if (!children)
       continue;
+
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration)
+      continue;
+
     if (children->getKind() ==
         BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      // _variableDeclarationStatementGenerationStrategy->generateGlobalStatement(
-      //     children);
+      isGlobal ? _variableDeclarationStatementGenerationStrategy->declareGlobal(
+                     static_cast<BoundVariableDeclaration *>(children))
+               : _variableDeclarationStatementGenerationStrategy->declareLocal(
+                     static_cast<BoundVariableDeclaration *>(children));
     } else {
       declareVariables(children, false);
     }
@@ -150,8 +157,19 @@ void IRGenerator::declareVariables(BoundStatement *statement,
 void IRGenerator::declareVariables(BoundNode *node, const bool isGlobal) {
 
   for (auto &children : node->getChildren()) {
-    if (children && children->getKind() ==
-                        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+    if (!children)
+      continue;
+
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration)
+      continue;
+
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      _variableDeclarationStatementGenerationStrategy->declareLocal(
+          static_cast<BoundVariableDeclaration *>(children));
+    } else {
+      declareVariables(children, false);
     }
   }
 }
@@ -218,6 +236,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   Builder->SetInsertPoint(entryBlock);
   declareCustomType(blockStatement);
+  declareVariables(blockStatement, true);
   // Declare All Global Variables
 
   std::unordered_map<std::string, int8_t> functionMap;
@@ -267,9 +286,11 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
+
       if (!functionDeclaration->isOnlyDeclared())
         _functionStatementGenerationStrategy->generateGlobalStatement(
             functionDeclaration);
+
     } else if (kind == BinderKindUtils::BoundNodeKind::ClassStatement) {
 
       BoundClassStatement *boundClassStatement =

@@ -1029,24 +1029,28 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
 
   llvm::Type *arrayType = llvmArrayArgs[llvmArgsIndex]->getLLVMType();
 
-  auto contStrategy =
-      std::make_unique<ContainerDeclarationStatementGenerationStrategy>(
+  auto assignStrategy =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
+
   llvm::Type *arrayElementType = arrayType;
   std::vector<uint64_t> sizes;
   _codeGenerationContext->createArraySizesAndArrayElementType(sizes,
                                                               arrayElementType);
 
-  contStrategy->generateCommonStatement(
-      sizes, arrayElementType, arg->getName().str(),
+  llvm::Value *clPtr = _codeGenerationContext->createMemoryGetPtr(
+      arrayType, arg->getName().str(), BinderKindUtils::MemoryKind::Stack);
+  assignStrategy->initDefaultValue(arrayType, clPtr);
+  assignStrategy->handleAssignExpression(
+      clPtr, arrayType, arg->getName().str(),
       callExpression->getArgumentsRef()[callArgIndex].get());
 
-  rhsValue = _codeGenerationContext->getAllocaChain()
-                 ->getPtr(arg->getName().str())
-                 .first;
+  rhsValue = clPtr;
+
   BoundFunctionDeclaration *functionDeclaration =
       _codeGenerationContext
           ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+
   if (functionDeclaration->getParametersRef()[callArgIndex]
           ->getHasAsKeyword()) {
 

@@ -3,18 +3,25 @@
 
 #include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "../ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
+#include "../ObjectDeclarationStatementGenerationStrategy/ObjectDeclarationStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class VariableDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
+
 public:
   VariableDeclarationStatementGenerationStrategy(
       CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+
+  llvm::Value *declareGlobal(BoundStatement *statement);
+  llvm::Value *declareLocal(BoundStatement *statement);
 
   // Specialized for BoundVariableDeclaration
 
@@ -41,7 +48,13 @@ private:
   std::string _variableName;
   llvm::Value *_rhsValue;
   SyntaxKindUtils::SyntaxKind _variableType;
+  BoundVariableDeclaration *_variableDeclaration;
   bool _isGlobal = false;
+
+  llvm::Value *declare();
+  void populateLocalVariables(BoundStatement *statement,
+                              BinderKindUtils::MemoryKind memoryKind =
+                                  BinderKindUtils::MemoryKind::None);
 };
 
 #endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

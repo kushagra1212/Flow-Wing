@@ -1,19 +1,16 @@
-#ifndef __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
-#define __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
+#ifndef __FLOWWING_OBJECT_STATEMENT_STRATEGY_H__
+#define __FLOWWING_OBJECT_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../bind/BoundContainerStatement/BoundContainerStatement.h"
 #include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
-class ContainerDeclarationStatementGenerationStrategy
+class ObjectDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
 
 public:
   // public methods
-  ContainerDeclarationStatementGenerationStrategy(
-      CodeGenerationContext *context);
+  ObjectDeclarationStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
@@ -23,17 +20,15 @@ public:
 
 private:
   // private members
-  std::vector<uint64_t> _actualSizes;
-  llvm::Type *_elementType;
-  std::string _containerName;
+  std::string _variableName;
 
   BoundExpression *_initializer;
   BinderKindUtils::MemoryKind _memoryKind;
-  BoundArrayTypeExpression *_arrayTypeExpression;
+  BoundObjectTypeExpression *_objectTypeExpr;
   BoundVariableDeclaration *_variableDeclExpr;
+  bool _isGlobal = false;
 
   // private methods
-  void calcActualContainerSize(BoundArrayTypeExpression *arrayTypeExpression);
   void initialize(BoundStatement *statement,
                   BinderKindUtils::MemoryKind memoryKind =
                       BinderKindUtils::MemoryKind::None);
@@ -41,4 +36,4 @@ private:
   llvm::Value *assignExpression();
 };
 
-#endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
+#endif //__FLOWWING_OBJECT_STATEMENT_STRATEGY_H__

@@ -2,11 +2,47 @@
 
 FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
     CodeGenerationContext *context)
-    : StatementGenerationStrategy(context) {}
+    : StatementGenerationStrategy(context) {
+  _variableDeclarationStatementGenerationStrategy =
+      std::make_unique<VariableDeclarationStatementGenerationStrategy>(context);
+}
 
 llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
   return this->generate(statement);
+}
+
+void FunctionStatementGenerationStrategy::declareVariables(
+    BoundStatement *statement) {
+
+  for (auto &children : statement->getChildren()) {
+    if (!children)
+      continue;
+
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      _variableDeclarationStatementGenerationStrategy->declareLocal(
+          static_cast<BoundVariableDeclaration *>(children));
+    } else {
+      declareVariables(children);
+    }
+  }
+}
+
+void FunctionStatementGenerationStrategy::declareVariables(BoundNode *node) {
+
+  for (auto &children : node->getChildren()) {
+    if (!children)
+      continue;
+
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
+      _variableDeclarationStatementGenerationStrategy->declareLocal(
+          static_cast<BoundVariableDeclaration *>(children));
+    } else {
+      declareVariables(children);
+    }
+  }
 }
 
 llvm::Value *FunctionStatementGenerationStrategy::generate(
@@ -262,6 +298,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     }
   }
 
+  declareVariables(functionDeclaration->getBodyRef().get());
   _statementGenerationFactory
       ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
       ->generateStatement(functionDeclaration->getBodyRef().get());
