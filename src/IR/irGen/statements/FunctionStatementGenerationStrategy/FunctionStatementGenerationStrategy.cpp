@@ -2,47 +2,12 @@
 
 FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
     CodeGenerationContext *context)
-    : StatementGenerationStrategy(context) {
-  _variableDeclarationStatementGenerationStrategy =
-      std::make_unique<VariableDeclarationStatementGenerationStrategy>(context);
-}
+    : StatementGenerationStrategy(context),
+      _irCodeGenerator(std::make_unique<IRCodeGenerator>(context)) {}
 
 llvm::Value *FunctionStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
   return this->generate(statement);
-}
-
-void FunctionStatementGenerationStrategy::declareVariables(
-    BoundStatement *statement) {
-
-  for (auto &children : statement->getChildren()) {
-    if (!children)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      _variableDeclarationStatementGenerationStrategy->declareLocal(
-          static_cast<BoundVariableDeclaration *>(children));
-    } else {
-      declareVariables(children);
-    }
-  }
-}
-
-void FunctionStatementGenerationStrategy::declareVariables(BoundNode *node) {
-
-  for (auto &children : node->getChildren()) {
-    if (!children)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      _variableDeclarationStatementGenerationStrategy->declareLocal(
-          static_cast<BoundVariableDeclaration *>(children));
-    } else {
-      declareVariables(children);
-    }
-  }
 }
 
 llvm::Value *FunctionStatementGenerationStrategy::generate(
@@ -121,10 +86,12 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     llvm::Value *argValue = F->arg_begin() + paramsSize;
     llvm::StructType *structT = llvm::cast<llvm::StructType>(classType);
 
+    llvm::Value *classPtr =
+        Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), argValue);
+
     for (int j = 1; j < structT->getNumElements(); j++) {
       llvm::Type *type = structT->getElementType(j);
-
-      llvm::Value *elementPtr = Builder->CreateStructGEP(structT, argValue, j);
+      llvm::Value *elementPtr = Builder->CreateStructGEP(structT, classPtr, j);
       _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});
     }
@@ -174,20 +141,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         llvm::StructType *structType =
             llvm::cast<llvm::StructType>(llvmArgsTypes[i]->getLLVMType());
 
-        if (_codeGenerationContext->isValidClassType(structType)) {
-          llvm::Value *lVar = _codeGenerationContext->createMemoryGetPtr(
-              llvm::Type::getInt8PtrTy(*TheContext), parameterNames[i],
-              BinderKindUtils::MemoryKind::Stack);
-
-          Builder->CreateStore(argValue, lVar);
-
-          _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
-                                                           {lVar, structType});
-        } else {
-
-          _codeGenerationContext->getAllocaChain()->setPtr(
-              parameterNames[i], {argValue, structType});
-        }
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, structType});
 
       } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
 
@@ -243,9 +198,13 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
                 ? BinderKindUtils::MemoryKind::Heap
                 : BinderKindUtils::MemoryKind::Stack);
 
-        Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
-
         if (_codeGenerationContext->isValidClassType(structType)) {
+
+          llvm::Value *classPtr = Builder->CreateLoad(
+              llvm::Type::getInt8PtrTy(*TheContext), argValue);
+
+          Builder->CreateStore(Builder->CreateLoad(structType, classPtr), ptr);
+
           llvm::Value *lVar = _codeGenerationContext->createMemoryGetPtr(
               llvm::Type::getInt8PtrTy(*TheContext), parameterNames[i],
               BinderKindUtils::MemoryKind::Stack);
@@ -255,6 +214,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
           _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
                                                            {lVar, structType});
         } else {
+
+          Builder->CreateStore(Builder->CreateLoad(structType, argValue), ptr);
 
           _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
                                                            {ptr, structType});
@@ -298,7 +259,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     }
   }
 
-  declareVariables(functionDeclaration->getBodyRef().get());
+  _irCodeGenerator->declareVariables(functionDeclaration->getBodyRef().get(),
+                                     false);
   _statementGenerationFactory
       ->createStrategy(functionDeclaration->getBodyRef().get()->getKind())
       ->generateStatement(functionDeclaration->getBodyRef().get());

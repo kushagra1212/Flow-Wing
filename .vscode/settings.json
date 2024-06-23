@@ -142,5 +142,6 @@
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
   "C_Cpp.dimInactiveRegions": false,
-  "editor.wordWrap": "on"
+  "editor.wordWrap": "on",
+  "C_Cpp.errorSquiggles": "enabled"
 }

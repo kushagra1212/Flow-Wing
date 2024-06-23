@@ -130,8 +130,20 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bOT->getLocation());
     std::string typeName = std::any_cast<std::string>(bLE->getValue());
-    llvm::StructType *type =
-        (_codeGenerationContext->_typesMap[typeName].getStructType());
+
+    llvm::StructType *type = nullptr;
+    if (_codeGenerationContext->_classTypes.find(typeName) !=
+        _codeGenerationContext->_classTypes.end()) {
+
+      type = _codeGenerationContext->_classTypes[typeName]->getClassType();
+    } else if ((_codeGenerationContext->getType(typeName).getStructType())) {
+
+      type = (_codeGenerationContext->_typesMap[typeName].getStructType());
+    } else {
+      _codeGenerationContext->getLogger()->LogError(
+          "Expected an object type," + Utils::getActualTypeName(typeName));
+      return nullptr;
+    }
 
     if (!type) {
       _codeGenerationContext->getLogger()->LogError(

@@ -13,8 +13,6 @@
 #include "../IR/handlers/value/ValueHandler.h"
 #include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
 #include "../IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
-#include "../IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
 #include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
@@ -38,6 +36,7 @@
 #include "../utils/Utils.h"
 #include "IRGenerator.h"
 #include "IRParser/IRParser.h"
+#include "irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "utils/fileSaver/bc-file/BCFileSaveStrategy.h"
 #include "utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "utils/fileSaver/o-file/OFileSaveStrategy.h"
@@ -126,12 +125,6 @@ public:
   const int32_t hasErrors() const;
   bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
-  void declareVariables(BoundStatement *statement, const bool isGlobal);
-  void declareVariables(BoundNode *statement, const bool isGlobal);
-
-  void declareCustomType(BoundStatement *statement);
-  void declareCustomType(BoundNode *statement);
-
 private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
@@ -153,18 +146,16 @@ private:
       _functionStatementGenerationStrategy;
 
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
-  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
-      _variableDeclarationStatementGenerationStrategy;
-  std::unique_ptr<CustomTypeStatementGenerationStrategy>
-      _customTypeStatementGenerationStrategy;
-  std::unique_ptr<ClassStatementGenerationStrategy>
-      _classStatementGenerationStrategy;
 
   // File Save Strategy
 
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::unique_ptr<BCFileSaveStrategy> bcFileSaveStrategy;
   std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
+
+  // IRCodeGenerator Instance
+
+  std::unique_ptr<IRCodeGenerator> _irCodeGenerator;
 };
 
 #endif // IRGENERATOR_H

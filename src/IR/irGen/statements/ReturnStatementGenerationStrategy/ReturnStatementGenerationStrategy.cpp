@@ -58,10 +58,23 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     auto [rtPtr, rtType] = _codeGenerationContext->getAllocaChain()->getPtr(
         FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
     if (rtPtr && rtType) {
+
       std::unique_ptr<AssignmentExpressionGenerationStrategy>
           assignmentExpressionGenerationStrategy =
               std::make_unique<AssignmentExpressionGenerationStrategy>(
                   _codeGenerationContext);
+
+      if (returnStat->getKind() == BinderKindUtils::CallExpression) {
+        BoundCallExpression *boundCallExpression =
+            static_cast<BoundCallExpression *>(returnStat);
+
+        if (Utils::isClassInit(boundCallExpression->getCallerNameRef())) {
+          boundCallExpression->setArgumentAlloca(
+              boundCallExpression->getArgumentsRef().size(), {rtPtr, rtType});
+        } else {
+          boundCallExpression->setArgumentAlloca(0, {rtPtr, rtType});
+        }
+      }
 
       assignmentExpressionGenerationStrategy->handleAssignExpression(
           rtPtr, rtType, FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME,

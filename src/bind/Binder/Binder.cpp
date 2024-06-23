@@ -872,10 +872,13 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
           (callExpression->getIdentifierPtr().get()))
           .release());
 
-  const std::string oldFunctionName =
+  const std::string CALLER_NAME =
       std::any_cast<std::string>(boundIdentifier->getValue());
 
-  if (oldFunctionName == "super" && !this->root->isInsideInitFunction()) {
+  const bool IS_CALLING_SUPPER_OUT_SIDEOF_INIT_FUNCTION =
+      CALLER_NAME == "super" && !this->root->isInsideInitFunction();
+
+  if (IS_CALLING_SUPPER_OUT_SIDEOF_INIT_FUNCTION) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Can not call 'super' function directly inside any member function "
         "other than init function",
@@ -887,10 +890,10 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     return std::move(boundIdentifier);
   }
 
-  if (oldFunctionName == "init" ||
-      oldFunctionName.substr(
-          oldFunctionName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) +
-          1) == "init") {
+  const bool IS_CALLING_INIT_FUNCTION_OUTSIDE_OR_INSIDE_CLASS =
+      CALLER_NAME == "init";
+
+  if (IS_CALLING_INIT_FUNCTION_OUTSIDE_OR_INSIDE_CLASS) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "Can not call 'init' function directly inside or outside of class",
         DiagnosticUtils::DiagnosticLevel::Error,
@@ -901,16 +904,19 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     return std::move(boundIdentifier);
   }
 
-  std::string functionName = oldFunctionName;
-  bool isAInBuiltinFunction = BuiltInFunction::isBuiltInFunction(functionName);
+  const bool IS_A_BUILTIN_FUNCTION_CALL =
+      BuiltInFunction::isBuiltInFunction(CALLER_NAME);
 
-  if (isAInBuiltinFunction) {
+  if (IS_A_BUILTIN_FUNCTION_CALL) {
     const std::unique_ptr<BoundFunctionDeclaration> &boundBuiltinFunction =
-        BuiltInFunction::getBuiltInFunction(functionName);
+        BuiltInFunction::getBuiltInFunction(CALLER_NAME);
 
-    if (!boundBuiltinFunction->isVariadicFunction() &&
+    const bool IS_AGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL =
+        !boundBuiltinFunction->isVariadicFunction() &&
         callExpression->getArguments().size() !=
-            boundBuiltinFunction->getParametersRef().size()) {
+            boundBuiltinFunction->getParametersRef().size();
+
+    if (IS_AGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL) {
       this->_diagnosticHandler->addDiagnostic(Diagnostic(
           "Function " + boundBuiltinFunction->getFunctionNameRef() +
               " requires " +
@@ -926,34 +932,24 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   BoundFunctionDeclaration *declared_fd = nullptr;
-  std::string className = this->root->getClassName();
+  std::string updatedCallerName = CALLER_NAME;
 
-  if (!isAInBuiltinFunction && className != "" && oldFunctionName != "super") {
-    BoundClassStatement *boundClassStatement =
-        this->root->tryGetClass(className);
+  if (!IS_A_BUILTIN_FUNCTION_CALL) {
 
-    functionName = className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                   functionName;
+    const std::string CLASS_NAME = this->root->getClassName();
+    const bool IS_INSIDE_CURRENT_CLASS = CLASS_NAME != "";
+    if (IS_INSIDE_CURRENT_CLASS) {
+      BoundClassStatement *boundClassStatement =
+          this->root->tryGetClass(CLASS_NAME);
 
-    if (boundClassStatement) {
-      declared_fd = boundClassStatement->getMemberFunction(functionName);
-    }
-  } else if (!isAInBuiltinFunction) {
+      const bool IS_SUPPER_INIT_CALL = CALLER_NAME == "super";
+      if (IS_SUPPER_INIT_CALL && !declared_fd) {
+        const bool IS_CURRENT_CLASS_HAS_NO_PARENT_CLASS =
+            boundClassStatement->getParentClassName() == "";
 
-    if (oldFunctionName == "super") {
-      functionName = className;
-    }
-
-    BoundClassStatement *boundClassStatement =
-        this->root->tryGetClass(functionName);
-
-    if (boundClassStatement) {
-
-      if (oldFunctionName == "super") {
-
-        if (boundClassStatement->getParentClassName() == "") {
+        if (IS_CURRENT_CLASS_HAS_NO_PARENT_CLASS) {
           this->_diagnosticHandler->addDiagnostic(Diagnostic(
-              "Could not find super class of class " + functionName +
+              "Could not find super class of class " + CLASS_NAME +
                   ", "
                   "Add super class to class declaration",
               DiagnosticUtils::DiagnosticLevel::Error,
@@ -964,110 +960,121 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
           return std::move(boundIdentifier);
         }
 
-        functionName = boundClassStatement->getParentClassName() +
-                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
-                       std::to_string(callExpression->getArguments().size());
+        updatedCallerName =
+            boundClassStatement->getParentClassName() +
+            FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+            std::to_string(callExpression->getArguments().size());
         declared_fd = boundClassStatement->getParentClass()->getMemberFunction(
-            functionName);
-      } else {
-        functionName = functionName +
-                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
-                       std::to_string(callExpression->getArguments().size());
-      }
-      if (!declared_fd)
-        declared_fd = boundClassStatement->getMemberFunction(functionName);
-      if (!declared_fd) {
-        _diagnosticHandler->addDiagnostic(Diagnostic(
-            "Class " + functionName +
-                " does not have an initializer, Add Default or "
-                "Parameterized Initializer in Class Body ",
-            DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Semantic,
-            Utils::getSourceLocation(
-                callExpression->getIdentifierPtr()->getTokenPtr().get())));
+            updatedCallerName);
       }
 
-      if (declared_fd &&
-          callExpression->getArguments().size() !=
-              declared_fd->getParametersRef().size() &&
-          !isAInBuiltinFunction) {
-        _diagnosticHandler->addDiagnostic(Diagnostic(
-            "Class initializer " + functionName + " requires " +
-                std::to_string(declared_fd->getParametersRef().size()) +
-                " arguments",
-            DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Semantic,
-            Utils::getSourceLocation(
-                callExpression->getIdentifierPtr()->getTokenPtr().get())));
+      const std::string CLASS_MEMBER_FUNCTION_NAME =
+          boundClassStatement->getActualFunctionNameIfExists(CALLER_NAME);
+
+      const auto CURRENT_CLASS_MEMEBER_FUNCTION_CALL =
+          boundClassStatement->getMemberFunction(CLASS_MEMBER_FUNCTION_NAME);
+
+      if (CURRENT_CLASS_MEMEBER_FUNCTION_CALL && !declared_fd) {
+        updatedCallerName = CLASS_MEMBER_FUNCTION_NAME;
+        declared_fd = CURRENT_CLASS_MEMEBER_FUNCTION_CALL;
       }
-    } else {
-      std::string clName = functionName.substr(0, functionName.find("."));
-      BoundClassStatement *boundClassStatement =
-          this->root->tryGetClass(clName);
-      std::string fLastName = functionName.substr(functionName.find(".") + 1);
+    }
+  }
 
-      if (boundClassStatement) {
-        fLastName =
-            boundClassStatement->getActualFunctionNameIfExists(fLastName);
+  //! Is Init function
+  auto callStatement = this->root->tryGetClass(CALLER_NAME);
+
+  if (callStatement && !declared_fd) {
+    updatedCallerName = CALLER_NAME +
+                        FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                        std::to_string(callExpression->getArguments().size());
+    declared_fd = callStatement->getMemberFunction(updatedCallerName);
+
+    if (!declared_fd) {
+      _diagnosticHandler->addDiagnostic(Diagnostic(
+          "Class " + CALLER_NAME +
+              " does not have an initializer, Add Default or "
+              "Parameterized Initializer in Class Body ",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          Utils::getSourceLocation(
+              callExpression->getIdentifierPtr()->getTokenPtr().get())));
+      return std::move(boundIdentifier);
+    }
+  }
+
+  //! calling a class member functon outside of a class e.g "a.callMe()"
+  {
+    const std::string CLASS_NAME = CALLER_NAME.substr(0, CALLER_NAME.find("."));
+    std::string fLastName = CALLER_NAME.substr(CALLER_NAME.find(".") + 1);
+
+    BoundClassStatement *boundClassStatement =
+        this->root->tryGetClass(CLASS_NAME);
+
+    if (boundClassStatement) {
+      fLastName = boundClassStatement->getActualFunctionNameIfExists(fLastName);
+    }
+
+    if (fLastName != "" && boundClassStatement) {
+      updatedCallerName = fLastName;
+      std::unique_ptr<BoundCallExpression> boundCallExpression =
+          std::make_unique<BoundCallExpression>(
+              callExpression->getSourceLocation());
+
+      boundIdentifier->setValue(updatedCallerName);
+      boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
+      boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
+
+      for (int i = 0; i < callExpression->getArguments().size(); i++) {
+        boundCallExpression->addArgument(
+            std::move(bindExpression(callExpression->getArguments()[i].get())));
       }
 
-      if (fLastName != "") {
-        functionName = fLastName;
-        std::unique_ptr<BoundCallExpression> boundCallExpression =
-            std::make_unique<BoundCallExpression>(
-                callExpression->getSourceLocation());
-
-        boundIdentifier->setValue(functionName);
-        boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
-        boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
-
-        for (int i = 0; i < callExpression->getArguments().size(); i++) {
-          boundCallExpression->addArgument(std::move(
-              bindExpression(callExpression->getArguments()[i].get())));
-        }
-
-        return std::move(boundCallExpression);
-      }
+      return std::move(boundCallExpression);
     }
   }
 
   // if in class -> b, cf, nf
   // not in class -> b, nf
 
-  if (!declared_fd && !isAInBuiltinFunction) {
-    functionName = oldFunctionName;
-    declared_fd = this->root->tryGetFunction(functionName);
+  if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
+    updatedCallerName = CALLER_NAME;
+    declared_fd = this->root->tryGetFunction(updatedCallerName);
   }
 
-  if (!declared_fd && !isAInBuiltinFunction) {
+  if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
 
     std::string type = "Function";
 
-    _diagnosticHandler->addDiagnostic(
-        Diagnostic(type + " " + functionName + " does not exist",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   callExpression->getIdentifierPtr()->getSourceLocation()));
+    if (!this->root->tryGetClass(CALLER_NAME)) {
+
+      _diagnosticHandler->addDiagnostic(
+          Diagnostic(type + " " + CALLER_NAME + " does not exist",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     callExpression->getIdentifierPtr()->getSourceLocation()));
+    }
   }
 
   if (declared_fd &&
       callExpression->getArguments().size() !=
           declared_fd->getParametersRef().size() &&
-      !isAInBuiltinFunction) {
+      !IS_A_BUILTIN_FUNCTION_CALL) {
     _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + functionName + " requires " +
+        "Function " + CALLER_NAME + " requires " +
             std::to_string(declared_fd->getParametersRef().size()) +
             " arguments",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
         callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
+    return std::move(boundIdentifier);
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
       std::make_unique<BoundCallExpression>(
           callExpression->getSourceLocation());
 
-  boundIdentifier->setValue(functionName);
+  boundIdentifier->setValue(updatedCallerName);
   boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 

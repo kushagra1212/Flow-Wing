@@ -4,10 +4,10 @@
 #include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-#include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
@@ -27,8 +27,7 @@ public:
                         std::vector<std::string> classVariables = {});
 
 private:
-  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
-      _variableDeclarationStatementGenerationStrategy;
+  std::unique_ptr<IRCodeGenerator> _irCodeGenerator;
 };
 
 #endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

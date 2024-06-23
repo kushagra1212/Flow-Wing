@@ -17,6 +17,8 @@ IRGenerator::IRGenerator(
   TheContext = _codeGenerationContext->getContext().get();
   _llvmLogger = _codeGenerationContext->getLogger().get();
 
+  // Initialize the environment
+
   _environment = environment;
   _irParser = std::make_unique<IRParser>();
 
@@ -25,6 +27,11 @@ IRGenerator::IRGenerator(
 
   this->declareDependencyFunctions();
   this->initializeGlobalVariables();
+
+  // Initialize IRCodeGenerator (Statement Generation Strategy)
+
+  _irCodeGenerator =
+      std::make_unique<IRCodeGenerator>(_codeGenerationContext.get());
 
   // Statement Generation Strategy
 
@@ -36,20 +43,6 @@ IRGenerator::IRGenerator(
 
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
       this->_codeGenerationContext.get());
-
-  // Initialize Variable Declaration Strategy
-  _variableDeclarationStatementGenerationStrategy =
-      std::make_unique<VariableDeclarationStatementGenerationStrategy>(
-          this->_codeGenerationContext.get());
-
-  // Initialize Custom Type Statement Strategy
-  _customTypeStatementGenerationStrategy =
-      std::make_unique<CustomTypeStatementGenerationStrategy>(
-          this->_codeGenerationContext.get());
-  // Initialize Class Statement Strategy
-  _classStatementGenerationStrategy =
-      std::make_unique<ClassStatementGenerationStrategy>(
-          this->_codeGenerationContext.get());
 
   // Initialize the file save strategy
 
@@ -131,93 +124,6 @@ const int32_t IRGenerator::hasErrors() const {
   return _llvmLogger->getErrorCount();
 }
 
-void IRGenerator::declareVariables(BoundStatement *statement,
-                                   const bool isGlobal) {
-
-  for (auto &children : statement->getChildren()) {
-    if (!children)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::FunctionDeclaration)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      isGlobal ? _variableDeclarationStatementGenerationStrategy->declareGlobal(
-                     static_cast<BoundVariableDeclaration *>(children))
-               : _variableDeclarationStatementGenerationStrategy->declareLocal(
-                     static_cast<BoundVariableDeclaration *>(children));
-    } else {
-      declareVariables(children, false);
-    }
-  }
-}
-
-void IRGenerator::declareVariables(BoundNode *node, const bool isGlobal) {
-
-  for (auto &children : node->getChildren()) {
-    if (!children)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::FunctionDeclaration)
-      continue;
-
-    if (children->getKind() ==
-        BinderKindUtils::BoundNodeKind::VariableDeclaration) {
-      _variableDeclarationStatementGenerationStrategy->declareLocal(
-          static_cast<BoundVariableDeclaration *>(children));
-    } else {
-      declareVariables(children, false);
-    }
-  }
-}
-
-void IRGenerator::declareCustomType(BoundStatement *statement) {
-
-  for (auto &children : statement->getChildren()) {
-    if (!children)
-      continue;
-
-    switch (children->getKind()) {
-    case BinderKindUtils::BoundNodeKind::CustomTypeStatement: {
-      _customTypeStatementGenerationStrategy->generateCustomType(
-          static_cast<BoundCustomTypeStatement *>(children));
-      break;
-    }
-    case BinderKindUtils::BoundNodeKind::ClassStatement: {
-
-      auto boundClassStatement = static_cast<BoundClassStatement *>(children);
-      for (int64_t i = 0;
-           i < boundClassStatement->getMemberFunctionsRef().size(); i++) {
-        declareCustomType(
-            boundClassStatement->getMemberFunctionsRef()[i].get());
-      }
-      _classStatementGenerationStrategy->generateClassType(boundClassStatement);
-      break;
-    }
-    default: {
-      declareCustomType(children);
-      break;
-    }
-    }
-  }
-}
-
-void IRGenerator::declareCustomType(BoundNode *node) {
-
-  for (auto &children : node->getChildren()) {
-    if (children && children->getKind() ==
-                        BinderKindUtils::BoundNodeKind::CustomTypeStatement) {
-      _customTypeStatementGenerationStrategy->generateCustomType(
-          static_cast<BoundCustomTypeStatement *>(children));
-    } else if (children) {
-      declareCustomType(children);
-    }
-  }
-}
-
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
   llvm::FunctionType *FT =
@@ -235,11 +141,22 @@ void IRGenerator::generateEvaluateGlobalStatement(
   // Entry Block
 
   Builder->SetInsertPoint(entryBlock);
-  declareCustomType(blockStatement);
-  declareVariables(blockStatement, true);
+
+  _irCodeGenerator->declareCustomType(blockStatement);
+  for (auto &children : blockStatement->getStatements()) {
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+      BoundFunctionDeclaration *functionDeclaration =
+          static_cast<BoundFunctionDeclaration *>(children.get());
+      if (!functionDeclaration->isOnlyDeclared())
+        _statementGenerationFactory->createStrategy(children->getKind())
+            ->generateGlobalStatement(children.get());
+    }
+  }
+
+  _irCodeGenerator->declareVariables(blockStatement, true);
   // Declare All Global Variables
 
-  std::unordered_map<std::string, int8_t> functionMap;
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
@@ -249,8 +166,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
-      if (!functionDeclaration->isOnlyDeclared())
-        generateStatement = false;
+      //    if (!functionDeclaration->isOnlyDeclared())
+      generateStatement = false;
     }
 
     if (generateStatement)

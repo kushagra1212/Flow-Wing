@@ -88,16 +88,24 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
-    if (callExp->getCallerNameRef().find(".init") == std::string::npos &&
-        _codeGenerationContext->_functionTypes.find(
-            callExp->getCallerNameRef()) !=
-            _codeGenerationContext->_functionTypes.end() &&
-        _codeGenerationContext->_functionTypes[callExp->getCallerNameRef()]
-            ->isHavingReturnTypeAsParamater()) {
+    if (callExp->getCallerNameRef().find(".init") != std::string::npos ||
+        (_codeGenerationContext->_functionTypes.find(
+             callExp->getCallerNameRef()) !=
+             _codeGenerationContext->_functionTypes.end() &&
+         _codeGenerationContext->_functionTypes[callExp->getCallerNameRef()]
+             ->isHavingReturnTypeAsParamater())) {
       std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
-      callStrategy->setRtPtr({_lhsPtr, _lhsType});
+
+      if (llvm::isa<llvm::StructType>(_lhsType) &&
+          _codeGenerationContext->isValidClassType(
+              llvm::cast<llvm::StructType>(_lhsType))) {
+        callExp->setArgumentAlloca(callExp->getArgumentsRef().size(),
+                                   {_lhsPtr, _lhsType});
+      } else {
+        callExp->setArgumentAlloca(0, {_lhsPtr, _lhsType});
+      }
 
       return callStrategy->generateExpression(exp);
     }

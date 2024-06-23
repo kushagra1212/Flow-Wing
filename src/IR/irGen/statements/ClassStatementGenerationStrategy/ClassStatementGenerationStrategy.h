@@ -6,7 +6,6 @@
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
-#include "../FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ClassStatementGenerationStrategy : public StatementGenerationStrategy {

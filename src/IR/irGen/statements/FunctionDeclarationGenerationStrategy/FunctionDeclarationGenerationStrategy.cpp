@@ -394,13 +394,15 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                      FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) ==
           _codeGenerationContext->_classTypes.end()) {
         //        llvm::Attribute::AttrKind kind = ;
+        if (!_codeGenerationContext->isValidClassType(structType)) {
 
-        llvm::AttrBuilder attribute(*TheContext);
-        attribute.addTypeAttr(llvm::Attribute::AttrKind::StructRet, structType);
-        attribute.addAlignmentAttr(4);
-        F->addParamAttrs(0, attribute);
+          llvm::AttrBuilder attribute(*TheContext);
+          attribute.addTypeAttr(llvm::Attribute::AttrKind::StructRet,
+                                structType);
+          F->addParamAttrs(0, attribute);
+          attributeTypes.push_back({argTypes.size(), structType});
+        }
 
-        attributeTypes.push_back({argTypes.size(), structType});
         // F->addDereferenceableParamAttr(0,
         // llvm::Attribute::AttrKind::StructRet); F->addParamAttr(0,
         // llvm::Attribute::AttrKind::NoCapture); F->addParamAttr(1,

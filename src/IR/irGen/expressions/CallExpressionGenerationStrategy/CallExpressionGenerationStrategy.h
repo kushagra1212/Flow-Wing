@@ -24,6 +24,7 @@ public:
   llvm::Value *handlePrintFunction(llvm::Value *&value);
   void printPremitives(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
+  void declare(BoundExpression *expression);
 
   llvm::Value *generateCommonCallExpression(
       BoundCallExpression *callExpression, llvm::Function *calleeFunction,
@@ -90,13 +91,9 @@ public:
 
   void printString(llvm::Value *value, llvm::Type *elementType);
 
-  inline auto setRtPtr(std::pair<llvm::Value *, llvm::Type *> rtPtr) {
-    _rtPtr = rtPtr;
-  }
-
 private:
   bool _isGlobal = false;
-  std::pair<llvm::Value *, llvm::Type *> _rtPtr;
+  bool _isDeclarationNeeded = false;
 };
 
 #endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

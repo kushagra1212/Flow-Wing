@@ -156,6 +156,32 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
               _codeGenerationContext);
 
       llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
+
+      // if (containerExpression->getElementsRef()[i].get()->getKind() ==
+      //     BinderKindUtils::CallExpression) {
+      //   BoundCallExpression *boundCallExpression =
+      //       static_cast<BoundCallExpression *>(
+      //           containerExpression->getElementsRef()[i].get());
+
+      //   if (_codeGenerationContext->_functionTypes.find(
+      //           boundCallExpression->getCallerNameRef()) !=
+      //           _codeGenerationContext->_functionTypes.end() &&
+      //       _codeGenerationContext
+      //           ->_functionTypes[boundCallExpression->getCallerNameRef()]
+      //           ->isHavingReturnTypeAsParamater()) {
+
+      //     if (Utils::isClassInit(boundCallExpression->getCallerNameRef())) {
+      //       // boundCallExpression->setArgumentAlloca(
+      //       //     boundCallExpression->getArgumentsRef().size(),
+      //       //     {elementPtr, _elementType)});
+      //     } else {
+      //       boundCallExpression->setArgumentAlloca(0,
+      //                                              {elementPtr,
+      //                                              _elementType});
+      //     }
+      //   }
+      // }
+
       assignmentEGS->handleAssignExpression(
           elementPtr, _elementType, _containerName,
           containerExpression->getElementsRef()[i].get());

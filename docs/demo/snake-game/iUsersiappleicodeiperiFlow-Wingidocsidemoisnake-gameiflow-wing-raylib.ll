@@ -135,30 +135,18 @@ returnBlock:                                      ; preds = %nestedBlock
   %start2 = load i32, ptr %start, align 4
   %7 = load i32, ptr %start, align 4
   %8 = sub i32 %6, %7
-  %9 = alloca i32, align 4
-  store i32 %8, ptr %9, align 4
-  %10 = load i32, ptr %9, align 4
-  %11 = add i32 %10, 1
-  %12 = alloca i32, align 4
-  store i32 %11, ptr %12, align 4
-  %13 = load i32, ptr %12, align 4
-  %14 = srem i32 %5, %13
-  %15 = alloca i32, align 4
-  store i32 %14, ptr %15, align 4
-  %16 = load i32, ptr %15, align 4
+  %9 = add i32 %8, 1
+  %10 = srem i32 %5, %9
   %start3 = load i32, ptr %start, align 4
-  %17 = load i32, ptr %start, align 4
-  %18 = add i32 %16, %17
-  %19 = alloca i32, align 4
-  store i32 %18, ptr %19, align 4
-  %20 = load i32, ptr %19, align 4
-  store i32 %20, ptr %0, align 4
+  %11 = load i32, ptr %start, align 4
+  %12 = add i32 %10, %11
+  store i32 %12, ptr %0, align 4
   ret void
 
 mergeBlock:                                       ; No predecessors!
-  %21 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
-  %22 = icmp eq i32 %21, 0
-  br i1 %22, label %checkContinueBlock, label %afterNestedBlock
+  %13 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
+  %14 = icmp eq i32 %13, 0
+  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
 }
 
 !0 = !{!"InitWindow:rt:pr:27"}
@@ -176,7 +164,7 @@ mergeBlock:                                       ; No predecessors!
 !12 = !{!"IsKeyPressed:rt:pr:34"}
 !13 = !{!"IsKeyDown:rt:pr:34"}
 !14 = !{!"TextFormat:rt:pr:33"}
-!15 = !{!"LoadTexture:rt:ob:Texture"}
+!15 = !{!"LoadTexture:rt:ob:Texture.0"}
 !16 = !{!"DrawTexture:rt:pr:27"}
 !17 = !{!"UnloadTexture:rt:pr:27"}
 !18 = !{!"DrawTexturePro:rt:pr:27"}

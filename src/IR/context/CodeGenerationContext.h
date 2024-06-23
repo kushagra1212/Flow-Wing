@@ -152,6 +152,13 @@ public:
            this->_classTypes[(type->getStructName().str())];
   }
 
+  inline auto isClassMemberFunction(const std::string &funName) -> bool {
+    return this->_classTypes.find(funName.substr(
+               0,
+               funName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX))) !=
+           this->_classTypes.end();
+  }
+
   inline auto isCustomTypeExists(const std::string &typeName) -> bool {
     return this->_typesMap.find(typeName) != this->_typesMap.end();
   }

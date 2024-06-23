@@ -1,4 +1,5 @@
 #include "VariableDeclarationStatementGenerationStrategy.h"
+#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 
 VariableDeclarationStatementGenerationStrategy::
     VariableDeclarationStatementGenerationStrategy(
@@ -144,33 +145,51 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
   std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
-
+  llvm::Type *ptrType = nullptr;
+  llvm::Value *ptr = nullptr;
   // Handle Global Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
 
-    llvm::Type *llvmType =
-        _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-            _variableType);
+    ptrType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+        _variableType);
 
-    llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
-        llvmType, _variableName, _variableDeclaration->getMemoryKind());
+    ptr = _codeGenerationContext->createMemoryGetPtr(
+        ptrType, _variableName, _variableDeclaration->getMemoryKind());
 
-    assignmentEGS->initDefaultValue(llvmType, ptr);
+    assignmentEGS->initDefaultValue(ptrType, ptr);
 
-    _variableDeclaration->setLLVMVariable({ptr, llvmType});
-    return ptr;
+  } else {
+    // Dynamic Type
+
+    ptr = _codeGenerationContext->createMemoryGetPtr(
+        _codeGenerationContext->getDynamicType()->get(), _variableName,
+        _variableDeclaration->getMemoryKind());
+
+    ptrType = _codeGenerationContext->getDynamicType()->get();
   }
 
-  // Dynamic Type
+  if (_variableDeclaration->getInitializerPtr().get() &&
+      _variableDeclaration->getInitializerPtr()->getKind() ==
+          BinderKindUtils::BoundNodeKind::CallExpression) {
+    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
+        _variableDeclaration->getInitializerPtr().get());
 
-  llvm::Value *dynVarPtr = _codeGenerationContext->createMemoryGetPtr(
-      _codeGenerationContext->getDynamicType()->get(), _variableName,
-      _variableDeclaration->getMemoryKind());
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        callExpression->getLocation());
 
-  _variableDeclaration->setLLVMVariable(
-      {dynVarPtr, _codeGenerationContext->getDynamicType()->get()});
+    callExpression->setArgumentAlloca(0, {ptr, ptrType});
+    std::unique_ptr<CallExpressionGenerationStrategy> callExpressionStrategy =
+        std::make_unique<CallExpressionGenerationStrategy>(
+            _codeGenerationContext);
 
-  return dynVarPtr;
+    callExpressionStrategy->declare(callExpression);
+  } else if (_variableDeclaration->getInitializerPtr()) {
+    IRCodeGenerator irCodeGen(_codeGenerationContext);
+    irCodeGen.declareVariables(_variableDeclaration->getInitializerPtr().get(),
+                               false);
+  }
+  _variableDeclaration->setLLVMVariable({ptr, ptrType});
+  return ptr;
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declareLocal(
     BoundStatement *statement) {

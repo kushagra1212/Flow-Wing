@@ -3,6 +3,8 @@
 
 #include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+
+#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ObjectDeclarationStatementGenerationStrategy

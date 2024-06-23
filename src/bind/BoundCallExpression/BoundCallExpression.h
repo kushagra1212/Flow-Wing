@@ -7,11 +7,13 @@
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundNode.h"
 #include "../BoundSourceLocation/BoundSourceLocation.h"
+#include "llvm/IR/DerivedTypes.h"
 
 class BoundCallExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
+  std::map<uint64_t, std::pair<llvm::Value *, llvm::Type *>> _argumentsMap;
   std::string _callerName = "";
   bool _hasNewKeyword = false;
 
@@ -39,6 +41,21 @@ public:
   inline auto hasNewKeyword() const -> bool { return _hasNewKeyword; }
 
   inline auto setCallerName(std::string name) -> void { _callerName = name; }
+
+  inline auto setArgumentAlloca(uint64_t index,
+                                std::pair<llvm::Value *, llvm::Type *> value)
+      -> void {
+    _argumentsMap[index] = value;
+  }
+
+  inline auto getArgumentAlloca(uint64_t index)
+      -> std::pair<llvm::Value *, llvm::Type *> {
+    return _argumentsMap[index];
+  }
+
+  inline auto doesArgumentAllocaExist(uint64_t index) -> bool {
+    return _argumentsMap.find(index) != _argumentsMap.end();
+  }
 };
 
 #endif // __BOUND_CALL_EXPRESSION_H__

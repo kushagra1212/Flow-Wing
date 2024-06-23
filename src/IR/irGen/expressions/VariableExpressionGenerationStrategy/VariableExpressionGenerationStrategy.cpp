@@ -113,6 +113,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
     if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
       llvm::StructType *classType = llvm::cast<llvm::StructType>(cl.second);
+      cl.first =
+          Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), cl.first);
       std::string className =
           Utils::getActualTypeName(classType->getStructName().str());
       auto [elementType, atIndex, memberName, _classType] =
@@ -158,8 +160,12 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
                  FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX));
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
-        var.first = Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext),
-                                        var.first);
+        if (_variableExpression &&
+            _variableExpression->getDotExpressionList().size() - 0 != 0) {
+
+          var.first = Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext),
+                                          var.first);
+        }
       }
     }
 
@@ -188,6 +194,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
            ->getIdentifierExpressionPtr()
            .get())
           ->getValue());
+  _variableName = variableName;
 
   return this->getVariableValue(variableName);
 }
@@ -215,18 +222,19 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     std::unique_ptr<CallExpressionGenerationStrategy> call =
         std::make_unique<CallExpressionGenerationStrategy>(
             _codeGenerationContext);
-    std::vector<llvm::Value *> args = {outerElementPtr};
+    std::pair<llvm::Value *, llvm::Type *> var =
+        _codeGenerationContext->getAllocaChain()->getPtr(_variableName);
+    std::vector<llvm::Value *> args = {var.first};
     llvm::Function *fn =
         TheModule->getFunction(callExpression->getCallerNameRef());
 
     llvm::Value *callinst = call->generateCommonCallExpression(
         callExpression, fn, args,
         _codeGenerationContext->_classTypes[className]->getClassType(),
-        outerElementPtr,
+        var.first,
         _codeGenerationContext->_classTypes[className]->getFunctionPtr(
             Builder, TheModule, TheContext, callExpression->getCallerNameRef(),
             outerElementPtr));
-
     if (!isNested)
       return callinst;
     llvm::Value *ptr =

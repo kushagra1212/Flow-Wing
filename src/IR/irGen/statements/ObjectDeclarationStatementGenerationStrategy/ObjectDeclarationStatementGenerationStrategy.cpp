@@ -1,10 +1,10 @@
 #include "ObjectDeclarationStatementGenerationStrategy.h"
 
+#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../../expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../../expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
-
 ObjectDeclarationStatementGenerationStrategy::
     ObjectDeclarationStatementGenerationStrategy(CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
@@ -51,6 +51,34 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
   }
 
   _variableDeclExpr->setLLVMVariable({ptr, structType});
+  std::unique_ptr<CallExpressionGenerationStrategy> callExpressionStrategy =
+      std::make_unique<CallExpressionGenerationStrategy>(
+          _codeGenerationContext);
+  if (_initializer && _initializer->getKind() ==
+                          BinderKindUtils::BoundNodeKind::CallExpression) {
+
+    BoundCallExpression *callExpression =
+        static_cast<BoundCallExpression *>(_initializer);
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        callExpression->getLocation());
+
+    if (Utils::isClassInit(callExpression->getCallerNameRef())) {
+      callExpression->setArgumentAlloca(
+          callExpression->getArgumentsRef().size(), {ptr, structType});
+    } else if (_codeGenerationContext->_functionTypes.find(
+                   callExpression->getCallerNameRef()) !=
+                   _codeGenerationContext->_functionTypes.end() &&
+               _codeGenerationContext
+                   ->_functionTypes[callExpression->getCallerNameRef()]
+                   ->isHavingReturnTypeAsParamater()) {
+      callExpression->setArgumentAlloca(0, {ptr, structType});
+    }
+
+    callExpressionStrategy->declare(callExpression);
+  } else if (_initializer) {
+    IRCodeGenerator irCodeGenerator(_codeGenerationContext);
+    irCodeGenerator.declareVariables(_initializer, _isGlobal);
+  }
 
   return nullptr;
 }
@@ -82,92 +110,94 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::assignExpression() {
 
   llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
 
-  if (_codeGenerationContext->isValidClassType(structType)) {
+  // if (_codeGenerationContext->isValidClassType(structType)) {
 
-    std::string className = (structType->getStructName().str());
-    llvm::Value *init = nullptr;
-    llvm::Value *classPtr = nullptr;
+  //   std::string className = (structType->getStructName().str());
+  //   llvm::Value *init = nullptr;
+  //   llvm::Value *classPtr = nullptr;
 
-    if (_variableDeclExpr->getInitializerPtr().get() &&
-        _variableDeclExpr->getInitializerPtr().get()->getKind() ==
-            BinderKindUtils::CallExpression) {
-      BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
-          _variableDeclExpr->getInitializerPtr().get());
+  //   if (_variableDeclExpr->getInitializerPtr().get() &&
+  //       _variableDeclExpr->getInitializerPtr().get()->getKind() ==
+  //           BinderKindUtils::CallExpression) {
+  //     BoundCallExpression *callExpression = static_cast<BoundCallExpression
+  //     *>(
+  //         _variableDeclExpr->getInitializerPtr().get());
 
-      if (callExpression->getCallerNameRef().find(
-              FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
-          std::string::npos) {
-        className = callExpression->getCallerNameRef();
+  //     if (callExpression->getCallerNameRef().find(
+  //             FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init") !=
+  //         std::string::npos) {
+  //       className = callExpression->getCallerNameRef();
 
-        className = className.substr(
-            0, className.find(
-                   FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
-                   std::to_string(callExpression->getArgumentsRef().size())));
+  //       className = className.substr(
+  //           0, className.find(
+  //                  FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+  //                  std::to_string(callExpression->getArgumentsRef().size())));
 
-        if (_codeGenerationContext->_classTypes.find(className) !=
-            _codeGenerationContext->_classTypes.end()) {
+  //       if (_codeGenerationContext->_classTypes.find(className) !=
+  //           _codeGenerationContext->_classTypes.end()) {
 
-          classPtr = _codeGenerationContext->createMemoryGetPtr(
-              _codeGenerationContext->_classTypes[className]->getClassType(),
-              "", BinderKindUtils::MemoryKind::Heap);
+  //         classPtr = _codeGenerationContext->createMemoryGetPtr(
+  //             _codeGenerationContext->_classTypes[className]->getClassType(),
+  //             "", BinderKindUtils::MemoryKind::Heap);
 
-          assignmentStrategy->initDefaultValue(
-              _codeGenerationContext->_classTypes[className]->getClassType(),
-              classPtr);
+  //         assignmentStrategy->initDefaultValue(
+  //             _codeGenerationContext->_classTypes[className]->getClassType(),
+  //             classPtr);
 
-        } else {
-          _codeGenerationContext->getLogger()->LogError("Class " + className +
-                                                        " not found");
-          return nullptr;
-        }
-      }
-    }
+  //       } else {
+  //         _codeGenerationContext->getLogger()->LogError("Class " + className
+  //         +
+  //                                                       " not found");
+  //         return nullptr;
+  //       }
+  //     }
+  //   }
 
-    if (classPtr == nullptr) {
-      classPtr = _codeGenerationContext->createMemoryGetPtr(
-          _codeGenerationContext->_classTypes[className]->getClassType(),
-          _variableName, BinderKindUtils::MemoryKind::Heap);
+  //   if (classPtr == nullptr) {
+  //     classPtr = _codeGenerationContext->createMemoryGetPtr(
+  //         _codeGenerationContext->_classTypes[className]->getClassType(),
+  //         _variableName, BinderKindUtils::MemoryKind::Heap);
 
-      assignmentStrategy->initDefaultValue(
-          _codeGenerationContext->_classTypes[className]->getClassType(),
-          classPtr);
-    }
+  //     assignmentStrategy->initDefaultValue(
+  //         _codeGenerationContext->_classTypes[className]->getClassType(),
+  //         classPtr);
+  //   }
 
-    if (_variableDeclExpr->getInitializerPtr().get() &&
-        _variableDeclExpr->getInitializerPtr().get()->getKind() ==
-            BinderKindUtils::CallExpression) {
-      _codeGenerationContext->getValueStackHandler()->push(
-          "", classPtr, "struct", structType);
-    }
-    {
-      llvm::Value *ptrPtr = Builder->CreateStructGEP(
-          _codeGenerationContext->_classTypes[className]->getClassType(),
-          classPtr, 0);
-      Builder->CreateStore(
-          TheModule->getOrInsertGlobal(
-              _codeGenerationContext->_classTypes[className]->getVTableName(),
-              _codeGenerationContext->_classTypes[className]->getVTableType()),
-          ptrPtr);
+  //   if (_variableDeclExpr->getInitializerPtr().get() &&
+  //       _variableDeclExpr->getInitializerPtr().get()->getKind() ==
+  //           BinderKindUtils::CallExpression) {
+  //     _codeGenerationContext->getValueStackHandler()->push(
+  //         "", classPtr, "struct", structType);
+  //   }
+  //   {
+  //     llvm::Value *ptrPtr = Builder->CreateStructGEP(
+  //         _codeGenerationContext->_classTypes[className]->getClassType(),
+  //         classPtr, 0);
+  //     Builder->CreateStore(
+  //         TheModule->getOrInsertGlobal(
+  //             _codeGenerationContext->_classTypes[className]->getVTableName(),
+  //             _codeGenerationContext->_classTypes[className]->getVTableType()),
+  //         ptrPtr);
 
-      _codeGenerationContext->_classTypes[className]->populateVTable(
-          Builder, TheModule, TheContext, ptrPtr);
-    }
+  //     _codeGenerationContext->_classTypes[className]->populateVTable(
+  //         Builder, TheModule, TheContext, ptrPtr);
+  //   }
 
-    if (_variableDeclExpr->getInitializerPtr().get()) {
-      init = assignmentStrategy->handleAssignExpression(
-          classPtr, structType, _variableName,
-          _variableDeclExpr->getInitializerPtr().get());
-    }
+  //   if (_variableDeclExpr->getInitializerPtr().get()) {
+  //     init = assignmentStrategy->handleAssignExpression(
+  //         classPtr, structType, _variableName,
+  //         _variableDeclExpr->getInitializerPtr().get());
+  //   }
 
-    Builder->CreateStore(classPtr, ptr);
-    _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
-                                                     {ptr, structType});
+  //   Builder->CreateStore(classPtr, ptr);
+  //   _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
+  //                                                    {ptr, structType});
 
-    if (!_initializer)
-      return ptr;
+  //   if (!_initializer)
+  //     return ptr;
 
-    return init;
-  }
+  //   return init;
+  // }
 
   _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                    {ptr, structType});
