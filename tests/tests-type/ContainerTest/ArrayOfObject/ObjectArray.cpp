@@ -15,7 +15,8 @@ void ObjectArray::runEvaluator() { _test->runEvaluator(); }
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 TEST_F(ObjectArray, GlobalArrayOfObjectInitializationWithObject) {
-  I(R"(type k = {
+  I(R"(
+type k = {
    o:int
 }
 

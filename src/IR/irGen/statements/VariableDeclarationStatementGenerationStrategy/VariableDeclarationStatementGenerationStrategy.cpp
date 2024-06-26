@@ -156,7 +156,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
     ptr = _codeGenerationContext->createMemoryGetPtr(
         ptrType, _variableName, _variableDeclaration->getMemoryKind());
 
-    assignmentEGS->initDefaultValue(ptrType, ptr);
+    assignmentEGS->initDefaultValue(ptrType, ptr, *Builder);
 
   } else {
     // Dynamic Type
@@ -178,6 +178,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
         callExpression->getLocation());
 
     callExpression->setArgumentAlloca(0, {ptr, ptrType});
+
     std::unique_ptr<CallExpressionGenerationStrategy> callExpressionStrategy =
         std::make_unique<CallExpressionGenerationStrategy>(
             _codeGenerationContext);

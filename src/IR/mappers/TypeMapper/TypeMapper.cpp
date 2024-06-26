@@ -106,7 +106,8 @@ const bool TypeMapper::isInt8Type(llvm::Type *type) const {
 const bool TypeMapper::isPtrType(llvm::Type *type) const {
   return type->isPointerTy();
 }
-std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
+std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
+                                        bool withColor) const {
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
   if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
     if (llvm::isa<llvm::StructType>(type)) {
@@ -114,23 +115,31 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type) const {
       if (_codeGenerationContext->_classTypes.find(
               structType->getName().str()) !=
           _codeGenerationContext->_classTypes.end()) {
-        return COLORED_STRING::GET("<Class<" + structType->getName().str() +
-                                       ">>",
-                                   YELLOW_TEXT, RED_TEXT);
+
+        const std::string text = "<Class<" + structType->getName().str() + ">>";
+
+        return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
+                         : text;
       }
-      return COLORED_STRING::GET("<Object<" + structType->getName().str() +
-                                     ">>",
-                                 YELLOW_TEXT, RED_TEXT);
+
+      const std::string text = "<Object<" + structType->getName().str() + ">>";
+
+      return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
+                       : text;
     } else if (llvm::isa<llvm::ArrayType>(type)) {
       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-      return COLORED_STRING::GET(
-          "<Array" + getLLVMTypeName(arrayType->getElementType()) + ">",
-          YELLOW_TEXT, RED_TEXT);
+
+      const std::string text =
+          "<Array" + getLLVMTypeName(arrayType->getElementType(), withColor) +
+          ">";
+
+      return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
+                       : text;
     }
   }
 
-  return COLORED_STRING::GET("<" + getLLVMTypeName(customType) + ">",
-                             YELLOW_TEXT, RED_TEXT);
+  const std::string text = "<" + getLLVMTypeName(customType) + ">";
+  return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT) : text;
 }
 
 std::string

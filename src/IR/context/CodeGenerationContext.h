@@ -177,6 +177,8 @@ public:
     return this->_typesMap[typeName];
   }
 
+  auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
+
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;

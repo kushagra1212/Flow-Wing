@@ -40,6 +40,7 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
   }
   default:
     declareVariables(child, false);
+    break;
   }
 }
 

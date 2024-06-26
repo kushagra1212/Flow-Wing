@@ -166,16 +166,15 @@ llvm::Value *FillExpressionGenerationStrategy::createGlobalExpression(
 
 bool FillExpressionGenerationStrategy::canGenerateExpression(
     BoundExpression *expression) {
-  BoundFillExpression *fillExpression =
-      static_cast<BoundFillExpression *>(expression);
+  _fillExpression = static_cast<BoundFillExpression *>(expression);
 
   llvm::Value *sizeToFillVal = nullptr;
 
-  if (fillExpression->getSizeToFillRef().get())
+  if (_fillExpression->getSizeToFillRef().get())
     sizeToFillVal =
         _expressionGenerationFactory
-            ->createStrategy(fillExpression->getSizeToFillRef()->getKind())
-            ->generateExpression(fillExpression->getSizeToFillRef().get());
+            ->createStrategy(_fillExpression->getSizeToFillRef()->getKind())
+            ->generateExpression(_fillExpression->getSizeToFillRef().get());
 
   if (llvm::isa<llvm::ConstantInt>(sizeToFillVal)) {
     llvm::ConstantInt *c = llvm::cast<llvm::ConstantInt>(sizeToFillVal);
@@ -229,7 +228,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _sizeToFillInt = _totalSize;
   }
 
-  if (fillExpression->getElementToFillRef()->getKind() ==
+  if (_fillExpression->getElementToFillRef()->getKind() ==
           BinderKindUtils::BoundObjectExpression &&
       !llvm::isa<llvm::StructType>(_elementType)) {
     _codeGenerationContext->getLogger()->LogError(
@@ -238,9 +237,9 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (fillExpression->getElementToFillRef()->getKind() !=
+  if (_fillExpression->getElementToFillRef()->getKind() !=
           BinderKindUtils::VariableExpression &&
-      fillExpression->getElementToFillRef()->getKind() !=
+      _fillExpression->getElementToFillRef()->getKind() !=
           BinderKindUtils::BoundObjectExpression &&
       llvm::isa<llvm::StructType>(_elementType)) {
     _codeGenerationContext->getLogger()->LogError(
@@ -249,18 +248,19 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (fillExpression->getElementToFillRef()->getKind() ==
+  if (_fillExpression->getElementToFillRef()->getKind() ==
           BinderKindUtils::BoundObjectExpression &&
       llvm::isa<llvm::StructType>(_elementType)) {
-    _objectExpression = fillExpression->getElementToFillRef().get();
+    _objectExpression = _fillExpression->getElementToFillRef().get();
     return true;
   }
+
   //! Handle Case for BoundContainerExpression
 
   _elementToFill =
       _expressionGenerationFactory
-          ->createStrategy(fillExpression->getElementToFillRef()->getKind())
-          ->generateExpression(fillExpression->getElementToFillRef().get());
+          ->createStrategy(_fillExpression->getElementToFillRef()->getKind())
+          ->generateExpression(_fillExpression->getElementToFillRef().get());
 
   if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
       llvm::isa<llvm::StructType>(_elementType)) {
@@ -268,7 +268,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _elementToFillType =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
     _codeGenerationContext->getValueStackHandler()->popAll();
-    _variableExpression = fillExpression->getElementToFillRef().get();
+    _variableExpression = _fillExpression->getElementToFillRef().get();
     return true;
   }
 
@@ -306,10 +306,15 @@ FillExpressionGenerationStrategy::createExpressionLoopWithTotalSize(
 llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
     llvm::Type *arrayType, llvm::Value *v, llvm::Value *elementToFill,
     uint64_t &sizeToFillVal) {
+
   llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
 
   std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
-  std::vector<llvm::AllocaInst *> indices;
+  std::vector<llvm::Value *> indices;
+  std::unique_ptr<AssignmentExpressionGenerationStrategy>
+      assignmentExpressionGenerationStrategy =
+          std::make_unique<AssignmentExpressionGenerationStrategy>(
+              _codeGenerationContext);
 
   for (int i = 0; i < _actualSizes.size(); i++) {
     std::vector<llvm::BasicBlock *> blocks = {
@@ -325,14 +330,23 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
         llvm::BasicBlock::Create(*TheContext,
                                  "FillExpr.loopEnd-" + std::to_string(i),
                                  currentBlock->getParent())};
+    const std::string INDEX_NAME = "_fg_i:" + std::to_string(i);
 
-    llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
+    llvm::Value *index = _codeGenerationContext->createMemoryGetPtr(
+        Builder->getInt32Ty(), INDEX_NAME, BinderKindUtils::MemoryKind::Global);
+
+    assignmentExpressionGenerationStrategy->initDefaultValue(
+        Builder->getInt32Ty(), index, *Builder);
+
     indices.push_back(index);
     loopBlocks.push_back(blocks);
   }
 
-  llvm::AllocaInst *numberOfElementsFilled =
-      Builder->CreateAlloca(Builder->getInt32Ty());
+  llvm::Value *numberOfElementsFilled =
+      _codeGenerationContext->createMemoryGetPtr(
+          Builder->getInt32Ty(),
+          "_fg_numberOfElementsFilled:", BinderKindUtils::MemoryKind::Global);
+
   Builder->CreateStore(Builder->getInt32(0), numberOfElementsFilled);
 
   llvm::BasicBlock *exit = llvm::BasicBlock::Create(
@@ -436,7 +450,6 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
   }
 
   Builder->SetInsertPoint(exit);
-
   return nullptr;
 }
 

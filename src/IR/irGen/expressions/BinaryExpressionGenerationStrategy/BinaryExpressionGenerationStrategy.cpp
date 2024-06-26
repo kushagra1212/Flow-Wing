@@ -18,7 +18,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     _codeGenerationContext->getLogger()->LogError(
-        "Binary Expression is not supported for objects as of now");
+        "This Binary Expression is not supported for objects as of now");
     return nullptr;
   }
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
@@ -37,7 +37,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     _codeGenerationContext->getLogger()->LogError(
-        "Binary Expression is not supported for objects as of now");
+        "This Binary Expression is not supported for objects as of now");
     return nullptr;
   }
 

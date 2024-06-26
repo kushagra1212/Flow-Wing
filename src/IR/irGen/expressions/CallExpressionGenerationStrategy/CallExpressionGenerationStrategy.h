@@ -22,7 +22,6 @@ public:
   void handleInBuiltFunctionCall(BoundCallExpression *callExpression,
                                  llvm::Value *&val);
   llvm::Value *handlePrintFunction(llvm::Value *&value);
-  void printPremitives(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
   void declare(BoundExpression *expression);
 
@@ -73,23 +72,29 @@ public:
                        BoundCallExpression *callExpression, int &retFlag);
 
   llvm::Value *printArray(llvm::ArrayType *arrayType, llvm::Type *elementType,
-                          llvm::Value *v);
+                          llvm::Value *v, llvm::IRBuilder<> &Builder);
 
   llvm::Value *printArrayAtom(llvm::ArrayType *&arrayType, llvm::Value *&v,
                               const std::vector<uint64_t> &actualSizes,
-                              llvm::Type *&elementType);
+                              llvm::Type *&elementType,
+                              llvm::IRBuilder<> &Builder);
 
   llvm::Value *printObject(llvm::Value *outerElementPtr,
-                           llvm::StructType *parObjType);
+                           llvm::StructType *parObjType,
+                           llvm::IRBuilder<> &Builder);
 
   llvm::Type *isGlobalArray(llvm::Value *value);
 
   llvm::Type *isLocalArray(llvm::Value *value);
-  void printUnit(const std::string &unit, const std::string &unitName);
+  void printUnit(const std::string &unit, const std::string &unitName,
+                 llvm::IRBuilder<> &Builder);
 
-  llvm::Value *getUnit(const std::string &unit, const std::string &unitName);
+  llvm::Value *getUnit(const std::string &unit, const std::string &unitName,
+                       llvm::IRBuilder<> &Builder);
 
-  void printString(llvm::Value *value, llvm::Type *elementType);
+  void printString(llvm::Value *value, llvm::Type *elementType,
+                   llvm::IRBuilder<> &Builder);
+  void printPremitives(llvm::Value *&value, llvm::IRBuilder<> &Builder);
 
 private:
   bool _isGlobal = false;

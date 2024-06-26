@@ -219,7 +219,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
     return nullptr;
 
   if (assignmentExpression->getNeedDefaulInitilization()) {
-    initDefaultValue(_lhsType, _lhsPtr);
+    initDefaultValue(_lhsType, _lhsPtr, *Builder);
   }
 
   return handleRHSExpression(assignmentExpression->getRightPtr().get());
@@ -344,148 +344,198 @@ llvm::Value *AssignmentExpressionGenerationStrategy ::handleAssignExpression(
 }
 
 void AssignmentExpressionGenerationStrategy::initDefaultValue(
-    llvm::Type *type, llvm::Value *alloca) {
+    llvm::Type *type, llvm::Value *alloca, llvm::IRBuilder<> &builder) {
 
   if (llvm::isa<llvm::StructType>(type)) {
-    initObjectWithDefaultValue(llvm::cast<llvm::StructType>(type), alloca);
+    initObjectWithDefaultValue(llvm::cast<llvm::StructType>(type), alloca,
+                               builder);
   } else if (llvm::isa<llvm::ArrayType>(type)) {
-    initArrayWithDefaultValue(llvm::cast<llvm::ArrayType>(type), alloca);
+    initArrayWithDefaultValue(llvm::cast<llvm::ArrayType>(type), alloca,
+                              builder);
   } else {
-    Builder->CreateStore(
+    _codeGenerationContext->getMapper()->setBuilder(Builder);
+    builder.CreateStore(
         _codeGenerationContext->getMapper()->getDefaultValue(type), alloca);
+    _codeGenerationContext->getMapper()->restoreBuilder();
   }
 }
 
 void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
-    llvm::ArrayType *arrayType, llvm::Value *alloca) {
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    llvm::ArrayType *arrayType, llvm::Value *alloca,
+    llvm::IRBuilder<> &Builder) {
 
-  std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
-  std::vector<llvm::AllocaInst *> indices;
+  const std::string FUNCTION_NAME =
+      "assign_" + _codeGenerationContext->getArrayTypeAsString(arrayType);
 
-  llvm::Type *elementType = arrayType;
-  std::vector<uint64_t> dimensions;
-  _codeGenerationContext->createArraySizesAndArrayElementType(dimensions,
-                                                              elementType);
+  llvm::Function *fun = TheModule->getFunction(FUNCTION_NAME);
 
-  const int64_t sizeToFillVal = std::accumulate(
-      dimensions.begin(), dimensions.end(), 1, std::multiplies<uint64_t>());
+  if (!fun) {
 
-  for (int i = 0; i < dimensions.size(); i++) {
-    std::vector<llvm::BasicBlock *> blocks = {
-        llvm::BasicBlock::Create(*TheContext,
-                                 "FillExpr.loopStart-" + std::to_string(i),
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext,
-                                 "FillExpr.loopCmp-" + std::to_string(i),
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext,
-                                 "FillExpr.loopBody-" + std::to_string(i),
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext,
-                                 "FillExpr.loopEnd-" + std::to_string(i),
-                                 currentBlock->getParent())};
+    llvm::FunctionType *FT = llvm::FunctionType::get(
+        llvm::Type::getVoidTy(*TheContext),
+        {llvm::PointerType::getUnqual(arrayType)}, false);
+    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 FUNCTION_NAME, *TheModule);
+    llvm::BasicBlock *entry =
+        llvm::BasicBlock::Create(*TheContext, "entry", fun);
+    llvm::IRBuilder<> builder(entry);
 
-    llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
-    indices.push_back(index);
-    loopBlocks.push_back(blocks);
-  }
+    llvm::BasicBlock *currentBlock = builder.GetInsertBlock();
 
-  llvm::AllocaInst *numberOfElementsFilled =
-      Builder->CreateAlloca(Builder->getInt32Ty());
-  Builder->CreateStore(Builder->getInt32(0), numberOfElementsFilled);
+    std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
+    std::vector<llvm::Value *> indices;
 
-  llvm::BasicBlock *exit = llvm::BasicBlock::Create(
-      *TheContext, "FillExpr.exit", currentBlock->getParent());
+    llvm::Type *elementType = arrayType;
+    std::vector<uint64_t> dimensions;
+    _codeGenerationContext->createArraySizesAndArrayElementType(dimensions,
+                                                                elementType);
 
-  Builder->CreateBr(loopBlocks[0][0]);
+    const int64_t sizeToFillVal = std::accumulate(
+        dimensions.begin(), dimensions.end(), 1, std::multiplies<uint64_t>());
 
-  for (int i = 0; i < dimensions.size(); i++) {
-    // start
-    Builder->SetInsertPoint(loopBlocks[i][0]);
-    Builder->CreateStore(Builder->getInt32(0), indices[i]);
-    Builder->CreateBr(loopBlocks[i][1]);
+    for (int i = 0; i < dimensions.size(); i++) {
+      std::vector<llvm::BasicBlock *> blocks = {
+          llvm::BasicBlock::Create(*TheContext,
+                                   "AssignExpr.loopStart-" + std::to_string(i),
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext,
+                                   "AssignExpr.loopCmp-" + std::to_string(i),
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext,
+                                   "AssignExpr.loopBody-" + std::to_string(i),
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext,
+                                   "AssignExpr.loopEnd-" + std::to_string(i),
+                                   currentBlock->getParent())};
 
-    // cmp
-    Builder->SetInsertPoint(loopBlocks[i][1]);
-    llvm::Value *currentIndex =
-        Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
-    llvm::Value *isLessThan =
-        Builder->CreateICmpSLT(currentIndex, Builder->getInt32(dimensions[i]));
-    //?------Comparison Count Increment------
-    llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
-        Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
-        Builder->getInt32(sizeToFillVal));
-    //?
+      llvm::Value *index = builder.CreateAlloca(builder.getInt32Ty(), nullptr,
+                                                std::to_string(i) + "_i");
+      indices.push_back(index);
+      loopBlocks.push_back(blocks);
+    }
 
-    llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);
+    llvm::Value *numberOfElementsFilled = builder.CreateAlloca(
+        builder.getInt32Ty(), nullptr, "numberOfElementsFilled");
 
-    Builder->CreateCondBr(success, loopBlocks[i][2], loopBlocks[i][3]);
+    builder.CreateStore(builder.getInt32(0), numberOfElementsFilled);
 
-    // body
-    Builder->SetInsertPoint(loopBlocks[i][2]);
-    if (i == dimensions.size() - 1) {
-      std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
+    llvm::BasicBlock *exit = llvm::BasicBlock::Create(
+        *TheContext, "AssignExpr.exit", currentBlock->getParent());
 
-      for (int j = 0; j < dimensions.size(); j++) {
-        indexList.push_back(
-            Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
+    builder.CreateBr(loopBlocks[0][0]);
+
+    for (int i = 0; i < dimensions.size(); i++) {
+      // start
+      builder.SetInsertPoint(loopBlocks[i][0]);
+      builder.CreateStore(builder.getInt32(0), indices[i]);
+      builder.CreateBr(loopBlocks[i][1]);
+
+      // cmp
+      builder.SetInsertPoint(loopBlocks[i][1]);
+      llvm::Value *currentIndex =
+          builder.CreateLoad(builder.getInt32Ty(), indices[i]);
+      llvm::Value *isLessThan =
+          builder.CreateICmpSLT(currentIndex, builder.getInt32(dimensions[i]));
+      //?------Comparison Count Increment------
+      llvm::Value *isAllElementsFilled = builder.CreateICmpSLT(
+          builder.CreateLoad(builder.getInt32Ty(), numberOfElementsFilled),
+          builder.getInt32(sizeToFillVal));
+      //?
+
+      llvm::Value *success = builder.CreateAnd(isLessThan, isAllElementsFilled);
+
+      builder.CreateCondBr(success, loopBlocks[i][2], loopBlocks[i][3]);
+
+      // body
+      builder.SetInsertPoint(loopBlocks[i][2]);
+      if (i == dimensions.size() - 1) {
+        std::vector<llvm::Value *> indexList = {builder.getInt32(0)};
+
+        for (int j = 0; j < dimensions.size(); j++) {
+          indexList.push_back(
+              builder.CreateLoad(builder.getInt32Ty(), indices[j]));
+        }
+
+        llvm::Value *elementPtr =
+            builder.CreateGEP(arrayType, fun->getArg(0), indexList);
+
+        initDefaultValue(elementType, elementPtr, builder);
+
+        llvm::Value *_currentIndex =
+            builder.CreateLoad(builder.getInt32Ty(), indices[i]);
+        llvm::Value *nextIndex =
+            builder.CreateAdd(_currentIndex, builder.getInt32(1));
+        builder.CreateStore(nextIndex, indices[i]);
+
+        //?------Elements filled Count Increment------
+        builder.CreateStore(
+            builder.CreateAdd(builder.CreateLoad(builder.getInt32Ty(),
+                                                 numberOfElementsFilled),
+                              builder.getInt32(1)),
+            numberOfElementsFilled);
+        //?------End------
+
+        builder.CreateBr(loopBlocks[i][1]);
+      } else {
+        builder.CreateBr(loopBlocks[i + 1][0]);
       }
 
-      llvm::Value *elementPtr =
-          Builder->CreateGEP(arrayType, alloca, indexList);
+      // end
+      builder.SetInsertPoint(loopBlocks[i][3]);
+      if (i != 0) {
+        llvm::Value *_currentIndex =
+            builder.CreateLoad(builder.getInt32Ty(), indices[i - 1]);
+        llvm::Value *nextIndex =
+            builder.CreateAdd(_currentIndex, builder.getInt32(1));
+        builder.CreateStore(nextIndex, indices[i - 1]);
 
-      initDefaultValue(elementType, elementPtr);
-
-      llvm::Value *_currentIndex =
-          Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
-      llvm::Value *nextIndex =
-          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
-      Builder->CreateStore(nextIndex, indices[i]);
-
-      //?------Elements filled Count Increment------
-      Builder->CreateStore(
-          Builder->CreateAdd(Builder->CreateLoad(Builder->getInt32Ty(),
-                                                 numberOfElementsFilled),
-                             Builder->getInt32(1)),
-          numberOfElementsFilled);
-      //?------End------
-
-      Builder->CreateBr(loopBlocks[i][1]);
-    } else {
-      Builder->CreateBr(loopBlocks[i + 1][0]);
+        builder.CreateBr(loopBlocks[i - 1][1]);
+      } else {
+        builder.CreateBr(exit);
+      }
     }
 
-    // end
-    Builder->SetInsertPoint(loopBlocks[i][3]);
-    if (i != 0) {
-      llvm::Value *_currentIndex =
-          Builder->CreateLoad(Builder->getInt32Ty(), indices[i - 1]);
-      llvm::Value *nextIndex =
-          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
-      Builder->CreateStore(nextIndex, indices[i - 1]);
-
-      Builder->CreateBr(loopBlocks[i - 1][1]);
-    } else {
-      Builder->CreateBr(exit);
-    }
+    builder.SetInsertPoint(exit);
+    builder.CreateRetVoid();
   }
 
-  Builder->SetInsertPoint(exit);
+  Builder.CreateCall(fun, {alloca});
 }
 
 void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
-    llvm::StructType *objectType, llvm::Value *alloca) {
+    llvm::StructType *objectType, llvm::Value *alloca,
+    llvm::IRBuilder<> &Builder) {
+
   std::string typeName = objectType->getStructName().str();
+  const std::string FUNCTION_NAME =
+      "assign_" +
+      _codeGenerationContext->getMapper()->getLLVMTypeName(objectType, false);
 
-  uint64_t index = 0;
-  for (const auto &items : objectType->elements()) {
+  llvm::Function *fun = TheModule->getFunction(FUNCTION_NAME);
+  if (!fun) {
 
-    llvm::Value *innerElementPtr =
-        Builder->CreateStructGEP(objectType, alloca, index);
+    llvm::FunctionType *FT = llvm::FunctionType::get(
+        llvm::Type::getVoidTy(*TheContext),
+        {llvm::PointerType::getUnqual(objectType)}, false);
+    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 FUNCTION_NAME, *TheModule);
+    llvm::BasicBlock *entry =
+        llvm::BasicBlock::Create(*TheContext, "entry", fun);
+    llvm::IRBuilder<> builder(entry);
 
-    initDefaultValue(objectType->getElementType(index), innerElementPtr);
+    uint64_t index = 0;
+    for (const auto &items : objectType->elements()) {
 
-    index++;
+      llvm::Value *innerElementPtr =
+          builder.CreateStructGEP(objectType, fun->getArg(0), index);
+
+      initDefaultValue(objectType->getElementType(index), innerElementPtr,
+                       builder);
+
+      index++;
+    }
+    builder.CreateRetVoid();
   }
+
+  Builder.CreateCall(fun, {alloca});
 }

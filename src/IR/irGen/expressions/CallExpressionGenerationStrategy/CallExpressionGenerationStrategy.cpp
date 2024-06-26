@@ -134,15 +134,12 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
           _codeGenerationContext
               ->_functionTypes[callExpression->getCallerNameRef()]
               ->getReturnType();
-      if (!callExpression->doesArgumentAllocaExist(0))
-        callExpression->setArgumentAlloca(
-            0, {_codeGenerationContext->createMemoryGetPtr(
-                    rtType, "rtPtr", BinderKindUtils::MemoryKind::Stack),
-                rtType});
+      callExpression->setArgumentAlloca(
+          0, {_codeGenerationContext->createMemoryGetPtr(
+                  rtType, "rtPtr", BinderKindUtils::MemoryKind::Stack),
+              rtType});
     }
-    if (
-
-        callExpression->getArgumentAlloca(0).second !=
+    if (callExpression->getArgumentAlloca(0).second !=
             _codeGenerationContext->getDynamicType()->get() &&
         _codeGenerationContext->verifyType(
             callExpression->getArgumentAlloca(0).second,
@@ -257,7 +254,7 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
         _codeGenerationContext->getValueStackHandler()->popAll();
       }
 
-      printPremitives(val);
+      printPremitives(val, *Builder);
     }
     llvm::Value *res = Builder->CreateCall(
         TheModule->getFunction(INNERS::FUNCTIONS::GET_INPUT));
@@ -388,7 +385,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
     //                     {_stringTypeConverter->convertExplicit(loaded),
     //                      Builder->getInt1(false)});
 
-    printPremitives(loaded);
+    printPremitives(loaded, *Builder);
     return nullptr;
   }
 
@@ -437,10 +434,10 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
         // llvm::LoadInst *loaded = Builder->CreateLoad(structType, value);
         // llvm::Value *localVariable = Builder->CreateAlloca(structType,
         // nullptr); Builder->CreateStore(loaded, localVariable);
-        return printObject(value, structType);
+        return printObject(value, structType, *Builder);
       }
 
-      return printObject(value, llvm::cast<llvm::StructType>(type));
+      return printObject(value, llvm::cast<llvm::StructType>(type), *Builder);
     } else if (llvm::isa<llvm::ArrayType>(type)) {
       _codeGenerationContext->getValueStackHandler()->popAll();
       llvm::Type *elementType = nullptr;
@@ -454,7 +451,8 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
         // llvm::LoadInst *loaded = Builder->CreateLoad(type, value);
         // llvm::Value *localVariable = Builder->CreateAlloca(type, nullptr);
         // Builder->CreateStore(loaded, localVariable);
-        return printArrayAtom(arrayType, value, actualSizes, elementType);
+        return printArrayAtom(arrayType, value, actualSizes, elementType,
+                              *Builder);
       } else {
 
         llvm::Type *currentType = type;
@@ -470,7 +468,8 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
         arrayType = llvm::cast<llvm::ArrayType>(type);
         elementType = arrayType->getElementType();
 
-        return printArrayAtom(arrayType, value, actualSizes, elementType);
+        return printArrayAtom(arrayType, value, actualSizes, elementType,
+                              *Builder);
       }
     }
   }
@@ -483,7 +482,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
     value = _codeGenerationContext->getValueStackHandler()->getValue();
     _codeGenerationContext->getValueStackHandler()->popAll();
 
-    return printObject(value, structType);
+    return printObject(value, structType, *Builder);
   }
 
   if (_codeGenerationContext->getValueStackHandler()->isArrayType()) {
@@ -500,7 +499,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
       sizes.push_back(arrayType->getNumElements());
       type = arrayType->getElementType();
     }
-    return printArrayAtom(arrayType, innerElementPtr, sizes, type);
+    return printArrayAtom(arrayType, innerElementPtr, sizes, type, *Builder);
   }
 
   if (llvm::isa<llvm::ArrayType>(value->getType())) {
@@ -508,7 +507,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
     llvm::Type *elementType = arrayType->getElementType();
 
     if (!elementType->isIntegerTy(8)) {
-      return printArray(arrayType, elementType, value);
+      return printArray(arrayType, elementType, value, *Builder);
     }
   }
 
@@ -529,7 +528,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
       llvm::Type *elementType = arrayType->getElementType();
 
       if (!elementType->isIntegerTy(8)) {
-        return printArray(arrayType, elementType, v);
+        return printArray(arrayType, elementType, v, *Builder);
       }
     }
 
@@ -537,14 +536,14 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
       llvm::StructType *structType =
           llvm::cast<llvm::StructType>(v->getAllocatedType());
 
-      return printObject(value, structType);
+      return printObject(value, structType, *Builder);
     }
 
     // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
     //                     {_stringTypeConverter->convertExplicit(value),
     //                      Builder->getInt1(false)});
 
-    printPremitives(value);
+    printPremitives(value, *Builder);
 
     return nullptr;
   }
@@ -560,14 +559,14 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
       llvm::Type *elementType = arrayType->getElementType();
 
       if (!elementType->isIntegerTy(8)) {
-        return printArray(arrayType, elementType, v);
+        return printArray(arrayType, elementType, v, *Builder);
       }
     }
     if (llvm::isa<llvm::StructType>(v->getValueType())) {
       llvm::StructType *structType =
           llvm::cast<llvm::StructType>(v->getValueType());
 
-      return printObject(value, structType);
+      return printObject(value, structType, *Builder);
     }
   }
   // if (value->getType()->isPointerTy()) {
@@ -577,31 +576,34 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
   if (_codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
           value->getType()) != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
 
-    printPremitives(value);
+    printPremitives(value, *Builder);
     return nullptr;
   }
 
   return nullptr;
 }
 
-void CallExpressionGenerationStrategy::printPremitives(llvm::Value *&value) {
-  llvm::Value *formatPtr = getUnit("%s", "%s");
+void CallExpressionGenerationStrategy::printPremitives(
+    llvm::Value *&value, llvm::IRBuilder<> &Builder) {
+  llvm::Value *formatPtr = getUnit("%s", "%s", Builder);
 
   if (value->getType()->isIntegerTy(32)) {
-    formatPtr = getUnit("%d", "%d");
+    formatPtr = getUnit("%d", "%d", Builder);
   } else if (value->getType()->isIntegerTy(64)) {
-    formatPtr = getUnit("%ld", "%lld");
+    formatPtr = getUnit("%ld", "%lld", Builder);
   } else if (value->getType()->isFloatTy()) {
-    formatPtr = getUnit("%0.7f", "%0.7f");
+    formatPtr = getUnit("%0.7f", "%0.7f", Builder);
   } else if (value->getType()->isDoubleTy()) {
-    formatPtr = getUnit("%0.14f", "%0.14f");
+    formatPtr = getUnit("%0.14f", "%0.14f", Builder);
   } else if (value->getType()->isIntegerTy(1)) {
-    formatPtr = getUnit("%s", "%s");
+    formatPtr = getUnit("%s", "%s", Builder);
+    _stringTypeConverter->setBuilder(&Builder);
     value = _stringTypeConverter->convertExplicit(value);
+    _stringTypeConverter->resetBuilder();
   }
 
-  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
-                      {formatPtr, (value)});
+  Builder.CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
+                     {formatPtr, (value)});
 }
 
 llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
@@ -649,7 +651,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 
           assignmentEGS->initDefaultValue(
               _codeGenerationContext->_classTypes[className]->getClassType(),
-              classPtr);
+              classPtr, *Builder);
 
           {
             llvm::Value *ptrPtr = Builder->CreateStructGEP(
@@ -688,7 +690,8 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
                     elementPtr, elementType, varDec->getVariableName(),
                     varDec->getInitializerPtr().get());
               } else {
-                assignmentEGS->initDefaultValue(elementType, elementPtr);
+                assignmentEGS->initDefaultValue(elementType, elementPtr,
+                                                *Builder);
               }
             }
           }
@@ -1239,7 +1242,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
         arrayType, arg->getName().str(), BinderKindUtils::MemoryKind::Stack);
     callExpression->setArgumentAlloca(llvmArgsIndex, {ptr, arrayType});
 
-    assignStrategy->initDefaultValue(arrayType, ptr);
+    assignStrategy->initDefaultValue(arrayType, ptr, *Builder);
     IRCodeGenerator irCodeGen(_codeGenerationContext);
     irCodeGen.declareVariables(callExpression, false);
   } else {
@@ -1358,7 +1361,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
     callExpression->setArgumentAlloca(llvmArgsIndex,
                                       {ptr, llvmObjectType->getStructType()});
 
-    assignExpGenStrat->initDefaultValue(llvmObjectType->getStructType(), ptr);
+    assignExpGenStrat->initDefaultValue(llvmObjectType->getStructType(), ptr,
+                                        *Builder);
 
     IRCodeGenerator irCodeGen(_codeGenerationContext);
     irCodeGen.declareVariables(callExpression, false);
@@ -1704,18 +1708,21 @@ llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
 }
 
 void CallExpressionGenerationStrategy::printUnit(const std::string &unit,
-                                                 const std::string &unitName) {
-  Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
-                      {getUnit("%s", "%s"), getUnit(unit, unitName)});
+                                                 const std::string &unitName,
+                                                 llvm::IRBuilder<> &Builder) {
+  Builder.CreateCall(
+      TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
+      {getUnit("%s", "%s", Builder), getUnit(unit, unitName, Builder)});
 }
 
 llvm::Value *
 CallExpressionGenerationStrategy::getUnit(const std::string &unit,
-                                          const std::string &unitName) {
+                                          const std::string &unitName,
+                                          llvm::IRBuilder<> &Builder) {
   llvm::GlobalVariable *variable = TheModule->getGlobalVariable(unitName);
   if (!variable) {
     // The global variable doesn't exist
-    llvm::Constant *initializer = Builder->CreateGlobalStringPtr(unit);
+    llvm::Constant *initializer = Builder.CreateGlobalStringPtr(unit);
     variable = new llvm::GlobalVariable(
         /*Module=*/*TheModule,
         /*Type=*/initializer->getType(),
@@ -1725,13 +1732,14 @@ CallExpressionGenerationStrategy::getUnit(const std::string &unit,
         /*Name=*/unitName);
   }
 
-  return Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), variable);
+  return Builder.CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), variable);
 }
 
 void CallExpressionGenerationStrategy::printString(llvm::Value *value,
-                                                   llvm::Type *type) {
-  printUnit("'", "'");
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+                                                   llvm::Type *type,
+                                                   llvm::IRBuilder<> &Builder) {
+  printUnit("'", "'", Builder);
+  llvm::BasicBlock *currentBlock = Builder.GetInsertBlock();
   llvm::BasicBlock *isNullBlock = llvm::BasicBlock::Create(
       *TheContext, "IsNull", currentBlock->getParent());
   llvm::BasicBlock *endBlock =
@@ -1743,269 +1751,321 @@ void CallExpressionGenerationStrategy::printString(llvm::Value *value,
   llvm::Constant *nullPtr = llvm::Constant::getNullValue(type);
 
   // Compare yourValue with the null pointer constant
-  llvm::Value *isNullValue = Builder->CreateICmpNE(value, nullPtr);
+  llvm::Value *isNullValue = Builder.CreateICmpNE(value, nullPtr);
 
-  Builder->CreateCondBr(isNullValue, endBlock, isNullBlock);
+  Builder.CreateCondBr(isNullValue, endBlock, isNullBlock);
 
-  Builder->SetInsertPoint(isNullBlock);
+  Builder.SetInsertPoint(isNullBlock);
 
-  Builder->CreateBr(mergeBlock);
+  Builder.CreateBr(mergeBlock);
 
-  Builder->SetInsertPoint(endBlock);
+  Builder.SetInsertPoint(endBlock);
 
-  // Builder->CreateCall(
+  // Builder.CreateCall(
   //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
   //     {_stringTypeConverter->convertExplicit(value),
-  //     Builder->getInt1(false)});
+  //     Builder.getInt1(false)});
 
-  printPremitives(value);
+  printPremitives(value, Builder);
 
-  Builder->CreateBr(mergeBlock);
+  Builder.CreateBr(mergeBlock);
 
-  Builder->SetInsertPoint(mergeBlock);
-  printUnit("'", "'");
+  Builder.SetInsertPoint(mergeBlock);
+  printUnit("'", "'", Builder);
 }
 
 llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     llvm::ArrayType *&arrayType, llvm::Value *&v,
-    const std::vector<uint64_t> &actualSizes, llvm::Type *&elementType) {
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    const std::vector<uint64_t> &actualSizes, llvm::Type *&elementType,
+    llvm::IRBuilder<> &Builder) {
 
-  std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
-  std::vector<llvm::AllocaInst *> indices;
+  const std::string FUNCTION_NAME =
+      "print_" + _codeGenerationContext->getArrayTypeAsString(arrayType);
 
-  for (int i = 0; i < actualSizes.size(); i++) {
-    std::vector<llvm::BasicBlock *> blocks = {
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopStart",
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopCmp",
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopBody",
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.loopEnd",
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.print.lobby",
-                                 currentBlock->getParent()),
-        llvm::BasicBlock::Create(*TheContext, "FillExpr.stage",
-                                 currentBlock->getParent())};
+  llvm::Function *fun = TheModule->getFunction(FUNCTION_NAME);
 
-    llvm::AllocaInst *index = Builder->CreateAlloca(Builder->getInt32Ty());
-    indices.push_back(index);
-    loopBlocks.push_back(blocks);
-  }
+  if (!fun) {
+    llvm::FunctionType *FT = llvm::FunctionType::get(
+        llvm::Type::getVoidTy(*TheContext),
+        {llvm::PointerType::getUnqual(arrayType)}, false);
+    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 FUNCTION_NAME, *TheModule);
 
-  llvm::AllocaInst *numberOfElementsFilled =
-      Builder->CreateAlloca(Builder->getInt32Ty());
-  Builder->CreateStore(Builder->getInt32(0), numberOfElementsFilled);
+    llvm::BasicBlock *entry =
+        llvm::BasicBlock::Create(*TheContext, "entry", fun);
+    llvm::IRBuilder<> builder(entry);
 
-  llvm::BasicBlock *exit = llvm::BasicBlock::Create(
-      *TheContext, "FillExpr.exit", currentBlock->getParent());
+    llvm::BasicBlock *currentBlock = builder.GetInsertBlock();
 
-  Builder->CreateBr(loopBlocks[0][0]);
+    std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
+    std::vector<llvm::Value *> indices;
 
-  for (int i = 0; i < actualSizes.size(); i++) {
-    // start
-    Builder->SetInsertPoint(loopBlocks[i][0]);
-    Builder->CreateStore(Builder->getInt32(0), indices[i]);
-    printUnit("[", "openBracket");
-    Builder->CreateBr(loopBlocks[i][1]);
+    for (int i = 0; i < actualSizes.size(); i++) {
+      std::vector<llvm::BasicBlock *> blocks = {
+          llvm::BasicBlock::Create(*TheContext, "con_print.loopStart",
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext, "con_print.loopCmp",
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext, "con_print.loopBody",
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext, "con_print.loopEnd",
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext, "con_print.print.lobby",
+                                   currentBlock->getParent()),
+          llvm::BasicBlock::Create(*TheContext, "con_print.stage",
+                                   currentBlock->getParent())};
 
-    // cmp
-    Builder->SetInsertPoint(loopBlocks[i][1]);
-    llvm::Value *currentIndex =
-        Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
-    llvm::Value *isLessThanActualSize =
-        Builder->CreateICmpSLT(currentIndex, Builder->getInt32(actualSizes[i]));
-    //!
-    llvm::Value *isGreaterThanZero =
-        Builder->CreateICmpSGT(currentIndex, Builder->getInt32(0));
-    llvm::Value *showPrintLobby =
-        Builder->CreateAnd(isLessThanActualSize, isGreaterThanZero);
-    //!
+      llvm::Value *index = builder.CreateAlloca(builder.getInt32Ty(), nullptr,
+                                                std::to_string(i) + "_i");
+      indices.push_back(index);
+      loopBlocks.push_back(blocks);
+    }
 
-    Builder->CreateCondBr(showPrintLobby, loopBlocks[i][4], loopBlocks[i][5]);
+    llvm::Value *numberOfElementsFilled = builder.CreateAlloca(
+        builder.getInt32Ty(), nullptr, "numberOfElementsFilled");
 
-    //? print Lobby
-    Builder->SetInsertPoint(loopBlocks[i][4]);
-    printUnit(", ", "comma");
-    Builder->CreateBr(loopBlocks[i][2]);
-    //?
+    builder.CreateStore(builder.getInt32(0), numberOfElementsFilled);
 
-    //! Stage
-    Builder->SetInsertPoint(loopBlocks[i][5]);
-    llvm::Value *currentIndex_stage =
-        Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
-    llvm::Value *isLessThanActualSize_Stage = Builder->CreateICmpSLT(
-        currentIndex_stage, Builder->getInt32(actualSizes[i]));
-    Builder->CreateCondBr(isLessThanActualSize_Stage, loopBlocks[i][2],
-                          loopBlocks[i][3]);
+    llvm::BasicBlock *exit = llvm::BasicBlock::Create(
+        *TheContext, "con_print.exit", currentBlock->getParent());
 
-    // body
-    Builder->SetInsertPoint(loopBlocks[i][2]);
-    if (i == actualSizes.size() - 1) {
-      std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
+    builder.CreateBr(loopBlocks[0][0]);
 
-      for (int j = 0; j < actualSizes.size(); j++) {
-        indexList.push_back(
-            Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
-      }
+    for (int i = 0; i < actualSizes.size(); i++) {
+      // start
+      builder.SetInsertPoint(loopBlocks[i][0]);
+      builder.CreateStore(builder.getInt32(0), indices[i]);
+      printUnit("[", "openBracket", builder);
+      builder.CreateBr(loopBlocks[i][1]);
 
-      llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indexList);
+      // cmp
+      builder.SetInsertPoint(loopBlocks[i][1]);
+      llvm::Value *currentIndex =
+          builder.CreateLoad(builder.getInt32Ty(), indices[i]);
+      llvm::Value *isLessThanActualSize =
+          builder.CreateICmpSLT(currentIndex, builder.getInt32(actualSizes[i]));
+      //!
+      llvm::Value *isGreaterThanZero =
+          builder.CreateICmpSGT(currentIndex, builder.getInt32(0));
+      llvm::Value *showPrintLobby =
+          builder.CreateAnd(isLessThanActualSize, isGreaterThanZero);
+      //!
 
-      //! Printing Starts
-      llvm::Value *innerValue = nullptr;
-      // Untyped Container Element
-      if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
-        innerValue =
-            _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-                elementPtr, v->getName().str());
-      } else if (llvm::isa<llvm::StructType>(elementType)) {
+      builder.CreateCondBr(showPrintLobby, loopBlocks[i][4], loopBlocks[i][5]);
 
-        printObject(elementPtr, llvm::cast<llvm::StructType>(elementType));
+      //? print Lobby
+      builder.SetInsertPoint(loopBlocks[i][4]);
+      printUnit(", ", "comma", builder);
+      builder.CreateBr(loopBlocks[i][2]);
+      //?
+
+      //! Stage
+      builder.SetInsertPoint(loopBlocks[i][5]);
+      llvm::Value *currentIndex_stage =
+          builder.CreateLoad(builder.getInt32Ty(), indices[i]);
+      llvm::Value *isLessThanActualSize_Stage = builder.CreateICmpSLT(
+          currentIndex_stage, builder.getInt32(actualSizes[i]));
+      builder.CreateCondBr(isLessThanActualSize_Stage, loopBlocks[i][2],
+                           loopBlocks[i][3]);
+
+      // body
+      builder.SetInsertPoint(loopBlocks[i][2]);
+      if (i == actualSizes.size() - 1) {
+        std::vector<llvm::Value *> indexList = {builder.getInt32(0)};
+
+        for (int j = 0; j < actualSizes.size(); j++) {
+          indexList.push_back(
+              builder.CreateLoad(builder.getInt32Ty(), indices[j]));
+        }
+
+        llvm::Value *elementPtr =
+            builder.CreateGEP(arrayType, fun->getArg(0), indexList);
+
+        //! Printing Starts
+        llvm::Value *innerValue = nullptr;
+        // Untyped Container Element
+        if (_codeGenerationContext->getDynamicType()->isDyn(elementType)) {
+          innerValue =
+              _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
+                  elementPtr, v->getName().str());
+        } else if (llvm::isa<llvm::StructType>(elementType)) {
+
+          printObject(elementPtr, llvm::cast<llvm::StructType>(elementType),
+                      builder);
+        } else {
+          // Typed Container Element
+          innerValue = builder.CreateLoad(elementType, elementPtr);
+
+          if (innerValue->getType()->isPointerTy()) {
+            printString(innerValue, elementType, builder);
+          } else {
+
+            // builder.CreateCall(
+            //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+            //     {_stringTypeConverter->convertExplicit(innerValue),
+            //      builder.getInt1(false)});
+
+            printPremitives(innerValue, builder);
+          }
+        }
+
+        //! Printing Ends
+        llvm::Value *_currentIndex =
+            builder.CreateLoad(builder.getInt32Ty(), indices[i]);
+        llvm::Value *nextIndex =
+            builder.CreateAdd(_currentIndex, builder.getInt32(1));
+        builder.CreateStore(nextIndex, indices[i]);
+
+        builder.CreateBr(loopBlocks[i][1]);
       } else {
-        // Typed Container Element
-        innerValue = Builder->CreateLoad(elementType, elementPtr);
-
-        if (innerValue->getType()->isPointerTy()) {
-          printString(innerValue, elementType);
-        } else
-
-          // Builder->CreateCall(
-          //     TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-          //     {_stringTypeConverter->convertExplicit(innerValue),
-          //      Builder->getInt1(false)});
-
-          printPremitives(innerValue);
+        builder.CreateBr(loopBlocks[i + 1][0]);
       }
 
-      //! Printing Ends
-      llvm::Value *_currentIndex =
-          Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
-      llvm::Value *nextIndex =
-          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
-      Builder->CreateStore(nextIndex, indices[i]);
+      // end
+      builder.SetInsertPoint(loopBlocks[i][3]);
+      if (i != 0) {
+        llvm::Value *_currentIndex =
+            builder.CreateLoad(builder.getInt32Ty(), indices[i - 1]);
+        llvm::Value *nextIndex =
+            builder.CreateAdd(_currentIndex, builder.getInt32(1));
+        builder.CreateStore(nextIndex, indices[i - 1]);
 
-      Builder->CreateBr(loopBlocks[i][1]);
-    } else {
-      Builder->CreateBr(loopBlocks[i + 1][0]);
+        printUnit("]", "closeBracket", builder);
+        builder.CreateBr(loopBlocks[i - 1][1]);
+      } else {
+        printUnit("]", "closeBracket", builder);
+        builder.CreateBr(exit);
+      }
     }
 
-    // end
-    Builder->SetInsertPoint(loopBlocks[i][3]);
-    if (i != 0) {
-      llvm::Value *_currentIndex =
-          Builder->CreateLoad(Builder->getInt32Ty(), indices[i - 1]);
-      llvm::Value *nextIndex =
-          Builder->CreateAdd(_currentIndex, Builder->getInt32(1));
-      Builder->CreateStore(nextIndex, indices[i - 1]);
-
-      printUnit("]", "closeBracket");
-      Builder->CreateBr(loopBlocks[i - 1][1]);
-    } else {
-      printUnit("]", "closeBracket");
-      Builder->CreateBr(exit);
-    }
+    builder.SetInsertPoint(exit);
+    builder.CreateRetVoid();
   }
 
-  Builder->SetInsertPoint(exit);
-
+  Builder.CreateCall(fun, {v});
   return nullptr;
 }
 
 llvm::Value *CallExpressionGenerationStrategy::printArray(
-    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v) {
+    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v,
+    llvm::IRBuilder<> &Builder) {
   std::vector<uint64_t> sizes;
   _codeGenerationContext->getArraySizeMetadata(v, sizes);
   llvm::Type *elt = _codeGenerationContext->getArrayElementTypeMetadata(v);
-  printArrayAtom(arrayType, v, sizes, elt);
+  printArrayAtom(arrayType, v, sizes, elt, Builder);
 
   return nullptr;
 }
 
 llvm::Value *
 CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
-                                              llvm::StructType *parObjType) {
-  printUnit("{ ", "{ ");
+                                              llvm::StructType *parObjType,
+                                              llvm::IRBuilder<> &Builder) {
 
-  BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getType(parObjType->getStructName().str())
-          .getCustomType();
+  const std::string FUNCTION_NAME =
+      "print_" + parObjType->getStructName().str();
 
-  if (!boundCustomTypeStatement) {
+  llvm::Function *fun = TheModule->getFunction(FUNCTION_NAME);
 
-    if (_codeGenerationContext->isValidClassType(parObjType)) {
-      _codeGenerationContext->getLogger()->LogError(
-          "variable of class " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
-          " can not be printed directly, use member functions instead");
-      return nullptr;
-    }
+  if (!fun) {
+    llvm::FunctionType *FT = llvm::FunctionType::get(
+        llvm::Type::getVoidTy(*TheContext),
+        {llvm::PointerType::getUnqual(parObjType)}, false);
+    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                                 FUNCTION_NAME, *TheModule);
 
-    _codeGenerationContext->getLogger()->LogError(
-        "variable of type " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
-        " not found in variable expression ");
-    return nullptr;
-  }
+    llvm::BasicBlock *entry =
+        llvm::BasicBlock::Create(*TheContext, "entry", fun);
+    llvm::IRBuilder<> builder(entry);
 
-  uint64_t i = 0;
-  const std::string KEY_PRIFIX =
-      boundCustomTypeStatement->getTypeNameAsString();
-  for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
-    std::string typeName = std::any_cast<std::string>(bLE->getValue());
-    std::string propertyKey = std::any_cast<std::string>(bLE->getValue());
+    printUnit("{ ", "{ ", builder);
 
-    Builder->CreateCall(
-        TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-        {Builder->CreateGlobalStringPtr(propertyKey), Builder->getInt1(false)});
-    printUnit(" : ", " : ");
-    std::string key = KEY_PRIFIX + "." + propertyKey;
-    size_t index = _codeGenerationContext->getType(key).getIndex();
+    BoundCustomTypeStatement *boundCustomTypeStatement =
+        _codeGenerationContext->getType(parObjType->getStructName().str())
+            .getCustomType();
 
-    if (index == -1) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Variable " + key + " not found in variable expression ");
+    if (!boundCustomTypeStatement) {
 
-      return nullptr;
-    }
-
-    llvm::Value *innerElementPtr =
-        Builder->CreateStructGEP(parObjType, outerElementPtr, i);
-
-    llvm::Type *type = parObjType->getElementType(i);
-    if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
-      llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
-
-      printObject(innerElementPtr, structType);
-    } else if (bTE->getSyntaxType() ==
-               SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
-      llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-      llvm::Type *elementType = arrayType->getElementType();
-      llvm::Type *type = arrayType;
-      std::vector<uint64_t> sizes;
-      _codeGenerationContext->createArraySizesAndArrayElementType(sizes, type);
-      printArrayAtom(arrayType, innerElementPtr, sizes, type);
-    } else {
-      llvm::LoadInst *loaded = Builder->CreateLoad(type, innerElementPtr);
-
-      llvm::Value *loadedVal = llvm::cast<llvm::Value>(loaded);
-      if (loaded->getType()->isPointerTy()) {
-        printString(loadedVal, type);
-      } else {
-
-        printPremitives(loadedVal);
-        // Builder->CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
-        //                     {_stringTypeConverter->convertExplicit(loadedVal),
-        //                      Builder->getInt1(false)});
+      if (_codeGenerationContext->isValidClassType(parObjType)) {
+        _codeGenerationContext->getLogger()->LogError(
+            "variable of class " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
+            " can not be printed directly, use member functions instead");
+        return nullptr;
       }
-    }
-    if (i != boundCustomTypeStatement->getKeyPairs().size() - 1)
-      printUnit(", ", " , ");
 
-    i++;
+      _codeGenerationContext->getLogger()->LogError(
+          "variable of type " +
+          _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType) +
+          " not found in variable expression ");
+      return nullptr;
+    }
+
+    uint64_t i = 0;
+    const std::string KEY_PRIFIX =
+        boundCustomTypeStatement->getTypeNameAsString();
+    for (const auto &[bLE, bTE] : boundCustomTypeStatement->getKeyPairs()) {
+      std::string typeName = std::any_cast<std::string>(bLE->getValue());
+      std::string propertyKey = std::any_cast<std::string>(bLE->getValue());
+
+      builder.CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+          {builder.CreateGlobalStringPtr(propertyKey), builder.getInt1(false)});
+      printUnit(" : ", " : ", builder);
+      std::string key = KEY_PRIFIX + "." + propertyKey;
+      size_t index = _codeGenerationContext->getType(key).getIndex();
+
+      if (index == -1) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Variable " + key + " not found in variable expression ");
+
+        return nullptr;
+      }
+
+      llvm::Value *innerElementPtr =
+          builder.CreateStructGEP(parObjType, fun->getArg(0), i);
+
+      llvm::Type *type = parObjType->getElementType(i);
+      if (bTE->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
+        llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
+
+        printObject(innerElementPtr, structType, builder);
+      } else if (bTE->getSyntaxType() ==
+                 SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+        llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
+        llvm::Type *elementType = arrayType->getElementType();
+        llvm::Type *type = arrayType;
+        std::vector<uint64_t> sizes;
+        _codeGenerationContext->createArraySizesAndArrayElementType(sizes,
+                                                                    type);
+        printArrayAtom(arrayType, innerElementPtr, sizes, type, builder);
+      } else {
+        llvm::LoadInst *loaded = builder.CreateLoad(type, innerElementPtr);
+
+        llvm::Value *loadedVal = llvm::cast<llvm::Value>(loaded);
+        if (loaded->getType()->isPointerTy()) {
+          printString(loadedVal, type, builder);
+        } else {
+
+          printPremitives(loadedVal, builder);
+          //    builder.CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT),
+          //                     {_stringTypeConverter->convertExplicit(loadedVal),
+          //                         builder.getInt1(false)});
+        }
+      }
+      if (i != boundCustomTypeStatement->getKeyPairs().size() - 1)
+        printUnit(", ", " , ", builder);
+
+      i++;
+    }
+
+    printUnit(" }", "}", builder);
+
+    builder.CreateRetVoid();
   }
 
-  printUnit(" }", "}");
+  Builder.CreateCall(fun, {outerElementPtr});
 
   return nullptr;
 }

@@ -618,6 +618,12 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     return this->_builder->CreateAlloca(type, nullptr, variableName);
   }
   case BinderKindUtils::MemoryKind::Global: {
+
+    llvm::Value *global = this->_module->getNamedGlobal(variableName);
+
+    if (global)
+      return global;
+
     return new llvm::GlobalVariable(
         *this->_module, type, false,
         llvm::GlobalValue::LinkageTypes::CommonLinkage,
@@ -630,6 +636,20 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
         " for " + variableName + " in " + __PRETTY_FUNCTION__);
     return nullptr;
   }
+}
+auto CodeGenerationContext::getArrayTypeAsString(llvm::ArrayType *arrayType)
+    -> std::string {
+  llvm::Type *type = arrayType;
+  std::vector<uint64_t> sizes;
+
+  this->createArraySizesAndArrayElementType(sizes, type);
+  std::string actualSizesStr = "";
+  for (auto &size : sizes) {
+    actualSizesStr += std::to_string(size) + ",";
+  }
+
+  return this->getMapper()->getLLVMTypeName(arrayType, false) + ":" +
+         actualSizesStr;
 }
 
 void CodeGenerationContext::verifyFunction(llvm::Function *F,

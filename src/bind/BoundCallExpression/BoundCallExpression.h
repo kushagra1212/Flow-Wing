@@ -54,7 +54,9 @@ public:
   }
 
   inline auto doesArgumentAllocaExist(uint64_t index) -> bool {
-    return _argumentsMap.find(index) != _argumentsMap.end();
+    return _argumentsMap.find(index) != _argumentsMap.end() &&
+           _argumentsMap[index].first != nullptr &&
+           _argumentsMap[index].second != nullptr;
   }
 };
 

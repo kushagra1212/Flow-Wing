@@ -47,7 +47,7 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
     ptr = _codeGenerationContext->createMemoryGetPtr(
         structType, _variableName, _variableDeclExpr->getMemoryKind());
 
-    assignmentStrategy->initDefaultValue(structType, ptr);
+    assignmentStrategy->initDefaultValue(structType, ptr, *Builder);
   }
 
   _variableDeclExpr->setLLVMVariable({ptr, structType});

@@ -43,7 +43,7 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::declare() {
   llvm::Value *ptr = _codeGenerationContext->createMemoryGetPtr(
       arrayType, _containerName, _memoryKind);
 
-  assignmentStrategy->initDefaultValue(arrayType, ptr);
+  assignmentStrategy->initDefaultValue(arrayType, ptr, *Builder);
 
   _variableDeclExpr->setLLVMVariable({ptr, arrayType});
 
@@ -95,7 +95,6 @@ ContainerDeclarationStatementGenerationStrategy::assignExpression() {
 
   auto [ptr, arrayType] = _variableDeclExpr->getLLVMVariable();
 
-  assignmentStrategy->initDefaultValue(arrayType, ptr);
   _codeGenerationContext->getAllocaChain()->setPtr(_containerName,
                                                    {ptr, arrayType});
 
