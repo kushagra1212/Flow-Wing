@@ -1003,7 +1003,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     }
   }
 
-  //! calling a class member functon outside of a class e.g "a.callMe()"
+  //? calling a class member functon outside of a class e.g "a.callMe()"
   {
     const std::string CLASS_NAME = CALLER_NAME.substr(0, CALLER_NAME.find("."));
     std::string fLastName = CALLER_NAME.substr(CALLER_NAME.find(".") + 1);

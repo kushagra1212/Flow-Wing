@@ -30,12 +30,21 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
       _variableDeclarationStatementGenerationStrategy->declareLocal(
           static_cast<BoundVariableDeclaration *>(child));
     }
+
+    declareVariables(child, isGlobal);
     break;
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
 
     _callExpressionGenerationStrategy->declare(
         static_cast<BoundCallExpression *>(child));
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::AssignmentExpression: {
+    _assignmentExpressionGenerationStrategy->declare(
+        static_cast<BoundAssignmentExpression *>(child));
+
+    declareVariables(child, isGlobal);
     break;
   }
   default:

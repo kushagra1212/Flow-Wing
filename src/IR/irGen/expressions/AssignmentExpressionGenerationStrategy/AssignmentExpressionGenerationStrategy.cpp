@@ -14,6 +14,49 @@ llvm::Value *AssignmentExpressionGenerationStrategy::generateExpression(
   return handleAssignmentExpression(assignmentExpression);
 }
 
+void AssignmentExpressionGenerationStrategy::declare(
+    BoundExpression *expression) {
+
+  BoundAssignmentExpression *assignmentExpression =
+      static_cast<BoundAssignmentExpression *>(expression);
+
+  if (assignmentExpression->getNeedDefaulInitilization() &&
+      assignmentExpression->getRightPtr() &&
+      assignmentExpression->getRightPtr()->getKind() ==
+          BinderKindUtils::CallExpression &&
+      assignmentExpression->getLeftPtr() &&
+      assignmentExpression->getLeftPtr()->getKind() ==
+          BinderKindUtils::VariableExpression) {
+
+    BoundVariableExpression *variableExpression =
+        static_cast<BoundVariableExpression *>(
+            assignmentExpression->getLeftPtr().get());
+
+    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
+        assignmentExpression->getRightPtr().get());
+
+    std::string variableName = std::any_cast<std::string>(
+        ((BoundLiteralExpression<std::any> *)_variableExpression
+             ->getIdentifierExpressionPtr()
+             .get())
+            ->getValue());
+    auto [ptr, type] =
+        _codeGenerationContext->getAllocaChain()->getPtr(variableName);
+
+    if (Utils::isClassInit(callExpression->getCallerNameRef())) {
+      callExpression->setArgumentAlloca(
+          callExpression->getArgumentsRef().size(), {ptr, type});
+    } else if (_codeGenerationContext->_functionTypes.find(
+                   callExpression->getCallerNameRef()) !=
+                   _codeGenerationContext->_functionTypes.end() &&
+               _codeGenerationContext
+                   ->_functionTypes[callExpression->getCallerNameRef()]
+                   ->isHavingReturnTypeAsParamater()) {
+      callExpression->setArgumentAlloca(0, {ptr, type});
+    }
+  }
+}
+
 llvm::Value *AssignmentExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   BoundAssignmentExpression *assignmentExpression =
@@ -98,9 +141,8 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
 
-      if (llvm::isa<llvm::StructType>(_lhsType) &&
-          _codeGenerationContext->isValidClassType(
-              llvm::cast<llvm::StructType>(_lhsType))) {
+      if (_codeGenerationContext->isClassMemberFunction(
+              callExp->getCallerNameRef())) {
         callExp->setArgumentAlloca(callExp->getArgumentsRef().size(),
                                    {_lhsPtr, _lhsType});
       } else {
@@ -124,7 +166,16 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
 
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
-    rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
+
+    if (llvm::isa<llvm::StructType>(rhsType) &&
+        _codeGenerationContext->isValidClassType(
+            llvm::cast<llvm::StructType>(rhsType))) {
+
+      rhsValue =
+          Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), rhsPtr);
+    } else {
+      rhsValue = Builder->CreateLoad(rhsType, rhsPtr);
+    }
   }
 
   _codeGenerationContext->getValueStackHandler()->popAll();

@@ -1,4 +1,92 @@
+ type T  = {
+      x:int,
+      d:str 
+    }
+class Animal {
+  var age:int 
+  var species:str
 
+
+  var t:T 
+  init(age:int) -> nthg {
+    self.age = age
+    self.t = {d:"Hi",x:12}
+  }
+  getAge() -> int {
+    return self.age
+  }
+  printSpecies() -> nthg { 
+    print("Species: ",species)
+  }
+}
+class Dog extends Animal {
+   var breed:str 
+  
+  init(age:int) -> nthg {
+    super(age)
+  }
+
+  getAge() ->int {
+    return 7*self.age  
+  }
+  printBreed() -> nthg { 
+    print("breed "+breed)
+  }
+
+
+  getT() -> T {
+      return self.t
+    }
+}
+fun printAge(a: Animal) ->nthg{
+ print("I'm "+a.getAge()+" years old!\n")
+}
+fun main() -> nthg {
+  var animal:Animal = new Animal(2)
+  var  dog:Dog = new Dog(2)
+var x:int = dog.getAge()
+print("x ",x)
+print(dog.getT())
+print(dog.getAge())
+print(animal.getAge())
+printAge(animal) 
+ printAge(dog) 
+}
+main()
+/#type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
+  }
+}
+
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
+
+fun main(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main(10)
+print(x.a)
+x =main(2)
+print(x.a)
+/#
 var y:int= 2 
 type T = {
     x:int 

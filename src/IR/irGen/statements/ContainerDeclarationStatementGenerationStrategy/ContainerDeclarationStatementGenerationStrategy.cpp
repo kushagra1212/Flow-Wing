@@ -1,6 +1,5 @@
 #include "ContainerDeclarationStatementGenerationStrategy.h"
 
-#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../../expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -49,20 +48,9 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::declare() {
 
   if (_initializer && _initializer->getKind() ==
                           BinderKindUtils::BoundNodeKind::CallExpression) {
-    std::unique_ptr<CallExpressionGenerationStrategy> callExpressionStrategy =
-        std::make_unique<CallExpressionGenerationStrategy>(
-            _codeGenerationContext);
     BoundCallExpression *callExpression =
         static_cast<BoundCallExpression *>(_initializer);
-
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        callExpression->getLocation());
-
     callExpression->setArgumentAlloca(0, {ptr, arrayType});
-    callExpressionStrategy->declare(callExpression);
-  } else if (_initializer) {
-    IRCodeGenerator irCodeGen(_codeGenerationContext);
-    irCodeGen.declareVariables(_initializer, false);
   }
 
   return ptr;

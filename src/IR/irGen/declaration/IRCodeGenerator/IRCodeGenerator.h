@@ -1,6 +1,7 @@
 #ifndef __FLOWWING_IR__CODE_GENERATOR_H__
 #define __FLOWWING_IR__CODE_GENERATOR_H__
 
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../../statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
@@ -15,6 +16,8 @@ class IRCodeGenerator {
       _classStatementGenerationStrategy;
   std::unique_ptr<CallExpressionGenerationStrategy>
       _callExpressionGenerationStrategy;
+  std::unique_ptr<AssignmentExpressionGenerationStrategy>
+      _assignmentExpressionGenerationStrategy;
 
   void processChildForDeclaration(BoundNode *child, bool isGlobal);
   void processChildForCustomType(BoundNode *child);

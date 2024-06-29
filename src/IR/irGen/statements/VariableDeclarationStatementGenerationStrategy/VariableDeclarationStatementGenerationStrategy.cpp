@@ -174,21 +174,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         _variableDeclaration->getInitializerPtr().get());
 
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        callExpression->getLocation());
-
     callExpression->setArgumentAlloca(0, {ptr, ptrType});
-
-    std::unique_ptr<CallExpressionGenerationStrategy> callExpressionStrategy =
-        std::make_unique<CallExpressionGenerationStrategy>(
-            _codeGenerationContext);
-
-    callExpressionStrategy->declare(callExpression);
-  } else if (_variableDeclaration->getInitializerPtr()) {
-    IRCodeGenerator irCodeGen(_codeGenerationContext);
-    irCodeGen.declareVariables(_variableDeclaration->getInitializerPtr().get(),
-                               false);
   }
+
   _variableDeclaration->setLLVMVariable({ptr, ptrType});
   return ptr;
 }

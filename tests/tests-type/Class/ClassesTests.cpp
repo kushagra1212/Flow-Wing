@@ -2926,6 +2926,10 @@ class B extends C {
     print(j,"B Constructor is Called\n",self.z)
   }
 
+  init(j:str) -> nthg {
+      print(j)
+    }
+
   getZ() -> int {
     
     return z
@@ -2940,7 +2944,7 @@ class A extends B {
   var x: int
   var y: deci
   init() -> nthg {
-    super()
+    super("CalledB")
     print("A Constructor is Called\n",self.z)
     print(v)
   }
@@ -2967,8 +2971,8 @@ print(a.z)
 )");
   O(R"(C Constructor is Called
 22.200000000000000.00000000000000B Constructor is Called
-10.00000000000000B Constructor is Called
-1A Constructor is Called
+1C Constructor is Called
+22.20000000000000CalledBA Constructor is Called
 1Hello1)");
 }
 

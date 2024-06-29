@@ -620,8 +620,19 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     auto [value, classType] =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
+    const bool IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION =
+        Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        _codeGenerationContext->_classTypes[classType->getStructName().str()]
+            ->isChildOf(callExpression->getCallerNameRef().substr(
+                0,
+                callExpression->getCallerNameRef().find(
+                    FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                    std::to_string(callExpression->getArgumentsRef().size()))));
+
     if (value && classType && llvm::isa<llvm::StructType>(classType) &&
-        !Utils::isClassInit(callExpression->getCallerNameRef())) {
+        (!Utils::isClassInit(callExpression->getCallerNameRef()) ||
+         IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION)) {
+
       llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       std::string funName = callExpression->getCallerNameRef();
 
@@ -630,7 +641,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         classArg = {value};
       }
     } else if (Utils::isClassInit(callExpression->getCallerNameRef())) {
-
       std::string className = callExpression->getCallerNameRef();
 
       className = className.substr(
@@ -966,12 +976,12 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                                      llvmArgsIndex, functionType, llvmArrayArgs,
                                      arg, retFlag);
     } else {
-      callExpression->setArgumentAlloca(
-          llvmArgsIndex,
-          {_codeGenerationContext->createMemoryGetPtr(
-               llvmArrayArgs[llvmArgsIndex]->getLLVMType(),
-               arg->getName().str(), BinderKindUtils::MemoryKind::Stack),
-           llvmArrayArgs[llvmArgsIndex]->getLLVMType()});
+      // callExpression->setArgumentAlloca(
+      //     llvmArgsIndex,
+      //     {_codeGenerationContext->createMemoryGetPtr(
+      //          llvmArrayArgs[llvmArgsIndex]->getLLVMType(),
+      //          arg->getName().str(), BinderKindUtils::MemoryKind::Stack),
+      //      llvmArrayArgs[llvmArgsIndex]->getLLVMType()});
       retFlag = false;
     }
     break;
@@ -1127,6 +1137,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
   if (_isDeclarationNeeded) {
     if (!functionDeclaration->getParametersRef()[callArgIndex]
              ->getHasAsKeyword()) {
+
       llvm::Type *type = llvmArrayArgs[llvmArgsIndex]->getLLVMType();
       callExpression->setArgumentAlloca(
           llvmArgsIndex,

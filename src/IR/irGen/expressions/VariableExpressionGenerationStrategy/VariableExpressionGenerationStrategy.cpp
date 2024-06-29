@@ -17,7 +17,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
 
   if (!_variableExpression ||
       _variableExpression->getDotExpressionList().size() - pos == 0) {
-
     return handleSingleVariable(variableType, v, variableName);
   }
   // When Variable is a struct type
@@ -28,6 +27,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
 
   _codeGenerationContext->getLogger()->LogError(
       "Variable " + variableName + " not found in variable expression ");
+
   return nullptr;
 }
 
