@@ -1,6 +1,6 @@
 #include "Comment.h"
 
-CommentTest::CommentTest() { _test = std::move(FlowWing::getTest()); }
+CommentTest::CommentTest() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void CommentTest::SetUp() { _test->SetUp(); }
 
@@ -21,7 +21,18 @@ TEST_F(CommentTest, BasicSingleLineComment) {
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-
+// TEST_F(CommentTest, BasicSingleLineCommentScoped) {
+//   std::string input = R"(
+//     print(5)
+// if(true){
+//   /; print(2) print(3)
+// }
+// )";
+//   std::string expected_output = "5";
+//   setInput(input);
+//   runEvaluator();
+//   EXPECT_EQ(getOutput(), expected_output);
+// }
 TEST_F(CommentTest, BasicMultiLineComment) {
   std::string input = R"(/# Calulate sum  of natural number
 fun main() {

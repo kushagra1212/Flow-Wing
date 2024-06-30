@@ -19,9 +19,9 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/opt/homebrew/Cellar/googletest/1.14.0/**",
-                "/opt/homebrew/opt/llvm@17/**"
+                "${workspaceFolder}/src/**",
+                "/opt/homebrew/Cellar/googletest/1.14.0/include/**",
+                "/opt/homebrew/opt/llvm@17/include/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

@@ -25,7 +25,7 @@ public:
                          BoundContainerExpression *containerExpression);
 
   llvm::Value *
-  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *_allocaInst,
+  createLocalExpression(llvm::Type *arrayType, llvm::AllocaInst *v,
                         BoundContainerExpression *containerExpression);
 
   llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,

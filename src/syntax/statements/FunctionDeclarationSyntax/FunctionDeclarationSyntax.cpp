@@ -36,8 +36,23 @@ FunctionDeclarationSyntax::getSourceLocation() const {
     return _functionKeyword->getSourceLocation();
   if (_identifierToken)
     return _identifierToken->getSourceLocation();
+
   if (_openParenthesisToken)
     return _openParenthesisToken->getSourceLocation();
+  if (_closeParenthesisToken)
+    return _closeParenthesisToken->getSourceLocation();
+
+  if (_asKeyword)
+    return _asKeyword->getSourceLocation();
+
+  if (_declKeyword)
+    return _declKeyword->getSourceLocation();
+
+  if (_body)
+    return _body->getSourceLocation();
+
+  if (_returnExpression)
+    return _returnExpression->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }
@@ -63,13 +78,17 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
 
     _children.push_back(_closeParenthesisToken.get());
 
-    if (_returnExpression)
-      _children.push_back(_returnExpression.get());
+    if (_asKeyword)
+      _children.push_back(_asKeyword.get());
+
+    if (_declKeyword)
+      _children.push_back(_declKeyword.get());
 
     if (_body)
       _children.push_back(_body.get());
-    if (_declKeyword)
-      _children.push_back(_declKeyword.get());
+
+    if (_returnExpression)
+      _children.push_back(_returnExpression.get());
   }
   return this->_children;
 }

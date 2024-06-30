@@ -48,7 +48,10 @@ template <typename T> const T &LiteralExpressionSyntax<T>::getValue() {
   return this->_value;
 }
 template <typename T> void LiteralExpressionSyntax<T>::setValue(T value) {
-
+  // this->_token->setValue(value);
+  // if constexpr (std::is_same_v<T, std::string>) {
+  //   this->_token->setText(value);
+  // }
   this->_value = value;
 }
 template <typename T>

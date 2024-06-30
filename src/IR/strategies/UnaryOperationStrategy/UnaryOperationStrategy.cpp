@@ -21,7 +21,8 @@ llvm::Value *UnaryOperationStrategy::performOperation(
   }
   case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation: {
 
-    if (typeMapper->isInt32Type(type) || typeMapper->isDoubleType(type)) {
+    if (typeMapper->isInt32Type(type) || typeMapper->isDoubleType(type) ||
+        typeMapper->isFloatType(type)) {
       // Convert non-boolean values to boolean (true if zero, false if non-zero)
       result = Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));

@@ -1,6 +1,8 @@
 #include "InheritanceTest.h"
 
-InheritanceTest::InheritanceTest() { _test = std::move(FlowWing::getTest()); }
+InheritanceTest::InheritanceTest() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void InheritanceTest::SetUp() { _test->SetUp(); }
 

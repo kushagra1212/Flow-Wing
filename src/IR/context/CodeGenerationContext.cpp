@@ -15,7 +15,7 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmParser();
 
 #if defined(__APPLE__)
-  // _module->setTargetTriple("x86_64-apple-macosx14.0.0");
+  _module->setTargetTriple("x86_64-apple-macosx14.0.0");
 #elif defined(__LINUX__)
   _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
 #endif
@@ -38,15 +38,6 @@ CodeGenerationContext ::CodeGenerationContext(
   _allocaChain = std::make_unique<AllocaChain>();
   _allocaChain->addHandler(std::make_unique<AllocaTable>());
 
-  // Initialize the Type chain
-  _typeChain = std::make_unique<TypeChain>();
-  _typeChain->addHandler(std::make_unique<TypeTable>());
-
-  // Initialize the ObjectTypeExpression chain
-  _customTypeExpressionChain = std::make_unique<CustomTypeStatementChain>();
-  _customTypeExpressionChain->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
-
   // initialize the ArgsTypeHandler
   _argsTypeHandler = std::make_unique<ArgsTypeHandler>();
 
@@ -60,6 +51,18 @@ CodeGenerationContext ::CodeGenerationContext(
   // Initialize the dynamic type
   _dynamicType = std::make_unique<StructTypeBuilder>(this);
   _dynamicType->buildType();
+
+  for (auto &function : BuiltInFunction::getBuiltInFunctions()) {
+    _functionTypes[function->getFunctionNameRef()] =
+        std::make_unique<FlowWing::Function>();
+
+    _functionTypes[function->getFunctionNameRef()]->setFunctionName(
+        function->getFunctionNameRef());
+    _functionTypes[function->getFunctionNameRef()]->setReturnType(
+        _typeMapper->mapCustomTypeToLLVMType(
+            BuiltInFunction::getReturnType(function->getFunctionNameRef())),
+        false);
+  }
 };
 
 std::unique_ptr<llvm::IRBuilder<>> &CodeGenerationContext::getBuilder() {
@@ -110,15 +113,6 @@ std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
 
 std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
   return _allocaChain;
-}
-
-std::unique_ptr<TypeChain> &CodeGenerationContext::getTypeChain() {
-  return _typeChain;
-}
-
-std::unique_ptr<CustomTypeStatementChain> &
-CodeGenerationContext::getCustomTypeChain() {
-  return _customTypeExpressionChain;
 }
 
 const std::unique_ptr<StructTypeBuilder> &
@@ -539,8 +533,7 @@ void CodeGenerationContext::getRetrunedArrayType(
   }
 
   if (strs[2] == "ay") {
-    arrayElementType =
-        getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
+    arrayElementType = this->getType(strs[3]).getType();
 
     if (!arrayElementType)
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
@@ -577,9 +570,16 @@ void CodeGenerationContext::getReturnedObjectType(
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())
       objectType = _classTypes[strs[3]]->getClassType();
-    else
-      objectType =
-          this->getTypeChain()->getType(strs[3].substr(0, strs[3].find(".")));
+    else {
+
+      if (!(this->getType(strs[3]).getStructType())) {
+        this->getLogger()->LogError("Expected a object of type " +
+                                    Utils::getActualTypeName(strs[3]));
+        return;
+      }
+
+      objectType = this->getType(strs[3]).getStructType();
+    }
   }
 }
 void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
@@ -618,6 +618,12 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     return this->_builder->CreateAlloca(type, nullptr, variableName);
   }
   case BinderKindUtils::MemoryKind::Global: {
+
+    llvm::Value *global = this->_module->getNamedGlobal(variableName);
+
+    if (global)
+      return global;
+
     return new llvm::GlobalVariable(
         *this->_module, type, false,
         llvm::GlobalValue::LinkageTypes::CommonLinkage,
@@ -629,5 +635,44 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
         "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
         " for " + variableName + " in " + __PRETTY_FUNCTION__);
     return nullptr;
+  }
+}
+auto CodeGenerationContext::getArrayTypeAsString(llvm::ArrayType *arrayType)
+    -> std::string {
+  llvm::Type *type = arrayType;
+  std::vector<uint64_t> sizes;
+
+  this->createArraySizesAndArrayElementType(sizes, type);
+  std::string actualSizesStr = "";
+  for (auto &size : sizes) {
+    actualSizesStr += std::to_string(size) + ",";
+  }
+
+  return this->getMapper()->getLLVMTypeName(arrayType, false) + ":" +
+         actualSizesStr;
+}
+
+void CodeGenerationContext::verifyFunction(llvm::Function *F,
+                                           const std::string &FUNCTION_NAME) {
+  std::string errorInfo;
+  llvm::raw_string_ostream errorStream(errorInfo);
+  if (llvm::verifyFunction(*F, &errorStream)) {
+    errorStream.flush();
+    this->getLogger()->LogError("Error verifying function " + FUNCTION_NAME +
+                                errorInfo);
+  } else {
+    this->getLogger()->LogInfo("Function " + FUNCTION_NAME +
+                               " verified successfully");
+  }
+}
+
+void CodeGenerationContext::verifyModule(llvm::Module *M) {
+  std::string errorInfo;
+  llvm::raw_string_ostream errorStream(errorInfo);
+  if (llvm::verifyModule(*M, &errorStream)) {
+    errorStream.flush();
+    this->getLogger()->LogError("Error verifying module " + errorInfo);
+  } else {
+    this->getLogger()->LogInfo("Module verified successfully");
   }
 }

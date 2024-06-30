@@ -8,6 +8,8 @@
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundTypeExpression/BoundTypeExpression.h"
 #include "../MemoryNode.h"
+#include "llvm/IR/DerivedTypes.h"
+
 class BoundVariableDeclaration : public BoundStatement,
                                  public BoundSourceLocation,
                                  public MemoryNode {
@@ -22,6 +24,7 @@ private:
   bool _hasAsKeyword = false;
   std::string _classItBelongsTo;
   BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
+  std::pair<llvm::Value *, llvm::Type *> _llvmVariable;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -71,6 +74,11 @@ public:
   }
 
   inline auto
+  setLLVMVariable(std::pair<llvm::Value *, llvm::Type *> llvmVariable) {
+    _llvmVariable = std::move(llvmVariable);
+  }
+
+  inline auto
   setIdentifier(std::unique_ptr<BoundLiteralExpression<std::any>> identifier) {
     _identifier = std::move(identifier);
   }
@@ -90,4 +98,8 @@ public:
   }
 
   inline auto getHasAsKeyword() -> bool { return _hasAsKeyword; }
+
+  inline auto getLLVMVariable() -> std::pair<llvm::Value *, llvm::Type *> {
+    return _llvmVariable;
+  }
 };

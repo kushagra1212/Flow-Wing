@@ -151,7 +151,10 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     line = "";
   } else {
 
-    logString = getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber));
+    logString =
+        diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
+            ? getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber))
+            : " ";
 
     fileName += "File: ";
     const std::string FILEPATH =

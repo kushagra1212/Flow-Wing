@@ -1,6 +1,8 @@
 #include "MDCInFunction.h"
 
-MDCInFunction::MDCInFunction() { _test = std::move(FlowWing::getTest()); }
+MDCInFunction::MDCInFunction() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void MDCInFunction::SetUp() { _test->SetUp(); }
 

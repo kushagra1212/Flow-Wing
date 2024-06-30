@@ -1,6 +1,6 @@
 #include "ObjectArray.h"
 
-ObjectArray::ObjectArray() { _test = std::move(FlowWing::getTest()); }
+ObjectArray::ObjectArray() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void ObjectArray::SetUp() { _test->SetUp(); }
 
@@ -15,7 +15,8 @@ void ObjectArray::runEvaluator() { _test->runEvaluator(); }
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 TEST_F(ObjectArray, GlobalArrayOfObjectInitializationWithObject) {
-  I(R"(type k = {
+  I(R"(
+type k = {
    o:int
 }
 
@@ -1444,5 +1445,305 @@ print(j)
     )");
 
   O(R"({ j : [[{ a : 2 }, { a : 0 }], [{ a : 0 }, { a : 0 }]] })");
+}
+TEST_F(ObjectArray, ObjectReturningTest) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestLocal) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+{
+  var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+}
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestLocal2) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:111}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+
+  var x:t = main(10)
+print(x){
+x =main(2)
+print(x)
+}
+    )");
+
+  O(R"(aa10{ a : 111 }aa2{ a : 111 })");
+}
+TEST_F(ObjectArray, ObjectReturningTestType2) {
+  I(R"(
+type t = {
+
+    a:int
+}
+
+fun getB(a:int) ->t {
+  print("aa",a)
+  return {a:a}
+}
+
+fun main(b:int) -> t {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10{ a : 10 }aa2{ a : 2 })");
+}
+
+TEST_F(ObjectArray, ObjectReturningTestType3) {
+  I(R"(
+type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+fun getB(a:int) ->t[5] {
+  print("aa",a)
+  return [{a:a}]
+}
+
+fun main(b:int) -> t[5] {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:t[5] = main(10)
+print(x)
+x =main(2)
+print(x)
+    )");
+
+  O(R"(aa10[{ b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 10 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }]aa2[{ b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 2 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }, { b : [{ s : '', d : 0.00000000000000 }, { s : '', d : 0.00000000000000 }], a : 0 }])");
+}
+TEST_F(ObjectArray, ObjectReturningTestType4) {
+  I(R"(
+type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
+  }
+}
+
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
+
+fun main(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main(10)
+print(x.a)
+x =main(2)
+print(x.a)
+    )");
+
+  O(R"(aa10{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 10 }aa2{ b : [{ s : 'nice', d : 2.20000000000000 }, { s : '', d : 0.00000000000000 }], a : 2 })");
+}
+TEST_F(ObjectArray, BasicDeci32Test) {
+  I(R"(
+var ar:deci32 = 2.2d 
+print(ar)
+    )");
+
+  O(R"(2.2000000)");
+}
+
+TEST_F(ObjectArray, BasicDeci32TestScoped) {
+  I(R"(
+{
+  var ar:deci32 = 2.2d 
+print(ar)
+}
+    )");
+
+  O(R"(2.2000000)");
+}
+TEST_F(ObjectArray, BasicDeci32TestScoped2) {
+  I(R"(
+
+  var ar:deci32 = 2.2d 
+  {
+print(ar)
+}
+    )");
+
+  O(R"(2.2000000)");
+}
+TEST_F(ObjectArray, BasicDeci32TestScoped2Assignment) {
+  I(R"(
+var ar:deci32 = 2.2d
+{
+  ar = 32.222d
+}
+print(ar)
+    )");
+
+  O(R"(32.2220001)");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignment) {
+  I(R"(
+var ar:deci32 = 2.2d
+
+  ar = 32.222d
+
+print(ar)
+    )");
+
+  O(R"(32.2220001)");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTest) {
+  I(R"(
+var arr:deci32[2] = [2.2d]
+print(arr)
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal) {
+  I(R"(
+{
+  var arr:deci32[2] = [2.2d]
+print(arr)
+}
+
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal2) {
+  I(R"(
+var arr:deci32[2] = [2 fill 2.2d]
+print(arr)
+    )");
+
+  O(R"([2.2000000, 2.2000000])");
+}
+
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal3) {
+  I(R"(
+{
+  var arr:deci32[2] = [2.2d]
+print(arr)
+}
+
+
+    )");
+
+  O(R"([2.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, BasicDeci32TestAssignmentArrayTestLocal2Function) {
+  I(R"(
+fun printdec(a:deci32[2]) -> nthg {
+    print(a)
+ 
+ }
+
+ printdec([3.2d])
+    )");
+
+  O(R"([3.2000000, 0.0000000])");
+}
+TEST_F(ObjectArray, PrintConstantTest) {
+  I(R"(
+print("s")
+    )");
+
+  O(R"(s)");
+}
+TEST_F(ObjectArray,
+       BasicDeci32TestAssignmentArrayTestLocal2FunctionArrayofObject) {
+  I(R"(
+type T ={
+    a:deci32[2]
+  }
+
+var x:T  ={a:[2 fill 2.2d]}
+
+print(x)
+    )");
+
+  O(R"({ a : [2.2000000, 2.2000000] })");
 }
 #endif

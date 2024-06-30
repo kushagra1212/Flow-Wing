@@ -1,6 +1,6 @@
 #include "InoutTest.h"
 
-InoutTest::InoutTest() { _test = std::move(FlowWing::getTest()); }
+InoutTest::InoutTest() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void InoutTest::SetUp() { _test->SetUp(); }
 

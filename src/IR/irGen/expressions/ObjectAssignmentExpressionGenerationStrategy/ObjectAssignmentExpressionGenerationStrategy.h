@@ -23,8 +23,8 @@ public:
   bool canGenerateAssignmentExpressionAssignment(
       BoundAssignmentExpression *assignmentExpression);
 
-  llvm::Value *copyOject(llvm::StructType *parStructType, llvm::Value *lshPtr,
-                         llvm::Value *rhsPtr);
+  llvm::Value *copyObject(llvm::StructType *parStructType, llvm::Value *lshPtr,
+                          llvm::Value *rhsPtr);
 
   llvm::Value *assignObject(BoundObjectExpression *parObjectExpression,
                             llvm::Value *variable,

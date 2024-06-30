@@ -1,0 +1,103 @@
+bring {FlowWingAnim} from "FlowWingAnim.fg"
+
+type Position = {
+  x: int,
+  y: int
+}
+const screenWidth: int = 1000
+const screenHeight: int = 500
+const side: int = 10
+const BIRD_SIZE:deci32 = 360.0d
+
+
+fun getFoodPosition() -> Position {
+  var pos: Position = {
+    x: getRandomNumber(0, screenWidth - 1),
+    y: getRandomNumber(0, screenHeight - 1)
+  }
+  pos.x = pos.x - pos.x % side 
+  pos.y = pos.y - pos.y % side 
+  return pos
+}
+
+fun main() -> int {
+  const speed = 10
+  var tail: int = 1
+  var posX: int[10000] = [10000 fill -1]
+  var posY: int[10000] = [10000 fill -1]
+  posX[0]= 0
+  posY[0]= 0
+  var foodPos: Position = getFoodPosition()
+  var newPos: Position = {
+    x: posX[0],
+    y: posY[0]
+  }
+  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", 60)
+  fgAnim.createWindow()
+
+
+  while (!fgAnim.windowShouldClose()) {
+    var isKeyPressed = false
+    
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
+      isKeyPressed = true 
+      newPos.y = newPos.y - speed 
+    }
+    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_DOWN) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_DOWN)) {
+      isKeyPressed = true 
+      newPos.y = newPos.y + speed 
+    }
+    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_RIGHT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_RIGHT)) {
+      isKeyPressed = true 
+      newPos.x = newPos.x + speed 
+    }
+    or if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_LEFT) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_LEFT)) {
+      isKeyPressed = true 
+      newPos.x = newPos.x - speed 
+    }
+
+    if (newPos.x < 0) {
+      newPos.x = 0 
+    }
+
+    if (newPos.x >= screenWidth - speed) {
+      newPos.x = screenWidth - speed 
+    }
+
+    if (newPos.y < 0) {
+      newPos.y = 0 
+    }
+
+    if (newPos.y >= screenHeight - speed) {
+      newPos.y = screenHeight - speed 
+    }
+
+    if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
+      foodPos = getFoodPosition() 
+      tail = tail + 1 
+    }
+
+    if (isKeyPressed) {
+      for var index: int = tail - 1 to 1 : -1 {
+        posX[index]= posX[index - 1]
+        posY[index]= posY[index - 1]
+      }
+    }
+
+    posX[0]= newPos.x
+    posY[0]= newPos.y
+    fgAnim.beginDrawing()
+    fgAnim.clearBackground(fgAnim.colors.WHITE)
+
+
+    for var index: int = 0 to tail - 1 {
+      fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)
+    }
+    fgAnim.drawCircle(screenWidth // 5, 120, 35.0d, fgAnim.colors.DARKBLUE)
+    fgAnim.drawRectangle(foodPos.x, foodPos.y, side, side, fgAnim.colors.GREEN)
+    fgAnim.endDrawing()
+  }
+  fgAnim.closeWindow()
+  return 0
+}
+main()

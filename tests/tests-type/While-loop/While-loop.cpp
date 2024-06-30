@@ -1,6 +1,6 @@
 #include "While-loop.h"
 
-WhileLoop::WhileLoop() { _test = std::move(FlowWing::getTest()); }
+WhileLoop::WhileLoop() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void WhileLoop::SetUp() { _test->SetUp(); }
 

@@ -1,6 +1,6 @@
 #include "ObjectTest.h"
 
-ObjectTest::ObjectTest() { _test = std::move(FlowWing::getTest()); }
+ObjectTest::ObjectTest() { _test = std::move(Tests::FlowWing::getTest()); }
 
 void ObjectTest::SetUp() { _test->SetUp(); }
 

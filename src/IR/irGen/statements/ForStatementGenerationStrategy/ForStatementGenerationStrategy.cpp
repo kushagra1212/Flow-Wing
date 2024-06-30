@@ -19,12 +19,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
-
   std::string variableName = "";
 
   // Step Value
@@ -37,6 +31,12 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     llvm::Value *r =
         _expressionGenerationFactory->createStrategy(forStepExp->getKind())
             ->generateExpression(forStepExp);
+    if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+      r = Builder->CreateLoad(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+          _codeGenerationContext->getValueStackHandler()->getValue());
+      _codeGenerationContext->getValueStackHandler()->popAll();
+    }
     stepValue = _int32TypeConverter->convertImplicit(r);
   }
 
@@ -46,7 +46,12 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   llvm::Value *upperBound =
       _expressionGenerationFactory->createStrategy(upperBoundExp->getKind())
           ->generateExpression(upperBoundExp);
-
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    upperBound = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
   // Declare Loop Variable
 
   if (forStatement->getInitializationPtr()->getKind() ==
@@ -189,8 +194,7 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   _codeGenerationContext->getAllocaChain()->removeHandler();
   _codeGenerationContext->getNamedValueChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
+
   return exitValue;
 }
 

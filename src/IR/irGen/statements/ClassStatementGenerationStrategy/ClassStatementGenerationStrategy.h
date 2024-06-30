@@ -6,7 +6,6 @@
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
-#include "../FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ClassStatementGenerationStrategy : public StatementGenerationStrategy {
@@ -15,6 +14,7 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+  llvm::Value *generateClassType(BoundStatement *statement);
 };
 
 #endif //__FLOWWING_CLASS_STATEMENT_STRATEGY_H__

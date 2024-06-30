@@ -94,6 +94,14 @@ bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
 auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 
+inline auto getActualTypeName(const std::string &typeName) -> std::string {
+  return typeName.substr(0, typeName.find("."));
+}
+
+inline auto isClassInit(const std::string &name) -> bool {
+  return name.find(".init") != std::string::npos;
+}
+
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,
                                     std::string extension, bool recursive);

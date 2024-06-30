@@ -1,6 +1,8 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() { _test = std::move(FlowWing::getTest()); }
+InBuiltFunction::InBuiltFunction() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void InBuiltFunction::SetUp() { _test->SetUp(); }
 

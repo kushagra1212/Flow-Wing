@@ -26,6 +26,7 @@ namespace INNERS {
 namespace FUNCTIONS {
 
 const std::string PRINT = "print";
+const std::string PRINT_F = "printf";
 const std::string CONCAT_STRINGS = "concat_strings";
 const std::string STRING_LENGTH = "string_length";
 const std::string ITOS = "itos";

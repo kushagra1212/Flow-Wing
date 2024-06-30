@@ -18,8 +18,13 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     _codeGenerationContext->getLogger()->LogError(
-        "Binary Expression is not supported for objects as of now");
+        "This Binary Expression is not supported for objects as of now");
     return nullptr;
+  }
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    lhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
@@ -32,8 +37,14 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     _codeGenerationContext->getLogger()->LogError(
-        "Binary Expression is not supported for objects as of now");
+        "This Binary Expression is not supported for objects as of now");
     return nullptr;
+  }
+
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    rhsValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   if (!lhsValue || !rhsValue) {
@@ -51,6 +62,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     result = _stringBinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
+        binaryExpression);
+  } else if (_typeMapper->isFloatType(lhsType) ||
+             _typeMapper->isFloatType(rhsType)) {
+    result = _floatBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), rhsValue),
         binaryExpression);
   } else if (_typeMapper->isDoubleType(lhsType) ||
              _typeMapper->isDoubleType(rhsType)) {

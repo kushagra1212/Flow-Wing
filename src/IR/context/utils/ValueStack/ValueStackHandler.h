@@ -65,6 +65,8 @@ public:
 
   auto inline isPrimaryType() -> bool { return isType("primary"); }
 
+  auto inline isNothingType() -> bool { return isType("nothing"); }
+
   auto inline isArrayType() -> bool { return isType("array"); }
 
   auto inline isDynamicType() -> bool { return isType("dynamic"); }

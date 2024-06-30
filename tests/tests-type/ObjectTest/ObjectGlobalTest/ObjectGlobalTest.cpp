@@ -1,6 +1,8 @@
 #include "ObjectGlobalTest.h"
 
-ObjectGlobalTest::ObjectGlobalTest() { _test = std::move(FlowWing::getTest()); }
+ObjectGlobalTest::ObjectGlobalTest() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void ObjectGlobalTest::SetUp() { _test->SetUp(); }
 

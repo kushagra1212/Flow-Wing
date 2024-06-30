@@ -294,6 +294,12 @@ Parser::parseFunctionDeclaration(const bool &isExposed, bool isMemberFunction) {
   this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
   appendWithSpace();
 
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+    functionDeclaration->setAsKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+    appendWithSpace();
+  }
+
   functionDeclaration->setReturnType(this->parseTypeExpression());
   appendWithSpace();
 

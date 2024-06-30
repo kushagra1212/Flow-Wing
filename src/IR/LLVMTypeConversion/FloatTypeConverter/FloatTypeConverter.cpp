@@ -28,8 +28,9 @@ llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
         value, llvm::Type::getFloatTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    return _builder->CreateCall(
+    llvm::Value *val = _builder->CreateCall(
         _module->getFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE), {value});
+    return this->convertExplicit(val);
   }
   default:
     break;

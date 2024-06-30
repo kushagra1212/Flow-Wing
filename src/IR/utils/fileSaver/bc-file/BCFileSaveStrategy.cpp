@@ -10,6 +10,12 @@ bool BCFileSaveStrategy::saveToFile(
   std::error_code EC;
   llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
 
+  // llvm::legacy::PassManager pass = llvm::legacy::PassManager();
+  // pass.add(llvm::createVerifierPass());
+  // pass.add(llvm::createCFGSimplificationPass());
+  // pass.add(llvm::createDeadCodeEliminationPass());
+  // pass.run(*module);
+
   if (!EC) {
     // Write the LLVM module to the .bc file
     llvm::WriteBitcodeToFile(*module, OS);

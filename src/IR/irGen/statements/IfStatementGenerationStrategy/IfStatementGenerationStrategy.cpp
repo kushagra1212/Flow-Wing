@@ -17,6 +17,13 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           ->createStrategy(ifStatement->getConditionPtr().get()->getKind())
           ->generateExpression(ifStatement->getConditionPtr().get());
 
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    conditionValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
+
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       ifStatement->getLocation());
 
@@ -38,15 +45,15 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   std::vector<llvm::BasicBlock *> orIfBlock;
 
   for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
-    orIfBlock.push_back(
-        llvm::BasicBlock::Create(*TheContext, "orIf" + std::to_string(i), function));
+    orIfBlock.push_back(llvm::BasicBlock::Create(
+        *TheContext, "orIf" + std::to_string(i), function));
   }
 
   std::vector<llvm::BasicBlock *> orIfThenBlocks;
 
   for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
-    orIfThenBlocks.push_back(
-        llvm::BasicBlock::Create(*TheContext, "orIfThen" + std::to_string(i), function));
+    orIfThenBlocks.push_back(llvm::BasicBlock::Create(
+        *TheContext, "orIfThen" + std::to_string(i), function));
   }
 
   llvm::BasicBlock *elseBlock =
@@ -99,6 +106,13 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
       _statementGenerationFactory->createStrategy(thenStat->getKind())
           ->generateStatement(thenStat);
 
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    thenValue = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+    _codeGenerationContext->getValueStackHandler()->popAll();
+  }
+
   Builder->CreateBr(afterIfElse);
 
   // Or If Then Block
@@ -124,6 +138,13 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     llvm::Value *elseValue =
         _statementGenerationFactory->createStrategy(elseStat->getKind())
             ->generateStatement(elseStat);
+
+    if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+      elseValue = Builder->CreateLoad(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+          _codeGenerationContext->getValueStackHandler()->getValue());
+      _codeGenerationContext->getValueStackHandler()->popAll();
+    }
   }
 
   Builder->CreateBr(afterIfElse);

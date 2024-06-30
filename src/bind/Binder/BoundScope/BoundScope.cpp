@@ -112,7 +112,7 @@ bool BoundScope::tryAssignVariable(const std::string &name,
 
 BoundCustomTypeStatement *
 BoundScope::tryGetCustomType(const std::string &name) {
-  std::string typeName = name.substr(0, name.find("."));
+  std::string typeName = Utils::getActualTypeName(name);
 
   if (this->customTypes.find(typeName) != this->customTypes.end())
     return this->customTypes[typeName];
@@ -125,8 +125,9 @@ BoundScope::tryGetCustomType(const std::string &name) {
 
 bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
 
-  std::string typeName = customType->getTypeNameAsString().substr(
-      0, customType->getTypeNameAsString().find("."));
+  std::string typeName =
+      Utils::getActualTypeName(customType->getTypeNameAsString());
+
   if (this->customTypes.find(typeName) == this->customTypes.end()) {
     this->customTypes[typeName] = customType;
     return true;

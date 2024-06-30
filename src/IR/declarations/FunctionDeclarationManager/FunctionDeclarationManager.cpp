@@ -10,6 +10,7 @@ FunctionDeclarationManager::declareFunction(const std::string &functionName,
                                             llvm::FunctionType *functionType) {
   llvm::Function *function = llvm::Function::Create(
       functionType, llvm::Function::ExternalLinkage, functionName, *TheModule);
+
   return function;
 }
 
@@ -22,6 +23,17 @@ llvm::Function *FunctionDeclarationManager::declarePrintFn() {
                               false);
 
   return declareFunction(INNERS::FUNCTIONS::PRINT, printFnType);
+}
+
+llvm::Function *FunctionDeclarationManager::declarePrintfFn() {
+
+  llvm::FunctionType *printFFnType =
+      llvm::FunctionType::get(llvm::Type::getVoidTy(*TheContext),
+                              {
+                                  llvm::Type::getInt8PtrTy(*TheContext),
+                              },
+                              true);
+  return declareFunction(INNERS::FUNCTIONS::PRINT_F, printFFnType);
 }
 
 llvm::Function *FunctionDeclarationManager::declareConcatStringsFn() {
@@ -206,7 +218,8 @@ llvm::Function *FunctionDeclarationManager::declareRaiseExceptionFn() {
 llvm::Function *FunctionDeclarationManager::declareMallocFunctionFn() {
 
   llvm::FunctionType *mallocFunctionFn =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext), {}, false);
+      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
+                              {llvm::Type::getInt64Ty(*TheContext)}, false);
 
   return declareFunction(INNERS::FUNCTIONS::MALLOC, mallocFunctionFn);
 }

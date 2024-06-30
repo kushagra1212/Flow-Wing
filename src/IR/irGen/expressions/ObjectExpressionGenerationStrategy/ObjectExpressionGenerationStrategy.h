@@ -17,9 +17,9 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
   llvm::Value *generateCallExp(BoundExpression *expression);
   llvm::Value *generateVariableExp(BoundExpression *expression);
-  llvm::Value *createExpression(BoundExpression *expression,
-                                llvm::Value *variable,
-                                const std::string &typeName);
+  // llvm::Value *createExpression(BoundExpression *expression,
+  //                               llvm::Value *variable,
+  //                               const std::string &typeName);
 
   llvm::Value *createExpressionNP(BoundExpression *expression,
                                   llvm::Value *variable,
@@ -29,9 +29,9 @@ public:
                                 const std::string &typeName,
                                 llvm::Value *fromVar, const bool isGlobal);
 
-  llvm::Value *generateVariableAccessThroughPtr(llvm::Value *variable,
-                                                const std::string &typeName,
-                                                llvm::Value *fromVar);
+  // llvm::Value *generateVariableAccessThroughPtr(llvm::Value *variable,
+  //                                               const std::string &typeName,
+  //                                               llvm::Value *fromVar);
 
   llvm::Value *createExpressionNPDefault(llvm::Value *variable,
                                          const std::string &typeName);

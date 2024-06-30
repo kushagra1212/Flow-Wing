@@ -17,6 +17,8 @@ IRGenerator::IRGenerator(
   TheContext = _codeGenerationContext->getContext().get();
   _llvmLogger = _codeGenerationContext->getLogger().get();
 
+  // Initialize the environment
+
   _environment = environment;
   _irParser = std::make_unique<IRParser>();
 
@@ -25,6 +27,11 @@ IRGenerator::IRGenerator(
 
   this->declareDependencyFunctions();
   this->initializeGlobalVariables();
+
+  // Initialize IRCodeGenerator (Statement Generation Strategy)
+
+  _irCodeGenerator =
+      std::make_unique<IRCodeGenerator>(_codeGenerationContext.get());
 
   // Statement Generation Strategy
 
@@ -67,6 +74,7 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareLessThanOrEqualStringsFn();
   functionDeclarationManager->declareLessThanStringsFn();
   functionDeclarationManager->declarePrintFn();
+  functionDeclarationManager->declarePrintfFn();
   functionDeclarationManager->declareStringLengthFn();
   functionDeclarationManager->declareStringToDoubleFn();
   functionDeclarationManager->declareStringToIntFn();
@@ -134,6 +142,21 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   Builder->SetInsertPoint(entryBlock);
 
+  _irCodeGenerator->declareCustomType(blockStatement);
+  for (auto &children : blockStatement->getStatements()) {
+    if (children->getKind() ==
+        BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
+      BoundFunctionDeclaration *functionDeclaration =
+          static_cast<BoundFunctionDeclaration *>(children.get());
+      if (!functionDeclaration->isOnlyDeclared())
+        _statementGenerationFactory->createStrategy(children->getKind())
+            ->generateGlobalStatement(children.get());
+    }
+  }
+
+  _irCodeGenerator->declareVariables(blockStatement, true);
+  // Declare All Global Variables
+
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
@@ -143,8 +166,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
-      if (!functionDeclaration->isOnlyDeclared())
-        generateStatement = false;
+      //    if (!functionDeclaration->isOnlyDeclared())
+      generateStatement = false;
     }
 
     if (generateStatement)
@@ -158,6 +181,20 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
+  // for (auto &[key, value] : _codeGenerationContext->_typesMap) {
+  //   std::cout << key << " "
+  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //                    value.getStructType() ? value.getStructType()
+  //                                          : value.getType())
+  //             << std::endl;
+  // }
+  // std::cout << "class\n";
+  // for (auto &[key, value] : _codeGenerationContext->_classTypes) {
+  //   std::cout << key << " k "
+  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
+  //                    value->getClassType())
+  //             << std::endl;
+  // }
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
@@ -166,9 +203,11 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
+
       if (!functionDeclaration->isOnlyDeclared())
         _functionStatementGenerationStrategy->generateGlobalStatement(
             functionDeclaration);
+
     } else if (kind == BinderKindUtils::BoundNodeKind::ClassStatement) {
 
       BoundClassStatement *boundClassStatement =
@@ -202,12 +241,19 @@ void IRGenerator::generateEvaluateGlobalStatement(
     //   }
     // }
   }
+#if DEBUG
+  this->printIR();
+  _codeGenerationContext->verifyModule(TheModule);
+#endif
 
 #ifdef DEBUG
-  llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
-  std::unique_ptr<ObjectFile> objectFile =
-      std::make_unique<ObjectFile>(blockName);
-  objectFile->writeModuleToFile(TheModule);
+  if (!this->hasErrors()) {
+
+    llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
+    std::unique_ptr<ObjectFile> objectFile =
+        std::make_unique<ObjectFile>(blockName);
+    objectFile->writeModuleToFile(TheModule);
+  }
 #elif RELEASE
   if (!this->hasErrors()) {
     std::unique_ptr<ObjectFile> objectFile =
@@ -236,10 +282,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
       new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
-  _codeGenerationContext->getTypeChain()->addHandler(
-      std::make_unique<TypeTable>());
-  _codeGenerationContext->getCustomTypeChain()->addHandler(
-      std::make_unique<CustomTypeStatementTable>());
 
   llvm::StructType *classType =
       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
@@ -256,25 +298,35 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  for (auto &[customTypeName, type] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypeMap()) {
-    _codeGenerationContext->getTypeChain()->setType(customTypeName, type);
-  }
+  // for (auto &[customTypeName, type] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypeMap()) {
+  //   _codeGenerationContext->_typesMap[customTypeName] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(customTypeName)
+  //           .setType(type)
+  //           .build();
+  // }
 
-  for (auto &[custumTypeName, customTypeStat] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypeStatementMap()) {
-    _codeGenerationContext->getCustomTypeChain()->setExpr(custumTypeName,
-                                                          customTypeStat);
-  }
+  // for (auto &[customTypeName, customTypeStat] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypeStatementMap()) {
+  //   _codeGenerationContext->_typesMap[customTypeName] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(customTypeName)
+  //           .setCustomType(customTypeStat)
+  //           .build();
+  // }
 
-  for (auto &[propertyKey, propertyIndex] :
-       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-           ->getCustomTypePropertyMap()) {
-    _codeGenerationContext->getTypeChain()->setIndex(propertyKey,
-                                                     propertyIndex);
-  }
+  // for (auto &[propertyKey, propertyIndex] :
+  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+  //          ->getCustomTypePropertyMap()) {
+  //   _codeGenerationContext->_typesMap[propertyKey] =
+  //       FlowWing::Type::TypeBuilder()
+  //           .setName(propertyKey)
+  //           .setIndex(propertyIndex)
+  //           .build();
+  // }
 
   for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
     BoundFunctionDeclaration *functionDeclaration =
@@ -295,8 +347,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   // Remove handlers
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getTypeChain()->removeHandler();
-  _codeGenerationContext->getCustomTypeChain()->removeHandler();
 }
 
 int IRGenerator::executeGeneratedCode() {

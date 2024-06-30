@@ -1,24 +1,478 @@
-bring "call.fg"
-  type T = { 
-      a:int  
-  }          
-class A {
-  var x: int 
-  var b:T = {a:100}
+ type T  = {
+      x:int,
+      d:str 
+    }
+class Animal {
+  var age:int 
+  var species:str
 
 
-  init() -> nthg  {
-    print("Hello World")
+  var t:T 
+  init(age:int) -> nthg {
+    self.age = age
+    self.t = {d:"Hi",x:12}
+  }
+  getAge() -> int {
+    return self.age
+  }
+  printSpecies() -> nthg { 
+    print("Species: ",species)
+  }
+}
+class Dog extends Animal {
+   var breed:str 
+  
+  init(age:int) -> nthg {
+    super(age)
   }
 
-  printX() -> nthg {
-    callMe()
-    print("This is x "+x)
+  getAge() ->int {
+    return 7*self.age  
+  }
+  printBreed() -> nthg { 
+    print("breed "+breed)
+  }
+
+
+  getT() -> T {
+      return self.t
+    }
+}
+fun printAge(a: Animal) ->nthg{
+ print("I'm "+a.getAge()+" years old!\n")
+}
+fun main() -> nthg {
+  var animal:Animal = new Animal(2)
+  var  dog:Dog = new Dog(2)
+var x:int = dog.getAge()
+print("x ",x)
+print(dog.getT())
+print(dog.getAge())
+print(animal.getAge())
+printAge(animal) 
+ printAge(dog) 
+}
+main()
+/#type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
   }
 }
 
-expose var a:A  =  new A()
-print(a.b)
-a.x = 2
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
 
+fun main(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main(10)
+print(x.a)
+x =main(2)
+print(x.a)
+/#
+var y:int= 2 
+type T = {
+    x:int 
+  }
+fun getX(x:T ) -> T  {
+    return x
+  }
+
+fun get(x:T) -> T  {
+  /;print(x)
+return getX(x) 
+}
+
+var x:T = get({x:5})
+print(x)
+x = get({x:10})
+print(x)
+/#type p = {
+    x:int,
+    y:int[2],
+    b:deci[2],
+    c:str[2],
+    d:bool[2],
+    f:str
+}
+var x:p = {x:2,y:[2 fill 5],b:[1 fill 2.2],c:["hello"],d:[true,true]}
+print(x.y)
+print(x.b)
+print(x.c)
+print(x.d)
+print(x.f)
+print(x)
+/#type k = {
+   o:int,
+   s:str,
+   d:deci,
+   i:int
+}
+type par ={
+    u:str,
+    g:k[2]
+}
+type t = {
+    x:int,
+    y:str,
+    a:deci,
+    b:bool,
+    arr:par[1]
+}
+var gka:k = {o:102,s:"sora"}
+var arr:t[3] = [2 fill {x:2,y:"hello",a:3.3,b:true,arr:[{u:"arru",g:[gka]}]}]
+print(arr)
+
+/#type k = {
+   o:int
+}
+
+type par ={
+    u:str,
+    g:k[5]
+  }
+type t = {
+    x:int,
+    y:str,
+    a:deci,
+    b:bool,
+    arr:par[1]
+}
+var arr:t[2] = [{x:1}]
+{
+    print(arr)
+  }
+/#type T = {x:int,a:int[2] }
+
+  var x:T = {x:3 }
+{
+  print(x)
+  }
+x = {x:10,a:[10]}
+print(x)
+/#type P = {
+  s:str,
+  d:deci 
+}
+
+
+type t = {
+    b:P[2],
+    a:int
+}
+
+class A {
+  var a:t 
+
+  init(a:t) -> nthg {
+    self.a = a 
+  }
+}
+
+fun getB(a:int) -> A {
+  print("aa",a)
+  return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
+}
+
+fun main(b:int) -> A {
+    var u:t ={a:b}
+    return getB(b)
+}
+
+var x:A = main(10)
+print(x.a)
+x =main(2)
+print(x.a)
+/#type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+(a.printB( new B({j:[{a:2}]})))
+
+/#type T = {
+    a:int 
+}
+class A {
+var i:deci32
+var x:int 
+var s:str 
+var t:T
+var g:T[2]
+init(s: str) -> nthg{
+  self.s = s 
+}
+
+getT() -> T {
+    return t  
+  }
+
+getTA() -> T[2] {
+    return g
+  }
+}
+
+fun printT(t: T) -> nthg {
+  print(t)
+}
+fun printTAr(ta:T[2]) -> nthg {
+    print(ta)
+  }
+
+var a:A = new A("Hello")
+
+printT(a.getT())
+printTAr(a.getTA())
+
+/#type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+   /; print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+
+(a.printB( new B({j:[{a:2}]})))
+
+/#type T = {
+  a:int 
+}
+type K = {
+  j:T[2]
+}
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+
+var a:A =  getAA(new A({a:22}))  
+print(a.obj)
+/#
+a.obj = {a:32}
+print("After Pass")
+var d:B = new B({j:[{a:2}]})
+print(d.getU())
+
+/#class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init() -> nthg { 
+    print(b)
+  }
+  printDefaults()-> nthg {
+  print(b) 
+  }
+}
+var a: A  = new A() 
+
+a.printDefaults()
+/#type T = {
+  a:int 
+}
+
+class B {
+    var className:str 
+
+
+    init(cn:str) -> nthg {
+        className  = cn 
+      }
+
+    getClassName() -> str {
+        return className 
+      }
+  }
+
+class A{
+  var obj:T 
+  var r:int 
+  var u:T 
+  var ua:T[2]
+  var b:B 
+  init(obj:T,r:int,u:T,ua:T[2] ) -> nthg {
+    self.obj = obj 
+    b = new B("B Class ")
+    print(b.className)
+ self.u =  u 
+    self.r  =r
+
+    self.ua = ua 
+  }
+
+  getR(r:int ) -> int {
+    return r 
+  }
+getU(u:T ) -> T {
+    return u 
+  }
+getUA(ua:T[2]) -> T[2] {
+  var uu:T[2] = ([getU({a:getR(11)})]) 
+    return uu 
+  }
+
+  printB() -> nthg{
+  /;    print(b.className)
+    }
+
+}
+
+var a:A = new A({a:33},3,{},[])
+print(a.getUA([]))
+/;a.printB()
+/#
+
+var uB:T[2] = getUA([])
+
+print(uB)
+/;var uB:T[2] = [getU({a:getR(10)})]
+/#
+var a:A = getA()
+print(a.obj)
+print(a.u)
+print(a.r)
+/#
+fun getA(d:A) -> A {
+ d.obj.a = 21
+ 
+  return d
+}
+
+fun getAA() -> A {
+  return new A({a:22})
+}
+
+var a:A =  getAA()  
+print(a.obj)
 

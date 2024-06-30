@@ -18,6 +18,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   bool _isMemberFunction = false;
   std::string _classItBelongTo = "";
   bool _isVariadicFunction = false;
+  bool _hasAsReturnType = false;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -44,6 +45,10 @@ public:
 
   inline void setIsMemberFunction(bool isMemberFunction) {
     _isMemberFunction = isMemberFunction;
+  }
+
+  inline auto setHasAsReturnType(const bool hasAsReturnType) {
+    _hasAsReturnType = hasAsReturnType;
   }
 
   inline auto getParametersRef() const
@@ -77,6 +82,8 @@ public:
   inline auto getClassItBelongTo() const -> const std::string & {
     return _classItBelongTo;
   }
+
+  inline auto hasAsReturnType() const -> bool { return _hasAsReturnType; }
 };
 
 #endif

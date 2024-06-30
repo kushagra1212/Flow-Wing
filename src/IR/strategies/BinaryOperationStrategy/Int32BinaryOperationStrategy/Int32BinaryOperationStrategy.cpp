@@ -26,65 +26,72 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::IntegerDivision: {
-    llvm::Value *divisionResult = nullptr;
-    llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
+    // llvm::Value *divisionResult = nullptr;
+    // llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue,
+    // Builder->getInt32(0));
 
-    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-    llvm::BasicBlock *ifBlock =
-        llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
-    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
-        *TheContext, "else", currentBlock->getParent());
-    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-        *TheContext, "merge", currentBlock->getParent());
-    // Create a conditional branch
-    Builder->CreateCondBr(isZero, ifBlock, elseBlock);
+    // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    // llvm::BasicBlock *ifBlock =
+    //     llvm::BasicBlock::Create(*TheContext, "if",
+    //     currentBlock->getParent());
+    // llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "else", currentBlock->getParent());
+    // llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "merge", currentBlock->getParent());
+    // // Create a conditional branch
+    // Builder->CreateCondBr(isZero, ifBlock, elseBlock);
 
-    // Set up the 'if' block
-    Builder->SetInsertPoint(ifBlock);
+    // // Set up the 'if' block
+    // Builder->SetInsertPoint(ifBlock);
 
-    _codeGenerationContext->callREF("Division by zero is not allowed");
+    // _codeGenerationContext->callREF("Division by zero is not allowed");
 
-    Builder->CreateBr(mergeBlock);
+    // Builder->CreateBr(mergeBlock);
 
-    Builder->SetInsertPoint(elseBlock);
-    divisionResult = Builder->CreateSDiv(lhsValue, rhsValue);
-    Builder->CreateBr(mergeBlock);
+    // Builder->SetInsertPoint(elseBlock);
+    // divisionResult = Builder->CreateSDiv(lhsValue, rhsValue);
+    // Builder->CreateBr(mergeBlock);
 
-    Builder->SetInsertPoint(mergeBlock);
+    // Builder->SetInsertPoint(mergeBlock);
 
-    return divisionResult;
+    return Builder->CreateSDiv(lhsValue, rhsValue);
+    ;
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
 
-    llvm::Value *divisionResult = nullptr;
-    llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue, Builder->getInt32(0));
+    // llvm::Value *divisionResult = nullptr;
+    // llvm::Value *isZero = Builder->CreateICmpEQ(rhsValue,
+    // Builder->getInt32(0));
 
-    llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-    llvm::BasicBlock *ifBlock =
-        llvm::BasicBlock::Create(*TheContext, "if", currentBlock->getParent());
-    llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
-        *TheContext, "else", currentBlock->getParent());
-    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-        *TheContext, "merge", currentBlock->getParent());
-    // Create a conditional branch
-    Builder->CreateCondBr(isZero, ifBlock, elseBlock);
+    // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+    // llvm::BasicBlock *ifBlock =
+    //     llvm::BasicBlock::Create(*TheContext, "if",
+    //     currentBlock->getParent());
+    // llvm::BasicBlock *elseBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "else", currentBlock->getParent());
+    // llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+    //     *TheContext, "merge", currentBlock->getParent());
+    // // Create a conditional branch
+    // Builder->CreateCondBr(isZero, ifBlock, elseBlock);
 
-    // Set up the 'if' block
-    Builder->SetInsertPoint(ifBlock);
+    // // Set up the 'if' block
+    // Builder->SetInsertPoint(ifBlock);
 
-    _codeGenerationContext->callREF("Division by zero is not allowed");
+    // _codeGenerationContext->callREF("Division by zero is not allowed");
 
-    Builder->CreateBr(mergeBlock);
+    // Builder->CreateBr(mergeBlock);
 
-    Builder->SetInsertPoint(elseBlock);
+    // Builder->SetInsertPoint(elseBlock);
 
-    divisionResult =
-        Builder->CreateFDiv(_doubleTypeConverter->convertExplicit(lhsValue),
-                            _doubleTypeConverter->convertExplicit(rhsValue));
-    Builder->CreateBr(mergeBlock);
-    Builder->SetInsertPoint(mergeBlock);
-    return divisionResult;
+    // divisionResult =
+    //     Builder->CreateFDiv(_doubleTypeConverter->convertExplicit(lhsValue),
+    //                         _doubleTypeConverter->convertExplicit(rhsValue));
+    // Builder->CreateBr(mergeBlock);
+    // Builder->SetInsertPoint(mergeBlock);
+    return Builder->CreateFDiv(_doubleTypeConverter->convertExplicit(lhsValue),
+                               _doubleTypeConverter->convertExplicit(rhsValue));
+    ;
     break;
   }
 

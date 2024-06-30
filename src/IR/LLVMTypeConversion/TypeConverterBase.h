@@ -16,6 +16,7 @@ class TypeConverterBase {
 public:
   CodeGenerationContext *_codeGenerationContext;
   llvm::IRBuilder<> *_builder;
+  llvm::IRBuilder<> *_preBuilder;
   llvm::Module *_module;
   TypeMapper *_mapper;
   LLVMLogger *_logger;
@@ -32,6 +33,13 @@ public:
   virtual llvm::Value *convertExplicit(llvm::Value *&value) = 0;
 
   virtual llvm::Value *convertImplicit(llvm::Value *&value) = 0;
+
+  inline auto setBuilder(llvm::IRBuilder<> *builder) {
+    _preBuilder = _builder;
+    _builder = builder;
+  }
+
+  inline auto resetBuilder() { _builder = _preBuilder; }
 };
 
 #endif // __TYPE_CONVERTER_BASE_H__

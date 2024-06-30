@@ -54,6 +54,7 @@ const std::type_info &BoundLiteralExpression<T>::getType() {
 template <typename T> T BoundLiteralExpression<T>::getValue() { return value; }
 
 template <typename T> void BoundLiteralExpression<T>::setValue(T value) {
+
   this->value = value;
 }
 

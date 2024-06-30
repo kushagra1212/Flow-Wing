@@ -18,6 +18,11 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
           ->createStrategy(unaryExpression->getOperandPtr().get()->getKind())
           ->generateExpression(unaryExpression->getOperandPtr().get());
 
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    val = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  }
   if (val == nullptr) {
     _codeGenerationContext->getLogger()->LogError(
         "Unsupported Unary Expression Type ");

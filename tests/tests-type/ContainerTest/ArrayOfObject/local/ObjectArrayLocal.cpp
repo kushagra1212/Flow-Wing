@@ -1,6 +1,8 @@
 #include "ObjectArrayLocal.h"
 
-ObjectArrayLocal::ObjectArrayLocal() { _test = std::move(FlowWing::getTest()); }
+ObjectArrayLocal::ObjectArrayLocal() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void ObjectArrayLocal::SetUp() { _test->SetUp(); }
 

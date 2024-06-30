@@ -17,8 +17,7 @@ public:
   llvm::Type *getClassElementType(BoundTypeExpression *bTE,
                                   std::string className);
 
-  llvm::Value *generateForClassElement(BoundStatement *statement,
-                                       std::string className);
+  llvm::Value *generateCustomType(BoundStatement *statement);
 
 private:
   bool _isGlobal = false;

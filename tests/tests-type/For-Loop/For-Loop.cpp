@@ -1,6 +1,8 @@
 #include "For-Loop.h"
 
-ForLoopReplTest::ForLoopReplTest() { _test = std::move(FlowWing::getTest()); }
+ForLoopReplTest::ForLoopReplTest() {
+  _test = std::move(Tests::FlowWing::getTest());
+}
 
 void ForLoopReplTest::SetUp() { _test->SetUp(); }
 

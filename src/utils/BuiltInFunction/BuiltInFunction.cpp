@@ -53,6 +53,11 @@ void BuiltInFunction::setupBuiltInFunctions() {
 
   create(FW::BI::FUNCTION::Decimal, SyntaxKindUtils::SyntaxKind::DeciKeyword);
 
+  // Decimal32
+
+  create(FW::BI::FUNCTION::Decimal32,
+         SyntaxKindUtils::SyntaxKind::Deci32Keyword);
+
   // String
 
   create(FW::BI::FUNCTION::String, SyntaxKindUtils::SyntaxKind::StrKeyword);
@@ -76,6 +81,7 @@ namespace FW::BI::FUNCTION {
 
 const std::string Int32 = "Int32";
 const std::string Decimal = "Decimal";
+const std::string Decimal32 = "Decimal32";
 const std::string String = "String";
 const std::string Bool = "Bool";
 const std::string Print = "print";

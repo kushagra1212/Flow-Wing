@@ -14,12 +14,14 @@ using namespace FLOWWING::IR::CONSTANTS;
 class CodeGenerationContext;
 class TypeMapper {
   llvm::LLVMContext *_context;
-  llvm::IRBuilder<> *_builder;
   llvm::Module *_module;
   std::unordered_map<llvm::Type *, SyntaxKindUtils::SyntaxKind> _typeMappings;
   std::unordered_map<SyntaxKindUtils::SyntaxKind, llvm::Type *>
       _reverseTypeMappings;
   CodeGenerationContext *_codeGenerationContext;
+
+  llvm::IRBuilder<> *_builder;
+  llvm::IRBuilder<> *_PreviousBuilder;
 
 public:
   TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
@@ -28,10 +30,19 @@ public:
 
   SyntaxKindUtils::SyntaxKind mapLLVMTypeToCustomType(llvm::Type *type) const;
   llvm::Type *mapCustomTypeToLLVMType(SyntaxKindUtils::SyntaxKind type) const;
+
+  inline auto setBuilder(llvm::IRBuilder<> *builder) {
+
+    _PreviousBuilder = _builder;
+    _builder = builder;
+  }
+
+  inline auto restoreBuilder() { _builder = _PreviousBuilder; }
   const bool isVoidType(llvm::Type *type) const;
   const bool isStringType(llvm::Type *type) const;
   const bool isBoolType(llvm::Type *type) const;
   const bool isDoubleType(llvm::Type *type) const;
+  const bool isFloatType(llvm::Type *type) const;
   const bool isInt32Type(llvm::Type *type) const;
   const bool isInt8Type(llvm::Type *type) const;
   const bool isInt64Type(llvm::Type *type) const;
@@ -53,7 +64,7 @@ public:
 
   uint64_t getSizeOf(llvm::Type *type);
 
-  std::string getLLVMTypeName(llvm::Type *type) const;
+  std::string getLLVMTypeName(llvm::Type *type, bool withColor = true) const;
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;
 };
 

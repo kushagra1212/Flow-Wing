@@ -1,7 +1,7 @@
 #include "MultiDimContainer.h"
 
 MultiDimContainer::MultiDimContainer() {
-  _test = std::move(FlowWing::getTest());
+  _test = std::move(Tests::FlowWing::getTest());
 }
 
 void MultiDimContainer::SetUp() { _test->SetUp(); }
