@@ -55,6 +55,11 @@ void prettyPrint(std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);
 
+JSON outJSON(BoundNode *node, bool isLast);
+JSON outJSON(BoundStatement *statement, bool isLast);
+JSON outJSON(SyntaxNode *node);
+JSON outJSON(CompilationUnitSyntax *compilationUnit);
+
 const std::string getFileName(const std::string &filePath);
 
 const std::string concatErrors(const std::vector<std::string> &errors,
@@ -102,6 +107,13 @@ inline auto isClassInit(const std::string &name) -> bool {
   return name.find(".init") != std::string::npos;
 }
 
+inline std::string print_log(const std::string &str, const std::string &color) {
+  std::string res = "";
+
+  res += color + str + RESET;
+  return res;
+}
+
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,
                                     std::string extension, bool recursive);
@@ -118,7 +130,7 @@ enum class SymbolKind {
   Label,
   None
 };
-
+const std::string getExtension(const std::string &filePath);
 const std::string removeExtensionFromString(const std::string &filePath);
 DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 

@@ -26,10 +26,13 @@
 #include <vector>
 
 #include "IR/constants/FlowWingUtilsConstants.h"
+#include "external/include/json.hpp"
 #include "utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
 // TODO: Add support for Windows
 // #include <windows.h>
 #include <unistd.h>
+
+using JSON = nlohmann::json;
 
 // ANSI color codes
 constexpr auto RESET = "\033[0m";
@@ -57,6 +60,10 @@ constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP = "\033[2K\r\033[F";
 constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP_AND_RESET = "\033[2K\r\033[F\r";
 constexpr auto CLEAR_LINE_AND_RESET_AND_MOVE_UP_AND_RESET_AND_MOVE_UP =
     "\033[2K\r\033[F\r\033[F";
+constexpr auto ERROR_COLOR = RED_TEXT;
+constexpr auto WARNING_COLOR = YELLOW_TEXT;
+constexpr auto SUCCESS_COLOR = GREEN_TEXT;
+constexpr auto INFO_COLOR = BLUE_TEXT;
 namespace COLORED_STRING {
 inline std::string GET(std::string str, const char *color, const char *reset) {
   std::stringstream ss;

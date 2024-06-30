@@ -11,7 +11,6 @@
 #include "../cli/commandLineOptions/commandLineOptions.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
-
 class Compiler {
 public:
   Compiler(std::string filePath = "");
@@ -34,9 +33,13 @@ public:
   createModuleFromIR(const std::string &filePath,
                      std::unique_ptr<llvm::LLVMContext> &TheContext);
 
+  inline auto setOutputFilePath(const std::string &outputFilePath) {
+    _outputFilePath = outputFilePath;
+  }
   virtual void execute() = 0;
 
   std::string _filePath;
+  std::string _outputFilePath;
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::vector<std::string> text = std::vector<std::string>();
   std::string executable_directory_string;

@@ -27,4 +27,9 @@ Option<bool> OPTIONS::FormatPrint{
 Option<bool> OPTIONS::ShortFormatPrint{"-FMP",
                                        "Short hand flag for --format-print"};
 
+Option<std::string> OPTIONS::OutputFile{
+    "--out", "Use --out=<filename.fg> to specify an output file"};
+
+Option<std::string> OPTIONS::ShortOutputFile{"-O", "Short hand flag for --out"};
+
 } // namespace FlowWingCliOptions

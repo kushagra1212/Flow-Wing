@@ -171,6 +171,16 @@ int main(int argc, char *argv[]) {
     aotCompiler->ShortFormatPrint.setValue(true);
   }
 
+  std::string OUTPUT_FILE_PATH =
+      !cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str().empty()
+          ? cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str()
+          : cmdl(FlowWingCliOptions::OPTIONS::ShortOutputFile.name.c_str())
+                .str();
+
+  if (!OUTPUT_FILE_PATH.empty()) {
+    aotCompiler->setOutputFilePath(OUTPUT_FILE_PATH);
+  }
+
   // #if DEBUG
   //   std::filesystem::path executable_path =
   //       std::filesystem::canonical(std::filesystem::path(argv[0]));

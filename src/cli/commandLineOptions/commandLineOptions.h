@@ -37,6 +37,10 @@ public:
   //! Format
   static Option<bool> FormatPrint;
   static Option<bool> ShortFormatPrint;
+
+  //! OutPut FIle
+  static Option<std::string> OutputFile;
+  static Option<std::string> ShortOutputFile;
 }; // namespace FlowWing_OPTIONS
 
 } // namespace FlowWingCliOptions
