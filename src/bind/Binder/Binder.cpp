@@ -967,16 +967,17 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
         declared_fd = boundClassStatement->getParentClass()->getMemberFunction(
             updatedCallerName);
       }
+      if (boundClassStatement) {
+        const std::string CLASS_MEMBER_FUNCTION_NAME =
+            boundClassStatement->getActualFunctionNameIfExists(CALLER_NAME);
 
-      const std::string CLASS_MEMBER_FUNCTION_NAME =
-          boundClassStatement->getActualFunctionNameIfExists(CALLER_NAME);
+        const auto CURRENT_CLASS_MEMEBER_FUNCTION_CALL =
+            boundClassStatement->getMemberFunction(CLASS_MEMBER_FUNCTION_NAME);
 
-      const auto CURRENT_CLASS_MEMEBER_FUNCTION_CALL =
-          boundClassStatement->getMemberFunction(CLASS_MEMBER_FUNCTION_NAME);
-
-      if (CURRENT_CLASS_MEMEBER_FUNCTION_CALL && !declared_fd) {
-        updatedCallerName = CLASS_MEMBER_FUNCTION_NAME;
-        declared_fd = CURRENT_CLASS_MEMEBER_FUNCTION_CALL;
+        if (CURRENT_CLASS_MEMEBER_FUNCTION_CALL && !declared_fd) {
+          updatedCallerName = CLASS_MEMBER_FUNCTION_NAME;
+          declared_fd = CURRENT_CLASS_MEMEBER_FUNCTION_CALL;
+        }
       }
     }
   }

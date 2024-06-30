@@ -621,7 +621,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     const bool IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION =
-        Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        classType && Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        _codeGenerationContext->_classTypes.find(
+            classType->getStructName().str()) !=
+            _codeGenerationContext->_classTypes.end() &&
         _codeGenerationContext->_classTypes[classType->getStructName().str()]
             ->isChildOf(callExpression->getCallerNameRef().substr(
                 0,
@@ -1799,7 +1802,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(arrayType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
     llvm::BasicBlock *entry =
@@ -1982,7 +1986,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(parObjType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
     llvm::BasicBlock *entry =

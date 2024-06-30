@@ -425,7 +425,8 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(arrayType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
     llvm::BasicBlock *entry =
         llvm::BasicBlock::Create(*TheContext, "entry", fun);
@@ -568,7 +569,8 @@ void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(objectType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
     llvm::BasicBlock *entry =
         llvm::BasicBlock::Create(*TheContext, "entry", fun);
