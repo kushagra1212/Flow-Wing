@@ -148,7 +148,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
         BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(children.get());
-      if (!functionDeclaration->isOnlyDeclared())
+      if (functionDeclaration->isOnlyDeclared())
         _statementGenerationFactory->createStrategy(children->getKind())
             ->generateGlobalStatement(children.get());
     }
@@ -166,7 +166,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
-      //    if (!functionDeclaration->isOnlyDeclared())
+      // if (!functionDeclaration->isOnlyDeclared())
       generateStatement = false;
     }
 
