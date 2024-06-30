@@ -552,3 +552,31 @@ print(a.getUA([]))
 )");
   O(R"(B Class [{ a : 11 }, { a : 0 }])");
 }
+
+TEST_F(MiscellaneousTest, AssigningObjectPropertyUsingFunctionCall) {
+  I(R"(
+  class A {
+type T ={
+    white:int 
+  }
+getColor(r:int , g: int, b: int,  a:int ) -> int {
+return (a*256*256*256 + b * 256 * 256 + g*256 + r ) 
+}
+var x:T 
+
+init() -> nthg {
+x = {
+    white: getColor(255,255,255,255 )
+  }
+  }
+
+
+}
+
+var a:A  = new A()
+
+
+print(a.x)
+)");
+  O(R"({ white : -1 })");
+}

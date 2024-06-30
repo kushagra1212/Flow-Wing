@@ -1802,7 +1802,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(arrayType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
     llvm::BasicBlock *entry =
@@ -1985,7 +1986,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
     llvm::FunctionType *FT = llvm::FunctionType::get(
         llvm::Type::getVoidTy(*TheContext),
         {llvm::PointerType::getUnqual(parObjType)}, false);
-    fun = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+    fun = llvm::Function::Create(FT,
+                                 llvm::Function::LinkageTypes::InternalLinkage,
                                  FUNCTION_NAME, *TheModule);
 
     llvm::BasicBlock *entry =

@@ -157,6 +157,15 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
 
       llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
 
+      if (containerExpression->getElementsRef()[i].get()->getKind() ==
+          BinderKindUtils::CallExpression) {
+        BoundCallExpression *innerCallExpression =
+            static_cast<BoundCallExpression *>(
+                containerExpression->getElementsRef()[i].get());
+
+        innerCallExpression->setArgumentAlloca(0., {elementPtr, _elementType});
+      }
+
       // if (containerExpression->getElementsRef()[i].get()->getKind() ==
       //     BinderKindUtils::CallExpression) {
       //   BoundCallExpression *boundCallExpression =

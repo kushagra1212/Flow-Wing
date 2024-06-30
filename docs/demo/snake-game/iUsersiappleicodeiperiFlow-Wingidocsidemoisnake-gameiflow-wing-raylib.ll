@@ -89,7 +89,7 @@ declare !rt !13 i1 @IsKeyDown(i32)
 
 declare !rt !14 ptr @TextFormat(ptr)
 
-declare !rt !15 void @LoadTexture(ptr sret(%Texture.0) align 4, ptr)
+declare !rt !15 void @LoadTexture(ptr sret(%Texture.0), ptr)
 
 declare !rt !16 void @DrawTexture(ptr, i32, i32, i32)
 

@@ -134,6 +134,14 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
 
+      if (bExpr->getKind() == BinderKindUtils::CallExpression) {
+        BoundCallExpression *innerCallExpression =
+            static_cast<BoundCallExpression *>(bExpr.get());
+
+        innerCallExpression->setArgumentAlloca(
+            0., {innerElementPtr, parStructType->getElementType(indexValue)});
+      }
+
       assignmentEGS->handleAssignExpression(
           innerElementPtr, parStructType->getElementType(indexValue),
           propertyName, bExpr.get());
