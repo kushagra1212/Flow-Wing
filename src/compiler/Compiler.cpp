@@ -239,6 +239,20 @@ void Compiler::compile(std::vector<std::string> &text,
   std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
             << " .............." << RESET << std::endl;
 
+  if (Utils::getExtension(_outputFilePath) == ".json") {
+
+    JSON jsonObject = Utils::outJSON(compilationUnit.get());
+    std::ofstream outputFile(_outputFilePath);
+    if (outputFile.is_open()) {
+      outputFile << jsonObject.dump(1); // Pretty print with 4 spaces
+      outputFile.close();
+      Utils::print_log("JSON object has been written to " + _outputFilePath,
+                       SUCCESS_COLOR);
+    } else {
+      Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
+    }
+    return;
+  }
 #endif
 
   std::unique_ptr<BoundScopeGlobal> globalScope =
@@ -270,7 +284,20 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
 
-  if (this->Format.getValue() || this->ShortFormat.getValue()) {
+  if (Utils::getExtension(_outputFilePath) == ".json") {
+
+    JSON jsonObject = Utils::outJSON(globalScope->globalStatement.get(), false);
+    std::ofstream outputFile(_outputFilePath);
+    if (outputFile.is_open()) {
+      outputFile << jsonObject.dump(1); // Pretty print with 1 spaces
+      outputFile.close();
+      Utils::print_log("JSON object has been written to " + _outputFilePath,
+                       SUCCESS_COLOR);
+    } else {
+      Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
+    }
+    return;
+  } else if (this->Format.getValue() || this->ShortFormat.getValue()) {
 
     //? format and Save to file
     std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),

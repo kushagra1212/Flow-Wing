@@ -151,6 +151,81 @@ void Utils::prettyPrint(BoundStatement *statement, std::string indent,
   }
 }
 
+JSON Utils::outJSON(BoundNode *node, bool isLast) {
+  if (!node) {
+    return JSON();
+  }
+
+  JSON jsonObject;
+
+  if (node->getKind() == BinderKindUtils::LiteralExpression) {
+    std::any value = ((BoundLiteralExpression<std::any> *)node)->getValue();
+    jsonObject[BinderKindUtils::to_string(node->getKind())] =
+        InterpreterConversion::explicitConvertAnyToString(value);
+  }
+
+  std::vector<BoundNode *> children = node->getChildren();
+  for (int i = 0; i < children.size(); i++) {
+    jsonObject[BinderKindUtils::to_string(node->getKind())].push_back(
+        Utils::outJSON(children[i], i == children.size() - 1));
+  }
+
+  return jsonObject;
+}
+
+JSON Utils::outJSON(BoundStatement *statement, bool isLast) {
+  if (!statement) {
+    return JSON();
+  }
+
+  JSON jsonObject;
+
+  for (int i = 0; i < statement->getChildren().size(); i++) {
+    jsonObject[BinderKindUtils::to_string(statement->getKind())].push_back(
+        Utils::outJSON(statement->getChildren()[i],
+                       i == statement->getChildren().size() - 1));
+  }
+
+  return jsonObject;
+}
+
+JSON Utils::outJSON(SyntaxNode *node) {
+  if (!node) {
+    return JSON();
+  }
+
+  JSON jsonObject;
+  if (Utils::isSyntaxToken(node)) {
+
+    jsonObject[SyntaxKindUtils::to_string(node->getKind())] = {
+        {"value", ((SyntaxToken<std::any> *)node)->getText()},
+        {"lineNumber", node->getSourceLocation().lineNumber},
+        {"columnNumber", node->getSourceLocation().columnNumber}};
+  }
+  std::vector<SyntaxNode *> children = node->getChildren();
+
+  for (int i = 0; i < children.size(); i++) {
+    jsonObject[SyntaxKindUtils::to_string(node->getKind())].push_back(
+        Utils::outJSON(children[i]));
+  }
+
+  return jsonObject;
+}
+
+JSON Utils::outJSON(CompilationUnitSyntax *compilationUnit) {
+  if (!compilationUnit) {
+    return JSON();
+  }
+  JSON jsonObject;
+
+  for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+    jsonObject[SyntaxKindUtils::to_string(compilationUnit->getKind())]
+        .push_back(Utils::outJSON(compilationUnit->getChildren()[i]));
+  }
+
+  return jsonObject;
+}
+
 std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
   if (!node) {
     // std::cout << "null\n";
@@ -280,9 +355,17 @@ const std::string Utils::getFileName(const std::string &filePath) {
 }
 
 const std::string Utils::getNameExtension(const std::string &filePath) {
+  if (filePath.empty())
+    return "";
+
   std::filesystem::path path(filePath);
   return path.stem().string();
 }
+const std::string Utils::getExtension(const std::string &filePath) {
+
+  return std::filesystem::path(filePath).extension().string();
+}
+
 bool Utils::isSubstring(const std::string &s1, const std::string &s2) {
   int M = s1.length();
   int N = s2.length();
@@ -595,6 +678,8 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   case SyntaxKindUtils::SyntaxKind::CommaToken:
   case SyntaxKindUtils::SyntaxKind::OpenBraceToken:
   case SyntaxKindUtils::SyntaxKind::CloseBraceToken:
+  case SyntaxKindUtils::SyntaxKind::OpenBracketToken:
+  case SyntaxKindUtils::SyntaxKind::CloseBracketToken:
   case SyntaxKindUtils::SyntaxKind::HashToken:
   case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken:
   case SyntaxKindUtils::SyntaxKind::CloseParenthesisToken:
@@ -602,7 +687,9 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   case SyntaxKindUtils::SyntaxKind::PercentToken:
   case SyntaxKindUtils::SyntaxKind::TildeToken:
   case SyntaxKindUtils::SyntaxKind::ColonToken:
+  case SyntaxKindUtils::SyntaxKind::DotToken:
   case SyntaxKindUtils::SyntaxKind::AmpersandAmpersandToken:
+  case SyntaxKindUtils::SyntaxKind::SlashSlashToken:
   case SyntaxKindUtils::SyntaxKind::AmpersandToken:
   case SyntaxKindUtils::SyntaxKind::SlashToken:
   case SyntaxKindUtils::SyntaxKind::PipePipeToken:
@@ -611,12 +698,35 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   case SyntaxKindUtils::SyntaxKind::EqualsToken:
   case SyntaxKindUtils::SyntaxKind::BangEqualsToken:
   case SyntaxKindUtils::SyntaxKind::BangToken:
+  case SyntaxKindUtils::SyntaxKind::AssignmentToken:
   case SyntaxKindUtils::SyntaxKind::LessOrEqualsToken:
   case SyntaxKindUtils::SyntaxKind::LessToken:
   case SyntaxKindUtils::SyntaxKind::GreaterOrEqualsToken:
   case SyntaxKindUtils::SyntaxKind::GreaterToken:
   case SyntaxKindUtils::SyntaxKind::EndOfLineToken:
-  case SyntaxKindUtils::SyntaxKind::StringToken: {
+  case SyntaxKindUtils::SyntaxKind::StringToken:
+
+  case SyntaxKindUtils::SyntaxKind::Int32Keyword:
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword:
+  case SyntaxKindUtils::SyntaxKind::Int64Keyword:
+  case SyntaxKindUtils::SyntaxKind::DeciKeyword:
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::BoolKeyword:
+  case SyntaxKindUtils::SyntaxKind::NthgKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
+  case SyntaxKindUtils::SyntaxKind::ClassKeyword:
+  case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
+  case SyntaxKindUtils::SyntaxKind::BringKeyword:
+  case SyntaxKindUtils::SyntaxKind::ExposeKeyword:
+  case SyntaxKindUtils::SyntaxKind::FromKeyword:
+  case SyntaxKindUtils::SyntaxKind::FillKeyword:
+  case SyntaxKindUtils::SyntaxKind::TypeKeyword:
+  case SyntaxKindUtils::SyntaxKind::DeclKeyword:
+  case SyntaxKindUtils::SyntaxKind::NewKeyword:
+  case SyntaxKindUtils::SyntaxKind::INOUTKeyword:
+  case SyntaxKindUtils::SyntaxKind::ExtendsKeyword:
+  case SyntaxKindUtils::SyntaxKind::Askeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE: {
     return true;
   }
   default:
