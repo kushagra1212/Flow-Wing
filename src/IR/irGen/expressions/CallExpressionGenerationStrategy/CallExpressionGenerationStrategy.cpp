@@ -621,7 +621,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     const bool IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION =
-        Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        classType && Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        _codeGenerationContext->_classTypes.find(
+            classType->getStructName().str()) !=
+            _codeGenerationContext->_classTypes.end() &&
         _codeGenerationContext->_classTypes[classType->getStructName().str()]
             ->isChildOf(callExpression->getCallerNameRef().substr(
                 0,
