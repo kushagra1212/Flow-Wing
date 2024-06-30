@@ -38,7 +38,10 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
             _codeGenerationContext
                 ->_functionTypes[boundCallExpression->getCallerNameRef()]
                 ->getReturnType();
-        if (!boundCallExpression->doesArgumentAllocaExist(0))
+        if (_codeGenerationContext
+                ->_functionTypes[boundCallExpression->getCallerNameRef()]
+                ->isHavingReturnTypeAsParamater() &&
+            !boundCallExpression->doesArgumentAllocaExist(0))
           boundCallExpression->setArgumentAlloca(
               0, {_codeGenerationContext->createMemoryGetPtr(
                       type, "rtPtr", BinderKindUtils::MemoryKind::Stack),

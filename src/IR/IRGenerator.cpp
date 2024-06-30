@@ -246,21 +246,21 @@ void IRGenerator::generateEvaluateGlobalStatement(
   _codeGenerationContext->verifyModule(TheModule);
 #endif
 
-#ifdef DEBUG
   if (!this->hasErrors()) {
-
+#ifdef DEBUG
     llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
     objectFile->writeModuleToFile(TheModule);
-  }
+#elif defined(RELEASE) && (defined(JIT_MODE) || defined(JIT_TEST_MODE))
+    bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
 #elif RELEASE
-  if (!this->hasErrors()) {
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
     objectFile->writeModuleToFile(TheModule);
   }
 #endif
+  }
 
   // this->_irParser->mergeIR(TheModule.get());
 

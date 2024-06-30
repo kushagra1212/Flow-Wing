@@ -94,35 +94,34 @@ int main(int argc, char **argv) {
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser cmdl(argv);
-  if (cmdl[{"-V", "--version"}]) {
-    std::cout << "Flowwing JIT Compiler" << std::endl;
-    std::cout << "----------------------" << std::endl;
-    std::cout << "Version: " << VERSION_INFO << std::endl;
 
-    return EXIT_FAILURE;
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Version.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortVersion.name.c_str()}]) {
+    std::cout << "Flowwing Compiler" << std::endl;
+    std::cout << "Version: " << VERSION_INFO << std::endl;
+    return EXIT_SUCCESS;
   }
-  if (argc != 2) {
+
+  if (!cmdl(FlowWingCliOptions::OPTIONS::File.name.c_str()) &&
+      !cmdl(FlowWingCliOptions::OPTIONS::ShortFile.name.c_str())) {
     Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr, true);
     return EXIT_FAILURE;
   }
-  std::filesystem::path executable_path =
-      std::filesystem::canonical(std::filesystem::path(argv[0]));
 
-  std::filesystem::path executable_directory = executable_path.parent_path();
-  std::string executable_directory_string = executable_directory.string();
-  // Opens the file using the provided file path
+  std::string _filePath = cmdl("file") ? cmdl("file").str() : cmdl("F").str();
+  //? Opens the file using the provided file path
 
   std::ifstream file;
 
-  file.open(argv[1]);
+  file.open(_filePath);
 
   if (!file.is_open()) {
-    Utils::printErrors({"Unable to open file: " + std::string(argv[1]),
+    Utils::printErrors({"Unable to open file: " + std::string(_filePath),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
 
-    if (access(argv[1], R_OK) != 0) {
+    if (access(_filePath.c_str(), R_OK) != 0) {
       Utils::printErrors(
           {"Please check if the file exists and you have read permissions."},
           std::cerr);
@@ -131,17 +130,41 @@ int main(int argc, char *argv[]) {
     }
     return EXIT_SUCCESS;
   }
-  // Close the file (imp)
+  //! Close the file
   file.close();
 
-  Utils::Node::addPath(Utils::getAbsoluteFilePath(argv[1]));
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(_filePath));
   std::vector<std::string> text =
-      Utils::readLines(Utils::getAbsoluteFilePath(argv[1]));
+      Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<JITCompiler> jitCompiler =
-      std::make_unique<JITCompiler>(argv[1]);
-  jitCompiler->executable_directory_string = executable_directory_string;
+      std::make_unique<JITCompiler>(_filePath);
 
+  if (cmdl[{FlowWingCliOptions::OPTIONS::Format.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormat.name.c_str()}]) {
+
+    jitCompiler->Format.setValue(true);
+    jitCompiler->ShortFormat.setValue(true);
+  }
+
+  if (cmdl[{FlowWingCliOptions::OPTIONS::FormatPrint.name.c_str(),
+            FlowWingCliOptions::OPTIONS::ShortFormatPrint.name.c_str()}]) {
+
+    jitCompiler->FormatPrint.setValue(true);
+    jitCompiler->ShortFormatPrint.setValue(true);
+  }
+
+  std::string OUTPUT_FILE_PATH =
+      !cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str().empty()
+          ? cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str()
+          : cmdl(FlowWingCliOptions::OPTIONS::ShortOutputFile.name.c_str())
+                .str();
+
+  if (!OUTPUT_FILE_PATH.empty()) {
+    jitCompiler->setOutputFilePath(OUTPUT_FILE_PATH);
+  }
+
+  jitCompiler->_executable_path = std::filesystem::path(argv[0]);
   jitCompiler->compile(text, std::cout);
 
   return EXIT_SUCCESS;

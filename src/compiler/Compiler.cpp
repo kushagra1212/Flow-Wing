@@ -29,12 +29,11 @@ Compiler::Compiler(std::string filePath)
 const std::string Compiler::getBuiltInModulePath() const {
   std::string filePath = "";
 #if defined(DEBUG) || defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
-  filePath = "../../../src/IR/BuiltinIRs/built_in_module.ll";
+  filePath = "../../../src/IR/BuiltinIRs/libbuilt_in_module.bc";
 #elif defined(RELEASE) && defined(__LINUX__)
-  filePath = "/usr/local/lib/FlowWing/built_in_module.bc";
+  filePath = "/usr/local/lib/FlowWing/libbuilt_in_module.bc";
 #elif defined(RELEASE) && defined(__APPLE__)
-  filePath = _executable_path.parent_path().string() + "/../Library" +
-             "/built_in_module.ll";
+  filePath = "../../../src/IR/BuiltinIRs/libbuilt_in_module.bc";
 #endif
   // std::cout << "Executable directory: " << filePath << std::endl;
   return filePath;
@@ -103,7 +102,7 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
       Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
 #else
   _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
+      Utils::getAllFilesInDirectoryWithExtension(".", ".bc", false);
 #endif
 
   if (_userDefinedIRFilePaths.size() == 0) {
@@ -125,8 +124,10 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   const std::string &filePath = getBuiltInModulePath();
 
 #if defined(RELEASE)
+  // std::unique_ptr<llvm::Module> TheModule =
+  //     std::make_unique<llvm::Module>("built_in_module", *TheContext);
   std::unique_ptr<llvm::Module> TheModule =
-      std::make_unique<llvm::Module>("built_in_module", *TheContext);
+      std::move(createModuleFromBitcode(filePath, TheContext));
 #else
   std::unique_ptr<llvm::Module> TheModule =
       filePath[filePath.length() - 1] == 'l'
@@ -141,7 +142,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   // TheModule->setTargetTriple(llvm::Triple::normalize("x86_64-pc-linux-gnu"));
 
 #if defined(__APPLE__)
-//  TheModule->setTargetTriple("arm64-apple-darwin23.4.0");
+  TheModule->setTargetTriple(getDefaultTargetTriple());
 #elif defined(__LINUX__)
   TheModule->setTargetTriple(
       llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
@@ -239,6 +240,7 @@ void Compiler::compile(std::vector<std::string> &text,
   std::cout << BLUE << ".............." << YELLOW << " Tree End " << BLUE
             << " .............." << RESET << std::endl;
 
+#endif
   if (Utils::getExtension(_outputFilePath) == ".json") {
 
     JSON jsonObject = Utils::outJSON(compilationUnit.get());
@@ -253,8 +255,6 @@ void Compiler::compile(std::vector<std::string> &text,
     }
     return;
   }
-#endif
-
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
                                         currentDiagnosticHandler.get()));
