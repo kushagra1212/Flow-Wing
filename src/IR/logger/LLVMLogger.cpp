@@ -8,12 +8,10 @@ void LLVMLogger::logLLVMError(llvm::Error E) {
 
     llvm::errs() << RED_TEXT << _llvmErrorMsg << RED << EIB.message() << RESET
                  << "\n";
+#if not defined(JIT_TEST_MODE) && not defined(AOT_TEST_MODE)
     exit(0);
-  });
-#ifndef JIT_TEST_MODE
-  exit(1);
-
 #endif
+  });
 }
 
 void LLVMLogger::logLLVMWarning(llvm::Error E) {
