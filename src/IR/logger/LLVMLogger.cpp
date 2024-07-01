@@ -8,6 +8,7 @@ void LLVMLogger::logLLVMError(llvm::Error E) {
 
     llvm::errs() << RED_TEXT << _llvmErrorMsg << RED << EIB.message() << RESET
                  << "\n";
+    exit(0);
   });
 #ifndef JIT_TEST_MODE
   exit(1);

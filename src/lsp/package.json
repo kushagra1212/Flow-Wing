@@ -26,7 +26,15 @@
         "id": "flowwing",
         "extensions": [
           ".fg"
-        ]
+        ],
+        "configuration": "client/src/configuration/fg-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flowwing",
+        "scopeName": "source.fg",
+        "path": "client/src/syntaxes/fg.tmLanguage.json"
       }
     ],
     "configuration": {

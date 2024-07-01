@@ -11,9 +11,15 @@ import {
   TextDocumentPositionParams,
   TextDocumentSyncKind,
   InitializeResult,
+  CompletionItemTag,
+  HoverParams,
+  Range,
+  Position,
 } from "vscode-languageserver/node";
-
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { keywordsCompletionItems } from "./store";
+import { createFileAndAppend, getTempFgCodeFilePath } from "./utils";
+import { validateFile } from "./validation/validateFile";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -50,6 +56,7 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: true,
       },
+      hoverProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -106,9 +113,8 @@ connection.onDidChangeConfiguration((change) => {
 });
 
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
-  if (true) {
-    return Promise.resolve(globalSettings);
-  }
+  return Promise.resolve(globalSettings);
+
   let result = documentSettings.get(resource);
   if (!result) {
     result = connection.workspace.getConfiguration({
@@ -136,43 +142,41 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const settings = await getDocumentSettings(textDocument.uri);
   // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
-  const pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
+  const path = getTempFgCodeFilePath("code.fg");
+  createFileAndAppend(path, text);
 
-  let problems = 0;
-  const diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-    problems++;
-    const diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Warning,
-      range: {
-        start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length),
-      },
-      message: `${m[0]} is all uppercase.`,
-      source: "ex",
-    };
-    if (hasDiagnosticRelatedInformationCapability) {
-      diagnostic.relatedInformation = [
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: "Spelling matters",
-        },
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: "Particularly for names",
-        },
-      ];
-    }
-    diagnostics.push(diagnostic);
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
+
+  const result = await validateFile(path);
+
+  if (!result.hasError) {
+    return;
   }
 
+  const diagnostics: Diagnostic[] = [];
+
+  const range = Range.create(
+    Position.create(result.lineNumber, 0),
+    Position.create(result.lineNumber, result.columnNumber)
+  );
+
+  const diagnostic: Diagnostic = {
+    severity: DiagnosticSeverity.Error,
+    range,
+    message: result.errorMessage,
+    source: textDocument.uri,
+    relatedInformation: [
+      {
+        location: {
+          uri: textDocument.uri,
+          range,
+        },
+        message: result.stdoutWithoutColors,
+      },
+    ],
+  };
+
+  diagnostics.push(diagnostic);
   // Send the computed diagnostics to VS Code.
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
@@ -188,24 +192,14 @@ connection.onCompletion(
     // The pass parameter contains the position of the text document in
     // which code complete got requested. For the example we ignore this
     // info and always provide the same completion items.
-    return [
-      {
-        label: "TypeScript",
-        kind: CompletionItemKind.Text,
-        data: 1,
-      },
-      {
-        label: "JavaScript",
-        kind: CompletionItemKind.Text,
-        data: 2,
-      },
-    ];
+    return keywordsCompletionItems;
   }
 );
 
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+  console.log("Item", item);
   if (item.data === 1) {
     item.detail = "TypeScript details";
     item.documentation = "TypeScript documentation";
@@ -214,6 +208,32 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
     item.documentation = "JavaScript documentation";
   }
   return item;
+});
+
+connection.onHover((params: HoverParams) => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    return;
+  }
+
+  const text = document.getText(
+    Range.create(Position.create(0, 0), params.position)
+  );
+  const lines = text.split("\n");
+
+  const lastLine = lines[lines.length - 1];
+
+  const words = lastLine.split(/\s+/);
+  const lastWord = words[words.length - 1];
+
+  if (!lastWord) {
+    return;
+  }
+  return {
+    contents: keywordsCompletionItems.find(
+      (item) => item.label.substring(0, lastWord.length) === lastWord
+    )?.documentation,
+  };
 });
 
 // Make the text document manager listen on the connection

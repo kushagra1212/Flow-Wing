@@ -574,13 +574,16 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
   this->match(SyntaxKindUtils::SyntaxKind::TypeKeyword);
   appendWithSpace();
 
+  std::any val = "";
   std::unique_ptr<SyntaxToken<std::any>> typeToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
   appendWithSpace();
 
-  std::any val = std::any_cast<std::string>(typeToken->getValue()) +
-                 FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                 IDGenerator::CustomTypeIDGenerator::instance()->nextString();
+  if (typeToken->getValue().type() == typeid(std::string)) {
+    val = std::any_cast<std::string>(typeToken->getValue()) +
+          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
+          IDGenerator::CustomTypeIDGenerator::instance()->nextString();
+  }
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
       std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(typeToken),
@@ -710,8 +713,11 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   std::unique_ptr<SyntaxToken<std::any>> stringToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::StringToken));
   appendNewLine();
-  const std::string relativeFilePath =
-      std::any_cast<std::string>(stringToken->getValue());
+  std::string relativeFilePath = "";
+
+  if (stringToken->getValue().type() == typeid(std::string)) {
+    relativeFilePath = std::any_cast<std::string>(stringToken->getValue());
+  }
 
   bringStatement->setRelativeFilePath(relativeFilePath);
 
@@ -1188,7 +1194,8 @@ std::unique_ptr<ExpressionSyntax> Parser::parseVariableExpression(bool isSelf) {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
-  if (std::any_cast<std::string>(identifierToken->getValue()) == "self") {
+  if (identifierToken->getValue().type() == typeid(std::string) &&
+      std::any_cast<std::string>(identifierToken->getValue()) == "self") {
     identifierToken.reset();
     this->match(SyntaxKindUtils::SyntaxKind::DotToken);
     return std::move(this->parseNameorCallExpression(true));

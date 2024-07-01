@@ -253,7 +253,6 @@ void Compiler::compile(std::vector<std::string> &text,
     } else {
       Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
     }
-    return;
   }
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
@@ -296,7 +295,6 @@ void Compiler::compile(std::vector<std::string> &text,
     } else {
       Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
     }
-    return;
   } else if (this->Format.getValue() || this->ShortFormat.getValue()) {
 
     //? format and Save to file
