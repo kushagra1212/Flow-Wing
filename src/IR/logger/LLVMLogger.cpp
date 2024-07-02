@@ -59,9 +59,13 @@ void LLVMLogger::LogError(const std::string &errorMessage,
 
 void LLVMLogger::LogError(const std::string &errorMessage) {
   increaseErrorCount();
-  const std::string &message = _diagnosticHandler->getLogString(
+  const Diagnostic diagnostic =
       Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Runtime, _location));
+                 DiagnosticUtils::DiagnosticType::Semantic, _location);
+
+  _diagnosticHandler->logJSONifAsked(_outputFilePath, diagnostic);
+
+  const std::string &message = _diagnosticHandler->getLogString(diagnostic);
 
   this->logLLVMError(llvm::make_error<llvm::StringError>(
       message, llvm::inconvertibleErrorCode()));

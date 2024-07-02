@@ -60,6 +60,8 @@ JSON outJSON(BoundStatement *statement, bool isLast);
 JSON outJSON(SyntaxNode *node);
 JSON outJSON(CompilationUnitSyntax *compilationUnit);
 
+void logJSON(JSON &jsonObject, std::string filePath);
+
 const std::string getFileName(const std::string &filePath);
 
 const std::string concatErrors(const std::vector<std::string> &errors,

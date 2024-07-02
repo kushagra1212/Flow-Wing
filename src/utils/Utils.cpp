@@ -394,9 +394,9 @@ Utils::removeExtensionFromString(const std::string &filePath) {
 
 DiagnosticUtils::SourceLocation
 Utils::getSourceLocation(SyntaxToken<std::any> *token) {
-  return DiagnosticUtils::SourceLocation(token->getLineNumber(),
-                                         token->getColumnNumber(),
-                                         token->getAbsoluteFilePath());
+  return DiagnosticUtils::SourceLocation(
+      token->getLineNumber(), token->getColumnNumber(),
+      token->getText().length(), token->getAbsoluteFilePath());
 }
 
 Utils::type Utils::toContainerType(Utils::type basicType) {
@@ -641,6 +641,18 @@ void Utils::deleteFilesWithExtension(const std::string &directoryPath,
     if (entry.path().extension() == extension) {
       fs::remove(entry.path());
     }
+  }
+}
+
+void Utils::logJSON(JSON &jsonObject, std::string filePath) {
+  std::ofstream outputFile(filePath);
+  if (outputFile.is_open()) {
+    outputFile << jsonObject.dump(1); // Pretty print with 1 spaces
+    outputFile.close();
+    Utils::print_log("JSON object has been written to " + filePath,
+                     SUCCESS_COLOR);
+  } else {
+    Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
   }
 }
 

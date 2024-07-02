@@ -16,6 +16,7 @@ public:
   Compiler(std::string filePath = "");
 
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
+
   void runTests(std::istream &inputStream, std::ostream &outputStream);
 
   const std::string getBuiltInModulePath() const;
@@ -32,7 +33,7 @@ public:
   std::unique_ptr<llvm::Module>
   createModuleFromIR(const std::string &filePath,
                      std::unique_ptr<llvm::LLVMContext> &TheContext);
-
+  void logNoErrorJSONIfAsked();
   inline auto setOutputFilePath(const std::string &outputFilePath) {
     _outputFilePath = outputFilePath;
   }

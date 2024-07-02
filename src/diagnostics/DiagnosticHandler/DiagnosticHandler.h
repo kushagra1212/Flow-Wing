@@ -15,6 +15,8 @@ private:
   std::string _filePath;
   std::vector<std::string> _replLines;
 
+  std::string _outputFilePath = "";
+
 public:
   std::string getFileName(const std::string &filePath);
   DiagnosticHandler(std::string filePath = "",
@@ -32,6 +34,9 @@ public:
   const void printDiagnostic(std::ostream &outputStream,
                              const Diagnostic &diagnostic);
 
+  void logJSONifAsked(const std::string &outputFilePath,
+                      const Diagnostic &diagnostic);
+
   bool hasError(DiagnosticUtils::DiagnosticLevel) const;
 
   bool hasError(DiagnosticUtils::DiagnosticType) const;
@@ -45,6 +50,14 @@ public:
   std::vector<std::string> getLines();
 
   const int8_t isRepl() const;
+
+  inline auto setOutputFilePath(const std::string &outputFilePath) -> void {
+    this->_outputFilePath = outputFilePath;
+  }
+
+  inline auto getOutputFilePath() const -> const std::string & {
+    return this->_outputFilePath;
+  }
 };
 } // namespace FLowWing
 

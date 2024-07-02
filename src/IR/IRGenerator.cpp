@@ -4,7 +4,7 @@ IRGenerator::IRGenerator(
     int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
-    const std::string sourceFileName) {
+    std::string outputFilePath, const std::string sourceFileName) {
   // Initialize the code generation context
   _codeGenerationContext = std::make_unique<CodeGenerationContext>(
       diagnosticHandler, sourceFileName);
@@ -16,6 +16,9 @@ IRGenerator::IRGenerator(
   TheModule = _codeGenerationContext->getModule().get();
   TheContext = _codeGenerationContext->getContext().get();
   _llvmLogger = _codeGenerationContext->getLogger().get();
+
+  //? Eg. Output error in JSON format
+  _llvmLogger->setOutputFilePath(outputFilePath);
 
   // Initialize the environment
 

@@ -28,6 +28,7 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
       bringStatement->getGlobalScopePtr()->functions,
+      bringStatement->getDiagnosticHandlerPtr()->getOutputFilePath(),
       absoluteFilePathWithoutExtension);
 
   _evaluator->generateEvaluateGlobalStatement(

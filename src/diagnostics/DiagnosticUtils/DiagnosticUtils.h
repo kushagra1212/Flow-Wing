@@ -22,6 +22,7 @@ std::string toString(DiagnosticType type);
 struct SourceLocation {
   int lineNumber;
   int columnNumber;
+  int length;
   std::string absoluteFilePath;
 
   SourceLocation() {
@@ -30,14 +31,15 @@ struct SourceLocation {
     this->absoluteFilePath = "";
   }
 
-  SourceLocation(int lineNumber, int columnNumber,
+  SourceLocation(int lineNumber, int columnNumber, int length,
                  std::string absoluteFilePath) {
     this->lineNumber = lineNumber;
     this->columnNumber = columnNumber;
+    this->length = length;
     this->absoluteFilePath = absoluteFilePath;
   }
 };
 
-}  // namespace DiagnosticUtils
+} // namespace DiagnosticUtils
 
-#endif  // DIAGNOSTIC_UTILS_H
+#endif // DIAGNOSTIC_UTILS_H

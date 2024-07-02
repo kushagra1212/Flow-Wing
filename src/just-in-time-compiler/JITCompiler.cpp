@@ -31,7 +31,7 @@ void JITCompiler::execute() {
         Diagnostic("Failed to create Execution Engine: " + errorMessage,
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Linker,
-                   DiagnosticUtils::SourceLocation(0, 0, "")));
+                   DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return;
   }
 
@@ -40,7 +40,7 @@ void JITCompiler::execute() {
         std::cout, Diagnostic("Function not found in module.",
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, "")));
+                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return;
   }
   int hasError = 1;
@@ -61,7 +61,7 @@ void JITCompiler::execute() {
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation(
-                                  0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
+                                  0, 0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
   }
   // return hasError;
 }

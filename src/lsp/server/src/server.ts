@@ -18,8 +18,9 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { keywordsCompletionItems } from "./store";
-import { createFileAndAppend, getTempFgCodeFilePath } from "./utils";
+import { getTempFgCodeFilePath } from "./utils";
 import { validateFile } from "./validation/validateFile";
+import { fileUtils } from "./utils/fileUtils";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -138,32 +139,34 @@ documents.onDidChangeContent((change) => {
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  // In this simple example we get the settings for every validate run.
-  const settings = await getDocumentSettings(textDocument.uri);
-  // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
-  const path = getTempFgCodeFilePath("code.fg");
-  createFileAndAppend(path, text);
+  const path = getTempFgCodeFilePath({ fileName: "code.fg" });
+  fileUtils.writeFile(path, text);
 
+  const { stdoutWithoutColors, errorObject } = await validateFile(path);
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
 
-  const result = await validateFile(path);
-
-  if (!result.hasError) {
+  if (!errorObject.error) {
     return;
   }
 
   const diagnostics: Diagnostic[] = [];
 
   const range = Range.create(
-    Position.create(result.lineNumber, 0),
-    Position.create(result.lineNumber, result.columnNumber)
+    Position.create(
+      errorObject.location.line - 1,
+      errorObject.location.column - 1
+    ),
+    Position.create(
+      errorObject.location.line - 1,
+      errorObject.location.column + errorObject.location.length - 1
+    )
   );
 
   const diagnostic: Diagnostic = {
     severity: DiagnosticSeverity.Error,
     range,
-    message: result.errorMessage,
+    message: errorObject.message,
     source: textDocument.uri,
     relatedInformation: [
       {
@@ -171,7 +174,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           uri: textDocument.uri,
           range,
         },
-        message: result.stdoutWithoutColors,
+        message: stdoutWithoutColors,
       },
     ],
   };

@@ -102,6 +102,7 @@ public:
   IRGenerator(int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
               std::unordered_map<std::string, BoundFunctionDeclaration *>
                   boundedUserFunctions,
+              std::string outputFilePath,
               const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
   void printIR();
 

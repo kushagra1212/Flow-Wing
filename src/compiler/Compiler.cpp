@@ -49,7 +49,7 @@ Compiler::getMemoryBuffer(std::string filePath) {
                                   bufferOrErr.getError().message(),
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, "")));
+                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     exit(1);
     return nullptr;
   }
@@ -67,7 +67,7 @@ Compiler::createModuleFromIR(const std::string &filePath,
         std::cerr, Diagnostic("Error reading IR file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, "")));
+                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return nullptr;
   }
 
@@ -89,7 +89,7 @@ std::unique_ptr<llvm::Module> Compiler::createModuleFromBitcode(
         std::cerr, Diagnostic("Error reading bitcode file: " + filePath,
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, "")));
+                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return nullptr;
   }
 }
@@ -110,7 +110,7 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
         std::cerr, Diagnostic("No user defined IR files found.",
                               DiagnosticUtils::DiagnosticLevel::Error,
                               DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, "")));
+                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return {};
   }
 
@@ -158,7 +158,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
         std::cerr,
         Diagnostic("Linking " + path, DiagnosticUtils::DiagnosticLevel::Info,
                    DiagnosticUtils::DiagnosticType::Linker,
-                   DiagnosticUtils::SourceLocation(0, 0, path)));
+                   DiagnosticUtils::SourceLocation(0, 0, 0, path)));
 
 #endif
 
@@ -167,10 +167,11 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
         llvm::Linker::Flags::OverrideFromSrc);
     if (LinkResult) {
       _currentDiagnosticHandler->printDiagnostic(
-          std::cerr, Diagnostic("Error linking " + path,
-                                DiagnosticUtils::DiagnosticLevel::Error,
-                                DiagnosticUtils::DiagnosticType::Linker,
-                                DiagnosticUtils::SourceLocation(0, 0, path)));
+          std::cerr,
+          Diagnostic("Error linking " + path,
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Linker,
+                     DiagnosticUtils::SourceLocation(0, 0, 0, path)));
       return nullptr;
     }
   }
@@ -183,7 +184,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
                             DiagnosticUtils::DiagnosticLevel::Info,
                             DiagnosticUtils::DiagnosticType::Linker,
                             DiagnosticUtils::SourceLocation(
-                                0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
+                                0, 0, 0, "FLOWWING_GLOBAL_ENTRY_POINT")));
 
   TheModule->print(llvm::outs(), nullptr);
 
@@ -199,6 +200,8 @@ void Compiler::compile(std::vector<std::string> &text,
   std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<FLowWing::DiagnosticHandler>(
           Utils::getAbsoluteFilePath(this->_filePath));
+
+  currentDiagnosticHandler->setOutputFilePath(_outputFilePath);
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -244,15 +247,7 @@ void Compiler::compile(std::vector<std::string> &text,
   if (Utils::getExtension(_outputFilePath) == ".json") {
 
     JSON jsonObject = Utils::outJSON(compilationUnit.get());
-    std::ofstream outputFile(_outputFilePath);
-    if (outputFile.is_open()) {
-      outputFile << jsonObject.dump(1); // Pretty print with 4 spaces
-      outputFile.close();
-      Utils::print_log("JSON object has been written to " + _outputFilePath,
-                       SUCCESS_COLOR);
-    } else {
-      Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
-    }
+    Utils::logJSON(jsonObject, _outputFilePath);
   }
   std::unique_ptr<BoundScopeGlobal> globalScope =
       std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
@@ -284,17 +279,10 @@ void Compiler::compile(std::vector<std::string> &text,
 #endif
 
   if (Utils::getExtension(_outputFilePath) == ".json") {
+    //! Disable for now
+    // JSON jsonObject = Utils::outJSON(globalScope->globalStatement.get(),
+    // false); Utils::logJSON(jsonObject, _outputFilePath);
 
-    JSON jsonObject = Utils::outJSON(globalScope->globalStatement.get(), false);
-    std::ofstream outputFile(_outputFilePath);
-    if (outputFile.is_open()) {
-      outputFile << jsonObject.dump(1); // Pretty print with 1 spaces
-      outputFile.close();
-      Utils::print_log("JSON object has been written to " + _outputFilePath,
-                       SUCCESS_COLOR);
-    } else {
-      Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
-    }
   } else if (this->Format.getValue() || this->ShortFormat.getValue()) {
 
     //? format and Save to file
@@ -311,7 +299,7 @@ void Compiler::compile(std::vector<std::string> &text,
               DiagnosticUtils::DiagnosticLevel::Error,
               DiagnosticUtils::DiagnosticType::Linker,
               DiagnosticUtils::SourceLocation(
-                  0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
+                  0, 0, 0, currentDiagnosticHandler->getAbsoluteFilePath())));
       return;
     }
 
@@ -329,7 +317,7 @@ void Compiler::compile(std::vector<std::string> &text,
 
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions);
+        globalScope.get()->functions, _outputFilePath);
 
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
@@ -341,11 +329,23 @@ void Compiler::compile(std::vector<std::string> &text,
     // _evaluator.reset(nullptr);
 
     if (!_evaluator->hasErrors()) {
+      logNoErrorJSONIfAsked();
+
       this->execute();
     }
     outputStream << std::endl;
   } catch (const std::exception &e) {
+
     outputStream << RED << e.what() << RESET << "\n";
+  }
+}
+
+void Compiler::logNoErrorJSONIfAsked() {
+  if (Utils::getExtension(_outputFilePath) == ".json") {
+    JSON jsonObj = {{"error", false}};
+    Utils::logJSON(
+        jsonObj, _outputFilePath.substr(0, _outputFilePath.find_last_of(".")) +
+                     ".err.json");
   }
 }
 
@@ -404,7 +404,7 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   try {
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
-        globalScope.get()->functions);
+        globalScope.get()->functions, _outputFilePath);
     _evaluator->generateEvaluateGlobalStatement(
         globalScope->globalStatement.get());
 
