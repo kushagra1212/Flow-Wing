@@ -165,8 +165,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::Askeyword:
     return "Askeyword";
 
-  case SyntaxKind::INOUTKeyword:
-    return "INOUTKeyword";
+  case SyntaxKind::InOutKeyword:
+    return "InOutKeyword";
 
   case SyntaxKind::ReturnKeyword:
     return "ReturnKeyword";

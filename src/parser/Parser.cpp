@@ -932,9 +932,9 @@ Parser::parseVariableDeclaration(bool isFuncDec) {
   }
 
   if (isFuncDec &&
-      SyntaxKindUtils::SyntaxKind::INOUTKeyword == this->getKind()) {
+      SyntaxKindUtils::SyntaxKind::InOutKeyword == this->getKind()) {
     varDec->setInoutKeyword(
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::INOUTKeyword)));
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::InOutKeyword)));
     appendWithSpace();
   }
 
