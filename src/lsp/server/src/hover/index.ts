@@ -2,10 +2,12 @@ import * as fs from "fs";
 import {
   ArrayTypeExpression,
   BracketedExpression,
+  CallExpression,
   ClassStatement,
   ConstKeyword,
   CustomTypeStatement,
   FunctionDeclaration,
+  IdentifierToken,
   LiteralExpression,
   ObjectTypeExpression,
   PrimitiveTypeExpression,
@@ -14,6 +16,15 @@ import {
   VariableDeclaration,
   VarKeyword,
 } from "./types";
+import { HoverStack, Stack } from "./stack";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  ParameterInformation,
+  Position,
+} from "vscode-languageserver";
+import { fileUtils } from "../utils/fileUtils";
+import { getMarkTSSyntaxHighlightMarkdown } from "../utils";
 
 // Define interfaces for the JSON structure (if known parts are provided)
 
@@ -40,9 +51,9 @@ const getBrackedExpressionAsString = (
   return bracketedExpressionString;
 };
 
-const getCustomTypeStatementAsString = (
+const parseCustomTypeStatement = (
   customTypeStatement: CustomTypeStatement
-): string => {
+): CompletionItem => {
   let customTypeStatementString = "type ";
 
   if (customTypeStatement[0]["LiteralExpression"]) {
@@ -62,7 +73,31 @@ const getCustomTypeStatementAsString = (
     }
   }
   customTypeStatementString += "}\n";
-  return customTypeStatementString;
+
+  const typeName = getTypeNameFromCustomTypeStatement(customTypeStatement);
+
+  return {
+    label: typeName,
+    kind: CompletionItemKind.TypeParameter,
+    data: typeName,
+    detail: "Custom Type",
+    documentation: {
+      kind: "markdown",
+      value: getMarkTSSyntaxHighlightMarkdown(customTypeStatementString),
+    },
+  };
+};
+
+const getTypeNameFromCustomTypeStatement = (
+  customTypeStatement: CustomTypeStatement
+): string => {
+  if (!customTypeStatement[0]["LiteralExpression"]) {
+    return "";
+  }
+
+  return getLiteralExpressionAsString(
+    customTypeStatement[0]["LiteralExpression"][0]
+  );
 };
 
 const getPrimitiveTypeAsString = (
@@ -171,9 +206,9 @@ const getVarorConstAsString = (varOrConst: {
   return "";
 };
 
-const getVariableDeclarationAsString = (
+const parseVariableDeclaration = (
   variableDeclaration: VariableDeclaration
-): string => {
+): CompletionItem => {
   let variableDeclarationStr = "";
   let index = 0;
   if (
@@ -200,34 +235,72 @@ const getVariableDeclarationAsString = (
       variableDeclaration[index] as TypeExpression
     );
   else variableDeclarationStr += "unknown";
+  const variableName =
+    getVariableNameFromVariableDeclaration(variableDeclaration);
 
-  return variableDeclarationStr;
+  return {
+    label: variableName,
+    kind: CompletionItemKind.Variable,
+    data: "variable",
+    detail: variableDeclarationStr,
+    documentation: {
+      kind: "markdown",
+      value: getMarkTSSyntaxHighlightMarkdown(variableDeclarationStr),
+    },
+  };
 };
 
-const getFunctionDeclarationAsString = (
-  functionDeclaration: FunctionDeclaration
+const getVariableNameFromVariableDeclaration = (
+  variableDeclaration: VariableDeclaration
 ): string => {
-  let functionDeclarationStr = "";
-  if (functionDeclaration[0]["FunctionKeyword"])
-    functionDeclarationStr +=
-      functionDeclaration[0]["FunctionKeyword"].value + " ";
+  let index = 0;
+  if (
+    variableDeclaration[index]["VarKeyword"] ||
+    variableDeclaration[index]["ConstKeyword"]
+  )
+    index++;
 
-  if (functionDeclaration[1]["IdentifierToken"])
-    functionDeclarationStr += functionDeclaration[1]["IdentifierToken"].value;
+  if (variableDeclaration[index]["InOutKeyword"]) index++;
+
+  return variableDeclaration[index]["IdentifierToken"].value;
+};
+
+const parseFunctionDeclaration = (
+  functionDeclaration: FunctionDeclaration
+): CompletionItem => {
+  let functionDeclarationStr = "";
+  let index = 0;
+
+  if (functionDeclaration[index]["FunctionKeyword"])
+    functionDeclarationStr +=
+      functionDeclaration[index++]["FunctionKeyword"].value + " ";
+  else functionDeclarationStr += "fun ";
+
+  if (functionDeclaration[index]["IdentifierToken"])
+    functionDeclarationStr +=
+      functionDeclaration[index++]["IdentifierToken"].value;
 
   functionDeclarationStr += "(";
-  let index = 2;
+  let hasCommaAtEnd = false;
+
+  const functionParameters: ParameterInformation[] = [];
   while (functionDeclaration[index]["VariableDeclaration"]) {
-    functionDeclarationStr +=
-      getVariableDeclarationAsString(
-        functionDeclaration[index++]["VariableDeclaration"]
-      ) + ", ";
+    const functionParameter = parseVariableDeclaration(
+      functionDeclaration[index++]["VariableDeclaration"]
+    );
+    functionDeclarationStr += functionParameter.detail + ", ";
+    functionParameters.push({
+      label: functionParameter.label,
+      documentation: functionParameter.documentation,
+    });
+    hasCommaAtEnd = true;
   }
 
-  functionDeclarationStr = functionDeclarationStr.slice(
-    0,
-    functionDeclarationStr.length - 2
-  );
+  if (hasCommaAtEnd)
+    functionDeclarationStr = functionDeclarationStr.slice(
+      0,
+      functionDeclarationStr.length - 2
+    );
 
   functionDeclarationStr += ") -> ";
   while (index < functionDeclaration.length) {
@@ -246,10 +319,42 @@ const getFunctionDeclarationAsString = (
     index++;
   }
 
-  return functionDeclarationStr;
+  const functionName =
+    getFunctionNameFromFunctionDeclaration(functionDeclaration);
+
+  return {
+    label: functionName,
+    kind: CompletionItemKind.Function,
+    data: {
+      signatures: [
+        {
+          label: functionDeclarationStr,
+          parameters: functionParameters,
+        },
+      ],
+    },
+    detail: functionDeclarationStr,
+    documentation: {
+      kind: "markdown",
+      value: getMarkTSSyntaxHighlightMarkdown(functionDeclarationStr),
+    },
+  };
 };
 
-const getClassStatementsString = (classDeclaration: ClassStatement): string => {
+const getFunctionNameFromFunctionDeclaration = (
+  functionDeclaration: FunctionDeclaration
+): string => {
+  if (functionDeclaration[0]["IdentifierToken"])
+    return functionDeclaration[0]["IdentifierToken"].value;
+
+  if (!functionDeclaration[1]["IdentifierToken"]) return "";
+
+  return functionDeclaration[1]["IdentifierToken"].value;
+};
+
+const getClassStatementsString = (
+  classDeclaration: ClassStatement
+): CompletionItem => {
   let classDeclarationStr = "";
 
   if (classDeclaration[0]["ClassKeyword"])
@@ -258,71 +363,423 @@ const getClassStatementsString = (classDeclaration: ClassStatement): string => {
   if (classDeclaration[1]["IdentifierToken"])
     classDeclarationStr += classDeclaration[1]["IdentifierToken"].value;
 
-  return classDeclarationStr;
+  const className = getClassNameFromClassStatement(classDeclaration);
+  return {
+    label: className,
+    kind: CompletionItemKind.Class,
+    data: "class",
+    detail: classDeclarationStr,
+    documentation: {
+      kind: "markdown",
+      value: getMarkTSSyntaxHighlightMarkdown(classDeclarationStr),
+    },
+  };
+};
+
+const getClassNameFromClassStatement = (
+  classDeclaration: ClassStatement
+): string => {
+  if (!classDeclaration[1]["IdentifierToken"]) return "";
+
+  return classDeclaration[1]["IdentifierToken"].value;
+};
+
+const parseCallExpression = (
+  callExpression: CallExpression
+): CompletionItem => {
+  let callExpressionStr = "",
+    index = 0;
+
+  if (callExpression[index]["IdentifierToken"])
+    callExpressionStr += callExpression[index++]["IdentifierToken"].value;
+
+  callExpressionStr += "(";
+  let hasCommaAtEnd = false;
+  while (callExpression[index]["VariableDeclaration"]) {
+    callExpressionStr +=
+      parseVariableDeclaration(callExpression[index++]["VariableDeclaration"])
+        .detail + ", ";
+    hasCommaAtEnd = true;
+  }
+
+  if (hasCommaAtEnd)
+    callExpressionStr = callExpressionStr.slice(
+      0,
+      callExpressionStr.length - 2
+    );
+
+  callExpressionStr += ")";
+  const callerName = getCallExpressionCallerName(callExpression);
+  return {
+    label: callerName,
+    kind: CompletionItemKind.Function,
+    data: callerName,
+    detail: callExpressionStr,
+    documentation: {
+      kind: "markdown",
+      value: getMarkTSSyntaxHighlightMarkdown(callExpressionStr),
+    },
+  };
+};
+
+const getCallExpressionCallerName = (
+  callExpression: CallExpression
+): string => {
+  if (!callExpression[0]["IdentifierToken"]) return "";
+
+  return callExpression[0]["IdentifierToken"].value;
+};
+
+const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
+  const result = new Stack<T>();
+  while (!stack.isEmpty()) {
+    result.push(stack.pop());
+  }
+  return result;
+};
+
+const getAllCompletionItems = (
+  currentStack: Stack<HoverStack>
+): CompletionItem[] => {
+  const reversedStack = reverseStack(currentStack);
+  const result: CompletionItem[] = [];
+  const mapping: HoverStack = {
+    variableDeclarations: new Map(),
+    customTypes: new Map(),
+    classes: new Map(),
+    functions: new Map(),
+    callExpression: new Map(),
+  };
+  while (!reversedStack.isEmpty()) {
+    const current = reversedStack.pop();
+
+    current.variableDeclarations.forEach((value, key) => {
+      mapping.variableDeclarations.set(key, value);
+    });
+
+    current.customTypes.forEach((value, key) => {
+      mapping.customTypes.set(key, value);
+    });
+
+    current.classes.forEach((value, key) => {
+      mapping.classes.set(key, value);
+    });
+
+    current.functions.forEach((value, key) => {
+      mapping.functions.set(key, value);
+    });
+
+    current.callExpression.forEach((value, key) => {
+      mapping.callExpression.set(key, value);
+    });
+  }
+
+  if (mapping.variableDeclarations)
+    result.push(...Array.from(mapping.variableDeclarations.values()));
+
+  if (mapping.customTypes)
+    result.push(...Array.from(mapping.customTypes.values()));
+
+  if (mapping.classes) result.push(...Array.from(mapping.classes.values()));
+
+  if (mapping.functions) result.push(...Array.from(mapping.functions.values()));
+
+  if (mapping.callExpression)
+    result.push(...Array.from(mapping.callExpression.values()));
+
+  return result;
+};
+
+const getAllCompletionItemsOfIdentifier = (
+  currentStack: Stack<HoverStack>,
+  identifier: string
+): CompletionItem[] => {
+  const reversedStack = reverseStack(currentStack);
+  const result: CompletionItem[] = [];
+
+  while (!reversedStack.isEmpty()) {
+    const current = reversedStack.pop();
+    if (current.variableDeclarations.get(identifier))
+      result.push(current.variableDeclarations.get(identifier));
+
+    if (current.customTypes.get(identifier))
+      result.push(current.customTypes.get(identifier));
+
+    if (current.functions.get(identifier))
+      result.push(current.functions.get(identifier));
+
+    if (current.classes.get(identifier))
+      result.push(current.classes.get(identifier));
+
+    if (current.callExpression.get(identifier))
+      result.push(current.callExpression.get(identifier));
+  }
+
+  return result;
 };
 
 // Function to read the JSON file and process it
-function readAndProcessJson(
+export async function readAndProcessSyntaxJSON(
   filePath: string,
-  columnNumber: number,
-  lineNumber: number
-) {
-  fs.readFile(filePath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading file:", err);
-      return;
-    }
+  postion: Position
+): Promise<CompletionItem[]> {
+  try {
+    const syntaxTreeAsString = await fileUtils.readFile(filePath);
+    const jsonObject: RootObject = JSON.parse(syntaxTreeAsString);
+    const hoverStack = new Stack<HoverStack>();
+    hoverStack.push({
+      variableDeclarations: new Map(),
+      customTypes: new Map(),
+      classes: new Map(),
+      functions: new Map(),
+      callExpression: new Map(),
+    });
 
-    try {
-      // Parse the JSON data and typecast it
-      const jsonObject: RootObject = JSON.parse(data);
-
-      // Recursive function to traverse the JSON structure
-      const traverseJson = function (obj: any): string | null {
-        if (Array.isArray(obj)) {
-          for (const item of obj) {
-            const result = traverseJson(item);
-            if (result) return result;
-          }
-        } else if (typeof obj === "object" && obj !== null) {
-          if (obj["VariableDeclaration"]) {
-            return getVariableDeclarationAsString(obj["VariableDeclaration"]);
-          } else if (obj["CustomTypeStatement"]) {
-            return getCustomTypeStatementAsString(
-              obj["CustomTypeStatement"] as CustomTypeStatement
+    // Recursive function to traverse the JSON structure
+    const traverseJson = function (obj: any): CompletionItem[] {
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const result = traverseJson(item);
+          if (result.length) return result;
+        }
+      } else if (typeof obj === "object" && obj !== null) {
+        if (obj["VariableDeclaration"]) {
+          hoverStack
+            .peek()
+            .variableDeclarations.set(
+              getVariableNameFromVariableDeclaration(
+                obj["VariableDeclaration"]
+              ),
+              parseVariableDeclaration(obj["VariableDeclaration"])
             );
-          } else if (obj["FunctionDeclarationSyntax"]) {
-            return getFunctionDeclarationAsString(
-              obj["FunctionDeclarationSyntax"] as FunctionDeclaration
+        } else if (obj["CallExpression"]) {
+          hoverStack
+            .peek()
+            .callExpression.set(
+              getCallExpressionCallerName(obj["CallExpression"]),
+              parseCallExpression(obj["CallExpression"])
             );
-          } else if (obj["ClassStatement"]) {
-            return getClassStatementsString(
-              obj["ClassStatement"] as ClassStatement
+        } else if (obj["CustomTypeStatement"]) {
+          hoverStack
+            .peek()
+            .customTypes.set(
+              getTypeNameFromCustomTypeStatement(obj["CustomTypeStatement"]),
+              parseCustomTypeStatement(
+                obj["CustomTypeStatement"] as CustomTypeStatement
+              )
             );
-          }
-          for (const value of Object.values(obj)) {
-            const result = traverseJson(value);
-            if (result) return result;
+        } else if (obj["FunctionDeclarationSyntax"]) {
+          hoverStack
+            .peek()
+            .functions.set(
+              getFunctionNameFromFunctionDeclaration(
+                obj["FunctionDeclarationSyntax"]
+              ),
+              parseFunctionDeclaration(
+                obj["FunctionDeclarationSyntax"] as FunctionDeclaration
+              )
+            );
+        } else if (obj["ClassStatement"]) {
+          hoverStack
+            .peek()
+            .functions.set(
+              getClassNameFromClassStatement(obj["ClassStatement"]),
+              getClassStatementsString(obj["ClassStatement"] as ClassStatement)
+            );
+        } else if (obj["IdentifierToken"]) {
+          const identifierToken: IdentifierToken = obj["IdentifierToken"];
+          if (
+            identifierToken.columnNumber === postion.character &&
+            identifierToken.lineNumber === postion.line
+          ) {
+            return getAllCompletionItemsOfIdentifier(
+              hoverStack,
+              identifierToken.value
+            );
           }
         }
-        return null;
-      };
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+        ) {
+          hoverStack.push({
+            variableDeclarations: new Map(),
+            customTypes: new Map(),
+            classes: new Map(),
+            functions: new Map(),
+            callExpression: new Map(),
+          });
+        }
 
-      // Traverse the JSON structure and get the result
-      const result = traverseJson(jsonObject);
+        for (const value of Object.values(obj)) {
+          const result = traverseJson(value);
 
-      if (result) {
-        console.log(result);
-      } else {
-        console.log(
-          `No VariableDeclaration found for column ${columnNumber} and line ${lineNumber}.`
-        );
+          if (result.length) return result;
+        }
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+        ) {
+          hoverStack.pop();
+        }
       }
-    } catch (err) {
-      console.error("Error parsing JSON:", err);
-    }
-  });
+      return [];
+    };
+
+    // Traverse the JSON structure and get the result
+    return traverseJson(jsonObject);
+  } catch (err) {
+    console.error(`Error reading and processing JSON file: ${filePath}`, err);
+    return [];
+  }
 }
 
-// Call the function with the provided columnNumber and lineNumber
-readAndProcessJson(filePath, 4, 3);
+export async function handleOnCompletion(
+  filePath: string,
+  postion: Position
+): Promise<CompletionItem[]> {
+  try {
+    const syntaxTreeAsString = await fileUtils.readFile(filePath);
+    const jsonObject: RootObject = JSON.parse(syntaxTreeAsString);
+    const hoverStack = new Stack<HoverStack>();
+    hoverStack.push({
+      variableDeclarations: new Map(),
+      customTypes: new Map(),
+      classes: new Map(),
+      functions: new Map(),
+      callExpression: new Map(),
+    });
+
+    let result: CompletionItem[] = [];
+    // Recursive function to traverse the JSON structure
+    const traverseJson = function (obj: any): boolean {
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const res = traverseJson(item);
+
+          if (res) return true;
+        }
+      } else if (typeof obj === "object" && obj !== null) {
+        if (obj["VariableDeclaration"]) {
+          hoverStack
+            .peek()
+            .variableDeclarations.set(
+              getVariableNameFromVariableDeclaration(
+                obj["VariableDeclaration"]
+              ),
+              parseVariableDeclaration(obj["VariableDeclaration"])
+            );
+        } else if (obj["CallExpression"]) {
+          hoverStack
+            .peek()
+            .callExpression.set(
+              getCallExpressionCallerName(obj["CallExpression"]),
+              parseCallExpression(obj["CallExpression"])
+            );
+        } else if (obj["CustomTypeStatement"]) {
+          hoverStack
+            .peek()
+            .customTypes.set(
+              getTypeNameFromCustomTypeStatement(obj["CustomTypeStatement"]),
+              parseCustomTypeStatement(
+                obj["CustomTypeStatement"] as CustomTypeStatement
+              )
+            );
+        } else if (obj["FunctionDeclarationSyntax"]) {
+          hoverStack
+            .peek()
+            .functions.set(
+              getFunctionNameFromFunctionDeclaration(
+                obj["FunctionDeclarationSyntax"]
+              ),
+              parseFunctionDeclaration(
+                obj["FunctionDeclarationSyntax"] as FunctionDeclaration
+              )
+            );
+        } else if (obj["ClassStatement"]) {
+          hoverStack
+            .peek()
+            .functions.set(
+              getClassNameFromClassStatement(obj["ClassStatement"]),
+              getClassStatementsString(obj["ClassStatement"] as ClassStatement)
+            );
+        }
+        if (obj["EndOfFileToken"]) {
+          result = getAllCompletionItems(hoverStack);
+          return true;
+        }
+
+        if (obj["OpenBraceToken"]) {
+          const lineNumberCloseBraceToken = obj["OpenBraceToken"]["lineNumber"];
+          const columnNumberCloseBraceToken =
+            obj["OpenBraceToken"]["columnNumber"];
+
+          if (
+            lineNumberCloseBraceToken > postion.line ||
+            (columnNumberCloseBraceToken >= postion.character &&
+              lineNumberCloseBraceToken === postion.line)
+          ) {
+            hoverStack.pop();
+            result = getAllCompletionItems(hoverStack);
+            return true;
+          }
+        }
+
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+        )
+          hoverStack.push({
+            variableDeclarations: new Map(),
+            customTypes: new Map(),
+            classes: new Map(),
+            functions: new Map(),
+            callExpression: new Map(),
+          });
+
+        for (const value of Object.values(obj)) {
+          if (obj["EndOfFileToken"]) {
+            result = getAllCompletionItems(hoverStack);
+            return true;
+          }
+
+          const res = traverseJson(value);
+          if (res) return true;
+        }
+
+        if (obj["CloseBraceToken"]) {
+          const lineNumberCloseBraceToken =
+            obj["CloseBraceToken"]["lineNumber"];
+          const columnNumberCloseBraceToken =
+            obj["CloseBraceToken"]["columnNumber"];
+
+          if (
+            lineNumberCloseBraceToken > postion.line ||
+            (columnNumberCloseBraceToken >= postion.character &&
+              lineNumberCloseBraceToken === postion.line)
+          ) {
+            result = getAllCompletionItems(hoverStack);
+            return true;
+          }
+        }
+
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+        )
+          hoverStack.pop();
+      }
+      return false;
+    };
+
+    traverseJson(jsonObject);
+    return result.length === 0 ? getAllCompletionItems(hoverStack) : result;
+  } catch (err) {
+    console.error(`Error reading and processing JSON file: ${filePath}`, err);
+    return [];
+  }
+}

@@ -15,12 +15,20 @@ import {
   HoverParams,
   Range,
   Position,
+  SignatureHelpParams,
+  SignatureHelp,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { keywordsCompletionItems } from "./store";
-import { getTempFgCodeFilePath } from "./utils";
+import { getLastWordPosition, getTempFgCodeFilePath } from "./utils";
 import { validateFile } from "./validation/validateFile";
 import { fileUtils } from "./utils/fileUtils";
+import { handleOnCompletion, readAndProcessSyntaxJSON } from "./hover";
+
+const TEMP_FILE_NAME = "code.fg";
+const JSON_FILE_PATH = `${
+  getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME }).split(".")[0]
+}.json`;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -56,8 +64,14 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that this server supports code completion.
       completionProvider: {
         resolveProvider: true,
+        triggerCharacters: ["."],
+      },
+      signatureHelpProvider: {
+        triggerCharacters: ["(", ","],
       },
       hoverProvider: true,
+      callHierarchyProvider: true,
+      documentFormattingProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -69,7 +83,6 @@ connection.onInitialize((params: InitializeParams) => {
   }
   return result;
 });
-
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
@@ -140,10 +153,13 @@ documents.onDidChangeContent((change) => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const text = textDocument.getText();
-  const path = getTempFgCodeFilePath({ fileName: "code.fg" });
+  const path = getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME });
+  fileUtils.writeFile(path, "");
   fileUtils.writeFile(path, text);
 
-  const { stdoutWithoutColors, errorObject } = await validateFile(path);
+  const { stdoutWithoutColors, errorObject, errorMessage } = await validateFile(
+    path
+  );
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
 
   if (!errorObject.error) {
@@ -174,7 +190,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           uri: textDocument.uri,
           range,
         },
-        message: stdoutWithoutColors,
+        message: errorMessage,
       },
     ],
   };
@@ -191,11 +207,29 @@ connection.onDidChangeWatchedFiles((_change) => {
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
-  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    return keywordsCompletionItems;
+  async (
+    _textDocumentPosition: TextDocumentPositionParams
+  ): Promise<CompletionItem[]> => {
+    const document = documents.get(_textDocumentPosition.textDocument.uri);
+
+    if (!document) {
+      return keywordsCompletionItems;
+    }
+    const { word, position } = getLastWordPosition(
+      document,
+      _textDocumentPosition.position,
+      new RegExp(/[\s,{}()]+/)
+    );
+
+    console.log("word", word);
+
+    if (!word) {
+      return;
+    }
+
+    const result = await handleOnCompletion(JSON_FILE_PATH, position);
+
+    return [...result, ...keywordsCompletionItems];
   }
 );
 
@@ -203,39 +237,79 @@ connection.onCompletion(
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   console.log("Item", item);
-  if (item.data === 1) {
-    item.detail = "TypeScript details";
-    item.documentation = "TypeScript documentation";
-  } else if (item.data === 2) {
-    item.detail = "JavaScript details";
-    item.documentation = "JavaScript documentation";
-  }
   return item;
 });
 
-connection.onHover((params: HoverParams) => {
+connection.onHover(async (params: HoverParams) => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
     return;
   }
-
-  const text = document.getText(
-    Range.create(Position.create(0, 0), params.position)
+  const { word, position } = getLastWordPosition(
+    document,
+    params.position,
+    new RegExp(/[\s,{}()]+/)
   );
-  const lines = text.split("\n");
 
-  const lastLine = lines[lines.length - 1];
-
-  const words = lastLine.split(/\s+/);
-  const lastWord = words[words.length - 1];
-
-  if (!lastWord) {
+  if (!word) {
     return;
   }
+
+  let result = [];
+
+  try {
+    result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position);
+  } catch (err) {
+    console.log(err);
+  }
+
   return {
-    contents: keywordsCompletionItems.find(
-      (item) => item.label.substring(0, lastWord.length) === lastWord
-    )?.documentation,
+    contents: result?.length
+      ? result[0].documentation
+      : keywordsCompletionItems.find(
+          (item) => item.label.substring(0, word.length) === word
+        )?.documentation,
+  };
+});
+
+connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    return;
+  }
+  const { word, position } = getLastWordPosition(
+    document,
+    params.position,
+    new RegExp(/[)]+/)
+  );
+
+  if (!word) {
+    return;
+  }
+
+  const result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position);
+
+  if (result.length === 0) {
+    const functionName = word.split("(")[0];
+    if (functionName) {
+      const item = keywordsCompletionItems.find(
+        (item) => item.label.substring(0, functionName.length) === functionName
+      );
+
+      if (!item?.data?.signatures) return;
+
+      return {
+        signatures: item.data?.signatures,
+        activeSignature: 0,
+        activeParameter: 0,
+      };
+    }
+  }
+
+  return {
+    signatures: result[0].data?.signatures,
+    activeSignature: 0,
+    activeParameter: word.split(",").length - 1,
   };
 });
 

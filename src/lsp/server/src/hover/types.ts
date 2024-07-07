@@ -68,6 +68,11 @@ type FunctionDeclaration = [
   any
 ];
 
+type CallExpression = [
+  { IdentifierToken: IdentifierToken },
+  ...{ VariableDeclaration: VariableDeclaration[] }[]
+];
+
 interface GlobalStatement {
   VariableDeclaration?: VariableDeclaration[];
   FunctionDeclarationSyntax?: FunctionDeclaration[];
@@ -109,6 +114,7 @@ export {
   ConstKeyword,
   LiteralExpression,
   BracketedExpression,
+  CallExpression,
   CustomTypeStatement,
   FunctionDeclaration,
   Int32Keyword,

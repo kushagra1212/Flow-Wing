@@ -243,4 +243,29 @@ fun getAge() -> int {
       `,
     },
   },
+  {
+    label: "inout",
+    kind: CompletionItemKind.Keyword,
+    data: "inout",
+    detail: "Inout Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Inout Keyword**
+
+The \`inout\` keyword is used to declare an input and output parameter in a function.
+
+### Properties:
+- **Usage**: allow parameters to be passed by reference
+
+### Example:
+\`\`\`ts
+fun getAge(inout age:int) -> int {
+  age = age + 1
+  return age
+}
+\`\`\`
+      `,
+    },
+  },
 ];

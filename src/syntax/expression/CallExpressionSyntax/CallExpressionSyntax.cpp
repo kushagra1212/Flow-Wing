@@ -60,16 +60,19 @@ const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
       this->_children.push_back(_newKeyword.get());
     }
     this->_children.push_back(_identifier.get());
-    this->_children.push_back(_openParenthesisToken.get());
+
+    //? Not used
+    // this->_children.push_back(_openParenthesisToken.get());
 
     for (int i = 0; i < _arguments.size(); i++) {
       this->_children.push_back(_arguments[i].get());
-      if (i < _separators.size()) {
-        this->_children.push_back(_separators[i].get());
-      }
+      //? Not used
+      // if (i < _separators.size()) {
+      //   this->_children.push_back(_separators[i].get());
+      // }
     }
-
-    this->_children.push_back(_closeParenthesisToken.get());
+    //? Not used
+    // this->_children.push_back(_closeParenthesisToken.get());
   }
   return this->_children;
 }

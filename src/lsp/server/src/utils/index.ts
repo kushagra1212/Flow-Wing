@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as os from "os";
 import { ErrorResult } from "./types";
 import { fileUtils } from "./fileUtils";
+import { Position, Range } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 export const getTempFgCodeFilePath = ({
   fileName,
@@ -10,7 +12,6 @@ export const getTempFgCodeFilePath = ({
 }): string => {
   const tempDir = os.tmpdir();
   const path = tempDir + "/" + fileName;
-  fileUtils.writeFile(path, "");
   return path;
 };
 
@@ -44,4 +45,38 @@ export const parseErrorAndExtractLocation = (error: string): ErrorResult => {
   result.location = locationRegex.exec(result.stdoutWithoutColors);
 
   return result;
+};
+
+export const getMarkTSSyntaxHighlightMarkdown = (code: string): string => {
+  return `
+\`\`\`ts 
+${code}
+\`\`\`
+  `;
+};
+
+export const getLastWordPosition = (
+  document: TextDocument,
+  position: Position,
+  regex: RegExp
+): {
+  position: Position;
+  word: string;
+} => {
+  const text = document.getText(Range.create(Position.create(0, 0), position));
+  const lines = text.split("\n");
+
+  const lastLine = lines[lines.length - 1];
+
+  // Split the last line based on spaces, commas, curly braces, and parentheses
+  const words = lastLine.split(regex);
+  const lastWord = words[words.length - 1];
+
+  return {
+    position: {
+      line: position.line,
+      character: position.character - lastWord.length,
+    },
+    word: lastWord,
+  };
 };
