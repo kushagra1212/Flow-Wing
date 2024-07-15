@@ -226,6 +226,23 @@ JSON Utils::outJSON(CompilationUnitSyntax *compilationUnit) {
   return jsonObject;
 }
 
+JSON Utils::outJSON(
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
+  const int kindTextWidth = 20;
+  const int textWidth = 20;
+
+  JSON jsonObject;
+
+  for (auto &token : tokens) {
+    jsonObject.push_back(
+        {{"value", token->getText()},
+         {"lineNumber", token->getSourceLocation().lineNumber},
+         {"columnNumber", token->getSourceLocation().columnNumber}});
+  }
+
+  return jsonObject;
+}
+
 std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
   if (!node) {
     // std::cout << "null\n";
@@ -264,7 +281,7 @@ std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
 }
 
 void Utils::prettyPrint(
-    std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
   const int kindTextWidth = 20;
   const int textWidth = 20;
 

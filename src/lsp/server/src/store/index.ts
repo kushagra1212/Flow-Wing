@@ -14,5 +14,5 @@ export const keywordsCompletionItems: CompletionItem[] = [
   ...conditionalCompletionItems,
   ...otherCompletionItems,
   ...inBuiltFunctionsCompletionItems,
-  ...punctuationCompletionItems,
+  // ...punctuationCompletionItems,
 ];

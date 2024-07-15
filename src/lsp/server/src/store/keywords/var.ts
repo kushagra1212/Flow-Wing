@@ -11,10 +11,10 @@ export const variableDeclareCompletionItems: CompletionItem[] = [
       value: `
   **Variable Declaration**
   
-  The \`var\` keyword is used to declare a variable in ts.
+  The \`var\` keyword is used to declare a variable in flowwing.
   
   ### Example Usage:
-  \`\`\`ts
+  \`\`\`flowwing
   var age:int = 30
   \`\`\`
   

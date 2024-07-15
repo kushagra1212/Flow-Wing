@@ -28,6 +28,9 @@
           ".fg"
         ],
         "configuration": "client/src/configuration/fg-configuration.json"
+      },
+      {
+        "id": "flowwing-markdown-injection"
       }
     ],
     "grammars": [

@@ -14,7 +14,7 @@ export const typesCompletionItems: CompletionItem[] = [
 The \`int\` datatype represents a 32-bit signed integer. It is used to store numeric values without any fractional components.
 
 ### Example Usage:
-\`\`\`ts
+\`\`\`flowwing
 var x:int = 42
 \`\`\`
 
@@ -38,7 +38,7 @@ var x:int = 42
 The \`deci\` datatype is used to store floating-point numbers with decimal points.
 
 ### Example Usage:
-\`\`\`ts
+\`\`\`flowwing
 var y:deci = 3.14
 \`\`\`
 
@@ -61,7 +61,7 @@ var y:deci = 3.14
 The \`bool\` datatype represents a boolean value, which can be either \`true\` or \`false\`.
 
 ### Example Usage:
-\`\`\`ts
+\`\`\`flowwing
 var isActive:bool = true
 \`\`\`
 
@@ -84,8 +84,8 @@ var isActive:bool = true
 The \`str\` datatype is used to store sequences of characters.
 
 ### Example Usage:
-\`\`\`ts
-var name:str = "ts"
+\`\`\`flowwing
+var name:str = "flowwing"
 \`\`\`
 
 ### Properties:
@@ -106,7 +106,7 @@ var name:str = "ts"
 The \`nthg\` datatype represents the absence of a value, often used as a return type for functions that do not return any value.
 
 ### Example Usage:
-\`\`\`ts
+\`\`\`flowwing
 fun doNothing() -> nthg {
   /; This function does not return anything
 }
@@ -130,7 +130,7 @@ fun doNothing() -> nthg {
 The \`deci32\` datatype represents a 32-bit floating-point number, used for storing decimal values with less precision compared to \`deci\`.
 
 ### Example Usage:
-\`\`\`ts
+\`\`\`flowwing
 var z:deci32 = 1.23
 \`\`\`
 

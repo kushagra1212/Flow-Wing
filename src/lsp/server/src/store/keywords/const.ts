@@ -11,10 +11,10 @@ export const constantDeclareCompletionItems: CompletionItem[] = [
       value: `
   **Constant Declaration**
   
-  The \`const\` keyword is used to declare a constant in ts.
+  The \`const\` keyword is used to declare a constant in flowwing.
   
   ### Example Usage:
-  \`\`\`ts
+  \`\`\`flowwing
   const pi:deci = 3.14159265
   \`\`\`
   

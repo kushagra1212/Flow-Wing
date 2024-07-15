@@ -20,15 +20,32 @@ import {
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { keywordsCompletionItems } from "./store";
-import { getLastWordPosition, getTempFgCodeFilePath } from "./utils";
+import {
+  checkForObjectSuggestions,
+  deColorize,
+  getLastWordPosition,
+  getTempFgCodeFilePath,
+  isValidVariableName,
+} from "./utils";
 import { validateFile } from "./validation/validateFile";
 import { fileUtils } from "./utils/fileUtils";
-import { handleOnCompletion, readAndProcessSyntaxJSON } from "./hover";
+import {
+  handleOnCompletion,
+  readAndProcessSyntaxJSON,
+  readTokens,
+} from "./hover";
+import { inBuiltFunctionsCompletionItems } from "./store/functions/inbuilt";
+import { Token } from "./hover/types";
+import { futimesSync } from "fs";
 
 const TEMP_FILE_NAME = "code.fg";
 const JSON_FILE_PATH = `${
   getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME }).split(".")[0]
 }.json`;
+
+const TOKEN_FILE_PATH = `${
+  getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME }).split(".")[0]
+}.tokens.json`;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -160,7 +177,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const { stdoutWithoutColors, errorObject, errorMessage } = await validateFile(
     path
   );
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: [] });
+
+  connection.sendDiagnostics({
+    uri: textDocument.uri,
+    diagnostics: [],
+  });
 
   if (!errorObject.error) {
     return;
@@ -178,11 +199,10 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
       errorObject.location.column + errorObject.location.length - 1
     )
   );
-
   const diagnostic: Diagnostic = {
     severity: DiagnosticSeverity.Error,
     range,
-    message: errorObject.message,
+    message: deColorize(errorObject.message),
     source: textDocument.uri,
     relatedInformation: [
       {
@@ -190,7 +210,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           uri: textDocument.uri,
           range,
         },
-        message: errorMessage,
+        message: errorObject.type,
       },
     ],
   };
@@ -213,23 +233,65 @@ connection.onCompletion(
     const document = documents.get(_textDocumentPosition.textDocument.uri);
 
     if (!document) {
-      return keywordsCompletionItems;
+      return [];
     }
-    const { word, position } = getLastWordPosition(
-      document,
-      _textDocumentPosition.position,
-      new RegExp(/[\s,{}()]+/)
+    //? Added this to get Latest token
+    await validateTextDocument(document);
+
+    const tokens = await readTokens(
+      TOKEN_FILE_PATH,
+      _textDocumentPosition.position
+    );
+    console.log("tokens", tokens);
+    const suggestHandler = checkForObjectSuggestions(tokens);
+    console.log("suggestHandler", suggestHandler, tokens);
+    if (suggestHandler.shouldNotProvideSuggestion) return;
+    if (
+      !suggestHandler.giveObjectSuggestions &&
+      tokens.length &&
+      isValidVariableName(tokens[tokens.length - 1].value)
+    ) {
+      suggestHandler.token = tokens[tokens.length - 1];
+      suggestHandler.word = suggestHandler.token.value;
+      suggestHandler.data.isDot = false;
+      suggestHandler.giveObjectSuggestions = true;
+    }
+
+    const result = await handleOnCompletion(
+      JSON_FILE_PATH,
+      {
+        line: suggestHandler.token.lineNumber,
+        character: suggestHandler.token.columnNumber,
+      },
+      {
+        isDot: !!suggestHandler.data.isDot,
+        word: suggestHandler.word,
+        argumentNumber: suggestHandler.data.argumentNumber,
+      }
     );
 
-    console.log("word", word);
+    return suggestHandler.data.isDot
+      ? result
+      : [...result, ...keywordsCompletionItems];
 
-    if (!word) {
-      return;
-    }
+    // const { word, position } = getLastWordPosition(
+    //   document,
+    //   _textDocumentPosition.position,
+    //   new RegExp(/[\s\n,{}()]+/)
+    // );
 
-    const result = await handleOnCompletion(JSON_FILE_PATH, position);
+    // if (!word) {
+    //   return;
+    // }
+    // const isDot = word.indexOf(".") !== -1;
+    // console.log("word", word, position);
+    // const result = await handleOnCompletion(JSON_FILE_PATH, position, {
+    //   isDot: isDot,
+    //   word,
+    //   argumentNumber: 0,
+    // });
 
-    return [...result, ...keywordsCompletionItems];
+    // return isDot ? result : [...result, ...keywordsCompletionItems];
   }
 );
 
@@ -245,23 +307,33 @@ connection.onHover(async (params: HoverParams) => {
   if (!document) {
     return;
   }
+
   const { word, position } = getLastWordPosition(
     document,
     params.position,
-    new RegExp(/[\s,{}()]+/)
+    new RegExp(/[\s\n,{}()]+/)
   );
 
   if (!word) {
     return;
   }
+  let isSelf = false;
 
+  if (word.split(".")?.[0] === "self") {
+    isSelf = true;
+    position.character += 5;
+  }
   let result = [];
 
   try {
-    result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position);
+    result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position, {
+      isSelf,
+    });
   } catch (err) {
     console.log(err);
   }
+
+  console.log("resultOnHOver", result);
 
   return {
     contents: result?.length
@@ -280,20 +352,22 @@ connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
   const { word, position } = getLastWordPosition(
     document,
     params.position,
-    new RegExp(/[)]+/)
+    new RegExp(/[)}\n\s]+/)
   );
 
   if (!word) {
     return;
   }
 
-  const result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position);
+  const result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position, {
+    isSelf: false,
+  });
 
   if (result.length === 0) {
-    const functionName = word.split("(")[0];
+    const functionName = word.split("(")[0].replace(/ /g, "");
     if (functionName) {
-      const item = keywordsCompletionItems.find(
-        (item) => item.label.substring(0, functionName.length) === functionName
+      const item = inBuiltFunctionsCompletionItems.find(
+        (item) => item.label === functionName
       );
 
       if (!item?.data?.signatures) return;

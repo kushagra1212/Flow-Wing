@@ -14,7 +14,7 @@ export const conditionalCompletionItems: CompletionItem[] = [
 The \`if\` keyword is used to declare a conditional statement.
 	
 	### Example:
-\`\`\`ts
+\`\`\`flowwing
 	if (condition) {
 	  /; Code to execute if the condition is true
 	}
@@ -35,7 +35,7 @@ The \`if\` keyword is used to declare a conditional statement.
 The \`or if\` keyword is used to declare an else if statement.
 	
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 	if (condition1) {
 	  /; Code to execute if condition1 is true
 	} or if (condition2) {
@@ -58,7 +58,7 @@ The \`or if\` keyword is used to declare an else if statement.
 The \`else\` keyword is used to declare an else statement.
 	
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 	if (condition) {
 	  /; Code to execute if the condition is true
 	} else {

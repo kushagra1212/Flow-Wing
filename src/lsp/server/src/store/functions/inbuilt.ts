@@ -16,7 +16,7 @@ const documentation: Record<
 The \`print\` function is used to print a message to the console.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 print("Hello, World!")
 print(2, 3, 4,"Hello")
 \`\`\`
@@ -30,7 +30,7 @@ print(2, 3, 4,"Hello")
 The \`super\` keyword is used to refer to the superclass of the current class.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 class Dog extends Animal {
   init(age:int) -> nthg {
   super(age)
@@ -46,7 +46,7 @@ class Dog extends Animal {
 The \`input\` function is used to read input from the user.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 var name = input("Enter your name: ")
 \`\`\`
 ### Return Type: \`str\`
@@ -63,7 +63,7 @@ var name = input("Enter your name: ")
 The \`Int32\` function is used to convert a value to a 32-bit integer.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 var number = Int32("123")
 \`\`\`
     `,
@@ -76,7 +76,7 @@ var number = Int32("123")
 The \`Decimal\` function is used to convert a value to a decimal.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 var number = Decimal("123.45")
 \`\`\`
     `,
@@ -89,7 +89,7 @@ var number = Decimal("123.45")
 The \`String\` function is used to convert a value to a string.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 var myStr = String(123)
 \`\`\`
     `,
@@ -102,7 +102,7 @@ var myStr = String(123)
 The \`Bool\` function is used to convert a value to a boolean.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 var flag = Bool(1)
 \`\`\`
     `,

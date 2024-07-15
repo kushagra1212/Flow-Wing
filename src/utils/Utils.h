@@ -51,7 +51,8 @@ void prettyPrint(BoundStatement *statement, std::string indent = "",
                  bool isLast = true);
 void prettyPrint(BoundNode *statement, std::string indent = "",
                  bool isLast = true);
-void prettyPrint(std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
+void prettyPrint(
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);
 
@@ -59,6 +60,7 @@ JSON outJSON(BoundNode *node, bool isLast);
 JSON outJSON(BoundStatement *statement, bool isLast);
 JSON outJSON(SyntaxNode *node);
 JSON outJSON(CompilationUnitSyntax *compilationUnit);
+JSON outJSON(const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
 
 void logJSON(JSON &jsonObject, std::string filePath);
 

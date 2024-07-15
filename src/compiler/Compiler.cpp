@@ -206,6 +206,14 @@ void Compiler::compile(std::vector<std::string> &text,
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
+  if (Utils::getExtension(_outputFilePath) == ".json") {
+
+    JSON jsonObject = Utils::outJSON(parser->getTokensRef());
+    Utils::logJSON(jsonObject, _outputFilePath.substr(
+                                   0, _outputFilePath.find_last_of(".")) +
+                                   ".tokens.json");
+  }
+
   parser->setIsFormattedCodeRequired(this->Format.getValue() ||
                                      this->ShortFormat.getValue());
 

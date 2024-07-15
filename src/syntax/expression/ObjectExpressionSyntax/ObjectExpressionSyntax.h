@@ -7,19 +7,21 @@
 #include "../ExpressionSyntax.h"
 
 class ObjectExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::vector<std::unique_ptr<AttributeExpressionSyntax>> _attributes;
+  std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
+  std::unique_ptr<SyntaxToken<std::any>> _closeBraceToken;
 
- public:
+public:
   // Overrides
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  inline auto addAttribute(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
-      std::unique_ptr<ExpressionSyntax> value) -> void {
+  inline auto
+  addAttribute(std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
+               std::unique_ptr<ExpressionSyntax> value) -> void {
     std::unique_ptr<AttributeExpressionSyntax> attribute =
         std::make_unique<AttributeExpressionSyntax>();
 
@@ -32,6 +34,17 @@ class ObjectExpressionSyntax : public ExpressionSyntax {
       -> const std::vector<std::unique_ptr<AttributeExpressionSyntax>> & {
     return _attributes;
   }
+
+  auto setOpenBraceToken(std::unique_ptr<SyntaxToken<std::any>> openBraceToken)
+      -> void {
+    _openBraceToken = std::move(openBraceToken);
+  }
+
+  auto
+  setCloseBraceToken(std::unique_ptr<SyntaxToken<std::any>> closeBraceToken)
+      -> void {
+    _closeBraceToken = std::move(closeBraceToken);
+  }
 };
 
-#endif  // __FLOWWING_OBJECT_EXPRESSION_SYNTAX_H__
+#endif // __FLOWWING_OBJECT_EXPRESSION_SYNTAX_H__

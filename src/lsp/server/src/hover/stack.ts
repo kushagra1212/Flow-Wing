@@ -35,18 +35,29 @@ type TypeName = string;
 type ClassName = string;
 type FunctionName = string;
 
-export interface HoverStack {
+export type ClassCompletionItem = {
   variableDeclarations: Map<VariableName, CompletionItem>;
   customTypes: Map<TypeName, CompletionItem>;
-  classes: Map<ClassName, CompletionItem>;
   functions: Map<FunctionName, CompletionItem>;
-  callExpression?: Map<FunctionName, CompletionItem>;
+  callExpression: Map<FunctionName, CompletionItem>;
+  variableExpressions: Map<VariableName, Array<CompletionItem>>;
+  classCompletionItem: CompletionItem;
+};
+
+export interface ProgramStructure {
+  variableDeclarations: Map<VariableName, CompletionItem>;
+  customTypes: Map<TypeName, CompletionItem>;
+  classes: Map<ClassName, ClassCompletionItem>;
+  functions: Map<FunctionName, CompletionItem>;
+  callExpression: Map<FunctionName, CompletionItem>;
+  variableExpressions: Map<VariableName, Array<CompletionItem>>;
 }
 
-export const defaultValueHoverStack: HoverStack = {
+export const defaultProgramStructure: ProgramStructure = {
   variableDeclarations: new Map(),
   customTypes: new Map(),
   classes: new Map(),
   functions: new Map(),
   callExpression: new Map(),
+  variableExpressions: new Map(),
 };

@@ -6,10 +6,12 @@
 #include "../ExpressionSyntax.h"
 
 class ContainerExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::vector<std::unique_ptr<ExpressionSyntax>> _elements;
+  std::unique_ptr<SyntaxToken<std::any>> _openBracket;
+  std::unique_ptr<SyntaxToken<std::any>> _closeBracket;
 
- public:
+public:
   // Overrides
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -21,6 +23,18 @@ class ContainerExpressionSyntax : public ExpressionSyntax {
   // Getters
   auto getElementsRef() const
       -> const std::vector<std::unique_ptr<ExpressionSyntax>> &;
+
+  inline auto
+  setOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracket)
+      -> void {
+    _openBracket = std::move(openBracket);
+  }
+
+  inline auto
+  setCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracket)
+      -> void {
+    _closeBracket = std::move(closeBracket);
+  }
 };
 
-#endif  // __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__
+#endif // __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__

@@ -1,29 +1,29 @@
-interface Value {
+interface Token {
   columnNumber: number;
   lineNumber: number;
   value: string;
 }
 
 // Primitive types
-type Int32Keyword = Value;
-type DeciKeyword = Value;
-type Deci32Keyword = Value;
-type StrKeyword = Value;
-type BoolKeyword = Value;
-type NthgKeyword = Value;
+type Int32Keyword = Token;
+type DeciKeyword = Token;
+type Deci32Keyword = Token;
+type StrKeyword = Token;
+type BoolKeyword = Token;
+type NthgKeyword = Token;
 
 // Identifiers
-type IdentifierToken = Value;
-type NumberToken = Value;
-type EndOfFileToken = Value;
+type IdentifierToken = Token;
+type NumberToken = Token;
+type EndOfFileToken = Token;
 
 // Keywords
-type VarKeyword = Value;
-type ConstKeyword = Value;
-type FunctionKeyword = Value;
-type DeclKeyword = Value;
-type Askeyword = Value;
-type ClassKeyword = Value;
+type VarKeyword = Token;
+type ConstKeyword = Token;
+type FunctionKeyword = Token;
+type DeclKeyword = Token;
+type Askeyword = Token;
+type ClassKeyword = Token;
 
 // Expression
 interface LiteralExpression {
@@ -124,5 +124,5 @@ export {
   BoolKeyword,
   DeclKeyword,
   Askeyword,
-  Value,
+  Token,
 };

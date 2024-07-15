@@ -17,7 +17,7 @@ export const otherCompletionItems: CompletionItem[] = [
 The \`fun\` keyword is used to declare a function.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 fun isPrime(n) -> bool {
   /; Function body here
 }
@@ -41,12 +41,31 @@ fun isPrime(n) -> bool {
 The \`type\` keyword is used to declare a custom type.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 type Person = {
   name:str,
   age:int,
   address:str
 }
+\`\`\`
+      `,
+    },
+  },
+  {
+    label: "self",
+    kind: CompletionItemKind.Variable,
+    data: "self",
+    detail: "Self Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Self Keyword**
+
+The \`self\` keyword is used to refer to the current object.
+
+\`\`\`flowwing
+/; Inside class Member Function
+print(self.name)
 \`\`\`
       `,
     },
@@ -75,7 +94,7 @@ type Person = {
 The \`class\` keyword is used to declare a class.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 class Animal {
   var age:int 
   var species:str 
@@ -106,7 +125,7 @@ class Animal {
 The \`extends\` keyword is used to declare a class that inherits from another class.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 class Dog extends Animal {
   var breed:str 
 
@@ -138,7 +157,7 @@ class Dog extends Animal {
 The \`for\` keyword is used to declare a for loop.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 for (var i = 0 to 5 : 2) {
   /; Code to execute in the loop
 }
@@ -159,7 +178,7 @@ for (var i = 0 to 5 : 2) {
 The \`while\` keyword is used to declare a while loop.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 while(x < 5) {
   x = x + 1
   if (x == 3) {
@@ -187,7 +206,7 @@ while(x < 5) {
 The \`break\` keyword is used to exit a loop prematurely.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 for var i = 0 to 5 {
   if i == 3 {
     break
@@ -210,7 +229,7 @@ for var i = 0 to 5 {
 The \`continue\` keyword is used to skip the current iteration of a loop and proceed to the next iteration.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 while(x < 5) {
   x = x + 1
   if (x == 3) {
@@ -235,7 +254,7 @@ while(x < 5) {
 The \`return\` keyword is used to return a value from a function.
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 fun getAge() -> int {
   return self.age
 }
@@ -259,7 +278,7 @@ The \`inout\` keyword is used to declare an input and output parameter in a func
 - **Usage**: allow parameters to be passed by reference
 
 ### Example:
-\`\`\`ts
+\`\`\`flowwing
 fun getAge(inout age:int) -> int {
   age = age + 1
   return age
