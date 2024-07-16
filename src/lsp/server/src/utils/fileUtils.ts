@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
-
+import * as os from "os";
+import path = require("path");
 class FileUtils {
   private static instance: FileUtils;
 
@@ -39,6 +40,26 @@ class FileUtils {
       console.error(`Error parsing JSON from file: ${filePath}`, err);
       throw err;
     }
+  }
+
+  public async createTempFile({
+    fileName,
+    data = "",
+  }: {
+    fileName: string;
+    data?: string;
+  }): Promise<string> {
+    const tempDir = os.tmpdir();
+    const filePath = path.join(tempDir, fileName);
+    await this.writeFile(filePath, data);
+
+    return filePath;
+  }
+
+  public getTempFilePath({ fileName }: { fileName: string }): string {
+    const tempDir = os.tmpdir();
+    const filePath = path.join(tempDir, fileName);
+    return filePath;
   }
 }
 

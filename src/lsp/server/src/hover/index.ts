@@ -313,7 +313,6 @@ const populateVariableExpressionCompletionItem = (
 
       const array = getArrayType(item.data.typeName);
 
-      console.log(innerVariableName + item.label, array);
       if (array.isArray) {
         populateVariableExpressionCompletionItem(
           st,
@@ -347,7 +346,7 @@ const getVariableNameFromVariableDeclaration = (
 };
 
 const parseFunctionDeclaration = (
-  st: Stack<ProgramStructure>,
+  st: Stack<ProgramStructure> | null,
   functionDeclaration: FunctionDeclaration
 ): CompletionItem => {
   let functionDeclarationStr = "";
@@ -371,10 +370,11 @@ const parseFunctionDeclaration = (
     const functionParameter = parseVariableDeclaration(
       functionDeclaration[index++]["VariableDeclaration"]
     );
-    st.peek().variableDeclarations.set(
-      functionParameter.label,
-      functionParameter
-    );
+    if (st)
+      st.peek().variableDeclarations.set(
+        functionParameter.label,
+        functionParameter
+      );
     functionDeclarationStr += functionParameter.detail + ", ";
     functionParameters.push({
       label: functionParameter.label,
@@ -567,6 +567,9 @@ const getAllCompletionItems = (
     current.callExpression.forEach((value, key) => {
       mapping.callExpression.set(key, value);
     });
+    current.variableExpressions.forEach((value, key) => {
+      mapping.variableExpressions.set(key, value);
+    });
   }
 
   if (mapping.variableDeclarations)
@@ -575,36 +578,42 @@ const getAllCompletionItems = (
   if (mapping.customTypes)
     result.push(...Array.from(mapping.customTypes.values()));
 
+  if (mapping.variableExpressions) {
+    for (const value of mapping.variableExpressions.values()) {
+      result.push(...Array.from(value));
+    }
+  }
+
   if (mapping.classes) {
     Array.from(mapping.classes.values()).forEach((value) => {
       result.push(value.classCompletionItem);
     });
   }
 
-  if (currentParsingClassName) {
-    result.push(
-      ...Array.from(
-        mapping.classes.get(currentParsingClassName).callExpression.values()
-      )
-    );
-    result.push(
-      ...Array.from(
-        mapping.classes.get(currentParsingClassName).customTypes.values()
-      )
-    );
-    result.push(
-      ...Array.from(
-        mapping.classes.get(currentParsingClassName).functions.values()
-      )
-    );
-    result.push(
-      ...Array.from(
-        mapping.classes
-          .get(currentParsingClassName)
-          .variableDeclarations.values()
-      )
-    );
-  }
+  // if (currentParsingClassName) {
+  // result.push(
+  //   ...Array.from(
+  //     mapping.classes.get(currentParsingClassName).callExpression.values()
+  //   )
+  // );
+  // result.push(
+  //   ...Array.from(
+  //     mapping.classes.get(currentParsingClassName).customTypes.values()
+  //   )
+  // );
+  // result.push(
+  //   ...Array.from(
+  //     mapping.classes.get(currentParsingClassName).functions.values()
+  //   )
+  // );
+  // result.push(
+  //   ...Array.from(
+  //     mapping.classes
+  //       .get(currentParsingClassName)
+  //       .variableDeclarations.values()
+  //   )
+  // );
+  // }
 
   if (mapping.functions) result.push(...Array.from(mapping.functions.values()));
 
@@ -701,7 +710,6 @@ const getScopeCompletionItemFromExpression = (
   while (!reversedStack.isEmpty()) {
     const current = reversedStack?.pop();
     currentStack.push(current);
-    if (result) continue;
 
     const completionItem = current[expressionName].get(identifier);
 
@@ -847,6 +855,41 @@ const getCurrentClassMemberVariableCompletionItem = (
   return cI;
 };
 
+const declareGlobals = (
+  program: ProgramStructure,
+  obj: RootObject,
+  option: { skip: string[] }
+): void => {
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      declareGlobals(program, item, option);
+    }
+  } else if (typeof obj === "object") {
+    if (
+      option.skip.includes(obj["ClassStatement"]) ||
+      option.skip.includes(obj["variableDeclarations"])
+    )
+      return;
+
+    const result: any = {};
+    if (obj["FunctionDeclarationSyntax"]) {
+      result.name = getFunctionNameFromFunctionDeclaration(
+        obj["FunctionDeclarationSyntax"]
+      );
+      result.completionItem = parseFunctionDeclaration(
+        null,
+        obj["FunctionDeclarationSyntax"] as FunctionDeclaration
+      );
+
+      program.functions?.set(result.name, result.completionItem);
+    }
+
+    for (const child of Object.values(obj)) {
+      declareGlobals(program, child, option);
+    }
+  }
+};
+
 const traverseJson = (
   st: Stack<ProgramStructure>,
   rootProgram: ProgramStructure,
@@ -860,8 +903,6 @@ const traverseJson = (
       if (result.length) return result;
     }
   } else if (typeof obj === "object") {
-    handleStatements(st, rootProgram, obj);
-
     if (obj["IdentifierToken"]) {
       const identifierToken: IdentifierToken = obj["IdentifierToken"];
 
@@ -899,6 +940,7 @@ const traverseJson = (
       });
     }
 
+    handleStatements(st, rootProgram, obj);
     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
 
     for (const child of Object.values(obj)) {
@@ -940,13 +982,14 @@ export async function readAndProcessSyntaxJSON(
       callExpression: new Map(),
       variableExpressions: new Map(),
     });
-    const rootObject = st.peek();
+    const rootProgram = st.peek();
     isInsideFunction = false;
     currentParsingClassName = null;
-    // Recursive function to traverse the JSON structure
+    declareGlobals(rootProgram, jsonObject, {
+      skip: ["ClassStatement"],
+    });
 
-    // Traverse the JSON structure and get the result
-    return traverseJson(st, rootObject, jsonObject, options, postion);
+    return traverseJson(st, rootProgram, jsonObject, options, postion);
   } catch (err) {
     console.error(`Error reading and processing JSON file: ${filePath}`, err);
     return [];
@@ -957,8 +1000,6 @@ const getAllSuggestionsOfType = (
   st: Stack<ProgramStructure>,
   typeName: string
 ): CompletionItem[] => {
-  console.log("🚀 ~ getAllSuggestionsOfType:", typeName);
-
   return getScopeCompletionAllItemFromExpression(
     st,
     typeName,
@@ -987,6 +1028,9 @@ export async function handleOnCompletion(
     currentParsingClassName = null;
     isInsideFunction = false;
     let result: CompletionItem[] = [];
+    declareGlobals(rootProgram, jsonObject, {
+      skip: ["ClassStatement"],
+    });
     // Recursive function to traverse the JSON structure
     const traverseJson = function (obj: any): boolean {
       if (Array.isArray(obj)) {
@@ -995,24 +1039,32 @@ export async function handleOnCompletion(
           if (res) return true;
         }
       } else if (typeof obj === "object" && obj !== null) {
-        handleStatements(hoverStack, rootProgram, obj);
         if (obj["IdentifierToken"]) {
           const identifierToken: IdentifierToken = obj["IdentifierToken"];
           if (
             identifierToken.columnNumber === postion.character &&
             identifierToken.lineNumber === postion.line
           ) {
-            console.log("IDE", identifierToken);
             if (options.isDot) {
-              console.log("options.word", options.word);
               let firstWord = options.word.split(".")?.[0],
                 typeName = "";
               const remainingWord = options.word.split(".").slice(1).join(".");
               if (options.argumentNumber) {
-                firstWord = hoverStack?.peek()?.functions?.get(firstWord).data
-                  ?.functionParametersTypes[options.argumentNumber - 1];
+                firstWord = getScopeCompletionItemFromExpression(
+                  hoverStack,
+                  firstWord,
+                  "functions"
+                ).data?.functionParametersTypes[options.argumentNumber - 1];
                 typeName = formatVarExpr(
                   formatVarExpr(firstWord).split("[]")[0] + "." + remainingWord
+                );
+                console.log(
+                  "firstWord",
+                  firstWord,
+                  "typeName",
+                  typeName,
+                  "remainingWord",
+                  remainingWord
                 );
               } else if (
                 firstWord === "self" &&
@@ -1031,6 +1083,7 @@ export async function handleOnCompletion(
                 if (array.isArray) {
                   firstWord = array.ofType;
                 }
+
                 const varDecCI = getScopeCompletionItemFromExpression(
                   hoverStack,
                   firstWord,
@@ -1044,7 +1097,6 @@ export async function handleOnCompletion(
                       varDecCI?.data?.typeName + "." + remainingWord
                     );
               }
-
               result = getAllSuggestionsOfType(hoverStack, typeName);
 
               return true;
@@ -1089,6 +1141,7 @@ export async function handleOnCompletion(
             variableExpressions: new Map(),
           });
         }
+        handleStatements(hoverStack, rootProgram, obj);
         for (const value of Object.values(obj)) {
           if (obj["EndOfFileToken"]) {
             if (!options.isDot) result = getAllCompletionItems(hoverStack);
@@ -1164,6 +1217,9 @@ export async function readTokens(
   }
 }
 
+const isInsideClassButNotInsideCassMemberFunction = () =>
+  currentParsingClassName && !isInsideFunction;
+
 const handleStatements = (
   st: Stack<ProgramStructure>,
   rootProgram: ProgramStructure,
@@ -1210,17 +1266,15 @@ const handleStatements = (
 
     setClassMembersIfNeeded(rootProgram, "customTypes", result);
   } else if (obj["FunctionDeclarationSyntax"]) {
-    result.name = getFunctionNameFromFunctionDeclaration(
-      obj["FunctionDeclarationSyntax"]
-    );
-    result.completionItem = parseFunctionDeclaration(
-      st,
-      obj["FunctionDeclarationSyntax"] as FunctionDeclaration
-    );
-
-    st?.peek()?.functions?.set(result.name, result.completionItem);
-
-    setClassMembersIfNeeded(rootProgram, "functions", result);
+    // result.name = getFunctionNameFromFunctionDeclaration(
+    //   obj["FunctionDeclarationSyntax"]
+    // );
+    // result.completionItem = parseFunctionDeclaration(
+    //   st,
+    //   obj["FunctionDeclarationSyntax"] as FunctionDeclaration
+    // );
+    // st?.peek()?.functions?.set(result.name, result.completionItem);
+    // setClassMembersIfNeeded(rootProgram, "functions", result);
   } else if (obj["ClassStatement"]) {
     result.name = getClassNameFromClassStatement(obj["ClassStatement"]);
     result.completionItem = parseClassStatement(
@@ -1236,6 +1290,16 @@ const handleStatements = (
       functions: new Map(),
       variableExpressions: new Map(),
     });
+
+    declareGlobals(st.peek(), obj["ClassStatement"], {
+      skip: [],
+    });
+    st.peek().functions.forEach((value, key) => {
+      rootProgram.classes
+        .get(currentParsingClassName)
+        ?.functions?.set(key, value);
+    });
+    console.log(rootProgram.classes.get(currentParsingClassName)?.functions);
   } else if (obj["BracketedExpression"]) {
     result.name = getBracketedExpressionVariableName(
       obj["BracketedExpression"]
@@ -1253,7 +1317,7 @@ const setClassMembersIfNeeded = (
   expressionName: keyof ProgramStructure,
   result: { name: string; completionItem: CompletionItem }
 ) => {
-  if (currentParsingClassName && !isInsideFunction) {
+  if (isInsideClassButNotInsideCassMemberFunction) {
     rootProgram?.classes
       .get(currentParsingClassName)
       ?.[expressionName]?.set(result.name, result.completionItem);

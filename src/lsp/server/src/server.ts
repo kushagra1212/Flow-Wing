@@ -7,15 +7,12 @@ import {
   InitializeParams,
   DidChangeConfigurationNotification,
   CompletionItem,
-  CompletionItemKind,
   TextDocumentPositionParams,
   TextDocumentSyncKind,
   InitializeResult,
-  CompletionItemTag,
   HoverParams,
   Range,
   Position,
-  SignatureHelpParams,
   SignatureHelp,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -24,7 +21,6 @@ import {
   checkForObjectSuggestions,
   deColorize,
   getLastWordPosition,
-  getTempFgCodeFilePath,
   isValidVariableName,
 } from "./utils";
 import { validateFile } from "./validation/validateFile";
@@ -35,17 +31,7 @@ import {
   readTokens,
 } from "./hover";
 import { inBuiltFunctionsCompletionItems } from "./store/functions/inbuilt";
-import { Token } from "./hover/types";
-import { futimesSync } from "fs";
-
-const TEMP_FILE_NAME = "code.fg";
-const JSON_FILE_PATH = `${
-  getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME }).split(".")[0]
-}.json`;
-
-const TOKEN_FILE_PATH = `${
-  getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME }).split(".")[0]
-}.tokens.json`;
+import { flowWingConfig } from "./config/config";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -81,7 +67,7 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that this server supports code completion.
       completionProvider: {
         resolveProvider: true,
-        triggerCharacters: ["."],
+        triggerCharacters: [".", ",", "{"],
       },
       signatureHelpProvider: {
         triggerCharacters: ["(", ","],
@@ -170,9 +156,10 @@ documents.onDidChangeContent((change) => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const text = textDocument.getText();
-  const path = getTempFgCodeFilePath({ fileName: TEMP_FILE_NAME });
-  fileUtils.writeFile(path, "");
-  fileUtils.writeFile(path, text);
+  const path = await fileUtils.createTempFile({
+    fileName: flowWingConfig.temp.codeFileName,
+    data: text,
+  });
 
   const { stdoutWithoutColors, errorObject, errorMessage } = await validateFile(
     path
@@ -239,12 +226,14 @@ connection.onCompletion(
     await validateTextDocument(document);
 
     const tokens = await readTokens(
-      TOKEN_FILE_PATH,
+      fileUtils.getTempFilePath({
+        fileName: flowWingConfig.temp.tokenFileName,
+      }),
       _textDocumentPosition.position
     );
-    console.log("tokens", tokens);
+
     const suggestHandler = checkForObjectSuggestions(tokens);
-    console.log("suggestHandler", suggestHandler, tokens);
+    console.log("suggestHandler", suggestHandler);
     if (suggestHandler.shouldNotProvideSuggestion) return;
     if (
       !suggestHandler.giveObjectSuggestions &&
@@ -256,24 +245,26 @@ connection.onCompletion(
       suggestHandler.data.isDot = false;
       suggestHandler.giveObjectSuggestions = true;
     }
+    if (suggestHandler.token?.columnNumber) {
+      const result = await handleOnCompletion(
+        fileUtils.getTempFilePath({
+          fileName: flowWingConfig.temp.syntaxFileName,
+        }),
+        {
+          line: suggestHandler.token.lineNumber,
+          character: suggestHandler.token.columnNumber,
+        },
+        {
+          isDot: !!suggestHandler.data.isDot,
+          word: suggestHandler.word,
+          argumentNumber: suggestHandler.data.argumentNumber,
+        }
+      );
 
-    const result = await handleOnCompletion(
-      JSON_FILE_PATH,
-      {
-        line: suggestHandler.token.lineNumber,
-        character: suggestHandler.token.columnNumber,
-      },
-      {
-        isDot: !!suggestHandler.data.isDot,
-        word: suggestHandler.word,
-        argumentNumber: suggestHandler.data.argumentNumber,
-      }
-    );
-
-    return suggestHandler.data.isDot
-      ? result
-      : [...result, ...keywordsCompletionItems];
-
+      return suggestHandler.data.isDot
+        ? result
+        : [...result, ...keywordsCompletionItems];
+    }
     // const { word, position } = getLastWordPosition(
     //   document,
     //   _textDocumentPosition.position,
@@ -326,9 +317,15 @@ connection.onHover(async (params: HoverParams) => {
   let result = [];
 
   try {
-    result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position, {
-      isSelf,
-    });
+    result = await readAndProcessSyntaxJSON(
+      fileUtils.getTempFilePath({
+        fileName: flowWingConfig.temp.syntaxFileName,
+      }),
+      position,
+      {
+        isSelf,
+      }
+    );
   } catch (err) {
     console.log(err);
   }
@@ -359,9 +356,15 @@ connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
     return;
   }
 
-  const result = await readAndProcessSyntaxJSON(JSON_FILE_PATH, position, {
-    isSelf: false,
-  });
+  const result = await readAndProcessSyntaxJSON(
+    fileUtils.getTempFilePath({
+      fileName: flowWingConfig.temp.syntaxFileName,
+    }),
+    position,
+    {
+      isSelf: false,
+    }
+  );
 
   if (result.length === 0) {
     const functionName = word.split("(")[0].replace(/ /g, "");

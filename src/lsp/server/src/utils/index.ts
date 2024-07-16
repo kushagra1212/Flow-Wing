@@ -1,24 +1,14 @@
-import * as fs from "fs";
-import * as os from "os";
 import { ErrorResult } from "./types";
-import { fileUtils } from "./fileUtils";
 import { Position, Range } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/keywords/types";
 import { Token } from "../hover/types";
+import { fileUtils } from "./fileUtils";
+import { flowWingConfig } from "../config/config";
+import { randomBytes } from "crypto";
 
 // eslint-disable-next-line no-control-regex
 const COLOR_REGEX = /\x1b\[[0-9;]*m/g;
-
-export const getTempFgCodeFilePath = ({
-  fileName,
-}: {
-  fileName: string;
-}): string => {
-  const tempDir = os.tmpdir();
-  const path = tempDir + "/" + fileName;
-  return path;
-};
 
 export const deColorize = (str: string): string => {
   return str.replace(COLOR_REGEX, "");
@@ -209,6 +199,10 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           giveObjectSuggestions: true,
           token: tokens[i - 4],
           word: tokens[i - 4].value + "." + word,
+          data: {
+            isDot: true,
+            argumentNumber: 0,
+          },
         };
       }
 
@@ -216,6 +210,10 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         giveObjectSuggestions: true,
         token: tokens[i - 2],
         word: tokens[i - 2].value + "." + word,
+        data: {
+          isDot: true,
+          argumentNumber: 0,
+        },
       };
     } else if (
       i - 2 >= 0 &&
@@ -291,6 +289,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           token: tokens[i],
           word: tokens[i].value + "." + word,
           data: {
+            isDot: true,
             argumentNumber: argumentNumber + 1,
           },
         };
@@ -317,12 +316,20 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
             giveObjectSuggestions: true,
             token: tokens[index - 2],
             word: tokens[index - 2].value + "[]" + "." + word,
+            data: {
+              isDot: true,
+              argumentNumber: 0,
+            },
           };
         } else {
           return {
             giveObjectSuggestions: true,
             token: tokens[index],
             word: tokens[index].value + "[]" + "." + word,
+            data: {
+              isDot: true,
+              argumentNumber: 0,
+            },
           };
         }
       }
@@ -389,24 +396,27 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       return defaultValue;
     } else if (i - 1 >= 0 && tokens[i].value === ".") {
       let response = tokens[i--].value;
-
+      let wasVar = false;
       while (i >= 0) {
-        if (tokens[i].value === "]") {
+        if (tokens[i].value === "]" && !wasVar) {
           i--;
           while (tokens[i].value !== "[") {
             i--;
           }
           i--;
           response = "[]" + response;
+          wasVar = false;
           continue;
         }
 
-        if (isValidVariableName(tokens[i].value)) {
+        if (isValidVariableName(tokens[i].value) && !wasVar) {
           response = tokens[i--].value + response;
+          wasVar = true;
           continue;
         }
         if (tokens[i].value === ".") {
           response = tokens[i--].value + response;
+          wasVar = false;
           continue;
         }
         break;
@@ -436,6 +446,10 @@ const isSquareBracket = (char: string) => {
   return char === "[" || char === "]";
 };
 export const isValidVariableName = (name) => {
+  if (!name || name === "") return false;
   const validNamePattern = /^[a-zA-Z_][a-zA-Z_0-9]*$/;
   return validNamePattern.test(name);
 };
+export function generateRandomFilename() {
+  return randomBytes(16).toString("hex");
+}

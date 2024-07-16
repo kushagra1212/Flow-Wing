@@ -2,18 +2,16 @@ import { ChildProcess, exec } from "child_process";
 import { parseErrorAndExtractLocation } from "../utils";
 import { ErrorResult } from "../utils/types";
 import { fileUtils } from "../utils/fileUtils";
-
-const FLOW_WING_PATH =
-  "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing";
+import { flowWingConfig } from "../config/config";
 
 export const validateFile = (
   filePath: string
 ): Promise<Partial<ErrorResult>> => {
-  const JSON_FILE_PATH = `${filePath.split(".")[0]}.json`;
-  const ERROR_JSON_FILE_PATH =
-    JSON_FILE_PATH.substring(0, JSON_FILE_PATH.lastIndexOf(".")) + ".err.json";
+  const SYNTAX_FILE_PATH = fileUtils.getTempFilePath({
+    fileName: flowWingConfig.temp.syntaxFileName,
+  });
 
-  const command = `${FLOW_WING_PATH} --file=${filePath} -O=${JSON_FILE_PATH}`;
+  const command = `${flowWingConfig.compiler.flowWingPath} --file=${filePath} -O=${SYNTAX_FILE_PATH}`;
 
   return new Promise((resolve, reject) => {
     exec(command, async (error, stdout, stderr) => {
@@ -23,6 +21,9 @@ export const validateFile = (
       }
       if (stderr) {
         let errorResult = parseErrorAndExtractLocation(stderr);
+        const ERROR_JSON_FILE_PATH = fileUtils.getTempFilePath({
+          fileName: flowWingConfig.temp.errorFileName,
+        });
 
         try {
           const errorObject = await fileUtils.readJsonFile<
