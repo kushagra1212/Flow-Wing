@@ -21,6 +21,7 @@ import { ClassCompletionItem, ProgramStructure, Stack } from "./stack";
 import {
   CompletionItem,
   CompletionItemKind,
+  MarkupContent,
   ParameterInformation,
   Position,
 } from "vscode-languageserver";
@@ -928,7 +929,6 @@ const traverseJson = (
       obj["BlockStatement"] ||
       obj["FunctionDeclarationSyntax"] ||
       obj["ClassStatement"]
-      //    ||  obj["CustomTypeStatement"]
     ) {
       st.push({
         variableDeclarations: new Map(),
@@ -940,8 +940,9 @@ const traverseJson = (
       });
     }
 
-    handleStatements(st, rootProgram, obj);
     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
+
+    handleStatements(st, rootProgram, obj);
 
     for (const child of Object.values(obj)) {
       const result = traverseJson(st, rootProgram, child, options, position);
@@ -956,7 +957,6 @@ const traverseJson = (
       obj["BlockStatement"] ||
       obj["FunctionDeclarationSyntax"] ||
       obj["ClassStatement"]
-      //||   obj["CustomTypeStatement"]
     ) {
       st.pop();
     }
@@ -1048,7 +1048,10 @@ export async function handleOnCompletion(
             if (options.isDot) {
               let firstWord = options.word.split(".")?.[0],
                 typeName = "";
-              const remainingWord = options.word.split(".").slice(1).join(".");
+              let remainingWord = options.word.split(".").slice(1).join(".");
+              console.log("firstWord", firstWord);
+              console.log("remaning", remainingWord + "x");
+
               if (options.argumentNumber) {
                 firstWord = getScopeCompletionItemFromExpression(
                   hoverStack,
@@ -1066,17 +1069,45 @@ export async function handleOnCompletion(
                   "remainingWord",
                   remainingWord
                 );
-              } else if (
-                firstWord === "self" &&
-                currentParsingClassName &&
-                getAllSuggestionsOfType(
-                  hoverStack,
-                  firstWord + "." + remainingWord
-                )
-              ) {
-                typeName = firstWord + "." + remainingWord;
-                if (typeName.split(".")?.length > 2) {
-                  typeName = remainingWord;
+              } else if (firstWord === "self" && currentParsingClassName) {
+                if (remainingWord === "") {
+                  result = Array.from(
+                    rootProgram.classes
+                      .get(currentParsingClassName)
+                      .variableDeclarations.values()
+                  );
+                  result = [
+                    ...result,
+                    ...Array.from(
+                      rootProgram.classes
+                        .get(currentParsingClassName)
+                        .functions.values()
+                    ),
+                  ];
+                  return true;
+                } else {
+                  (firstWord = remainingWord.split(".")?.[0]),
+                    (remainingWord = remainingWord
+                      .split(".")
+                      .slice(1)
+                      .join("."));
+                  const array = getArrayType(firstWord);
+                  if (array.isArray) {
+                    firstWord = array.ofType;
+                  }
+
+                  const varDecCI = getScopeCompletionItemFromExpression(
+                    hoverStack,
+                    firstWord,
+                    "variableDeclarations"
+                  );
+                  typeName = array.isArray
+                    ? formatVarExpr(varDecCI?.data?.typeName).split("[]")[0] +
+                      "." +
+                      formatVarExpr(remainingWord)
+                    : formatVarExpr(
+                        varDecCI?.data?.typeName + "." + remainingWord
+                      );
                 }
               } else {
                 const array = getArrayType(firstWord);
@@ -1141,6 +1172,7 @@ export async function handleOnCompletion(
             variableExpressions: new Map(),
           });
         }
+        if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
         handleStatements(hoverStack, rootProgram, obj);
         for (const value of Object.values(obj)) {
           if (obj["EndOfFileToken"]) {
@@ -1150,6 +1182,19 @@ export async function handleOnCompletion(
           const res = traverseJson(value);
           if (res) return true;
         }
+
+        if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
+        if (obj["ClassStatement"]) currentParsingClassName = null;
+
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+          // || obj["CustomTypeStatement"]
+        ) {
+          hoverStack?.pop();
+        }
+
         if (obj["CloseBraceToken"]) {
           const lineNumberCloseBraceToken =
             obj["CloseBraceToken"]["lineNumber"];
@@ -1163,18 +1208,6 @@ export async function handleOnCompletion(
             if (!options.isDot) result = getAllCompletionItems(hoverStack);
             return true;
           }
-        }
-
-        if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
-        if (obj["ClassStatement"]) currentParsingClassName = null;
-
-        if (
-          obj["BlockStatement"] ||
-          obj["ClassStatement"] ||
-          obj["FunctionDeclarationSyntax"]
-          // || obj["CustomTypeStatement"]
-        ) {
-          hoverStack?.pop();
         }
       }
       return false;
@@ -1237,6 +1270,14 @@ const handleStatements = (
     result.completionItem = parseVariableDeclaration(
       obj["VariableDeclaration"]
     );
+
+    if (currentParsingClassName) {
+      (result.completionItem.documentation as MarkupContent).value += (
+        rootProgram.classes.get(currentParsingClassName).classCompletionItem
+          .documentation as MarkupContent
+      ).value;
+    }
+
     st?.peek()?.variableDeclarations?.set(result.name, result.completionItem);
 
     setClassMembersIfNeeded(rootProgram, "variableDeclarations", result);
@@ -1317,7 +1358,7 @@ const setClassMembersIfNeeded = (
   expressionName: keyof ProgramStructure,
   result: { name: string; completionItem: CompletionItem }
 ) => {
-  if (isInsideClassButNotInsideCassMemberFunction) {
+  if (isInsideClassButNotInsideCassMemberFunction()) {
     rootProgram?.classes
       .get(currentParsingClassName)
       ?.[expressionName]?.set(result.name, result.completionItem);

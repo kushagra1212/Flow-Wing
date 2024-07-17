@@ -91,6 +91,13 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
     for (int j = 1; j < structT->getNumElements(); j++) {
       llvm::Type *type = structT->getElementType(j);
+      if (!type) {
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            functionDeclaration->getParametersRef()[j - 1]->getLocation());
+        _codeGenerationContext->getLogger()->LogError(
+            "Type not found for variable " + classVariables[j - 1]);
+        return nullptr;
+      }
       llvm::Value *elementPtr = Builder->CreateStructGEP(structT, classPtr, j);
       _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});

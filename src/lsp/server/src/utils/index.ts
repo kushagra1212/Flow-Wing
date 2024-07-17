@@ -433,7 +433,6 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
             },
           };
     }
-
     if (isSquareBracket(tokens[i].value)) {
       return defaultValueNoSuggestion;
     }
