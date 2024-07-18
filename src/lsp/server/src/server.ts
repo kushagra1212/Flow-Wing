@@ -18,10 +18,13 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { keywordsCompletionItems } from "./store";
 import {
+  checkForFunctionSignatures,
   checkForObjectSuggestions,
   deColorize,
+  defaultValueNoSuggestion,
   getLastWordPosition,
   isValidVariableName,
+  SuggestHandler,
 } from "./utils";
 import { validateFile } from "./validation/validateFile";
 import { fileUtils } from "./utils/fileUtils";
@@ -32,6 +35,7 @@ import {
 } from "./hover";
 import { inBuiltFunctionsCompletionItems } from "./store/functions/inbuilt";
 import { flowWingConfig } from "./config/config";
+import { Token } from "./hover/types";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -74,7 +78,6 @@ connection.onInitialize((params: InitializeParams) => {
       },
       hoverProvider: true,
       callHierarchyProvider: true,
-      documentFormattingProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -212,77 +215,59 @@ connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log("We received a file change event");
 });
 
+const getSuggestionHandlerObject = (
+  _textDocsParams: TextDocumentPositionParams,
+  callBack: (tokens: Token[]) => SuggestHandler
+): Promise<SuggestHandler> => {
+  return new Promise((resolve) => {
+    const document = documents.get(_textDocsParams.textDocument.uri);
+
+    if (!document) {
+      return resolve(defaultValueNoSuggestion);
+    }
+    //? Added this to get Latest token
+    validateTextDocument(document)
+      .then(() =>
+        readTokens(
+          fileUtils.getTempFilePath({
+            fileName: flowWingConfig.temp.tokenFileName,
+          }),
+          _textDocsParams.position
+        ).then((tokens) => resolve(callBack(tokens)))
+      )
+      .catch((err) => {
+        console.log("🚀 ~ err~read-token~getSuggestion", err);
+        resolve(defaultValueNoSuggestion);
+      });
+  });
+};
+
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
   async (
-    _textDocumentPosition: TextDocumentPositionParams
+    _textDocsParams: TextDocumentPositionParams
   ): Promise<CompletionItem[]> => {
-    const document = documents.get(_textDocumentPosition.textDocument.uri);
-
-    if (!document) {
-      return [];
-    }
-    //? Added this to get Latest token
-    await validateTextDocument(document);
-
-    const tokens = await readTokens(
-      fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.tokenFileName,
-      }),
-      _textDocumentPosition.position
+    const suggestion = await getSuggestionHandlerObject(
+      _textDocsParams,
+      checkForObjectSuggestions
     );
 
-    const suggestHandler = checkForObjectSuggestions(tokens);
-    console.log("suggestHandler", suggestHandler);
-    if (suggestHandler.shouldNotProvideSuggestion) return;
-    if (
-      !suggestHandler.giveObjectSuggestions &&
-      tokens.length &&
-      isValidVariableName(tokens[tokens.length - 1].value)
-    ) {
-      suggestHandler.token = tokens[tokens.length - 1];
-      suggestHandler.word = suggestHandler.token.value;
-      suggestHandler.data.isDot = false;
-      suggestHandler.giveObjectSuggestions = true;
-    }
-    if (suggestHandler.token?.columnNumber) {
+    if (suggestion.shouldNotProvideSuggestion) return [];
+
+    if (suggestion.giveObjectSuggestions) {
       const result = await handleOnCompletion(
         fileUtils.getTempFilePath({
           fileName: flowWingConfig.temp.syntaxFileName,
         }),
-        {
-          line: suggestHandler.token.lineNumber,
-          character: suggestHandler.token.columnNumber,
-        },
-        {
-          isDot: !!suggestHandler.data.isDot,
-          word: suggestHandler.word,
-          argumentNumber: suggestHandler.data.argumentNumber,
-        }
+        suggestion
       );
 
-      return suggestHandler.data.isDot
+      return suggestion.data.isDot
         ? result
         : [...result, ...keywordsCompletionItems];
     }
-    // const { word, position } = getLastWordPosition(
-    //   document,
-    //   _textDocumentPosition.position,
-    //   new RegExp(/[\s\n,{}()]+/)
-    // );
 
-    // if (!word) {
-    //   return;
-    // }
-    // const isDot = word.indexOf(".") !== -1;
-    // console.log("word", word, position);
-    // const result = await handleOnCompletion(JSON_FILE_PATH, position, {
-    //   isDot: isDot,
-    //   word,
-    //   argumentNumber: 0,
-    // });
-
-    // return isDot ? result : [...result, ...keywordsCompletionItems];
+    return [];
   }
 );
 
@@ -342,51 +327,23 @@ connection.onHover(async (params: HoverParams) => {
 });
 
 connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
-  const document = documents.get(params.textDocument.uri);
-  if (!document) {
-    return;
-  }
-  const { word, position } = getLastWordPosition(
-    document,
-    params.position,
-    new RegExp(/[)}\n\s]+/)
+  const suggestion = await getSuggestionHandlerObject(
+    params,
+    checkForFunctionSignatures
   );
-
-  if (!word) {
-    return;
-  }
-
-  const result = await readAndProcessSyntaxJSON(
+  const result = await handleOnCompletion(
     fileUtils.getTempFilePath({
       fileName: flowWingConfig.temp.syntaxFileName,
     }),
-    position,
-    {
-      isSelf: false,
-    }
+    suggestion
   );
 
-  if (result.length === 0) {
-    const functionName = word.split("(")[0].replace(/ /g, "");
-    if (functionName) {
-      const item = inBuiltFunctionsCompletionItems.find(
-        (item) => item.label === functionName
-      );
-
-      if (!item?.data?.signatures) return;
-
-      return {
-        signatures: item.data?.signatures,
-        activeSignature: 0,
-        activeParameter: 0,
-      };
-    }
-  }
+  if (!result?.length || !suggestion?.giveFunctionSignature) return;
 
   return {
     signatures: result[0].data?.signatures,
     activeSignature: 0,
-    activeParameter: word.split(",").length - 1,
+    activeParameter: suggestion?.data?.argumentNumber - 1,
   };
 });
 

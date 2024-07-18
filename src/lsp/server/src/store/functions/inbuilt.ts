@@ -114,6 +114,7 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     label: "super",
     kind: CompletionItemKind.Function,
     data: {
+      functionParametersTypes: ["class"],
       signatures: [
         {
           label: "super()",
@@ -128,6 +129,7 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     label: "print",
     kind: CompletionItemKind.Function,
     data: {
+      functionParametersTypes: ["int", "int", "int", "str"],
       signatures: [
         {
           label: "print()",

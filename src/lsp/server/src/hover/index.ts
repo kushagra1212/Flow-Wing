@@ -31,7 +31,9 @@ import {
   getArrayType,
   getMarkSyntaxHighlightMarkdown,
   isPrimitiveType,
+  SuggestHandler,
 } from "../utils";
+import { inBuiltFunctionsCompletionItems } from "../store/functions/inbuilt";
 
 let currentParsingClassName: string | null = null;
 let isInsideFunction = false;
@@ -1009,8 +1011,7 @@ const getAllSuggestionsOfType = (
 
 export async function handleOnCompletion(
   filePath: string,
-  postion: Position,
-  options: { isDot: boolean; word: string; argumentNumber: number }
+  suggestion: SuggestHandler
 ): Promise<CompletionItem[]> {
   try {
     const syntaxTreeAsString = await fileUtils.readFile(filePath);
@@ -1027,37 +1028,44 @@ export async function handleOnCompletion(
     const rootProgram = hoverStack.peek();
     currentParsingClassName = null;
     isInsideFunction = false;
-    let result: CompletionItem[] = [];
+
+    for (const buildInFunc of inBuiltFunctionsCompletionItems) {
+      rootProgram.functions.set(buildInFunc.label, buildInFunc);
+    }
     declareGlobals(rootProgram, jsonObject, {
       skip: ["ClassStatement"],
     });
+
     // Recursive function to traverse the JSON structure
-    const traverseJson = function (obj: any): boolean {
+    const traverseJson = function (obj: any): CompletionItem[] {
       if (Array.isArray(obj)) {
         for (const item of obj) {
           const res = traverseJson(item);
-          if (res) return true;
+          if (res?.length) return res;
         }
       } else if (typeof obj === "object" && obj !== null) {
         if (obj["IdentifierToken"]) {
           const identifierToken: IdentifierToken = obj["IdentifierToken"];
           if (
-            identifierToken.columnNumber === postion.character &&
-            identifierToken.lineNumber === postion.line
+            suggestion.token &&
+            identifierToken.columnNumber === suggestion.token.columnNumber &&
+            identifierToken.lineNumber === suggestion.token.lineNumber
           ) {
-            if (options.isDot) {
-              let firstWord = options.word.split(".")?.[0],
+            if (suggestion.data.isDot) {
+              let firstWord = suggestion.word.split(".")?.[0],
                 typeName = "";
-              let remainingWord = options.word.split(".").slice(1).join(".");
+              let remainingWord = suggestion.word.split(".").slice(1).join(".");
               console.log("firstWord", firstWord);
-              console.log("remaning", remainingWord + "x");
+              console.log("remaning", remainingWord);
 
-              if (options.argumentNumber) {
+              if (suggestion.data.argumentNumber) {
                 firstWord = getScopeCompletionItemFromExpression(
                   hoverStack,
                   firstWord,
                   "functions"
-                ).data?.functionParametersTypes[options.argumentNumber - 1];
+                ).data?.functionParametersTypes[
+                  suggestion.data.argumentNumber - 1
+                ];
                 typeName = formatVarExpr(
                   formatVarExpr(firstWord).split("[]")[0] + "." + remainingWord
                 );
@@ -1071,20 +1079,18 @@ export async function handleOnCompletion(
                 );
               } else if (firstWord === "self" && currentParsingClassName) {
                 if (remainingWord === "") {
-                  result = Array.from(
-                    rootProgram.classes
-                      .get(currentParsingClassName)
-                      .variableDeclarations.values()
-                  );
-                  result = [
-                    ...result,
+                  return [
+                    ...Array.from(
+                      rootProgram.classes
+                        .get(currentParsingClassName)
+                        .variableDeclarations.values()
+                    ),
                     ...Array.from(
                       rootProgram.classes
                         .get(currentParsingClassName)
                         .functions.values()
                     ),
                   ];
-                  return true;
                 } else {
                   (firstWord = remainingWord.split(".")?.[0]),
                     (remainingWord = remainingWord
@@ -1128,33 +1134,41 @@ export async function handleOnCompletion(
                       varDecCI?.data?.typeName + "." + remainingWord
                     );
               }
-              result = getAllSuggestionsOfType(hoverStack, typeName);
-
-              return true;
+              console.log("TYPENAME", typeName);
+              const result = getAllSuggestionsOfType(hoverStack, typeName);
+              return result;
             }
-            result = getAllCompletionItemsOfIdentifier(
+
+            const result = getAllCompletionItemsOfIdentifier(
               hoverStack,
               identifierToken.value
             );
-            return true;
+
+            if (result?.length) return result;
           }
         }
         if (obj["EndOfFileToken"]) {
-          if (!options.isDot) result = getAllCompletionItems(hoverStack);
-          return true;
+          let result = [];
+          if (!suggestion.data.isDot)
+            result = getAllCompletionItems(hoverStack);
+          return result;
         }
         if (obj["OpenBraceToken"]) {
           const lineNumberCloseBraceToken = obj["OpenBraceToken"]["lineNumber"];
           const columnNumberCloseBraceToken =
             obj["OpenBraceToken"]["columnNumber"];
           if (
-            lineNumberCloseBraceToken > postion.line ||
-            (columnNumberCloseBraceToken >= postion.character &&
-              lineNumberCloseBraceToken === postion.line)
+            (suggestion.token &&
+              lineNumberCloseBraceToken > suggestion.token.lineNumber) ||
+            (suggestion.token &&
+              columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
+              lineNumberCloseBraceToken === suggestion.token.lineNumber)
           ) {
             hoverStack?.pop();
-            if (!options.isDot) result = getAllCompletionItems(hoverStack);
-            return true;
+            let result = [];
+            if (!suggestion.data.isDot)
+              result = getAllCompletionItems(hoverStack);
+            return result;
           }
         }
         if (
@@ -1176,11 +1190,13 @@ export async function handleOnCompletion(
         handleStatements(hoverStack, rootProgram, obj);
         for (const value of Object.values(obj)) {
           if (obj["EndOfFileToken"]) {
-            if (!options.isDot) result = getAllCompletionItems(hoverStack);
-            return true;
+            let result = [];
+            if (!suggestion.data.isDot)
+              result = getAllCompletionItems(hoverStack);
+            return result;
           }
-          const res = traverseJson(value);
-          if (res) return true;
+          const result = traverseJson(value);
+          if (result?.length) return result;
         }
 
         if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
@@ -1201,26 +1217,29 @@ export async function handleOnCompletion(
           const columnNumberCloseBraceToken =
             obj["CloseBraceToken"]["columnNumber"];
           if (
-            lineNumberCloseBraceToken > postion.line ||
-            (columnNumberCloseBraceToken >= postion.character &&
-              lineNumberCloseBraceToken === postion.line)
+            (suggestion.token &&
+              lineNumberCloseBraceToken > suggestion.token.lineNumber) ||
+            (suggestion.token &&
+              columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
+              lineNumberCloseBraceToken === suggestion.token.lineNumber)
           ) {
-            if (!options.isDot) result = getAllCompletionItems(hoverStack);
-            return true;
+            let result = [];
+            if (!suggestion.data.isDot)
+              result = getAllCompletionItems(hoverStack);
+            return result;
           }
         }
       }
-      return false;
+      return [];
     };
-    traverseJson(jsonObject);
-    return result.length === 0 && !options.isDot
+    const result = traverseJson(jsonObject);
+    return result.length === 0 && !suggestion.data.isDot
       ? getAllCompletionItems(hoverStack)
       : result;
   } catch (err) {
     console.error(`Error reading and processing JSON file: ${filePath}`, err);
     return [];
   }
-  return [];
 }
 
 export async function readTokens(
@@ -1271,7 +1290,7 @@ const handleStatements = (
       obj["VariableDeclaration"]
     );
 
-    if (currentParsingClassName) {
+    if (isInsideClassButNotInsideCassMemberFunction()) {
       (result.completionItem.documentation as MarkupContent).value += (
         rootProgram.classes.get(currentParsingClassName).classCompletionItem
           .documentation as MarkupContent

@@ -128,8 +128,7 @@ export const formatVarExpr = (expression: string) => {
   return res;
 };
 
-interface SuggestHandler {
-  giveObjectSuggestions: boolean;
+export interface SuggestHandler {
   token: Token;
   word: string;
   data?: {
@@ -137,26 +136,106 @@ interface SuggestHandler {
     argumentNumber?: number;
   };
   shouldNotProvideSuggestion?: boolean;
+  giveObjectSuggestions?: boolean;
+  giveFunctionSignature?: boolean;
 }
-export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
-  const defaultValue: SuggestHandler = {
-    giveObjectSuggestions: false,
-    token: null,
-    word: "",
-    data: {
-      isDot: false,
-      argumentNumber: 0,
-    },
-  };
-  const defaultValueNoSuggestion: SuggestHandler = {
-    ...defaultValue,
-    shouldNotProvideSuggestion: true,
-  };
-  let word = "";
 
+const defaultValue: SuggestHandler = {
+  giveObjectSuggestions: false,
+  token: null,
+  word: "",
+  data: {
+    isDot: false,
+    argumentNumber: 0,
+  },
+  giveFunctionSignature: false,
+};
+
+export const defaultValueNoSuggestion: SuggestHandler = {
+  ...defaultValue,
+  shouldNotProvideSuggestion: true,
+};
+
+export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
+  let argNumber = 0;
+  let braceCount = 0,
+    bracketCount = 0,
+    parenthesesCount = 0;
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    {
+      if (tokens[i].value === "}") {
+        braceCount++;
+        continue;
+      }
+
+      if (tokens[i].value === "]") {
+        bracketCount++;
+        continue;
+      }
+
+      if (tokens[i].value === ")") {
+        parenthesesCount++;
+        continue;
+      }
+
+      if (tokens[i].value === "{" && braceCount) {
+        braceCount--;
+        continue;
+      }
+
+      if (tokens[i].value === "[" && bracketCount) {
+        bracketCount--;
+        continue;
+      }
+
+      if (tokens[i].value === "(" && parenthesesCount) {
+        parenthesesCount--;
+        continue;
+      }
+    }
+    if (tokens[i].value === ",") {
+      argNumber++;
+      continue;
+    }
+
+    if (i - 1 >= 0 && tokens[i].value === "(") {
+      return {
+        giveFunctionSignature: true,
+        token: tokens[i - 1],
+        word: tokens[i - 1].value,
+        data: {
+          isDot: false,
+          argumentNumber: argNumber + 1,
+        },
+      };
+    }
+  }
+
+  return defaultValueNoSuggestion;
+};
+
+export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
+  let word = "";
+  console.log(tokens[tokens.length - 1]);
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;
   }
+
+  const getDefaultValue = () => {
+    if (tokens.length && isValidVariableName(tokens[tokens.length - 1].value)) {
+      return {
+        giveObjectSuggestions: true,
+        token: tokens[tokens.length - 1],
+        word: tokens[tokens.length - 1].value,
+        data: {
+          isDot: false,
+          argumentNumber: 0,
+        },
+      };
+    }
+
+    return defaultValue;
+  };
 
   let braceCount = 0,
     bracketCount = 0,
@@ -393,7 +472,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         };
       }
 
-      return defaultValue;
+      return getDefaultValue();
     } else if (i - 1 >= 0 && tokens[i].value === ".") {
       let response = tokens[i--].value;
       let wasVar = false;
@@ -423,7 +502,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       }
 
       return !response || (response?.length && response[0] === ".")
-        ? defaultValue
+        ? getDefaultValue()
         : {
             giveObjectSuggestions: true,
             token: tokens[i + 1],
@@ -438,7 +517,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
     }
   }
 
-  return defaultValue;
+  return getDefaultValue();
 };
 
 const isSquareBracket = (char: string) => {

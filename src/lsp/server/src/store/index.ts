@@ -13,6 +13,6 @@ export const keywordsCompletionItems: CompletionItem[] = [
   ...constantDeclareCompletionItems,
   ...conditionalCompletionItems,
   ...otherCompletionItems,
-  ...inBuiltFunctionsCompletionItems,
+  // ...inBuiltFunctionsCompletionItems,
   // ...punctuationCompletionItems,
 ];
