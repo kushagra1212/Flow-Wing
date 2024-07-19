@@ -33,7 +33,7 @@ import {
   isPrimitiveType,
   SuggestHandler,
 } from "../utils";
-import { inBuiltFunctionsCompletionItems } from "../store/functions/inbuilt";
+import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
 import { keywordsCompletionItems } from "../store";
 
 let currentParsingClassName: string | null = null;
@@ -602,31 +602,6 @@ const getAllCompletionItems = (
     });
   }
 
-  // if (currentParsingClassName) {
-  // result.push(
-  //   ...Array.from(
-  //     mapping.classes.get(currentParsingClassName).callExpression.values()
-  //   )
-  // );
-  // result.push(
-  //   ...Array.from(
-  //     mapping.classes.get(currentParsingClassName).customTypes.values()
-  //   )
-  // );
-  // result.push(
-  //   ...Array.from(
-  //     mapping.classes.get(currentParsingClassName).functions.values()
-  //   )
-  // );
-  // result.push(
-  //   ...Array.from(
-  //     mapping.classes
-  //       .get(currentParsingClassName)
-  //       .variableDeclarations.values()
-  //   )
-  // );
-  // }
-
   if (mapping.functions) result.push(...Array.from(mapping.functions.values()));
 
   if (mapping.callExpression)
@@ -684,26 +659,6 @@ const getAllCompletionItemsOfIdentifier = (
 
     if (current.callExpression.get(identifier))
       update(identifier, result, current.callExpression.get(identifier));
-
-    // if (
-    //   currentParsingClassName &&
-    //   current.classes.get(currentParsingClassName)
-    // ) {
-    //   const classCI = current.classes.get(currentParsingClassName);
-
-    //   if (classCI.variableDeclarations.get(identifier))
-    //     update(
-    //       identifier,
-    //       result,
-    //       classCI.variableDeclarations.get(identifier)
-    //     );
-    //   if (classCI.functions.get(identifier))
-    //     update(identifier, result, classCI.functions.get(identifier));
-    //   if (classCI.callExpression.get(identifier))
-    //     update(identifier, result, classCI.callExpression.get(identifier));
-    //   if (classCI.customTypes.get(identifier))
-    //     update(identifier, result, classCI.customTypes.get(identifier));
-    // }
   }
 
   return result;
@@ -767,23 +722,6 @@ const getScopeCompletionAllItemFromExpression = (
   return result;
 };
 
-const getCurrentClassMemberVariableCompletionItem = (
-  st: Stack<ProgramStructure>,
-  currentClassName: string,
-  identifier: string
-): CompletionItem => {
-  st = reverseStack(st);
-
-  const cI = st
-    ?.peek()
-    ?.classes?.get(currentClassName)
-    ?.variableDeclarations?.get(identifier);
-
-  st = reverseStack(st);
-
-  return cI;
-};
-
 const declareGlobals = (
   program: ProgramStructure,
   obj: RootObject,
@@ -821,80 +759,6 @@ const declareGlobals = (
   }
 };
 
-// const traverseJson = (
-//   st: Stack<ProgramStructure>,
-//   rootProgram: ProgramStructure,
-//   obj: RootObject,
-//   options: { isSelf: boolean } = { isSelf: false },
-//   position: Position
-// ): CompletionItem[] => {
-//   if (Array.isArray(obj)) {
-//     for (const item of obj) {
-//       const result = traverseJson(st, rootProgram, item, options, position);
-//       if (result.length) return result;
-//     }
-//   } else if (typeof obj === "object") {
-//     if (obj["IdentifierToken"]) {
-//       const identifierToken: IdentifierToken = obj["IdentifierToken"];
-
-//       if (
-//         identifierToken.columnNumber === position.character &&
-//         identifierToken.lineNumber === position.line
-//       ) {
-//         if (currentParsingClassName && options.isSelf) {
-//           return [
-//             getCurrentClassMemberVariableCompletionItem(
-//               st,
-//               currentParsingClassName,
-//               identifierToken.value
-//             ),
-//           ];
-//         }
-
-//         return getAllCompletionItemsOfIdentifier(st, identifierToken.value);
-//       }
-//     }
-
-//     if (
-//       obj["BlockStatement"] ||
-//       obj["FunctionDeclarationSyntax"] ||
-//       obj["ClassStatement"]
-//     ) {
-//       st.push({
-//         variableDeclarations: new Map(),
-//         customTypes: new Map(),
-//         classes: new Map(),
-//         functions: new Map(),
-//         callExpression: new Map(),
-//         variableExpressions: new Map(),
-//         others: new Map(),
-//       });
-//     }
-
-//     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
-
-//     handleStatements(st, rootProgram, obj);
-
-//     for (const child of Object.values(obj)) {
-//       const result = traverseJson(st, rootProgram, child, options, position);
-
-//       if (result.length) return result;
-//     }
-
-//     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
-//     if (obj["ClassStatement"]) currentParsingClassName = null;
-
-//     if (
-//       obj["BlockStatement"] ||
-//       obj["FunctionDeclarationSyntax"] ||
-//       obj["ClassStatement"]
-//     ) {
-//       st.pop();
-//     }
-//   }
-//   return [];
-// };
-
 const getAllSuggestionsOfType = (
   st: Stack<ProgramStructure>,
   typeName: string
@@ -906,7 +770,7 @@ const getAllSuggestionsOfType = (
   );
 };
 
-export async function handleOnCompletion(
+export async function getCompletionItems(
   filePath: string,
   suggestion: SuggestHandler
 ): Promise<CompletionItem[]> {

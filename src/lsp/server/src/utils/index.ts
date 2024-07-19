@@ -1,7 +1,7 @@
 import { ErrorResult } from "./types";
 import { Position, Range } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { typesCompletionItems } from "../store/keywords/types";
+import { typesCompletionItems } from "../store/completionItems/keywords/types";
 import { Token } from "../hover/types";
 import { fileUtils } from "./fileUtils";
 import { flowWingConfig } from "../config/config";

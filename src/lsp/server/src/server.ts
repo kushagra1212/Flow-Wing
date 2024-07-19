@@ -1,368 +1,70 @@
 import {
   createConnection,
   TextDocuments,
-  Diagnostic,
-  DiagnosticSeverity,
   ProposedFeatures,
-  InitializeParams,
-  DidChangeConfigurationNotification,
-  CompletionItem,
-  TextDocumentPositionParams,
-  TextDocumentSyncKind,
-  InitializeResult,
-  HoverParams,
-  Range,
-  Position,
-  SignatureHelp,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { keywordsCompletionItems } from "./store";
-import {
-  checkForFunctionSignatures,
-  checkForHover,
-  checkForObjectSuggestions,
-  deColorize,
-  defaultValueNoSuggestion,
-  getLastWordPosition,
-  isValidVariableName,
-  SuggestHandler,
-} from "./utils";
-import { validateFile } from "./validation/validateFile";
-import { fileUtils } from "./utils/fileUtils";
-import { handleOnCompletion, readTokens } from "./hover";
-import { inBuiltFunctionsCompletionItems } from "./store/functions/inbuilt";
-import { flowWingConfig } from "./config/config";
-import { Token } from "./hover/types";
+import { onChangeContent } from "./handlers/onChangeContent";
+import { onCompletion } from "./handlers/onCompletion";
+import { onCompletionResolve } from "./handlers/onCompletionResolve";
+import { onHover } from "./handlers/onHover";
+import { onSignatureHelp } from "./handlers/onSignatureHelp";
+import { onDidChangeConfiguration } from "./handlers/onDidChangeConfiguration";
+import { onDidClose } from "./handlers/onDidClose";
+import { InitializationHandler } from "./handlers/InitializationHandler";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+export const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
-let hasConfigurationCapability: boolean = false;
-let hasWorkspaceFolderCapability: boolean = false;
-let hasDiagnosticRelatedInformationCapability: boolean = false;
-
-connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
-
-  // Does the client support the `workspace/configuration` request?
-  // If not, we fall back using global settings.
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
-
-  const result: InitializeResult = {
-    capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Incremental,
-      // Tell the client that this server supports code completion.
-      completionProvider: {
-        resolveProvider: true,
-        triggerCharacters: [".", ",", "{"],
-      },
-      signatureHelpProvider: {
-        triggerCharacters: ["(", ","],
-      },
-      hoverProvider: true,
-      callHierarchyProvider: true,
-    },
-  };
-  if (hasWorkspaceFolderCapability) {
-    result.capabilities.workspace = {
-      workspaceFolders: {
-        supported: true,
-      },
-    };
-  }
-  return result;
-});
-connection.onInitialized(() => {
-  if (hasConfigurationCapability) {
-    // Register for all configuration changes.
-    connection.client.register(
-      DidChangeConfigurationNotification.type,
-      undefined
-    );
-  }
-  if (hasWorkspaceFolderCapability) {
-    connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log("Workspace folder change event received.");
-    });
-  }
-});
+export const documents: TextDocuments<TextDocument> = new TextDocuments(
+  TextDocument
+);
 
 // The example settings
-interface ExampleSettings {
+export interface ExampleSettings {
   maxNumberOfProblems: number;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+export const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
 
 // Cache the settings of all open documents
-const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+export const documentSettings: Map<
+  string,
+  Thenable<ExampleSettings>
+> = new Map();
+export const initializationHandler = new InitializationHandler(connection);
+initializationHandler.initialize();
 
-connection.onDidChangeConfiguration((change) => {
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
-    );
-  }
-
-  // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
-});
-
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
-  return Promise.resolve(globalSettings);
-
-  let result = documentSettings.get(resource);
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: "flow-wing",
-    });
-    documentSettings.set(resource, result);
-  }
-  return result;
-}
+onDidChangeConfiguration();
 
 // Only keep settings for open documents
-documents.onDidClose((e) => {
-  documentSettings.delete(e.document.uri);
-});
+onDidClose(documents);
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
-});
-
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  const text = textDocument.getText();
-  const path = await fileUtils.createTempFile({
-    fileName: flowWingConfig.temp.codeFileName,
-    data: text,
-  });
-
-  const { stdoutWithoutColors, errorObject, errorMessage } = await validateFile(
-    path
-  );
-
-  connection.sendDiagnostics({
-    uri: textDocument.uri,
-    diagnostics: [],
-  });
-
-  if (!errorObject.error) {
-    return;
-  }
-
-  const diagnostics: Diagnostic[] = [];
-
-  const range = Range.create(
-    Position.create(
-      errorObject.location.line - 1,
-      errorObject.location.column - 1
-    ),
-    Position.create(
-      errorObject.location.line - 1,
-      errorObject.location.column + errorObject.location.length - 1
-    )
-  );
-  const diagnostic: Diagnostic = {
-    severity: DiagnosticSeverity.Error,
-    range,
-    message: deColorize(errorObject.message),
-    source: textDocument.uri,
-    relatedInformation: [
-      {
-        location: {
-          uri: textDocument.uri,
-          range,
-        },
-        message: errorObject.type,
-      },
-    ],
-  };
-
-  diagnostics.push(diagnostic);
-  // Send the computed diagnostics to VS Code.
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+onChangeContent(documents, connection);
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VS Code
   connection.console.log("We received a file change event");
 });
 
-const getSuggestionHandlerObject = (
-  _textDocsParams: TextDocumentPositionParams,
-  callBack: (tokens: Token[]) => SuggestHandler
-): Promise<SuggestHandler> => {
-  return new Promise((resolve) => {
-    const document = documents.get(_textDocsParams.textDocument.uri);
-
-    if (!document) {
-      return resolve(defaultValueNoSuggestion);
-    }
-    //? Added this to get Latest token
-    validateTextDocument(document)
-      .then(() =>
-        readTokens(
-          fileUtils.getTempFilePath({
-            fileName: flowWingConfig.temp.tokenFileName,
-          }),
-          _textDocsParams.position
-        ).then((tokens) => resolve(callBack(tokens)))
-      )
-      .catch((err) => {
-        console.log("🚀 ~ err~read-token~getSuggestion", err);
-        resolve(defaultValueNoSuggestion);
-      });
-  });
-};
-
 // This handler provides the initial list of the completion items.
-connection.onCompletion(
-  async (
-    _textDocsParams: TextDocumentPositionParams
-  ): Promise<CompletionItem[]> => {
-    const suggestion = await getSuggestionHandlerObject(
-      _textDocsParams,
-      checkForObjectSuggestions
-    );
-
-    if (suggestion.shouldNotProvideSuggestion) return [];
-    console.log("OnCompel", suggestion);
-    if (suggestion.hasObjectSuggestions) {
-      const result = await handleOnCompletion(
-        fileUtils.getTempFilePath({
-          fileName: flowWingConfig.temp.syntaxFileName,
-        }),
-        suggestion
-      );
-
-      return result;
-    }
-
-    return [];
-  }
-);
-
+onCompletion(documents, connection);
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  console.log("Item", item);
-  return item;
-});
+onCompletionResolve(connection);
 
-connection.onHover(async (params: HoverParams) => {
-  const suggestion = await getSuggestionHandlerObject(params, checkForHover);
+// This handler provides the initial list of the completion items. when hovering
+onHover(documents, connection);
 
-  console.log("hoverSuggestions", suggestion);
-
-  if (!suggestion?.hasHoverResult)
-    return {
-      contents: null,
-    };
-
-  const result = await handleOnCompletion(
-    fileUtils.getTempFilePath({
-      fileName: flowWingConfig.temp.syntaxFileName,
-    }),
-    suggestion
-  );
-
-  console.log("hoverResult", result?.[0]);
-  return {
-    contents: result?.find((item) => item.label === suggestion.word)
-      ?.documentation,
-  };
-  // const document = documents.get(params.textDocument.uri);
-  // if (!document) {
-  //   return;
-  // }
-
-  // const { word, position } = getLastWordPosition(
-  //   document,
-  //   params.position,
-  //   new RegExp(/[\s\n,{}()]+/)
-  // );
-
-  // if (!word) {
-  //   return;
-  // }
-  // let isSelf = false;
-
-  // if (word.split(".")?.[0] === "self") {
-  //   isSelf = true;
-  //   position.character += 5;
-  // }
-  // console.log("hover", word);
-  // let result = [];
-
-  // try {
-  //   result = await readAndProcessSyntaxJSON(
-  //     fileUtils.getTempFilePath({
-  //       fileName: flowWingConfig.temp.syntaxFileName,
-  //     }),
-  //     position,
-  //     {
-  //       isSelf,
-  //     }
-  //   );
-  // } catch (err) {
-  //   console.log(err);
-  // }
-
-  // console.log("resultOnHOver", result);
-
-  // return {
-  //   contents: result?.length
-  //     ? result[0].documentation
-  //     : keywordsCompletionItems.find(
-  //         (item) => item.label.substring(0, word.length) === word
-  //       )?.documentation,
-  // };
-});
-
-connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
-  const suggestion = await getSuggestionHandlerObject(
-    params,
-    checkForFunctionSignatures
-  );
-  const result = await handleOnCompletion(
-    fileUtils.getTempFilePath({
-      fileName: flowWingConfig.temp.syntaxFileName,
-    }),
-    suggestion
-  );
-
-  if (!result?.length || !suggestion?.hasFunctionSignature) return;
-
-  return {
-    signatures: result[0].data?.signatures,
-    activeSignature: 0,
-    activeParameter: suggestion?.data?.argumentNumber - 1,
-  };
-});
+// This handler provides signature help (e.g . function call parameters)
+onSignatureHelp(documents, connection);
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
@@ -370,3 +72,17 @@ documents.listen(connection);
 
 // Listen on the connection
 connection.listen();
+
+// function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+//   return Promise.resolve(globalSettings);
+
+//   let result = documentSettings.get(resource);
+//   if (!result) {
+//     result = connection.workspace.getConfiguration({
+//       scopeUri: resource,
+//       section: "flow-wing",
+//     });
+//     documentSettings.set(resource, result);
+//   }
+//   return result;
+// }

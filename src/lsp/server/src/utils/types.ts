@@ -14,7 +14,7 @@ type DiagnosticType =
   | "Linker"
   | "Fatal";
 
-type ErrorObject = {
+export type ErrorObject = {
   error: boolean;
   level: DiagnosticLevel;
   location: Location;
