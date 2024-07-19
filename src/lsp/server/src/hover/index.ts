@@ -34,6 +34,7 @@ import {
   SuggestHandler,
 } from "../utils";
 import { inBuiltFunctionsCompletionItems } from "../store/functions/inbuilt";
+import { keywordsCompletionItems } from "../store";
 
 let currentParsingClassName: string | null = null;
 let isInsideFunction = false;
@@ -547,7 +548,15 @@ const getAllCompletionItems = (
     functions: new Map(),
     callExpression: new Map(),
     variableExpressions: new Map(),
+    others: new Map(),
   };
+
+  if (reversedStack.peek().others?.size) {
+    reversedStack.peek().others?.forEach((value, key) => {
+      result.push(value);
+    });
+  }
+
   while (!reversedStack.isEmpty()) {
     const current = reversedStack?.pop();
     currentStack.push(current);
@@ -630,7 +639,7 @@ const getAllCompletionItemsOfIdentifier = (
   currentStack: Stack<ProgramStructure>,
   identifier: string
 ): CompletionItem[] => {
-  const reversedStack = reverseStack(currentStack);
+  const reversedStacked = reverseStack(currentStack);
   const result: CompletionItem[] = [];
   const update = (
     identifier: string,
@@ -646,9 +655,14 @@ const getAllCompletionItemsOfIdentifier = (
     }
   };
 
-  while (!reversedStack.isEmpty()) {
-    const current = reversedStack?.pop();
+  while (!reversedStacked.isEmpty()) {
+    const current = reversedStacked?.pop();
     currentStack.push(current);
+
+    if (current.others.get(identifier)) {
+      update(identifier, result, current.others.get(identifier));
+    }
+
     if (current.variableDeclarations.get(identifier)) {
       update(identifier, result, current.variableDeclarations.get(identifier));
     }
@@ -660,11 +674,12 @@ const getAllCompletionItemsOfIdentifier = (
       update(identifier, result, current.functions.get(identifier));
 
     if (current.classes.get(identifier)) {
-      update(
-        identifier,
-        result,
-        current.classes.get(identifier).classCompletionItem
-      );
+      const classCI = current.classes.get(identifier);
+      // Maping Class Name with init Function
+      if (classCI.functions.get("init"))
+        update(identifier, result, classCI.functions.get("init"));
+
+      update(identifier, result, classCI.classCompletionItem);
     }
 
     if (current.callExpression.get(identifier))
@@ -689,13 +704,6 @@ const getAllCompletionItemsOfIdentifier = (
     //   if (classCI.customTypes.get(identifier))
     //     update(identifier, result, classCI.customTypes.get(identifier));
     // }
-
-    // Maping Class Name with init Function
-    if (current.classes.get(identifier)) {
-      const classCI = current.classes.get(identifier);
-      if (classCI.functions.get("init"))
-        update(identifier, result, classCI.functions.get("init"));
-    }
   }
 
   return result;
@@ -759,88 +767,6 @@ const getScopeCompletionAllItemFromExpression = (
   return result;
 };
 
-const getScopeCompletionItemsListFromExpression = (
-  currentStack: Stack<ProgramStructure>,
-  identifier: string,
-  expressionName: keyof ProgramStructure
-): CompletionItem[] => {
-  const reversedStack = reverseStack(currentStack);
-
-  let result: CompletionItem[] = [];
-  let found = false;
-  while (!reversedStack.isEmpty()) {
-    const current = reversedStack?.pop();
-    currentStack.push(current);
-
-    if (found) continue;
-
-    const index = result.findIndex((item) => item.label === identifier);
-    // let newIdentifier;
-
-    // if (
-    //   identifier.split(".")?.[0] === "self" &&
-    //   identifier.split(".")?.length > 2
-    // ) {
-    //   newIdentifier = identifier.replace("self.", "");
-    // } else {
-    //   newIdentifier = identifier;
-    // }
-    let value = null;
-    if (currentParsingClassName && currentParsingClassName !== identifier) {
-      value = (
-        current["classes"].get(currentParsingClassName) as ClassCompletionItem
-      )?.[expressionName]?.get(identifier);
-    }
-    if (!value && current[expressionName].get(identifier)) {
-      value = current[expressionName].get(identifier);
-      if (value && value["classCompletionItem"]) {
-        value = value["classCompletionItem"];
-      }
-    }
-
-    if (value && Array.isArray(value)) {
-      result = value;
-      found = true;
-    }
-
-    if (!found && value) {
-      if (index !== -1) {
-        result[index] = value as CompletionItem;
-      } else {
-        result.push(value as CompletionItem);
-      }
-    }
-  }
-  return result;
-};
-
-const getCompletionItemsOfVariable = (
-  currentStack: Stack<ProgramStructure>,
-  identifier: string
-): CompletionItem[] => {
-  const variablesCompletionItem = getScopeCompletionItemFromExpression(
-    currentStack,
-    identifier,
-    "variableDeclarations"
-  );
-
-  if (
-    !variablesCompletionItem ||
-    isPrimitiveType(variablesCompletionItem.data.typeName)
-  )
-    return [];
-
-  const customTypesCompletionItem = getScopeCompletionItemFromExpression(
-    currentStack,
-    variablesCompletionItem.data.typeName,
-    "customTypes"
-  );
-
-  if (!customTypesCompletionItem) return [];
-
-  return customTypesCompletionItem.data;
-};
-
 const getCurrentClassMemberVariableCompletionItem = (
   st: Stack<ProgramStructure>,
   currentClassName: string,
@@ -869,10 +795,12 @@ const declareGlobals = (
     }
   } else if (typeof obj === "object") {
     if (
-      option.skip.includes(obj["ClassStatement"]) ||
-      option.skip.includes(obj["variableDeclarations"])
-    )
+      (option.skip.includes("ClassStatement") && obj["ClassStatement"]) ||
+      (option.skip.includes("variableDeclarations") &&
+        obj["ClavariableDeclarationsssStatement"])
+    ) {
       return;
+    }
 
     const result: any = {};
     if (obj["FunctionDeclarationSyntax"]) {
@@ -893,110 +821,79 @@ const declareGlobals = (
   }
 };
 
-const traverseJson = (
-  st: Stack<ProgramStructure>,
-  rootProgram: ProgramStructure,
-  obj: RootObject,
-  options: { isSelf: boolean } = { isSelf: false },
-  position: Position
-): CompletionItem[] => {
-  if (Array.isArray(obj)) {
-    for (const item of obj) {
-      const result = traverseJson(st, rootProgram, item, options, position);
-      if (result.length) return result;
-    }
-  } else if (typeof obj === "object") {
-    if (obj["IdentifierToken"]) {
-      const identifierToken: IdentifierToken = obj["IdentifierToken"];
+// const traverseJson = (
+//   st: Stack<ProgramStructure>,
+//   rootProgram: ProgramStructure,
+//   obj: RootObject,
+//   options: { isSelf: boolean } = { isSelf: false },
+//   position: Position
+// ): CompletionItem[] => {
+//   if (Array.isArray(obj)) {
+//     for (const item of obj) {
+//       const result = traverseJson(st, rootProgram, item, options, position);
+//       if (result.length) return result;
+//     }
+//   } else if (typeof obj === "object") {
+//     if (obj["IdentifierToken"]) {
+//       const identifierToken: IdentifierToken = obj["IdentifierToken"];
 
-      if (
-        identifierToken.columnNumber === position.character &&
-        identifierToken.lineNumber === position.line
-      ) {
-        if (currentParsingClassName && options.isSelf) {
-          return [
-            getCurrentClassMemberVariableCompletionItem(
-              st,
-              currentParsingClassName,
-              identifierToken.value
-            ),
-          ];
-        }
+//       if (
+//         identifierToken.columnNumber === position.character &&
+//         identifierToken.lineNumber === position.line
+//       ) {
+//         if (currentParsingClassName && options.isSelf) {
+//           return [
+//             getCurrentClassMemberVariableCompletionItem(
+//               st,
+//               currentParsingClassName,
+//               identifierToken.value
+//             ),
+//           ];
+//         }
 
-        return getAllCompletionItemsOfIdentifier(st, identifierToken.value);
-      }
-    }
+//         return getAllCompletionItemsOfIdentifier(st, identifierToken.value);
+//       }
+//     }
 
-    if (
-      obj["BlockStatement"] ||
-      obj["FunctionDeclarationSyntax"] ||
-      obj["ClassStatement"]
-    ) {
-      st.push({
-        variableDeclarations: new Map(),
-        customTypes: new Map(),
-        classes: new Map(),
-        functions: new Map(),
-        callExpression: new Map(),
-        variableExpressions: new Map(),
-      });
-    }
+//     if (
+//       obj["BlockStatement"] ||
+//       obj["FunctionDeclarationSyntax"] ||
+//       obj["ClassStatement"]
+//     ) {
+//       st.push({
+//         variableDeclarations: new Map(),
+//         customTypes: new Map(),
+//         classes: new Map(),
+//         functions: new Map(),
+//         callExpression: new Map(),
+//         variableExpressions: new Map(),
+//         others: new Map(),
+//       });
+//     }
 
-    if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
+//     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
 
-    handleStatements(st, rootProgram, obj);
+//     handleStatements(st, rootProgram, obj);
 
-    for (const child of Object.values(obj)) {
-      const result = traverseJson(st, rootProgram, child, options, position);
+//     for (const child of Object.values(obj)) {
+//       const result = traverseJson(st, rootProgram, child, options, position);
 
-      if (result.length) return result;
-    }
+//       if (result.length) return result;
+//     }
 
-    if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
-    if (obj["ClassStatement"]) currentParsingClassName = null;
+//     if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
+//     if (obj["ClassStatement"]) currentParsingClassName = null;
 
-    if (
-      obj["BlockStatement"] ||
-      obj["FunctionDeclarationSyntax"] ||
-      obj["ClassStatement"]
-    ) {
-      st.pop();
-    }
-  }
-  return [];
-};
-
-// Function to read the JSON file and process it
-export async function readAndProcessSyntaxJSON(
-  filePath: string,
-  postion: Position,
-  options: { isSelf: boolean }
-): Promise<CompletionItem[]> {
-  try {
-    const syntaxTreeAsString = await fileUtils.readFile(filePath);
-    const jsonObject: RootObject = JSON.parse(syntaxTreeAsString);
-    const st = new Stack<ProgramStructure>();
-    st.push({
-      variableDeclarations: new Map(),
-      customTypes: new Map(),
-      classes: new Map(),
-      functions: new Map(),
-      callExpression: new Map(),
-      variableExpressions: new Map(),
-    });
-    const rootProgram = st.peek();
-    isInsideFunction = false;
-    currentParsingClassName = null;
-    declareGlobals(rootProgram, jsonObject, {
-      skip: ["ClassStatement"],
-    });
-
-    return traverseJson(st, rootProgram, jsonObject, options, postion);
-  } catch (err) {
-    console.error(`Error reading and processing JSON file: ${filePath}`, err);
-    return [];
-  }
-}
+//     if (
+//       obj["BlockStatement"] ||
+//       obj["FunctionDeclarationSyntax"] ||
+//       obj["ClassStatement"]
+//     ) {
+//       st.pop();
+//     }
+//   }
+//   return [];
+// };
 
 const getAllSuggestionsOfType = (
   st: Stack<ProgramStructure>,
@@ -1024,6 +921,7 @@ export async function handleOnCompletion(
       functions: new Map(),
       callExpression: new Map(),
       variableExpressions: new Map(),
+      others: new Map(),
     });
     const rootProgram = hoverStack.peek();
     currentParsingClassName = null;
@@ -1032,12 +930,17 @@ export async function handleOnCompletion(
     for (const buildInFunc of inBuiltFunctionsCompletionItems) {
       rootProgram.functions.set(buildInFunc.label, buildInFunc);
     }
+
+    for (const keyword of keywordsCompletionItems) {
+      rootProgram.others.set(keyword.label, keyword);
+    }
+    console.log(jsonObject);
     declareGlobals(rootProgram, jsonObject, {
       skip: ["ClassStatement"],
     });
 
     // Recursive function to traverse the JSON structure
-    const traverseJson = function (obj: any): CompletionItem[] {
+    const traverseJson = (obj: any): CompletionItem[] => {
       if (Array.isArray(obj)) {
         for (const item of obj) {
           const res = traverseJson(item);
@@ -1144,6 +1047,8 @@ export async function handleOnCompletion(
               identifierToken.value
             );
 
+            console.log("RERE", result);
+
             if (result?.length) return result;
           }
         }
@@ -1184,10 +1089,13 @@ export async function handleOnCompletion(
             functions: new Map(),
             callExpression: new Map(),
             variableExpressions: new Map(),
+            others: new Map(),
           });
         }
         if (obj["FunctionDeclarationSyntax"]) isInsideFunction = true;
+
         handleStatements(hoverStack, rootProgram, obj);
+
         for (const value of Object.values(obj)) {
           if (obj["EndOfFileToken"]) {
             let result = [];
@@ -1201,15 +1109,6 @@ export async function handleOnCompletion(
 
         if (obj["FunctionDeclarationSyntax"]) isInsideFunction = false;
         if (obj["ClassStatement"]) currentParsingClassName = null;
-
-        if (
-          obj["BlockStatement"] ||
-          obj["ClassStatement"] ||
-          obj["FunctionDeclarationSyntax"]
-          // || obj["CustomTypeStatement"]
-        ) {
-          hoverStack?.pop();
-        }
 
         if (obj["CloseBraceToken"]) {
           const lineNumberCloseBraceToken =
@@ -1229,10 +1128,19 @@ export async function handleOnCompletion(
             return result;
           }
         }
+        if (
+          obj["BlockStatement"] ||
+          obj["ClassStatement"] ||
+          obj["FunctionDeclarationSyntax"]
+          // || obj["CustomTypeStatement"]
+        ) {
+          hoverStack?.pop();
+        }
       }
       return [];
     };
     const result = traverseJson(jsonObject);
+
     return result.length === 0 && !suggestion.data.isDot
       ? getAllCompletionItems(hoverStack)
       : result;
@@ -1351,15 +1259,15 @@ const handleStatements = (
       variableExpressions: new Map(),
     });
 
-    declareGlobals(st.peek(), obj["ClassStatement"], {
+    declareGlobals(st?.peek(), obj["ClassStatement"], {
       skip: [],
     });
-    st.peek().functions.forEach((value, key) => {
+
+    st?.peek()?.functions.forEach((value, key) => {
       rootProgram.classes
         .get(currentParsingClassName)
         ?.functions?.set(key, value);
     });
-    console.log(rootProgram.classes.get(currentParsingClassName)?.functions);
   } else if (obj["BracketedExpression"]) {
     result.name = getBracketedExpressionVariableName(
       obj["BracketedExpression"]

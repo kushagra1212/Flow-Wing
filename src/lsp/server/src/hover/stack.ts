@@ -51,6 +51,7 @@ export interface ProgramStructure {
   functions: Map<FunctionName, CompletionItem>;
   callExpression: Map<FunctionName, CompletionItem>;
   variableExpressions: Map<VariableName, Array<CompletionItem>>;
+  others: Map<string, CompletionItem>;
 }
 
 export const defaultProgramStructure: ProgramStructure = {
@@ -60,4 +61,5 @@ export const defaultProgramStructure: ProgramStructure = {
   functions: new Map(),
   callExpression: new Map(),
   variableExpressions: new Map(),
+  others: new Map(),
 };

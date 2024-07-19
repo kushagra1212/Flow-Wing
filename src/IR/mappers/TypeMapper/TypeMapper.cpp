@@ -116,13 +116,19 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
               structType->getName().str()) !=
           _codeGenerationContext->_classTypes.end()) {
 
-        const std::string text = "<Class<" + structType->getName().str() + ">>";
+        const std::string text = "<Class<" +
+                                 structType->getName().str().substr(
+                                     0, structType->getName().str().find(".")) +
+                                 ">>";
 
         return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                          : text;
       }
 
-      const std::string text = "<Object<" + structType->getName().str() + ">>";
+      const std::string text = "<Object<" +
+                               structType->getName().str().substr(
+                                   0, structType->getName().str().find(".")) +
+                               ">>";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;

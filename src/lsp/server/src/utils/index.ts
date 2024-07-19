@@ -136,24 +136,51 @@ export interface SuggestHandler {
     argumentNumber?: number;
   };
   shouldNotProvideSuggestion?: boolean;
-  giveObjectSuggestions?: boolean;
-  giveFunctionSignature?: boolean;
+  hasObjectSuggestions?: boolean;
+  hasFunctionSignature?: boolean;
+  hasHoverResult?: boolean;
 }
 
 const defaultValue: SuggestHandler = {
-  giveObjectSuggestions: false,
+  hasObjectSuggestions: false,
   token: null,
   word: "",
   data: {
     isDot: false,
     argumentNumber: 0,
   },
-  giveFunctionSignature: false,
+  hasFunctionSignature: false,
 };
 
 export const defaultValueNoSuggestion: SuggestHandler = {
   ...defaultValue,
   shouldNotProvideSuggestion: true,
+};
+
+export const checkForHover = (tokens: Token[]): SuggestHandler => {
+  let i = tokens.length - 1;
+  while (i >= 0) {
+    const isIdentifier = isValidVariableName(tokens[i].value);
+    if (i - 1 >= 0 && isIdentifier && tokens[i - 1].value === ".") {
+      i -= 2;
+      continue;
+    }
+
+    if (isIdentifier) {
+      return {
+        hasHoverResult: true,
+        token: tokens[i],
+        word: tokens[i].value,
+        data: {
+          isDot: false,
+          argumentNumber: 0,
+        },
+      };
+    }
+
+    return defaultValueNoSuggestion;
+  }
+  return defaultValueNoSuggestion;
 };
 
 export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
@@ -200,7 +227,7 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
 
     if (i - 1 >= 0 && tokens[i].value === "(") {
       return {
-        giveFunctionSignature: true,
+        hasFunctionSignature: true,
         token: tokens[i - 1],
         word: tokens[i - 1].value,
         data: {
@@ -224,7 +251,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
   const getDefaultValue = () => {
     if (tokens.length && isValidVariableName(tokens[tokens.length - 1].value)) {
       return {
-        giveObjectSuggestions: true,
+        hasObjectSuggestions: true,
         token: tokens[tokens.length - 1],
         word: tokens[tokens.length - 1].value,
         data: {
@@ -275,7 +302,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
     if (i - 2 >= 0 && tokens[i].value === "{" && tokens[i - 1].value === "=") {
       if (i - 4 >= 0 && tokens[i - 3].value === ":") {
         return {
-          giveObjectSuggestions: true,
+          hasObjectSuggestions: true,
           token: tokens[i - 4],
           word: tokens[i - 4].value + "." + word,
           data: {
@@ -286,7 +313,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       }
 
       return {
-        giveObjectSuggestions: true,
+        hasObjectSuggestions: true,
         token: tokens[i - 2],
         word: tokens[i - 2].value + "." + word,
         data: {
@@ -364,7 +391,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       if (tokens[i].value === "(") {
         i--;
         return {
-          giveObjectSuggestions: true,
+          hasObjectSuggestions: true,
           token: tokens[i],
           word: tokens[i].value + "." + word,
           data: {
@@ -373,7 +400,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           },
         };
       }
-
+      let bracket = "";
       let index = i - 1;
       if (tokens[index].value === "]") {
         while (index >= 0) {
@@ -385,6 +412,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           index--; // skip Number
 
           if (index >= 0 && tokens[index].value === "[") {
+            bracket += "[]";
             index--;
           }
         }
@@ -392,9 +420,9 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       if (index >= 0) {
         if (index - 2 >= 0 && tokens[index - 1].value === ":") {
           return {
-            giveObjectSuggestions: true,
+            hasObjectSuggestions: true,
             token: tokens[index - 2],
-            word: tokens[index - 2].value + "[]" + "." + word,
+            word: tokens[index - 2].value + bracket + "." + word,
             data: {
               isDot: true,
               argumentNumber: 0,
@@ -402,9 +430,9 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           };
         } else {
           return {
-            giveObjectSuggestions: true,
+            hasObjectSuggestions: true,
             token: tokens[index],
-            word: tokens[index].value + "[]" + "." + word,
+            word: tokens[index].value + bracket + "." + word,
             data: {
               isDot: true,
               argumentNumber: 0,
@@ -462,7 +490,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
 
       if (i >= 0) {
         return {
-          giveObjectSuggestions: true,
+          hasObjectSuggestions: true,
           token: tokens[i],
           word: tokens[i].value + "." + word,
           data: {
@@ -504,7 +532,7 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
       return !response || (response?.length && response[0] === ".")
         ? getDefaultValue()
         : {
-            giveObjectSuggestions: true,
+            hasObjectSuggestions: true,
             token: tokens[i + 1],
             word: response,
             data: {

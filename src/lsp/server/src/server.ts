@@ -19,6 +19,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { keywordsCompletionItems } from "./store";
 import {
   checkForFunctionSignatures,
+  checkForHover,
   checkForObjectSuggestions,
   deColorize,
   defaultValueNoSuggestion,
@@ -28,11 +29,7 @@ import {
 } from "./utils";
 import { validateFile } from "./validation/validateFile";
 import { fileUtils } from "./utils/fileUtils";
-import {
-  handleOnCompletion,
-  readAndProcessSyntaxJSON,
-  readTokens,
-} from "./hover";
+import { handleOnCompletion, readTokens } from "./hover";
 import { inBuiltFunctionsCompletionItems } from "./store/functions/inbuilt";
 import { flowWingConfig } from "./config/config";
 import { Token } from "./hover/types";
@@ -253,8 +250,8 @@ connection.onCompletion(
     );
 
     if (suggestion.shouldNotProvideSuggestion) return [];
-
-    if (suggestion.giveObjectSuggestions) {
+    console.log("OnCompel", suggestion);
+    if (suggestion.hasObjectSuggestions) {
       const result = await handleOnCompletion(
         fileUtils.getTempFilePath({
           fileName: flowWingConfig.temp.syntaxFileName,
@@ -262,9 +259,7 @@ connection.onCompletion(
         suggestion
       );
 
-      return suggestion.data.isDot
-        ? result
-        : [...result, ...keywordsCompletionItems];
+      return result;
     }
 
     return [];
@@ -279,51 +274,73 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 });
 
 connection.onHover(async (params: HoverParams) => {
-  const document = documents.get(params.textDocument.uri);
-  if (!document) {
-    return;
-  }
+  const suggestion = await getSuggestionHandlerObject(params, checkForHover);
 
-  const { word, position } = getLastWordPosition(
-    document,
-    params.position,
-    new RegExp(/[\s\n,{}()]+/)
+  console.log("hoverSuggestions", suggestion);
+
+  if (!suggestion?.hasHoverResult)
+    return {
+      contents: null,
+    };
+
+  const result = await handleOnCompletion(
+    fileUtils.getTempFilePath({
+      fileName: flowWingConfig.temp.syntaxFileName,
+    }),
+    suggestion
   );
 
-  if (!word) {
-    return;
-  }
-  let isSelf = false;
-
-  if (word.split(".")?.[0] === "self") {
-    isSelf = true;
-    position.character += 5;
-  }
-  let result = [];
-
-  try {
-    result = await readAndProcessSyntaxJSON(
-      fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.syntaxFileName,
-      }),
-      position,
-      {
-        isSelf,
-      }
-    );
-  } catch (err) {
-    console.log(err);
-  }
-
-  console.log("resultOnHOver", result);
-
+  console.log("hoverResult", result?.[0]);
   return {
-    contents: result?.length
-      ? result[0].documentation
-      : keywordsCompletionItems.find(
-          (item) => item.label.substring(0, word.length) === word
-        )?.documentation,
+    contents: result?.find((item) => item.label === suggestion.word)
+      ?.documentation,
   };
+  // const document = documents.get(params.textDocument.uri);
+  // if (!document) {
+  //   return;
+  // }
+
+  // const { word, position } = getLastWordPosition(
+  //   document,
+  //   params.position,
+  //   new RegExp(/[\s\n,{}()]+/)
+  // );
+
+  // if (!word) {
+  //   return;
+  // }
+  // let isSelf = false;
+
+  // if (word.split(".")?.[0] === "self") {
+  //   isSelf = true;
+  //   position.character += 5;
+  // }
+  // console.log("hover", word);
+  // let result = [];
+
+  // try {
+  //   result = await readAndProcessSyntaxJSON(
+  //     fileUtils.getTempFilePath({
+  //       fileName: flowWingConfig.temp.syntaxFileName,
+  //     }),
+  //     position,
+  //     {
+  //       isSelf,
+  //     }
+  //   );
+  // } catch (err) {
+  //   console.log(err);
+  // }
+
+  // console.log("resultOnHOver", result);
+
+  // return {
+  //   contents: result?.length
+  //     ? result[0].documentation
+  //     : keywordsCompletionItems.find(
+  //         (item) => item.label.substring(0, word.length) === word
+  //       )?.documentation,
+  // };
 });
 
 connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
@@ -338,7 +355,7 @@ connection.onSignatureHelp(async (params): Promise<SignatureHelp> => {
     suggestion
   );
 
-  if (!result?.length || !suggestion?.giveFunctionSignature) return;
+  if (!result?.length || !suggestion?.hasFunctionSignature) return;
 
   return {
     signatures: result[0].data?.signatures,
