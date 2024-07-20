@@ -4,12 +4,12 @@ import {
   TextDocuments,
 } from "vscode-languageserver";
 import { defaultValueNoSuggestion, SuggestHandler } from "../utils";
-import { Token } from "../hover/types";
+import { Token } from "../types";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { validateTextDocument } from "./documentService";
-import { getCompletionItems, readTokens } from "../hover";
+import { getCompletionItems, readTokens } from "../completionItemProvider";
 import { fileUtils } from "../utils/fileUtils";
-import { flowWingConfig } from "../config/config";
+import { flowWingConfig } from "../config";
 
 export const getSuggestionHandlerObject = async (
   _textDocsParams: TextDocumentPositionParams,

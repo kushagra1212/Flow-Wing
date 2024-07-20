@@ -5,7 +5,6 @@ import {
   InitializeResult,
   TextDocumentSyncKind,
 } from "vscode-languageserver";
-import { connection as globalConnection } from "../server";
 
 export const onInitialize = () => {};
 

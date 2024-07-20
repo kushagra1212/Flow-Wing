@@ -15,32 +15,23 @@ import { InitializationHandler } from "./handlers/InitializationHandler";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-export const connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
-export const documents: TextDocuments<TextDocument> = new TextDocuments(
-  TextDocument
-);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 // The example settings
-export interface ExampleSettings {
-  maxNumberOfProblems: number;
-}
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-export const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
 
 // Cache the settings of all open documents
-export const documentSettings: Map<
-  string,
-  Thenable<ExampleSettings>
-> = new Map();
-export const initializationHandler = new InitializationHandler(connection);
+
+const initializationHandler = new InitializationHandler(connection);
 initializationHandler.initialize();
 
-onDidChangeConfiguration();
+onDidChangeConfiguration(connection, initializationHandler, documents);
 
 // Only keep settings for open documents
 onDidClose(documents);

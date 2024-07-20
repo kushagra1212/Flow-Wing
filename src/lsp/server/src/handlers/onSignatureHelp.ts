@@ -5,8 +5,8 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getSuggestionHandlerObject } from "../services/suggestionService";
-import { getCompletionItems } from "../hover";
-import { flowWingConfig } from "../config/config";
+import { getCompletionItems } from "../completionItemProvider";
+import { flowWingConfig } from "../config";
 import { fileUtils } from "../utils/fileUtils";
 import { checkForFunctionSignatures } from "../utils";
 

@@ -1,18 +1,18 @@
-import { _Connection } from "vscode-languageserver";
-import {
-  connection,
-  defaultSettings,
-  documents,
-  documentSettings,
-  ExampleSettings,
-  initializationHandler,
-} from "../server";
+import { _Connection, TextDocuments } from "vscode-languageserver";
+
 import { validateTextDocument } from "../services/documentService";
+import { defaultSettings, documentSettings } from "../common";
+import { ExampleSettings } from "../common/types";
 import { InitializationHandler } from "./InitializationHandler";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 let globalSettings: ExampleSettings = defaultSettings;
 
-export const onDidChangeConfiguration = () => {
+export const onDidChangeConfiguration = (
+  connection: _Connection,
+  initializationHandler: InitializationHandler,
+  documents: TextDocuments<TextDocument>
+) => {
   connection.onDidChangeConfiguration((change) => {
     if (initializationHandler.getHasConfigurationCapability()) {
       // Reset all cached document settings

@@ -1,5 +1,3 @@
-import { generateRandomFilename } from "../utils";
-
 const FILE_NAME = "fgcode";
 
 type FlowWingConfig = {

@@ -2,10 +2,11 @@ import { ErrorResult } from "./types";
 import { Position, Range } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/completionItems/keywords/types";
-import { Token } from "../hover/types";
+import { Token } from "../types";
 import { fileUtils } from "./fileUtils";
-import { flowWingConfig } from "../config/config";
+import { flowWingConfig } from "../config";
 import { randomBytes } from "crypto";
+import { Stack } from "../ds/stack";
 
 // eslint-disable-next-line no-control-regex
 const COLOR_REGEX = /\x1b\[[0-9;]*m/g;
@@ -167,6 +168,21 @@ export const checkForHover = (tokens: Token[]): SuggestHandler => {
     }
 
     if (isIdentifier) {
+      if (
+        tokens[i].value === "self" &&
+        i + 2 < tokens.length &&
+        tokens[i + 1].value === "."
+      ) {
+        return {
+          hasHoverResult: true,
+          token: tokens[i + 2],
+          word: tokens[i + 2].value,
+          data: {
+            isDot: false,
+            argumentNumber: 0,
+          },
+        };
+      }
       return {
         hasHoverResult: true,
         token: tokens[i],
@@ -559,3 +575,10 @@ export const isValidVariableName = (name) => {
 export function generateRandomFilename() {
   return randomBytes(16).toString("hex");
 }
+export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
+  const result = new Stack<T>();
+  while (!stack.isEmpty()) {
+    result.push(stack.pop());
+  }
+  return result;
+};

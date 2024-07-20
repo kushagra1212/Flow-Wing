@@ -7,8 +7,8 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getSuggestionHandlerObject } from "../services/suggestionService";
 import { checkForObjectSuggestions } from "../utils";
-import { getCompletionItems } from "../hover";
-import { flowWingConfig } from "../config/config";
+import { getCompletionItems } from "../completionItemProvider";
+import { flowWingConfig } from "../config";
 import { fileUtils } from "../utils/fileUtils";
 
 export async function onCompletion(

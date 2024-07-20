@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileUtils } from "../utils/fileUtils";
-import { flowWingConfig } from "../config/config";
+import { flowWingConfig } from "../config";
 import { ErrorResult } from "../utils/types";
 import { parseErrorAndExtractLocation } from "../utils";
 import { createDiagnostic } from "./diagnosticService";
@@ -11,6 +11,8 @@ export const validateTextDocument = async (
   textDocument: TextDocument,
   connection: _Connection = null
 ): Promise<void> => {
+  if (!textDocument) return;
+
   try {
     const text = textDocument.getText();
     const path = await fileUtils.createTempFile({
@@ -21,8 +23,8 @@ export const validateTextDocument = async (
     const { errorObject } = await validateFile(path);
 
     const diagnostics = errorObject.error
-      ? []
-      : [createDiagnostic(errorObject, textDocument)];
+      ? [createDiagnostic(errorObject, textDocument)]
+      : [];
 
     // Send the computed diagnostics to VS Code.
 

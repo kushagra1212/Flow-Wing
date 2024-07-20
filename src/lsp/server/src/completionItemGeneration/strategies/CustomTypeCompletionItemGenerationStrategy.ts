@@ -1,0 +1,133 @@
+import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
+import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStrategy";
+import { CustomTypeExpressionStrategy } from "../../strategies/CustomTypeExpressionStrategy";
+import { CustomTypeStatement } from "../../types";
+import { LiteralExpressionStrategy } from "../../strategies/LiteralExpressionStrategy";
+import {
+  getArrayType,
+  getMarkSyntaxHighlightMarkdown,
+  isPrimitiveType,
+} from "../../utils";
+import { CompletionItemService } from "../../services/completionItemService";
+import { ScopeCompletionItemsStrategy } from "../../strategies/CompletionItemStrategy/ScopeCompletionItemsStrategy";
+import { BracketedExpressionCompletionItemGenerationStrategy } from "./BracketedExpressionCompletionItemGenerationStrategy";
+
+export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
+  public generateCompletionItems(): CompletionItem[] {
+    this.result.name = new CustomTypeExpressionStrategy().getExpressionAsString(
+      this.syntaxObj["CustomTypeStatement"]
+    );
+
+    this.result.completionItem = this.createCompletionItem(
+      this.syntaxObj["CustomTypeStatement"] as CustomTypeStatement
+    );
+
+    this.programCtx.stack
+      ?.peek()
+      ?.customTypes?.set(this.result.name, this.result.completionItem);
+
+    if (this.result.completionItem.label !== "unknown") {
+      this.populateVariableExpressionCompletionItem(
+        this.result.completionItem.label,
+        this.result.completionItem.label
+      );
+    }
+
+    this.setClassMembersIfNeeded("customTypes", this.result);
+
+    return [];
+  }
+
+  private populateVariableExpressionCompletionItem = (
+    variableName: string,
+    typeName: string
+  ): void => {
+    if (isPrimitiveType(typeName)) {
+      return;
+    }
+
+    const customTypesCompletionItem = new CompletionItemService(
+      new ScopeCompletionItemsStrategy()
+    ).getCompletionItems({
+      stack: this.programCtx.stack,
+      identifier: typeName,
+      expressionName: "customTypes",
+    })[0];
+
+    if (customTypesCompletionItem) {
+      const innerVariableName = variableName + ".";
+      for (const item of customTypesCompletionItem.data) {
+        if (
+          !this.programCtx.stack
+            ?.peek()
+            .variableExpressions.get(innerVariableName)
+        ) {
+          this.programCtx.stack
+            ?.peek()
+            .variableExpressions.set(innerVariableName, []);
+        }
+        this.programCtx.stack
+          ?.peek()
+          .variableExpressions.get(innerVariableName)
+          .push(item);
+
+        const array = getArrayType(item.data.typeName);
+
+        if (array.isArray) {
+          this.populateVariableExpressionCompletionItem(
+            innerVariableName + item.label + array.dim,
+            array.ofType
+          );
+        } else {
+          this.populateVariableExpressionCompletionItem(
+            innerVariableName + item.label,
+            item.data.typeName
+          );
+        }
+      }
+    }
+  };
+  public createCompletionItem(
+    customTypeStatement: CustomTypeStatement
+  ): CompletionItem {
+    let customTypeStatementString = "type ";
+
+    if (customTypeStatement[0]["LiteralExpression"]) {
+      customTypeStatementString +=
+        new LiteralExpressionStrategy().getExpressionAsString(
+          customTypeStatement[0]["LiteralExpression"][0]
+        ) + " = {\n";
+    }
+    const data = [];
+    for (let i = 1; i < customTypeStatement.length; i++) {
+      customTypeStatementString += "\t";
+      if (customTypeStatement[i]["BracketedExpression"]) {
+        data.push({
+          ...new BracketedExpressionCompletionItemGenerationStrategy().createCompletionItem(
+            customTypeStatement[i]["BracketedExpression"]
+          ),
+          kind: CompletionItemKind.Variable,
+        });
+        customTypeStatementString +=
+          data[data.length - 1].detail +
+          (i == customTypeStatement.length - 1 ? "\n" : ",\n");
+      }
+    }
+    customTypeStatementString += "}\n";
+
+    const typeName = new CustomTypeExpressionStrategy().getExpressionAsString(
+      customTypeStatement
+    );
+
+    return {
+      label: typeName,
+      kind: CompletionItemKind.TypeParameter,
+      data: data,
+      detail: "Custom Type",
+      documentation: {
+        kind: "markdown",
+        value: getMarkSyntaxHighlightMarkdown(customTypeStatementString),
+      },
+    };
+  }
+}
