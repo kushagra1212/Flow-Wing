@@ -51,7 +51,9 @@ export const getDocumentationForCompletionItem = async (
 
     return (
       result?.find((item) => item.label === suggestion.word)?.documentation ??
-      null
+      (result?.length === 1 && result?.[0].documentation
+        ? result?.[0].documentation
+        : null)
     );
   } catch (err) {
     console.log("🚀 ~ getDocumentationForCompletionItem ~ err:", err);

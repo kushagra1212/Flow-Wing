@@ -5,6 +5,10 @@ import {
   getSuggestionHandlerObject,
 } from "../services/suggestionService";
 import { checkForHover } from "../utils";
+import { getCompletionItems } from "../completionItemProvider";
+import { fileUtils } from "../utils/fileUtils";
+import { flowWingConfig } from "../config";
+import { getObjectSuggestion } from "./onCompletion";
 
 export const onHover = async (
   documents: TextDocuments<TextDocument>,
@@ -17,10 +21,13 @@ export const onHover = async (
       checkForHover
     );
 
-    if (!suggestion?.hasHoverResult)
+    if (!suggestion?.hasHoverResult) {
       return {
         contents: null,
       };
+    }
+
+    console.log("suggestion", suggestion);
 
     const documentation = await getDocumentationForCompletionItem(suggestion);
 

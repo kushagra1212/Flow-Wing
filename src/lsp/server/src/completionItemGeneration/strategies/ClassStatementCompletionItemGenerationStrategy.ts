@@ -1,4 +1,8 @@
-import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  MarkupContent,
+} from "vscode-languageserver";
 import { CompletionItemGenerationFactory } from "../completionItemGenerationFactory";
 import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStrategy";
 import { ClassExpressionStrategy } from "../../strategies/ClassExpressionStrategy";
@@ -14,30 +18,71 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
     this.result.completionItem = this.createCompletionItem(
       this.syntaxObj["ClassStatement"] as ClassStatement
     );
-    this.programCtx.currentParsingClassName = this.result.name;
 
-    this.programCtx.rootProgram.classes.set(this.result.name, {
-      classCompletionItem: this.result.completionItem,
-      callExpression: new Map(),
-      customTypes: new Map(),
-      variableDeclarations: new Map(),
-      functions: new Map(),
-      variableExpressions: new Map(),
-    });
+    this.programCtx.setCurrentParsingClassName(this.result.name);
 
-    declareGlobals(
-      this.programCtx.stack?.peek(),
-      this.syntaxObj["ClassStatement"],
+    this.programCtx.rootProgram.classes.set(
+      this.programCtx.getCurrentParsingClassName(),
       {
-        skip: [],
+        classCompletionItem: this.result.completionItem,
+        callExpression: new Map(),
+        customTypes: new Map(),
+        variableDeclarations: new Map(),
+        functions: new Map(),
+        variableExpressions: new Map(),
       }
     );
 
-    this.programCtx.stack?.peek()?.functions.forEach((value, key) => {
-      this.programCtx.rootProgram.classes
-        .get(this.programCtx.currentParsingClassName)
-        ?.functions?.set(key, value);
-    });
+    declareGlobals(
+      this.programCtx.rootProgram.classes.get(
+        this.programCtx.getCurrentParsingClassName()
+      ),
+      this.syntaxObj["ClassStatement"],
+      {
+        skip: ["ClassStatement", "VariableDeclarations"],
+      }
+    );
+
+    this.programCtx.rootProgram.classes
+      .get(this.programCtx.getCurrentParsingClassName())
+      .functions.forEach((value, key) => {
+        value.documentation = {
+          kind: (value.documentation as MarkupContent).kind,
+          value: getMarkSyntaxHighlightMarkdown(
+            value.detail +
+              `\nclass ${this.programCtx.getCurrentParsingClassName()}`
+          ),
+        };
+      });
+
+    if (
+      this.syntaxObj["ClassStatement"]?.length >= 4 &&
+      this.syntaxObj["ClassStatement"][2]["ExtendsKeyword"] &&
+      this.syntaxObj["ClassStatement"][3]["IdentifierToken"]
+    ) {
+      const parentClassName =
+        this.syntaxObj["ClassStatement"][3]["IdentifierToken"]?.value;
+
+      if (this.programCtx.rootProgram.classes.has(parentClassName)) {
+        const parentClass =
+          this.programCtx.rootProgram.classes.get(parentClassName);
+        parentClass.functions.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.functions?.set(key, value);
+        });
+        parentClass.variableDeclarations.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.variableDeclarations?.set(key, value);
+        });
+        parentClass.variableExpressions.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.variableExpressions?.set(key, value);
+        });
+      }
+    }
 
     return [];
   }

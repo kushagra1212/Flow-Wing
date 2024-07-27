@@ -1,25 +1,29 @@
 import { CompletionItem } from "vscode-languageserver";
 import { CompletionItemStrategy, CompletionItemStrategyParams } from ".";
-import { ProgramStructure, Stack } from "../../ds/stack";
 import { reverseStack } from "../../utils";
 
 export class ScopeCompletionItemsStrategy implements CompletionItemStrategy {
   public getCompletionItems({
-    stack,
+    programCtx,
     identifier,
     expressionName,
     closestScope = true,
   }: CompletionItemStrategyParams): CompletionItem[] {
-    const reversedStack = reverseStack(stack);
+    const reversedStack = reverseStack(programCtx.stack);
 
     let result: CompletionItem[] = [];
 
     while (!reversedStack.isEmpty()) {
       const current = reversedStack?.pop();
-      stack.push(current);
+      programCtx.stack.push(current);
       if (result?.length && !closestScope) continue;
 
-      const completionItem = current[expressionName].get(identifier);
+      const completionItem = (
+        current[expressionName] as Map<
+          string,
+          CompletionItem[] | CompletionItem
+        >
+      ).get(identifier);
 
       if (completionItem) {
         if (completionItem["classCompletionItem"]) {
@@ -32,6 +36,21 @@ export class ScopeCompletionItemsStrategy implements CompletionItemStrategy {
       }
     }
 
+    if (programCtx.rootProgram.functions.get(identifier)) {
+      result = [programCtx.rootProgram.functions.get(identifier)];
+    }
+    if (
+      programCtx.isInsideClass() &&
+      programCtx.rootProgram.classes
+        .get(programCtx.getCurrentParsingClassName())
+        .functions.get(identifier)
+    ) {
+      result = [
+        programCtx.rootProgram.classes
+          .get(programCtx.getCurrentParsingClassName())
+          .functions.get(identifier),
+      ];
+    }
     return result;
   }
 }

@@ -22,7 +22,7 @@ export abstract class CompletionItemGenerationStrategy {
   ) {
     if (this.programCtx.isInsideAClassButNotInsideCassMemberFunction()) {
       this.programCtx.rootProgram?.classes
-        .get(this.programCtx.currentParsingClassName)
+        .get(this.programCtx.getCurrentParsingClassName())
         ?.[expressionName]?.set(value.name, value.completionItem);
     }
   }

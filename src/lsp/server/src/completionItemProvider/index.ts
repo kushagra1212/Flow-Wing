@@ -13,7 +13,7 @@ import { CompletionItemGenerationFactory } from "../completionItemGeneration/com
 import { IdentifierToken, RootObject, Token } from "../types";
 
 export const declareGlobals = (
-  program: ProgramStructure,
+  program: any,
   obj: RootObject,
   option: { skip: string[] }
 ): void => {
@@ -22,10 +22,12 @@ export const declareGlobals = (
       declareGlobals(program, item, option);
     }
   } else if (typeof obj === "object") {
+    if (!obj) return;
+
     if (
       (option.skip.includes("ClassStatement") && obj["ClassStatement"]) ||
-      (option.skip.includes("variableDeclarations") &&
-        obj["ClavariableDeclarationsssStatement"])
+      (option.skip.includes("VariableDeclarations") &&
+        obj["VariableDeclarations"])
     ) {
       return;
     }
@@ -66,6 +68,105 @@ export async function getCompletionItems(
           if (res?.length) return res;
         }
       } else if (typeof obj === "object" && obj !== null) {
+        if (obj["ClassKeyword"]) {
+          if (
+            suggestion.token &&
+            (obj["ClassKeyword"]["lineNumber"] > suggestion.token.lineNumber ||
+              (obj["ClassKeyword"]["columnNumber"] >=
+                suggestion.token.columnNumber &&
+                obj["ClassKeyword"]["lineNumber"] ===
+                  suggestion.token.lineNumber))
+          ) {
+            programCtx.setCurrentParsingClassName(null);
+            let result = [];
+            if (!suggestion.data.isDot)
+              result = new CompletionItemService(
+                new AllCompletionItemsStrategy()
+              ).getCompletionItems({ programCtx: programCtx });
+            return result;
+          }
+        }
+        if (obj["lineNumber"] && obj["columnNumber"]) {
+          if (
+            suggestion.token &&
+            (obj["lineNumber"] > suggestion.token.lineNumber ||
+              (obj["columnNumber"] >= suggestion.token.columnNumber &&
+                obj["lineNumber"] === suggestion.token.lineNumber))
+          ) {
+            if (suggestion.data.isDot || suggestion?.data?.argumentNumber) {
+              const res = getCompletionItemsForDot(suggestion, programCtx);
+
+              return res;
+            }
+
+            let result = [];
+            if (!suggestion.data.isDot)
+              result = new CompletionItemService(
+                new AllCompletionItemsStrategy()
+              ).getCompletionItems({ programCtx: programCtx });
+            return result;
+          }
+        }
+        if (obj["IdentifierToken"]) {
+          const identifierToken: IdentifierToken = obj["IdentifierToken"];
+
+          if (
+            suggestion.token &&
+            identifierToken.columnNumber === suggestion.token.columnNumber &&
+            identifierToken.lineNumber === suggestion.token.lineNumber
+          ) {
+            if (suggestion.data.isDot) {
+              return getCompletionItemsForDot(suggestion, programCtx);
+            }
+
+            const result = new CompletionItemService(
+              new IdentifierCompletionItemsStrategy()
+            ).getCompletionItems({
+              programCtx: programCtx,
+              identifier: identifierToken.value,
+            });
+
+            if (result?.length) return result;
+          }
+        }
+
+        // if (
+        //   obj["EndOfFileToken"] ||
+        //   obj["lineNumber"] > suggestion.token.lineNumber ||
+        //   (obj["columnNumber"] >= suggestion.token.columnNumber &&
+        //     obj["lineNumber"] === suggestion.token.lineNumber)
+        // ) {
+        //   let result = [];
+        //   if (!suggestion.data.isDot)
+        //     result = new CompletionItemService(
+        //       new IdentifierCompletionItemsStrategy()
+        //     ).getCompletionItems({
+        //       programCtx: programCtx,
+        //       identifier: suggestion.token.value,
+        //     });
+        //   return result;
+        // }
+
+        // if (obj["OpenBraceToken"]) {
+        //   const lineNumberCloseBraceToken = obj["OpenBraceToken"]["lineNumber"];
+        //   const columnNumberCloseBraceToken =
+        //     obj["OpenBraceToken"]["columnNumber"];
+        //   if (
+        //     suggestion.token &&
+        //     (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
+        //       (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
+        //         lineNumberCloseBraceToken === suggestion.token.lineNumber))
+        //   ) {
+        //     programCtx.stack?.pop();
+        //     let result = [];
+        //     if (!suggestion.data.isDot)
+        //       result = new CompletionItemService(
+        //         new AllCompletionItemsStrategy()
+        //       ).getCompletionItems({ programCtx: programCtx });
+        //     return result;
+        //   }
+        // }
+
         if (
           obj["BlockStatement"] ||
           obj["ClassStatement"] ||
@@ -74,179 +175,47 @@ export async function getCompletionItems(
           programCtx.pushEmptyProgramStructure();
         }
 
-        if (obj["IdentifierToken"]) {
-          const identifierToken: IdentifierToken = obj["IdentifierToken"];
-          if (
-            suggestion.token &&
-            identifierToken.columnNumber === suggestion.token.columnNumber &&
-            identifierToken.lineNumber === suggestion.token.lineNumber
-          ) {
-            if (suggestion.data.isDot) {
-              let firstWord = suggestion.word.split(".")?.[0],
-                typeName = "";
-              let remainingWord = suggestion.word.split(".").slice(1).join(".");
-
-              if (
-                firstWord === "self" &&
-                programCtx.isInsideClass() &&
-                remainingWord === ""
-              ) {
-                return [
-                  ...Array.from(
-                    programCtx.rootProgram.classes
-                      .get(programCtx.currentParsingClassName)
-                      .variableDeclarations.values()
-                  ),
-                  ...Array.from(
-                    programCtx.rootProgram.classes
-                      .get(programCtx.currentParsingClassName)
-                      .functions.values()
-                  ),
-                ];
-              }
-
-              if (suggestion.data.argumentNumber) {
-                typeName = new CompletionItemService(
-                  new ScopeCompletionItemsStrategy()
-                ).getCompletionItems({
-                  stack: programCtx.stack,
-                  identifier: firstWord,
-                  expressionName: "functions",
-                })[0].data?.functionParametersTypes[
-                  suggestion.data.argumentNumber - 1
-                ];
-                typeName = formatVarExpr(
-                  formatVarExpr(typeName).split("[]")[0] + "." + remainingWord
-                );
-
-                const result = new CompletionItemService(
-                  new ScopeCompletionItemsStrategy()
-                ).getCompletionItems({
-                  stack: programCtx.stack,
-                  identifier: typeName,
-                  expressionName: "variableExpressions",
-                  closestScope: false,
-                });
-                return result;
-              }
-
-              if (firstWord === "self" && programCtx.isInsideClass()) {
-                (firstWord = remainingWord.split(".")?.[0]),
-                  (remainingWord = remainingWord.split(".").slice(1).join("."));
-              }
-
-              const array = getArrayType(firstWord);
-              if (array.isArray) {
-                firstWord = array.ofType;
-              }
-
-              typeName = new CompletionItemService(
-                new ScopeCompletionItemsStrategy()
-              ).getCompletionItems({
-                stack: programCtx.stack,
-                identifier: firstWord,
-                expressionName: "variableDeclarations",
-              })[0]?.data?.typeName;
-
-              typeName = array.isArray
-                ? formatVarExpr(typeName).split("[]")[0] +
-                  "." +
-                  formatVarExpr(remainingWord)
-                : formatVarExpr(typeName + "." + remainingWord);
-
-              const result = new CompletionItemService(
-                new ScopeCompletionItemsStrategy()
-              ).getCompletionItems({
-                stack: programCtx.stack,
-                identifier: typeName,
-                expressionName: "variableExpressions",
-                closestScope: false,
-              });
-
-              return result;
-            }
-
-            const result = new CompletionItemService(
-              new IdentifierCompletionItemsStrategy()
-            ).getCompletionItems({
-              stack: programCtx.stack,
-              identifier: identifierToken.value,
-            });
-
-            if (result?.length) return result;
-          }
-        }
-
-        if (obj["EndOfFileToken"]) {
-          let result = [];
-          if (!suggestion.data.isDot)
-            result = new CompletionItemService(
-              new AllCompletionItemsStrategy()
-            ).getCompletionItems({ stack: programCtx.stack });
-
-          return result;
-        }
-
-        if (obj["OpenBraceToken"]) {
-          const lineNumberCloseBraceToken = obj["OpenBraceToken"]["lineNumber"];
-          const columnNumberCloseBraceToken =
-            obj["OpenBraceToken"]["columnNumber"];
-          if (
-            suggestion.token &&
-            (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
-              (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
-                lineNumberCloseBraceToken === suggestion.token.lineNumber))
-          ) {
-            programCtx.stack?.pop();
-            let result = [];
-            if (!suggestion.data.isDot)
-              result = new CompletionItemService(
-                new AllCompletionItemsStrategy()
-              ).getCompletionItems({ stack: programCtx.stack });
-            return result;
-          }
-        }
-
-        const completionItems = CompletionItemGenerationFactory?.create(
+        CompletionItemGenerationFactory?.create(
           programCtx,
           obj
         )?.generateCompletionItems();
-
-        if (completionItems?.length) return completionItems;
 
         for (const value of Object.values(obj)) {
           const result = traverseJson(value);
           if (result?.length) return result;
         }
 
-        if (obj["FunctionDeclarationSyntax"])
-          programCtx.isInsideFunction = false;
-        if (obj["ClassStatement"]) programCtx.currentParsingClassName = null;
+        // if (obj["CloseBraceToken"]) {
+        //   const lineNumberCloseBraceToken =
+        //     obj["CloseBraceToken"]["lineNumber"];
+        //   const columnNumberCloseBraceToken =
+        //     obj["CloseBraceToken"]["columnNumber"];
+        //   if (
+        //     suggestion.token &&
+        //     (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
+        //       (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
+        //         lineNumberCloseBraceToken === suggestion.token.lineNumber))
+        //   ) {
+        //     let result = [];
+        //     if (!suggestion.data.isDot)
+        //       result = new CompletionItemService(
+        //         new AllCompletionItemsStrategy()
+        //       ).getCompletionItems({ programCtx: programCtx });
+        //     console.log("RES", result);
+        //     return result;
+        //   }
+        // }
 
-        if (obj["CloseBraceToken"]) {
-          const lineNumberCloseBraceToken =
-            obj["CloseBraceToken"]["lineNumber"];
-          const columnNumberCloseBraceToken =
-            obj["CloseBraceToken"]["columnNumber"];
-          if (
-            suggestion.token &&
-            (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
-              (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
-                lineNumberCloseBraceToken === suggestion.token.lineNumber))
-          ) {
-            let result = [];
-            if (!suggestion.data.isDot)
-              result = new CompletionItemService(
-                new AllCompletionItemsStrategy()
-              ).getCompletionItems({ stack: programCtx.stack });
-            return result;
-          }
-        }
         if (
           obj["BlockStatement"] ||
           obj["ClassStatement"] ||
           obj["FunctionDeclarationSyntax"]
         ) {
+          if (obj["FunctionDeclarationSyntax"])
+            programCtx.setCurrentParsingFunctionName(null);
+
+          if (obj["ClassStatement"])
+            programCtx.setCurrentParsingClassName(null);
           programCtx.stack?.pop();
         }
       }
@@ -257,7 +226,7 @@ export async function getCompletionItems(
     return result.length === 0 && !suggestion.data.isDot
       ? new CompletionItemService(
           new AllCompletionItemsStrategy()
-        ).getCompletionItems({ stack: programCtx.stack })
+        ).getCompletionItems({ programCtx: programCtx })
       : result;
   } catch (err) {
     console.error(`Error reading and processing JSON file: ${filePath}`, err);
@@ -291,3 +260,131 @@ export async function readTokens(
     return [];
   }
 }
+const getCompletionItemsForDot = (
+  suggestion: SuggestHandler,
+  programCtx: ProgramContext
+) => {
+  let firstWord = suggestion.word.split(".")?.[0],
+    typeName = "";
+  let remainingWord = suggestion.word.split(".").slice(1).join(".");
+
+  if (
+    firstWord === "self" &&
+    programCtx.isInsideClass() &&
+    remainingWord === ""
+  ) {
+    return [
+      ...Array.from(
+        programCtx.rootProgram.classes
+          .get(programCtx.getCurrentParsingClassName())
+          .variableDeclarations.values()
+      ),
+      ...Array.from(
+        programCtx.rootProgram.classes
+          .get(programCtx.getCurrentParsingClassName())
+          .functions.values()
+      ).filter((item) => item.label !== "init"),
+    ];
+  }
+  if (suggestion.data.argumentNumber) {
+    {
+      let className = new CompletionItemService(
+        new ScopeCompletionItemsStrategy()
+      ).getCompletionItems({
+        programCtx: programCtx,
+        identifier: firstWord,
+        expressionName: "variableDeclarations",
+      })[0]?.data?.typeName;
+
+      if (!className) {
+        className = programCtx.getCurrentParsingClassName();
+      }
+
+      if (
+        programCtx.doesClassExist(className) &&
+        programCtx.rootProgram.classes
+          .get(className)
+          .functions.get(remainingWord)
+      ) {
+        return [
+          programCtx.rootProgram.classes
+            .get(className)
+            .functions.get(remainingWord),
+        ];
+      }
+    }
+  }
+  if (firstWord === "self" && programCtx.isInsideClass()) {
+    (firstWord = remainingWord.split(".")?.[0]),
+      (remainingWord = remainingWord.split(".").slice(1).join("."));
+
+    const memberFunCI = programCtx.rootProgram.classes
+      .get(programCtx.getCurrentParsingClassName())
+      ?.functions?.get(firstWord);
+
+    if (memberFunCI) return [memberFunCI];
+  }
+
+  const array = getArrayType(firstWord);
+  if (array.isArray) {
+    firstWord = array.ofType;
+  }
+
+  typeName = new CompletionItemService(
+    new ScopeCompletionItemsStrategy()
+  ).getCompletionItems({
+    programCtx: programCtx,
+    identifier: firstWord,
+    expressionName: "variableDeclarations",
+  })[0]?.data?.typeName;
+
+  if (programCtx.doesClassExist(typeName) && remainingWord === "") {
+    return [
+      ...Array.from(
+        programCtx.rootProgram.classes
+          .get(typeName)
+          .variableDeclarations.values()
+      ),
+      ...Array.from(
+        programCtx.rootProgram.classes.get(typeName).functions.values()
+      ).filter((item) => item.label !== "init"),
+    ];
+  }
+
+  if (
+    programCtx.doesClassExist(typeName) &&
+    programCtx.rootProgram.classes.get(typeName).functions.get(remainingWord)
+  ) {
+    return [
+      programCtx.rootProgram.classes.get(typeName).functions.get(remainingWord),
+    ];
+  }
+
+  if (programCtx.doesClassExist(typeName) && remainingWord !== "") {
+    (firstWord = remainingWord.split(".")?.[0]),
+      (remainingWord = remainingWord.split(".").slice(1).join("."));
+    typeName = programCtx.rootProgram.classes
+      .get(typeName)
+      .variableDeclarations.get(firstWord).data?.typeName;
+  }
+
+  typeName = array.isArray
+    ? formatVarExpr(typeName).split("[]")[0] +
+      "." +
+      formatVarExpr(remainingWord)
+    : formatVarExpr(typeName + "." + remainingWord);
+
+  if (suggestion?.hasHoverResult) {
+    typeName = typeName.slice(0, typeName.lastIndexOf("."));
+  }
+
+  const result = new CompletionItemService(
+    new ScopeCompletionItemsStrategy()
+  ).getCompletionItems({
+    programCtx: programCtx,
+    identifier: typeName,
+    expressionName: "variableExpressions",
+    closestScope: false,
+  });
+  return result;
+};

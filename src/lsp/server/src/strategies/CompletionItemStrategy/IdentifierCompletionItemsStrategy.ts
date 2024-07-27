@@ -1,5 +1,4 @@
 import { CompletionItem } from "vscode-languageserver";
-import { ProgramStructure, Stack } from "../../ds/stack";
 import { CompletionItemStrategy, CompletionItemStrategyParams } from ".";
 import { reverseStack } from "../../utils";
 
@@ -7,10 +6,10 @@ export class IdentifierCompletionItemsStrategy
   implements CompletionItemStrategy
 {
   public getCompletionItems({
-    stack,
+    programCtx,
     identifier,
   }: CompletionItemStrategyParams): CompletionItem[] {
-    const reversedStacked = reverseStack(stack);
+    const reversedStacked = reverseStack(programCtx.stack);
     const result: CompletionItem[] = [];
     const update = (
       identifier: string,
@@ -28,7 +27,7 @@ export class IdentifierCompletionItemsStrategy
 
     while (!reversedStacked.isEmpty()) {
       const current = reversedStacked?.pop();
-      stack.push(current);
+      programCtx.stack.push(current);
 
       if (current.others.get(identifier)) {
         update(identifier, result, current.others.get(identifier));
@@ -45,8 +44,8 @@ export class IdentifierCompletionItemsStrategy
       if (current.customTypes.get(identifier))
         update(identifier, result, current.customTypes.get(identifier));
 
-      if (current.functions.get(identifier))
-        update(identifier, result, current.functions.get(identifier));
+      // if (current.functions.get(identifier))
+      //   update(identifier, result, current.functions.get(identifier));
 
       if (current.classes.get(identifier)) {
         const classCI = current.classes.get(identifier);
@@ -57,8 +56,30 @@ export class IdentifierCompletionItemsStrategy
         update(identifier, result, classCI.classCompletionItem);
       }
 
-      if (current.callExpression.get(identifier))
-        update(identifier, result, current.callExpression.get(identifier));
+      // if (current.callExpression.get(identifier))
+      //   update(identifier, result, current.callExpression.get(identifier));
+    }
+
+    if (programCtx.rootProgram.functions.get(identifier))
+      update(
+        identifier,
+        result,
+        programCtx.rootProgram.functions.get(identifier)
+      );
+
+    if (
+      programCtx.isInsideClass() &&
+      programCtx.rootProgram.classes
+        .get(programCtx.getCurrentParsingClassName())
+        .functions.get(identifier)
+    ) {
+      update(
+        identifier,
+        result,
+        programCtx.rootProgram.classes
+          .get(programCtx.getCurrentParsingClassName())
+          .functions.get(identifier)
+      );
     }
 
     return result;

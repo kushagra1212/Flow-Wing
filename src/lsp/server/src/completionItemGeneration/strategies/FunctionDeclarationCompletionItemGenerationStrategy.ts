@@ -12,7 +12,12 @@ import { getMarkSyntaxHighlightMarkdown } from "../../utils";
 
 export class FunctionDeclarationCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
-    this.programCtx.isInsideFunction = true;
+    this.result.name =
+      new FunctionDeclarationExpressionStrategy().getExpressionAsString(
+        this.syntaxObj["FunctionDeclarationSyntax"]
+      );
+
+    this.programCtx.setCurrentParsingFunctionName(this.result.name);
 
     return [];
   }
@@ -86,10 +91,9 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
         functionDeclaration
       );
 
-    functionDeclarationStr = this.programCtx?.currentParsingClassName
+    functionDeclarationStr = this.programCtx?.isInsideClass()
       ? `${(functionDeclarationStr =
-          this.programCtx
-            .currentParsingClassName)}:${functionDeclarationStr.replace(
+          this.programCtx.getCurrentParsingClassName())}:${functionDeclarationStr.replace(
           "fun",
           ""
         )}`

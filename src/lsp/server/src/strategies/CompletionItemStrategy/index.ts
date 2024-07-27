@@ -1,8 +1,9 @@
 import { CompletionItem } from "vscode-languageserver";
 import { ProgramStructure, Stack } from "../../ds/stack";
+import { ProgramContext } from "../../ds/programContext";
 
 export type CompletionItemStrategyParams = {
-  stack: Stack<ProgramStructure>;
+  programCtx: ProgramContext;
   identifier?: string;
   expressionName?: keyof ProgramStructure;
   closestScope?: boolean;

@@ -19,26 +19,31 @@ export async function onCompletion(
     async (
       _textDocsParams: TextDocumentPositionParams
     ): Promise<CompletionItem[]> => {
-      const suggestion = await getSuggestionHandlerObject(
-        _textDocsParams,
-        documents,
-        checkForObjectSuggestions
-      );
-
-      if (
-        suggestion.shouldNotProvideSuggestion ||
-        !suggestion.hasObjectSuggestions
-      )
-        return [];
-
-      const result = await getCompletionItems(
-        fileUtils.getTempFilePath({
-          fileName: flowWingConfig.temp.syntaxFileName,
-        }),
-        suggestion
-      );
-
-      return result;
+      return getObjectSuggestion(_textDocsParams, documents);
     }
   );
 }
+
+export const getObjectSuggestion = async (
+  _textDocsParams: TextDocumentPositionParams,
+  documents: TextDocuments<TextDocument>
+) => {
+  const suggestion = await getSuggestionHandlerObject(
+    _textDocsParams,
+    documents,
+    checkForObjectSuggestions
+  );
+
+  if (suggestion.shouldNotProvideSuggestion || !suggestion.hasObjectSuggestions)
+    return [];
+
+  console.log("suggestion", suggestion);
+  const result = await getCompletionItems(
+    fileUtils.getTempFilePath({
+      fileName: flowWingConfig.temp.syntaxFileName,
+    }),
+    suggestion
+  );
+
+  return result;
+};

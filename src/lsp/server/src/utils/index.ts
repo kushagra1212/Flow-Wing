@@ -111,7 +111,9 @@ export const getArrayType = (typeName: string) => {
   };
 };
 export const formatVarExpr = (expression: string) => {
-  const splitedExpr = expression.split(".");
+  if (!expression) return "";
+
+  const splitedExpr = expression?.split(".");
   let res = "";
   for (const expr of splitedExpr) {
     if (expr === "") continue;
@@ -160,42 +162,76 @@ export const defaultValueNoSuggestion: SuggestHandler = {
 
 export const checkForHover = (tokens: Token[]): SuggestHandler => {
   let i = tokens.length - 1;
+  let isDot = false;
+  let word = "";
+
   while (i >= 0) {
     const isIdentifier = isValidVariableName(tokens[i].value);
-    if (i - 1 >= 0 && isIdentifier && tokens[i - 1].value === ".") {
-      i -= 2;
-      continue;
-    }
 
-    if (isIdentifier) {
-      if (
-        tokens[i].value === "self" &&
-        i + 2 < tokens.length &&
-        tokens[i + 1].value === "."
-      ) {
+    if (
+      isIdentifier &&
+      ((i - 1 >= 0 && tokens[i - 1].value !== ".") || i - 1 < 0)
+    ) {
+      word += tokens[i].value;
+
+      const reversedWord = word.split(".");
+      const res = reversedWord.map((w) => {
+        const splited = w.split("[]");
+        let response: string = splited[splited.length - 1];
+        for (let j = 0; j < splited.length - 1; j++) {
+          response += "[]";
+        }
+
+        return response;
+      });
+      if (tokens[i].value === "self") {
         return {
           hasHoverResult: true,
-          token: tokens[i + 2],
-          word: tokens[i + 2].value,
+          token: tokens[i],
+          word: res.reverse().join("."),
           data: {
-            isDot: false,
+            isDot: isDot,
             argumentNumber: 0,
           },
         };
       }
+
       return {
         hasHoverResult: true,
         token: tokens[i],
-        word: tokens[i].value,
+        word: res.reverse().join("."),
         data: {
-          isDot: false,
+          isDot: isDot,
           argumentNumber: 0,
         },
       };
     }
 
+    if (isIdentifier) {
+      word += tokens[i].value;
+      i--;
+      continue;
+    }
+
+    if (tokens[i].value === ".") {
+      isDot = true;
+      word += tokens[i].value;
+      i--;
+      continue;
+    }
+
+    if (tokens[i].value === "]") {
+      i -= 2;
+      if (tokens[i].value === "[") {
+        i--;
+      }
+
+      word += "[]";
+      continue;
+    }
     return defaultValueNoSuggestion;
   }
+
   return defaultValueNoSuggestion;
 };
 
@@ -242,12 +278,24 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
     }
 
     if (i - 1 >= 0 && tokens[i].value === "(") {
+      let isDot = false;
+      let word = "",
+        token = null;
+      if (i - 3 >= 0 && tokens[i - 2].value === ".") {
+        isDot = true;
+        word = tokens[i - 3].value + tokens[i - 2].value + tokens[i - 1].value;
+        token = tokens[i - 3];
+      } else {
+        word = tokens[i - 1].value;
+        token = tokens[i - 1];
+      }
+
       return {
         hasFunctionSignature: true,
-        token: tokens[i - 1],
-        word: tokens[i - 1].value,
+        token: token,
+        word: word,
         data: {
-          isDot: false,
+          isDot: isDot,
           argumentNumber: argNumber + 1,
         },
       };

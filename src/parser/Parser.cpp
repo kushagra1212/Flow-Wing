@@ -505,7 +505,8 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
     appendWithSpace();
   }
 
-  this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+  classSyn->setClassOpenBraceToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
 
   INDENT += TAB_SPACE;
   appendNewLine();
@@ -542,7 +543,9 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
   }
   INDENT = INDENT.substr(0, INDENT.length() - (sizeof(TAB_SPACE) - 1));
   _formattedSourceCode += INDENT;
-  this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
+
+  classSyn->setClassCloseBraceToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
 
   return std::move(classSyn);
 }

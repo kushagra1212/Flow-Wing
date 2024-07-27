@@ -11,6 +11,7 @@ import {
 import { CompletionItemService } from "../../services/completionItemService";
 import { ScopeCompletionItemsStrategy } from "../../strategies/CompletionItemStrategy/ScopeCompletionItemsStrategy";
 import { BracketedExpressionCompletionItemGenerationStrategy } from "./BracketedExpressionCompletionItemGenerationStrategy";
+import { typesCompletionItems } from "../../store/completionItems/keywords/types";
 
 export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
@@ -43,16 +44,24 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     typeName: string
   ): void => {
     if (isPrimitiveType(typeName)) {
+      const ci = typesCompletionItems.find((item) => item.label === typeName);
+      this.programCtx.stack?.peek().variableExpressions.set(variableName, [ci]);
       return;
     }
 
     const customTypesCompletionItem = new CompletionItemService(
       new ScopeCompletionItemsStrategy()
     ).getCompletionItems({
-      stack: this.programCtx.stack,
+      programCtx: this.programCtx,
       identifier: typeName,
       expressionName: "customTypes",
-    })[0];
+    })?.[0];
+
+    if (variableName.split(".")?.length) {
+      this.programCtx.stack
+        ?.peek()
+        .variableExpressions.set(variableName, [customTypesCompletionItem]);
+    }
 
     if (customTypesCompletionItem) {
       const innerVariableName = variableName + ".";

@@ -6,9 +6,9 @@ import { ProgramStructure, Stack } from "./stack";
 
 export class ProgramContext {
   stack: Stack<ProgramStructure>;
-  private _currentParsingClassName: string | null;
-  private _isInsideFunction: boolean;
   rootProgram: ProgramStructure;
+  currentFunctionName: string | null = null;
+  currentClassName: string | null = null;
   private _syntaxTree: RootObject;
 
   constructor(syntaxTree: RootObject) {
@@ -17,8 +17,6 @@ export class ProgramContext {
     this.pushEmptyProgramStructure();
 
     this.rootProgram = this.stack.peek();
-    this._currentParsingClassName = null;
-    this._isInsideFunction = false;
 
     this.populateBuiltInFunctions();
     this.populateBuiltInKeywords();
@@ -40,36 +38,40 @@ export class ProgramContext {
     });
   }
 
-  set currentParsingClassName(className: string) {
-    this._currentParsingClassName = className;
+  public setCurrentParsingClassName(className: string): void {
+    this.currentClassName = className;
   }
 
-  get currentParsingClassName(): string | null {
-    return this._currentParsingClassName;
+  public getCurrentParsingClassName(): string | null {
+    return this.currentClassName;
+  }
+
+  public setCurrentParsingFunctionName(functionName: string): void {
+    this.currentFunctionName = functionName;
+  }
+
+  public getCurrentParsingFunctionName(): string | null {
+    return this.currentFunctionName;
   }
 
   get syntaxTree(): RootObject {
     return this._syntaxTree;
   }
 
-  public removeCurrentClass(): void {
-    this.currentParsingClassName = null;
-  }
-
-  set isInsideFunction(value: boolean) {
-    this._isInsideFunction = value;
-  }
-
-  get isInsideFunction(): boolean {
-    return this._isInsideFunction;
-  }
-
   public isInsideClass(): boolean {
-    return this.currentParsingClassName !== null;
+    return this.currentClassName !== null;
+  }
+
+  public isInsideFunction(): boolean {
+    return this.currentFunctionName !== null;
+  }
+
+  public doesClassExist(className: string): boolean {
+    return this.rootProgram.classes.has(className);
   }
 
   public isInsideAClassButNotInsideCassMemberFunction(): boolean {
-    return this.isInsideClass() && !this.isInsideFunction;
+    return this.isInsideClass() && !this.isInsideFunction();
   }
 
   private populateBuiltInFunctions = (): void => {

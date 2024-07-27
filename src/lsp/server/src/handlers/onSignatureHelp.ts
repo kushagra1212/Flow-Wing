@@ -20,6 +20,7 @@ export const onSignatureHelp = (
       documents,
       checkForFunctionSignatures
     );
+
     const result = await getCompletionItems(
       fileUtils.getTempFilePath({
         fileName: flowWingConfig.temp.syntaxFileName,

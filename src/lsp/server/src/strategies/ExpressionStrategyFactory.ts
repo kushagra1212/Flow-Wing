@@ -12,6 +12,8 @@ import { VariableDeclarationExpressionStrategy } from "./VariableDeclarationExpr
 
 export class ExpressionStrategyFactory {
   static createStrategy(expression: any): ExpressionStrategy {
+    if (!expression) return null;
+
     if (expression["PrimitiveTypeExpression"]) {
       return new PrimitiveTypeExpressionStrategy();
     } else if (expression["ArrayTypeExpression"]) {

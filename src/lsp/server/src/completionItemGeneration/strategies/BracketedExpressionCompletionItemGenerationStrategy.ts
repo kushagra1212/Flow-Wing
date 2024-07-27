@@ -34,10 +34,12 @@ export class BracketedExpressionCompletionItemGenerationStrategy extends Complet
       );
       bracketedExpressionString += variableName + ": ";
     }
+
     const strategy = ExpressionStrategyFactory.createStrategy(
       bracketedExpression[1]
     );
-    const typeName = strategy.getExpressionAsString(bracketedExpression[1]);
+    const typeName =
+      strategy?.getExpressionAsString(bracketedExpression[1]) || "";
     bracketedExpressionString += typeName;
 
     return {

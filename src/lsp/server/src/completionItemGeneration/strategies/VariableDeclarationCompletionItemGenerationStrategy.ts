@@ -23,9 +23,23 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
     if (this.programCtx.isInsideAClassButNotInsideCassMemberFunction()) {
       (this.result.completionItem.documentation as MarkupContent).value += (
         this.programCtx.rootProgram.classes.get(
-          this.programCtx.currentParsingClassName
+          this.programCtx.getCurrentParsingClassName()
         ).classCompletionItem.documentation as MarkupContent
       ).value;
+
+      if (
+        !this.programCtx.rootProgram.variableExpressions.get(
+          this.programCtx.getCurrentParsingClassName() + "."
+        )
+      ) {
+        this.programCtx.rootProgram.variableExpressions.set(
+          this.programCtx.getCurrentParsingClassName() + ".",
+          []
+        );
+      }
+      this.programCtx.rootProgram.variableExpressions
+        .get(this.programCtx.getCurrentParsingClassName() + ".")
+        .push(this.result.completionItem);
     }
 
     this.programCtx.stack
