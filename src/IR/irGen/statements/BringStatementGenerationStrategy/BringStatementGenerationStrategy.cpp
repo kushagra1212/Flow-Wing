@@ -18,6 +18,71 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   const std::string onlyFileName = Utils::getNameExtension(
       bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
+  // Variable Declaration
+  std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+      varDecGenStrat =
+          std::make_unique<VariableDeclarationStatementGenerationStrategy>(
+              _codeGenerationContext);
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
+  for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        variable.second->getLocation());
+    if (bringStatement->isChoosyImport()) {
+
+      if (bringStatement->isImported(variable.first)) {
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            bringStatement->getExpressionRef(variable.first)->getLocation());
+      }
+
+      if (bringStatement->isImported(variable.first) &&
+          !variable.second->isExposed()) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Variable " + variable.first + " is not exposed in the file " +
+            onlyFileName);
+        return nullptr;
+      }
+
+      if (bringStatement->isImported(variable.first)) {
+        if (variable.second->getTypeExpression()->getSyntaxType() ==
+            SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+          _codeGenerationContext->getLogger()->LogError(
+              "Multi file UNKOWN type not allowed, Please "
+              "specify the type of variable " +
+              variable.first);
+          return nullptr;
+        }
+        varDecGenStrat->generateGlobalStatement(variable.second);
+      }
+
+    } else {
+      if (variable.second->getTypeExpression()->getSyntaxType() ==
+          SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+        continue;
+      }
+      varDecGenStrat->generateGlobalStatement(variable.second);
+    }
+  }
+
+  Builder->CreateCall(
+      TheModule->getFunction(bringStatement->getRootCallerName()), {});
+
+  return nullptr;
+}
+
+llvm::Value *
+BringStatementGenerationStrategy::declare(BoundStatement *statement) {
+  BoundBringStatement *bringStatement =
+      static_cast<BoundBringStatement *>(statement);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      bringStatement->getLocation());
+
+  std::map<std::string, int8_t> importMap;
+
+  const std::string onlyFileName = Utils::getNameExtension(
+      bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
+
   std::string absoluteFilePathWithoutExtension =
       Utils::removeExtensionFromString(
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
@@ -50,6 +115,8 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              absoluteFilePathWithoutExtension, *TheModule);
 
+  bringStatement->setRootCallerName(absoluteFilePathWithoutExtension);
+
   // Custom Object Type Declaration
   std::unique_ptr<CustomTypeStatementGenerationStrategy> custTypeGenStrat =
       std::make_unique<CustomTypeStatementGenerationStrategy>(
@@ -58,11 +125,17 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
       bringStatement->getLocation());
   for (const auto &customType :
        bringStatement->getGlobalScopePtr()->customTypes) {
+    importMap[customType.first] = 1;
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         customType.second->getLocation());
 
     if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(customType.first)) {
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            bringStatement->getExpressionRef(customType.first)->getLocation());
+      }
+
       if (bringStatement->isImported(customType.first) &&
           !customType.second->isExposed()) {
 
@@ -86,7 +159,7 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
   for (const auto &_class : bringStatement->getGlobalScopePtr()->classes) {
-
+    importMap[_class.first] = 1;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         _class.second->getLocation());
 
@@ -115,9 +188,15 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
   for (const auto &variable : bringStatement->getGlobalScopePtr()->variables) {
+    importMap[variable.first] = 1;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         variable.second->getLocation());
     if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(variable.first)) {
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            bringStatement->getExpressionRef(variable.first)->getLocation());
+      }
+
       if (bringStatement->isImported(variable.first) &&
           !variable.second->isExposed()) {
         _codeGenerationContext->getLogger()->LogError(
@@ -135,7 +214,8 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
               variable.first);
           return nullptr;
         }
-        varDecGenStrat->generateGlobalStatement(variable.second);
+
+        varDecGenStrat->declareGlobal(variable.second);
       }
 
     } else {
@@ -143,7 +223,7 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
           SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
         continue;
       }
-      varDecGenStrat->generateGlobalStatement(variable.second);
+      varDecGenStrat->declareGlobal(variable.second);
     }
   }
 
@@ -154,9 +234,16 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
               _codeGenerationContext);
 
   for (const auto &_function : bringStatement->getGlobalScopePtr()->functions) {
+
+    importMap[_function.first] = 1;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         _function.second->getLocation());
     if (bringStatement->isChoosyImport()) {
+      if (bringStatement->isImported(_function.first)) {
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            bringStatement->getExpressionRef(_function.first)->getLocation());
+      }
+
       if (bringStatement->isImported(_function.first) &&
           !_function.second->isExposed()) {
 
@@ -176,7 +263,22 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
     }
   }
 
-  Builder->CreateCall(F, {});
+  // std::cout << "SIZE" << bringStatement->getExpressionStrings().size()
+  //           << std::endl;
+
+  // for (const std::string &imported : bringStatement->getExpressionStrings())
+  // {
+  //   std::cout << "IUM" << imported << std::endl;
+  //   if (importMap[imported] == 0) {
+  //     // _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+  //     //     litExp->getLocation());
+
+  //     _codeGenerationContext->getLogger()->LogError(
+  //         "trying to bring " + imported + " which does not exist in the file
+  //         " + onlyFileName);
+  //     return nullptr;
+  //   }
+  // }
 
   return nullptr;
 }

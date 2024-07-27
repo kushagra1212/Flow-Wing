@@ -8,7 +8,7 @@ import { getSuggestionHandlerObject } from "../services/suggestionService";
 import { getCompletionItems } from "../completionItemProvider";
 import { flowWingConfig } from "../config";
 import { fileUtils } from "../utils/fileUtils";
-import { checkForFunctionSignatures } from "../utils";
+import { checkForFunctionSignatures, getFileFullPath } from "../utils";
 
 export const onSignatureHelp = (
   documents: TextDocuments<TextDocument>,
@@ -23,7 +23,9 @@ export const onSignatureHelp = (
 
     const result = await getCompletionItems(
       fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.syntaxFileName,
+        fileName:
+          getFileFullPath(params.textDocument.uri) +
+          flowWingConfig.temp.syntaxFileExt,
       }),
       suggestion
     );

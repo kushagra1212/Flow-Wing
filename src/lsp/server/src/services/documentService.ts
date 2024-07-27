@@ -2,7 +2,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileUtils } from "../utils/fileUtils";
 import { flowWingConfig } from "../config";
 import { ErrorResult } from "../utils/types";
-import { parseErrorAndExtractLocation } from "../utils";
+import { getFileFullPath, parseErrorAndExtractLocation } from "../utils";
 import { createDiagnostic } from "./diagnosticService";
 import { _Connection } from "vscode-languageserver";
 import { exec } from "child_process";
@@ -16,11 +16,11 @@ export const validateTextDocument = async (
   try {
     const text = textDocument.getText();
     const path = await fileUtils.createTempFile({
-      fileName: flowWingConfig.temp.codeFileName,
+      fileName: getFileFullPath(textDocument.uri) + ".fg",
       data: text,
     });
 
-    const { errorObject } = await validateFile(path);
+    const { errorObject } = await validateFile(textDocument.uri, path);
 
     const diagnostics = errorObject.error
       ? [createDiagnostic(errorObject, textDocument)]
@@ -39,9 +39,12 @@ export const validateTextDocument = async (
   }
 };
 
-const validateFile = (filePath: string): Promise<Partial<ErrorResult>> => {
+const validateFile = (
+  textDocUri: string,
+  filePath: string
+): Promise<Partial<ErrorResult>> => {
   const SYNTAX_FILE_PATH = fileUtils.getTempFilePath({
-    fileName: flowWingConfig.temp.syntaxFileName,
+    fileName: getFileFullPath(textDocUri) + flowWingConfig.temp.syntaxFileExt,
   });
 
   const command = `${flowWingConfig.compiler.flowWingPath} --file=${filePath} -O=${SYNTAX_FILE_PATH}`;
@@ -59,7 +62,8 @@ const validateFile = (filePath: string): Promise<Partial<ErrorResult>> => {
       }
 
       const ERROR_JSON_FILE_PATH = fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.errorFileName,
+        fileName:
+          getFileFullPath(textDocUri) + flowWingConfig.temp.errorFileExt,
       });
 
       try {

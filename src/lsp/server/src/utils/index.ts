@@ -630,3 +630,15 @@ export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
   }
   return result;
 };
+
+/**
+ * Extracts and returns the full file path from a given URI.
+ *
+ * This function splits the URI string to remove the "file:/" prefix and the ".fg" extension.
+ *
+ * @param {string} uri - The URI string from which to extract the file path.
+ * @returns {string} The full file path extracted from the URI.
+ */
+export const getFileFullPath = (uri: string): string => {
+  return uri.split("file:/")[1].split(".fg")[0];
+};

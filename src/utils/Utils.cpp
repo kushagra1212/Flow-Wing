@@ -575,6 +575,16 @@ std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {
   return lines;
 }
 
+std::vector<std::string> Utils::readLinesFromText(const std::string &Code) {
+  std::vector<std::string> lines = std::vector<std::string>();
+  std::string line;
+  std::istringstream stream(Code);
+  while (std::getline(stream, line)) {
+    lines.push_back(line);
+  }
+  return lines;
+}
+
 auto Utils::getFileContent(const std::string &filePath) -> std::string {
   std::ifstream file(filePath);
   std::string content((std::istreambuf_iterator<char>(file)),

@@ -78,12 +78,13 @@ export async function getCompletionItems(
                   suggestion.token.lineNumber))
           ) {
             programCtx.setCurrentParsingClassName(null);
-            let result = [];
+
             if (!suggestion.data.isDot)
-              result = new CompletionItemService(
+              return new CompletionItemService(
                 new AllCompletionItemsStrategy()
               ).getCompletionItems({ programCtx: programCtx });
-            return result;
+
+            return [];
           }
         }
         if (obj["lineNumber"] && obj["columnNumber"]) {
@@ -130,43 +131,6 @@ export async function getCompletionItems(
           }
         }
 
-        // if (
-        //   obj["EndOfFileToken"] ||
-        //   obj["lineNumber"] > suggestion.token.lineNumber ||
-        //   (obj["columnNumber"] >= suggestion.token.columnNumber &&
-        //     obj["lineNumber"] === suggestion.token.lineNumber)
-        // ) {
-        //   let result = [];
-        //   if (!suggestion.data.isDot)
-        //     result = new CompletionItemService(
-        //       new IdentifierCompletionItemsStrategy()
-        //     ).getCompletionItems({
-        //       programCtx: programCtx,
-        //       identifier: suggestion.token.value,
-        //     });
-        //   return result;
-        // }
-
-        // if (obj["OpenBraceToken"]) {
-        //   const lineNumberCloseBraceToken = obj["OpenBraceToken"]["lineNumber"];
-        //   const columnNumberCloseBraceToken =
-        //     obj["OpenBraceToken"]["columnNumber"];
-        //   if (
-        //     suggestion.token &&
-        //     (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
-        //       (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
-        //         lineNumberCloseBraceToken === suggestion.token.lineNumber))
-        //   ) {
-        //     programCtx.stack?.pop();
-        //     let result = [];
-        //     if (!suggestion.data.isDot)
-        //       result = new CompletionItemService(
-        //         new AllCompletionItemsStrategy()
-        //       ).getCompletionItems({ programCtx: programCtx });
-        //     return result;
-        //   }
-        // }
-
         if (
           obj["BlockStatement"] ||
           obj["ClassStatement"] ||
@@ -185,27 +149,6 @@ export async function getCompletionItems(
           if (result?.length) return result;
         }
 
-        // if (obj["CloseBraceToken"]) {
-        //   const lineNumberCloseBraceToken =
-        //     obj["CloseBraceToken"]["lineNumber"];
-        //   const columnNumberCloseBraceToken =
-        //     obj["CloseBraceToken"]["columnNumber"];
-        //   if (
-        //     suggestion.token &&
-        //     (lineNumberCloseBraceToken > suggestion.token.lineNumber ||
-        //       (columnNumberCloseBraceToken >= suggestion.token.columnNumber &&
-        //         lineNumberCloseBraceToken === suggestion.token.lineNumber))
-        //   ) {
-        //     let result = [];
-        //     if (!suggestion.data.isDot)
-        //       result = new CompletionItemService(
-        //         new AllCompletionItemsStrategy()
-        //       ).getCompletionItems({ programCtx: programCtx });
-        //     console.log("RES", result);
-        //     return result;
-        //   }
-        // }
-
         if (
           obj["BlockStatement"] ||
           obj["ClassStatement"] ||
@@ -216,6 +159,7 @@ export async function getCompletionItems(
 
           if (obj["ClassStatement"])
             programCtx.setCurrentParsingClassName(null);
+
           programCtx.stack?.pop();
         }
       }
@@ -223,7 +167,7 @@ export async function getCompletionItems(
     };
     const result = traverseJson(programCtx.syntaxTree);
 
-    return result.length === 0 && !suggestion.data.isDot
+    return (result.length === 0 && !suggestion.data.isDot) || suggestion?.token
       ? new CompletionItemService(
           new AllCompletionItemsStrategy()
         ).getCompletionItems({ programCtx: programCtx })

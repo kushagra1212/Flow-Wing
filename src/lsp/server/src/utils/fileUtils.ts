@@ -25,6 +25,10 @@ class FileUtils {
 
   public async writeFile(filePath: string, data: string): Promise<void> {
     try {
+      // Ensure the directory exists
+      const dir = path.dirname(filePath);
+      await fs.mkdir(dir, { recursive: true });
+
       await fs.writeFile(filePath, data, "utf8");
     } catch (err) {
       console.error(`Error writing file to path: ${filePath}`, err);

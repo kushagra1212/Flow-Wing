@@ -27,9 +27,10 @@ export const onHover = async (
       };
     }
 
-    console.log("suggestion", suggestion);
-
-    const documentation = await getDocumentationForCompletionItem(suggestion);
+    const documentation = await getDocumentationForCompletionItem(
+      params.textDocument.uri,
+      suggestion
+    );
 
     return {
       contents: documentation,

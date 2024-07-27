@@ -675,7 +675,11 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
     while (this->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
       std::unique_ptr<SyntaxToken<std::any>> identifier =
           std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-      bringStatement->addExpression(std::move(identifier));
+      std::string importExpName = identifier->getText();
+      bringStatement->addExpression(
+          std::make_unique<LiteralExpressionSyntax<std::any>>(
+              std::move(identifier), importExpName));
+
       if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
         this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
         appendWithSpace();

@@ -3,7 +3,11 @@ import {
   TextDocumentPositionParams,
   TextDocuments,
 } from "vscode-languageserver";
-import { defaultValueNoSuggestion, SuggestHandler } from "../utils";
+import {
+  defaultValueNoSuggestion,
+  getFileFullPath,
+  SuggestHandler,
+} from "../utils";
 import { Token } from "../types";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { validateTextDocument } from "./documentService";
@@ -26,7 +30,9 @@ export const getSuggestionHandlerObject = async (
 
     const tokens = await readTokens(
       fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.tokenFileName,
+        fileName:
+          getFileFullPath(_textDocsParams.textDocument.uri) +
+          flowWingConfig.temp.tokenFileExt,
       }),
       _textDocsParams.position
     );
@@ -39,12 +45,14 @@ export const getSuggestionHandlerObject = async (
 };
 
 export const getDocumentationForCompletionItem = async (
+  textDocUri: string,
   suggestion: SuggestHandler
 ): Promise<string | null | MarkupContent> => {
   try {
     const result = await getCompletionItems(
       fileUtils.getTempFilePath({
-        fileName: flowWingConfig.temp.syntaxFileName,
+        fileName:
+          getFileFullPath(textDocUri) + flowWingConfig.temp.syntaxFileExt,
       }),
       suggestion
     );

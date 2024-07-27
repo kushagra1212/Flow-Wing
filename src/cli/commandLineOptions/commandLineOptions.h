@@ -38,6 +38,10 @@ public:
   static Option<bool> FormatPrint;
   static Option<bool> ShortFormatPrint;
 
+  //! Code
+  static Option<std::string> Code;
+  static Option<std::string> ShortCode;
+
   //! OutPut FIle
   static Option<std::string> OutputFile;
   static Option<std::string> ShortOutputFile;

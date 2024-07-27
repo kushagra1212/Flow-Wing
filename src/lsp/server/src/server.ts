@@ -2,6 +2,7 @@ import {
   createConnection,
   TextDocuments,
   ProposedFeatures,
+  ShowDocumentResult,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { onChangeContent } from "./handlers/onChangeContent";
@@ -12,6 +13,7 @@ import { onSignatureHelp } from "./handlers/onSignatureHelp";
 import { onDidChangeConfiguration } from "./handlers/onDidChangeConfiguration";
 import { onDidClose } from "./handlers/onDidClose";
 import { InitializationHandler } from "./handlers/InitializationHandler";
+import { validateTextDocument } from "./services/documentService";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -42,7 +44,8 @@ onChangeContent(documents, connection);
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VS Code
-  connection.console.log("We received a file change event");
+
+  console.log("We received a file change event");
 });
 
 // This handler provides the initial list of the completion items.

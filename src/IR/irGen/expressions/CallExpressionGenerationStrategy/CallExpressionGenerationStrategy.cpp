@@ -1753,7 +1753,7 @@ CallExpressionGenerationStrategy::getUnit(const std::string &unit,
         /*Module=*/*TheModule,
         /*Type=*/initializer->getType(),
         /*isConstant=*/true,
-        /*Linkage=*/llvm::GlobalValue::ExternalLinkage,
+        /*Linkage=*/llvm::GlobalValue::PrivateLinkage,
         /*Initializer=*/initializer,
         /*Name=*/unitName);
   }

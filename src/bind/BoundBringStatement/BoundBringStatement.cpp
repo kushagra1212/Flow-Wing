@@ -2,17 +2,9 @@
 
 BoundBringStatement::BoundBringStatement(
     const DiagnosticUtils::SourceLocation &location,
-    FLowWing::DiagnosticHandler *diagnosticHandler,
-    std::unique_ptr<BoundScopeGlobal> globalScope,
-    std::vector<std::string> &expressionStrings)
+    FLowWing::DiagnosticHandler *diagnosticHandler)
     : BoundSourceLocation(location) {
   this->_diagnosticHandler = diagnosticHandler;
-
-  for (const auto &expressionString : expressionStrings) {
-    _expressionStringsMap[expressionString] = 1;
-  }
-
-  this->_globalScope = std::move(globalScope);
 }
 
 BinderKindUtils::BoundNodeKind BoundBringStatement::getKind() const {

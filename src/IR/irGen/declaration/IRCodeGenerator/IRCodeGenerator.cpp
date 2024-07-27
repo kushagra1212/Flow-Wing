@@ -17,7 +17,8 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     return;
 
   switch (child->getKind()) {
-  case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
+  case BinderKindUtils::BoundNodeKind::FunctionDeclaration:
+  case BinderKindUtils::BoundNodeKind::BringStatement: {
 
     break;
   }

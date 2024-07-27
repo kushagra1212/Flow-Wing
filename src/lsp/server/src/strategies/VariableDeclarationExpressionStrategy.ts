@@ -6,6 +6,9 @@ export class VariableDeclarationExpressionStrategy
 {
   getExpressionAsString(expression: VariableDeclaration): string {
     let index = 0;
+
+    if (expression[index]["ExposeKeyword"]) index++;
+
     if (expression[index]["VarKeyword"] || expression[index]["ConstKeyword"])
       index++;
 

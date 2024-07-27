@@ -7,6 +7,8 @@ export function onChangeContent(
   connection: _Connection
 ) {
   documents.onDidChangeContent((change: any) => {
-    validateTextDocument(change.document, connection);
+    documents.all().forEach((doc, index, docs) => {
+      validateTextDocument(doc, connection);
+    });
   });
 }

@@ -287,4 +287,79 @@ fun getAge(inout age:int) -> int {
       `,
     },
   },
+  {
+    label: "expose",
+    kind: CompletionItemKind.Keyword,
+    data: "expose",
+    detail: "Expose Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Expose Keyword**  
+
+The \`expose\` keyword is used to expose a variable, function, types or class to other fg files.
+
+### Example:
+\`\`\`flowwing
+expose var x:int = 2
+
+expose fun sum(a:int, b:int) -> int {
+  return a + b
+}
+
+expose class Animal {
+  var name:str
+
+  init(name:str) -> nthg {
+    self.name = name
+  }
+}
+
+\`\`\`
+      `,
+    },
+  },
+  {
+    label: "bring",
+    kind: CompletionItemKind.Keyword,
+    data: "bring",
+    detail: "Bring Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Bring Keyword** 
+
+The \`bring\` keyword is used to bring a variable, function, types or class into the current fg file.  
+
+### Example: Choosy Import
+\`\`\`flowwing
+bring { Animal } from "dependencies.fg"
+\`\`\`
+
+### Example: Bulky Import
+\`\`\`flowwing
+bring "dependencies.fg"
+\`\`\`
+      `,
+    },
+  },
+  {
+    label: "from",
+    kind: CompletionItemKind.Keyword,
+    data: "from",
+    detail: "From Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**From Keyword**
+
+The \`from\` keyword is used to bring a variable, function, types or class into the current fg file.
+
+### Example:
+\`\`\`flowwing
+bring { Animal } from "dependencies.fg"
+\`\`\`
+      `,
+    },
+  },
 ];

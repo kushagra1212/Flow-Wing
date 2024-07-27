@@ -6,7 +6,7 @@
 #include "../../statements/StatementSyntax.h"
 
 class BringStatementSyntax : public StatementSyntax {
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> expressions;
+  std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
   std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler;
   std::string absoluteFilePath;
   std::string relativeFilePath;
@@ -14,7 +14,8 @@ class BringStatementSyntax : public StatementSyntax {
   std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
 
 public:
-  void addExpression(std::unique_ptr<SyntaxToken<std::any>> expression);
+  void
+  addExpression(std::unique_ptr<LiteralExpressionSyntax<std::any>> expression);
   void addBringKeyword(std::unique_ptr<SyntaxToken<std::any>> bringKeyword);
   void setAbsoluteFilePath(const std::string &absoluteFilePath);
   void setDiagnosticHandler(
@@ -29,7 +30,7 @@ public:
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
+  const std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> &
   getExpressionsPtr();
   const std::unique_ptr<CompilationUnitSyntax> &getCompilationUnitPtr();
 

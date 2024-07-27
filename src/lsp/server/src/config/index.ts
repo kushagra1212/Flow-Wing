@@ -5,10 +5,9 @@ type FlowWingConfig = {
     flowWingPath: string;
   };
   temp: {
-    codeFileName: string;
-    syntaxFileName: string;
-    tokenFileName: string;
-    errorFileName: string;
+    syntaxFileExt: ".json";
+    tokenFileExt: ".tokens.json";
+    errorFileExt: ".err.json";
   };
 };
 
@@ -18,9 +17,8 @@ export const flowWingConfig: FlowWingConfig = {
       "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing",
   },
   temp: {
-    codeFileName: FILE_NAME + ".fg",
-    syntaxFileName: FILE_NAME + ".json",
-    tokenFileName: FILE_NAME + ".tokens.json",
-    errorFileName: FILE_NAME + ".err.json",
+    syntaxFileExt: ".json",
+    tokenFileExt: ".tokens.json",
+    errorFileExt: ".err.json",
   },
 };

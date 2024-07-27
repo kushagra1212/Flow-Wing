@@ -42,6 +42,10 @@ IRGenerator::IRGenerator(
       std::make_unique<FunctionStatementGenerationStrategy>(
           this->_codeGenerationContext.get());
 
+  _bringStatementGenerationStrategy =
+      std::make_unique<BringStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+
   // Initialize the expression generation factory
 
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
@@ -154,10 +158,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
       if (functionDeclaration->isOnlyDeclared())
         _statementGenerationFactory->createStrategy(children->getKind())
             ->generateGlobalStatement(children.get());
+    } else if (children->getKind() ==
+               BinderKindUtils::BoundNodeKind::BringStatement) {
+
+      _bringStatementGenerationStrategy->declare(children.get());
     }
   }
 
   _irCodeGenerator->declareVariables(blockStatement, true);
+
   // Declare All Global Variables
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {

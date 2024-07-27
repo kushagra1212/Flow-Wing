@@ -13,6 +13,7 @@ public:
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
+  llvm::Value *declare(BoundStatement *statement);
   auto inline deleteObjectFiles() -> void {
     std::vector<std::string> objectFiles =
         Utils::getAllFilesInDirectoryWithExtension(

@@ -6,7 +6,7 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getSuggestionHandlerObject } from "../services/suggestionService";
-import { checkForObjectSuggestions } from "../utils";
+import { checkForObjectSuggestions, getFileFullPath } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import { flowWingConfig } from "../config";
 import { fileUtils } from "../utils/fileUtils";
@@ -34,13 +34,14 @@ export const getObjectSuggestion = async (
     checkForObjectSuggestions
   );
 
-  if (suggestion.shouldNotProvideSuggestion || !suggestion.hasObjectSuggestions)
-    return [];
+  // if (suggestion.shouldNotProvideSuggestion || !suggestion.hasObjectSuggestions)
+  //   return [];
 
-  console.log("suggestion", suggestion);
   const result = await getCompletionItems(
     fileUtils.getTempFilePath({
-      fileName: flowWingConfig.temp.syntaxFileName,
+      fileName:
+        getFileFullPath(_textDocsParams.textDocument.uri) +
+        flowWingConfig.temp.syntaxFileExt,
     }),
     suggestion
   );

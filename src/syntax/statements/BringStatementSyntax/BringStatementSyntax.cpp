@@ -1,7 +1,7 @@
 #include "BringStatementSyntax.h"
 
 void BringStatementSyntax::addExpression(
-    std::unique_ptr<SyntaxToken<std::any>> expression) {
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> expression) {
   expressions.push_back(std::move(expression));
 }
 void BringStatementSyntax::setAbsoluteFilePath(
@@ -52,7 +52,7 @@ BringStatementSyntax::getSourceLocation() const {
   return _bringKeyword->getSourceLocation();
 }
 
-const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
+const std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> &
 BringStatementSyntax::getExpressionsPtr() {
   return expressions;
 }

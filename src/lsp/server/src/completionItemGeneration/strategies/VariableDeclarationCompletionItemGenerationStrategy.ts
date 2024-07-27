@@ -61,6 +61,11 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
         variableDeclaration
       );
 
+    if (variableDeclaration[index]["ExposeKeyword"]) {
+      variableDeclarationStr +=
+        variableDeclaration[index++]["ExposeKeyword"].value + " ";
+    }
+
     if (variableDeclaration[index]["VarKeyword"]) {
       variableDeclarationStr +=
         variableDeclaration[index++]["VarKeyword"].value + " ";
