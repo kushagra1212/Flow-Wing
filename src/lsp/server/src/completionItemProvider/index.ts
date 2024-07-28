@@ -1,7 +1,18 @@
 import { ProgramStructure } from "../ds/stack";
-import { CompletionItem, Position } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  Position,
+} from "vscode-languageserver";
 import { fileUtils } from "../utils/fileUtils";
-import { formatVarExpr, getArrayType, SuggestHandler } from "../utils";
+import {
+  formatVarExpr,
+  getArrayType,
+  getFileFullPath,
+  getImportedFileUri,
+  SuggestHandler,
+  userDefinedKeywordsFilter,
+} from "../utils";
 import { FunctionDeclarationExpressionStrategy } from "../strategies/FunctionDeclarationExpressionStrategy";
 import { IdentifierCompletionItemsStrategy } from "../strategies/CompletionItemStrategy/IdentifierCompletionItemsStrategy";
 import { CompletionItemService } from "../services/completionItemService";
@@ -11,6 +22,9 @@ import { ProgramContext } from "../ds/programContext";
 import { FunctionDeclarationCompletionItemGenerationStrategy } from "../completionItemGeneration/strategies/FunctionDeclarationCompletionItemGenerationStrategy";
 import { CompletionItemGenerationFactory } from "../completionItemGeneration/completionItemGenerationFactory";
 import { IdentifierToken, RootObject, Token } from "../types";
+import { flowWingConfig } from "../config";
+import { validateTextDocument } from "../services/documentService";
+import { documents } from "../server";
 
 export const declareGlobals = (
   program: any,
@@ -27,7 +41,9 @@ export const declareGlobals = (
     if (
       (option.skip.includes("ClassStatement") && obj["ClassStatement"]) ||
       (option.skip.includes("VariableDeclarations") &&
-        obj["VariableDeclarations"])
+        obj["VariableDeclarations"]) ||
+      (option.skip.includes("BringStatementSyntax") &&
+        obj["BringStatementSyntax"])
     ) {
       return;
     }
@@ -52,122 +68,220 @@ export const declareGlobals = (
   }
 };
 
+type TraverseJsonParams = {
+  obj: any;
+  suggestion: SuggestHandler;
+  programCtx: ProgramContext;
+  currentTextDocUri: string;
+};
+
+const traverseJson = async ({
+  obj,
+  suggestion,
+  programCtx,
+  currentTextDocUri,
+}: TraverseJsonParams): Promise<CompletionItem[]> => {
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      const res = await traverseJson({
+        obj: item,
+        currentTextDocUri: currentTextDocUri,
+        programCtx: programCtx,
+        suggestion: suggestion,
+      });
+      if (res?.length) return res;
+    }
+  } else if (typeof obj === "object" && obj !== null) {
+    if (obj["BringStatementSyntax"]) {
+      const bringkeyword = obj["BringStatementSyntax"]?.[0]?.[
+        "BringKeyword"
+      ] as Token;
+
+      programCtx.setInsideBring(true);
+
+      {
+        let index = 2;
+        while (
+          obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
+            "IdentifierToken"
+          ]
+        ) {
+          const idefImportToken =
+            obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
+              "IdentifierToken"
+            ];
+
+          programCtx.bringStatementMap.set(idefImportToken.value, true);
+
+          index++;
+        }
+      }
+
+      console.log("SS", suggestion);
+      const suggestionToken = suggestion?.token;
+      if (
+        bringkeyword?.lineNumber === suggestionToken?.lineNumber &&
+        bringkeyword?.columnNumber === suggestionToken?.columnNumber
+      ) {
+        const relPath = (
+          obj["BringStatementSyntax"]?.[1]?.["StringToken"] as Token
+        )?.value?.split(`"`)?.[1];
+
+        try {
+          const importedFileURI = await getImportedFileUri(
+            relPath,
+            currentTextDocUri
+          );
+
+          if (importedFileURI && importedFileURI !== "") {
+            await validateTextDocument(documents.get(importedFileURI), null);
+
+            const result = (
+              await getCompletionItems(
+                fileUtils.getTempFilePath({
+                  fileName:
+                    getFileFullPath(importedFileURI) +
+                    flowWingConfig.temp.syntaxFileExt,
+                }),
+                {
+                  data: {
+                    isDot: false,
+                  },
+                } as SuggestHandler,
+                importedFileURI
+              )
+            )?.filter(userDefinedKeywordsFilter);
+
+            console.log("IM", result, importedFileURI);
+            return result;
+          }
+        } catch (err) {
+          console.error(`Error reading and processing JSON file: ${err}`);
+        }
+      }
+    }
+    if (obj["ClassKeyword"]) {
+      if (
+        suggestion.token &&
+        (obj["ClassKeyword"]["lineNumber"] > suggestion.token.lineNumber ||
+          (obj["ClassKeyword"]["columnNumber"] >=
+            suggestion.token.columnNumber &&
+            obj["ClassKeyword"]["lineNumber"] === suggestion.token.lineNumber))
+      ) {
+        programCtx.setCurrentParsingClassName(null);
+
+        if (!suggestion.data.isDot)
+          return new CompletionItemService(
+            new AllCompletionItemsStrategy()
+          ).getCompletionItems({ programCtx: programCtx });
+
+        return [];
+      }
+    }
+    if (obj["lineNumber"] && obj["columnNumber"]) {
+      if (
+        suggestion.token &&
+        (obj["lineNumber"] > suggestion.token.lineNumber ||
+          (obj["columnNumber"] >= suggestion.token.columnNumber &&
+            obj["lineNumber"] === suggestion.token.lineNumber))
+      ) {
+        if (suggestion.data.isDot || suggestion?.data?.argumentNumber) {
+          const res = getCompletionItemsForDot(suggestion, programCtx);
+
+          return res;
+        }
+
+        let result = [];
+        if (!suggestion.data.isDot)
+          result = new CompletionItemService(
+            new AllCompletionItemsStrategy()
+          ).getCompletionItems({ programCtx: programCtx });
+        return result;
+      }
+    }
+    if (obj["IdentifierToken"]) {
+      const identifierToken: IdentifierToken = obj["IdentifierToken"];
+
+      if (
+        suggestion.token &&
+        identifierToken.columnNumber === suggestion.token.columnNumber &&
+        identifierToken.lineNumber === suggestion.token.lineNumber
+      ) {
+        if (suggestion.data.isDot) {
+          return getCompletionItemsForDot(suggestion, programCtx);
+        }
+
+        const result = new CompletionItemService(
+          new IdentifierCompletionItemsStrategy()
+        ).getCompletionItems({
+          programCtx: programCtx,
+          identifier: identifierToken.value,
+        });
+
+        if (result?.length) return result;
+      }
+    }
+
+    if (
+      obj["BlockStatement"] ||
+      obj["ClassStatement"] ||
+      obj["FunctionDeclarationSyntax"]
+    ) {
+      programCtx.pushEmptyProgramStructure();
+    }
+
+    CompletionItemGenerationFactory?.create(
+      programCtx,
+      obj
+    )?.generateCompletionItems();
+
+    for (const value of Object.values(obj)) {
+      const result = await traverseJson({
+        obj: value,
+        currentTextDocUri: currentTextDocUri,
+        programCtx: programCtx,
+        suggestion: suggestion,
+      });
+      if (result?.length) return result;
+    }
+
+    if (obj["BringStatementSyntax"]) {
+      programCtx.onExitBring();
+    }
+
+    if (
+      obj["BlockStatement"] ||
+      obj["ClassStatement"] ||
+      obj["FunctionDeclarationSyntax"]
+    ) {
+      if (obj["FunctionDeclarationSyntax"])
+        programCtx.setCurrentParsingFunctionName(null);
+
+      if (obj["ClassStatement"]) programCtx.setCurrentParsingClassName(null);
+
+      programCtx.stack?.pop();
+    }
+  }
+  return [];
+};
+
 export async function getCompletionItems(
   filePath: string,
-  suggestion: SuggestHandler
+  suggestion: SuggestHandler,
+  currentTextDocUri: string
 ): Promise<CompletionItem[]> {
   try {
     const syntaxTreeAsString = await fileUtils.readFile(filePath);
     const programCtx = new ProgramContext(JSON.parse(syntaxTreeAsString));
 
-    // Recursive function to traverse the JSON structure
-    const traverseJson = (obj: any): CompletionItem[] => {
-      if (Array.isArray(obj)) {
-        for (const item of obj) {
-          const res = traverseJson(item);
-          if (res?.length) return res;
-        }
-      } else if (typeof obj === "object" && obj !== null) {
-        if (obj["ClassKeyword"]) {
-          if (
-            suggestion.token &&
-            (obj["ClassKeyword"]["lineNumber"] > suggestion.token.lineNumber ||
-              (obj["ClassKeyword"]["columnNumber"] >=
-                suggestion.token.columnNumber &&
-                obj["ClassKeyword"]["lineNumber"] ===
-                  suggestion.token.lineNumber))
-          ) {
-            programCtx.setCurrentParsingClassName(null);
+    const result = await traverseJson({
+      obj: programCtx.syntaxTree,
+      currentTextDocUri: currentTextDocUri,
+      programCtx: programCtx,
+      suggestion: suggestion,
+    });
 
-            if (!suggestion.data.isDot)
-              return new CompletionItemService(
-                new AllCompletionItemsStrategy()
-              ).getCompletionItems({ programCtx: programCtx });
-
-            return [];
-          }
-        }
-        if (obj["lineNumber"] && obj["columnNumber"]) {
-          if (
-            suggestion.token &&
-            (obj["lineNumber"] > suggestion.token.lineNumber ||
-              (obj["columnNumber"] >= suggestion.token.columnNumber &&
-                obj["lineNumber"] === suggestion.token.lineNumber))
-          ) {
-            if (suggestion.data.isDot || suggestion?.data?.argumentNumber) {
-              const res = getCompletionItemsForDot(suggestion, programCtx);
-
-              return res;
-            }
-
-            let result = [];
-            if (!suggestion.data.isDot)
-              result = new CompletionItemService(
-                new AllCompletionItemsStrategy()
-              ).getCompletionItems({ programCtx: programCtx });
-            return result;
-          }
-        }
-        if (obj["IdentifierToken"]) {
-          const identifierToken: IdentifierToken = obj["IdentifierToken"];
-
-          if (
-            suggestion.token &&
-            identifierToken.columnNumber === suggestion.token.columnNumber &&
-            identifierToken.lineNumber === suggestion.token.lineNumber
-          ) {
-            if (suggestion.data.isDot) {
-              return getCompletionItemsForDot(suggestion, programCtx);
-            }
-
-            const result = new CompletionItemService(
-              new IdentifierCompletionItemsStrategy()
-            ).getCompletionItems({
-              programCtx: programCtx,
-              identifier: identifierToken.value,
-            });
-
-            if (result?.length) return result;
-          }
-        }
-
-        if (
-          obj["BlockStatement"] ||
-          obj["ClassStatement"] ||
-          obj["FunctionDeclarationSyntax"]
-        ) {
-          programCtx.pushEmptyProgramStructure();
-        }
-
-        CompletionItemGenerationFactory?.create(
-          programCtx,
-          obj
-        )?.generateCompletionItems();
-
-        for (const value of Object.values(obj)) {
-          const result = traverseJson(value);
-          if (result?.length) return result;
-        }
-
-        if (
-          obj["BlockStatement"] ||
-          obj["ClassStatement"] ||
-          obj["FunctionDeclarationSyntax"]
-        ) {
-          if (obj["FunctionDeclarationSyntax"])
-            programCtx.setCurrentParsingFunctionName(null);
-
-          if (obj["ClassStatement"])
-            programCtx.setCurrentParsingClassName(null);
-
-          programCtx.stack?.pop();
-        }
-      }
-      return [];
-    };
-    const result = traverseJson(programCtx.syntaxTree);
-
-    return (result.length === 0 && !suggestion.data.isDot) || suggestion?.token
+    return result.length === 0 && !suggestion.data.isDot
       ? new CompletionItemService(
           new AllCompletionItemsStrategy()
         ).getCompletionItems({ programCtx: programCtx })

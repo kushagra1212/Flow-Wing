@@ -8,8 +8,12 @@ export class FunctionDeclarationExpressionStrategy
     if (expression[0]["IdentifierToken"])
       return expression[0]["IdentifierToken"].value;
 
-    if (!expression[1]["IdentifierToken"]) return "";
+    if (expression[1]["IdentifierToken"])
+      return expression[1]["IdentifierToken"].value;
 
-    return expression[1]["IdentifierToken"].value;
+    if (expression[2]["IdentifierToken"])
+      return expression[2]["IdentifierToken"].value;
+
+    return "";
   }
 }

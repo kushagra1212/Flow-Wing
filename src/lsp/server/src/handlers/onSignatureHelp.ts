@@ -27,7 +27,8 @@ export const onSignatureHelp = (
           getFileFullPath(params.textDocument.uri) +
           flowWingConfig.temp.syntaxFileExt,
       }),
-      suggestion
+      suggestion,
+      params.textDocument.uri
     );
 
     if (!result?.length || !suggestion?.hasFunctionSignature) return;

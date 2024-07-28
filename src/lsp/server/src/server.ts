@@ -14,13 +14,16 @@ import { onDidChangeConfiguration } from "./handlers/onDidChangeConfiguration";
 import { onDidClose } from "./handlers/onDidClose";
 import { InitializationHandler } from "./handlers/InitializationHandler";
 import { validateTextDocument } from "./services/documentService";
+import { onDefinition } from "./handlers/onDefinition";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+export const documents: TextDocuments<TextDocument> = new TextDocuments(
+  TextDocument
+);
 
 // The example settings
 
@@ -37,6 +40,8 @@ onDidChangeConfiguration(connection, initializationHandler, documents);
 
 // Only keep settings for open documents
 onDidClose(documents);
+
+onDefinition(documents, connection);
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.

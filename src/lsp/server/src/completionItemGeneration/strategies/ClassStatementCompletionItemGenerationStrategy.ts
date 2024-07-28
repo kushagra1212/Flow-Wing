@@ -8,13 +8,14 @@ import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStra
 import { ClassExpressionStrategy } from "../../strategies/ClassExpressionStrategy";
 import { ClassStatement } from "../../types";
 import { declareGlobals } from "../../completionItemProvider";
-import { getMarkSyntaxHighlightMarkdown } from "../../utils";
+import { createRange, getMarkSyntaxHighlightMarkdown } from "../../utils";
 
 export class ClassStatementCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
     this.result.name = new ClassExpressionStrategy().getExpressionAsString(
       this.syntaxObj["ClassStatement"]
     );
+
     this.result.completionItem = this.createCompletionItem(
       this.syntaxObj["ClassStatement"] as ClassStatement
     );
@@ -91,12 +92,21 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
     classDeclaration: ClassStatement
   ): CompletionItem {
     let classDeclarationStr = "";
+    let index = 0;
+    let classIdefToken = null;
 
-    if (classDeclaration[0]["ClassKeyword"])
-      classDeclarationStr += classDeclaration[0]["ClassKeyword"].value + " ";
+    if (classDeclaration[index]["ExposeKeyword"])
+      classDeclarationStr +=
+        classDeclaration[index++]["ExposeKeyword"].value + " ";
 
-    if (classDeclaration[1]["IdentifierToken"])
-      classDeclarationStr += classDeclaration[1]["IdentifierToken"].value;
+    if (classDeclaration[index]["ClassKeyword"])
+      classDeclarationStr +=
+        classDeclaration[index++]["ClassKeyword"].value + " ";
+
+    if (classDeclaration[index]["IdentifierToken"]) {
+      classIdefToken = classDeclaration[index]["IdentifierToken"];
+      classDeclarationStr += classDeclaration[index++]["IdentifierToken"].value;
+    }
 
     const className = new ClassExpressionStrategy().getExpressionAsString(
       classDeclaration
@@ -105,7 +115,9 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
     return {
       label: className,
       kind: CompletionItemKind.Class,
-      data: "class",
+      data: {
+        ...createRange(classIdefToken),
+      },
       detail: classDeclarationStr,
       documentation: {
         kind: "markdown",

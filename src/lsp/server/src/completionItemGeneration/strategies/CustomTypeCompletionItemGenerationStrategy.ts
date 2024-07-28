@@ -4,6 +4,7 @@ import { CustomTypeExpressionStrategy } from "../../strategies/CustomTypeExpress
 import { CustomTypeStatement } from "../../types";
 import { LiteralExpressionStrategy } from "../../strategies/LiteralExpressionStrategy";
 import {
+  createRange,
   getArrayType,
   getMarkSyntaxHighlightMarkdown,
   isPrimitiveType,
@@ -63,9 +64,9 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
         .variableExpressions.set(variableName, [customTypesCompletionItem]);
     }
 
-    if (customTypesCompletionItem) {
+    if (customTypesCompletionItem && customTypesCompletionItem.data?.items) {
       const innerVariableName = variableName + ".";
-      for (const item of customTypesCompletionItem.data) {
+      for (const item of customTypesCompletionItem.data.items) {
         if (
           !this.programCtx.stack
             ?.peek()
@@ -100,15 +101,25 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     customTypeStatement: CustomTypeStatement
   ): CompletionItem {
     let customTypeStatementString = "type ";
+    let custumTypeIdef = null;
+    let index = 0;
 
-    if (customTypeStatement[0]["LiteralExpression"]) {
+    if (customTypeStatement?.[index]?.["ExposeKeyword"]) {
+      customTypeStatementString +=
+        customTypeStatement[index++]["ExposeKeyword"].value + " ";
+    }
+
+    if (customTypeStatement?.[index]?.["LiteralExpression"]) {
+      custumTypeIdef =
+        customTypeStatement[index]["LiteralExpression"][0]["IdentifierToken"];
+
       customTypeStatementString +=
         new LiteralExpressionStrategy().getExpressionAsString(
-          customTypeStatement[0]["LiteralExpression"][0]
+          customTypeStatement[index++]["LiteralExpression"][0]
         ) + " = {\n";
     }
     const data = [];
-    for (let i = 1; i < customTypeStatement.length; i++) {
+    for (let i = index; i < customTypeStatement.length; i++) {
       customTypeStatementString += "\t";
       if (customTypeStatement[i]["BracketedExpression"]) {
         data.push({
@@ -131,7 +142,10 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     return {
       label: typeName,
       kind: CompletionItemKind.TypeParameter,
-      data: data,
+      data: {
+        items: data,
+        ...createRange(custumTypeIdef),
+      },
       detail: "Custom Type",
       documentation: {
         kind: "markdown",

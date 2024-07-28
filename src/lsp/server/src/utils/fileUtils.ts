@@ -46,6 +46,16 @@ class FileUtils {
     }
   }
 
+  public async doesFileExist(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch (err) {
+      console.log("File does not exist yet", err);
+      return false;
+    }
+  }
+
   public async createTempFile({
     fileName,
     data = "",

@@ -1,12 +1,20 @@
 import { ErrorResult } from "./types";
-import { Position, Range } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  Position,
+  Range,
+} from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/completionItems/keywords/types";
-import { Token } from "../types";
+import { IdentifierToken, Token } from "../types";
 import { fileUtils } from "./fileUtils";
 import { flowWingConfig } from "../config";
 import { randomBytes } from "crypto";
 import { Stack } from "../ds/stack";
+import path = require("path");
+import { keywordsCompletionItems } from "../store";
+import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
 
 // eslint-disable-next-line no-control-regex
 const COLOR_REGEX = /\x1b\[[0-9;]*m/g;
@@ -164,6 +172,21 @@ export const checkForHover = (tokens: Token[]): SuggestHandler => {
   let i = tokens.length - 1;
   let isDot = false;
   let word = "";
+
+  if (
+    tokens[i].value.indexOf(`"`) === 0 &&
+    tokens[i].value.lastIndexOf(`"`) === tokens[i].value.length - 1
+  ) {
+    return {
+      hasHoverResult: true,
+      token: tokens[i],
+      word: tokens[i].value.split(`"`)?.[1],
+      data: {
+        isDot: isDot,
+        argumentNumber: 0,
+      },
+    };
+  }
 
   while (i >= 0) {
     const isIdentifier = isValidVariableName(tokens[i].value);
@@ -450,6 +473,20 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
         if (tokens[i].value === "(") {
           break;
         }
+        if (tokens[i].value === "bring") {
+          break;
+        }
+      }
+
+      if (tokens[i].value === "bring") {
+        return {
+          token: tokens[i],
+          word: tokens[i].value,
+          data: {
+            isDot: false,
+            argumentNumber: 0,
+          },
+        };
       }
 
       if (tokens[i].value === "(") {
@@ -641,4 +678,66 @@ export const reverseStack = <T>(stack: Stack<T>): Stack<T> => {
  */
 export const getFileFullPath = (uri: string): string => {
   return uri.split("file:/")[1].split(".fg")[0];
+};
+
+export const createRange = (token: Token | null) => {
+  if (!token)
+    return {
+      range: {
+        start: {
+          line: 0,
+          character: 0,
+        },
+        end: {
+          line: 0,
+          character: 0,
+        },
+      },
+    };
+
+  return {
+    range: {
+      start: {
+        line: token.lineNumber,
+        character: token.columnNumber,
+      },
+
+      end: {
+        line: token.lineNumber,
+        character: token.columnNumber + token.value.length,
+      },
+    },
+  };
+};
+
+export const getImportedFileUri = async (
+  _filePath: string,
+  currentFileUri: string
+): Promise<string> => {
+  try {
+    const filePath = path.resolve(
+      path.dirname(getFileFullPath(currentFileUri)),
+      _filePath
+    );
+    const doesFileExits = await fileUtils.doesFileExist(filePath);
+    if (doesFileExits) {
+      return "file://" + filePath;
+    }
+  } catch (err) {
+    console.log(`Error in getImportedFileUri: ${err}`);
+  }
+  return currentFileUri;
+};
+
+export const userDefinedKeywordsFilter = (keyword: CompletionItem) => {
+  const index = [
+    ...keywordsCompletionItems,
+    ...inBuiltFunctionsCompletionItems,
+  ].findIndex(
+    (keywordsCompletionItem) => keywordsCompletionItem.label === keyword.label
+  );
+
+  if (index === -1) return true;
+
+  return false;
 };

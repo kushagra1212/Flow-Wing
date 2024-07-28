@@ -54,7 +54,8 @@ export const getDocumentationForCompletionItem = async (
         fileName:
           getFileFullPath(textDocUri) + flowWingConfig.temp.syntaxFileExt,
       }),
-      suggestion
+      suggestion,
+      textDocUri
     );
 
     return (

@@ -9,6 +9,8 @@ export class ProgramContext {
   rootProgram: ProgramStructure;
   currentFunctionName: string | null = null;
   currentClassName: string | null = null;
+  private isInsideBring: boolean = false;
+  bringStatementMap: Map<string, boolean> = new Map();
   private _syntaxTree: RootObject;
 
   constructor(syntaxTree: RootObject) {
@@ -72,6 +74,19 @@ export class ProgramContext {
 
   public isInsideAClassButNotInsideCassMemberFunction(): boolean {
     return this.isInsideClass() && !this.isInsideFunction();
+  }
+
+  public setInsideBring(val: boolean): void {
+    this.isInsideBring = val;
+  }
+
+  public onExitBring(): void {
+    this.isInsideBring = false;
+    this.bringStatementMap = new Map();
+  }
+
+  public getIsInsideBring(): boolean {
+    return this.isInsideBring;
   }
 
   private populateBuiltInFunctions = (): void => {

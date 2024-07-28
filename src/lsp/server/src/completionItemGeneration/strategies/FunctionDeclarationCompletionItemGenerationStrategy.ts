@@ -8,7 +8,7 @@ import { FunctionDeclaration } from "../../types";
 import { VariableDeclarationCompletionItemGenerationStrategy } from "./VariableDeclarationCompletionItemGenerationStrategy";
 import { ExpressionStrategyFactory } from "../../strategies/ExpressionStrategyFactory";
 import { FunctionDeclarationExpressionStrategy } from "../../strategies/FunctionDeclarationExpressionStrategy";
-import { getMarkSyntaxHighlightMarkdown } from "../../utils";
+import { createRange, getMarkSyntaxHighlightMarkdown } from "../../utils";
 
 export class FunctionDeclarationCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
@@ -27,16 +27,24 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
   ): CompletionItem {
     let functionDeclarationStr = "";
     let index = 0;
+    let funcIdefToken = null;
+
+    if (functionDeclaration[index]["ExposeKeyword"]) {
+      functionDeclarationStr +=
+        functionDeclaration[index++]["ExposeKeyword"].value + " ";
+    }
 
     if (functionDeclaration[index]["FunctionKeyword"])
       functionDeclarationStr +=
         functionDeclaration[index++]["FunctionKeyword"].value + " ";
     else functionDeclarationStr += "fun ";
 
-    if (functionDeclaration[index]["IdentifierToken"])
+    if (functionDeclaration[index]["IdentifierToken"]) {
+      funcIdefToken = functionDeclaration[index]["IdentifierToken"];
+
       functionDeclarationStr +=
         functionDeclaration[index++]["IdentifierToken"].value;
-
+    }
     functionDeclarationStr += "(";
     let hasCommaAtEnd = false;
 
@@ -110,6 +118,7 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
           },
         ],
         functionParametersTypes: functionParametersTypes,
+        ...createRange(funcIdefToken),
       },
       detail: functionDeclarationStr,
       documentation: {

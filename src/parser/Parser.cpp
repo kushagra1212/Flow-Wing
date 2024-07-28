@@ -671,7 +671,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   bringStatement->addBringKeyword(std::move(bringKeyword));
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenBraceToken) {
-    this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
+    bringStatement->addOpenBraceToken(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
     while (this->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
       std::unique_ptr<SyntaxToken<std::any>> identifier =
           std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
@@ -728,6 +729,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
   if (stringToken->getValue().type() == typeid(std::string)) {
     relativeFilePath = std::any_cast<std::string>(stringToken->getValue());
   }
+  bringStatement->addPathToken(std::move(stringToken));
 
   bringStatement->setRelativeFilePath(relativeFilePath);
 

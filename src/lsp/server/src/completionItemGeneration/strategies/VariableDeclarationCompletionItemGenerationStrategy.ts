@@ -7,7 +7,7 @@ import { ExpressionStrategyFactory } from "../../strategies/ExpressionStrategyFa
 import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStrategy";
 import { VariableDeclaration } from "../../types";
 import { VariableDeclarationExpressionStrategy } from "../../strategies/VariableDeclarationExpressionStrategy";
-import { getMarkSyntaxHighlightMarkdown } from "../../utils";
+import { createRange, getMarkSyntaxHighlightMarkdown } from "../../utils";
 
 export class VariableDeclarationCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
@@ -55,6 +55,7 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
   ): CompletionItem {
     let variableDeclarationStr = "";
     let index = 0;
+    let idefToken = null;
 
     const variableName =
       new VariableDeclarationExpressionStrategy().getExpressionAsString(
@@ -78,9 +79,12 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
       variableDeclarationStr +=
         variableDeclaration[index++]["InOutKeyword"].value + " ";
 
-    if (variableDeclaration[index]["IdentifierToken"])
+    if (variableDeclaration[index]["IdentifierToken"]) {
+      idefToken = variableDeclaration[index]["IdentifierToken"];
+
       variableDeclarationStr +=
         variableDeclaration[index++]["IdentifierToken"].value + ": ";
+    }
 
     if (variableDeclaration[index]["Askeyword"])
       variableDeclarationStr +=
@@ -101,6 +105,7 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
       kind: CompletionItemKind.Variable,
       data: {
         typeName: typeName,
+        ...createRange(idefToken),
       },
       detail: variableDeclarationStr,
       documentation: {

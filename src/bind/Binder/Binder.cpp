@@ -593,19 +593,23 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
                                SyntaxKindUtils::SyntaxKind::IdentifierToken) +
                            ">",
                        DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       DiagnosticUtils::DiagnosticType::Semantic,
                        (expression->getSourceLocation())));
         continue;
       }
 
-      if (memberMap.find(expression->getTokenPtr()->getText()) ==
-          memberMap.end()) {
+      const bool found = memberMap.find(expression->getTokenPtr()->getText()) ==
+                         memberMap.end();
+      std::cout << "FIN: " << expression->getTokenPtr()->getText() << found
+                << "\n";
+
+      if (found) {
         this->_diagnosticHandler->addDiagnostic(
             Diagnostic("Identifier <" + expression->getTokenPtr()->getText() +
                            "> not found in <" +
                            bringStatement->getRelativeFilePathPtr() + ">",
                        DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       DiagnosticUtils::DiagnosticType::Semantic,
                        (expression->getSourceLocation())));
         continue;
       }
@@ -1597,6 +1601,20 @@ auto Binder::getMemberMap(
             dynamic_cast<VariableDeclarationSyntax *>(
                 globalStatement->getStatementPtr().get());
         memberMap[variableDeclaration->getIdentifierRef()->getText()] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ClassStatement) {
+        ClassStatementSyntax *classStatement =
+            dynamic_cast<ClassStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap[classStatement->getClassNameIdentifierRef()->getText()] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::CustomTypeStatement) {
+        CustomTypeStatementSyntax *customTypeStatement =
+            dynamic_cast<CustomTypeStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap
+            [customTypeStatement->getTypeNameRef()->getTokenPtr()->getText()] =
+                1;
       }
     }
   }
