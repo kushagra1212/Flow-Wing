@@ -9,16 +9,29 @@ const SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
 }
 
 const std::vector<SyntaxNode *> &ContainerExpressionSyntax::getChildren() {
-  if (_children.size() > 0) return _children;
+  if (_children.size() > 0)
+    return _children;
 
-  for (auto &element : this->_elements) _children.push_back(element.get());
+  if (_openBracket)
+    _children.push_back(_openBracket.get());
 
+  for (auto &element : this->_elements)
+    _children.push_back(element.get());
+
+  if (_closeBracket)
+    _children.push_back(_closeBracket.get());
   return _children;
 }
 
 const DiagnosticUtils::SourceLocation
 ContainerExpressionSyntax::getSourceLocation() const {
-  if (this->_elements.size() == 0) return DiagnosticUtils::SourceLocation();
+  if (this->_elements.size() == 0) {
+    if (_openBracket)
+      return _openBracket->getSourceLocation();
+
+    if (_closeBracket)
+      return _closeBracket->getSourceLocation();
+  }
 
   return this->_elements[0]->getSourceLocation();
 }

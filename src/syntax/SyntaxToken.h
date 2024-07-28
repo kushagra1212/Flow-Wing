@@ -52,6 +52,7 @@ SyntaxToken<T>::SyntaxToken(const std::string &absoluteFilePath,
   this->lineNumber = lineNumber;
   this->columnNumber = columnNumber;
   this->absoluteFilePath = absoluteFilePath;
+  this->length = text.length();
 }
 
 template <typename T>
@@ -134,7 +135,7 @@ template <typename T>
 const DiagnosticUtils::SourceLocation
 SyntaxToken<T>::getSourceLocation() const {
   return DiagnosticUtils::SourceLocation(this->lineNumber, this->columnNumber,
-                                         this->absoluteFilePath);
+                                         this->length, this->absoluteFilePath);
 }
 
 #endif

@@ -32,4 +32,9 @@ Option<std::string> OPTIONS::OutputFile{
 
 Option<std::string> OPTIONS::ShortOutputFile{"-O", "Short hand flag for --out"};
 
+Option<std::string> OPTIONS::Code{
+    "--code", "Use --code=<code> to specify a code as input"};
+
+Option<std::string> OPTIONS::ShortCode{"-C", "Short hand flag for --code"};
+
 } // namespace FlowWingCliOptions

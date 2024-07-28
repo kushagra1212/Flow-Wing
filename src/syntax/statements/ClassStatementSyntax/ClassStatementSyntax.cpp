@@ -24,6 +24,9 @@ const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
     if (_parentClassNameIdentifier)
       _children.push_back(_parentClassNameIdentifier.get());
 
+    if (_classOpenBraceToken)
+      _children.push_back(_classOpenBraceToken.get());
+
     for (const auto &type : _customTypeStatements) {
       _children.push_back(type.get());
     }
@@ -34,6 +37,9 @@ const std::vector<SyntaxNode *> &ClassStatementSyntax::getChildren() {
     for (const auto &m : _classMemberFunctions) {
       _children.push_back(m.get());
     }
+
+    if (_classCloseBraceToken)
+      _children.push_back(_classCloseBraceToken.get());
   }
 
   return this->_children;
@@ -57,6 +63,9 @@ ClassStatementSyntax::getSourceLocation() const {
   if (_parentClassNameIdentifier)
     return _parentClassNameIdentifier->getSourceLocation();
 
+  if (_classOpenBraceToken)
+    return _classOpenBraceToken->getSourceLocation();
+
   for (const auto &m : _customTypeStatements) {
     return m->getSourceLocation();
   }
@@ -68,5 +77,9 @@ ClassStatementSyntax::getSourceLocation() const {
   for (const auto &m : _classMemberFunctions) {
     return m->getSourceLocation();
   }
+
+  if (_classCloseBraceToken)
+    return _classCloseBraceToken->getSourceLocation();
+
   return DiagnosticUtils::SourceLocation();
 }

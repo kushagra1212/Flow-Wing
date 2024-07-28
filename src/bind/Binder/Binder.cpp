@@ -533,8 +533,6 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 std::unique_ptr<BoundStatement>
 Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
-  std::vector<std::string> expressionStrings = {};
-
   if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath())) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
         "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
@@ -543,8 +541,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
-        expressionStrings);
+        bringStatement->getDiagnosticHandlerPtr().get());
   }
 
   if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
@@ -557,8 +554,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
-        expressionStrings);
+        bringStatement->getDiagnosticHandlerPtr().get());
   }
 
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
@@ -572,20 +568,23 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get(), nullptr,
-        expressionStrings);
+        bringStatement->getDiagnosticHandlerPtr().get());
   }
 
   Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
+
+  auto boundBringStatement = std::make_unique<BoundBringStatement>(
+      bringStatement->getSourceLocation(),
+      bringStatement->getDiagnosticHandlerPtr().get());
 
   if (bringStatement->getIsChoosyImportPtr()) {
     std::unordered_map<std::string, int> memberMap =
         getMemberMap(bringStatement->getCompilationUnitPtr()->getMembers(),
                      bringStatement->getCompilationUnitPtr().get());
 
-    for (const auto &expression : bringStatement->getExpressionsPtr()) {
+    for (auto &expression : bringStatement->getExpressionsPtr()) {
       if (expression->getKind() !=
-          SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+          SyntaxKindUtils::SyntaxKind::LiteralExpression) {
         this->_diagnosticHandler->addDiagnostic(
             Diagnostic("Unexpected Token <" +
                            SyntaxKindUtils::to_string(expression->getKind()) +
@@ -594,22 +593,29 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
                                SyntaxKindUtils::SyntaxKind::IdentifierToken) +
                            ">",
                        DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       DiagnosticUtils::DiagnosticType::Semantic,
                        (expression->getSourceLocation())));
         continue;
       }
 
-      if (memberMap.find(expression->getText()) == memberMap.end()) {
-        this->_diagnosticHandler->addDiagnostic(Diagnostic(
-            "Identifier <" + expression->getText() + "> not found in <" +
-                bringStatement->getRelativeFilePathPtr() + ">",
-            DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Syntactic,
-            (expression->getSourceLocation())));
+      const bool found = memberMap.find(expression->getTokenPtr()->getText()) ==
+                         memberMap.end();
+      std::cout << "FIN: " << expression->getTokenPtr()->getText() << found
+                << "\n";
+
+      if (found) {
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Identifier <" + expression->getTokenPtr()->getText() +
+                           "> not found in <" +
+                           bringStatement->getRelativeFilePathPtr() + ">",
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Semantic,
+                       (expression->getSourceLocation())));
         continue;
       }
-
-      expressionStrings.push_back(expression->getText());
+      boundBringStatement->setExpression(
+          expression->getTokenPtr()->getText(),
+          std::move(bindLiteralExpression(expression.get())));
     }
   }
   Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
@@ -664,10 +670,9 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
 
-  return std::make_unique<BoundBringStatement>(
-      bringStatement->getSourceLocation(),
-      bringStatement->getDiagnosticHandlerPtr().get(), std::move(globalScope),
-      expressionStrings);
+  boundBringStatement->setGlobalScope(std::move(globalScope));
+
+  return std::move(boundBringStatement);
 }
 
 std::unique_ptr<BoundLiteralExpression<std::any>>
@@ -1596,6 +1601,20 @@ auto Binder::getMemberMap(
             dynamic_cast<VariableDeclarationSyntax *>(
                 globalStatement->getStatementPtr().get());
         memberMap[variableDeclaration->getIdentifierRef()->getText()] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ClassStatement) {
+        ClassStatementSyntax *classStatement =
+            dynamic_cast<ClassStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap[classStatement->getClassNameIdentifierRef()->getText()] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::CustomTypeStatement) {
+        CustomTypeStatementSyntax *customTypeStatement =
+            dynamic_cast<CustomTypeStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
+        memberMap
+            [customTypeStatement->getTypeNameRef()->getTokenPtr()->getText()] =
+                1;
       }
     }
   }

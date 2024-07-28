@@ -187,7 +187,7 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
             _indexExpression->getVariableExpression().get());
 
     llvm::StructType *parObjTypeType =
-        llvm::cast<llvm::StructType>(_arrayType->getArrayElementType());
+        llvm::cast<llvm::StructType>(_arrayElementType);
 
     if (variableExpression->getDotExpressionList().size() == 0) {
       _codeGenerationContext->getValueStackHandler()->push(

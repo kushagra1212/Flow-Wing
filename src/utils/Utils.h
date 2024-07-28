@@ -51,7 +51,8 @@ void prettyPrint(BoundStatement *statement, std::string indent = "",
                  bool isLast = true);
 void prettyPrint(BoundNode *statement, std::string indent = "",
                  bool isLast = true);
-void prettyPrint(std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
+void prettyPrint(
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
 void printErrors(const std::vector<std::string> &errors,
                  std::ostream &outputStream, bool isWarning = false);
 
@@ -59,6 +60,9 @@ JSON outJSON(BoundNode *node, bool isLast);
 JSON outJSON(BoundStatement *statement, bool isLast);
 JSON outJSON(SyntaxNode *node);
 JSON outJSON(CompilationUnitSyntax *compilationUnit);
+JSON outJSON(const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens);
+
+void logJSON(JSON &jsonObject, std::string filePath);
 
 const std::string getFileName(const std::string &filePath);
 
@@ -89,7 +93,7 @@ auto getSourceCodeFromFilePath(const std::string &filePath)
     -> std::vector<std::string>;
 std::string getAbsoluteFilePath(std::string relativeFilePath);
 std::vector<std::string> readLines(std::string absoluteFilePath);
-
+std::vector<std::string> readLinesFromText(const std::string &Code);
 void split(const std::string &s, const std::string &delim,
            std::vector<std::string> &tokens);
 

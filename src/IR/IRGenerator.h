@@ -12,6 +12,7 @@
 #include "../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../IR/handlers/value/ValueHandler.h"
 #include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
+#include "../IR/irGen/statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
@@ -102,6 +103,7 @@ public:
   IRGenerator(int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
               std::unordered_map<std::string, BoundFunctionDeclaration *>
                   boundedUserFunctions,
+              std::string outputFilePath,
               const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
   void printIR();
 
@@ -144,6 +146,9 @@ private:
 
   std::unique_ptr<FunctionStatementGenerationStrategy>
       _functionStatementGenerationStrategy;
+
+  std::unique_ptr<BringStatementGenerationStrategy>
+      _bringStatementGenerationStrategy;
 
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
 

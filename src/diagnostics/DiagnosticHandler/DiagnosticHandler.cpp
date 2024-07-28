@@ -189,8 +189,32 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
   return logString;
 }
 
+void DiagnosticHandler::logJSONifAsked(const std::string &outputFilePath,
+                                       const Diagnostic &diagnostic) {
+  if (Utils::getExtension(outputFilePath) == ".json") {
+    JSON errorObject = {
+        {"level", DiagnosticUtils::toString(diagnostic.getLevel())},
+        {"error",
+         diagnostic.getLevel() == DiagnosticUtils::DiagnosticLevel::Error},
+        {"message", (diagnostic.getMessage())},
+        {"type", DiagnosticUtils::toString(diagnostic.getType())},
+        {"location",
+         {
+             {"line", diagnostic.getLocation().lineNumber + 1},
+             {"column", diagnostic.getLocation().columnNumber + 1},
+             {"length", diagnostic.getLocation().length},
+         }}};
+
+    Utils::logJSON(errorObject, _outputFilePath.substr(
+                                    0, _outputFilePath.find_last_of(".")) +
+                                    ".err.json");
+  }
+}
+
 const void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
                                               const Diagnostic &diagnostic) {
+
+  this->logJSONifAsked(_outputFilePath, diagnostic);
   outputStream << getLogString(diagnostic);
 }
 

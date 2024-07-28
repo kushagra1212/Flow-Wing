@@ -43,6 +43,10 @@ public:
 
   void logLLVMInfo(llvm::Error E);
 
+  inline auto setOutputFilePath(const std::string &outputFilePath) -> void {
+    _outputFilePath = outputFilePath;
+  }
+
 private:
   llvm::SourceMgr _sourceMgr;
   llvm::raw_ostream &_errs;
@@ -50,6 +54,8 @@ private:
   std::string _llvmWarningMsg;
   std::string _llvmInfoMsg;
   DiagnosticUtils::SourceLocation _location;
+
+  std::string _outputFilePath = "";
 };
 
 #endif // LLVMLOGGER_H

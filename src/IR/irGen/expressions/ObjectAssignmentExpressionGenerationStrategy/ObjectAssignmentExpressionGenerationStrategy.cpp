@@ -67,7 +67,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
 
   uint64_t index = 0;
 
-  const std::string KEY_PRIFIX = typeName;
+  const std::string KEY_PRIFIX = typeName.substr(0, typeName.find("."));
   if (_codeGenerationContext->isValidClassType(parStructType)) {
     for (const auto &[bLitExpr, bExpr] :
          _codeGenerationContext->_classTypes[Utils::getActualTypeName(typeName)]

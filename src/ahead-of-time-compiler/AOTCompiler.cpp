@@ -151,8 +151,20 @@ int main(int argc, char *argv[]) {
   file.close();
 
   Utils::Node::addPath(Utils::getAbsoluteFilePath(_filePath));
-  std::vector<std::string> text =
-      Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
+  std::vector<std::string> text = {};
+  if (!cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str().empty() ||
+      !cmdl(FlowWingCliOptions::OPTIONS::ShortCode.name.c_str())
+           .str()
+           .empty()) {
+
+    std::string code =
+        !cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str().empty()
+            ? cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str()
+            : cmdl(FlowWingCliOptions::OPTIONS::ShortCode.name.c_str()).str();
+
+    text = Utils::readLinesFromText(code);
+  } else
+    text = Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<AOTCompiler> aotCompiler =
       std::make_unique<AOTCompiler>(_filePath);

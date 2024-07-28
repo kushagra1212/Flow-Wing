@@ -65,6 +65,11 @@ public:
 
   inline std::string getFormattedSourceCode() { return _formattedSourceCode; }
 
+  inline auto getTokensRef()
+      -> const std::vector<std::unique_ptr<SyntaxToken<std::any>>> & {
+    return tokens;
+  }
+
 private:
   FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
@@ -123,9 +128,10 @@ private:
   /*
     EXPRESSIONS
   */
-  std::unique_ptr<ExpressionSyntax> parseIndexExpression(bool isSelf = false);
   std::unique_ptr<ExpressionSyntax>
-  parseNameorCallExpression(bool isSelf = false);
+  parseIndexExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
+  std::unique_ptr<ExpressionSyntax>
+  parseNameorCallExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
   std::unique_ptr<ExpressionSyntax> parseCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
   parseFunctionDeclaration(const bool &isExposed,
@@ -136,7 +142,7 @@ private:
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
   std::unique_ptr<ExpressionSyntax>
-  parseVariableExpression(bool isSelf = false);
+  parseVariableExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();

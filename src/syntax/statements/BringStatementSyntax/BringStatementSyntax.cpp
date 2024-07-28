@@ -1,7 +1,7 @@
 #include "BringStatementSyntax.h"
 
 void BringStatementSyntax::addExpression(
-    std::unique_ptr<SyntaxToken<std::any>> expression) {
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> expression) {
   expressions.push_back(std::move(expression));
 }
 void BringStatementSyntax::setAbsoluteFilePath(
@@ -28,6 +28,12 @@ void BringStatementSyntax::addBringKeyword(
   this->_bringKeyword = std::move(bringKeyword);
 }
 
+void BringStatementSyntax::addPathToken(
+    std::unique_ptr<SyntaxToken<std::any>> pathToken) {
+
+  this->_pathToken = std::move(pathToken);
+}
+
 const std::string &BringStatementSyntax::getAbsoluteFilePath() const {
   return absoluteFilePath;
 }
@@ -38,6 +44,10 @@ const SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
 const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
   if (_children.empty()) {
     this->_children.push_back(_bringKeyword.get());
+
+    if (_pathToken)
+      this->_children.push_back(_pathToken.get());
+
     for (const auto &expression : expressions) {
       this->_children.push_back(expression.get());
     }
@@ -52,13 +62,13 @@ BringStatementSyntax::getSourceLocation() const {
   return _bringKeyword->getSourceLocation();
 }
 
-const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &
+const std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> &
 BringStatementSyntax::getExpressionsPtr() {
   return expressions;
 }
 
 const bool BringStatementSyntax::getIsChoosyImportPtr() {
-  return this->expressions.size() > 0;
+  return this->_openBraceToken != nullptr;
 }
 const std::string &BringStatementSyntax::getAbsoluteFilePathPtr() {
   return absoluteFilePath;
@@ -80,4 +90,14 @@ BringStatementSyntax::getBringKeywordPtr() {
 const std::unique_ptr<CompilationUnitSyntax> &
 BringStatementSyntax::getCompilationUnitPtr() {
   return _compilationUnit;
+}
+
+const std::unique_ptr<SyntaxToken<std::any>> &
+BringStatementSyntax::getPathTokenPtr() {
+  return _pathToken;
+}
+
+void BringStatementSyntax::addOpenBraceToken(
+    std::unique_ptr<SyntaxToken<std::any>> openBraceToken) {
+  this->_openBraceToken = std::move(openBraceToken);
 }

@@ -1,0 +1,97 @@
+{
+  "name": "multi-server-lsp-of-flow-wing",
+  "description": "A Flow-Wing language server that supports multiple roots for VSCode",
+  "author": "kushagra Rathore",
+  "license": "FlowWing Compiler Contribution License",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kushagra1212/Flow-Wing"
+  },
+  "publisher": "vscode-samples",
+  "categories": [],
+  "keywords": [
+    "multi-root ready"
+  ],
+  "engines": {
+    "vscode": "^1.52.0"
+  },
+  "activationEvents": [
+    "onLanguage:flowwing"
+  ],
+  "main": "./client/out/extension",
+  "contributes": {
+    "languages": [
+      {
+        "id": "flowwing",
+        "extensions": [
+          ".fg"
+        ],
+        "configuration": "client/src/configuration/fg-configuration.json"
+      },
+      {
+        "id": "flowwing-markdown-injection"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "flowwing",
+        "scopeName": "source.fg",
+        "path": "client/src/syntaxes/fg.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Multi Server LSP of Flow Wing for VSCode",
+      "properties": {
+        "flowWingLanguageServer.enable": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Controls the enablement."
+        },
+        "flowWingLanguageServer": {
+          "scope": "resource",
+          "type": "object",
+          "default": {},
+          "description": "Additional options."
+        },
+        "flowWingLanguageServer.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the language server."
+        },
+        "flowWingLanguageServer.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.0",
+    "@types/node": "^16.18.34",
+    "@typescript-eslint/eslint-plugin": "^7.14.0",
+    "@typescript-eslint/parser": "^7.14.0",
+    "eslint": "^8.26.0",
+    "typescript": "^5.5.2"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1"
+  }
+}

@@ -91,7 +91,7 @@ enum SyntaxKind {
   DeclKeyword,
   NewKeyword,
   ClassKeyword,
-  INOUTKeyword,
+  InOutKeyword,
   ExtendsKeyword,
   Askeyword,
 

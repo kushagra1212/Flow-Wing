@@ -4,7 +4,7 @@ IRGenerator::IRGenerator(
     int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
-    const std::string sourceFileName) {
+    std::string outputFilePath, const std::string sourceFileName) {
   // Initialize the code generation context
   _codeGenerationContext = std::make_unique<CodeGenerationContext>(
       diagnosticHandler, sourceFileName);
@@ -16,6 +16,9 @@ IRGenerator::IRGenerator(
   TheModule = _codeGenerationContext->getModule().get();
   TheContext = _codeGenerationContext->getContext().get();
   _llvmLogger = _codeGenerationContext->getLogger().get();
+
+  //? Eg. Output error in JSON format
+  _llvmLogger->setOutputFilePath(outputFilePath);
 
   // Initialize the environment
 
@@ -37,6 +40,10 @@ IRGenerator::IRGenerator(
 
   _functionStatementGenerationStrategy =
       std::make_unique<FunctionStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+
+  _bringStatementGenerationStrategy =
+      std::make_unique<BringStatementGenerationStrategy>(
           this->_codeGenerationContext.get());
 
   // Initialize the expression generation factory
@@ -151,10 +158,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
       if (functionDeclaration->isOnlyDeclared())
         _statementGenerationFactory->createStrategy(children->getKind())
             ->generateGlobalStatement(children.get());
+    } else if (children->getKind() ==
+               BinderKindUtils::BoundNodeKind::BringStatement) {
+
+      _bringStatementGenerationStrategy->declare(children.get());
     }
   }
 
   _irCodeGenerator->declareVariables(blockStatement, true);
+
   // Declare All Global Variables
 
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {

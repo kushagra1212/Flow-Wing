@@ -13,6 +13,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _extendsKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _classNameIdentifier;
   std::unique_ptr<SyntaxToken<std::any>> _parentClassNameIdentifier;
+  std::unique_ptr<SyntaxToken<std::any>> _classOpenBraceToken;
+  std::unique_ptr<SyntaxToken<std::any>> _classCloseBraceToken;
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _classDataMembers;
   std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _classMemberFunctions;
   std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
@@ -36,6 +38,16 @@ public:
   inline auto setParentClassNameIdentifier(
       std::unique_ptr<SyntaxToken<std::any>> parentClassNameIden) -> void {
     _parentClassNameIdentifier = std::move(parentClassNameIden);
+  }
+
+  inline auto setClassOpenBraceToken(
+      std::unique_ptr<SyntaxToken<std::any>> classOpenBraceToken) -> void {
+    _classOpenBraceToken = std::move(classOpenBraceToken);
+  }
+
+  inline auto setClassCloseBraceToken(
+      std::unique_ptr<SyntaxToken<std::any>> classCloseBraceToken) -> void {
+    _classCloseBraceToken = std::move(classCloseBraceToken);
   }
 
   inline auto

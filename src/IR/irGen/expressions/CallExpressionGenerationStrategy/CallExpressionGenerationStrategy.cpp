@@ -942,9 +942,13 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
       callExpressionGenerationStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
   llvm::Value *retVal = nullptr;
   switch (kind) {
-    //!!! INDEX EXPRESSION AND CALL EXPRESSION ARE NOT IMPLEMENTED !!! REMAINING
+    //!!! INDEX EXPRESSION AND CALL EXPRESSION ARE NOT IMPLEMENTED
+    //!!!! REMAINING
   case BinderKindUtils::VariableExpression: {
     if (!_isDeclarationNeeded) {
       retVal = handleVariableExpression(rhsValue, callExpression, callArgIndex,
@@ -986,7 +990,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
       //     llvmArgsIndex,
       //     {_codeGenerationContext->createMemoryGetPtr(
       //          llvmArrayArgs[llvmArgsIndex]->getLLVMType(),
-      //          arg->getName().str(), BinderKindUtils::MemoryKind::Stack),
+      //          arg->getName().str(),
+      //          BinderKindUtils::MemoryKind::Stack),
       //      llvmArrayArgs[llvmArgsIndex]->getLLVMType()});
       retFlag = false;
     }
@@ -1109,7 +1114,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     if (isCassInit) {
       rhsValue = value;
-      // Builder->CreateStore(Builder->CreateLoad(type, value), rhsValue);
+      // Builder->CreateStore(Builder->CreateLoad(type, value),
+      // rhsValue);
     } else {
       rhsValue = callExpression->getArgumentAlloca(llvmArgsIndex).first;
     }
@@ -1219,13 +1225,15 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
     BoundCallExpression *callExpression, llvm::Argument *arg,
     llvm::Value *&rhsValue, bool &retFlag) {
   retFlag = true;
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
   if (!llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
       !llvm::isa<llvm::ArrayType>(
           llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
     _codeGenerationContext->getLogger()->LogError(
-        "Expected an array in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        Utils::CE(arg->getName().str()) + ", but it is not an Array");
+        "Type mismatch in function call expression " +
+        Utils::CE(callExpression->getCallerNameRef()) + "  parameter " +
+        Utils::CE(arg->getName().str()) + " is not an Array");
 
     return nullptr;
   }
@@ -1639,7 +1647,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
     const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
     llvm::Argument *arg, bool &retFlag) {
   retFlag = false;
-
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
   _expressionGenerationFactory
       ->createStrategy(
           callExpression->getArgumentsRef()[callArgIndex]->getKind())
@@ -1744,7 +1753,7 @@ CallExpressionGenerationStrategy::getUnit(const std::string &unit,
         /*Module=*/*TheModule,
         /*Type=*/initializer->getType(),
         /*isConstant=*/true,
-        /*Linkage=*/llvm::GlobalValue::ExternalLinkage,
+        /*Linkage=*/llvm::GlobalValue::PrivateLinkage,
         /*Initializer=*/initializer,
         /*Name=*/unitName);
   }

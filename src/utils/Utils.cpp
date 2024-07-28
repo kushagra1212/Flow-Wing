@@ -226,6 +226,23 @@ JSON Utils::outJSON(CompilationUnitSyntax *compilationUnit) {
   return jsonObject;
 }
 
+JSON Utils::outJSON(
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
+  const int kindTextWidth = 20;
+  const int textWidth = 20;
+
+  JSON jsonObject;
+
+  for (auto &token : tokens) {
+    jsonObject.push_back(
+        {{"value", token->getText()},
+         {"lineNumber", token->getSourceLocation().lineNumber},
+         {"columnNumber", token->getSourceLocation().columnNumber}});
+  }
+
+  return jsonObject;
+}
+
 std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
   if (!node) {
     // std::cout << "null\n";
@@ -264,7 +281,7 @@ std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
 }
 
 void Utils::prettyPrint(
-    std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
+    const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
   const int kindTextWidth = 20;
   const int textWidth = 20;
 
@@ -394,9 +411,9 @@ Utils::removeExtensionFromString(const std::string &filePath) {
 
 DiagnosticUtils::SourceLocation
 Utils::getSourceLocation(SyntaxToken<std::any> *token) {
-  return DiagnosticUtils::SourceLocation(token->getLineNumber(),
-                                         token->getColumnNumber(),
-                                         token->getAbsoluteFilePath());
+  return DiagnosticUtils::SourceLocation(
+      token->getLineNumber(), token->getColumnNumber(),
+      token->getText().length(), token->getAbsoluteFilePath());
 }
 
 Utils::type Utils::toContainerType(Utils::type basicType) {
@@ -558,6 +575,16 @@ std::vector<std::string> Utils::readLines(std::string absoluteFilePath) {
   return lines;
 }
 
+std::vector<std::string> Utils::readLinesFromText(const std::string &Code) {
+  std::vector<std::string> lines = std::vector<std::string>();
+  std::string line;
+  std::istringstream stream(Code);
+  while (std::getline(stream, line)) {
+    lines.push_back(line);
+  }
+  return lines;
+}
+
 auto Utils::getFileContent(const std::string &filePath) -> std::string {
   std::ifstream file(filePath);
   std::string content((std::istreambuf_iterator<char>(file)),
@@ -644,6 +671,18 @@ void Utils::deleteFilesWithExtension(const std::string &directoryPath,
   }
 }
 
+void Utils::logJSON(JSON &jsonObject, std::string filePath) {
+  std::ofstream outputFile(filePath);
+  if (outputFile.is_open()) {
+    outputFile << jsonObject.dump(1); // Pretty print with 1 spaces
+    outputFile.close();
+    Utils::print_log("JSON object has been written to " + filePath,
+                     SUCCESS_COLOR);
+  } else {
+    Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
+  }
+}
+
 const std::string Utils::getRelativePath(const std::string &filePath) {
   std::filesystem::path path(filePath);
   return path.relative_path().string();
@@ -723,7 +762,7 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   case SyntaxKindUtils::SyntaxKind::TypeKeyword:
   case SyntaxKindUtils::SyntaxKind::DeclKeyword:
   case SyntaxKindUtils::SyntaxKind::NewKeyword:
-  case SyntaxKindUtils::SyntaxKind::INOUTKeyword:
+  case SyntaxKindUtils::SyntaxKind::InOutKeyword:
   case SyntaxKindUtils::SyntaxKind::ExtendsKeyword:
   case SyntaxKindUtils::SyntaxKind::Askeyword:
   case SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE: {

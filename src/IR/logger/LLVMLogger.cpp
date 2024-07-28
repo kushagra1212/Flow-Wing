@@ -8,11 +8,10 @@ void LLVMLogger::logLLVMError(llvm::Error E) {
 
     llvm::errs() << RED_TEXT << _llvmErrorMsg << RED << EIB.message() << RESET
                  << "\n";
-  });
-#ifndef JIT_TEST_MODE
-  exit(1);
-
+#if not defined(JIT_TEST_MODE) && not defined(AOT_TEST_MODE)
+    exit(0);
 #endif
+  });
 }
 
 void LLVMLogger::logLLVMWarning(llvm::Error E) {
@@ -60,9 +59,13 @@ void LLVMLogger::LogError(const std::string &errorMessage,
 
 void LLVMLogger::LogError(const std::string &errorMessage) {
   increaseErrorCount();
-  const std::string &message = _diagnosticHandler->getLogString(
+  const Diagnostic diagnostic =
       Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Runtime, _location));
+                 DiagnosticUtils::DiagnosticType::Semantic, _location);
+
+  _diagnosticHandler->logJSONifAsked(_outputFilePath, diagnostic);
+
+  const std::string &message = _diagnosticHandler->getLogString(diagnostic);
 
   this->logLLVMError(llvm::make_error<llvm::StringError>(
       message, llvm::inconvertibleErrorCode()));

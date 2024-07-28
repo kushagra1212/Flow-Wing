@@ -16,9 +16,6 @@ llvm::Value *LiteralExpressionGenerationStrategy::generateExpression(
   llvm::Value *val = _llvmValueConverter->convertToLLVMValue(
       value, literalExpression->getSyntaxKind());
 
-  _codeGenerationContext->getValueStackHandler()->push("", val, "constant",
-                                                       val->getType());
-
   if (val == nullptr) {
     _codeGenerationContext->getLogger()->LogError(
         "Unsupported Literal Type " +
@@ -26,6 +23,8 @@ llvm::Value *LiteralExpressionGenerationStrategy::generateExpression(
     return nullptr;
   }
 
+  _codeGenerationContext->getValueStackHandler()->push("", val, "constant",
+                                                       val->getType());
   return val;
 }
 

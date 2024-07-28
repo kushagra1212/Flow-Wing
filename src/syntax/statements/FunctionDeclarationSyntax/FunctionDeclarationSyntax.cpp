@@ -66,17 +66,20 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
       _children.push_back(_functionKeyword.get());
     if (_identifierToken)
       _children.push_back(_identifierToken.get());
-    if (_openParenthesisToken)
-      _children.push_back(_openParenthesisToken.get());
+    //? Not used
+    // if (_openParenthesisToken)
+    //   _children.push_back(_openParenthesisToken.get());
 
     for (int i = 0; i < _parameters.size(); i++) {
       _children.push_back(_parameters[i].get());
-      if (i < _separators.size()) {
-        _children.push_back(_separators[i].get());
-      }
-    }
 
-    _children.push_back(_closeParenthesisToken.get());
+      //? Not used
+      // if (i < _separators.size()) {
+      //   _children.push_back(_separators[i].get());
+      // }
+    }
+    //? Not used
+    // _children.push_back(_closeParenthesisToken.get());
 
     if (_asKeyword)
       _children.push_back(_asKeyword.get());
