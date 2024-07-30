@@ -263,23 +263,6 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
     }
   }
 
-  // std::cout << "SIZE" << bringStatement->getExpressionStrings().size()
-  //           << std::endl;
-
-  // for (const std::string &imported : bringStatement->getExpressionStrings())
-  // {
-  //   std::cout << "IUM" << imported << std::endl;
-  //   if (importMap[imported] == 0) {
-  //     // _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-  //     //     litExp->getLocation());
-
-  //     _codeGenerationContext->getLogger()->LogError(
-  //         "trying to bring " + imported + " which does not exist in the file
-  //         " + onlyFileName);
-  //     return nullptr;
-  //   }
-  // }
-
   return nullptr;
 }
 

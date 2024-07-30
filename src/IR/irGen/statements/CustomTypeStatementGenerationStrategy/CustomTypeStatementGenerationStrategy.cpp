@@ -66,7 +66,6 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
 
 llvm::Type *
 CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
-  // _className = _codeGenerationContext->getCurrentClassName();
   switch (bTE->getKind()) {
 
   case BinderKindUtils::BoundTypeExpression: {
