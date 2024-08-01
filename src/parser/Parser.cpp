@@ -486,6 +486,7 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     classSyn->setExposeKeyword(
         std::move(this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
+    appendWithSpace();
   }
 
   classSyn->setClassKeyword(

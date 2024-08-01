@@ -5,7 +5,14 @@ import {
 } from "vscode-languageserver";
 
 const documentation: Record<
-  "print" | "super" | "input" | "Int32" | "Decimal" | "String" | "Bool",
+  | "print"
+  | "super"
+  | "input"
+  | "Int32"
+  | "Decimal"
+  | "String"
+  | "Bool"
+  | "Decimal32",
   string | MarkupContent
 > = {
   print: {
@@ -78,6 +85,19 @@ The \`Decimal\` function is used to convert a value to a decimal.
 ### Example:
 \`\`\`flowwing
 var number = Decimal("123.45")
+\`\`\`
+    `,
+  },
+  Decimal32: {
+    kind: "markdown",
+    value: `
+**Decimal Conversion** 
+
+The \`Decimal32\` function is used to convert a value to a 32-bit decimal.
+
+### Example:
+\`\`\`flowwing
+var number:deci32 = Decimal32("123.45")
 \`\`\`
     `,
   },
@@ -181,6 +201,20 @@ export const inBuiltFunctionsCompletionItems: CompletionItem[] = [
     },
     detail: "Decimal Conversion",
     documentation: documentation.Decimal,
+  },
+  {
+    label: "Decimal32",
+    kind: CompletionItemKind.Function,
+    data: {
+      signatures: [
+        {
+          label: "Decimal32()",
+          documentation: documentation.Decimal32,
+        },
+      ],
+    },
+    detail: "Decimal32 Conversion",
+    documentation: documentation.Decimal32,
   },
   {
     label: "String",

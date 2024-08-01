@@ -15,6 +15,7 @@ import { onDidClose } from "./handlers/onDidClose";
 import { InitializationHandler } from "./handlers/InitializationHandler";
 import { validateTextDocument } from "./services/documentService";
 import { onDefinition } from "./handlers/onDefinition";
+import { onDocumentFormatting } from "./handlers/onDocumentFormatting";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -61,6 +62,8 @@ onCompletionResolve(connection);
 
 // This handler provides the initial list of the completion items. when hovering
 onHover(documents, connection);
+
+onDocumentFormatting(documents, connection);
 
 // This handler provides signature help (e.g . function call parameters)
 onSignatureHelp(documents, connection);

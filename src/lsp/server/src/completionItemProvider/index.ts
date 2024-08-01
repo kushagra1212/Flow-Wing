@@ -117,7 +117,6 @@ const traverseJson = async ({
         }
       }
 
-      console.log("SS", suggestion);
       const suggestionToken = suggestion?.token;
       if (
         bringkeyword?.lineNumber === suggestionToken?.lineNumber &&
@@ -152,7 +151,6 @@ const traverseJson = async ({
               )
             )?.filter(userDefinedKeywordsFilter);
 
-            console.log("IM", result, importedFileURI);
             return result;
           }
         } catch (err) {
@@ -196,6 +194,7 @@ const traverseJson = async ({
           result = new CompletionItemService(
             new AllCompletionItemsStrategy()
           ).getCompletionItems({ programCtx: programCtx });
+
         return result;
       }
     }
@@ -221,7 +220,6 @@ const traverseJson = async ({
         if (result?.length) return result;
       }
     }
-
     if (
       obj["BlockStatement"] ||
       obj["ClassStatement"] ||
@@ -242,6 +240,7 @@ const traverseJson = async ({
         programCtx: programCtx,
         suggestion: suggestion,
       });
+
       if (result?.length) return result;
     }
 
@@ -444,5 +443,6 @@ const getCompletionItemsForDot = (
     expressionName: "variableExpressions",
     closestScope: false,
   });
+
   return result;
 };

@@ -1,6 +1,5 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib"
-target triple = "x86_64-apple-macosx14.0.0"
 
 %Texture.0 = type { i32, i32, i32, i32, i32 }
 
@@ -109,46 +108,6 @@ declare !rt !23 i32 @time()
 
 declare !rt !24 void @srand(i32)
 
-define void @getRandomNumber(ptr %0, ptr %1, ptr %2) !rt !25 {
-entry:
-  %start = alloca i32, align 4
-  %3 = load i32, ptr %1, align 4
-  store i32 %3, ptr %start, align 4
-  %end = alloca i32, align 4
-  %4 = load i32, ptr %2, align 4
-  store i32 %4, ptr %end, align 4
-  br label %nestedBlock
-
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
-
-nestedBlock:                                      ; preds = %entry
-  br label %returnBlock
-
-checkContinueBlock:                               ; preds = %mergeBlock
-  br label %afterNestedBlock
-
-returnBlock:                                      ; preds = %nestedBlock
-  %5 = call i32 @rand()
-  %end1 = load i32, ptr %end, align 4
-  %6 = load i32, ptr %end, align 4
-  %start2 = load i32, ptr %start, align 4
-  %7 = load i32, ptr %start, align 4
-  %8 = sub i32 %6, %7
-  %9 = add i32 %8, 1
-  %10 = srem i32 %5, %9
-  %start3 = load i32, ptr %start, align 4
-  %11 = load i32, ptr %start, align 4
-  %12 = add i32 %10, %11
-  store i32 %12, ptr %0, align 4
-  ret void
-
-mergeBlock:                                       ; No predecessors!
-  %13 = load i32, ptr @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib_FLOWWING_BREAK_COUNT, align 4
-  %14 = icmp eq i32 %13, 0
-  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
-}
-
 !0 = !{!"InitWindow:rt:pr:27"}
 !1 = !{!"SetTargetFPS:rt:pr:27"}
 !2 = !{!"ClearBackground:rt:pr:27"}
@@ -174,4 +133,3 @@ mergeBlock:                                       ; No predecessors!
 !22 = !{!"rand:rt:pr:28"}
 !23 = !{!"time:rt:pr:28"}
 !24 = !{!"srand:rt:pr:27"}
-!25 = !{!"getRandomNumber:rt:pr:28"}

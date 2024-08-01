@@ -47,6 +47,7 @@ export class InitializationHandler {
           hoverProvider: true,
           callHierarchyProvider: true,
           definitionProvider: true,
+          documentFormattingProvider: true,
         },
       };
 

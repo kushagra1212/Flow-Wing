@@ -600,8 +600,6 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
 
       const bool found = memberMap.find(expression->getTokenPtr()->getText()) ==
                          memberMap.end();
-      std::cout << "FIN: " << expression->getTokenPtr()->getText() << found
-                << "\n";
 
       if (found) {
         this->_diagnosticHandler->addDiagnostic(

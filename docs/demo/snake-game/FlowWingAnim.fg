@@ -13,17 +13,16 @@ type COLORS_TYPE = {
   BLUE: int,
   DARKBLUE: int
 }
-class FlowWingAnim {
+expose class FlowWingAnim {
   var screenWidth: int
   var screenHeight: int
   var screenName: str
   var fps: int
   var colors: COLORS_TYPE
   var KEYS: KEYS_TYPE
-  var LOG:LOG_TYPE
-
+  var LOG: LOG_TYPE
   init(screenHeight: int, screenWidth: int, screenName: str, fps: int) -> nthg {
-    self.fps = 60
+    self.fps = 60 
     self.fps = fps 
     beforeInit()
     self.screenHeight = screenHeight 
@@ -47,17 +46,18 @@ class FlowWingAnim {
       KEY_DOWN: 264,/; Key: Cursor down
 
       KEY_UP: 265/; Key: Cursor up 
+
     } 
     LOG = {
-        ALL:0,
-        TRACE:1,
-        DEBUG:2,
-        INFO:3,
-        WARNING:4,
-        ERROR:5,
-        FATAL:6,
-        NONE:7
-    }
+      ALL: 0,
+      TRACE: 1,
+      DEBUG: 2,
+      INFO: 3,
+      WARNING: 4,
+      ERROR: 5,
+      FATAL: 6,
+      NONE: 7
+    } 
     setTargetFPS()
   }
 
@@ -98,11 +98,11 @@ class FlowWingAnim {
   }/; window releated  
 
 
- getTime() -> deci {
+  getTime() -> deci {
     return GetTime()
   }
 
-getFrameTime() -> deci32 {
+  getFrameTime() -> deci32 {
     return GetFrameTime()
   }
 
@@ -125,29 +125,29 @@ getFrameTime() -> deci32 {
     DrawText(text, posX, posY, fontSize, color)
   }/; Input-related functions: keyboard
 
+
   drawTexture(texture: Texture, posX: int, posY: int, color: int) -> nthg {
-    DrawTexture(texture,posX,posY,color)
+    DrawTexture(texture, posX, posY, color)
   }
 
-  drawTexturePro(inout texture: Texture,inout source: deci32[4], inout dest: deci32[4],inout origin: deci32[2],inout rotation: deci32 ,inout color: int) -> nthg {
-      DrawTexturePro(texture, source, dest, origin, rotation,color)
-  }
-
-/#
+  drawTexturePro(inout texture: Texture, inout source: deci32[4], inout dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
+    DrawTexturePro(texture, source, dest, origin, rotation, color)
+  }/#
   drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg {
       DrawRectanglePro(rec,origin,rotation,color)
   }
 #/
+
+
   traceLog(logLevel: int, text: str) -> nthg {
-    TraceLog(logLevel,text)
+    TraceLog(logLevel, text)
   }
 
-  
   loadTexture(fileName: str) -> Texture {
     return LoadTexture(fileName)
-  } 
+  }
 
- unloadTexture(texture: Texture) -> nthg {
+  unloadTexture(texture: Texture) -> nthg {
     UnloadTexture(texture)
   }
 
@@ -166,8 +166,6 @@ getFrameTime() -> deci32 {
 
 }
 
-  fun drawTexturePro( texture: Texture, source: deci32[4],  dest: deci32[4],inout origin: deci32[2],inout rotation: deci32 ,inout color: int) -> nthg {
-      DrawTexturePro(texture, source, dest, origin, rotation,color)
-  }
-
-
+fun drawTexturePro(texture: Texture, source: deci32[4], dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
+  DrawTexturePro(texture, source, dest, origin, rotation, color)
+}

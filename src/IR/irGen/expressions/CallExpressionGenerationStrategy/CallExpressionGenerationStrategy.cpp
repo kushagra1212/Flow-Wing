@@ -34,18 +34,19 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
       if (arg->getKind() == BinderKindUtils::CallExpression) {
         BoundCallExpression *boundCallExpression =
             static_cast<BoundCallExpression *>(arg.get());
-        llvm::Type *type =
-            _codeGenerationContext
-                ->_functionTypes[boundCallExpression->getCallerNameRef()]
-                ->getReturnType();
-        if (_codeGenerationContext
-                ->_functionTypes[boundCallExpression->getCallerNameRef()]
-                ->isHavingReturnTypeAsParamater() &&
-            !boundCallExpression->doesArgumentAllocaExist(0))
+
+        auto funType =
+            &_codeGenerationContext
+                 ->_functionTypes[boundCallExpression->getCallerNameRef()];
+
+        if ((*funType) && (*funType)->isHavingReturnTypeAsParamater() &&
+            !boundCallExpression->doesArgumentAllocaExist(0)) {
           boundCallExpression->setArgumentAlloca(
               0, {_codeGenerationContext->createMemoryGetPtr(
-                      type, "rtPtr", BinderKindUtils::MemoryKind::Stack),
-                  type});
+                      (*funType)->getReturnType(), "rtPtr",
+                      BinderKindUtils::MemoryKind::Stack),
+                  (*funType)->getReturnType()});
+        }
 
         std::unique_ptr<CallExpressionGenerationStrategy>
             callExpressionGenerationStrategy =

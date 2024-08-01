@@ -22,7 +22,7 @@ export const validateTextDocument = async (
 
     const { errorObject } = await validateFile(textDocument.uri, path);
 
-    const diagnostics = errorObject.error
+    const diagnostics = errorObject?.error
       ? [createDiagnostic(errorObject, textDocument)]
       : [];
 
@@ -82,4 +82,37 @@ const validateFile = (
       }
     });
   });
+};
+
+const formatFile = (filePath: string): Promise<string> => {
+  const command = `${flowWingConfig.compiler.flowWingPath} --file=${filePath} --format`;
+
+  return new Promise((resolve, reject) => {
+    exec(command, async (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error formating: ${error.message}`);
+        reject(error);
+        return;
+      }
+      resolve("Successfully formatted flowwing code");
+    });
+  });
+};
+
+export const formatFlowWingFile = async (
+  textDocUri: string,
+  text: string
+): Promise<string> => {
+  try {
+    const path = await fileUtils.createTempFile({
+      fileName: getFileFullPath(textDocUri) + "-formatted.fg",
+      data: text,
+    });
+    await formatFile(path);
+    return fileUtils.readFile(path);
+  } catch (err) {
+    console.error(`Error formatting file: ${textDocUri}`, err);
+  }
+
+  return text;
 };
