@@ -34,6 +34,8 @@ export const getObjectSuggestion = async (
     checkForObjectSuggestions
   );
 
+  console.log("suggestion", suggestion);
+
   // if (suggestion.shouldNotProvideSuggestion || !suggestion.hasObjectSuggestions)
   //   return [];
 
@@ -46,5 +48,7 @@ export const getObjectSuggestion = async (
     suggestion,
     _textDocsParams.textDocument.uri
   );
+
+  console.log("R", result);
   return result;
 };

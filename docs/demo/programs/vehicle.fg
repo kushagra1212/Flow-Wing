@@ -1,0 +1,55 @@
+class Vehicle {
+  var make: str
+  var model: str
+  var year: int
+  init(make: str, model: str, year: int) -> nthg {
+    self.make = make 
+    self.model = model 
+    self.year = year 
+  }
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model
+  }
+
+  printDetails() -> nthg {
+    print("Vehicle: ", self.getDetails())
+  }
+
+}
+class Car extends Vehicle {
+  var doors: int
+  init(make: str, model: str, year: int, doors: int) -> nthg {
+    super(make, model, year)
+    self.doors = doors 
+  }
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
+  }
+
+  printDetails() -> nthg {
+    print("Car: ", self.getDetails())
+  }
+
+}
+
+fun printVehicleDetails(v: Vehicle) -> nthg {
+  v.printDetails()
+}
+
+fun main() -> nthg {
+  var vehicle: Vehicle = new Vehicle("Toyota", "Camry", 2020)
+  var car: Car = new Car("Honda", "Civic", 2022, 4)
+  var colors: str[3] = ["Red", "Blue", "Green"]
+  var prices: int[3] = [20000, 22000, 24000]
+  printVehicleDetails(vehicle)
+  printVehicleDetails(car)
+  print("Available colors: ", colors)
+  print("Prices: ", prices)
+  var colorAssignments: str[3][2] = [["Red", "Primary"], ["Blue", "Secondary"], ["Green", "Tertiary"]]
+  colorAssignments[1][1]= "Main"/; Update color assignment
+
+  print("Updated color assignments: ", colorAssignments)
+}
+main()

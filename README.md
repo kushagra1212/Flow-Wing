@@ -6,41 +6,50 @@ Flow-Wing is a modern and flexible programming language that uniquely combines d
 
 ### Classes
 
-Flow-Wing supports object-oriented programming with class definitions. Classes can contain properties and methods. Here's an example:
+Flow-Wing supports `object-oriented programming` with class definitions. Classes can contain properties and methods. Here's an example:
 
 ```Flow-Wing
-class Animal {
-  var age:int 
-  var species:str 
-  init(age:int) -> nthg {
-    self.age = age
+class Vehicle {
+  var make:str
+  var model:str
+  var year:int
+
+  init(make:str, model:str, year:int) -> nthg {
+    self.make = make
+    self.model = model
+    self.year = year
   }
-  getAge() -> int {
-    return self.age
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model
   }
-  printSpecies() -> nthg { 
-    print("Species: ", self.species)
+
+  printDetails() -> nthg {
+    print("Vehicle: ", self.getDetails())
   }
 }
+
 ```
 ### Inheritance
 
-Classes can inherit from other classes using the `extends` keyword. Here's an example of a `Dog` class that inherits from `Animal`:
+Classes can inherit from other classes using the `extends` keyword. Here's an example of a `Car` class that inherits from `Vehicle`:
 
 ```Flow-Wing
-class Dog extends Animal {
-  var breed:str 
-
-  init(age:int) -> nthg {
-    super(age)
+class Car extends Vehicle {
+  var doors: int
+  init(make: str, model: str, year: int, doors: int) -> nthg {
+    super(make, model, year)
+    self.doors = doors 
   }
 
-  getAge() -> int {
-    return 7 * self.age  /; Dog years conversion
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
   }
-  printBreed() -> nthg { 
-    print("Breed: ", self.breed)
+
+  printDetails() -> nthg {
+    print("Car: ", self.getDetails())
   }
+
 }
 ```
 ### Using Classes and Functions
@@ -48,30 +57,23 @@ class Dog extends Animal {
 Here’s how you can use these classes and functions in a `main` function:
 
 ```Flow-Wing
-fun printAge(a: Animal) -> nthg {
-  print("I'm ", a.getAge(), " years old!\n")
+fun printVehicleDetails(v: Vehicle) -> nthg {
+  v.printDetails()
 }
 
 fun main() -> nthg {
-  var animal:Animal = new Animal(2)
-  var dog:Dog = new Dog(2)
+  var vehicle:Vehicle = new Vehicle("Toyota", "Camry", 2020)
+  var car:Car = new Car("Honda", "Civic", 2022, 4)
 
-  animal.species = "Generic Animal"
-  dog.species = "Canine"
-  dog.breed = "Labrador"
-
-  printAge(animal) 
-  printAge(dog) 
-
-  animal.printSpecies()
-  dog.printBreed()
+  printVehicleDetails(vehicle)
+  printVehicleDetails(car)
 }
 
 main()
 
 ```
 
-In this example, the main function creates instances of Animal and Dog, sets their properties, and calls their methods. This demonstrates the object-oriented capabilities of `Flow-Wing`, including `inheritance` and `method overriding`.
+In this example, the main function creates instances of Vehicle and Car, sets their properties, and calls their methods. This demonstrates the object-oriented capabilities of `Flow-Wing`, including `inheritance` and `method overriding`.
 
 ### Complex Types and Containers
 

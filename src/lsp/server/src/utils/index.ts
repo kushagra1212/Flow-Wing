@@ -7,9 +7,8 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { typesCompletionItems } from "../store/completionItems/keywords/types";
-import { IdentifierToken, Token } from "../types";
+import { Token } from "../types";
 import { fileUtils } from "./fileUtils";
-import { flowWingConfig } from "../config";
 import { randomBytes } from "crypto";
 import { Stack } from "../ds/stack";
 import path = require("path");
@@ -332,6 +331,17 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
   let word = "";
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;
+  }
+  if (tokens.length && isValidVariableName(tokens[tokens.length - 1].value)) {
+    return {
+      hasObjectSuggestions: true,
+      token: tokens[tokens.length - 1],
+      word: tokens[tokens.length - 1].value,
+      data: {
+        isDot: false,
+        argumentNumber: 0,
+      },
+    };
   }
 
   const getDefaultValue = () => {
