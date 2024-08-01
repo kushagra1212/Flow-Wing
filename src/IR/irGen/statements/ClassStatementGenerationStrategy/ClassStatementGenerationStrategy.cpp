@@ -31,39 +31,6 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
         _codeGenerationContext
             ->_classTypes[classObjectSave->getParentClassName()]
             .get());
-
-    // if (classObjectSave->hasParent()) {
-    //   Class *parent = classObjectSave->getParent();
-    //   for (auto &[typeName, type] : parent->getCustomTypeMap()) {
-    //     // classObjectSave->addCustomType(typeName, type);
-    //     // _codeGenerationContext->_typesMap[typeName] =
-    //     //     FlowWing::Type::TypeBuilder()
-    //     //         .setName(typeName)
-    //     //         .setType(type)
-    //     //         .build();
-    //   }
-
-    //   for (auto &[typeName, customTypeStat] :
-    //        parent->getCustomTypeStatementMap()) {
-    //     // classObjectSave->addCustomTypeStatement(typeName, customTypeStat);
-    //     // _codeGenerationContext->_typesMap[typeName] =
-    //     //     FlowWing::Type::TypeBuilder()
-    //     //         .setName(typeName)
-    //     //         .setCustomType(customTypeStat)
-    //     //         .build();
-    //   }
-
-    //   for (auto &[propertyKeyName, propertyIndex] :
-    //        parent->getCustomTypePropertyMap()) {
-    //     classObjectSave->addCustomTypeProperty(propertyKeyName,
-    //     propertyIndex);
-    //     // _codeGenerationContext->_typesMap[propertyKeyName] =
-    //     //     FlowWing::Type::TypeBuilder()
-    //     //         .setName(propertyKeyName)
-    //     //         .setIndex(propertyIndex)
-    //     //         .build();
-    //   }
-    // }
   }
 
   _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =

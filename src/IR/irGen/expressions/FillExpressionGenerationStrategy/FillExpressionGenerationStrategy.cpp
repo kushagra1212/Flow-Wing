@@ -109,40 +109,6 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
 
   Builder->CreateStore(elementToFill, elementPtr);
   sizeToFillVal--;
-  // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  // // Create blocks
-  // llvm::BasicBlock *loopStart = llvm::BasicBlock::Create(
-  //     *TheContext, "FillExpr::loopStart", currentBlock->getParent());
-  // llvm::BasicBlock *loopBody = llvm::BasicBlock::Create(
-  //     *TheContext, "FillExpr::loopBody", currentBlock->getParent());
-  // llvm::BasicBlock *loopEnd = llvm::BasicBlock::Create(
-  //     *TheContext, "FillExpr::loopEnd", currentBlock->getParent());
-
-  // // Initialize counter
-  // llvm::AllocaInst *i = Builder->CreateAlloca(Builder->getInt32Ty());
-  // Builder->CreateStore(Builder->getInt32(0), i);
-
-  // // Jump to the loop start block
-  // Builder->CreateBr(loopStart);
-
-  // // Loop start block
-  // Builder->SetInsertPoint(loopStart);
-  // llvm::Value *iVal =
-  //     Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), i);
-  // llvm::Value *cond = Builder->CreateICmpSLT(iVal, sizeToFillVal);
-  // Builder->CreateCondBr(cond, loopBody, loopEnd);
-
-  // // Loop body block
-  // Builder->SetInsertPoint(loopBody);
-  // llvm::Value *elementPtr = Builder->CreateGEP(arrayType, v, indices);
-
-  // Builder->CreateStore(elementToFill, elementPtr);
-  // llvm::Value *iNext = Builder->CreateAdd(iVal, Builder->getInt32(1));
-  // Builder->CreateStore(iNext, i);
-  // Builder->CreateBr(loopStart);
-
-  // // Loop end block
-  // Builder->SetInsertPoint(loopEnd);
 
   return nullptr;
 }
@@ -191,38 +157,6 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
 
       return false;
     }
-
-    // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-
-    // llvm::BasicBlock *outOfBoundBlock = llvm::BasicBlock::Create(
-    //     *TheContext, "FillExpr::CHECK::outOfBound",
-    //     currentBlock->getParent());
-
-    // llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
-    //     *TheContext, "FillExpr::CHECK::merge", currentBlock->getParent());
-    // llvm::Value *isGreaterThanEqual =
-    //     Builder->CreateICmpSGT(sizeToFillVal, Builder->getInt32(_totalSize));
-
-    // llvm::Value *isLessThan =
-    //     Builder->CreateICmpSLE(sizeToFillVal, Builder->getInt32(0));
-
-    // llvm::Value *isOutOfBound =
-    //     Builder->CreateOr(isGreaterThanEqual, isLessThan);
-
-    // Builder->CreateCondBr(isOutOfBound, outOfBoundBlock, mergeBlock);
-
-    // Builder->SetInsertPoint(outOfBoundBlock);
-
-    // _codeGenerationContext->callREF("Element to fill is out of bound.  Size
-    // to "
-    //                                 "fill must be less than to the "
-    //                                 "actual size of the container and greater
-    //                                 " "than or equal to zero:" +
-    //                                 _containerName);
-
-    // Builder->CreateBr(mergeBlock);
-
-    // Builder->SetInsertPoint(mergeBlock);
 
   } else {
     _sizeToFillInt = _totalSize;

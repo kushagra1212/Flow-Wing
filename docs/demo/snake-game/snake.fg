@@ -1,5 +1,7 @@
 bring {FlowWingAnim} from "FlowWingAnim.fg"
 
+bring {getRandomNumber} from "random.fg"
+
 type Position = {
   x: int,
   y: int
@@ -7,8 +9,7 @@ type Position = {
 const screenWidth: int = 1000
 const screenHeight: int = 500
 const side: int = 10
-const BIRD_SIZE:deci32 = 360.0d
-
+const BIRD_SIZE: deci32 = 360.0d
 
 fun getFoodPosition() -> Position {
   var pos: Position = {
@@ -34,11 +35,8 @@ fun main() -> int {
   }
   const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", 60)
   fgAnim.createWindow()
-
-
   while (!fgAnim.windowShouldClose()) {
     var isKeyPressed = false
-    
     if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
       isKeyPressed = true 
       newPos.y = newPos.y - speed 
@@ -88,8 +86,6 @@ fun main() -> int {
     posY[0]= newPos.y
     fgAnim.beginDrawing()
     fgAnim.clearBackground(fgAnim.colors.WHITE)
-
-
     for var index: int = 0 to tail - 1 {
       fgAnim.drawRectangle(posX[index], posY[index], side, side, fgAnim.colors.BLUE)
     }

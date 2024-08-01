@@ -178,7 +178,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
       BoundFunctionDeclaration *functionDeclaration =
           static_cast<BoundFunctionDeclaration *>(
               blockStatement->getStatements()[i].get());
-      // if (!functionDeclaration->isOnlyDeclared())
       generateStatement = false;
     }
 
@@ -193,20 +192,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
-  // for (auto &[key, value] : _codeGenerationContext->_typesMap) {
-  //   std::cout << key << " "
-  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                    value.getStructType() ? value.getStructType()
-  //                                          : value.getType())
-  //             << std::endl;
-  // }
-  // std::cout << "class\n";
-  // for (auto &[key, value] : _codeGenerationContext->_classTypes) {
-  //   std::cout << key << " k "
-  //             << _codeGenerationContext->getMapper()->getLLVMTypeName(
-  //                    value->getClassType())
-  //             << std::endl;
-  // }
   for (int i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
@@ -231,27 +216,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
       if (retFlag == 3)
         continue;
     }
-    // else if (kind == BinderKindUtils::BoundNodeKind::BringStatement) {
-    //   BoundBringStatement *bringStatement = static_cast<BoundBringStatement
-    //   *>(
-    //       blockStatement->getStatements()[i].get());
-    //   for (auto &[fName, functionDeclaration] :
-    //        bringStatement->getGlobalScopePtr()->functions) {
-    //     if (!functionDeclaration->isOnlyDeclared()) {
-
-    //       _functionStatementGenerationStrategy->generateGlobalStatement(
-    //           functionDeclaration);
-    //     }
-    //   }
-
-    //   for (auto &[CName, boundClassStatement] :
-    //        bringStatement->getGlobalScopePtr()->classes) {
-    //     int retFlag;
-    //     defineClass(boundClassStatement, retFlag);
-    //     if (retFlag == 3)
-    //       continue;
-    //   }
-    // }
   }
 #if DEBUG
   this->printIR();
@@ -270,13 +234,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
     objectFile->writeModuleToFile(TheModule);
-  }
 #endif
   }
-
-  // this->_irParser->mergeIR(TheModule.get());
-
-  // this->_irParser->removeDuplicates();
 
 #ifdef JIT_MODE
   if (this->hasErrors()) {
@@ -309,36 +268,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   }
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
-
-  // for (auto &[customTypeName, type] :
-  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-  //          ->getCustomTypeMap()) {
-  //   _codeGenerationContext->_typesMap[customTypeName] =
-  //       FlowWing::Type::TypeBuilder()
-  //           .setName(customTypeName)
-  //           .setType(type)
-  //           .build();
-  // }
-
-  // for (auto &[customTypeName, customTypeStat] :
-  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-  //          ->getCustomTypeStatementMap()) {
-  //   _codeGenerationContext->_typesMap[customTypeName] =
-  //       FlowWing::Type::TypeBuilder()
-  //           .setName(customTypeName)
-  //           .setCustomType(customTypeStat)
-  //           .build();
-  // }
-
-  // for (auto &[propertyKey, propertyIndex] :
-  //      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-  //          ->getCustomTypePropertyMap()) {
-  //   _codeGenerationContext->_typesMap[propertyKey] =
-  //       FlowWing::Type::TypeBuilder()
-  //           .setName(propertyKey)
-  //           .setIndex(propertyIndex)
-  //           .build();
-  // }
 
   for (auto &funDec : boundClassStatement->getMemberFunctionsRef()) {
     BoundFunctionDeclaration *functionDeclaration =

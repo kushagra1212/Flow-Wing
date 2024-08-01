@@ -1,5 +1,7 @@
 
 
+COMPLETED THIS AND MORE:
+
 Approch for Making it work with Bare Minimum Functionality
 
 When user types or hover the word

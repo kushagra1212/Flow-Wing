@@ -256,13 +256,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
                                    llvmArgsTypes[i]->getType(),
                                });
       }
-      //   else {
-      //     _codeGenerationContext->getLogger()->LogError(
-      //         "Dynamic type is not supported in function parameter " +
-      //         parameterNames[i].substr(0,
-      //         parameterNames[i].find_first_of("[")));
-      //     return nullptr;
-      //   }
     }
   }
 
@@ -354,9 +347,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
     _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
         variable, argValue, argValue->getType(), parameterNames[i]);
-
-    // _codeGenerationContext->getNamedValueChain()->setNamedValue(
-    //     parameterNames[i], argValue);
   }
 
   _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
@@ -365,8 +355,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
-  //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
-  //   F);
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
 

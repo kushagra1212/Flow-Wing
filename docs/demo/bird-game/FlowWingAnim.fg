@@ -1,0 +1,171 @@
+bring "flow-wing-raylib.fg"
+
+type KEYS_TYPE = {
+  KEY_RIGHT: int,
+  KEY_LEFT: int,
+  KEY_DOWN: int,
+  KEY_UP: int
+}
+type COLORS_TYPE = {
+  WHITE: int,
+  RED: int,
+  GREEN: int,
+  BLUE: int,
+  DARKBLUE: int
+}
+expose class FlowWingAnim {
+  var screenWidth: int
+  var screenHeight: int
+  var screenName: str
+  var fps: int
+  var colors: COLORS_TYPE
+  var KEYS: KEYS_TYPE
+  var LOG: LOG_TYPE
+  init(screenHeight: int, screenWidth: int, screenName: str, fps: int) -> nthg {
+    self.fps = 60 
+    self.fps = fps 
+    beforeInit()
+    self.screenHeight = screenHeight 
+    self.screenWidth = screenWidth 
+    self.screenName = screenName 
+  }
+
+  beforeInit() -> nthg {
+    colors = {
+      WHITE: getColor(255, 255, 255, 255),
+      RED: getColor(255, 0, 0, 255),
+      GREEN: getColor(0, 255, 0, 255),
+      BLUE: getColor(0, 0, 255, 255),
+      DARKBLUE: getColor(0, 82, 172, 255)
+    } 
+    KEYS = {
+      KEY_RIGHT: 262,/; Key: Cursor right
+
+      KEY_LEFT: 263,/; Key: Cursor left
+
+      KEY_DOWN: 264,/; Key: Cursor down
+
+      KEY_UP: 265/; Key: Cursor up 
+
+    } 
+    LOG = {
+      ALL: 0,
+      TRACE: 1,
+      DEBUG: 2,
+      INFO: 3,
+      WARNING: 4,
+      ERROR: 5,
+      FATAL: 6,
+      NONE: 7
+    } 
+    setTargetFPS()
+  }
+
+  setTargetFPS() -> nthg {
+    SetTargetFPS(fps)
+  }
+
+  getColor(r: int, g: int, b: int, a: int) -> int {
+    return a * 256 * 256 * 256 + b * 256 * 256 + g * 256 + r
+  }
+
+  createWindow() -> nthg {
+    InitWindow(self.screenHeight, self.screenWidth, self.screenName)
+  }
+
+  clearBackground(color: int) -> nthg {
+    ClearBackground(color)
+  }
+
+  windowShouldClose() -> bool {
+    return WindowShouldClose()
+  }
+
+  beginDrawing() -> nthg {
+    BeginDrawing()
+  }
+
+  drawRectangle(posX: int, posY: int, width: int, height: int, color: int) -> nthg {
+    DrawRectangle(posX, posY, width, height, color)
+  }
+
+  endDrawing() -> nthg {
+    EndDrawing()
+  }
+
+  closeWindow() -> nthg {
+    CloseWindow()
+  }/; window releated  
+
+
+  getTime() -> deci {
+    return GetTime()
+  }
+
+  getFrameTime() -> deci32 {
+    return GetFrameTime()
+  }
+
+  getScreenHeight() -> int {
+    return GetScreenHeight()
+  }
+
+  getScreenWidth() -> int {
+    return GetScreenWidth()
+  }/; Draw Shapes
+/; Draw Circle
+
+
+  drawCircle(centerX: int, centerY: int, radius: deci32, color: int) -> nthg {
+    DrawCircle(centerX, centerY, radius, color)
+  }/; Text Drawing Function
+
+
+  drawText(text: str, posX: int, posY: int, fontSize: int, color: int) -> nthg {
+    DrawText(text, posX, posY, fontSize, color)
+  }/; Input-related functions: keyboard
+
+
+  drawTexture(texture: Texture, posX: int, posY: int, color: int) -> nthg {
+    DrawTexture(texture, posX, posY, color)
+  }
+
+  drawTexturePro(inout texture: Texture, inout source: deci32[4], inout dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
+    DrawTexturePro(texture, source, dest, origin, rotation, color)
+  }/#
+  drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg {
+      DrawRectanglePro(rec,origin,rotation,color)
+  }
+#/
+
+
+  traceLog(logLevel: int, text: str) -> nthg {
+    TraceLog(logLevel, text)
+  }
+
+  loadTexture(fileName: str) -> Texture {
+    return LoadTexture(fileName)
+  }
+
+  unloadTexture(texture: Texture) -> nthg {
+    UnloadTexture(texture)
+  }
+
+  isKeyPressed(key: int) -> bool {
+    return IsKeyPressed(key)
+  }
+
+  isKeyDown(key: int) -> bool {
+    return IsKeyDown(key)
+  }/; Format Text
+
+
+  textFormat(text: str) -> str {
+    return TextFormat(text)
+  }
+
+}
+
+fun drawTexturePro(texture: Texture, source: deci32[4], dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
+  DrawTexturePro(texture, source, dest, origin, rotation, color)
+}

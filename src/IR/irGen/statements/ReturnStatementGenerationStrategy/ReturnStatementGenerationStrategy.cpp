@@ -111,16 +111,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
       _codeGenerationContext->verifyType(llvmObjectType->getStructType(),
                                          rtypeLLVM, " in Return Expression");
 
-      //   if (llvmObjectType->getStructType()->getStructName() !=
-      //       _codeGenerationContext->getValueStackHandler()->getTypeName()) {
-      //     errorMessage =
-      //         "Return Type Mismatch " +
-      //         llvmObjectType->getStructType()->getStructName().str() +
-      //         " is expected but " +
-      //         _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM)
-      //         + " is found";
-      //   }
-
     } else if (returnType->isPointerToArray()) {
       LLVMArrayType *llvmArrayType = static_cast<LLVMArrayType *>(returnType);
 

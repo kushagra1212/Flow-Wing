@@ -330,7 +330,6 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
 
 export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
   let word = "";
-  console.log(tokens[tokens.length - 1]);
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;
   }

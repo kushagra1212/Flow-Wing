@@ -193,16 +193,6 @@ int main(int argc, char *argv[]) {
     aotCompiler->setOutputFilePath(OUTPUT_FILE_PATH);
   }
 
-  // #if DEBUG
-  //   std::filesystem::path executable_path =
-  //       std::filesystem::canonical(std::filesystem::path(argv[0]));
-
-  //   std::filesystem::path executable_directory =
-  //   executable_path.parent_path(); std::string executable_directory_string =
-  //   executable_directory.string(); aotCompiler->executable_directory_string =
-  //   executable_directory_string;
-  // #endif
-
   aotCompiler->_executable_path = std::filesystem::path(argv[0]);
   aotCompiler->compile(text, std::cout);
 

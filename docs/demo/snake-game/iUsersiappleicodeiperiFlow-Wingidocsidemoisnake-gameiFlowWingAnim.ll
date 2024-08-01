@@ -1,6 +1,5 @@
 ; ModuleID = 'iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim'
 source_filename = "iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiFlowWingAnim"
-target triple = "x86_64-apple-macosx14.0.0"
 
 %"FlowWingAnim::VTableType" = type { ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr, ptr }
 %COLORS_TYPE.3 = type { i32, i32, i32, i32, i32 }
@@ -1150,15 +1149,67 @@ mergeBlock:                                       ; No predecessors!
   br i1 %15, label %checkContinueBlock, label %afterNestedBlock
 }
 
-define void @drawTexturePro(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) !rt !25 {
+declare i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib()
+
+declare !rt !25 void @srand(i32)
+
+declare !rt !26 i32 @rand()
+
+declare !rt !27 float @GetFrameTime()
+
+declare !rt !28 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float], float, i32)
+
+declare !rt !29 void @UnloadTexture(ptr)
+
+declare !rt !30 void @DrawTexture(ptr, i32, i32, i32)
+
+declare !rt !31 double @GetTime()
+
+declare !rt !32 ptr @TextFormat(ptr)
+
+declare !rt !33 void @LoadTexture(ptr sret(%Texture.0), ptr)
+
+declare !rt !34 i1 @IsKeyDown(i32)
+
+declare !rt !35 void @SetTargetFPS(i32)
+
+declare !rt !36 void @DrawText(ptr, i32, i32, i32, i32)
+
+declare !rt !37 i32 @GetScreenHeight()
+
+declare !rt !38 void @CloseWindow()
+
+declare !rt !39 void @InitWindow(i32, i32, ptr)
+
+declare !rt !40 void @EndDrawing()
+
+declare !rt !41 i1 @IsKeyPressed(i32)
+
+declare !rt !42 i32 @time()
+
+declare !rt !43 void @BeginDrawing()
+
+declare !rt !44 void @TraceLog(i32, ptr)
+
+declare !rt !45 i1 @WindowShouldClose()
+
+declare !rt !46 void @DrawRectangle(i32, i32, i32, i32, i32)
+
+declare !rt !47 void @DrawCircle(i32, i32, float, i32)
+
+declare !rt !48 i32 @GetScreenWidth()
+
+declare !rt !49 void @ClearBackground(i32)
+
+define void @drawTexturePro(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) !rt !50 {
 entry:
   %texture = alloca %Texture.0, align 8
   %6 = load %Texture.0, ptr %0, align 4
   store %Texture.0 %6, ptr %texture, align 4
-  %source = alloca [4 x float], align 4, !ET !26, !I !27
+  %source = alloca [4 x float], align 4, !ET !51, !I !52
   %7 = load [4 x float], ptr %1, align 4
   store [4 x float] %7, ptr %source, align 4
-  %dest = alloca [4 x float], align 4, !ET !26, !I !27
+  %dest = alloca [4 x float], align 4, !ET !51, !I !52
   %8 = load [4 x float], ptr %2, align 4
   store [4 x float] %8, ptr %dest, align 4
   br label %nestedBlock
@@ -1232,60 +1283,6 @@ entry:
   ret void
 }
 
-declare i32 @iUsersiappleicodeiperiFlow-Wingidocsidemoisnake-gameiflow-wing-raylib()
-
-declare !rt !28 void @getRandomNumber(ptr, ptr, ptr)
-
-declare !rt !29 void @srand(i32)
-
-declare !rt !30 i32 @rand()
-
-declare !rt !31 float @GetFrameTime()
-
-declare !rt !32 void @DrawTexturePro(ptr, [4 x float], [4 x float], [2 x float], float, i32)
-
-declare !rt !33 void @UnloadTexture(ptr)
-
-declare !rt !34 void @DrawTexture(ptr, i32, i32, i32)
-
-declare !rt !35 double @GetTime()
-
-declare !rt !36 ptr @TextFormat(ptr)
-
-declare !rt !37 void @LoadTexture(ptr sret(%Texture.0), ptr)
-
-declare !rt !38 i1 @IsKeyDown(i32)
-
-declare !rt !39 void @SetTargetFPS(i32)
-
-declare !rt !40 void @DrawText(ptr, i32, i32, i32, i32)
-
-declare !rt !41 i32 @GetScreenHeight()
-
-declare !rt !42 void @CloseWindow()
-
-declare !rt !43 void @InitWindow(i32, i32, ptr)
-
-declare !rt !44 void @EndDrawing()
-
-declare !rt !45 i1 @IsKeyPressed(i32)
-
-declare !rt !46 i32 @time()
-
-declare !rt !47 void @BeginDrawing()
-
-declare !rt !48 void @TraceLog(i32, ptr)
-
-declare !rt !49 i1 @WindowShouldClose()
-
-declare !rt !50 void @DrawRectangle(i32, i32, i32, i32, i32)
-
-declare !rt !51 void @DrawCircle(i32, i32, float, i32)
-
-declare !rt !52 i32 @GetScreenWidth()
-
-declare !rt !53 void @ClearBackground(i32)
-
 !0 = !{!"FlowWingAnim.init4:rt:pr:27"}
 !1 = !{!"FlowWingAnim.beforeInit:rt:pr:27"}
 !2 = !{!"FlowWingAnim.setTargetFPS:rt:pr:27"}
@@ -1311,32 +1308,31 @@ declare !rt !53 void @ClearBackground(i32)
 !22 = !{!"FlowWingAnim.isKeyPressed:rt:pr:34"}
 !23 = !{!"FlowWingAnim.isKeyDown:rt:pr:34"}
 !24 = !{!"FlowWingAnim.textFormat:rt:pr:33"}
-!25 = !{!"drawTexturePro:rt:pr:27"}
-!26 = !{!"32"}
-!27 = !{!"4:"}
-!28 = !{!"getRandomNumber:rt:pr:28"}
-!29 = !{!"srand:rt:pr:27"}
-!30 = !{!"rand:rt:pr:28"}
-!31 = !{!"GetFrameTime:rt:pr:32"}
-!32 = !{!"DrawTexturePro:rt:pr:27"}
-!33 = !{!"UnloadTexture:rt:pr:27"}
-!34 = !{!"DrawTexture:rt:pr:27"}
-!35 = !{!"GetTime:rt:pr:31"}
-!36 = !{!"TextFormat:rt:pr:33"}
-!37 = !{!"LoadTexture:rt:ob:Texture.0"}
-!38 = !{!"IsKeyDown:rt:pr:34"}
-!39 = !{!"SetTargetFPS:rt:pr:27"}
-!40 = !{!"DrawText:rt:pr:27"}
-!41 = !{!"GetScreenHeight:rt:pr:28"}
-!42 = !{!"CloseWindow:rt:pr:27"}
-!43 = !{!"InitWindow:rt:pr:27"}
-!44 = !{!"EndDrawing:rt:pr:27"}
-!45 = !{!"IsKeyPressed:rt:pr:34"}
-!46 = !{!"time:rt:pr:28"}
-!47 = !{!"BeginDrawing:rt:pr:27"}
-!48 = !{!"TraceLog:rt:pr:27"}
-!49 = !{!"WindowShouldClose:rt:pr:34"}
-!50 = !{!"DrawRectangle:rt:pr:27"}
-!51 = !{!"DrawCircle:rt:pr:27"}
-!52 = !{!"GetScreenWidth:rt:pr:28"}
-!53 = !{!"ClearBackground:rt:pr:27"}
+!25 = !{!"srand:rt:pr:27"}
+!26 = !{!"rand:rt:pr:28"}
+!27 = !{!"GetFrameTime:rt:pr:32"}
+!28 = !{!"DrawTexturePro:rt:pr:27"}
+!29 = !{!"UnloadTexture:rt:pr:27"}
+!30 = !{!"DrawTexture:rt:pr:27"}
+!31 = !{!"GetTime:rt:pr:31"}
+!32 = !{!"TextFormat:rt:pr:33"}
+!33 = !{!"LoadTexture:rt:ob:Texture.0"}
+!34 = !{!"IsKeyDown:rt:pr:34"}
+!35 = !{!"SetTargetFPS:rt:pr:27"}
+!36 = !{!"DrawText:rt:pr:27"}
+!37 = !{!"GetScreenHeight:rt:pr:28"}
+!38 = !{!"CloseWindow:rt:pr:27"}
+!39 = !{!"InitWindow:rt:pr:27"}
+!40 = !{!"EndDrawing:rt:pr:27"}
+!41 = !{!"IsKeyPressed:rt:pr:34"}
+!42 = !{!"time:rt:pr:28"}
+!43 = !{!"BeginDrawing:rt:pr:27"}
+!44 = !{!"TraceLog:rt:pr:27"}
+!45 = !{!"WindowShouldClose:rt:pr:34"}
+!46 = !{!"DrawRectangle:rt:pr:27"}
+!47 = !{!"DrawCircle:rt:pr:27"}
+!48 = !{!"GetScreenWidth:rt:pr:28"}
+!49 = !{!"ClearBackground:rt:pr:27"}
+!50 = !{!"drawTexturePro:rt:pr:27"}
+!51 = !{!"32"}
+!52 = !{!"4:"}

@@ -91,10 +91,7 @@ private:
   //
 
   inline void appendWithSpace() { _formattedSourceCode += ONE_SPACE; }
-  inline void removeWithSpace() {
-    _formattedSourceCode =
-        _formattedSourceCode.erase(_formattedSourceCode.length() - 1, 1);
-  }
+
   inline void appendNewLine() {
     if (this->getCurrent() &&
         this->getKind() != SyntaxKindUtils::SyntaxKind::CommentStatement) {

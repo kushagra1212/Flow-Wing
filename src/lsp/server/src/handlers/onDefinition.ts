@@ -29,8 +29,6 @@ export const onDefinition = async (
     );
     let uri = _textDocsParams.textDocument.uri;
 
-    console.log("Sugg", suggestion);
-
     if (suggestion.word && suggestion.word.endsWith(".fg")) {
       uri = await getImportedFileUri(
         suggestion.word,
