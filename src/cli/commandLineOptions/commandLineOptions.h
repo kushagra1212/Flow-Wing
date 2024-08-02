@@ -22,29 +22,44 @@ template <typename T> struct Option {
 
 class OPTIONS {
 public:
-  //! Version
+  //? Version
   static Option<bool> Version;
   static Option<bool> ShortVersion;
 
-  //! File
+  //? File
   static Option<std::string> File;
   static Option<std::string> ShortFile;
 
-  //! Format
+  //? Format
   static Option<bool> Format;
   static Option<bool> ShortFormat;
 
-  //! Format
+  //? Format
   static Option<bool> FormatPrint;
   static Option<bool> ShortFormatPrint;
 
-  //! Code
+  //? Code
   static Option<std::string> Code;
   static Option<std::string> ShortCode;
 
-  //! OutPut FIle
+  //? OutPut FIle
   static Option<std::string> OutputFile;
   static Option<std::string> ShortOutputFile;
+
+  //? Optimization
+  static Option<int> OptimizationLevel0;
+  static Option<int> OptimizationLevel1;
+  static Option<int> OptimizationLevel2;
+  static Option<int> OptimizationLevel3;
+
+  //? Library Path
+  static Option<std::string> LibraryPath;
+
+  //? Linking Library
+  static Option<std::string> LinkLibrary;
+
+  //? Framework
+  static Option<std::string> Framework;
 }; // namespace FlowWing_OPTIONS
 
 } // namespace FlowWingCliOptions

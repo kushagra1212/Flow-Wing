@@ -340,9 +340,9 @@ void Utils::printErrors(const std::vector<std::string> &errors,
   outputStream << "\n";
   for (const std::string &error : errors) {
     if (isWarning)
-      outputStream << YELLOW << error << RESET << "\n";
+      outputStream << YELLOW_TEXT << error << RESET << "\n";
     else
-      outputStream << RED << error << RESET << "\n";
+      outputStream << RED_TEXT << error << RESET << "\n";
   }
 }
 

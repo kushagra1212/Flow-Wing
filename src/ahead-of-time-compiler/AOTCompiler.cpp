@@ -2,75 +2,34 @@
 #include "../cli/argh.h"
 #include "../common/version.h"
 
-AOTCompiler::AOTCompiler(std::string filePath,
+AOTCompiler::AOTCompiler(std::string filePath, argh::parser *cmdl,
                          const bool &isFormattedCodeRequired)
-    : Compiler(filePath) {}
+    : Compiler(filePath), _cmdl(cmdl) {}
 
 void AOTCompiler::link() {
 
-  std::string fileNameWithOutExtension = Utils::removeExtensionFromString(
-      Utils::getFileName(_currentDiagnosticHandler->getAbsoluteFilePath()));
+  std::string fileNameWithOutExtension = this->getFileNameWithoutExtension();
 
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  std::filesystem::path CLANG_PATH = getClangFilePath();
-  std::filesystem::path LIB_PATH = getLibPath();
+  DEBUG_LOG_LL_FILES_INFO();
 
-  std::string executeCmd = "";
-
-#if defined(AOT_TEST_MODE)
-  fileNameWithOutExtension =
-      FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT;
-  executeCmd = " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
-               fileNameWithOutExtension;
-#endif
-
-  std::string RAY_LIB_CMD = "";
-
-#if defined(__APPLE__)
-
-  RAY_LIB_CMD = "-lraylib -framework CoreFoundation -framework "
-                "CoreGraphics -framework Cocoa -framework IOKit -framework "
-                "CoreVideo ";
-#endif
-
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
-    (defined(DEBUG) && defined(AOT_MODE))
-  std::vector<std::string> llFiles = Utils::getAllFilesInDirectoryWithExtension(
-      std::filesystem::current_path(), ".ll", false);
-
-  for (auto llFile : llFiles) {
-    std::string cmd = CLANG_PATH.string() + " " + llFile + " -emit-llvm -c " +
-                      " -o " + llFile.substr(0, llFile.length() - 3) + ".bc";
-    std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
-              << std::endl;
-    const int status = std::system(cmd.c_str());
-
-    if (status != 0) {
-      std::cerr << Utils::CE("Failed to compile: ") << llFile << std::endl;
-      return;
-    }
-  }
-
-#endif
+  std::unique_ptr<CommandManager> _commandManager =
+      std::make_unique<CommandManager>(_cmdl, fileNameWithOutExtension);
 
   try {
-    std::string cmd =
-        (CLANG_PATH.string() + " -O3 -o " +
-         FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + fileNameWithOutExtension +
-         " -e _" + FLOWWING_GLOBAL_ENTRY_POINT + " " +
-         getObjectFilesJoinedAsString() + " -L" + LIB_PATH.string() +
-         " -lbuilt_in_module  -fPIE " + RAY_LIB_CMD + executeCmd);
 
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
-    (defined(DEBUG) && defined(AOT_MODE))
+    std::string cmd = _commandManager->create();
 
-    std::cout << YELLOW_TEXT << "Linking: " << GREEN
-              << getObjectFilesJoinedAsString() << RESET << std::endl;
-#endif
+    DEBUG_LOG_LINKING_INFO();
 
-    std::system(cmd.c_str());
+    int status = std::system(cmd.c_str());
+
+    if (status != 0) {
+      LINKING_FAIL_ERROR(status, fileNameWithOutExtension, VERSION_INFO);
+      return;
+    }
 
     // delete object files
     deleteObjectFiles();
@@ -167,7 +126,7 @@ int main(int argc, char *argv[]) {
     text = Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
 
   std::unique_ptr<AOTCompiler> aotCompiler =
-      std::make_unique<AOTCompiler>(_filePath);
+      std::make_unique<AOTCompiler>(_filePath, &cmdl);
 
   if (cmdl[{FlowWingCliOptions::OPTIONS::Format.name.c_str(),
             FlowWingCliOptions::OPTIONS::ShortFormat.name.c_str()}]) {
