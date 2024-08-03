@@ -34,15 +34,17 @@ public:
     // Linking with BuiltIn Module
     cmd += this->getBuiltInModuleLinked();
 
-    for (const auto &[key, value] : (*_cmdl).params()) {
-      cmd += this->getOtherLibrariesPath(key, value);
-      cmd += this->getLinkLibrary(key, value);
-      cmd += this->getFramework(key, value);
+    if (_cmdl) {
+      for (const auto &[key, value] : (*_cmdl).params()) {
+        cmd += this->getOtherLibrariesPath(key, value);
+        cmd += this->getLinkLibrary(key, value);
+        cmd += this->getFramework(key, value);
+      }
     }
 
 #if defined(AOT_TEST_MODE)
     cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
-           fileNameWithOutExtension;
+           _outputFileNameWithoutExtension;
 #endif
 
     return cmd;
@@ -62,23 +64,27 @@ private:
   }
 
   auto inline getOptimizationLevel() -> std::string {
-    if ((*_cmdl)[{
+    if (_cmdl &&
+        (*_cmdl)[{
             FlowWingCliOptions::OPTIONS::OptimizationLevel0.name.c_str()}])
       return " -O0 ";
 
-    if ((*_cmdl)[{
+    if (_cmdl &&
+        (*_cmdl)[{
             FlowWingCliOptions::OPTIONS::OptimizationLevel1.name.c_str()}])
       return " -O1 ";
 
-    if ((*_cmdl)[{
+    if (_cmdl &&
+        (*_cmdl)[{
             FlowWingCliOptions::OPTIONS::OptimizationLevel2.name.c_str()}])
       return " -O2 ";
 
-    if ((*_cmdl)[{
+    if (_cmdl &&
+        (*_cmdl)[{
             FlowWingCliOptions::OPTIONS::OptimizationLevel3.name.c_str()}])
       return " -O3 ";
 
-    return "";
+    return " -O3 ";
   }
 
   auto inline getEntryPoint() -> std::string {

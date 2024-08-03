@@ -9,7 +9,6 @@ AOTCompiler::AOTCompiler(std::string filePath, argh::parser *cmdl,
 void AOTCompiler::link() {
 
   std::string fileNameWithOutExtension = this->getFileNameWithoutExtension();
-
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
