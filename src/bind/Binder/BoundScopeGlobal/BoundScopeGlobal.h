@@ -7,6 +7,7 @@
 #include "../../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "../../BoundExpression.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../BoundModuleStatement/BoundModuleStatement.h"
 #include "../../BoundStatement/BoundStatement.h"
 #include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
@@ -19,6 +20,7 @@ public:
       std::unordered_map<std::string, BoundFunctionDeclaration *> functions,
       std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
       std::unordered_map<std::string, BoundClassStatement *> classes,
+      std::unordered_map<std::string, BoundModuleStatement *> modules,
       FLowWing::DiagnosticHandler *diagnosticHandler,
       std::unique_ptr<BoundBlockStatement> statement);
 
@@ -37,6 +39,7 @@ public:
   std::unordered_map<std::string, BoundVariableDeclaration *> variables;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
   std::unordered_map<std::string, BoundClassStatement *> classes;
+  std::unordered_map<std::string, BoundModuleStatement *> modules;
   std::unordered_map<std::string, std::any> variablesValues;
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   FLowWing::DiagnosticHandler *_diagnosticHandler;

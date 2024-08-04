@@ -49,10 +49,14 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
 
     index++;
   }
+  Utils::DEBUG_LOG("Declaring CustomType: " +
+                   boundCustomTypeStatement->getTypeNameAsString());
   llvm::StructType *structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
 
+  Utils::DEBUG_LOG("Declaring CustomType: " +
+                   structType->getStructName().str());
   _codeGenerationContext
       ->_typesMap[boundCustomTypeStatement->getTypeNameAsString()] =
       FlowWing::Type::TypeBuilder()

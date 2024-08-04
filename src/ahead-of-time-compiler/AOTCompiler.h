@@ -88,8 +88,7 @@ public:
 #if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
 
-    std::cout << YELLOW_TEXT << "Linking: " << GREEN
-              << getObjectFilesJoinedAsString() << RESET << std::endl;
+    std::cout << YELLOW_TEXT << "Linking: Files" << RESET << std::endl;
 #endif
   }
 };

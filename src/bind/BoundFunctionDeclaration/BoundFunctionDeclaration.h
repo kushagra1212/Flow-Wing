@@ -16,7 +16,6 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::unique_ptr<BoundExpression> _returnType;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
-  std::string _classItBelongTo = "";
   bool _isVariadicFunction = false;
   bool _hasAsReturnType = false;
 
@@ -33,10 +32,6 @@ public:
 
   inline void setOnlyDeclared(bool isOnlyDeclared) {
     _isOnlyDeclared = isOnlyDeclared;
-  }
-
-  inline void setClassItBelongTo(const std::string &classItBelongTo) {
-    _classItBelongTo = classItBelongTo;
   }
 
   inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
@@ -78,10 +73,6 @@ public:
   inline auto isOnlyDeclared() const -> bool { return _isOnlyDeclared; }
 
   inline auto isExposed() const -> bool { return _isExposed; }
-
-  inline auto getClassItBelongTo() const -> const std::string & {
-    return _classItBelongTo;
-  }
 
   inline auto hasAsReturnType() const -> bool { return _hasAsReturnType; }
 };

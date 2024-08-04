@@ -75,6 +75,20 @@ bool BoundScope::tryDeclareVariable(const std::string &name,
   return false;
 }
 
+bool BoundScope::tryDeclareVariableGlobal(const std::string &name,
+                                          BoundVariableDeclaration *variable) {
+  if (this->variables.find(name) != this->variables.end()) {
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareVariableGlobal(name, variable);
+  }
+
+  this->variables[name] = variable;
+  return true;
+}
+
 bool BoundScope::tryLookupVariable(const std::string &name) {
   if (this->variables.find(name) != this->variables.end()) {
     return true;
@@ -140,6 +154,24 @@ bool BoundScope::tryDeclareCustomType(BoundCustomTypeStatement *customType) {
   return false;
 }
 
+bool BoundScope::tryDeclareCustomTypeGlobal(
+    BoundCustomTypeStatement *customType) {
+  std::string typeName =
+      Utils::getActualTypeName(customType->getTypeNameAsString());
+
+  Utils::DEBUG_LOG("tryDeclareCustomTypeGlobal: " + typeName);
+  if (this->customTypes.find(typeName) != this->customTypes.end()) {
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareCustomTypeGlobal(customType);
+  }
+
+  this->customTypes[typeName] = customType;
+  return true;
+}
+
 // Class
 BoundClassStatement *BoundScope::tryGetClass(const std::string &name) {
   if (this->classes.find(name) != this->classes.end()) {
@@ -154,6 +186,27 @@ BoundClassStatement *BoundScope::tryGetClass(const std::string &name) {
 bool BoundScope::tryDeclareClass(BoundClassStatement *_class) {
   if (this->classes.find(_class->getClassName()) == this->classes.end()) {
     this->classes[_class->getClassName()] = _class;
+    return true;
+  }
+
+  return false;
+}
+
+// Module
+
+BoundModuleStatement *BoundScope::tryGetModule(const std::string &name) {
+  if (this->modules.find(name) != this->modules.end()) {
+    return this->modules[name];
+  }
+  if (this->parent == nullptr) {
+    return nullptr;
+  }
+  return this->parent->tryGetModule(name);
+}
+
+bool BoundScope::tryDeclareModule(BoundModuleStatement *module) {
+  if (this->modules.find(module->getModuleName()) == this->modules.end()) {
+    this->modules[module->getModuleName()] = module;
     return true;
   }
 

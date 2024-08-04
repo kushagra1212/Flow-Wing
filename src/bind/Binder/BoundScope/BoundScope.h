@@ -4,6 +4,7 @@
 #include "../../BoundClassStatement/BoundClassStatement.h"
 #include "../../BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "../../BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../BoundModuleStatement/BoundModuleStatement.h"
 #include "../../BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundScope {
@@ -12,6 +13,7 @@ public:
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
   std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes;
   std::unordered_map<std::string, BoundClassStatement *> classes;
+  std::unordered_map<std::string, BoundModuleStatement *> modules;
   std::string _className = "";
   bool breakable, continuable;
   int functionCounted;
@@ -36,6 +38,9 @@ public:
   bool tryDeclareVariable(const std::string &name,
                           BoundVariableDeclaration *variable);
 
+  bool tryDeclareVariableGlobal(const std::string &name,
+                                BoundVariableDeclaration *variable);
+
   bool tryLookupVariable(const std::string &name);
 
   BoundVariableDeclaration *tryGetVariable(const std::string &name);
@@ -52,12 +57,17 @@ public:
   // Handle Custom Types
 
   bool tryDeclareCustomType(BoundCustomTypeStatement *customType);
+  bool tryDeclareCustomTypeGlobal(BoundCustomTypeStatement *customType);
   BoundCustomTypeStatement *tryGetCustomType(const std::string &name);
 
   // Handle Class Declaration
 
   bool tryDeclareClass(BoundClassStatement *customType);
   BoundClassStatement *tryGetClass(const std::string &name);
+
+  bool tryDeclareModule(BoundModuleStatement *module);
+  BoundModuleStatement *tryGetModule(const std::string &name);
+
   bool isInsideInitFunction();
   inline auto getClassName() -> std::string {
     if (this->_className != "")

@@ -199,6 +199,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::CommentStatement:
     return "CommentStatement";
 
+  case SyntaxKind::ModuleStatement:
+    return "ModuleStatement";
+
   case SyntaxKind::NthgKeyword:
     return "NthgKeyword";
 
@@ -269,6 +272,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::TypeKeyword:
     return "TypeKeyword";
+
+  case SyntaxKind::ModuleKeyword:
+    return "ModuleKeyword";
 
   case SyntaxKind::ObjectTypeExpression:
     return "ObjectTypeExpression";

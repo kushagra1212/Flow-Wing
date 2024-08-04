@@ -46,6 +46,10 @@ IRGenerator::IRGenerator(
       std::make_unique<BringStatementGenerationStrategy>(
           this->_codeGenerationContext.get());
 
+  _moduleStatementGenerationStrategy =
+      std::make_unique<ModuleStatementGenerationStrategy>(
+          this->_codeGenerationContext.get());
+
   // Initialize the expression generation factory
 
   _statementGenerationFactory = std::make_unique<StatementGenerationFactory>(
@@ -162,6 +166,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
                BinderKindUtils::BoundNodeKind::BringStatement) {
 
       _bringStatementGenerationStrategy->declare(children.get());
+    } else if (children->getKind() ==
+               BinderKindUtils::BoundNodeKind::BoundModuleStatement) {
+      _moduleStatementGenerationStrategy->declare(children.get());
     }
   }
 
@@ -211,10 +218,21 @@ void IRGenerator::generateEvaluateGlobalStatement(
           static_cast<BoundClassStatement *>(
               blockStatement->getStatements()[i].get());
 
-      int retFlag;
-      defineClass(boundClassStatement, retFlag);
-      if (retFlag == 3)
-        continue;
+      defineClass(boundClassStatement);
+    } else if (kind == BinderKindUtils::BoundNodeKind::BoundModuleStatement) {
+
+      BoundModuleStatement *boundModuleStatement =
+          static_cast<BoundModuleStatement *>(
+              blockStatement->getStatements()[i].get());
+
+      for (const auto &fun : boundModuleStatement->getFunctionStatementsRef()) {
+        BoundFunctionDeclaration *functionDeclaration =
+            static_cast<BoundFunctionDeclaration *>(fun.get());
+
+        if (!functionDeclaration->isOnlyDeclared())
+          _functionStatementGenerationStrategy->generateGlobalStatement(
+              functionDeclaration);
+      }
     }
   }
 #if DEBUG
@@ -245,9 +263,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #endif
 }
 
-void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
-                              int &retFlag) {
-  retFlag = 1;
+void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
   // Add handlers
   _codeGenerationContext->getNamedValueChain()->addHandler(
       new NamedValueTable());
@@ -261,10 +277,7 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement,
   if (!classType) {
     _codeGenerationContext->getLogger()->LogError(
         "Class " + boundClassStatement->getClassName() + " not found");
-    {
-      retFlag = 3;
-      return;
-    };
+    return;
   }
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());

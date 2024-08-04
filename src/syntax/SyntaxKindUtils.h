@@ -94,6 +94,7 @@ enum SyntaxKind {
   InOutKeyword,
   ExtendsKeyword,
   Askeyword,
+  ModuleKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -133,6 +134,7 @@ enum SyntaxKind {
   VariableExpressionSyntax,
   ArrayVariableExpressionSyntax,
   BreakStatement,
+  ModuleStatement,
   ContinueStatement,
   PrimitiveTypeExpression,
   ArrayTypeExpression,

@@ -5,6 +5,7 @@
 #include "../../../../utils/Utils.h"
 #include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "../ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 #include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 class BringStatementGenerationStrategy : public StatementGenerationStrategy {

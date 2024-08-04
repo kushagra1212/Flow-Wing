@@ -88,7 +88,7 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
   std::replace(absoluteFilePathWithoutExtension.begin(),
-               absoluteFilePathWithoutExtension.end(), '/', 'i');
+               absoluteFilePathWithoutExtension.end(), '/', '-');
 
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
@@ -116,6 +116,20 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
                              absoluteFilePathWithoutExtension, *TheModule);
 
   bringStatement->setRootCallerName(absoluteFilePathWithoutExtension);
+
+  // // Modules
+
+  // std::unique_ptr<ModuleStatementGenerationStrategy> moduleGenStat =
+  //     std::make_unique<ModuleStatementGenerationStrategy>(
+  //         _codeGenerationContext);
+
+  // for (const auto &module : bringStatement->getGlobalScopePtr()->modules) {
+  //   importMap[module.first] = 1;
+  //   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+  //       module.second->getLocation());
+
+  //   moduleGenStat->declare(module.second);
+  // }
 
   // Custom Object Type Declaration
   std::unique_ptr<CustomTypeStatementGenerationStrategy> custTypeGenStrat =

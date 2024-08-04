@@ -15,6 +15,7 @@
 #include "../IR/irGen/statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
+#include "../IR/irGen/statements/ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
 #include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../IR/logger/LLVMLogger.h"
@@ -120,7 +121,7 @@ public:
       BoundBlockStatement *blockStatement,
       std::string blockName = FLOWWING_GLOBAL_ENTRY_POINT);
 
-  void defineClass(BoundClassStatement *boundClassStatement, int &retFlag);
+  void defineClass(BoundClassStatement *boundClassStatement);
 
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
@@ -151,6 +152,9 @@ private:
       _bringStatementGenerationStrategy;
 
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
+
+  std::unique_ptr<ModuleStatementGenerationStrategy>
+      _moduleStatementGenerationStrategy;
 
   // File Save Strategy
 

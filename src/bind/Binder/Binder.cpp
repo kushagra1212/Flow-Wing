@@ -290,9 +290,84 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
     return std::move(
         bindCustomTypeStatement((CustomTypeStatementSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::ModuleStatement: {
+    return std::move(bindModuleStatement((ModuleStatementSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
+}
+
+std::unique_ptr<BoundStatement>
+Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
+  // this->root = std::make_unique<BoundScope>(std::move(this->root));
+  std::unique_ptr<BoundModuleStatement> boundModuleStat =
+      std::make_unique<BoundModuleStatement>(
+          moduleStatement->getSourceLocation());
+
+  boundModuleStat->addModuleNameIdentifier(std::move(
+      bindLiteralExpression(moduleStatement->getModuleNameRef().get())));
+
+  _currentModuleName = boundModuleStat->getModuleName();
+
+  for (auto &cusType : moduleStatement->getCustomTypeStatementsRef()) {
+
+    //! Mutating The Custom Type typeName to ModuleName +
+    //! FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX
+
+    auto boundCustomTypeStatement =
+        std::move(this->bindCustomTypeStatement(cusType.get()));
+
+    boundModuleStat->addCustomTypeStatement(
+        std::move(boundCustomTypeStatement));
+  }
+
+  //  std::unordered_map<std::string, int> varMemberMap;
+
+  for (auto &var : moduleStatement->getVariableStatementsRef()) {
+
+    var->getIdentifierRef()->setValue(
+        boundModuleStat->getModuleName() +
+        "::" + std::any_cast<std::string>(var->getIdentifierRef()->getValue()));
+
+    auto boundMemberVariable = std::move(this->bindVariableDeclaration(
+        var.get(), boundModuleStat->getModuleName()));
+    // boundModuleStat->addMemberVariablePtr(boundMemberVariable.get());
+
+    // varMemberMap[boundMemberVariable->getVariableName()] = 1;
+    this->root->tryDeclareVariableGlobal(boundMemberVariable->getVariableName(),
+                                         boundMemberVariable.get());
+
+    boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
+  }
+
+  // this->root = std::make_unique<BoundScope>(std::move(this->root));
+
+  this->root->tryDeclareModule(boundModuleStat.get());
+  for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
+    fun->setIsOnlyDeclared(true);
+
+    // boundModuleStat->addFunctionStatement(
+    //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
+
+    boundModuleStat->addFunctionStatement(
+        std::move(this->bindFunctionDeclaration(
+            fun.get(), boundModuleStat->getModuleName() +
+                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
+
+    // Define Functions
+    fun->setIsOnlyDeclared(false);
+    boundModuleStat->addFunctionStatement(
+        std::move(this->bindFunctionDeclaration(
+            fun.get(), boundModuleStat->getModuleName() +
+                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
+  }
+  // this->root = std::move(this->root->parent);
+
+  // this->root = std::move(this->root->parent);
+  // this->root->tryDeclareModule(boundModuleStat.get());
+
+  return std::move(boundModuleStat);
 }
 
 std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
@@ -341,7 +416,18 @@ std::unique_ptr<BoundStatement> Binder::bindCustomTypeStatement(
                                              std::move(boundTypeExpression));
   }
 
-  if (!this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
+  if (_currentModuleName != "" &&
+      !this->root->tryDeclareCustomTypeGlobal(boundCustomTypeStatement.get())) {
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Duplicate Custom Type " +
+                       Utils::getActualTypeName(
+                           boundCustomTypeStatement->getTypeNameAsString()),
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
+  }
+  if (_currentModuleName == "" &&
+      !this->root->tryDeclareCustomType(boundCustomTypeStatement.get())) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Duplicate Custom Type " +
                        Utils::getActualTypeName(
@@ -513,13 +599,13 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
     boundClassStat->addFunctionName(
         std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
 
-    boundClassStat->addMemberFunction(
-        std::move(this->bindFunctionDeclaration(fun.get(), className)));
+    boundClassStat->addMemberFunction(std::move(this->bindFunctionDeclaration(
+        fun.get(), className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX)));
   }
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(false);
-    boundClassStat->addMemberFunction(
-        std::move(this->bindFunctionDeclaration(fun.get(), className)));
+    boundClassStat->addMemberFunction(std::move(this->bindFunctionDeclaration(
+        fun.get(), className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX)));
   }
 
   this->root = std::move(this->root->parent);
@@ -576,6 +662,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   auto boundBringStatement = std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(),
       bringStatement->getDiagnosticHandlerPtr().get());
+
+  boundBringStatement->setIsModuleImport(bringStatement->getIsModuleImport());
 
   if (bringStatement->getIsChoosyImportPtr()) {
     std::unordered_map<std::string, int> memberMap =
@@ -668,6 +756,30 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     }
   }
 
+  for (auto &module : globalScope->modules) {
+    if (!this->root->tryDeclareModule(module.second)) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Module " + module.first + " Already Declared",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+
+    // for (const auto &variable :
+    //      module.second->getVariableDeclarationStatementsRef()) {
+    //   if (!this->root->tryDeclareVariable(variable->getVariableName(),
+    //                                       variable.get())) {
+    //     this->_diagnosticHandler->addDiagnostic(Diagnostic(
+    //         "Variable " + variable->getVariableName() + " Already Declared",
+    //         DiagnosticUtils::DiagnosticLevel::Error,
+    //         DiagnosticUtils::DiagnosticType::Semantic,
+    //         Utils::getSourceLocation(
+    //             bringStatement->getBringKeywordPtr().get())));
+    //   }
+    // }
+  }
+
   boundBringStatement->setGlobalScope(std::move(globalScope));
 
   return std::move(boundBringStatement);
@@ -692,7 +804,7 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
 
   if (!root->tryLookupVariable(variableName)) {
     this->_diagnosticHandler->addDiagnostic(
-        Diagnostic("Variable " + variableName + " Does Not Exist",
+        Diagnostic("Variable " + variableName + " does not exist",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
                    Utils::getSourceLocation(
@@ -1038,6 +1150,23 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     }
   }
 
+  //? Calling a Moudle Function e.g Test::callMe()
+
+  {
+    const std::string MODULE_NAME = CALLER_NAME.substr(
+        0, CALLER_NAME.find(FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX));
+    std::string mLastName = CALLER_NAME.substr(
+        CALLER_NAME.find(FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX) + 1);
+
+    BoundModuleStatement *boundModuleStatement =
+        this->root->tryGetModule(MODULE_NAME);
+
+    if (boundModuleStatement) {
+      updatedCallerName = CALLER_NAME;
+      declared_fd = this->root->tryGetFunction(updatedCallerName);
+    }
+  }
+
   // if in class -> b, cf, nf
   // not in class -> b, nf
 
@@ -1167,10 +1296,29 @@ Binder::bindObjectExpression(ObjectExpressionSyntax *objectExpressionSyntax) {
   return std::move(boundObjectExpression);
 }
 
-std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
+std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     VariableExpressionSyntax *variableExpressionSyntax) {
+
   BoundVariableDeclaration *variable =
       this->root->tryGetVariable(variableExpressionSyntax->getVariableName());
+
+  if (variableExpressionSyntax->hasModuleNameorCallExpression()) {
+    BoundModuleStatement *module =
+        this->root->tryGetModule(variableExpressionSyntax->getVariableName());
+    if (!module) {
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Module " + variableExpressionSyntax->getVariableName() +
+                         " Not Found",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     variableExpressionSyntax->getSourceLocation()));
+      return nullptr;
+    }
+
+    return this->bindExpression(
+        variableExpressionSyntax->getModuleNameorCallExpression().get());
+  }
 
   if (!variable) {
 
@@ -1261,13 +1409,13 @@ std::unique_ptr<BoundVariableExpression> Binder::bindVariableExpression(
 
 void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
                                      BoundFunctionDeclaration *fd,
-                                     std::string className) {
+                                     std::string prefix) {
   this->root = std::make_unique<BoundScope>(std::move(this->root));
   std::string function_name =
-      className != ""
-          ? className + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
-                syntax->getIdentifierTokenPtr()->getText()
-          : syntax->getIdentifierTokenPtr()->getText();
+      prefix != "" ? prefix + syntax->getIdentifierTokenPtr()->getText()
+                   : syntax->getIdentifierTokenPtr()->getText();
+
+  Utils::DEBUG_LOG("Binder:: Declaring function: " + function_name);
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
@@ -1299,7 +1447,6 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
     fd->addParameter(std::move(varDeclaration));
   }
-  fd->setClassItBelongTo(className);
   fd->setReturnType(std::move(bindTypeExpression(
       (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
 
@@ -1323,13 +1470,13 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
 
 std::unique_ptr<BoundStatement>
 Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
-                                std::string className) {
+                                std::string prefix) {
 
   std::unique_ptr<BoundFunctionDeclaration> fd =
       std::make_unique<BoundFunctionDeclaration>(syntax->getSourceLocation(),
                                                  syntax->isExposed());
 
-  handleFunctionDefAndDec(syntax, fd.get(), className);
+  handleFunctionDefAndDec(syntax, fd.get(), prefix);
 
   if (syntax->isOnlyDeclared()) {
     const std::string &function_name =
@@ -1511,6 +1658,7 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
     binder->root->functions = previousGlobalScope->functions;
     binder->root->customTypes = previousGlobalScope->customTypes;
     binder->root->classes = previousGlobalScope->classes;
+    binder->root->modules = previousGlobalScope->modules;
     prevVariablesValues = previousGlobalScope->variablesValues;
   }
   std::unique_ptr<BoundBlockStatement> _globalBoundBlockStatement =
@@ -1570,7 +1718,7 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
   return std::make_unique<BoundScopeGlobal>(
       std::move(previousGlobalScope), binder->root->variables,
       prevVariablesValues, binder->root->functions, binder->root->customTypes,
-      binder->root->classes, diagnosticHandler,
+      binder->root->classes, binder->root->modules, diagnosticHandler,
       std::move(_globalBoundBlockStatement));
 }
 

@@ -1,0 +1,13 @@
+module [test]
+
+
+type T ={
+    a:int
+}
+
+var x:int= 2
+
+fun main(x:int,y:str) -> nthg {
+print("From Module Test" +x+y)
+}
+

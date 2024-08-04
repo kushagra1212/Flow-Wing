@@ -3,6 +3,7 @@
 
 #include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "../../statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../../statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"

@@ -37,6 +37,7 @@ enum BoundNodeKind {
   ContainerStatement,
   CustomTypeStatement,
   ClassStatement,
+  BoundModuleStatement,
 
   // declarations
 

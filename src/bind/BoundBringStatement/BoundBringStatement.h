@@ -17,6 +17,8 @@ class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
   std::vector<std::string> _expressionStrings;
   std::string _rootCallerName;
 
+  bool _isModuleImport = false;
+
 public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
                       FLowWing::DiagnosticHandler *diagnosticHandler);
@@ -30,6 +32,10 @@ public:
   auto inline setGlobalScope(std::unique_ptr<BoundScopeGlobal> globalScope)
       -> void {
     _globalScope = std::move(globalScope);
+  }
+
+  inline auto setIsModuleImport(bool isModuleImport) -> void {
+    _isModuleImport = isModuleImport;
   }
 
   auto inline setExpression(
@@ -62,6 +68,8 @@ public:
   }
 
   auto inline getRootCallerName() -> std::string { return _rootCallerName; }
+
+  inline auto isModuleImport() -> bool { return _isModuleImport; }
 };
 
 #endif // BIND_BRING_STATEMENT_H

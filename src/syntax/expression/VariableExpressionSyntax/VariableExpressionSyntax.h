@@ -10,7 +10,7 @@
 class VariableExpressionSyntax : public ExpressionSyntax {
 public:
   VariableExpressionSyntax(
-      std::unique_ptr<ExpressionSyntax> identifierExpression,
+      std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,
       const bool isConstant,
       std::unique_ptr<TypeExpressionSyntax> variableTypeExpr);
 
@@ -30,7 +30,7 @@ public:
   }
 
   inline auto getIdentifierTokenRef() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
+      -> const std::unique_ptr<LiteralExpressionSyntax<std::any>> & {
     return _identifierExpression;
   }
 
@@ -54,11 +54,8 @@ public:
   inline auto isConstant() const -> const bool & { return _isConstant; }
 
   inline auto getVariableName() const -> std::string {
-    LiteralExpressionSyntax<std::any> *literalExpressionSyntax =
-        static_cast<LiteralExpressionSyntax<std::any> *>(
-            _identifierExpression.get());
     return std::any_cast<std::string>(
-        literalExpressionSyntax->getTokenPtr()->getText());
+        _identifierExpression->getTokenPtr()->getText());
   }
   inline auto getHasNewKeyword() -> bool { return _hasNewKeyword; }
   inline auto getIsSelf() -> bool { return _selfKeyword != nullptr; }
@@ -67,18 +64,29 @@ public:
       -> void {
     _selfKeyword = std::move(selfKeyword);
   }
+  inline auto setModuleNameorCallExpression(
+      std::unique_ptr<ExpressionSyntax> moduleNameorCallExpression) -> void {
+    _moduleNameorCallExpression = std::move(moduleNameorCallExpression);
+  }
+
+  inline auto getModuleNameorCallExpression() const
+      -> const std::unique_ptr<ExpressionSyntax> & {
+    return _moduleNameorCallExpression;
+  }
+  inline auto hasModuleNameorCallExpression() const -> bool {
+    return _moduleNameorCallExpression != nullptr;
+  }
 
 private:
-  std::unique_ptr<ExpressionSyntax> _identifierExpression;
+  std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
   std::unique_ptr<SyntaxToken<std::any>> _newKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _selfKeyword;
-
   std::unique_ptr<TypeExpressionSyntax> _variableTypeExpr;
-
   std::vector<std::unique_ptr<ExpressionSyntax>> _dotExpressionList;
 
+  std::unique_ptr<ExpressionSyntax> _moduleNameorCallExpression;
+
   bool _isConstant;
-  std::string _variableName;
   bool _hasNewKeyword = false;
 };
 

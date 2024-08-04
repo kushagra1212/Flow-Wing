@@ -34,6 +34,7 @@
 #include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "../syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include "../syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
 #include "../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
@@ -74,6 +75,7 @@ private:
   FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
+  std::string _currentModuleName = "";
 
   bool _isFormattedCodeRequired = false;
 
@@ -99,6 +101,9 @@ private:
     } else
       appendWithSpace();
   }
+
+  std::unique_ptr<LiteralExpressionSyntax<std::any>>
+  makeLiteralExpression(const SyntaxKindUtils::SyntaxKind kind);
 
   /*
     STATEMENTS
@@ -131,8 +136,7 @@ private:
   parseNameorCallExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
   std::unique_ptr<ExpressionSyntax> parseCallExpression();
   std::unique_ptr<FunctionDeclarationSyntax>
-  parseFunctionDeclaration(const bool &isExposed,
-                           bool isMemberFunction = false);
+  parseFunctionDeclaration(bool isMemberFunction = false);
   std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
@@ -145,8 +149,10 @@ private:
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();
   std::unique_ptr<ArrayTypeExpressionSyntax> parseArrayTypeExpression();
   std::unique_ptr<ObjectTypeExpressionSyntax> parseObjectTypeExpression();
+  std::unique_ptr<StatementSyntax> parseModuleStatement();
   std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
   std::unique_ptr<ObjectExpressionSyntax> parseObjectExpression();
+  std::unique_ptr<ExpressionSyntax> parseModuleIdentifierExpression();
 
   std::unordered_map<std::string, int8_t> _bringStatementsPathsMap;
 
