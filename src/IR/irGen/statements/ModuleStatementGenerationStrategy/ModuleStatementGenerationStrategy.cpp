@@ -23,11 +23,6 @@ ModuleStatementGenerationStrategy::declare(BoundStatement *statement) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       boundModuleStatement->getLocation());
 
-  std::unique_ptr<CustomTypeStatementGenerationStrategy>
-      customTypeStatementGenerationStrategy =
-          std::make_unique<CustomTypeStatementGenerationStrategy>(
-              _codeGenerationContext);
-
   std::unique_ptr<FunctionDeclarationGenerationStrategy>
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(

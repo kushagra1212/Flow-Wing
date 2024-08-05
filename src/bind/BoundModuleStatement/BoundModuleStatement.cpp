@@ -21,6 +21,10 @@ std::vector<BoundNode *> BoundModuleStatement::getChildren() {
     for (auto &m : _functionStatements) {
       _children.push_back(m.get());
     }
+
+    for (auto &m : _classStatements) {
+      _children.push_back(m.get());
+    }
   }
   return this->_children;
 }

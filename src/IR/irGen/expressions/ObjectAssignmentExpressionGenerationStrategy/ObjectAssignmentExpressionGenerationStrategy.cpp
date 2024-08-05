@@ -46,7 +46,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
     processKeyTypePairs(
         _codeGenerationContext->_classTypes[typeName]->getKeyTypePairs());
   } else {
-    processKeyTypePairs(_codeGenerationContext->getType(typeName)
+    processKeyTypePairs(_codeGenerationContext->getFlowWingType(typeName)
                             .getCustomType()
                             ->getKeyPairs());
   }
@@ -80,7 +80,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     }
   } else {
     BoundCustomTypeStatement *boundCustomTypeStatement =
-        _codeGenerationContext->getType(typeName).getCustomType();
+        _codeGenerationContext->getFlowWingType(typeName).getCustomType();
     for (const auto &[bLitExpr, bExpr] :
          boundCustomTypeStatement->getKeyPairs()) {
       std::string propertyName =

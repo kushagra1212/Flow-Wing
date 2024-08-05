@@ -377,3 +377,214 @@ print(local::callMe({a:10}))
     "f : { a : 0 } }{ a : 10, b : '', c : 0.00000000000000, d : 0.0000000, e : "
     "true, f : { a : 0 } }");
 }
+
+TEST_F(ModuleTest, ModuleImportTestUsingClass) {
+
+  writeFile("local-module.fg", R"(
+module [local]
+
+
+type T ={
+    a:int 
+  }
+var x:int
+
+
+class A {
+
+  var x:local::T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+
+
+var g:local::T = {}
+
+fun main()-> nthg {
+var a:local::A =  new local::A()
+print(a.u)
+a.x = {a:100}
+
+print(a.x)
+
+}
+  )");
+
+  writeFile("temp.fg", R"(
+bring local
+
+
+print(local::main())
+  )");
+
+  std::system(createBuildAndRunCmd("temp.fg").c_str());
+
+  O("\n0{ a : 100 }");
+}
+TEST_F(ModuleTest, ModuleImportTestUsingClassAccess) {
+
+  writeFile("local-module.fg", R"(
+module [local]
+
+
+type T ={
+    a:int 
+  }
+var x:int
+
+
+class A {
+
+  var x:local::T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+
+
+var g:local::T = {}
+var a:local::A =  new local::A()
+
+
+
+  )");
+
+  writeFile("temp.fg", R"(
+bring local
+
+
+print(local::a.x)
+print(local::a.u)
+local::a.x = {a:21}
+print(local::a.x)
+  )");
+
+  std::system(createBuildAndRunCmd("temp.fg").c_str());
+
+  O("\n{ a : 0 }0{ a : 21 }");
+}
+TEST_F(ModuleTest, ModuleImportTestUsingClassAccess2) {
+
+  writeFile("local-module.fg", R"(
+module [local]
+
+
+var x:int
+
+
+class A {
+
+type T ={
+    a:int 
+  }
+  var x:T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+
+
+var a:local::A =  new local::A()
+  )");
+
+  writeFile("temp.fg", R"(
+bring local
+
+
+print(local::a.x)
+print(local::a.u)
+local::a.x = {a:21}
+print(local::a.x)
+  )");
+
+  std::system(createBuildAndRunCmd("temp.fg").c_str());
+
+  O("\n{ a : 0 }0{ a : 21 }");
+}
+TEST_F(ModuleTest, ModuleImportTestUsingClassAccess3) {
+
+  writeFile("local-module.fg", R"(
+module [local]
+
+
+var x:int
+
+
+class A {
+
+type T ={
+    a:int 
+  }
+  var x:T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+}
+  )");
+
+  writeFile("temp.fg", R"(
+bring local
+var a:local::A =  new local::A()
+print(a.x)
+print(a.u)
+a.x = {a:21}
+print(a.x)
+  )");
+
+  std::system(createBuildAndRunCmd("temp.fg").c_str());
+
+  O("\n{ a : 0 }0{ a : 21 }");
+}
+TEST_F(ModuleTest, ModuleImportTestUsingClassAccess4) {
+  writeFile("local-module.fg", R"(
+module [local]
+
+
+var x:int
+
+
+class A {
+
+type T ={
+    a:int 
+  }
+  var x:T 
+  var u:int
+
+
+  init() -> nthg {
+
+  }
+
+  printX() -> nthg {
+      print(self.x)
+    }
+}
+  )");
+
+  writeFile("temp.fg", R"(
+bring local
+var a:local::A =  new local::A()
+print(a.x)
+print(a.u)
+a.x = {a:21}
+a.printX()
+  )");
+
+  std::system(createBuildAndRunCmd("temp.fg").c_str());
+
+  O("\n{ a : 0 }0{ a : 21 }");
+}

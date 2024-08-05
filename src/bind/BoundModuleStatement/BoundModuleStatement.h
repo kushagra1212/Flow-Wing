@@ -12,6 +12,7 @@ class BoundModuleStatement : public BoundStatement, public BoundSourceLocation {
       _variableDeclarationStatements;
   std::vector<std::unique_ptr<BoundStatement>> _functionStatements;
   std::vector<std::unique_ptr<BoundStatement>> _customTypeStatements;
+  std::vector<std::unique_ptr<BoundStatement>> _classStatements;
 
 public:
   BoundModuleStatement(const DiagnosticUtils::SourceLocation &location);
@@ -43,6 +44,12 @@ public:
     _customTypeStatements.push_back(std::move(typeStatement));
   }
 
+  inline auto addClassStatement(std::unique_ptr<BoundStatement> classStatement)
+      -> void {
+
+    _classStatements.push_back(std::move(classStatement));
+  }
+
   inline auto getVariableDeclarationStatementsRef()
       -> std::vector<std::unique_ptr<BoundVariableDeclaration>> & {
     return _variableDeclarationStatements;
@@ -63,6 +70,10 @@ public:
     return _moduleNameIdentifier;
   }
 
+  inline auto getClassStatementsRef()
+      -> std::vector<std::unique_ptr<BoundStatement>> & {
+    return _classStatements;
+  }
   inline auto getModuleName() -> std::string {
     return std::any_cast<std::string>(_moduleNameIdentifier->getValue());
   }

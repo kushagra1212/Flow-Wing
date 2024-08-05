@@ -397,16 +397,6 @@ Parser::parseObjectTypeExpression() {
   std::unique_ptr<SyntaxToken<std::any>> iden =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
-  // std::string MODULE_PREFIX = "";
-
-  // if (_currentModuleName != "") {
-  //   MODULE_PREFIX =
-  //       _currentModuleName + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX;
-  //   iden->setValue(MODULE_PREFIX +
-  //                  std::any_cast<std::string>(iden->getValue()));
-  //   iden->setText(MODULE_PREFIX + iden->getText());
-  // }
-
   std::any value = iden->getValue();
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> literalExp =
@@ -558,6 +548,15 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
       break;
     }
 
+    case SyntaxKindUtils::SyntaxKind::ClassKeyword: {
+      _currentModuleName =
+          moduleStatement->getModuleNameRef()->getTokenPtr()->getText();
+      moduleStatement->addClassStatement(
+          std::move(this->parseClassStatement()));
+      _currentModuleName = "";
+      break;
+    }
+
     default: {
       moduleStatement->addFunctionStatement(
           std::move(this->parseFunctionDeclaration(false)));
@@ -571,7 +570,7 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
   return std::move(moduleStatement);
 }
 
-std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
+std::unique_ptr<ClassStatementSyntax> Parser::parseClassStatement() {
 
   std::unique_ptr<ClassStatementSyntax> classSyn =
       std::make_unique<ClassStatementSyntax>();
@@ -589,6 +588,18 @@ std::unique_ptr<StatementSyntax> Parser::parseClassStatement() {
   classSyn->setClassNameIdentifier(
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
   appendWithSpace();
+
+  if (_currentModuleName != "") {
+    classSyn->getClassNameIdentifierRef()->setValue(
+        _currentModuleName + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
+        std::any_cast<std::string>(
+            classSyn->getClassNameIdentifierRef()->getValue()));
+
+    classSyn->getClassNameIdentifierRef()->setText(std::any_cast<std::string>(
+        classSyn->getClassNameIdentifierRef()->getValue()));
+  }
+
+  _currentModuleName = "";
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ExtendsKeyword) {
     classSyn->setExtendsKeyword(
@@ -686,9 +697,9 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
         MODULE_PREFIX + std::any_cast<std::string>(typeToken->getValue());
     val = PREFIX + FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
           IDGenerator::CustomTypeIDGenerator::instance()->nextString();
-
-    typeToken->setValue(PREFIX);
-    typeToken->setText(std::any_cast<std::string>(PREFIX));
+    //! CHECK
+    typeToken->setValue(val);
+    typeToken->setText(std::any_cast<std::string>(val));
   }
   Utils::DEBUG_LOG("Declared Type: " + std::any_cast<std::string>(val));
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
@@ -1106,6 +1117,15 @@ Parser::parseVariableDeclaration(bool isFuncDec) {
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
   varDec->setIdentifier(std::move(identifier));
+
+  if (_currentModuleName != "") {
+    varDec->getIdentifierRef()->setValue(
+        _currentModuleName + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
+        std::any_cast<std::string>(varDec->getIdentifierRef()->getValue()));
+
+    varDec->getIdentifierRef()->setText(
+        std::any_cast<std::string>(varDec->getIdentifierRef()->getValue()));
+  }
 
   std::unique_ptr<TypeExpressionSyntax> typeExpr =
       std::make_unique<TypeExpressionSyntax>(

@@ -277,7 +277,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   };
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getType(parObjType->getStructName().str())
+      _codeGenerationContext->getFlowWingType(parObjType->getStructName().str())
           .getCustomType();
 
   Class *classObj = nullptr;

@@ -163,7 +163,7 @@ public:
     return this->_typesMap.find(typeName) != this->_typesMap.end();
   }
 
-  inline auto getType(const std::string &typeName) -> FlowWing::Type {
+  inline auto getFlowWingType(const std::string &typeName) -> FlowWing::Type {
     const bool isClassType =
         this->_classTypes.find(typeName) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {

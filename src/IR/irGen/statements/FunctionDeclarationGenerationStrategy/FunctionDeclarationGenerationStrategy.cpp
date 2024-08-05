@@ -142,9 +142,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
             static_cast<BoundObjectTypeExpression *>(
                 arrayTypeExpression->getNonTrivialElementType().get());
 
-        parmType =
-            _codeGenerationContext->getType(objectTypeExpression->getTypeName())
-                .getType();
+        parmType = _codeGenerationContext
+                       ->getFlowWingType(objectTypeExpression->getTypeName())
+                       .getType();
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
@@ -289,9 +289,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
             static_cast<BoundObjectTypeExpression *>(
                 boundArrayTypeExpression->getNonTrivialElementType().get());
 
-        elementType =
-            _codeGenerationContext->getType(objectTypeExpression->getTypeName())
-                .getType();
+        elementType = _codeGenerationContext
+                          ->getFlowWingType(objectTypeExpression->getTypeName())
+                          .getType();
         returnInfo = FUNCTION_NAME +
                      ":rt:ay:" + objectTypeExpression->getTypeName().c_str() +
                      ":sz:";
@@ -351,7 +351,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           boundObjectTypeExpression->getLocation());
       llvm::StructType *structType =
           (_codeGenerationContext
-               ->getType(boundObjectTypeExpression->getTypeName())
+               ->getFlowWingType(boundObjectTypeExpression->getTypeName())
                .getStructType());
 
       if (!structType) {
@@ -433,7 +433,8 @@ llvm::StructType *FunctionDeclarationGenerationStrategy::getStructType(
   if (!structType) {
     typeName = objectTypeExpression->getTypeName();
 
-    structType = _codeGenerationContext->getType(typeName).getStructType();
+    structType =
+        _codeGenerationContext->getFlowWingType(typeName).getStructType();
     if (!structType) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected an object type " + Utils::getActualTypeName(typeName) +

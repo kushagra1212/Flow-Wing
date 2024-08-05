@@ -159,7 +159,6 @@ bool BoundScope::tryDeclareCustomTypeGlobal(
   std::string typeName =
       Utils::getActualTypeName(customType->getTypeNameAsString());
 
-  Utils::DEBUG_LOG("tryDeclareCustomTypeGlobal: " + typeName);
   if (this->customTypes.find(typeName) != this->customTypes.end()) {
     return false;
   }
@@ -190,6 +189,20 @@ bool BoundScope::tryDeclareClass(BoundClassStatement *_class) {
   }
 
   return false;
+}
+
+bool BoundScope::tryDeclareClassGlobal(BoundClassStatement *_class) {
+
+  if (this->classes.find(_class->getClassName()) != this->classes.end()) {
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareClassGlobal(_class);
+  }
+
+  this->classes[_class->getClassName()] = _class;
+  return true;
 }
 
 // Module

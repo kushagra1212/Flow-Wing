@@ -33,7 +33,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
 
-  if (!(_codeGenerationContext->getType(_typeName).getStructType())) {
+  if (!(_codeGenerationContext->getFlowWingType(_typeName).getStructType())) {
     _codeGenerationContext->getLogger()->LogError(
         "Expected an object type " + Utils::getActualTypeName(_typeName));
     return nullptr;
@@ -41,7 +41,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateGlobalExpression(
 
   return objectAssignmentGES->assignObject(
       static_cast<BoundObjectExpression *>(expression), _variable,
-      (_codeGenerationContext->getType(_typeName).getStructType()),
+      (_codeGenerationContext->getFlowWingType(_typeName).getStructType()),
       _variable->getName().str());
 
   return nullptr;
@@ -63,10 +63,11 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
 
     lhsStructType =
         _codeGenerationContext->_classTypes[_typeName]->getClassType();
-  } else if ((_codeGenerationContext->getType(_typeName).getStructType())) {
+  } else if ((_codeGenerationContext->getFlowWingType(_typeName)
+                  .getStructType())) {
 
     lhsStructType =
-        (_codeGenerationContext->getType(_typeName).getStructType());
+        (_codeGenerationContext->getFlowWingType(_typeName).getStructType());
   } else {
     _codeGenerationContext->getLogger()->LogError(
         "Expected an object type," + Utils::getActualTypeName(_typeName));
@@ -117,7 +118,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
       expression->getLocation());
 
   llvm::StructType *parStructType =
-      (_codeGenerationContext->getType(_typeName).getStructType());
+      (_codeGenerationContext->getFlowWingType(_typeName).getStructType());
 
   if (!parStructType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -162,10 +163,10 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       expression->getLocation());
 
   llvm::StructType *parStructType = nullptr;
-  if (_codeGenerationContext->getType(_typeName).getStructType()) {
+  if (_codeGenerationContext->getFlowWingType(_typeName).getStructType()) {
 
     parStructType =
-        (_codeGenerationContext->getType(_typeName).getStructType());
+        (_codeGenerationContext->getFlowWingType(_typeName).getStructType());
   } else if (_typeName != "" &&
              _codeGenerationContext->_classTypes.find(_typeName) !=
                  _codeGenerationContext->_classTypes.end()) {
@@ -179,7 +180,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
   }
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getType(typeName).getCustomType();
+      _codeGenerationContext->getFlowWingType(typeName).getCustomType();
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
   std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
@@ -229,7 +230,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
         bExpr->getLocation());
 
     std::string key = propertyName;
-    const int64_t index = _codeGenerationContext->getType(key).getIndex();
+    const int64_t index =
+        _codeGenerationContext->getFlowWingType(key).getIndex();
 
     if (index == -1) {
       _codeGenerationContext->getLogger()->LogError(
@@ -256,7 +258,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
           innerObjectExpression->getLocation());
       llvm::StructType *innerElementType =
           (_codeGenerationContext
-               ->getType(boundObjectTypeExpression->getTypeName())
+               ->getFlowWingType(boundObjectTypeExpression->getTypeName())
                .getStructType());
 
       if (!innerElementType) {
@@ -293,7 +295,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNPDefault(
     llvm::Value *variable, const std::string &typeName) {
 
   llvm::StructType *parStructType = llvm::cast<llvm::StructType>(
-      _codeGenerationContext->getType(typeName).getStructType());
+      _codeGenerationContext->getFlowWingType(typeName).getStructType());
 
   if (!parStructType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -302,7 +304,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNPDefault(
   }
 
   auto boundCustomTypeStatement =
-      _codeGenerationContext->getType(typeName).getCustomType();
+      _codeGenerationContext->getFlowWingType(typeName).getCustomType();
 
   uint64_t indexValue = 0;
   if (!boundCustomTypeStatement &&
@@ -345,7 +347,7 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
         boundObjectTypeExpression->getLocation());
     llvm::StructType *lshStructType =
         (_codeGenerationContext
-             ->getType(boundObjectTypeExpression->getTypeName())
+             ->getFlowWingType(boundObjectTypeExpression->getTypeName())
              .getStructType());
 
     if (!lshStructType) {
@@ -409,7 +411,7 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
 //       expression->getLocation());
 
 //   llvm::StructType *parStructType =
-//       (_codeGenerationContext->getType(typeName).getStructType());
+//       (_codeGenerationContext->getFlowWingType(typeName).getStructType());
 
 //   if (!parStructType) {
 
@@ -419,7 +421,7 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
 //   }
 
 //   BoundCustomTypeStatement *boundCustomTypeStatement =
-//       _codeGenerationContext->getType(typeName).getCustomType();
+//       _codeGenerationContext->getFlowWingType(typeName).getCustomType();
 
 //   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
 //   uint64_t index = 0;
@@ -477,7 +479,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
 
 //     std::string key =
 //         boundCustomTypeStatement->getTypeNameAsString() + "." + propertyName;
-//     const size_t index = _codeGenerationContext->getType(key).getIndex();
+//     const size_t index =
+//     _codeGenerationContext->getFlowWingType(key).getIndex();
 
 //     if (index == -1) {
 //       _codeGenerationContext->getLogger()->LogError(
@@ -587,7 +590,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
     const bool isGlobal) {
 
   llvm::StructType *structType =
-      (_codeGenerationContext->getType(typeName).getStructType());
+      (_codeGenerationContext->getFlowWingType(typeName).getStructType());
   if (!structType) {
 
     _codeGenerationContext->getLogger()->LogError(
@@ -596,7 +599,7 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
   }
 
   BoundCustomTypeStatement *boundCustomTypeStatement =
-      _codeGenerationContext->getType(typeName).getCustomType();
+      _codeGenerationContext->getFlowWingType(typeName).getCustomType();
 
   uint64_t index = 0;
 
@@ -621,7 +624,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
           bOT->getLocation());
 
       llvm::StructType *elementType =
-          (_codeGenerationContext->getType(bOT->getTypeName()).getStructType());
+          (_codeGenerationContext->getFlowWingType(bOT->getTypeName())
+               .getStructType());
 
       if (!elementType) {
 

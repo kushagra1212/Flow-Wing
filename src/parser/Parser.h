@@ -126,7 +126,7 @@ private:
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
   std::unique_ptr<GlobalStatementSyntax>
   parseGlobalStatement(const bool &isExposed);
-  std::unique_ptr<StatementSyntax> parseClassStatement();
+  std::unique_ptr<ClassStatementSyntax> parseClassStatement();
   /*
     EXPRESSIONS
   */

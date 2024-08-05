@@ -63,6 +63,7 @@ public:
   // Handle Class Declaration
 
   bool tryDeclareClass(BoundClassStatement *customType);
+  bool tryDeclareClassGlobal(BoundClassStatement *_class);
   BoundClassStatement *tryGetClass(const std::string &name);
 
   bool tryDeclareModule(BoundModuleStatement *module);

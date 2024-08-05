@@ -233,6 +233,14 @@ void IRGenerator::generateEvaluateGlobalStatement(
           _functionStatementGenerationStrategy->generateGlobalStatement(
               functionDeclaration);
       }
+
+      for (const auto &classStatement :
+           boundModuleStatement->getClassStatementsRef()) {
+        BoundClassStatement *boundClassStatement =
+            static_cast<BoundClassStatement *>(classStatement.get());
+
+        defineClass(boundClassStatement);
+      }
     }
   }
 #if DEBUG

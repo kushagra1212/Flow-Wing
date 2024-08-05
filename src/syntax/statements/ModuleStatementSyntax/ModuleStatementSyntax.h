@@ -3,6 +3,7 @@
 
 #include "../../SyntaxToken.h"
 #include "../../expression/LiteralExpressionSyntax.h"
+#include "../ClassStatementSyntax/ClassStatementSyntax.h"
 #include "../CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
 #include "../FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../StatementSyntax.h"
@@ -16,6 +17,7 @@ class ModuleStatementSyntax : public StatementSyntax {
 
   std::vector<std::unique_ptr<VariableDeclarationSyntax>> _variableStatements;
   std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _functionStatements;
+  std::vector<std::unique_ptr<ClassStatementSyntax>> _classStatements;
   std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
 
 public:
@@ -48,6 +50,12 @@ public:
   }
 
   inline auto
+  addClassStatement(std::unique_ptr<ClassStatementSyntax> classStatement)
+      -> void {
+    _classStatements.push_back(std::move(classStatement));
+  }
+
+  inline auto
   addVariableStatement(std::unique_ptr<VariableDeclarationSyntax> member)
       -> void {
     _variableStatements.push_back(std::move(member));
@@ -64,16 +72,22 @@ public:
     _functionStatements.push_back(std::move(function));
   }
 
-  std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
+  inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
     return _moduleKeyword;
   }
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOpenBracketTokenRef() {
+  inline std::unique_ptr<SyntaxToken<std::any>> &getOpenBracketTokenRef() {
     return _openBracketToken;
   }
 
-  std::unique_ptr<LiteralExpressionSyntax<std::any>> &getModuleNameRef() {
+  inline std::unique_ptr<LiteralExpressionSyntax<std::any>> &
+  getModuleNameRef() {
     return _moduleName;
+  }
+
+  inline auto getClassStatementsRef()
+      -> const std::vector<std::unique_ptr<ClassStatementSyntax>> & {
+    return _classStatements;
   }
 
   std::unique_ptr<SyntaxToken<std::any>> &getCloseBracketTokenRef() {

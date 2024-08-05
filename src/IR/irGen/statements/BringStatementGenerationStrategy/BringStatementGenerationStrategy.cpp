@@ -117,20 +117,6 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
 
   bringStatement->setRootCallerName(absoluteFilePathWithoutExtension);
 
-  // // Modules
-
-  // std::unique_ptr<ModuleStatementGenerationStrategy> moduleGenStat =
-  //     std::make_unique<ModuleStatementGenerationStrategy>(
-  //         _codeGenerationContext);
-
-  // for (const auto &module : bringStatement->getGlobalScopePtr()->modules) {
-  //   importMap[module.first] = 1;
-  //   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-  //       module.second->getLocation());
-
-  //   moduleGenStat->declare(module.second);
-  // }
-
   // Custom Object Type Declaration
   std::unique_ptr<CustomTypeStatementGenerationStrategy> custTypeGenStrat =
       std::make_unique<CustomTypeStatementGenerationStrategy>(

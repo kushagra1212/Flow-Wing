@@ -62,16 +62,6 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       variableDeclaration->getIdentifierRef()->getValue(),
       variableDeclaration->getIdentifierRef()->getKind()));
 
-  // if (className != "" && variableDeclaration->getInitializerRef()) {
-  //   this->_diagnosticHandler->addDiagnostic(Diagnostic(
-  //       "Cannot initialize variable in class directly, use init "
-  //       "constructor instead",
-  //       DiagnosticUtils::DiagnosticLevel::Error,
-  //       DiagnosticUtils::DiagnosticType::Semantic,
-  //       variableDeclaration->getInitializerRef()->getSourceLocation()));
-  //   return std::move(variable);
-  // }
-
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
         std::move(bindTypeExpression(variableDeclaration->getTypeRef().get()));
@@ -80,11 +70,30 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
         BinderKindUtils::BoundObjectTypeExpression) {
       BoundObjectTypeExpression *objectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
+
+      Utils::DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
+
+      //! This Handles when the Type is Class Type in that Case Since we are
+      //! only receiving class Name not the type along with Module name e.g A
+      //! not local::A and we are inside the Module local
+      //! then we need to add the module prefix to the class name
+      //! ModuleName::ClassName {It is statisfied only When we Defining Class}
+      //! For Normal Types We are already receiving the ModuleName::TypeName
+
+      if (_currentModuleName != "" &&
+          objectTypeExpression->getTypeName().find(
+              FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX) == std::string::npos) {
+        objectTypeExpression->getObjectTypeIdentifier()->setValue(
+            _currentModuleName + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
+            std::any_cast<std::string>(
+                objectTypeExpression->getObjectTypeIdentifier()->getValue()));
+      }
       BoundClassStatement *boundClassStatement =
           this->root->tryGetClass(objectTypeExpression->getTypeName());
       if (boundClassStatement) {
         className = boundClassStatement->getClassName();
       }
+      Utils::DEBUG_LOG("CN " + className);
     }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
@@ -308,28 +317,33 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
   boundModuleStat->addModuleNameIdentifier(std::move(
       bindLiteralExpression(moduleStatement->getModuleNameRef().get())));
 
-  _currentModuleName = boundModuleStat->getModuleName();
-
   for (auto &cusType : moduleStatement->getCustomTypeStatementsRef()) {
 
-    //! Mutating The Custom Type typeName to ModuleName +
-    //! FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX
-
+    _currentModuleName = boundModuleStat->getModuleName();
     auto boundCustomTypeStatement =
         std::move(this->bindCustomTypeStatement(cusType.get()));
 
     boundModuleStat->addCustomTypeStatement(
         std::move(boundCustomTypeStatement));
+    _currentModuleName = "";
+  }
+
+  this->root->tryDeclareModule(boundModuleStat.get());
+  for (auto &classStmt : moduleStatement->getClassStatementsRef()) {
+
+    _currentModuleName = boundModuleStat->getModuleName();
+    auto boundClassStatement =
+        std::move(this->bindClassStatement(classStmt.get()));
+
+    boundModuleStat->addClassStatement(std::move(boundClassStatement));
+    _currentModuleName = "";
   }
 
   //  std::unordered_map<std::string, int> varMemberMap;
 
   for (auto &var : moduleStatement->getVariableStatementsRef()) {
 
-    var->getIdentifierRef()->setValue(
-        boundModuleStat->getModuleName() +
-        "::" + std::any_cast<std::string>(var->getIdentifierRef()->getValue()));
-
+    _currentModuleName = boundModuleStat->getModuleName();
     auto boundMemberVariable = std::move(this->bindVariableDeclaration(
         var.get(), boundModuleStat->getModuleName()));
     // boundModuleStat->addMemberVariablePtr(boundMemberVariable.get());
@@ -339,14 +353,14 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
                                          boundMemberVariable.get());
 
     boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
+    _currentModuleName = "";
   }
 
   // this->root = std::make_unique<BoundScope>(std::move(this->root));
 
-  this->root->tryDeclareModule(boundModuleStat.get());
   for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
     fun->setIsOnlyDeclared(true);
-
+    _currentModuleName = boundModuleStat->getModuleName();
     // boundModuleStat->addFunctionStatement(
     //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
 
@@ -361,6 +375,7 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
         std::move(this->bindFunctionDeclaration(
             fun.get(), boundModuleStat->getModuleName() +
                            FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
+    _currentModuleName = "";
   }
   // this->root = std::move(this->root->parent);
 
@@ -502,6 +517,9 @@ std::unique_ptr<BoundExpression> Binder::bindBracketedExpression(
 
 std::unique_ptr<BoundStatement>
 Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
+
+  const std::string CURRENT_MODULE_NAME = _currentModuleName;
+  _currentModuleName = "";
   this->root = std::make_unique<BoundScope>(std::move(this->root));
   std::unique_ptr<BoundClassStatement> boundClassStat =
       std::make_unique<BoundClassStatement>(
@@ -612,7 +630,10 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
 
   this->root = std::move(this->root->parent);
 
-  this->root->tryDeclareClass(boundClassStat.get());
+  if (CURRENT_MODULE_NAME != "")
+    this->root->tryDeclareClassGlobal(boundClassStat.get());
+  else
+    this->root->tryDeclareClass(boundClassStat.get());
   return std::move(boundClassStat);
 }
 
@@ -686,10 +707,11 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         continue;
       }
 
-      const bool found = memberMap.find(expression->getTokenPtr()->getText()) ==
-                         memberMap.end();
+      const bool notFound =
+          memberMap.find(expression->getTokenPtr()->getText()) ==
+          memberMap.end();
 
-      if (found) {
+      if (notFound) {
         this->_diagnosticHandler->addDiagnostic(
             Diagnostic("Identifier <" + expression->getTokenPtr()->getText() +
                            "> not found in <" +
@@ -1152,7 +1174,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   //? Calling a Moudle Function e.g Test::callMe()
 
-  {
+  if (!declared_fd) {
     const std::string MODULE_NAME = CALLER_NAME.substr(
         0, CALLER_NAME.find(FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX));
     std::string mLastName = CALLER_NAME.substr(
@@ -1549,6 +1571,9 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
     std::string name = objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
                            ->getTokenPtr()
                            ->getText();
+
+    //! Verify if this is a class or object type
+    boundObjectTypeExpression->setTypeName(name);
 
     //? name -> class Type or Object Type
 
