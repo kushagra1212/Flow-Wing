@@ -162,6 +162,15 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
   llvm::Value *rhsValue = nullptr;
 
+  if (!rhsType) {
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        exp->getLocation());
+    _codeGenerationContext->getLogger()->LogError(
+        "No right expression found in assignment expression");
+
+    return nullptr;
+  }
+
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
 
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();

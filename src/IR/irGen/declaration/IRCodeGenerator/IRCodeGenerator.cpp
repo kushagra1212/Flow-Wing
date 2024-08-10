@@ -9,7 +9,11 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
       _customTypeStatementGenerationStrategy(
           std::make_unique<CustomTypeStatementGenerationStrategy>(context)),
       _classStatementGenerationStrategy(
-          std::make_unique<ClassStatementGenerationStrategy>(context)) {}
+          std::make_unique<ClassStatementGenerationStrategy>(context)),
+      _multipleVariableDeclarationStatementGenerationStrategy(
+          std::make_unique<
+              MultipleVariableDeclarationStatementGenerationStrategy>(
+              context)) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
                                                  bool isGlobal) {
@@ -40,6 +44,22 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
       _variableDeclarationStatementGenerationStrategy->declareLocal(
           static_cast<BoundVariableDeclaration *>(child));
     }
+
+    declareVariables(child, isGlobal);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::
+      BoundMultipleVariableDeclarationStatement: {
+    BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
+        static_cast<BoundMultipleVariableDeclaration *>(child);
+
+    // if (isGlobal) {
+    //   _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
+    //       boundMultipleVariableDeclaration);
+    // } else {
+    //   _multipleVariableDeclarationStatementGenerationStrategy->declareLocal(
+    //       boundMultipleVariableDeclaration);
+    // }
 
     declareVariables(child, isGlobal);
     break;

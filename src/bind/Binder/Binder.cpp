@@ -302,9 +302,56 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ModuleStatement: {
     return std::move(bindModuleStatement((ModuleStatementSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::MultipleVariableDeclaration: {
+    return std::move(bindMultipleVariableDeclaration(
+        (MultipleVariableDeclarationSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
+}
+
+std::unique_ptr<BoundMultipleVariableDeclaration>
+Binder::bindMultipleVariableDeclaration(
+    MultipleVariableDeclarationSyntax *multipleVariableDeclaration) {
+
+  std::unique_ptr<BoundMultipleVariableDeclaration>
+      boundMultipleVariableDeclaration =
+          std::make_unique<BoundMultipleVariableDeclaration>(
+              multipleVariableDeclaration->getSourceLocation());
+
+  for (auto &variableDeclaration :
+       multipleVariableDeclaration->getVariableDeclarationListRef()) {
+    boundMultipleVariableDeclaration->addVariableDeclaration(
+        std::move(this->bindVariableDeclaration(variableDeclaration.get())));
+  }
+
+  auto firstVariableDeclaration =
+      boundMultipleVariableDeclaration->getVariableDeclarationListRef()[0]
+          .get();
+
+  for (auto i = 1;
+       i <
+       boundMultipleVariableDeclaration->getVariableDeclarationListRef().size();
+       i++) {
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setIsConst(firstVariableDeclaration->isConst());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setHasAsKeyword(firstVariableDeclaration->getHasAsKeyword());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setHasInOutKeyword(firstVariableDeclaration->getHasInOutKeyword());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setMemoryKind(firstVariableDeclaration->getMemoryKind());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setIsExposed(firstVariableDeclaration->isExposed());
+  }
+
+  return std::move(boundMultipleVariableDeclaration);
 }
 
 std::unique_ptr<BoundStatement>
@@ -968,8 +1015,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
         Diagnostic("Invalid Assignment Expression",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(bindExpression(assignmentExpression->getLeftPtr().get()));
   }
@@ -979,15 +1025,14 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
-          assignmentExpression->getOperatorTokenPtr()->getKind());
+          assignmentExpression->getOperatorTokenKind());
 
   if (!root->tryLookupVariable(variable_str)) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Can Not Assign To Undeclared Variable " + variable_str,
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(boundIdentifierExpression);
   }
@@ -997,8 +1042,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
         Diagnostic("Can Not Assign To Constant Variable " + variable_str,
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(boundIdentifierExpression);
   }
@@ -1311,10 +1355,36 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::NirastExpression: {
     return std::move(bindNirastExpression((NirastExpressionSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::MultipleAssignmentExpression: {
+    return std::move(bindMultipleAssignmentExpression(
+        (MultipleAssignmentExpressionSyntax *)syntax));
+  }
+
   default:
     throw "Unexpected syntax";
   }
   return nullptr;
+}
+
+std::unique_ptr<BoundMultipleAssignmentExpression>
+Binder::bindMultipleAssignmentExpression(
+    MultipleAssignmentExpressionSyntax *multipleAssignmentExpressionSyntax) {
+
+  std::unique_ptr<BoundMultipleAssignmentExpression>
+      boundMultipleAssignmentExpression =
+          std::make_unique<BoundMultipleAssignmentExpression>(
+              multipleAssignmentExpressionSyntax->getSourceLocation());
+
+  for (const auto &assignment :
+       multipleAssignmentExpressionSyntax->getAssignmentExprListRef()) {
+    boundMultipleAssignmentExpression->addAssignment(
+        std::unique_ptr<BoundAssignmentExpression>(
+            (BoundAssignmentExpression *)bindAssignmentExpression(
+                assignment.get())
+                .release()));
+  }
+
+  return std::move(boundMultipleAssignmentExpression);
 }
 
 std::unique_ptr<BoundExpression>

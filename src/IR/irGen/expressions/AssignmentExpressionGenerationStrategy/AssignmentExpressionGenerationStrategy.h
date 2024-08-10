@@ -22,6 +22,7 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   void declare(BoundExpression *expression);
+
   llvm::Value *
   handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
                                            const std::string &variableName,

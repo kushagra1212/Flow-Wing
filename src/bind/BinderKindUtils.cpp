@@ -38,11 +38,16 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "ClassStatement";
   case BoundModuleStatement:
     return "BoundModuleStatement";
+  case BoundMultipleVariableDeclarationStatement:
+    return "BoundMultipleVariableDeclarationStatement";
 
+  case BoundMultipleAssignmentExpression:
+    return "BoundMultipleAssignmentExpression";
   case IfStatement:
     return "IfStatement";
   case WhileStatement:
     return "WhileStatement";
+
   case ForStatement:
     return "ForStatement";
   case VariableDeclaration:

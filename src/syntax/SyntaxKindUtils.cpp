@@ -262,7 +262,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::FillKeyword:
     return "FillKeyword";
-
+  case SyntaxKind::MultipleAssignmentExpression:
+    return "MultipleAssignmentExpression";
   case SyntaxKind::ContainerStatement:
     return "ContainerStatement";
   case SyntaxKind::VariableExpressionSyntax:

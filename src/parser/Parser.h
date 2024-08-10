@@ -14,6 +14,7 @@
 #include "../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
+#include "../syntax/expression/MultipleAssignmentExpressionSyntax/MultipleAssignmentExpressionSyntax.h"
 #include "../syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
@@ -36,6 +37,7 @@
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
 #include "../syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
+#include "../syntax/statements/MultipleVariableDeclarationSyntax/MultipleVariableDeclarationSyntax.h"
 #include "../syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
 #include "../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
@@ -77,6 +79,9 @@ private:
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
   std::string _currentModuleName = "";
+  bool _isInsideCallExpression = false;
+  bool _isInsideIndexExpression = false;
+  bool _isInsideContainerExpression = false;
 
   bool _isFormattedCodeRequired = false;
 
@@ -117,8 +122,13 @@ private:
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::unique_ptr<VariableDeclarationSyntax>
+  std::unique_ptr<StatementSyntax>
   parseVariableDeclaration(bool isFuncDec = false);
+  std::unique_ptr<VariableDeclarationSyntax>
+  parseSingleVariableDeclaration(bool isFuncDec = false);
+  std::unique_ptr<MultipleVariableDeclarationSyntax>
+  parseMultipleVariableDeclaration(
+      std::unique_ptr<VariableDeclarationSyntax> initialVarDec);
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
@@ -145,6 +155,8 @@ private:
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
   std::unique_ptr<ExpressionSyntax>
   parseVariableExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
+  std::unique_ptr<ExpressionSyntax> parseMultipleAssignmentExpression(
+      std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();
@@ -158,5 +170,16 @@ private:
   std::unordered_map<std::string, int8_t> _bringStatementsPathsMap;
 
   std::unique_ptr<MemberSyntax> parseMember();
+
+  /*
+    Handlers
+  */
+
+  void handleVarDecParseIdentifierAndType(
+      std::unique_ptr<VariableDeclarationSyntax> &varDec);
+  void handleVarDecParseInitializer(
+      std::unique_ptr<VariableDeclarationSyntax> &varDec);
+  void handleVarDecParsePrefixKeywords(
+      std::unique_ptr<VariableDeclarationSyntax> &varDec, bool isFuncDec);
 };
 #endif
