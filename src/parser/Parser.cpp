@@ -1285,6 +1285,14 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
         std::move(trueKeywordToken), true);
   }
+  case SyntaxKindUtils::SyntaxKind::NirastKeyword: {
+    std::unique_ptr<SyntaxToken<std::any>> nirastKeyword =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::NirastKeyword));
+
+    return std::make_unique<NirastExpressionSyntax>(
+        std::make_unique<LiteralExpressionSyntax<std::any>>(
+            std::move(nirastKeyword), nirastKeyword->getText()));
+  }
   case SyntaxKindUtils::SyntaxKind::NewKeyword: {
     return std::move(this->parseCallExpression());
   }

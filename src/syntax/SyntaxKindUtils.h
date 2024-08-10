@@ -95,6 +95,7 @@ enum SyntaxKind {
   ExtendsKeyword,
   Askeyword,
   ModuleKeyword,
+  NirastKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -110,6 +111,7 @@ enum SyntaxKind {
   CallExpression,
   IndexExpression,
   ContainerExpression,
+  NirastExpression,
   FillExpression,
   BracketedExpression,
   // Statements

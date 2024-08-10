@@ -14,6 +14,7 @@
 #include "../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
+#include "../syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"

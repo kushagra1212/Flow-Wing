@@ -15,6 +15,7 @@
 #include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
+#include "../strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
 #include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 #include "expressions/ExpressionGenerationFactory.h"
@@ -45,6 +46,8 @@ public:
             std::make_unique<StringBinaryOperationStrategy>(context)),
         _floatBinaryOperationStrategy(
             std::make_unique<FloatBinaryOperationStrategy>(context)),
+        _nirastBinaryOperationStrategy(
+            std::make_unique<NirastBinaryOperationStrategy>(context)),
 
         // Initialize the type converters
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
@@ -76,6 +79,7 @@ public:
   std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
   std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
+  std::unique_ptr<NirastBinaryOperationStrategy> _nirastBinaryOperationStrategy;
 
   // Unary Operation Strategy
   std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;

@@ -9,16 +9,23 @@ class BoundObjectExpression : public BoundExpression {
                         std::unique_ptr<BoundExpression>>>
       _key_value_pairs;
 
- public:
+public:
   BoundObjectExpression(const DiagnosticUtils::SourceLocation &location);
+
+  /*
+    Overrides
+  */
+
+  BinderKindUtils::BoundNodeKind getKind() const override;
+  std::vector<BoundNode *> getChildren() override;
 
   /*
     Setters
   */
 
-  inline auto addKeyValuePair(
-      std::unique_ptr<BoundLiteralExpression<std::any>> key,
-      std::unique_ptr<BoundExpression> value) -> void {
+  inline auto
+  addKeyValuePair(std::unique_ptr<BoundLiteralExpression<std::any>> key,
+                  std::unique_ptr<BoundExpression> value) -> void {
     this->_key_value_pairs.push_back(
         std::make_pair(std::move(key), std::move(value)));
   }
@@ -33,13 +40,10 @@ class BoundObjectExpression : public BoundExpression {
     return this->_key_value_pairs;
   }
 
- public:
-  BinderKindUtils::BoundNodeKind getKind() const override;
-  std::vector<BoundNode *> getChildren() override;
-
+public:
   inline virtual const std::type_info &getType() override {
     return typeid(BoundObjectExpression);
   }
 };
 
-#endif  // __FLOW_BoundObjectExpression_H
+#endif // __FLOW_BoundObjectExpression_H

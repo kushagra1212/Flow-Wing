@@ -215,6 +215,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::DeciKeyword:
     return "DeciKeyword";
 
+  case SyntaxKind::NirastKeyword:
+    return "NirastKeyword";
+
   case SyntaxKind::StrKeyword:
     return "StrKeyword";
 
@@ -228,6 +231,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   }
   case SyntaxKind::FromKeyword: {
     return "FromKeyword";
+  }
+
+  case SyntaxKind::NirastExpression: {
+    return "NirastExpression";
   }
 
   case SyntaxKind::BringStatementSyntax:

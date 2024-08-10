@@ -57,8 +57,13 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
   llvm::Type *rhsType = rhsValue->getType();
 
   llvm::Value *result = nullptr;
-  if (_typeMapper->isStringType(lhsType) ||
-      _typeMapper->isStringType(rhsType)) {
+
+  if (_typeMapper->isNirastValue(lhsValue) ||
+      _typeMapper->isNirastValue(rhsValue)) {
+    result = _nirastBinaryOperationStrategy->performOperation(
+        lhsValue, rhsValue, binaryExpression);
+  } else if (_typeMapper->isStringType(lhsType) ||
+             _typeMapper->isStringType(rhsType)) {
     result = _stringBinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),

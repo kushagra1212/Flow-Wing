@@ -74,6 +74,10 @@ const bool TypeMapper::isStringType(llvm::Type *type) const {
          SyntaxKindUtils::SyntaxKind::StrKeyword;
 }
 
+const bool TypeMapper::isNirastValue(llvm::Value *value) const {
+  return value ==
+         llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
+}
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::BoolKeyword;
@@ -161,6 +165,8 @@ TypeMapper::getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const {
     return "'String'";
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
     return "'Nothing'";
+  case SyntaxKindUtils::SyntaxKind::NirastKeyword:
+    return "'Nirast'";
   default:
     break;
   }
@@ -197,6 +203,9 @@ llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
     break;
   case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
+    break;
+  case SyntaxKindUtils::SyntaxKind::NirastKeyword:
+    _retVal = llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
     break;
   default:
     break;
@@ -324,8 +333,8 @@ uint64_t TypeMapper::getSizeOf(SyntaxKindUtils::SyntaxKind type) {
   case SyntaxKindUtils::SyntaxKind::StrKeyword:
     return sizeof(int8_t);
     break;
+  case SyntaxKindUtils::SyntaxKind::NirastKeyword:
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
-    break;
   case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
     break;
   default:

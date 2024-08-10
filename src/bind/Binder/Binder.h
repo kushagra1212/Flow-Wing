@@ -60,6 +60,7 @@
 #include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundModuleStatement/BoundModuleStatement.h"
+#include "../BoundNirastExpression/BoundNirastExpression.h"
 #include "../BoundObjectExpression/BoundObjectExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
@@ -156,6 +157,9 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindunaryExpression(UnaryExpressionSyntax *unaryExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindNirastExpression(NirastExpressionSyntax *nirastExpressionSyntax);
 
   std::unique_ptr<BoundExpression>
   bindBinaryExpression(BinaryExpressionSyntax *binaryExpression);

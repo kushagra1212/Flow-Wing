@@ -218,6 +218,12 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
         SyntaxKindUtils::SyntaxKind::Deci32Keyword, start, text, "float");
   }
 
+  else if (text == "Nir") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::NirastKeyword, start, text, "Nir");
+  }
+
   else if (text == "bring") {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,

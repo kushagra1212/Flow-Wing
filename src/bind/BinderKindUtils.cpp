@@ -26,6 +26,8 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "BoundBracketedExpression";
   case BoundObjectTypeExpression:
     return "BoundObjectTypeExpression";
+  case BoundNirastExpression:
+    return "BoundNirastExpression";
   case BoundStatementKind:
     return "BoundStatementKind";
   case ExpressionStatement:

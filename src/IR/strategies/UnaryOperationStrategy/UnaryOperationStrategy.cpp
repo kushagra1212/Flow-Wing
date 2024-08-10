@@ -41,6 +41,9 @@ llvm::Value *UnaryOperationStrategy::performOperation(
     } else if (typeMapper->isBoolType(type)) {
       // For boolean values, perform logical NOT
       result = Builder->CreateNot(val);
+    } else if (typeMapper->isNirastValue(val)) {
+      result = Builder->CreateICmpNE(
+          val, llvm::Constant::getNullValue(val->getType()));
     }
     break;
   }

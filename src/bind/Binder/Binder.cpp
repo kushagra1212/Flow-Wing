@@ -359,6 +359,17 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
   // this->root = std::make_unique<BoundScope>(std::move(this->root));
 
   for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
+    if (fun->isOnlyDeclared()) {
+      _currentModuleName = boundModuleStat->getModuleName();
+      // boundModuleStat->addFunctionStatement(
+      //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
+
+      boundModuleStat->addFunctionStatement(
+          std::move(this->bindFunctionDeclaration(fun.get(), "")));
+      _currentModuleName = "";
+      continue;
+    }
+
     fun->setIsOnlyDeclared(true);
     _currentModuleName = boundModuleStat->getModuleName();
     // boundModuleStat->addFunctionStatement(
@@ -1297,6 +1308,9 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ObjectExpression: {
     return std::move(bindObjectExpression((ObjectExpressionSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::NirastExpression: {
+    return std::move(bindNirastExpression((NirastExpressionSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
@@ -1316,6 +1330,18 @@ Binder::bindObjectExpression(ObjectExpressionSyntax *objectExpressionSyntax) {
   }
 
   return std::move(boundObjectExpression);
+}
+
+std::unique_ptr<BoundExpression>
+Binder::bindNirastExpression(NirastExpressionSyntax *nirastExpressionSyntax) {
+  std::unique_ptr<BoundNirastExpression> boundNirastExpression =
+      std::make_unique<BoundNirastExpression>(
+          nirastExpressionSyntax->getSourceLocation());
+
+  boundNirastExpression->setNirastExpression(std::move(bindLiteralExpression(
+      nirastExpressionSyntax->getNirastExpressionRef().get())));
+
+  return std::move(boundNirastExpression);
 }
 
 std::unique_ptr<BoundExpression> Binder::bindVariableExpression(

@@ -27,17 +27,13 @@ ModuleStatementGenerationStrategy::declare(BoundStatement *statement) {
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
-  uint64_t count = 0;
 
   for (int64_t i = 0;
        i < boundModuleStatement->getFunctionStatementsRef().size(); i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundModuleStatement->getFunctionStatementsRef()[i].get());
 
-    if (!fd->isOnlyDeclared()) {
-      llvm::Function *F = functionDeclarationGenerationStrategy->generate(fd);
-      count++;
-    }
+    functionDeclarationGenerationStrategy->generate(fd);
   }
 
   return nullptr;

@@ -21,6 +21,7 @@ enum BoundNodeKind {
   BoundArrayTypeExpression,
   BoundObjectTypeExpression,
   BoundObjectExpression,
+  BoundNirastExpression,
 
   // Statements
   BoundStatementKind,
