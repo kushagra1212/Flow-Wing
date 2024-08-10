@@ -199,6 +199,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::CommentStatement:
     return "CommentStatement";
 
+  case SyntaxKind::ModuleStatement:
+    return "ModuleStatement";
+
   case SyntaxKind::NthgKeyword:
     return "NthgKeyword";
 
@@ -211,6 +214,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "Int8Keyword";
   case SyntaxKind::DeciKeyword:
     return "DeciKeyword";
+
+  case SyntaxKind::NirastKeyword:
+    return "NirastKeyword";
 
   case SyntaxKind::StrKeyword:
     return "StrKeyword";
@@ -225,6 +231,10 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   }
   case SyntaxKind::FromKeyword: {
     return "FromKeyword";
+  }
+
+  case SyntaxKind::NirastExpression: {
+    return "NirastExpression";
   }
 
   case SyntaxKind::BringStatementSyntax:
@@ -269,6 +279,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::TypeKeyword:
     return "TypeKeyword";
+
+  case SyntaxKind::ModuleKeyword:
+    return "ModuleKeyword";
 
   case SyntaxKind::ObjectTypeExpression:
     return "ObjectTypeExpression";

@@ -1865,7 +1865,8 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
     printUnit("{ ", "{ ", builder);
 
     BoundCustomTypeStatement *boundCustomTypeStatement =
-        _codeGenerationContext->getType(parObjType->getStructName().str())
+        _codeGenerationContext
+            ->getFlowWingType(parObjType->getStructName().str())
             .getCustomType();
 
     if (!boundCustomTypeStatement) {
@@ -1897,7 +1898,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
           {builder.CreateGlobalStringPtr(propertyKey), builder.getInt1(false)});
       printUnit(" : ", " : ", builder);
       std::string key = KEY_PRIFIX + "." + propertyKey;
-      size_t index = _codeGenerationContext->getType(key).getIndex();
+      size_t index = _codeGenerationContext->getFlowWingType(key).getIndex();
 
       if (index == -1) {
         _codeGenerationContext->getLogger()->LogError(

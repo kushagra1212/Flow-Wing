@@ -13,7 +13,7 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
       _objectTypeExpr->getLocation());
 
   llvm::StructType *structType =
-      _codeGenerationContext->getType(_objectTypeExpr->getTypeName())
+      _codeGenerationContext->getFlowWingType(_objectTypeExpr->getTypeName())
           .getStructType();
 
   if (!structType && _codeGenerationContext->_classTypes.find(

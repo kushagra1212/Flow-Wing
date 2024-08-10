@@ -17,6 +17,7 @@ public:
   const SyntaxKindUtils::SyntaxKind getSyntaxKind();
   const T &getValue();
   void setValue(T value);
+  void setText(std::string text);
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -54,6 +55,12 @@ template <typename T> void LiteralExpressionSyntax<T>::setValue(T value) {
   // }
   this->_value = value;
 }
+
+template <typename T>
+void LiteralExpressionSyntax<T>::setText(std::string text) {
+  this->_token->setText(text);
+}
+
 template <typename T>
 const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
   return SyntaxKindUtils::SyntaxKind::LiteralExpression;

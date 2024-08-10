@@ -775,6 +775,27 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   return false;
 }
 
+std::filesystem::path Utils::findFile(const std::filesystem::path &directory,
+                                      const std::string &filename) {
+  std::queue<std::filesystem::path> directories;
+  directories.push(directory);
+
+  while (!directories.empty()) {
+    std::filesystem::path currentDir = directories.front();
+    directories.pop();
+
+    for (const auto &entry : std::filesystem::directory_iterator(currentDir)) {
+      if (entry.is_directory()) {
+        directories.push(entry.path());
+      } else if (entry.path().filename() == filename) {
+        return entry.path();
+      }
+    }
+  }
+
+  return std::filesystem::path();
+}
+
 std::unordered_map<std::string, int> Utils::Node::fileMap =
     std::unordered_map<std::string, int>();
 

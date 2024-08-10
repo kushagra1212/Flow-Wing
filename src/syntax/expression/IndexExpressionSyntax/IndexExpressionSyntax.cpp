@@ -1,9 +1,8 @@
 #include "IndexExpressionSyntax.h"
 
 IndexExpressionSyntax::IndexExpressionSyntax(
-    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression) {
-  this->_identifierExpression = std::move(identifierExpression);
-}
+    std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression)
+    : _identifierExpression(std::move(identifierExpression)) {}
 
 std::unique_ptr<LiteralExpressionSyntax<std::any>> &
 IndexExpressionSyntax::getIndexIdentifierExpressionPtr() {

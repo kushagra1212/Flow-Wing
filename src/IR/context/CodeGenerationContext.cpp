@@ -533,7 +533,7 @@ void CodeGenerationContext::getRetrunedArrayType(
   }
 
   if (strs[2] == "ay") {
-    arrayElementType = this->getType(strs[3]).getType();
+    arrayElementType = this->getFlowWingType(strs[3]).getType();
 
     if (!arrayElementType)
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
@@ -572,13 +572,13 @@ void CodeGenerationContext::getReturnedObjectType(
       objectType = _classTypes[strs[3]]->getClassType();
     else {
 
-      if (!(this->getType(strs[3]).getStructType())) {
+      if (!(this->getFlowWingType(strs[3]).getStructType())) {
         this->getLogger()->LogError("Expected a object of type " +
                                     Utils::getActualTypeName(strs[3]));
         return;
       }
 
-      objectType = this->getType(strs[3]).getStructType();
+      objectType = this->getFlowWingType(strs[3]).getStructType();
     }
   }
 }

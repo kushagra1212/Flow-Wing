@@ -7,6 +7,7 @@
 #include "ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
 #include "LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
 #include "ParenthesizedExpressionGenerationStrategy/ParenthesizedExpressionGenerationStrategy.h"
 #include "UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
 #include "VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
@@ -45,6 +46,9 @@ ExpressionGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::BoundBracketedExpression:
     return std::make_unique<BracketedExpressionGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::BoundNirastExpression:
+    return std::make_unique<NirastExpressionGenerationStrategy>(
         _codeGenerationContext);
 
   default: {

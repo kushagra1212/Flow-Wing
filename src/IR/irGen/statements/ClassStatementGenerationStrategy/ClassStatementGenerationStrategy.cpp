@@ -19,6 +19,9 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
+  Utils::DEBUG_LOG("LLVM: Declaring Class: " +
+                   boundClassStatement->getClassName());
+
   std::unique_ptr<Class> classObjectSave = std::make_unique<Class>(
       boundClassStatement->getClassName(), boundClassStatement);
 
@@ -59,7 +62,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
     std::string typeName = boundCustomTypeStatement->getTypeNameAsString();
 
-    if (!_codeGenerationContext->getType(typeName).getStructType()) {
+    if (!_codeGenerationContext->getFlowWingType(typeName).getStructType()) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected an object type " + Utils::getActualTypeName(typeName),
           boundCustomTypeStatement->getLocation());

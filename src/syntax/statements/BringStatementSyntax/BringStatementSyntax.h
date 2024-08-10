@@ -14,6 +14,7 @@ class BringStatementSyntax : public StatementSyntax {
   std::string relativeFilePath;
   std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
   std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
+  bool _isModuleImport = false;
 
 public:
   void
@@ -46,6 +47,12 @@ public:
   const std::unique_ptr<SyntaxToken<std::any>> &getBringKeywordPtr();
 
   const std::unique_ptr<SyntaxToken<std::any>> &getPathTokenPtr();
+
+  inline auto setIsModuleImport(const bool &isModuleImport) -> void {
+    _isModuleImport = isModuleImport;
+  }
+
+  inline auto getIsModuleImport() -> bool { return _isModuleImport; }
 };
 
 #endif // BRING_STATEMENT_SYNTAX_H

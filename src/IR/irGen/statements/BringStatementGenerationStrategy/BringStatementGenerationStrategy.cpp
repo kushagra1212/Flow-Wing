@@ -88,7 +88,7 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
   std::replace(absoluteFilePathWithoutExtension.begin(),
-               absoluteFilePathWithoutExtension.end(), '/', 'i');
+               absoluteFilePathWithoutExtension.end(), '/', '-');
 
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),

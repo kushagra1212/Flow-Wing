@@ -102,6 +102,8 @@ bool isInteger(const std::string &str);
 bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
 auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
+std::filesystem::path findFile(const std::filesystem::path &directory,
+                               const std::string &filename);
 
 inline auto getActualTypeName(const std::string &typeName) -> std::string {
   return typeName.substr(0, typeName.find("."));
@@ -116,6 +118,12 @@ inline std::string print_log(const std::string &str, const std::string &color) {
 
   res += color + str + RESET;
   return res;
+}
+
+inline auto DEBUG_LOG(const std::string &str) -> void {
+#ifdef DEBUG
+  std::cout << "[DEBUG] " << BLUE_TEXT << str << RESET << std::endl;
+#endif
 }
 
 std::vector<std::string>

@@ -1,0 +1,71 @@
+module [File]
+
+
+
+
+type IO_FILE = {
+  flags:int,
+  IO_read_ptr:str,
+  IO_read_end:str,
+  IO_read_base:str,
+  IO_write_base:str,
+  IO_write_ptr:str,
+  IO_write_end:str,
+  IO_buf_base:str,
+  IO_buf_end:str,
+  IO_save_base:str,
+  IO_backup_base:str,
+  IO_save_end:str,
+  /; struct ptr 
+  IO_marker:str,
+  IO_FILE:str,
+
+  /; 
+  fileno:int,
+  blksize:int,
+  flags2:int64,
+  
+  /;
+  t8_1:int8,
+  t8_2:int8,
+  t8:int8,
+  s:str[1],
+  b:str,
+  c:int64,
+
+  IO_codecvt:str,
+  IO_wide_data:str,
+  IO_FILE2:str,
+
+  /; 
+  j:str,
+  k:int64,
+  l:int,
+  p:int8[20]
+}
+
+
+
+fun fopen(fileName: str, mode: as str) ->as str decl 
+
+
+
+fun openFile(fileName: str, mode: as str) -> as str {
+    return fopen(fileName,mode)
+}
+
+
+fun fread(buffer:str[256], start:as int, end: as int, file: str) -> as int decl  
+
+
+fun readFile(buffer: str[256], file: str) -> int {
+  return fread(buffer,0,10,file)
+}
+
+/#
+
+declare i64 @fread(i8*, i64, i64, i8*)
+declare i64 @fwrite(i8*, i64, i64, i8*)
+declare i32 @fclose(i8*)
+
+fun 

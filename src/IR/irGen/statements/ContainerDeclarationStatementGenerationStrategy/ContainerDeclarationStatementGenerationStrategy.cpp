@@ -25,9 +25,9 @@ llvm::Value *ContainerDeclarationStatementGenerationStrategy::declare() {
         static_cast<BoundObjectTypeExpression *>(
             _arrayTypeExpression->getNonTrivialElementType().get());
 
-    _elementType =
-        _codeGenerationContext->getType(objectTypeExpression->getTypeName())
-            .getStructType();
+    _elementType = _codeGenerationContext
+                       ->getFlowWingType(objectTypeExpression->getTypeName())
+                       .getStructType();
   }
 
   llvm::ArrayType *arrayType = nullptr;

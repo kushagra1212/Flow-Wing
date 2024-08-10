@@ -59,6 +59,8 @@
 #include "../BoundIfStatement/BoundIfStatement.h"
 #include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../BoundModuleStatement/BoundModuleStatement.h"
+#include "../BoundNirastExpression/BoundNirastExpression.h"
 #include "../BoundObjectExpression/BoundObjectExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
@@ -81,6 +83,7 @@ class Binder {
 private:
   std::unique_ptr<BoundScope> root;
   FLowWing::DiagnosticHandler *_diagnosticHandler;
+  std::string _currentModuleName;
 
 public:
   Binder(std::unique_ptr<BoundScope> root,
@@ -142,6 +145,9 @@ public:
   std::unique_ptr<BoundStatement>
   bindCustomTypeStatement(CustomTypeStatementSyntax *customTypeStatement);
 
+  std::unique_ptr<BoundStatement>
+  bindModuleStatement(ModuleStatementSyntax *moduleStatement);
+
   // BoundExpressions
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
@@ -151,6 +157,9 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindunaryExpression(UnaryExpressionSyntax *unaryExpression);
+
+  std::unique_ptr<BoundExpression>
+  bindNirastExpression(NirastExpressionSyntax *nirastExpressionSyntax);
 
   std::unique_ptr<BoundExpression>
   bindBinaryExpression(BinaryExpressionSyntax *binaryExpression);
@@ -173,7 +182,7 @@ public:
   std::unique_ptr<BoundExpression>
   bindBracketedExpression(BracketedExpressionSyntax *bracketedExpression);
 
-  std::unique_ptr<BoundVariableExpression>
+  std::unique_ptr<BoundExpression>
   bindVariableExpression(VariableExpressionSyntax *variableExpressionSyntax);
 
   std::unique_ptr<BoundTypeExpression>

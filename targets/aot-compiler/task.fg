@@ -1,0 +1,23 @@
+bring {x,k,j,callS} from "file1.fg"
+
+
+print(x)
+
+print(k)
+
+print(j)
+
+
+
+callS(88)
+
+var p:T  
+
+p = {a:2 }
+print("print p ",p )
+
+var g:A = new A({})
+
+g.printY()
+
+

@@ -40,6 +40,7 @@ public:
   inline auto restoreBuilder() { _builder = _PreviousBuilder; }
   const bool isVoidType(llvm::Type *type) const;
   const bool isStringType(llvm::Type *type) const;
+  const bool isNirastValue(llvm::Value *value) const;
   const bool isBoolType(llvm::Type *type) const;
   const bool isDoubleType(llvm::Type *type) const;
   const bool isFloatType(llvm::Type *type) const;

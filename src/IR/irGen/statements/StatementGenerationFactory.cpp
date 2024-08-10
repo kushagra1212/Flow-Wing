@@ -10,6 +10,7 @@
 #include "ForStatementGenerationStrategy/ForStatementGenerationStrategy.h"
 #include "FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 #include "IfStatementGenerationStrategy/IfStatementGenerationStrategy.h"
+#include "ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
 #include "ReturnStatementGenerationStrategy/ReturnStatementGenerationStrategy.h"
 #include "VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "WhileStatementGenerationStrategy/WhileStatementGenerationStrategy.h"
@@ -60,6 +61,9 @@ StatementGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::ClassStatement:
     return std::make_unique<ClassStatementGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::BoundModuleStatement:
+    return std::make_unique<ModuleStatementGenerationStrategy>(
         _codeGenerationContext);
   default: {
     _codeGenerationContext->getLogger()->LogError(

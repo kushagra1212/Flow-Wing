@@ -1,5 +1,19 @@
 
 
+
+-  Getting SegFault When I try to create a variable (Only GLOBAL) of class type in parent file and import it 
+
+file.fg 
+
+var x:A  = new A()
+
+
+fill2.fg 
+bring file.fg
+
+Getting Seg Fault
+
+
 Done:
 
 1. DEBUG Bug -> BreakKeyword is used in the BreakKeywordStatement and similary for some other keyword as well same issue

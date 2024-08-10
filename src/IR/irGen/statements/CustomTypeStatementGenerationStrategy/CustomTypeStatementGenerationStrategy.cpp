@@ -49,10 +49,14 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
 
     index++;
   }
+  Utils::DEBUG_LOG("Declaring CustomType: " +
+                   boundCustomTypeStatement->getTypeNameAsString());
   llvm::StructType *structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
 
+  Utils::DEBUG_LOG("Declaring CustomType: " +
+                   structType->getStructName().str());
   _codeGenerationContext
       ->_typesMap[boundCustomTypeStatement->getTypeNameAsString()] =
       FlowWing::Type::TypeBuilder()
@@ -87,8 +91,9 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
     } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
                    boundArrayTypeExpression->getNonTrivialElementType()
                        .get())) {
-      elementType = _codeGenerationContext->getType(objectType->getTypeName())
-                        .getStructType();
+      elementType =
+          _codeGenerationContext->getFlowWingType(objectType->getTypeName())
+              .getStructType();
     }
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         boundArrayTypeExpression->getLocation());
@@ -135,7 +140,8 @@ CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
         _codeGenerationContext->_classTypes.end()) {
 
       type = _codeGenerationContext->_classTypes[typeName]->getClassType();
-    } else if ((_codeGenerationContext->getType(typeName).getStructType())) {
+    } else if ((_codeGenerationContext->getFlowWingType(typeName)
+                    .getStructType())) {
 
       type = (_codeGenerationContext->_typesMap[typeName].getStructType());
     } else {

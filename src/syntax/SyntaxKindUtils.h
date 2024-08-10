@@ -94,6 +94,8 @@ enum SyntaxKind {
   InOutKeyword,
   ExtendsKeyword,
   Askeyword,
+  ModuleKeyword,
+  NirastKeyword,
 
   // Identifiers
   IdentifierToken,
@@ -109,6 +111,7 @@ enum SyntaxKind {
   CallExpression,
   IndexExpression,
   ContainerExpression,
+  NirastExpression,
   FillExpression,
   BracketedExpression,
   // Statements
@@ -133,6 +136,7 @@ enum SyntaxKind {
   VariableExpressionSyntax,
   ArrayVariableExpressionSyntax,
   BreakStatement,
+  ModuleStatement,
   ContinueStatement,
   PrimitiveTypeExpression,
   ArrayTypeExpression,

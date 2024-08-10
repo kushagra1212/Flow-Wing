@@ -15,6 +15,7 @@
 #include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
+#include "../strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
 #include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 #include "expressions/ExpressionGenerationFactory.h"
@@ -22,39 +23,6 @@
 
 class GenerationStrategy {
 public:
-  CodeGenerationContext *_codeGenerationContext;
-
-  llvm::Module *TheModule = nullptr;
-  llvm::IRBuilder<> *Builder = nullptr;
-  llvm::LLVMContext *TheContext = nullptr;
-  std::unique_ptr<LLVMValueConverter> _llvmValueConverter;
-
-  // Value Visitor
-  std::unique_ptr<TypeSpecificValueVisitor> _typeSpecificValueVisitor;
-
-  // Binary Operation Strategy
-  std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
-  std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
-  std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
-  std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
-  std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
-
-  // Unary Operation Strategy
-  std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;
-
-  // Convertors
-
-  std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
-  std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
-  std::unique_ptr<FloatTypeConverter> _floatTypeConverter;
-  std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
-  std::unique_ptr<StringTypeConverter> _stringTypeConverter;
-
-  // Factories
-
-  std::unique_ptr<ExpressionGenerationFactory> _expressionGenerationFactory;
-  std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
-
   GenerationStrategy(CodeGenerationContext *context)
       : _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
@@ -78,6 +46,8 @@ public:
             std::make_unique<StringBinaryOperationStrategy>(context)),
         _floatBinaryOperationStrategy(
             std::make_unique<FloatBinaryOperationStrategy>(context)),
+        _nirastBinaryOperationStrategy(
+            std::make_unique<NirastBinaryOperationStrategy>(context)),
 
         // Initialize the type converters
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
@@ -93,6 +63,39 @@ public:
             std::make_unique<ExpressionGenerationFactory>(context)),
         _statementGenerationFactory(
             std::make_unique<StatementGenerationFactory>(context)){};
+  CodeGenerationContext *_codeGenerationContext;
+
+  llvm::Module *TheModule = nullptr;
+  llvm::IRBuilder<> *Builder = nullptr;
+  llvm::LLVMContext *TheContext = nullptr;
+  std::unique_ptr<LLVMValueConverter> _llvmValueConverter;
+
+  // Value Visitor
+  std::unique_ptr<TypeSpecificValueVisitor> _typeSpecificValueVisitor;
+
+  // Binary Operation Strategy
+  std::unique_ptr<Int32BinaryOperationStrategy> _int32BinaryOperationStrategy;
+  std::unique_ptr<BoolBinaryOperationStrategy> _boolBinaryOperationStrategy;
+  std::unique_ptr<DoubleBinaryOperationStrategy> _doubleBinaryOperationStrategy;
+  std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
+  std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
+  std::unique_ptr<NirastBinaryOperationStrategy> _nirastBinaryOperationStrategy;
+
+  // Unary Operation Strategy
+  std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;
+
+  // Convertors
+
+  std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
+  std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
+  std::unique_ptr<FloatTypeConverter> _floatTypeConverter;
+  std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
+  std::unique_ptr<StringTypeConverter> _stringTypeConverter;
+
+  // Factories
+
+  std::unique_ptr<ExpressionGenerationFactory> _expressionGenerationFactory;
+  std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
 };
 
 #endif // __FLOWWING_GENERATION_STRATEGY_H__

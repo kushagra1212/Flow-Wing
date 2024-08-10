@@ -17,8 +17,17 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     return;
 
   switch (child->getKind()) {
-  case BinderKindUtils::BoundNodeKind::FunctionDeclaration:
+  case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
+
+    break;
+  }
   case BinderKindUtils::BoundNodeKind::BringStatement: {
+    BoundBringStatement *bringStatement =
+        static_cast<BoundBringStatement *>(child);
+
+    if (bringStatement->isModuleImport()) {
+      declareVariables(bringStatement, isGlobal);
+    }
 
     break;
   }
@@ -39,6 +48,19 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
 
     _callExpressionGenerationStrategy->declare(
         static_cast<BoundCallExpression *>(child));
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::BoundModuleStatement: {
+
+    BoundModuleStatement *moduleStatement =
+        static_cast<BoundModuleStatement *>(child);
+
+    for (const auto &variable :
+         moduleStatement->getVariableDeclarationStatementsRef()) {
+      _variableDeclarationStatementGenerationStrategy->declareGlobal(
+          static_cast<BoundVariableDeclaration *>(variable.get()));
+    }
+
     break;
   }
   case BinderKindUtils::BoundNodeKind::AssignmentExpression: {
