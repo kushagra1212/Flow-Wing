@@ -7,23 +7,42 @@
 #include "../StatementSyntax.h"
 
 class ReturnStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _returnKeyword;
-  std::unique_ptr<ExpressionSyntax> _expression;
+  std::vector<std::unique_ptr<ExpressionSyntax>> _expressionList;
 
- public:
-  ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword,
-                        std::unique_ptr<ExpressionSyntax> expression);
+public:
+  ReturnStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> returnKeyword);
 
-  std::unique_ptr<SyntaxToken<std::any>> getReturnKeyword();
-  std::unique_ptr<ExpressionSyntax> getExpression();
+  /*
+    Overrides
+  */
 
   const std::vector<SyntaxNode *> &getChildren() override;
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getReturnKeywordPtr();
-  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
+  /*
+    Setters
+  */
+  inline auto addReturnExpression(std::unique_ptr<ExpressionSyntax> expression)
+      -> void {
+    _expressionList.push_back(std::move(expression));
+  }
+
+  /*
+    Getters
+  */
+
+  inline auto getReturnExpressionListRef() const
+      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
+    return _expressionList;
+  }
+
+  inline auto getReturnKeywordRef() const
+      -> const std::unique_ptr<SyntaxToken<std::any>> & {
+    return _returnKeyword;
+  }
 };
 
-#endif  // RETURNSTATEMENTSYNTAX_H
+#endif // RETURNSTATEMENTSYNTAX_H

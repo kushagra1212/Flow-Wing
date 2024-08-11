@@ -3,11 +3,13 @@
 
 #include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "../../expressions/MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
 #include "../../statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../../statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../../statements/MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
 #include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+
 class IRCodeGenerator {
   std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
       _variableDeclarationStatementGenerationStrategy;
@@ -22,6 +24,9 @@ class IRCodeGenerator {
       _callExpressionGenerationStrategy;
   std::unique_ptr<AssignmentExpressionGenerationStrategy>
       _assignmentExpressionGenerationStrategy;
+
+  std::unique_ptr<MultipleAssignmentExpressionGenerationStrategy>
+      _multipleAssignmentExpressionGenerationStrategy;
 
   void processChildForDeclaration(BoundNode *child, bool isGlobal);
   void processChildForCustomType(BoundNode *child);

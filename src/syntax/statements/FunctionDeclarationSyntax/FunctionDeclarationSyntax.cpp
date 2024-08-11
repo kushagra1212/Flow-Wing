@@ -51,8 +51,8 @@ FunctionDeclarationSyntax::getSourceLocation() const {
   if (_body)
     return _body->getSourceLocation();
 
-  if (_returnExpression)
-    return _returnExpression->getSourceLocation();
+  for (const auto &expr : _returnTypeExpressionList)
+    return expr->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }
@@ -90,8 +90,8 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
     if (_body)
       _children.push_back(_body.get());
 
-    if (_returnExpression)
-      _children.push_back(_returnExpression.get());
+    for (auto &expr : _returnTypeExpressionList)
+      _children.push_back(expr.get());
   }
   return this->_children;
 }
@@ -156,9 +156,9 @@ void FunctionDeclarationSyntax::setBody(
   _body = std::move(body);
 }
 
-void FunctionDeclarationSyntax::setReturnType(
+void FunctionDeclarationSyntax::addReturnExpression(
     std::unique_ptr<ExpressionSyntax> returnExpression) {
-  _returnExpression = std::move(returnExpression);
+  _returnTypeExpressionList.push_back(std::move(returnExpression));
 }
 
 void FunctionDeclarationSyntax::addSeparator(

@@ -236,26 +236,26 @@ Binder::bindContinueStatement(ContinueStatementSyntax *continueStatement) {
 
 std::unique_ptr<BoundStatement>
 Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
-  std::unique_ptr<BoundExpression> boundExpression = nullptr;
+  std::unique_ptr<BoundReturnStatement> boundRetExpression =
+      std::make_unique<BoundReturnStatement>(
+          returnStatement->getSourceLocation());
+
   if (!this->root->isInFunction()) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Return Statement Outside Of Function",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       returnStatement->getReturnKeywordPtr().get())));
+                   returnStatement->getSourceLocation()));
   } else {
-    ExpressionSyntax *returnExpression =
-        returnStatement->getExpressionPtr().get();
+    // TODO IMPLEMENT all Expression
 
-    if (returnExpression) {
-      // TODO IMPLEMENT all Expression
-      boundExpression = std::move(bindExpression(returnExpression));
+    for (const auto &expr : returnStatement->getReturnExpressionListRef()) {
+      boundRetExpression->addReturnExpression(
+          std::move(bindExpression(expr.get())));
     }
   }
 
-  return std::make_unique<BoundReturnStatement>(
-      returnStatement->getSourceLocation(), std::move(boundExpression));
+  return std::move(boundRetExpression);
 }
 
 std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
@@ -1047,14 +1047,23 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
     return std::move(boundIdentifierExpression);
   }
 
-  std::unique_ptr<BoundExpression> boundRight =
-      bindExpression(assignmentExpression->getRightPtr().get());
+  if (assignmentExpression->getRightPtr()) {
 
-  return std::make_unique<BoundAssignmentExpression>(
-      assignmentExpression->getSourceLocation(),
-      root->tryGetVariable(variable_str), std::move(boundIdentifierExpression),
-      op, std::move(boundRight),
-      assignmentExpression->getNeedDefaulInitilization());
+    std::unique_ptr<BoundExpression> boundRight =
+        std::move(bindExpression(assignmentExpression->getRightPtr().get()));
+    return std::make_unique<BoundAssignmentExpression>(
+        assignmentExpression->getSourceLocation(),
+        root->tryGetVariable(variable_str),
+        std::move(boundIdentifierExpression), op, std::move(boundRight),
+        assignmentExpression->getNeedDefaulInitilization());
+  } else {
+
+    return std::make_unique<BoundAssignmentExpression>(
+        assignmentExpression->getSourceLocation(),
+        root->tryGetVariable(variable_str),
+        std::move(boundIdentifierExpression), op, nullptr,
+        assignmentExpression->getNeedDefaulInitilization());
+  }
 }
 
 std::unique_ptr<BoundExpression>
@@ -1565,8 +1574,11 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
     fd->addParameter(std::move(varDeclaration));
   }
-  fd->setReturnType(std::move(bindTypeExpression(
-      (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
+
+  for (const auto &expr : syntax->getReturnTypeExpressionListRef()) {
+    fd->addReturnExpr(
+        std::move(bindTypeExpression((TypeExpressionSyntax *)expr.get())));
+  }
 
   if (syntax->isOnlyDeclared()) {
     fd->setOnlyDeclared(true);

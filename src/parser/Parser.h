@@ -82,6 +82,7 @@ private:
   bool _isInsideCallExpression = false;
   bool _isInsideIndexExpression = false;
   bool _isInsideContainerExpression = false;
+  bool _isInsideReturnStatement = false;
 
   bool _isFormattedCodeRequired = false;
 

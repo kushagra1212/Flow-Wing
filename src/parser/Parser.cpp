@@ -301,7 +301,17 @@ Parser::parseFunctionDeclaration(bool isMemberFunction) {
     appendWithSpace();
   }
 
-  functionDeclaration->setReturnType(this->parseTypeExpression());
+  do {
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
+      (this->match(SyntaxKindUtils::SyntaxKind::CommaToken));
+      appendWithSpace();
+    }
+
+    functionDeclaration->addReturnExpression(
+        std::move(this->parseTypeExpression()));
+
+  } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
+
   appendWithSpace();
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::DeclKeyword)
@@ -930,25 +940,42 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
 std::unique_ptr<ReturnStatementSyntax> Parser::parseReturnStatement() {
   std::unique_ptr<SyntaxToken<std::any>> returnKeyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword));
+  _isInsideReturnStatement = true;
+  std::unique_ptr<ReturnStatementSyntax> returnStatement =
+      std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword));
+
+  auto parseStatement = [&]() {
+    do {
+
+      if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
+        this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+        appendWithSpace();
+      }
+
+      std::unique_ptr<ExpressionSyntax> expression =
+          std::move(this->parseExpression());
+
+      returnStatement->addReturnExpression(std::move(expression));
+
+    } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
+  };
+
   appendWithSpace();
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken);
-
-    std::unique_ptr<ExpressionSyntax> expression =
-        std::move(this->parseExpression());
+    appendWithSpace();
+    parseStatement();
+    appendWithSpace();
     this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken);
-    return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
-                                                   std::move(expression));
+
   } else if (this->getKind() != SyntaxKindUtils::SyntaxKind::ColonToken) {
-    std::unique_ptr<ExpressionSyntax> expression =
-        std::move(this->parseExpression());
-    return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
-                                                   std::move(expression));
+    parseStatement();
   } else {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
   }
-  return std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword),
-                                                 nullptr);
+
+  _isInsideReturnStatement = false;
+  return std::move(returnStatement);
 }
 
 std::unique_ptr<BreakStatementSyntax> Parser::parseBreakStatement() {
@@ -1756,24 +1783,35 @@ std::unique_ptr<ExpressionSyntax> Parser::parseMultipleAssignmentExpression(
     return std::move(multipleAssignmentExpression);
   }
 
-  for (auto &variableExpression : variableExpressionsList) {
-    appendWithSpace();
+  uint64_t index = 0;
+  appendWithSpace();
+  do {
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+      appendWithSpace();
+    }
+
     if (this->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
-      variableExpression->setNewKeyword(
+      variableExpressionsList[index]->setNewKeyword(
           std::move(this->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
       appendWithSpace();
     }
     std::unique_ptr<ExpressionSyntax> right =
         std::move(this->parseExpression());
 
-    if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
-      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
-    }
+    multipleAssignmentExpression->addAssignmentExpression(
+        std::make_unique<AssignmentExpressionSyntax>(
+            std::move(variableExpressionsList[index]), operatorToken->getKind(),
+            std::move(right), needDefaultInitialize));
+    index++;
+  } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
+
+  for (; index < variableExpressionsList.size(); index++) {
 
     multipleAssignmentExpression->addAssignmentExpression(
         std::make_unique<AssignmentExpressionSyntax>(
-            std::move(variableExpression), operatorToken->getKind(),
-            std::move(right), needDefaultInitialize));
+            std::move(variableExpressionsList[index]), operatorToken->getKind(),
+            nullptr, needDefaultInitialize));
   }
 
   appendWithSpace();

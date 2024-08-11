@@ -12,7 +12,9 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
           std::make_unique<ClassStatementGenerationStrategy>(context)),
       _multipleVariableDeclarationStatementGenerationStrategy(
           std::make_unique<
-              MultipleVariableDeclarationStatementGenerationStrategy>(
+              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
+      _multipleAssignmentExpressionGenerationStrategy(
+          std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
               context)) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
@@ -53,15 +55,15 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
         static_cast<BoundMultipleVariableDeclaration *>(child);
 
-    // if (isGlobal) {
-    //   _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
-    //       boundMultipleVariableDeclaration);
-    // } else {
-    //   _multipleVariableDeclarationStatementGenerationStrategy->declareLocal(
-    //       boundMultipleVariableDeclaration);
-    // }
+    if (isGlobal) {
+      _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
+          boundMultipleVariableDeclaration);
+    } else {
+      _multipleVariableDeclarationStatementGenerationStrategy->declareLocal(
+          boundMultipleVariableDeclaration);
+    }
 
-    declareVariables(child, isGlobal);
+    //    declareVariables(child, isGlobal);
     break;
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
@@ -88,6 +90,14 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
         static_cast<BoundAssignmentExpression *>(child));
 
     declareVariables(child, isGlobal);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression: {
+
+    _multipleAssignmentExpressionGenerationStrategy->declare(
+        static_cast<BoundAssignmentExpression *>(child));
+
+    //  declareVariables(child, isGlobal);
     break;
   }
   default:

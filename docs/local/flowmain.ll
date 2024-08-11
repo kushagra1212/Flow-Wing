@@ -1,10 +1,13 @@
 ; ModuleID = 'flowmain'
 source_filename = "flowmain"
 
+%0 = type { ptr, ptr }
+%1 = type { ptr, ptr }
+%2 = type { ptr, ptr }
+%3 = type { ptr, ptr }
 %"A::VTableType" = type { ptr }
-%T.1 = type { i32, double, %J.0 }
-%J.0 = type { ptr }
 %A = type { ptr, i32 }
+%T.0 = type { i32 }
 
 @flowmain_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @flowmain_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
@@ -13,129 +16,57 @@ source_filename = "flowmain"
 @flowmain_FLOWWING_CONTINUE_COUNT = global i32 0
 @flowmain_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
 @vtable.A.fg = common global %"A::VTableType" zeroinitializer
-@x = common global i32 0
-@y = common global ptr null
 @0 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@a = common global i32 0
+@u = common global i32 0
 @b = common global ptr null
-@1 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@c = common global double 0.000000e+00
-@e = common global i1 false
-@g = common global %T.1 zeroinitializer
-@2 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@f = common global [10 x %T.1] zeroinitializer
-@l = common global i32 0
-@aa = common global ptr null
-@3 = private unnamed_addr constant [6 x i8] c"hello\00", align 1
+@rtStructPtr = common global %0 zeroinitializer
+@1 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s" = private constant ptr @1
+@2 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d" = private constant ptr @2
+@3 = private unnamed_addr constant [5 x i8] c"Helo\00", align 1
 @4 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s" = private constant ptr @4
+@"%s.3" = private constant ptr @4
 @5 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d" = private constant ptr @5
+@"%d.4" = private constant ptr @5
 @6 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.1" = private constant ptr @6
-@7 = private unnamed_addr constant [3 x i8] c"Hi\00", align 1
+@"%s.5" = private constant ptr @6
+@7 = private unnamed_addr constant [2 x i8] c"r\00", align 1
 @8 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.2" = private constant ptr @8
+@"%s.6" = private constant ptr @8
 @9 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.3" = private constant ptr @9
+@"%d.7" = private constant ptr @9
 @10 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.4" = private constant ptr @10
+@"%s.8" = private constant ptr @10
 @11 = private unnamed_addr constant [2 x i8] c"e\00", align 1
-@12 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@13 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.5" = private constant ptr @13
+@12 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.9" = private constant ptr @12
+@13 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.10" = private constant ptr @13
 @14 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.6" = private constant ptr @14
+@"%s.11" = private constant ptr @14
 @15 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.7" = private constant ptr @15
-@16 = private unnamed_addr constant [2 x i8] c"[\00", align 1
-@openBracket = private constant ptr @16
+@"%s.12" = private constant ptr @15
+@16 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.13" = private constant ptr @16
 @17 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.8" = private constant ptr @17
-@18 = private unnamed_addr constant [3 x i8] c", \00", align 1
-@comma = private constant ptr @18
-@19 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.9" = private constant ptr @19
-@20 = private unnamed_addr constant [3 x i8] c"{ \00", align 1
-@"{ " = private constant ptr @20
-@21 = private unnamed_addr constant [2 x i8] c"a\00", align 1
+@"%s.14" = private constant ptr @17
+@18 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.15" = private constant ptr @18
+@19 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.16" = private constant ptr @19
+@20 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.17" = private constant ptr @20
+@21 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.18" = private constant ptr @21
 @22 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.10" = private constant ptr @22
-@23 = private unnamed_addr constant [4 x i8] c" : \00", align 1
-@" : " = private constant ptr @23
-@24 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.11" = private constant ptr @24
-@25 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.12" = private constant ptr @25
-@26 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.13" = private constant ptr @26
-@27 = private unnamed_addr constant [3 x i8] c", \00", align 1
-@" , " = private constant ptr @27
-@28 = private unnamed_addr constant [2 x i8] c"b\00", align 1
-@29 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.14" = private constant ptr @29
-@30 = private unnamed_addr constant [4 x i8] c" : \00", align 1
-@" : .15" = private constant ptr @30
-@31 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.16" = private constant ptr @31
-@32 = private unnamed_addr constant [7 x i8] c"%0.14f\00", align 1
-@"%0.14f" = private constant ptr @32
-@33 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.17" = private constant ptr @33
-@34 = private unnamed_addr constant [3 x i8] c", \00", align 1
-@" , .18" = private constant ptr @34
-@35 = private unnamed_addr constant [2 x i8] c"c\00", align 1
-@36 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.19" = private constant ptr @36
-@37 = private unnamed_addr constant [4 x i8] c" : \00", align 1
-@" : .20" = private constant ptr @37
-@38 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.21" = private constant ptr @38
-@39 = private unnamed_addr constant [3 x i8] c"{ \00", align 1
-@"{ .22" = private constant ptr @39
-@40 = private unnamed_addr constant [2 x i8] c"a\00", align 1
-@41 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.23" = private constant ptr @41
-@42 = private unnamed_addr constant [4 x i8] c" : \00", align 1
-@" : .24" = private constant ptr @42
-@43 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.25" = private constant ptr @43
-@44 = private unnamed_addr constant [2 x i8] c"'\00", align 1
-@"'" = private constant ptr @44
-@45 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.26" = private constant ptr @45
-@46 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.27" = private constant ptr @46
-@47 = private unnamed_addr constant [2 x i8] c"'\00", align 1
-@"'.28" = private constant ptr @47
-@48 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.29" = private constant ptr @48
-@49 = private unnamed_addr constant [3 x i8] c" }\00", align 1
-@"}" = private constant ptr @49
-@50 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.30" = private constant ptr @50
-@51 = private unnamed_addr constant [3 x i8] c" }\00", align 1
-@"}.31" = private constant ptr @51
-@52 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.32" = private constant ptr @52
-@53 = private unnamed_addr constant [2 x i8] c"]\00", align 1
-@closeBracket = private constant ptr @53
-@54 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.33" = private constant ptr @54
-@55 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.34" = private constant ptr @55
-@56 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.35" = private constant ptr @56
-@57 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.36" = private constant ptr @57
-@58 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.37" = private constant ptr @58
-@59 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.38" = private constant ptr @59
-@60 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@"%s.39" = private constant ptr @60
-@61 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@"%d.40" = private constant ptr @61
+@"%s.19" = private constant ptr @22
+@23 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.20" = private constant ptr @23
+@24 = private unnamed_addr constant [2 x i8] c"H\00", align 1
+@"_fg_i:0" = common global i32 0
+@"_fg_numberOfElementsFilled:" = common global i32 0
+@25 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
 
 declare i32 @compare_strings(ptr, ptr)
 
@@ -179,121 +110,199 @@ declare ptr @malloc(i64)
 
 define i32 @flowmain() {
 entry:
-  store i32 0, ptr @x, align 4
-  store ptr @0, ptr @y, align 8
   %x = alloca i32, align 4
   store i32 0, ptr %x, align 4
-  store i32 0, ptr @a, align 4
-  store ptr @1, ptr @b, align 8
-  store double 0.000000e+00, ptr @c, align 8
-  store i1 false, ptr @e, align 1
-  call void @"assign_<Object<T.1>>"(ptr @g)
-  call void @"assign_<Array<Object<T.1>>>:10,"(ptr @f)
-  store i32 0, ptr @l, align 4
-  %0 = alloca i32, align 4
-  %1 = alloca i32, align 4
-  %clPtr = alloca ptr, align 8
-  store i32 2, ptr @x, align 4
-  store ptr @3, ptr @y, align 8
-  %x1 = load i32, ptr @x, align 4
-  %2 = load i32, ptr @x, align 4
-  %3 = load ptr, ptr @"%s", align 8
-  %4 = load ptr, ptr @"%d", align 8
-  call void (ptr, ...) @printf(ptr %4, i32 %2)
-  %y = load ptr, ptr @y, align 8
-  %5 = load ptr, ptr @y, align 8
-  %6 = load ptr, ptr @"%s.1", align 8
-  call void (ptr, ...) @printf(ptr %6, ptr %5)
-  %y2 = load ptr, ptr @y, align 8
-  store ptr @7, ptr @y, align 8
-  %x3 = load i32, ptr @x, align 4
-  store i32 5, ptr @x, align 4
-  %x4 = load i32, ptr @x, align 4
-  %7 = load i32, ptr @x, align 4
-  %8 = load ptr, ptr @"%s.2", align 8
-  %9 = load ptr, ptr @"%d.3", align 8
-  call void (ptr, ...) @printf(ptr %9, i32 %7)
-  %y5 = load ptr, ptr @y, align 8
-  %10 = load ptr, ptr @y, align 8
-  %11 = load ptr, ptr @"%s.4", align 8
-  call void (ptr, ...) @printf(ptr %11, ptr %10)
-  store i32 2, ptr @a, align 4
-  store ptr @11, ptr @b, align 8
-  store i32 45, ptr @l, align 4
-  %12 = call ptr @malloc(i64 16)
-  call void @"assign_<Class<A>>"(ptr %12)
-  %13 = getelementptr inbounds %A, ptr %12, i32 0, i32 0
-  store ptr @vtable.A.fg, ptr %13, align 8
-  %14 = load ptr, ptr %13, align 8
-  %15 = getelementptr inbounds %"A::VTableType", ptr %14, i32 0, i32 0
-  store ptr @A.printX, ptr %15, align 8
-  %16 = getelementptr inbounds %A, ptr %12, i32 0, i32 1
-  store i32 0, ptr %16, align 4
-  store ptr %12, ptr @aa, align 8
-  store i32 22, ptr %0, align 4
-  call void @A.init1(ptr %0, ptr @aa)
-  %c = load double, ptr @c, align 8
-  store double 2.300000e+00, ptr @c, align 8
-  store double 3.300000e+00, ptr getelementptr inbounds (%T.1, ptr @g, i32 0, i32 1), align 8
-  %e = load i1, ptr @e, align 1
-  store i1 true, ptr @e, align 1
-  store i32 10, ptr @f, align 4
-  %e6 = load i1, ptr @e, align 1
-  %17 = load i1, ptr @e, align 1
-  %18 = load ptr, ptr @"%s.5", align 8
-  %19 = load ptr, ptr @"%s.6", align 8
-  %20 = select i1 %17, ptr @flowmain_FLOWWING_GLOBAL_TRUE, ptr @flowmain_FLOWWING_GLOBAL_FALSE
-  call void (ptr, ...) @printf(ptr %19, ptr %20)
-  call void @"print_<Array<Object<T.1>>>:10,"(ptr @f)
-  %21 = load ptr, ptr @aa, align 8
-  %22 = getelementptr inbounds %A, ptr %21, i32 0, i32 1
-  %x7 = load i32, ptr %22, align 4
-  %23 = load i32, ptr %22, align 4
-  %24 = load ptr, ptr @"%s.33", align 8
-  %25 = load ptr, ptr @"%d.34", align 8
-  call void (ptr, ...) @printf(ptr %25, i32 %23)
-  %26 = load ptr, ptr @aa, align 8
-  %27 = getelementptr inbounds %A, ptr %26, i32 0, i32 0
-  %28 = load ptr, ptr %27, align 8
-  %29 = getelementptr inbounds %"A::VTableType", ptr %28, i32 0, i32 0
-  %30 = load ptr, ptr %29, align 8
-  call void %30(ptr @aa)
-  %l = load i32, ptr @l, align 4
-  store i32 12, ptr @l, align 4
-  %31 = call ptr @malloc(i64 16)
-  call void @"assign_<Class<A>>"(ptr %31)
-  %32 = getelementptr inbounds %A, ptr %31, i32 0, i32 0
-  store ptr @vtable.A.fg, ptr %32, align 8
-  %33 = load ptr, ptr %32, align 8
-  %34 = getelementptr inbounds %"A::VTableType", ptr %33, i32 0, i32 0
-  store ptr @A.printX, ptr %34, align 8
-  %35 = getelementptr inbounds %A, ptr %31, i32 0, i32 1
-  store i32 0, ptr %35, align 4
-  store ptr %31, ptr @aa, align 8
-  store i32 32, ptr %1, align 4
-  call void @A.init1(ptr %1, ptr @aa)
-  %l8 = load i32, ptr @l, align 4
-  %36 = load i32, ptr @l, align 4
-  %37 = load ptr, ptr @"%s.35", align 8
-  %38 = load ptr, ptr @"%d.36", align 8
-  call void (ptr, ...) @printf(ptr %38, i32 %36)
-  %39 = load ptr, ptr @aa, align 8
-  %40 = getelementptr inbounds %A, ptr %39, i32 0, i32 1
-  %x9 = load i32, ptr %40, align 4
-  %41 = load i32, ptr %40, align 4
-  %42 = load ptr, ptr @"%s.37", align 8
-  %43 = load ptr, ptr @"%d.38", align 8
-  call void (ptr, ...) @printf(ptr %43, i32 %41)
-  %44 = load ptr, ptr @aa, align 8
-  %45 = getelementptr inbounds %A, ptr %44, i32 0, i32 0
-  %46 = load ptr, ptr %45, align 8
-  %47 = getelementptr inbounds %"A::VTableType", ptr %46, i32 0, i32 0
-  %48 = load ptr, ptr %47, align 8
-  call void %48(ptr @aa)
+  %g = alloca i32, align 4
+  store i32 0, ptr %g, align 4
+  %x1 = alloca i32, align 4
+  store i32 0, ptr %x1, align 4
+  %y = alloca ptr, align 8
+  store ptr @0, ptr %y, align 8
+  %rtStructPtrForAssignment = alloca %1, align 8
+  store i32 0, ptr @u, align 4
+  store ptr @u, ptr @rtStructPtr, align 8
+  store ptr @b, ptr getelementptr inbounds (%0, ptr @rtStructPtr, i32 0, i32 1), align 8
+  br label %nestedBlock
+
+returnBlock:                                      ; preds = %afterNestedBlock
+  ret i32 0
+
+afterNestedBlock:                                 ; preds = %checkContinueBlock19, %nestedBlock18, %checkContinueBlock17, %nestedBlock16, %checkContinueBlock15, %nestedBlock14, %checkContinueBlock13, %nestedBlock12, %checkContinueBlock11, %nestedBlock10, %checkContinueBlock9, %nestedBlock8, %checkContinueBlock7, %nestedBlock6, %checkContinueBlock5, %nestedBlock4, %checkContinueBlock3, %nestedBlock2, %checkContinueBlock, %nestedBlock
+  call void @getFAndA(ptr @rtStructPtr)
+  %0 = load ptr, ptr @b, align 8
+  %1 = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+  %2 = load ptr, ptr %1, align 8
+  %3 = getelementptr inbounds %"A::VTableType", ptr %2, i32 0, i32 0
+  %4 = load ptr, ptr %3, align 8
+  call void %4(ptr @b)
+  %u = load i32, ptr @u, align 4
+  %5 = load i32, ptr @u, align 4
+  %6 = load ptr, ptr @"%s.15", align 8
+  %7 = load ptr, ptr @"%d.16", align 8
+  call void (ptr, ...) @printf(ptr %7, i32 %5)
+  %8 = load ptr, ptr @b, align 8
+  %9 = getelementptr inbounds %A, ptr %8, i32 0, i32 1
+  %x33 = load i32, ptr %9, align 4
+  %10 = load i32, ptr %9, align 4
+  %11 = load ptr, ptr @"%s.17", align 8
+  %12 = load ptr, ptr @"%d.18", align 8
+  call void (ptr, ...) @printf(ptr %12, i32 %10)
   br label %returnBlock
 
-returnBlock:                                      ; preds = %entry
-  ret i32 0
+nestedBlock:                                      ; preds = %entry
+  call void @getX(ptr %g)
+  %13 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %14 = icmp eq i32 %13, 0
+  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
+
+checkContinueBlock:                               ; preds = %nestedBlock
+  %15 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %16 = icmp eq i32 %15, 0
+  br i1 %16, label %nestedBlock2, label %afterNestedBlock
+
+nestedBlock2:                                     ; preds = %checkContinueBlock
+  %g20 = load i32, ptr %g, align 4
+  %17 = load i32, ptr %g, align 4
+  %18 = load ptr, ptr @"%s", align 8
+  %19 = load ptr, ptr @"%d", align 8
+  call void (ptr, ...) @printf(ptr %19, i32 %17)
+  %20 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %21 = icmp eq i32 %20, 0
+  br i1 %21, label %checkContinueBlock3, label %afterNestedBlock
+
+checkContinueBlock3:                              ; preds = %nestedBlock2
+  %22 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %23 = icmp eq i32 %22, 0
+  br i1 %23, label %nestedBlock4, label %afterNestedBlock
+
+nestedBlock4:                                     ; preds = %checkContinueBlock3
+  call void @getX(ptr %x1)
+  store ptr @3, ptr %y, align 8
+  %24 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %25 = icmp eq i32 %24, 0
+  br i1 %25, label %checkContinueBlock5, label %afterNestedBlock
+
+checkContinueBlock5:                              ; preds = %nestedBlock4
+  %26 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %27 = icmp eq i32 %26, 0
+  br i1 %27, label %nestedBlock6, label %afterNestedBlock
+
+nestedBlock6:                                     ; preds = %checkContinueBlock5
+  %x21 = load i32, ptr %x1, align 4
+  %28 = load i32, ptr %x1, align 4
+  %29 = load ptr, ptr @"%s.3", align 8
+  %30 = load ptr, ptr @"%d.4", align 8
+  call void (ptr, ...) @printf(ptr %30, i32 %28)
+  %y22 = load ptr, ptr %y, align 8
+  %31 = load ptr, ptr %y, align 8
+  %32 = load ptr, ptr @"%s.5", align 8
+  call void (ptr, ...) @printf(ptr %32, ptr %31)
+  %33 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %34 = icmp eq i32 %33, 0
+  br i1 %34, label %checkContinueBlock7, label %afterNestedBlock
+
+checkContinueBlock7:                              ; preds = %nestedBlock6
+  %35 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %36 = icmp eq i32 %35, 0
+  br i1 %36, label %nestedBlock8, label %afterNestedBlock
+
+nestedBlock8:                                     ; preds = %checkContinueBlock7
+  %y23 = load ptr, ptr %y, align 8
+  store ptr @7, ptr %y, align 8
+  %x24 = load i32, ptr %x1, align 4
+  store i32 43, ptr %x1, align 4
+  %37 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %38 = icmp eq i32 %37, 0
+  br i1 %38, label %checkContinueBlock9, label %afterNestedBlock
+
+checkContinueBlock9:                              ; preds = %nestedBlock8
+  %39 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %40 = icmp eq i32 %39, 0
+  br i1 %40, label %nestedBlock10, label %afterNestedBlock
+
+nestedBlock10:                                    ; preds = %checkContinueBlock9
+  %x25 = load i32, ptr %x1, align 4
+  %41 = load i32, ptr %x1, align 4
+  %42 = load ptr, ptr @"%s.6", align 8
+  %43 = load ptr, ptr @"%d.7", align 8
+  call void (ptr, ...) @printf(ptr %43, i32 %41)
+  %y26 = load ptr, ptr %y, align 8
+  %44 = load ptr, ptr %y, align 8
+  %45 = load ptr, ptr @"%s.8", align 8
+  call void (ptr, ...) @printf(ptr %45, ptr %44)
+  %46 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %47 = icmp eq i32 %46, 0
+  br i1 %47, label %checkContinueBlock11, label %afterNestedBlock
+
+checkContinueBlock11:                             ; preds = %nestedBlock10
+  %48 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %49 = icmp eq i32 %48, 0
+  br i1 %49, label %nestedBlock12, label %afterNestedBlock
+
+nestedBlock12:                                    ; preds = %checkContinueBlock11
+  %y27 = load ptr, ptr %y, align 8
+  store ptr @11, ptr %y, align 8
+  %x28 = load i32, ptr %x1, align 4
+  call void @getX(ptr %x1)
+  %50 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %51 = icmp eq i32 %50, 0
+  br i1 %51, label %checkContinueBlock13, label %afterNestedBlock
+
+checkContinueBlock13:                             ; preds = %nestedBlock12
+  %52 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %53 = icmp eq i32 %52, 0
+  br i1 %53, label %nestedBlock14, label %afterNestedBlock
+
+nestedBlock14:                                    ; preds = %checkContinueBlock13
+  %x29 = load i32, ptr %x1, align 4
+  %54 = load i32, ptr %x1, align 4
+  %55 = load ptr, ptr @"%s.9", align 8
+  %56 = load ptr, ptr @"%d.10", align 8
+  call void (ptr, ...) @printf(ptr %56, i32 %54)
+  %y30 = load ptr, ptr %y, align 8
+  %57 = load ptr, ptr %y, align 8
+  %58 = load ptr, ptr @"%s.11", align 8
+  call void (ptr, ...) @printf(ptr %58, ptr %57)
+  %59 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %60 = icmp eq i32 %59, 0
+  br i1 %60, label %checkContinueBlock15, label %afterNestedBlock
+
+checkContinueBlock15:                             ; preds = %nestedBlock14
+  %61 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %62 = icmp eq i32 %61, 0
+  br i1 %62, label %nestedBlock16, label %afterNestedBlock
+
+nestedBlock16:                                    ; preds = %checkContinueBlock15
+  %63 = getelementptr inbounds %1, ptr %rtStructPtrForAssignment, i32 0, i32 0
+  store ptr %x1, ptr %63, align 8
+  %64 = getelementptr inbounds %1, ptr %rtStructPtrForAssignment, i32 0, i32 1
+  store ptr %y, ptr %64, align 8
+  call void @get(ptr %rtStructPtrForAssignment)
+  %65 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %66 = icmp eq i32 %65, 0
+  br i1 %66, label %checkContinueBlock17, label %afterNestedBlock
+
+checkContinueBlock17:                             ; preds = %nestedBlock16
+  %67 = load i32, ptr @flowmain_FLOWWING_CONTINUE_COUNT, align 4
+  %68 = icmp eq i32 %67, 0
+  br i1 %68, label %nestedBlock18, label %afterNestedBlock
+
+nestedBlock18:                                    ; preds = %checkContinueBlock17
+  %x31 = load i32, ptr %x1, align 4
+  %69 = load i32, ptr %x1, align 4
+  %70 = load ptr, ptr @"%s.12", align 8
+  %71 = load ptr, ptr @"%d.13", align 8
+  call void (ptr, ...) @printf(ptr %71, i32 %69)
+  %y32 = load ptr, ptr %y, align 8
+  %72 = load ptr, ptr %y, align 8
+  %73 = load ptr, ptr @"%s.14", align 8
+  call void (ptr, ...) @printf(ptr %73, ptr %72)
+  %74 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %75 = icmp eq i32 %74, 0
+  br i1 %75, label %checkContinueBlock19, label %afterNestedBlock
+
+checkContinueBlock19:                             ; preds = %nestedBlock18
+  br label %afterNestedBlock
 }
 
 define void @A.init1(ptr %0, ptr %1) !rt !0 {
@@ -335,8 +344,8 @@ afterNestedBlock:                                 ; preds = %checkContinueBlock,
 nestedBlock:                                      ; preds = %entry
   %x = load i32, ptr %2, align 4
   %3 = load i32, ptr %2, align 4
-  %4 = load ptr, ptr @"%s.39", align 8
-  %5 = load ptr, ptr @"%d.40", align 8
+  %4 = load ptr, ptr @"%s.19", align 8
+  %5 = load ptr, ptr @"%d.20", align 8
   call void (ptr, ...) @printf(ptr %5, i32 %3)
   %6 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
   %7 = icmp eq i32 %6, 0
@@ -346,197 +355,144 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-define internal void @"assign_<Object<T.1>>"(ptr %0) {
+define void @get(ptr %0) {
 entry:
-  %1 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1, align 4
-  %2 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 1
-  store double 0.000000e+00, ptr %2, align 8
-  %3 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 2
-  call void @"assign_<Object<J.0>>"(ptr %3)
+  br label %nestedBlock
+
+afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
+  ret void
+
+nestedBlock:                                      ; preds = %entry
+  br label %returnBlock
+
+checkContinueBlock:                               ; preds = %mergeBlock
+  br label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock
+  %1 = getelementptr inbounds %2, ptr %0, i32 0, i32 0
+  %2 = load ptr, ptr %1, align 8
+  store i32 2, ptr %2, align 4
+  %3 = getelementptr inbounds %2, ptr %0, i32 0, i32 1
+  %4 = load ptr, ptr %3, align 8
+  store ptr @24, ptr %4, align 8
+  ret void
+
+mergeBlock:                                       ; No predecessors!
+  %5 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %6 = icmp eq i32 %5, 0
+  br i1 %6, label %checkContinueBlock, label %afterNestedBlock
+}
+
+declare !rt !2 void @get.1(ptr)
+
+define void @getX(ptr %0) !rt !3 {
+entry:
+  br label %nestedBlock
+
+afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
+  ret void
+
+nestedBlock:                                      ; preds = %entry
+  br label %returnBlock
+
+checkContinueBlock:                               ; preds = %mergeBlock
+  br label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock
+  store i32 2, ptr %0, align 4
+  ret void
+
+mergeBlock:                                       ; No predecessors!
+  %1 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %2 = icmp eq i32 %1, 0
+  br i1 %2, label %checkContinueBlock, label %afterNestedBlock
+}
+
+define void @getFAndA(ptr %0) {
+entry:
+  %1 = alloca i32, align 4
+  %clPtr = alloca ptr, align 8
+  br label %nestedBlock
+
+afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
+  ret void
+
+nestedBlock:                                      ; preds = %entry
+  br label %returnBlock
+
+checkContinueBlock:                               ; preds = %mergeBlock
+  br label %afterNestedBlock
+
+returnBlock:                                      ; preds = %nestedBlock
+  %2 = getelementptr inbounds %3, ptr %0, i32 0, i32 0
+  %3 = load ptr, ptr %2, align 8
+  store i32 0, ptr @"_fg_i:0", align 4
+  store i32 0, ptr @"_fg_numberOfElementsFilled:", align 4
+  br label %FillExpr.loopStart-0
+
+mergeBlock:                                       ; No predecessors!
+  %4 = load i32, ptr @flowmain_FLOWWING_BREAK_COUNT, align 4
+  %5 = icmp eq i32 %4, 0
+  br i1 %5, label %checkContinueBlock, label %afterNestedBlock
+
+FillExpr.loopStart-0:                             ; preds = %returnBlock
+  store i32 0, ptr @"_fg_i:0", align 4
+  br label %FillExpr.loopCmp-0
+
+FillExpr.loopCmp-0:                               ; preds = %FillExpr.loopBody-0, %FillExpr.loopStart-0
+  %6 = load i32, ptr @"_fg_i:0", align 4
+  %7 = icmp slt i32 %6, 2
+  %8 = load i32, ptr @"_fg_numberOfElementsFilled:", align 4
+  %9 = icmp slt i32 %8, 2
+  %10 = and i1 %7, %9
+  br i1 %10, label %FillExpr.loopBody-0, label %FillExpr.loopEnd-0
+
+FillExpr.loopBody-0:                              ; preds = %FillExpr.loopCmp-0
+  %11 = load i32, ptr @"_fg_i:0", align 4
+  %12 = getelementptr [2 x %T.0], ptr %3, i32 0, i32 %11
+  store %T.0 zeroinitializer, ptr %12, align 4
+  %13 = load i32, ptr @"_fg_i:0", align 4
+  %14 = add i32 %13, 1
+  store i32 %14, ptr @"_fg_i:0", align 4
+  %15 = load i32, ptr @"_fg_numberOfElementsFilled:", align 4
+  %16 = add i32 %15, 1
+  store i32 %16, ptr @"_fg_numberOfElementsFilled:", align 4
+  br label %FillExpr.loopCmp-0
+
+FillExpr.loopEnd-0:                               ; preds = %FillExpr.loopCmp-0
+  br label %FillExpr.exit
+
+FillExpr.exit:                                    ; preds = %FillExpr.loopEnd-0
+  %17 = getelementptr inbounds %3, ptr %0, i32 0, i32 1
+  %18 = load ptr, ptr %17, align 8
+  %19 = call ptr @malloc(i64 16)
+  call void @"assign_<Class<A>>"(ptr %19)
+  %20 = getelementptr inbounds %A, ptr %19, i32 0, i32 0
+  store ptr @vtable.A.fg, ptr %20, align 8
+  %21 = load ptr, ptr %20, align 8
+  %22 = getelementptr inbounds %"A::VTableType", ptr %21, i32 0, i32 0
+  store ptr @A.printX, ptr %22, align 8
+  %23 = getelementptr inbounds %A, ptr %19, i32 0, i32 1
+  store i32 0, ptr %23, align 4
+  store ptr %19, ptr %18, align 8
+  store i32 32, ptr %1, align 4
+  call void @A.init1(ptr %1, ptr %18)
   ret void
 }
 
-define internal void @"assign_<Object<J.0>>"(ptr %0) {
-entry:
-  %1 = getelementptr inbounds %J.0, ptr %0, i32 0, i32 0
-  store ptr @2, ptr %1, align 8
-  ret void
-}
-
-define internal void @"assign_<Array<Object<T.1>>>:10,"(ptr %0) {
-entry:
-  %"0_i" = alloca i32, align 4
-  %numberOfElementsFilled = alloca i32, align 4
-  store i32 0, ptr %numberOfElementsFilled, align 4
-  br label %AssignExpr.loopStart-0
-
-AssignExpr.loopStart-0:                           ; preds = %entry
-  store i32 0, ptr %"0_i", align 4
-  br label %AssignExpr.loopCmp-0
-
-AssignExpr.loopCmp-0:                             ; preds = %AssignExpr.loopBody-0, %AssignExpr.loopStart-0
-  %1 = load i32, ptr %"0_i", align 4
-  %2 = icmp slt i32 %1, 10
-  %3 = load i32, ptr %numberOfElementsFilled, align 4
-  %4 = icmp slt i32 %3, 10
-  %5 = and i1 %2, %4
-  br i1 %5, label %AssignExpr.loopBody-0, label %AssignExpr.loopEnd-0
-
-AssignExpr.loopBody-0:                            ; preds = %AssignExpr.loopCmp-0
-  %6 = load i32, ptr %"0_i", align 4
-  %7 = getelementptr [10 x %T.1], ptr %0, i32 0, i32 %6
-  call void @"assign_<Object<T.1>>"(ptr %7)
-  %8 = load i32, ptr %"0_i", align 4
-  %9 = add i32 %8, 1
-  store i32 %9, ptr %"0_i", align 4
-  %10 = load i32, ptr %numberOfElementsFilled, align 4
-  %11 = add i32 %10, 1
-  store i32 %11, ptr %numberOfElementsFilled, align 4
-  br label %AssignExpr.loopCmp-0
-
-AssignExpr.loopEnd-0:                             ; preds = %AssignExpr.loopCmp-0
-  br label %AssignExpr.exit
-
-AssignExpr.exit:                                  ; preds = %AssignExpr.loopEnd-0
-  ret void
-}
+declare !rt !4 void @getFAndA.2(ptr)
 
 define internal void @"assign_<Class<A>>"(ptr %0) {
 entry:
   %1 = getelementptr inbounds %A, ptr %0, i32 0, i32 0
-  store ptr @12, ptr %1, align 8
+  store ptr @25, ptr %1, align 8
   %2 = getelementptr inbounds %A, ptr %0, i32 0, i32 1
   store i32 0, ptr %2, align 4
   ret void
 }
 
-define internal void @"print_<Array<Object<T.1>>>:10,"(ptr %0) {
-entry:
-  %"0_i" = alloca i32, align 4
-  %numberOfElementsFilled = alloca i32, align 4
-  store i32 0, ptr %numberOfElementsFilled, align 4
-  br label %con_print.loopStart
-
-con_print.loopStart:                              ; preds = %entry
-  store i32 0, ptr %"0_i", align 4
-  %1 = load ptr, ptr @"%s.7", align 8
-  %2 = load ptr, ptr @openBracket, align 8
-  call void (ptr, ...) @printf(ptr %1, ptr %2)
-  br label %con_print.loopCmp
-
-con_print.loopCmp:                                ; preds = %con_print.loopBody, %con_print.loopStart
-  %3 = load i32, ptr %"0_i", align 4
-  %4 = icmp slt i32 %3, 10
-  %5 = icmp sgt i32 %3, 0
-  %6 = and i1 %4, %5
-  br i1 %6, label %con_print.print.lobby, label %con_print.stage
-
-con_print.loopBody:                               ; preds = %con_print.stage, %con_print.print.lobby
-  %7 = load i32, ptr %"0_i", align 4
-  %8 = getelementptr [10 x %T.1], ptr %0, i32 0, i32 %7
-  call void @print_T.1(ptr %8)
-  %9 = load i32, ptr %"0_i", align 4
-  %10 = add i32 %9, 1
-  store i32 %10, ptr %"0_i", align 4
-  br label %con_print.loopCmp
-
-con_print.loopEnd:                                ; preds = %con_print.stage
-  %11 = load ptr, ptr @"%s.32", align 8
-  %12 = load ptr, ptr @closeBracket, align 8
-  call void (ptr, ...) @printf(ptr %11, ptr %12)
-  br label %con_print.exit
-
-con_print.print.lobby:                            ; preds = %con_print.loopCmp
-  %13 = load ptr, ptr @"%s.8", align 8
-  %14 = load ptr, ptr @comma, align 8
-  call void (ptr, ...) @printf(ptr %13, ptr %14)
-  br label %con_print.loopBody
-
-con_print.stage:                                  ; preds = %con_print.loopCmp
-  %15 = load i32, ptr %"0_i", align 4
-  %16 = icmp slt i32 %15, 10
-  br i1 %16, label %con_print.loopBody, label %con_print.loopEnd
-
-con_print.exit:                                   ; preds = %con_print.loopEnd
-  ret void
-}
-
-define internal void @print_T.1(ptr %0) {
-entry:
-  %1 = load ptr, ptr @"%s.9", align 8
-  %2 = load ptr, ptr @"{ ", align 8
-  call void (ptr, ...) @printf(ptr %1, ptr %2)
-  call void @print(ptr @21, i1 false)
-  %3 = load ptr, ptr @"%s.10", align 8
-  %4 = load ptr, ptr @" : ", align 8
-  call void (ptr, ...) @printf(ptr %3, ptr %4)
-  %5 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 0
-  %6 = load i32, ptr %5, align 4
-  %7 = load ptr, ptr @"%s.11", align 8
-  %8 = load ptr, ptr @"%d.12", align 8
-  call void (ptr, ...) @printf(ptr %8, i32 %6)
-  %9 = load ptr, ptr @"%s.13", align 8
-  %10 = load ptr, ptr @" , ", align 8
-  call void (ptr, ...) @printf(ptr %9, ptr %10)
-  call void @print(ptr @28, i1 false)
-  %11 = load ptr, ptr @"%s.14", align 8
-  %12 = load ptr, ptr @" : .15", align 8
-  call void (ptr, ...) @printf(ptr %11, ptr %12)
-  %13 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 1
-  %14 = load double, ptr %13, align 8
-  %15 = load ptr, ptr @"%s.16", align 8
-  %16 = load ptr, ptr @"%0.14f", align 8
-  call void (ptr, ...) @printf(ptr %16, double %14)
-  %17 = load ptr, ptr @"%s.17", align 8
-  %18 = load ptr, ptr @" , .18", align 8
-  call void (ptr, ...) @printf(ptr %17, ptr %18)
-  call void @print(ptr @35, i1 false)
-  %19 = load ptr, ptr @"%s.19", align 8
-  %20 = load ptr, ptr @" : .20", align 8
-  call void (ptr, ...) @printf(ptr %19, ptr %20)
-  %21 = getelementptr inbounds %T.1, ptr %0, i32 0, i32 2
-  call void @print_J.0(ptr %21)
-  %22 = load ptr, ptr @"%s.30", align 8
-  %23 = load ptr, ptr @"}.31", align 8
-  call void (ptr, ...) @printf(ptr %22, ptr %23)
-  ret void
-}
-
-define internal void @print_J.0(ptr %0) {
-entry:
-  %1 = load ptr, ptr @"%s.21", align 8
-  %2 = load ptr, ptr @"{ .22", align 8
-  call void (ptr, ...) @printf(ptr %1, ptr %2)
-  call void @print(ptr @40, i1 false)
-  %3 = load ptr, ptr @"%s.23", align 8
-  %4 = load ptr, ptr @" : .24", align 8
-  call void (ptr, ...) @printf(ptr %3, ptr %4)
-  %5 = getelementptr inbounds %J.0, ptr %0, i32 0, i32 0
-  %6 = load ptr, ptr %5, align 8
-  %7 = load ptr, ptr @"%s.25", align 8
-  %8 = load ptr, ptr @"'", align 8
-  call void (ptr, ...) @printf(ptr %7, ptr %8)
-  %9 = icmp ne ptr %6, null
-  br i1 %9, label %End, label %IsNull
-
-IsNull:                                           ; preds = %entry
-  br label %Merge
-
-End:                                              ; preds = %entry
-  %10 = load ptr, ptr @"%s.26", align 8
-  call void (ptr, ...) @printf(ptr %10, ptr %6)
-  br label %Merge
-
-Merge:                                            ; preds = %End, %IsNull
-  %11 = load ptr, ptr @"%s.27", align 8
-  %12 = load ptr, ptr @"'.28", align 8
-  call void (ptr, ...) @printf(ptr %11, ptr %12)
-  %13 = load ptr, ptr @"%s.29", align 8
-  %14 = load ptr, ptr @"}", align 8
-  call void (ptr, ...) @printf(ptr %13, ptr %14)
-  ret void
-}
-
 !0 = !{!"A.init1:rt:pr:27"}
 !1 = !{!"A.printX:rt:pr:27"}
+!2 = !{!"get:rt:pr:33"}
+!3 = !{!"getX:rt:pr:28"}
+!4 = !{!"getFAndA:rt:ob:A"}

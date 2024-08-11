@@ -21,30 +21,37 @@ public:
 
 class ReturnTypeHandler {
 private:
-  std::unordered_map<std::string, std::unique_ptr<ReturnType>> _returnTypeMap;
+  std::unordered_map<std::string, std::vector<std::unique_ptr<ReturnType>>>
+      _returnTypeMap;
 
 public:
   inline void addReturnType(const std::string &funcName,
                             std::unique_ptr<LLVMType> returnType,
                             bool hasAsReturnType) {
-    _returnTypeMap[funcName] =
-        std::make_unique<ReturnType>(std::move(returnType), hasAsReturnType);
+    _returnTypeMap[funcName].push_back(
+        std::make_unique<ReturnType>(std::move(returnType), hasAsReturnType));
   }
 
-  inline std::unique_ptr<LLVMType> &getReturnType(const std::string &funcName) {
-    return _returnTypeMap[funcName]->getReturnType();
+  inline std::unique_ptr<LLVMType> &getReturnType(const std::string &funcName,
+                                                  const uint64_t &index) {
+    return _returnTypeMap[funcName][index]->getReturnType();
   }
 
-  inline bool hasAsReturnType(const std::string &funcName) {
-    return _returnTypeMap[funcName]->hasAsReturnType();
+  inline auto getReturnTypeListRef(const std::string &funcName) -> auto & {
+    return _returnTypeMap[funcName];
   }
 
-  inline auto isHavingReturnTypeAsParameter(const std::string &funcName)
-      -> bool {
-    if (this->hasAsReturnType(funcName))
+  inline bool hasAsReturnType(const std::string &funcName,
+                              const uint64_t &index) {
+    return _returnTypeMap[funcName][index]->hasAsReturnType();
+  }
+
+  inline auto isHavingReturnTypeAsParameter(const std::string &funcName,
+                                            const uint64_t &index) -> bool {
+    if (this->hasAsReturnType(funcName, index))
       return false;
 
-    if (this->getReturnType(funcName)->getLLVMType()->isVoidTy())
+    if (this->getReturnType(funcName, index)->getLLVMType()->isVoidTy())
       return false;
 
     return true;

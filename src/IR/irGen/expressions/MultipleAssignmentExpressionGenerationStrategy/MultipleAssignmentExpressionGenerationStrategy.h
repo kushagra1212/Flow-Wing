@@ -14,6 +14,12 @@ public:
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   void declare(BoundExpression *expression);
+
+  void handleMultipleVarAssignCallExprGen(
+      BoundMultipleAssignmentExpression *boundMultipleAssignmentExpression);
+
+  bool hasSingleCallExpr(
+      BoundMultipleAssignmentExpression *boundMultipleAssignmentExpression);
 };
 
 #endif

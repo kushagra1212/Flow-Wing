@@ -783,7 +783,9 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
             _codeGenerationContext->getDynamicType()->get() &&
         _codeGenerationContext->verifyType(
             callExpression->getArgumentAlloca(0).second,
-            llvmArrayArgs[0]->getLLVMType()) == EXIT_FAILURE) {
+            llvmArrayArgs[0]->getLLVMType(),
+            " in '" + callExpression->getCallerNameRef() + "' function") ==
+            EXIT_FAILURE) {
       return nullptr;
     }
     initialLLVMArgIndex++;

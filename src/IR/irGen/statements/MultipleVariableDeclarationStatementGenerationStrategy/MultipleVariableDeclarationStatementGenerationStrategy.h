@@ -11,10 +11,19 @@ public:
       CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
+
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 
   llvm::Value *declareGlobal(BoundStatement *statement);
   llvm::Value *declareLocal(BoundStatement *statement);
+
+  void handleMultipleVarDecReturnCallExprDeclare(
+      BoundMultipleVariableDeclaration *multipleVariableDeclaration);
+  void handleMultipleVarDecCallExprGen(
+      BoundMultipleVariableDeclaration *multipleVariableDeclaration);
+
+  bool hasSingleCallExpr(
+      BoundMultipleVariableDeclaration *multipleVariableDeclaration);
 };
 
 #endif

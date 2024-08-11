@@ -52,49 +52,63 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
   //? Taking value to return as parameter
   if (!fd->hasAsReturnType()) {
-    BoundTypeExpression *bTE =
-        static_cast<BoundTypeExpression *>(fd->getReturnType().get());
+    std::vector<llvm::Type *> returnStructTypeList = {};
+    for (const auto &rTypeExpr : fd->getReturnTypeExprListRef()) {
+      BoundTypeExpression *bTE =
+          static_cast<BoundTypeExpression *>(rTypeExpr.get());
 
-    switch (bTE->getKind()) {
-    case BinderKindUtils::BoundArrayTypeExpression: {
-      std::unique_ptr<CustomTypeStatementGenerationStrategy>
-          customTypeStatementGenerationStrategy =
-              std::make_unique<CustomTypeStatementGenerationStrategy>(
-                  _codeGenerationContext);
-      llvm::Type *type = customTypeStatementGenerationStrategy->getType(bTE);
-      argTypes.push_back(llvm::PointerType::get(type, 0));
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          FUNCTION_NAME, std::make_unique<LLVMType>(type));
+      switch (bTE->getKind()) {
+      case BinderKindUtils::BoundArrayTypeExpression: {
+        std::unique_ptr<CustomTypeStatementGenerationStrategy>
+            customTypeStatementGenerationStrategy =
+                std::make_unique<CustomTypeStatementGenerationStrategy>(
+                    _codeGenerationContext);
+        returnStructTypeList.push_back(
+            customTypeStatementGenerationStrategy->getType(bTE));
 
-      break;
-    }
-    case BinderKindUtils::BoundObjectTypeExpression: {
+        break;
+      }
+      case BinderKindUtils::BoundObjectTypeExpression: {
 
-      llvm::Type *type = getStructType(
-          static_cast<BoundObjectTypeExpression *>(bTE), className);
-      argTypes.push_back(llvm::PointerType::get(type, 0));
-      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-          FUNCTION_NAME, std::make_unique<LLVMType>(type));
-
-      break;
-    }
-
-    case BinderKindUtils::BoundTypeExpression: {
-
-      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-        llvm::Type *type =
-            _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-                bTE->getSyntaxType());
-        argTypes.push_back(llvm::PointerType::get(type, 0));
-        _codeGenerationContext->getArgsTypeHandler()->addArgsType(
-            FUNCTION_NAME, std::make_unique<LLVMType>(type));
+        returnStructTypeList.push_back(getStructType(
+            static_cast<BoundObjectTypeExpression *>(bTE), className));
+        break;
       }
 
-      break;
+      case BinderKindUtils::BoundTypeExpression: {
+
+        if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+          returnStructTypeList.push_back(
+              _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
+                  bTE->getSyntaxType()));
+        }
+
+        break;
+      }
+      default: {
+        break;
+      }
+      }
     }
-    default: {
-      break;
-    }
+
+    if (fd->getReturnTypeExprListRef().size() > 1) {
+
+      std::vector<llvm::Type *> returnStructTypePtrList(
+          returnStructTypeList.size(), llvm::Type::getInt8PtrTy(*TheContext));
+
+      llvm::Type *StructType =
+          llvm::StructType::create(*TheContext, returnStructTypePtrList);
+
+      argTypes.push_back(llvm::PointerType::get(StructType, 0));
+      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+          FUNCTION_NAME,
+          std::make_unique<LLVMType>(StructType, returnStructTypeList));
+    } else if (fd->getReturnTypeExprListRef().size() &&
+               returnStructTypeList.size()) {
+
+      argTypes.push_back(llvm::PointerType::get(returnStructTypeList[0], 0));
+      _codeGenerationContext->getArgsTypeHandler()->addArgsType(
+          FUNCTION_NAME, std::make_unique<LLVMType>(returnStructTypeList[0]));
     }
   }
 
@@ -237,10 +251,11 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   llvm::FunctionType *FT = nullptr;
   llvm::Function *F = nullptr;
   std::string returnInfo = "";
-  {
+
+  for (auto &rTypeExpr : fd->getReturnTypeExprListRef()) {
     llvm::Type *returnType = nullptr;
     BoundTypeExpression *bTE =
-        static_cast<BoundTypeExpression *>(fd->getReturnType().get());
+        static_cast<BoundTypeExpression *>(rTypeExpr.get());
 
     switch (bTE->getKind()) {
     case BinderKindUtils::BoundTypeExpression: {
@@ -271,7 +286,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     }
     case BinderKindUtils::BoundArrayTypeExpression: {
       BoundArrayTypeExpression *boundArrayTypeExpression =
-          static_cast<BoundArrayTypeExpression *>(fd->getReturnType().get());
+          static_cast<BoundArrayTypeExpression *>(bTE);
 
       llvm::Type *elementType = nullptr;
       if (boundArrayTypeExpression->isTrivialType()) {
@@ -345,7 +360,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     }
     case BinderKindUtils::BoundObjectTypeExpression: {
       BoundObjectTypeExpression *boundObjectTypeExpression =
-          static_cast<BoundObjectTypeExpression *>(fd->getReturnType().get());
+          static_cast<BoundObjectTypeExpression *>(bTE);
 
       _codeGenerationContext->getLogger()->setCurrentSourceLocation(
           boundObjectTypeExpression->getLocation());

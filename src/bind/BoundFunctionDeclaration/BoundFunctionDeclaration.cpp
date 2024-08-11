@@ -14,6 +14,10 @@ std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
     for (const auto &parameter : this->_parameters) {
       this->_children.push_back(parameter.get());
     }
+
+    for (const auto &returnTypeExpr : this->_returnTypeExprList) {
+      this->_children.push_back(returnTypeExpr.get());
+    }
   }
 
   return this->_children;

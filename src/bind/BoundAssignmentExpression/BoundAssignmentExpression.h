@@ -25,10 +25,6 @@ public:
 
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
-  std::unique_ptr<BoundExpression> getLeft();
-
-  std::unique_ptr<BoundExpression> getRight();
-
   const std::type_info &getType() override;
 
   BinderKindUtils::BoundNodeKind getKind() const override;

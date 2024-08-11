@@ -13,7 +13,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::vector<std::unique_ptr<BoundVariableDeclaration>> _parameters;
   std::string _functionName;
   bool _isExposed;
-  std::unique_ptr<BoundExpression> _returnType;
+  std::vector<std::unique_ptr<BoundExpression>> _returnTypeExprList;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
   bool _isVariadicFunction = false;
@@ -34,8 +34,8 @@ public:
     _isOnlyDeclared = isOnlyDeclared;
   }
 
-  inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
-    _returnType = std::move(returnType);
+  inline void addReturnExpr(std::unique_ptr<BoundExpression> retrunExprType) {
+    _returnTypeExprList.push_back(std::move(retrunExprType));
   }
 
   inline void setIsMemberFunction(bool isMemberFunction) {
@@ -63,9 +63,9 @@ public:
 
   inline auto isVariadicFunction() const { return _isVariadicFunction; }
 
-  inline auto getReturnType() const
-      -> const std::unique_ptr<BoundExpression> & {
-    return _returnType;
+  inline auto getReturnTypeExprListRef() const
+      -> const std::vector<std::unique_ptr<BoundExpression>> & {
+    return _returnTypeExprList;
   }
 
   inline auto isMemberFunction() const -> bool { return _isMemberFunction; }

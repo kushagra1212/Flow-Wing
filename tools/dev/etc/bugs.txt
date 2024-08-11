@@ -1,7 +1,7 @@
 
 
 
--  Getting SegFault When I try to create a variable (Only GLOBAL) of class type in parent file and import it 
+- 1.  Getting SegFault When I try to create a variable (Only GLOBAL) of class type in parent file and import it 
 
 file.fg 
 
@@ -12,6 +12,18 @@ fill2.fg
 bring file.fg
 
 Getting Seg Fault
+
+- 2. Code is not giving error if Type does not match in function call
+
+fun getFAndA() -> T[2], A  {
+  return [],new A(32)
+}
+
+
+var u:int ,b:A = getFAndA()
+b.printX()
+print(u)
+print(b.x)
 
 
 Done:

@@ -18,21 +18,16 @@ BoundAssignmentExpression::getOperator() {
   return _op;
 }
 
-std::unique_ptr<BoundExpression> BoundAssignmentExpression::getLeft() {
-  return std::move(_left);
-}
-
-std::unique_ptr<BoundExpression> BoundAssignmentExpression::getRight() {
-  return std::move(_right);
-}
 BinderKindUtils::BoundNodeKind BoundAssignmentExpression::getKind() const {
   return BinderKindUtils::BoundNodeKind::AssignmentExpression;
 }
 
 std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
   if (_children.size() == 0) {
-    _children.push_back(_left.get());
-    _children.push_back(_right.get());
+    if (_left)
+      _children.push_back(_left.get());
+    if (_right)
+      _children.push_back(_right.get());
   }
 
   return _children;

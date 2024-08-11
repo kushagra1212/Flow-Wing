@@ -6,6 +6,7 @@
 class LLVMType {
 public:
   LLVMType(llvm::Type *type);
+  LLVMType(llvm::Type *type, std::vector<llvm::Type *> structTypeList);
 
   inline llvm::Type *getType() const { return _type; }
 
@@ -27,8 +28,14 @@ public:
 
   virtual inline const bool isPointerToPrimitive() const { return false; }
 
+  inline auto getStructTypeListRef() const
+      -> const std::vector<llvm::Type *> & {
+    return _structTypeList;
+  }
+
 private:
   llvm::Type *_type;
+  std::vector<llvm::Type *> _structTypeList;
 };
 
 #endif // __FLOWWING__ARG_TYPE_H__

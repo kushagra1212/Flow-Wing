@@ -1,12 +1,67 @@
 
+
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
 fun get() -> int,str {
   return 2,"H"
 }
 
+fun getX() ->  int {
+    return 2
+  }
+{
+var g:int = getX()
+print(g)
+var x:int,y:str = getX(),"Helo"
+print(x,y)
+y,x = "r",43
+print(x,y)
+y,x = "e",getX()
+print(x,y)
+x,y = get()
+print(x,y)}
 
-var x:int,y:str = get()
+type T = {
+ a:int 
+}
+type L = {
+  x:int,
+  u:str,
+  g:T,
+  l:T[2]
+}
+
+fun getFAndA() -> T[2], A  {
+  return [],new A(32)
+}
 
 
+var u:int ,b:A = getFAndA()
+b.printX()
+print(u)
+print(b.x)
+ 
+
+
+/#{
+    
+
+
+  /;print(u,"\n",a)
+  /;a.printX()
+  
+}
+/;x,y = get()
 /#
 
 var x:int, y:str = 2,"hello"

@@ -33,7 +33,7 @@ void BuiltInFunction::setupBuiltInFunctions() {
         std::make_unique<BoundFunctionDeclaration>(
             DiagnosticUtils::SourceLocation(), false);
     func->setFunctionName(funName);
-    func->setReturnType(std::move(std::make_unique<BoundTypeExpression>(
+    func->addReturnExpr(std::move(std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(), rt)));
 
     std::unique_ptr<BoundVariableDeclaration> varDec =
