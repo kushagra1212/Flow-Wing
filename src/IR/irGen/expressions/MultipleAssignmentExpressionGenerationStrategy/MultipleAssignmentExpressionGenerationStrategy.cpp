@@ -84,6 +84,8 @@ void MultipleAssignmentExpressionGenerationStrategy::
       auto [ptr, ptrType] =
           _codeGenerationContext->getAllocaChain()->getPtr(variableName);
 
+      callExpression->addReturnTypeToList(ptrType);
+
       Builder->CreateStore(ptr, Builder->CreateStructGEP(
                                     callExpression->getArgumentAlloca(0).second,
                                     callExpression->getArgumentAlloca(0).first,

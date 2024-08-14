@@ -106,6 +106,10 @@ public:
   int8_t verifyType(llvm::Type *lhsType, llvm::Type *rhsType,
                     std::string inExp = " in assignment expression");
 
+  int8_t verifyType(const std::vector<llvm::Type *> &lhsTypes,
+                    const std::vector<llvm::Type *> &rhsTypes,
+                    const std::string &inExp);
+
   llvm::Value *createMemoryGetPtr(llvm::Type *type, std::string variableName,
                                   BinderKindUtils::MemoryKind memoryKind);
 

@@ -413,4 +413,342 @@ print(b.x)
   O(R"(2132232)");
 }
 
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplex) {
+  I(R"(
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+fun get() -> int,str {
+  return 2,"H"
+}
+
+fun getX() ->  int {
+    return 2
+  }
+
+
+type T = {
+ a:int 
+}
+type L = {
+  x:int,
+  u:str,
+  g:T,
+  l:T[2]
+}
+
+fun getFAndA() -> T[2], A  {
+  return [],new A(32)
+}
+
+
+var u:T[2] ,b:A
+
+u,b =  getFAndA()
+b.printX()
+print(u)
+print(b.x)
+    )");
+
+  O(R"(32[{ a : 0 }, { a : 0 }]32)");
+}
+
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplexScoped) {
+  I(R"(
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+fun get() -> int,str {
+  return 2,"H"
+}
+
+fun getX() ->  int {
+    return 2
+  }
+
+
+type T = {
+ a:int 
+}
+type L = {
+  x:int,
+  u:str,
+  g:T,
+  l:T[2]
+}
+
+fun getFAndA() -> T[2], A  {
+  return [],new A(32)
+}
+
+
+{
+var u:T[2] ,b:A
+
+u,b =  getFAndA()
+b.printX()
+print(u)
+print(b.x)}
+    )");
+
+  O(R"(32[{ a : 0 }, { a : 0 }]32)");
+}
+
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplexDefaultPrint) {
+  I(R"(
+
+
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+fun get() -> int,str {
+  return 2,"H"
+}
+
+fun getX() ->  int {
+    return 2
+  }
+
+
+type T = {
+ a:int 
+}
+type L = {
+  x:int,
+  u:str,
+  g:T,
+  l:T[2]
+}
+
+fun getFAndA() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
+
+
+var u:T[2] ,b:A
+print(u)
+u,b =  getFAndA()
+b.printX()
+print(u)
+print(b.x)
+    )");
+
+  O(R"([{ a : 0 }, { a : 0 }]32[{ a : 10 }, { a : 0 }]32)");
+}
+
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplexAssign) {
+  I(R"(
+
+
+
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+fun get() -> int,str {
+  return 2,"H"
+}
+
+fun getX() ->  int {
+    return 2
+  }
+
+
+type T = {
+ a:int 
+}
+type L = {
+  x:int,
+  u:str,
+  g:T,
+  l:T[2]
+}
+
+fun getFAndA() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
+
+
+var u:T[2] ,b:A = getFAndA() 
+b.printX()
+print(u)
+print(b.x)
+    )");
+
+  O(R"(32[{ a : 10 }, { a : 0 }]32)");
+}
+
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplexAssignReturnFunction) {
+  I(R"(
+                              
+                              
+class A {                     
+  var x:int                   
+                              
+  init(x:int) -> nthg {       
+      self.x =x               
+  }                           
+                              
+  printX() -> nthg {          
+      print(x)                
+    }                         
+                              
+}                             
+fun get() -> int,str {        
+  return 2,"H"                
+}                             
+                              
+fun getX() ->  int {          
+    return 2                  
+  }                           
+                              
+                              
+type T = {                    
+ a:int                        
+}                             
+type L = {                    
+  x:int,                      
+  u:str,                      
+  g:T,                        
+  l:T[2]                      
+}                             
+                              
+fun getT() -> T[2] {          
+    return [{a:10}]           
+  }                           
+                              
+                              
+fun getA() -> A {             
+return new A(23)              
+                              
+  }                           
+                              
+fun getFAndA() -> T[2], A  {  
+  return getT(),getA()        
+}                             
+                              
+                              
+var u:T[2] ,b:A = getFAndA()  
+b.printX()                    
+print(u)                      
+print(b.x)                    
+                              
+                              
+
+    )");
+
+  O(R"(23[{ a : 10 }, { a : 0 }]23)");
+}
+
+TEST_F(
+    MultipleAssignment,
+    MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignmentComplexAssignReturnFunctionComplex) {
+  I(R"(
+                                     
+                                
+class A {                       
+  var x:int                     
+                                
+  init(x:int) -> nthg {         
+      self.x =x                 
+  }                             
+                                
+  printX() -> nthg {            
+      print(x)                  
+    }                           
+                                
+}                               
+fun get() -> int,str {          
+  return 2,"H"                  
+}                               
+                                
+fun getX() ->  int {            
+    return 2                    
+  }                             
+                                
+                                
+type T = {                      
+ a:int                          
+}                               
+type L = {                      
+  x:int,                        
+  u:str,                        
+  g:T,                          
+  l:T[2]                        
+}                               
+                                
+fun getT() -> T[2] {            
+    return [{a:10}]             
+  }                             
+                                
+                                
+fun getA() -> A {               
+return new A(23)                
+                                
+  }                             
+                                
+fun getFAndAPar() -> T[2], A  { 
+  return getT(),getA()          
+}                               
+fun getFAndA() -> T[2], A  {    
+  return getFAndAPar()          
+}                               
+                                
+                                
+var u:T[2] ,b:A = getFAndA()    
+b.printX()                      
+print(u)                        
+print(b.x)                      
+                                
+
+
+    )");
+
+  O(R"(23[{ a : 10 }, { a : 0 }]23)");
+}
 #endif

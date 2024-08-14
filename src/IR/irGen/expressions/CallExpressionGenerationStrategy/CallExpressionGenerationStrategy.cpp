@@ -144,11 +144,22 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
               rtType});
     }
     if (callExpression->getArgumentAlloca(0).second !=
-            _codeGenerationContext->getDynamicType()->get() &&
-        _codeGenerationContext->verifyType(
-            callExpression->getArgumentAlloca(0).second,
-            llvmArrayArgs[0]->getLLVMType()) == EXIT_FAILURE) {
-      return;
+        _codeGenerationContext->getDynamicType()->get()) {
+      if (callExpression->getReturnTypeList().size()) {
+        if (_codeGenerationContext->verifyType(
+                callExpression->getReturnTypeList(),
+                llvmArrayArgs[0]->getStructTypeListRef(),
+                " in assignment expression") == EXIT_FAILURE) {
+          return;
+        }
+      }
+      // else if (_codeGenerationContext->verifyType(
+      //                callExpression->getArgumentAlloca(0).second,
+      //                llvmArrayArgs[0]->getLLVMType(),
+      //                " in '" + callExpression->getCallerNameRef() +
+      //                    "' function") == EXIT_FAILURE) {
+      //   return;
+      // }
     }
     initialLLVMArgIndex++;
     rhsValue = callExpression->getArgumentAlloca(0).first;
@@ -780,13 +791,21 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
           ->isHavingReturnTypeAsParamater()) {
 
     if (callExpression->getArgumentAlloca(0).second !=
-            _codeGenerationContext->getDynamicType()->get() &&
-        _codeGenerationContext->verifyType(
-            callExpression->getArgumentAlloca(0).second,
-            llvmArrayArgs[0]->getLLVMType(),
-            " in '" + callExpression->getCallerNameRef() + "' function") ==
-            EXIT_FAILURE) {
-      return nullptr;
+        _codeGenerationContext->getDynamicType()->get()) {
+      if (callExpression->getReturnTypeList().size()) {
+        if (_codeGenerationContext->verifyType(
+                callExpression->getReturnTypeList(),
+                llvmArrayArgs[0]->getStructTypeListRef(),
+                " in assignment expression") == EXIT_FAILURE) {
+          return nullptr;
+        }
+      } else if (_codeGenerationContext->verifyType(
+                     callExpression->getArgumentAlloca(0).second,
+                     llvmArrayArgs[0]->getLLVMType(),
+                     " in '" + callExpression->getCallerNameRef() +
+                         "' function") == EXIT_FAILURE) {
+        return nullptr;
+      }
     }
     initialLLVMArgIndex++;
     rhsValue = callExpression->getArgumentAlloca(0).first;

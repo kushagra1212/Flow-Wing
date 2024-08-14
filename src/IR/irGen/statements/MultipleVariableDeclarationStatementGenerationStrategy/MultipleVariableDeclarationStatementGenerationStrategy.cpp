@@ -192,6 +192,7 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
       auto [ptr, ptrType] = var->getLLVMVariable();
       Builder->CreateStore(
           ptr, Builder->CreateStructGEP(_structType, _stPtr, offset++));
+      callExpression->addReturnTypeToList(ptrType);
     }
 
     callExpression->setArgumentAlloca(0, {_stPtr, _structType});

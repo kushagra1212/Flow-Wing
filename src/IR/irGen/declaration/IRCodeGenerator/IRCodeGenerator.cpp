@@ -55,6 +55,7 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
         static_cast<BoundMultipleVariableDeclaration *>(child);
 
+    declareVariables(child, isGlobal);
     if (isGlobal) {
       _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
           boundMultipleVariableDeclaration);
@@ -63,7 +64,6 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
           boundMultipleVariableDeclaration);
     }
 
-    //    declareVariables(child, isGlobal);
     break;
   }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
@@ -94,10 +94,10 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
   }
   case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression: {
 
+    declareVariables(child, isGlobal);
     _multipleAssignmentExpressionGenerationStrategy->declare(
         static_cast<BoundAssignmentExpression *>(child));
 
-    //  declareVariables(child, isGlobal);
     break;
   }
   default:

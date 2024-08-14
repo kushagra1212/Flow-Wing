@@ -44,22 +44,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
       return nullptr;
     }
 
-    if (returnStatement->getReturnExpressionListRef().size() !=
-        _codeGenerationContext->getReturnTypeHandler()
-            ->getReturnTypeListRef(functionName)
-            .size()) {
-
-      _codeGenerationContext->getLogger()->LogError(
-          "Function expects " +
-          std::to_string(_codeGenerationContext->getReturnTypeHandler()
-                             ->getReturnTypeListRef(functionName)
-                             .size()) +
-          " return expression but " +
-          std::to_string(returnStatement->getReturnExpressionListRef().size()) +
-          " return expression found");
-      return nullptr;
-    }
-
     uint64_t offset = 0;
     if (returnStatement->getReturnExpressionListRef().size() == 1) {
       auto returnStat = returnStatement->getReturnExpressionListRef()[0].get();
@@ -96,6 +80,25 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
           boundCallExpression->setArgumentAlloca(
               boundCallExpression->getArgumentsRef().size(), {rtPtr, rtType});
         } else {
+          const std::vector<std::unique_ptr<LLVMType>> &currentFunctionArgs =
+              _codeGenerationContext->getArgsTypeHandler()->getArgsType(
+                  functionName);
+
+          const std::vector<std::unique_ptr<LLVMType>> &callingFunctionArg =
+              _codeGenerationContext->getArgsTypeHandler()->getArgsType(
+                  functionName);
+          if (_codeGenerationContext->verifyType(
+                  currentFunctionArgs[0]->getStructTypeListRef(),
+                  callingFunctionArg[0]->getStructTypeListRef(),
+                  " in Return Expression") == EXIT_FAILURE) {
+            return nullptr;
+          }
+
+          for (const auto &type :
+               currentFunctionArgs[0]->getStructTypeListRef()) {
+            boundCallExpression->addReturnTypeToList(type);
+          }
+
           boundCallExpression->setArgumentAlloca(0, {rtPtr, rtType});
         }
       }
@@ -104,7 +107,22 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
           rtPtr, rtType, FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME,
           returnStat);
     } else {
+      if (returnStatement->getReturnExpressionListRef().size() !=
+          _codeGenerationContext->getReturnTypeHandler()
+              ->getReturnTypeListRef(functionName)
+              .size()) {
 
+        _codeGenerationContext->getLogger()->LogError(
+            "Function expects " +
+            std::to_string(_codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnTypeListRef(functionName)
+                               .size()) +
+            " return expression but " +
+            std::to_string(
+                returnStatement->getReturnExpressionListRef().size()) +
+            " return expression found");
+        return nullptr;
+      }
       for (auto &returnStat : returnStatement->getReturnExpressionListRef()) {
 
         _codeGenerationContext->getLogger()->setCurrentSourceLocation(

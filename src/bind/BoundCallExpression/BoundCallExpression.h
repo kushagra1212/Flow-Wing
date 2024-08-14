@@ -15,6 +15,7 @@ private:
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
   std::map<uint64_t, std::pair<llvm::Value *, llvm::Type *>> _argumentsMap;
   std::string _callerName = "";
+  std::vector<llvm::Type *> _returnTypeList;
   bool _hasNewKeyword = false;
 
 public:
@@ -46,6 +47,14 @@ public:
                                 std::pair<llvm::Value *, llvm::Type *> value)
       -> void {
     _argumentsMap[index] = value;
+  }
+
+  inline auto addReturnTypeToList(llvm::Type *returnType) -> void {
+    _returnTypeList.push_back(returnType);
+  }
+
+  inline auto getReturnTypeList() -> const std::vector<llvm::Type *> & {
+    return _returnTypeList;
   }
 
   inline auto getArgumentAlloca(uint64_t index)

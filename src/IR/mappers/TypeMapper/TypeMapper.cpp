@@ -126,7 +126,14 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                          : text;
       }
 
-      const std::string text = "<Object<" + structType->getName().str() + ">>";
+      std::string structName = structType->getName().str().length()
+                                   ? structType->getName().str()
+                                   : ".";
+      //! This Might break
+      // const std::string formatedStructName =
+      //     "<" + structName.substr(0, structName.find_last_of(".")) + ">";
+
+      const std::string text = "<Object" + structName + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;
@@ -134,8 +141,8 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
 
       const std::string text =
-          "<Array" + getLLVMTypeName(arrayType->getElementType(), withColor) +
-          ">";
+          "<Array[" + std::to_string(arrayType->getNumElements()) + "]" +
+          getLLVMTypeName(arrayType->getElementType(), withColor) + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;

@@ -480,6 +480,27 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   return EXIT_SUCCESS;
 }
 
+int8_t
+CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
+                                  const std::vector<llvm::Type *> &rhsTypes,
+                                  const std::string &inExp) {
+
+  if (lhsTypes.size() != rhsTypes.size()) {
+    this->getLogger()->LogError(
+        "Type mismatch Expected " + std::to_string(lhsTypes.size()) +
+        " but found " + std::to_string(rhsTypes.size()) + inExp);
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < lhsTypes.size(); i++) {
+    if (this->verifyType(lhsTypes[i], rhsTypes[i], inExp) == EXIT_FAILURE) {
+      return EXIT_FAILURE;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+
 int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
                                          llvm::Type *rhsType,
                                          std::string inExp) {

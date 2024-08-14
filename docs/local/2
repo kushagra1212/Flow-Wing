@@ -1,4 +1,47 @@
-var x:int, y:str = 2,"hello"
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+
+fun getFAndA() -> int, A  {
+  return 2,new A(32)
+}
+
+fun getP() -> A {
+    return new A(21)
+  }
+
+
+    var a:A = getP()
+
+    
+
+a.printX()
+
+
+var u:int ,b:A = getFAndA()
+
+b.printX()
+print(u)
+print(b.x)
+  
+/#
+var u:int ,b:A = getFAndA()
+b.printX()
+print(u)
+print(b.x)
+
+
+
+/#var x:int, y:str = 2,"hello"
 
 print(x,y)
 
