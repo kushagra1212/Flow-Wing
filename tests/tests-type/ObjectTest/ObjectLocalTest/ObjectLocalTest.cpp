@@ -1,20 +1,8 @@
 #include "ObjectLocalTest.h"
 
-ObjectLocalTest::ObjectLocalTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void ObjectLocalTest::SetUp() { _test->SetUp(); }
 
 void ObjectLocalTest::TearDown() { _test->TearDown(); }
-
-void ObjectLocalTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string ObjectLocalTest::getOutput() const { return _test->getOutput(); }
-
-void ObjectLocalTest::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
@@ -39,7 +27,8 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
 }
 TEST_F(ObjectLocalTest, ObjectLocalTest1Mix) {
   I(R"(
@@ -60,7 +49,8 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1Mix) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDec) {
@@ -91,7 +81,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDec) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse) {
@@ -123,7 +115,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2) {
@@ -155,7 +149,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign) {
@@ -188,7 +184,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignMix) {
@@ -222,7 +220,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignMix) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignMix2) {
@@ -257,7 +257,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignMix2) {
             print(y)
          }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDec) {
@@ -288,7 +290,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDec) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1) {
@@ -321,7 +325,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Mix) {
@@ -356,7 +362,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Mix) {
     }
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneInt) {
@@ -374,7 +382,7 @@ TEST_F(ObjectLocalTest, ObjectLoneInt) {
     }
     
   )");
-  O(R"({ a : 1 })");
+  EXPECT_EQ(getOutput(), R"({ a : 1 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneDec) {
@@ -393,7 +401,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDec) {
 
 
   )");
-  O(R"({ a : 1.00000000000000 })");
+  EXPECT_EQ(getOutput(), R"({ a : 1.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneBool) {
@@ -412,7 +420,7 @@ TEST_F(ObjectLocalTest, ObjectLoneBool) {
 
 
   )");
-  O(R"({ a : true })");
+  EXPECT_EQ(getOutput(), R"({ a : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneStr) {
@@ -431,7 +439,7 @@ TEST_F(ObjectLocalTest, ObjectLoneStr) {
 
 
   )");
-  O(R"({ a : 'hello' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'hello' })");
 }
 
 // Dec Use Fun Start
@@ -460,7 +468,8 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1Fun) {
      print(u)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecFun) {
@@ -496,7 +505,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecFun) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseFun) {
@@ -533,7 +544,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseFun) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Fun) {
@@ -568,7 +581,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Fun) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignFun) {
@@ -606,7 +621,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignFun) {
      print(z)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecFun) {
@@ -643,7 +660,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecFun) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Fun) {
@@ -680,7 +699,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1Fun) {
      print(z)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1AvdFun) {
@@ -718,7 +739,8 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign1AvdFun) {
      print(z)
     }
   )");
-  O(R"({ pa : 's', pb : 1, pc : 1.10000000000000, pd : true })");
+  EXPECT_EQ(getOutput(),
+            R"({ pa : 's', pb : 1, pc : 1.10000000000000, pd : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneIntFun) {
@@ -740,7 +762,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntFun) {
     }
     
   )");
-  O(R"({ a : 1 })");
+  EXPECT_EQ(getOutput(), R"({ a : 1 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneDecFun) {
@@ -762,7 +784,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDecFun) {
     }
 
   )");
-  O(R"({ a : 1.00000000000000 })");
+  EXPECT_EQ(getOutput(), R"({ a : 1.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneBoolFun) {
@@ -786,7 +808,7 @@ TEST_F(ObjectLocalTest, ObjectLoneBoolFun) {
 
 
   )");
-  O(R"({ a : true })");
+  EXPECT_EQ(getOutput(), R"({ a : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneStrFun) {
@@ -809,7 +831,7 @@ TEST_F(ObjectLocalTest, ObjectLoneStrFun) {
 
 
   )");
-  O(R"({ a : 'hello' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'hello' })");
 }
 
 // Dec Use Fun End
@@ -836,7 +858,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntAssign) {
 }
     
   )");
-  O(R"({ a : 2 }{ a : 1 })");
+  EXPECT_EQ(getOutput(), R"({ a : 2 }{ a : 1 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneIntAssignMix) {
@@ -859,7 +881,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntAssignMix) {
 }
     
   )");
-  O(R"({ a : 2 }{ a : 1 })");
+  EXPECT_EQ(getOutput(), R"({ a : 2 }{ a : 1 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneIntAssignMix2) {
@@ -884,7 +906,7 @@ TEST_F(ObjectLocalTest, ObjectLoneIntAssignMix2) {
       print(y)
     
   )");
-  O(R"({ a : 2 }{ a : 1 })");
+  EXPECT_EQ(getOutput(), R"({ a : 2 }{ a : 1 })");
 }
 TEST_F(ObjectLocalTest, ObjectLoneDecAssign) {
   I(R"(
@@ -906,7 +928,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDecAssign) {
     }
 
   )");
-  O(R"({ a : 2.00000000000000 }{ a : 1.00000000000000 })");
+  EXPECT_EQ(getOutput(), R"({ a : 2.00000000000000 }{ a : 1.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneDecAssignMix1) {
@@ -930,7 +952,7 @@ TEST_F(ObjectLocalTest, ObjectLoneDecAssignMix1) {
 
     }
   )");
-  O(R"({ a : 2.00000000000000 }{ a : 1.00000000000000 })");
+  EXPECT_EQ(getOutput(), R"({ a : 2.00000000000000 }{ a : 1.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneBoolAssign) {
@@ -952,7 +974,7 @@ TEST_F(ObjectLocalTest, ObjectLoneBoolAssign) {
       print(y)
     }
   )");
-  O(R"({ a : false }{ a : true })");
+  EXPECT_EQ(getOutput(), R"({ a : false }{ a : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLoneStrAssign) {
@@ -974,7 +996,7 @@ TEST_F(ObjectLocalTest, ObjectLoneStrAssign) {
       print(y)
     }
   )");
-  O(R"({ a : 'world' }{ a : 'hello' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'world' }{ a : 'hello' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTest1Assign) {
@@ -1007,7 +1029,8 @@ TEST_F(ObjectLocalTest, ObjectLocalTest1Assign) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecAssign) {
@@ -1054,7 +1077,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecAssign) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign) {
@@ -1092,7 +1117,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign2) {
@@ -1127,7 +1154,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign2) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign2Mix) {
@@ -1162,7 +1191,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign2Mix) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign3) {
@@ -1201,7 +1232,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign3) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign3Mix1) {
   I(R"(
@@ -1240,7 +1273,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUseAssign3Mix1) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'Hello', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'w', pb : 2, pc : 45.00000000000000, pd : true } })");
 }
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign2) {
   I(R"(
@@ -1278,7 +1313,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign2) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'g', pb : 1, pc : -45.10000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'g', pb : 1, pc : -45.10000000000000, pd : false } })");
 }
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign2Mix1) {
   I(R"(
@@ -1318,7 +1355,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2Assign2Mix1) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'g', pb : 1, pc : -45.10000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : 45.00000000000000, pd : true } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'g', pb : 1, pc : -45.10000000000000, pd : false } })");
 }
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignAssign) {
   I(R"(
@@ -1355,7 +1394,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2AssignAssign) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'hello', pb : 2, pc : -45.10000000000000, pd : true } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } }{ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign2) {
@@ -1387,7 +1428,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign2) {
      print(x)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'x', pb : 10, pc : 1.00000000000000, pd : true } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'x', pb : 10, pc : 1.00000000000000, pd : true } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign) {
@@ -1428,7 +1471,9 @@ TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssign) {
      print(y)
     }
   )");
-  O(R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }{ a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectLocalTestDecUse2NoDecAssignFunAllIn) {
@@ -1481,7 +1526,9 @@ print("\n")
     }
 
   )");
-  O(R"({ a : 'gog', b : 1, c : 1.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'gog', b : 1, c : 1.10000000000000, d : true, p : { pa : '', pb : 0, pc : 0.00000000000000, pd : false } }
 { a : 'hello', b : 10, c : 10.10000000000000, d : true, p : { pa : 'b', pb : 1, pc : 1.10000000000000, pd : true } }
 { a : 'hello2', b : 110, c : 110.09999999999999, d : true, p : { pa : 'wj', pb : 20, pc : 47.00000000000000, pd : false } })");
 }
@@ -1504,7 +1551,7 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'h' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObject2) {
@@ -1523,7 +1570,7 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'h' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFull) {
@@ -1548,7 +1595,8 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h', b : 1, c : true, d : 2.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'h', b : 1, c : true, d : 2.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefault) {
@@ -1569,7 +1617,8 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : '', b : 0, c : false, d : 0.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : '', b : 0, c : false, d : 0.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefaultWithParent) {
@@ -1598,7 +1647,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : '', b : 0, c : false, d : 0.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : '', b : 0, c : false, d : 0.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentFull) {
@@ -1632,7 +1683,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentHalf) {
@@ -1666,7 +1719,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
 }
 
 //
@@ -1686,7 +1741,7 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'h' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectOutput) {
@@ -1705,7 +1760,7 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'h' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullOut) {
@@ -1730,7 +1785,8 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h', b : 1, c : true, d : 2.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'h', b : 1, c : true, d : 2.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefaultOut) {
@@ -1751,7 +1807,8 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : '', b : 0, c : false, d : 0.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : '', b : 0, c : false, d : 0.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefaultWithParentOut) {
@@ -1780,7 +1837,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : '', b : 0, c : false, d : 0.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : '', b : 0, c : false, d : 0.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentFullOut) {
@@ -1814,7 +1873,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentHalfOut) {
@@ -1848,7 +1909,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 0, pb : '', pc : false, pd : 0.00000000000000 } })");
 }
 
 //
@@ -1869,7 +1932,7 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'hello' })");
+  EXPECT_EQ(getOutput(), R"({ a : 'hello' })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullOutUpdate) {
@@ -1896,7 +1959,8 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'hello', b : 100, c : false, d : 100.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 100, c : false, d : 100.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullOutUpdate2) {
@@ -1925,7 +1989,8 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'h3', b : 12, c : false, d : 3.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'h3', b : 12, c : false, d : 3.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefaultOutUpdate) {
@@ -1949,7 +2014,8 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 10.00000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 'hello', b : 100, c : true, d : 10.00000000000000 })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullDefaultWithParentOutUpdate) {
@@ -1982,7 +2048,9 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 10.00000000000000, par : { pa : 1, pb : 'hello', pc : true, pd : 10.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 10.00000000000000, par : { pa : 1, pb : 'hello', pc : true, pd : 10.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentFullOutUpdate) {
@@ -2021,7 +2089,9 @@ fun get() -> t1 {
 print(get())
 
   )");
-  O(R"({ a : 'hello', b : 200, c : false, d : 3.00000000000000, par : { pa : 200, pb : 'hello', pc : false, pd : 3.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 200, c : false, d : 3.00000000000000, par : { pa : 200, pb : 'hello', pc : false, pd : 3.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentHalfOutUpdate) {
@@ -2052,7 +2122,9 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentHalfOutUpdate5) {
@@ -2083,7 +2155,9 @@ fun get() -> t1 {
 }
 print(get())
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 100, pb : 'hello', pc : true, pd : 2.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest, ObjectFunReturnObjectFullWithParentHalfOutUpdate5One) {
@@ -2109,7 +2183,9 @@ fun get(y:t1) -> t1 {
 var  x:t1 = {a:"hello",b:100,c:true,d:2.0,par:{pa:200,pb:"fso",pc:true,pd:3.0}}
 print(get(x))
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 200, pb : 'fso', pc : true, pd : 3.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 200, pb : 'fso', pc : true, pd : 3.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2138,7 +2214,9 @@ fun get(y:t1) -> t1 {
 var  x:t1 = {a:"hello",b:100,c:true,d:2.0,par:{pa:200,pb:"fso",pc:true,pd:3.0}}
 print(get(x))
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2168,7 +2246,9 @@ var  x:t1 = {a:"hello",b:100,c:true,d:2.0,par:{pa:200,pb:"fso",pc:true,pd:3.0}}
 var z:t1 = get(x)
 print(z)
   )");
-  O(R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2200,7 +2280,9 @@ print(z)
 z = get(x)
 print(z)
   )");
-  O(R"({ a : 'string', b : 500, c : true, d : 5.00000000000000, par : { pa : 700, pb : 'fdso', pc : true, pd : 4.00000000000000 } }{ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 'string', b : 500, c : true, d : 5.00000000000000, par : { pa : 700, pb : 'fdso', pc : true, pd : 4.00000000000000 } }{ a : 'hello', b : 100, c : true, d : 2.00000000000000, par : { pa : 545, pb : 'llo', pc : true, pd : 3.00000000000000 } })");
 }
 
 // Array Inside objects
@@ -2218,7 +2300,7 @@ TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionIn) {
     print(y)    
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
 }
 
 TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionInMix) {
@@ -2235,7 +2317,7 @@ TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionInMix) {
     print(y)    
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 9, 0] })");
 }
 
 TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionMultiIn) {
@@ -2251,7 +2333,9 @@ TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionExpressionMultiIn) {
     print(y)  
 }   
   )");
-  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [9, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [9, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionFillExpressionIn) {
@@ -2267,7 +2351,7 @@ TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionFillExpressionIn) {
     print(y)    
 }
   )");
-  O(R"({ x : [5, 5, 5, 5, 5, 0, 0, 0, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [5, 5, 5, 5, 5, 0, 0, 0, 0, 0] })");
 }
 
 TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionUsingVariableIn) {
@@ -2286,7 +2370,7 @@ TEST_F(ObjectLocalTest, ArrayInObjectPropertySingleDimensionUsingVariableIn) {
     print(y)    
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2306,7 +2390,9 @@ TEST_F(ObjectLocalTest,
     print(y)  
 }  
   )");
-  O(R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2326,7 +2412,9 @@ TEST_F(ObjectLocalTest,
     print(y)  
 }  
   )");
-  O(R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[10, 10, 10, 10, 10], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2346,7 +2434,9 @@ TEST_F(ObjectLocalTest,
     print(y)   
 } 
   )");
-  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(ObjectLocalTest,
@@ -2369,7 +2459,7 @@ TEST_F(ObjectLocalTest,
     print(y)   
 } 
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2393,7 +2483,9 @@ TEST_F(
     print(y)  
 }
   )");
-  O(R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 // Assignment
@@ -2421,7 +2513,9 @@ TEST_F(
     print(y) 
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2447,7 +2541,9 @@ TEST_F(
     print(y) 
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2473,7 +2569,9 @@ TEST_F(
       print(y) 
 }
   )");
-  O(R"({ x : [[2, 2, 2, 2, 2], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] }{ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[2, 2, 2, 2, 2], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] }{ x : [[1, 0, 0, 0, 0], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(
@@ -2499,7 +2597,9 @@ TEST_F(
     print(y) 
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 2, 2, 0, 0, 0, 0, 0] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 2, 2, 0, 0, 0, 0, 0] })");
 }
 
 TEST_F(
@@ -2525,7 +2625,9 @@ TEST_F(
     print(y) 
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [10, 10, 10, 10, 2, 0, 0, 0, 0, 0] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [10, 10, 10, 10, 2, 0, 0, 0, 0, 0] })");
 }
 
 TEST_F(
@@ -2553,7 +2655,9 @@ TEST_F(
     print(y) 
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] }{ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2577,7 +2681,7 @@ TEST_F(
     getPrint(y)
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
 }
 
 TEST_F(
@@ -2601,7 +2705,7 @@ TEST_F(
     print(getPrint(y))
 }
   )");
-  O(R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [2, 2, 2, 2, 2, 0, 0, 0, 0, 0] })");
 }
 
 TEST_F(
@@ -2628,7 +2732,7 @@ TEST_F(
     print(getPrint(y))
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2655,7 +2759,7 @@ TEST_F(
     print(getPrint(y))
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2681,7 +2785,7 @@ TEST_F(
     print(getPrint(y))
 }
   )");
-  O(R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
+  EXPECT_EQ(getOutput(), R"({ x : [1, 2, 3, 4, 5, 6, 7, 8, 0, 0] })");
 }
 
 TEST_F(
@@ -2704,7 +2808,9 @@ TEST_F(
     print(getPrint(y))
 }
   )");
-  O(R"({ x : [[1, 2, 2, 2, 2], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : [[1, 2, 2, 2, 2], [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [5, 0, 0, 0, 0], [6, 0, 0, 0, 0], [7, 0, 0, 0, 0], [8, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] })");
 }
 
 TEST_F(
@@ -2759,7 +2865,9 @@ u <- {}
   print(u)
 
   )");
-  O(R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
 { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
 }
 
@@ -2815,7 +2923,9 @@ u = {}
   print(u)
 
   )");
-  O(R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
+  EXPECT_EQ(
+      getOutput(),
+      R"({ x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }
 { x : 0, y : 'NO', a : 0.00000000000000, b : true, ar : [{ u : 'eeet', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] })");
 }
 
@@ -2876,7 +2986,9 @@ arr[0].ar[0].g = getGKA()
 }
 
   )");
-  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
 
 [{ x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
@@ -2938,7 +3050,9 @@ arr[0].ar[0].g = getGKA()
 }
 
   )");
-  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
 
 [{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
@@ -2999,7 +3113,9 @@ arr[0].ar[0].g = getGKA()
 
 
   )");
-  O(R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ x : 300, y : 'eee', a : 4.30000000000000, b : true, ar : [{ u : '', g : [{ o : 102, s : 'sora', d : 0.00000000000000, i : 1022, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }]
 
 [{ x : 2, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }, { x : 0, y : '', a : 0.00000000000000, b : false, ar : [{ u : '', g : [{ o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }, { o : 0, s : '', d : 0.00000000000000, i : 0, ob : { i : 0, s : '' } }] }] }])");
 }
@@ -3030,7 +3146,7 @@ print(getC())
       }
 setC(getC())
   )");
-  O(R"({ x : 2 }{ x : 2 })");
+  EXPECT_EQ(getOutput(), R"({ x : 2 }{ x : 2 })");
 }
 
 #endif

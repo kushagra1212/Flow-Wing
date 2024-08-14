@@ -1,20 +1,8 @@
 #include "If-Or-If-Else.h"
 
-IfORIFELSEReplTest::IfORIFELSEReplTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void IfORIFELSEReplTest::SetUp() { _test->SetUp(); }
 
 void IfORIFELSEReplTest::TearDown() { _test->TearDown(); }
-
-void IfORIFELSEReplTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string IfORIFELSEReplTest::getOutput() const { return _test->getOutput(); }
-
-void IfORIFELSEReplTest::runEvaluator() { _test->runEvaluator(); }
 
 // TESTS
 

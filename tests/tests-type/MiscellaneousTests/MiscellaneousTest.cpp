@@ -1,20 +1,8 @@
 #include "MiscellaneousTest.h"
 
-MiscellaneousTest::MiscellaneousTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void MiscellaneousTest::SetUp() { _test->SetUp(); }
 
 void MiscellaneousTest::TearDown() { _test->TearDown(); }
-
-void MiscellaneousTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string MiscellaneousTest::getOutput() const { return _test->getOutput(); }
-
-void MiscellaneousTest::runEvaluator() { _test->runEvaluator(); }
 
 TEST_F(MiscellaneousTest, ClassesBasic1) {
   I(R"(type T = {
@@ -37,7 +25,7 @@ fun getA() -> A {
 
 var a:A = getA()
 print(a.obj))");
-  O(R"({ a : 22 })");
+  EXPECT_EQ(getOutput(), R"({ a : 22 })");
 }
 TEST_F(MiscellaneousTest, ClassesBasic2) {
   I(R"(
@@ -63,7 +51,7 @@ var a:A = getA()
 print(a.obj)
 
 )");
-  O(R"({ a : 22 })");
+  EXPECT_EQ(getOutput(), R"({ a : 22 })");
 }
 TEST_F(MiscellaneousTest, ClassesBasic3) {
   I(R"(
@@ -102,7 +90,7 @@ print(a.obj)
 print(a.u)
 print(a.r)
 )");
-  O(R"({ a : 22 }{ a : 53 }2)");
+  EXPECT_EQ(getOutput(), R"({ a : 22 }{ a : 53 }2)");
 }
 TEST_F(MiscellaneousTest, ClassesBasic4) {
   I(R"(
@@ -141,7 +129,7 @@ print(a.obj)
 print(a.u)
 print(a.r)
 )");
-  O(R"({ a : 22 }{ a : 53 }2)");
+  EXPECT_EQ(getOutput(), R"({ a : 22 }{ a : 53 }2)");
 }
 TEST_F(MiscellaneousTest, ClassesBasic5) {
   I(R"(
@@ -180,7 +168,7 @@ print(a.obj)
 print(a.u)
 print(a.r)
 )");
-  O(R"({ a : 22 }{ a : 5 }2)");
+  EXPECT_EQ(getOutput(), R"({ a : 22 }{ a : 5 }2)");
 }
 TEST_F(MiscellaneousTest, ClassesBasic6) {
   I(R"(
@@ -222,7 +210,7 @@ print(a.obj)
 print(a.u)
 print(a.r)
 )");
-  O(R"({ a : 22 }{ a : 5 }2)");
+  EXPECT_EQ(getOutput(), R"({ a : 22 }{ a : 5 }2)");
 }
 TEST_F(MiscellaneousTest, Basic1) {
   I(R"(
@@ -264,7 +252,7 @@ fun getA() -> A {
 var i:T = {a:getR(5)}
 print(i)
 )");
-  O(R"({ a : 5 })");
+  EXPECT_EQ(getOutput(), R"({ a : 5 })");
 }
 TEST_F(MiscellaneousTest, Basic2) {
   I(R"(
@@ -306,7 +294,7 @@ fun getA() -> A {
 var i:T = getU({a:getR(5)})
 print(i)
 )");
-  O(R"({ a : 5 })");
+  EXPECT_EQ(getOutput(), R"({ a : 5 })");
 }
 TEST_F(MiscellaneousTest, Basic3) {
   I(R"(
@@ -349,7 +337,7 @@ fun getA() -> A {
 var uB:T[2] = [{a:getR(5)},getU({a:getR(10)})]
 print(uB)
 )");
-  O(R"([{ a : 5 }, { a : 10 }])");
+  EXPECT_EQ(getOutput(), R"([{ a : 5 }, { a : 10 }])");
 }
 TEST_F(MiscellaneousTest, Basic4) {
   I(R"(
@@ -392,7 +380,7 @@ fun getA() -> A {
 var uB:T[2] = getUA([getU({a:getR(10)})]) 
 print(uB)
 )");
-  O(R"([{ a : 10 }, { a : 0 }])");
+  EXPECT_EQ(getOutput(), R"([{ a : 10 }, { a : 0 }])");
 }
 TEST_F(MiscellaneousTest, Basic5) {
   I(R"(
@@ -437,7 +425,7 @@ var uB:T[2] = getUA([])
 
 print(uB)
 )");
-  O(R"([{ a : 11 }, { a : 0 }])");
+  EXPECT_EQ(getOutput(), R"([{ a : 11 }, { a : 0 }])");
 }
 TEST_F(MiscellaneousTest, Basic6) {
   I(R"(
@@ -493,7 +481,7 @@ getUA(ua:T[2]) -> T[2] {
 var a:A = new A({a:33},3,{},[])
 print(a.getUA([]))
 )");
-  O(R"(B Class [{ a : 11 }, { a : 0 }])");
+  EXPECT_EQ(getOutput(), R"(B Class [{ a : 11 }, { a : 0 }])");
 }
 
 TEST_F(MiscellaneousTest, Basic7) {
@@ -550,7 +538,7 @@ getUA(ua:T[2]) -> T[2] {
 var a:A = new A({a:33},3,{},[])
 print(a.getUA([]))
 )");
-  O(R"(B Class [{ a : 11 }, { a : 0 }])");
+  EXPECT_EQ(getOutput(), R"(B Class [{ a : 11 }, { a : 0 }])");
 }
 
 TEST_F(MiscellaneousTest, AssigningObjectPropertyUsingFunctionCall) {
@@ -578,5 +566,5 @@ var a:A  = new A()
 
 print(a.x)
 )");
-  O(R"({ white : -1 })");
+  EXPECT_EQ(getOutput(), R"({ white : -1 })");
 }

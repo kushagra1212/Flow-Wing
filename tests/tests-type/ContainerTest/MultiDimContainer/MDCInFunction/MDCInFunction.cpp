@@ -1,20 +1,8 @@
 #include "MDCInFunction.h"
 
-MDCInFunction::MDCInFunction() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void MDCInFunction::SetUp() { _test->SetUp(); }
 
 void MDCInFunction::TearDown() { _test->TearDown(); }
-
-void MDCInFunction::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string MDCInFunction::getOutput() const { return _test->getOutput(); }
-
-void MDCInFunction::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
@@ -30,7 +18,7 @@ TEST_F(MDCInFunction, Int1DArrayAsParam) {
         foo(a)
     )");
 
-  O("[1, 2, 3]");
+  EXPECT_EQ(getOutput(), "[1, 2, 3]");
 }
 
 TEST_F(MDCInFunction, Str1DArrayAsParam) {
@@ -45,7 +33,7 @@ TEST_F(MDCInFunction, Str1DArrayAsParam) {
             foo(a)
         )");
 
-  O("['a', 'b', 'c']");
+  EXPECT_EQ(getOutput(), "['a', 'b', 'c']");
 }
 
 // 1D Deci Param
@@ -62,7 +50,8 @@ TEST_F(MDCInFunction, Deci1DArrayAsParam) {
             foo(a)
         )");
 
-  O("[1.10000000000000, 2.20000000000000, 3.30000000000000]");
+  EXPECT_EQ(getOutput(),
+            "[1.10000000000000, 2.20000000000000, 3.30000000000000]");
 }
 
 // 1D Bool Param
@@ -79,7 +68,7 @@ TEST_F(MDCInFunction, Bool1DArrayAsParam) {
             foo(a)
         )");
 
-  O("[true, false, true]");
+  EXPECT_EQ(getOutput(), "[true, false, true]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParam) {
@@ -94,7 +83,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParam) {
             foo(a)
         )");
 
-  O("[[1, 2, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 2, 3], [4, 5, 6]]");
 }
 
 TEST_F(MDCInFunction, Str2DArrayAsParam) {
@@ -109,7 +98,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParam) {
             foo(a)
         )");
 
-  O("[['a', 'b', 'c'], ['d', 'e', 'f']]");
+  EXPECT_EQ(getOutput(), "[['a', 'b', 'c'], ['d', 'e', 'f']]");
 }
 
 // 2D Deci Param
@@ -126,8 +115,9 @@ TEST_F(MDCInFunction, Deci2DArrayAsParam) {
             foo(a)
         )");
 
-  O("[[1.10000000000000, 2.20000000000000, 3.30000000000000], "
-    "[4.40000000000000, 5.50000000000000, 6.60000000000000]]");
+  EXPECT_EQ(getOutput(),
+            "[[1.10000000000000, 2.20000000000000, 3.30000000000000], "
+            "[4.40000000000000, 5.50000000000000, 6.60000000000000]]");
 }
 
 // 2D Bool Param
@@ -144,7 +134,7 @@ TEST_F(MDCInFunction, Bool2DArrayAsParam) {
             foo(a)
         )");
 
-  O("[[true, false, true], [false, true, false]]");
+  EXPECT_EQ(getOutput(), "[[true, false, true], [false, true, false]]");
 }
 
 // One Array and Other Normal Param
@@ -164,7 +154,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParam) {
             foo(a,x)
         )");
 
-  O("[[1, 1, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 1, 3], [4, 5, 6]]");
 }
 
 TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParam) {
@@ -182,7 +172,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParam) {
             foo(a,x)
         )");
 
-  O("[['a', 'a', 'c'], ['d', 'e', 'f']]");
+  EXPECT_EQ(getOutput(), "[['a', 'a', 'c'], ['d', 'e', 'f']]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstant) {
@@ -198,7 +188,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstant) {
             foo(a,1)
         )");
 
-  O("[[1, 1, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 1, 3], [4, 5, 6]]");
 }
 
 // In Scope
@@ -215,7 +205,7 @@ TEST_F(MDCInFunction, Int1DArrayAsParamLOCAL) {
         foo(a)}
     )");
 
-  O("[1, 2, 3]");
+  EXPECT_EQ(getOutput(), "[1, 2, 3]");
 }
 
 TEST_F(MDCInFunction, Str1DArrayAsParamLOCAL) {
@@ -230,7 +220,7 @@ TEST_F(MDCInFunction, Str1DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("['a', 'b', 'c']");
+  EXPECT_EQ(getOutput(), "['a', 'b', 'c']");
 }
 
 // 1D Deci Param
@@ -247,7 +237,8 @@ TEST_F(MDCInFunction, Deci1DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[1.10000000000000, 2.20000000000000, 3.30000000000000]");
+  EXPECT_EQ(getOutput(),
+            "[1.10000000000000, 2.20000000000000, 3.30000000000000]");
 }
 
 // 1D Bool Param
@@ -264,7 +255,7 @@ TEST_F(MDCInFunction, Bool1DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[true, false, true]");
+  EXPECT_EQ(getOutput(), "[true, false, true]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParamLOCAL) {
@@ -279,7 +270,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[[1, 2, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 2, 3], [4, 5, 6]]");
 }
 
 TEST_F(MDCInFunction, Str2DArrayAsParamLOCAL) {
@@ -294,7 +285,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[['a', 'b', 'c'], ['d', 'e', 'f']]");
+  EXPECT_EQ(getOutput(), "[['a', 'b', 'c'], ['d', 'e', 'f']]");
 }
 
 // 2D Deci Param
@@ -311,8 +302,9 @@ TEST_F(MDCInFunction, Deci2DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[[1.10000000000000, 2.20000000000000, 3.30000000000000], "
-    "[4.40000000000000, 5.50000000000000, 6.60000000000000]]");
+  EXPECT_EQ(getOutput(),
+            "[[1.10000000000000, 2.20000000000000, 3.30000000000000], "
+            "[4.40000000000000, 5.50000000000000, 6.60000000000000]]");
 }
 
 // 2D Bool Param
@@ -329,7 +321,7 @@ TEST_F(MDCInFunction, Bool2DArrayAsParamLOCAL) {
             foo(a)}
         )");
 
-  O("[[true, false, true], [false, true, false]]");
+  EXPECT_EQ(getOutput(), "[[true, false, true], [false, true, false]]");
 }
 
 // One Array and Other Normal Param
@@ -349,7 +341,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamLOCAL) {
             foo(a,x)}
         )");
 
-  O("[[1, 1, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 1, 3], [4, 5, 6]]");
 }
 
 TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParamLOCAL) {
@@ -367,7 +359,7 @@ TEST_F(MDCInFunction, Str2DArrayAsParamAndNormalParamLOCAL) {
             foo(a,x)}
         )");
 
-  O("[['a', 'a', 'c'], ['d', 'e', 'f']]");
+  EXPECT_EQ(getOutput(), "[['a', 'a', 'c'], ['d', 'e', 'f']]");
 }
 
 TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstantLOCAL) {
@@ -383,7 +375,7 @@ TEST_F(MDCInFunction, Int2DArrayAsParamAndNormalParamConstantLOCAL) {
             foo(a,1)}
         )");
 
-  O("[[1, 1, 3], [4, 5, 6]]");
+  EXPECT_EQ(getOutput(), "[[1, 1, 3], [4, 5, 6]]");
 }
 
 TEST_F(MDCInFunction, COMPLEX1) {
@@ -403,8 +395,9 @@ print(arr)
 mainTest(arr,arr2)
         )");
 
-  O("[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, 10], [0, 0]][[2, 2, 0, "
-    "0], [0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, "
+                         "10], [0, 0]][[2, 2, 0, "
+                         "0], [0, 0, 0, 0]]");
 }
 
 TEST_F(MDCInFunction, COMPLEX1LOCAL) {
@@ -424,8 +417,9 @@ print(arr)
 mainTest(arr,arr2)}
         )");
 
-  O("[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, 10], [0, 0]][[2, 2, 0, "
-    "0], [0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, "
+                         "10], [0, 0]][[2, 2, 0, "
+                         "0], [0, 0, 0, 0]]");
 }
 TEST_F(MDCInFunction, COMPLEX1GL) {
 
@@ -444,8 +438,9 @@ print(arr)
 {mainTest(arr,arr2)}
         )");
 
-  O("[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, 10], [0, 0]][[2, 2, 0, "
-    "0], [0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[2, 2, 0, 0], [0, 0, 0, 0]][[2, 2], [0, 0]][[10, "
+                         "10], [0, 0]][[2, 2, 0, "
+                         "0], [0, 0, 0, 0]]");
 }
 
 TEST_F(MDCInFunction, ReturnContainerFromFunction) {
@@ -458,7 +453,7 @@ TEST_F(MDCInFunction, ReturnContainerFromFunction) {
 print(mainTest())
         )");
 
-  O("[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
 }
 
 // Test case for mainTest() function
@@ -473,7 +468,7 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArray) {
     print(result)
   )");
 
-  O("[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]]");
 }
 
 // Test case for checking that mainTest() and main2() have different outputs
@@ -495,8 +490,10 @@ TEST_F(MDCInFunction, MainAndMain2HaveDifferentOutputs) {
     print(result2)
   )");
 
-  O("[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]][[11, 11, 11, 11, 11], [11, "
-    "11, 11, 11, 11]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[10, 10, 10, 10, 10], [10, 10, 10, 10, 10]][[11, 11, 11, 11, 11], [11, "
+      "11, 11, 11, 11]]");
 }
 
 // Test case for mainTest() function Str
@@ -511,8 +508,10 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStr) {
     print(result)
   )");
 
-  O("[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
-    "'']]");
+  EXPECT_EQ(
+      getOutput(),
+      "[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
+      "'']]");
 }
 
 // Test case for mainTest() function bool
@@ -527,7 +526,9 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayBool) {
     print(result)
   )");
 
-  O("[[true, true, true, true, true], [true, false, false, false, false]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[true, true, true, true, true], [true, false, false, false, false]]");
 }
 
 // Test case for mainTest() function deci
@@ -542,9 +543,11 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayDeci) {
     print(result)
   )");
 
-  O("[[1.23000000000000, 1.23000000000000, 1.23000000000000, 1.23000000000000, "
-    "1.23000000000000], [1.23000000000000, 0.00000000000000, 0.00000000000000, "
-    "0.00000000000000, 0.00000000000000]]");
+  EXPECT_EQ(getOutput(), "[[1.23000000000000, 1.23000000000000, "
+                         "1.23000000000000, 1.23000000000000, "
+                         "1.23000000000000], [1.23000000000000, "
+                         "0.00000000000000, 0.00000000000000, "
+                         "0.00000000000000, 0.00000000000000]]");
 }
 
 // Test case for mainTest() function
@@ -560,7 +563,7 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayAssign) {
     print(result)
   )");
 
-  O("[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [10, 0, 0, 0, 0]]");
 }
 
 // Test case for mainTest() function Str
@@ -576,8 +579,10 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayStrAssign) {
     print(result)
   )");
 
-  O("[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
-    "'']]");
+  EXPECT_EQ(
+      getOutput(),
+      "[['Hello', 'Hello', 'Hello', 'Hello', 'Hello'], ['Hello', '', '', '', "
+      "'']]");
 }
 
 // Test case for mainTest() function bool
@@ -593,7 +598,9 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayBoolAssign) {
     print(result)
   )");
 
-  O("[[true, true, true, true, true], [true, false, false, false, false]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[true, true, true, true, true], [true, false, false, false, false]]");
 }
 
 // Test case for mainTest() function deci
@@ -609,9 +616,11 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayDeciAssign) {
     print(result)
   )");
 
-  O("[[1.23000000000000, 1.23000000000000, 1.23000000000000, 1.23000000000000, "
-    "1.23000000000000], [1.23000000000000, 0.00000000000000, 0.00000000000000, "
-    "0.00000000000000, 0.00000000000000]]");
+  EXPECT_EQ(getOutput(), "[[1.23000000000000, 1.23000000000000, "
+                         "1.23000000000000, 1.23000000000000, "
+                         "1.23000000000000], [1.23000000000000, "
+                         "0.00000000000000, 0.00000000000000, "
+                         "0.00000000000000, 0.00000000000000]]");
 }
 
 TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayAssign2) {
@@ -629,7 +638,7 @@ TEST_F(MDCInFunction, MainFunctionReturnsCorrectArrayAssign2) {
     print(result)
 )");
 
-  O("[[10, 10, 10, 10, 10], [10, 10, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [10, 10, 0, 0, 0]]");
 }
 
 #endif // JIT_TEST_MODE

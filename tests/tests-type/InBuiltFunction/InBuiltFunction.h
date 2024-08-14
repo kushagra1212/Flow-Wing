@@ -1,19 +1,12 @@
 #ifndef IN_BUILT_FUNCTIONS_H
 #define IN_BUILT_FUNCTIONS_H
 
-#include "../../Common.h"
+#include "../../helpers/handlers/IOHandler.h"
 
-class InBuiltFunction : public ::testing::Test {
+class InBuiltFunction : public ::testing::Test, public IOHandler {
 protected:
-  InBuiltFunction();
-
   void SetUp() override;
   void TearDown() override;
-  void setInput(const std::string &input);
-  std::string getOutput() const;
-  void runEvaluator();
-
-  std::unique_ptr<BaseTest> _test;
 };
 
 #endif // IN_BUILT_FUNCTIONS_H

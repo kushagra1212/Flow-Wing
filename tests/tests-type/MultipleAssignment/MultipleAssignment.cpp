@@ -1,20 +1,8 @@
 #include "MultipleAssignment.h"
 
-MultipleAssignment::MultipleAssignment() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void MultipleAssignment::SetUp() { _test->SetUp(); }
 
 void MultipleAssignment::TearDown() { _test->TearDown(); }
-
-void MultipleAssignment::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string MultipleAssignment::getOutput() const { return _test->getOutput(); }
-
-void MultipleAssignment::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 TEST_F(MultipleAssignment, MABasic) {
@@ -29,7 +17,7 @@ print(x,y)
 
     )");
 
-  O(R"(2hello5Hi)");
+  EXPECT_EQ(getOutput(), R"(2hello5Hi)");
 }
 TEST_F(MultipleAssignment, MABasic2) {
   I(R"(
@@ -61,7 +49,9 @@ print(a,b,c,e,g)
 
     )");
 
-  O(R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
 }
 TEST_F(MultipleAssignment, MABasic2Scoped) {
   I(R"(
@@ -95,7 +85,9 @@ print(a,b,c,e,g)
 
     )");
 
-  O(R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
 }
 TEST_F(MultipleAssignment, MABasic3Scoped) {
   I(R"(
@@ -129,7 +121,9 @@ print(a,b,c,e,g)
 
     )");
 
-  O(R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
+  EXPECT_EQ(
+      getOutput(),
+      R"(2hello5Hi2e2.30000000000000false{ a : 0, b : 3.30000000000000, c : { a : '' } })");
 }
 TEST_F(MultipleAssignment, MABasic3ScopedArrayAndClass) {
   I(R"(
@@ -183,7 +177,9 @@ aa.printX()
 
     )");
 
-  O(R"(2hello5Hitrue[{ a : 10, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }]2222123232)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(2hello5Hitrue[{ a : 10, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }, { a : 0, b : 0.00000000000000, c : { a : '' } }]2222123232)");
 }
 
 TEST_F(MultipleAssignment, MABasic3ScopedArrayAndClassUsingFunction) {
@@ -228,7 +224,9 @@ print("\n")
 print(f,i)
     )");
 
-  O(R"(22Helo43r2e2H[{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 0 }, l : [{ a : 0 }, { a : 0 }] }]I
+  EXPECT_EQ(
+      getOutput(),
+      R"(22Helo43r2e2H[{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 0 }, l : [{ a : 0 }, { a : 0 }] }]I
 [{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 4 }, l : [{ a : 0 }, { a : 0 }] }]ER)");
 }
 TEST_F(MultipleAssignment, MABasic3ScopedArrayAndClassUsingFunctionScoped) {
@@ -276,7 +274,9 @@ print("\n")
 print(f,i)}
     )");
 
-  O(R"(22Helo43r2e2H[{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 0 }, l : [{ a : 0 }, { a : 0 }] }]I
+  EXPECT_EQ(
+      getOutput(),
+      R"(22Helo43r2e2H[{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 0 }, l : [{ a : 0 }, { a : 0 }] }]I
 [{ x : 0, u : '', g : { a : 0 }, l : [{ a : 2 }, { a : 0 }] }, { x : 0, u : '', g : { a : 4 }, l : [{ a : 0 }, { a : 0 }] }]ER)");
 }
 
@@ -324,7 +324,7 @@ print(u)
 print(b.x)
     )");
 
-  O(R"(213223232232)");
+  EXPECT_EQ(getOutput(), R"(213223232232)");
 }
 TEST_F(MultipleAssignment,
        MABasic3ScopedArrayAndClassUsingFunctionClasesAndPrimitiveAssignment) {
@@ -365,7 +365,7 @@ print(u)
 print(b.x)
     )");
 
-  O(R"(2132232)");
+  EXPECT_EQ(getOutput(), R"(2132232)");
 }
 
 TEST_F(
@@ -410,7 +410,7 @@ print(b.x)
   }
     )");
 
-  O(R"(2132232)");
+  EXPECT_EQ(getOutput(), R"(2132232)");
 }
 
 TEST_F(
@@ -461,7 +461,7 @@ print(u)
 print(b.x)
     )");
 
-  O(R"(32[{ a : 0 }, { a : 0 }]32)");
+  EXPECT_EQ(getOutput(), R"(32[{ a : 0 }, { a : 0 }]32)");
 }
 
 TEST_F(
@@ -513,7 +513,7 @@ print(u)
 print(b.x)}
     )");
 
-  O(R"(32[{ a : 0 }, { a : 0 }]32)");
+  EXPECT_EQ(getOutput(), R"(32[{ a : 0 }, { a : 0 }]32)");
 }
 
 TEST_F(
@@ -566,7 +566,8 @@ print(u)
 print(b.x)
     )");
 
-  O(R"([{ a : 0 }, { a : 0 }]32[{ a : 10 }, { a : 0 }]32)");
+  EXPECT_EQ(getOutput(),
+            R"([{ a : 0 }, { a : 0 }]32[{ a : 10 }, { a : 0 }]32)");
 }
 
 TEST_F(
@@ -618,7 +619,7 @@ print(u)
 print(b.x)
     )");
 
-  O(R"(32[{ a : 10 }, { a : 0 }]32)");
+  EXPECT_EQ(getOutput(), R"(32[{ a : 10 }, { a : 0 }]32)");
 }
 
 TEST_F(
@@ -682,7 +683,7 @@ print(b.x)
 
     )");
 
-  O(R"(23[{ a : 10 }, { a : 0 }]23)");
+  EXPECT_EQ(getOutput(), R"(23[{ a : 10 }, { a : 0 }]23)");
 }
 
 TEST_F(
@@ -749,6 +750,6 @@ print(b.x)
 
     )");
 
-  O(R"(23[{ a : 10 }, { a : 0 }]23)");
+  EXPECT_EQ(getOutput(), R"(23[{ a : 10 }, { a : 0 }]23)");
 }
 #endif

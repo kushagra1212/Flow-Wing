@@ -1,23 +1,9 @@
 
 #include "Function.h"
 
-Tests::FlowWing::Function::Function() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void Tests::FlowWing::Function::SetUp() { _test->SetUp(); }
 
 void Tests::FlowWing::Function::TearDown() { _test->TearDown(); }
-
-void Tests::FlowWing::Function::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string Tests::FlowWing::Function::getOutput() const {
-  return _test->getOutput();
-}
-
-void Tests::FlowWing::Function::runEvaluator() { _test->runEvaluator(); }
 
 // Function with no parameters
 

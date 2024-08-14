@@ -1,16 +1,8 @@
 #include "InoutTest.h"
 
-InoutTest::InoutTest() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void InoutTest::SetUp() { _test->SetUp(); }
 
 void InoutTest::TearDown() { _test->TearDown(); }
-
-void InoutTest::setInput(const std::string &input) { _test->setInput(input); }
-
-std::string InoutTest::getOutput() const { return _test->getOutput(); }
-
-void InoutTest::runEvaluator() { _test->runEvaluator(); }
 
 TEST_F(InoutTest, InoutTestArrayOfObject) {
   I(R"(
@@ -39,7 +31,9 @@ pa(a)
 print(a)
     )");
 
-  O(R"([{ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]
 [{ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 10.10000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]
 [{ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 10.10000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }])");
 }
@@ -72,7 +66,9 @@ pa(a)
 print(a)
     )");
 
-  O(R"({ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : 0.00000000000000, c : 'hi', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }
 { a : 2, b : 0.00000000000000, c : 'yo', d : [{ e : 10.10000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }
 { a : 2, b : 0.00000000000000, c : 'yo', d : [{ e : 10.10000000000000, s : '' }, { e : 0.00000000000000, s : '' }] })");
 }
@@ -128,7 +124,7 @@ print("\n")
 print(d)
     )");
 
-  O(R"(5
+  EXPECT_EQ(getOutput(), R"(5
 h
 3.30000000000000
 true
@@ -193,7 +189,7 @@ print("\n")
 print(d)
     )");
 
-  O(R"(5
+  EXPECT_EQ(getOutput(), R"(5
 h
 3.30000000000000
 true
@@ -258,7 +254,7 @@ print("\n")
 print(d)
     )");
 
-  O(R"(5
+  EXPECT_EQ(getOutput(), R"(5
 h
 3.30000000000000
 true
@@ -297,7 +293,9 @@ fun pa( a:int,b:str, c:deci,d:bool,u:T) -> nthg {
 pa(2,"sw",3.3,false, {a:2}) 
     )");
 
-  O(R"({ a : 2, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }
 { a : 32, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] })");
 }
 
@@ -326,7 +324,9 @@ fun pa( a:int,b:str, c:deci,d:bool,u:T[2]) -> nthg {
 pa(2,"sw",3.3,false, [{c:"hio"}]) 
     )");
 
-  O(R"([{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 0, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 0, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]
 [{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 32, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }])");
 }
 
@@ -358,7 +358,9 @@ fun pa( a:int,b:str,inout c:deci,d:bool,inout u:T[2]) -> nthg {
 pa(2,"sw",3.3,false, [{c:"hio"}]) 
     )");
 
-  O(R"([{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 0, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]3.300000000000002.20000000000000
+  EXPECT_EQ(
+      getOutput(),
+      R"([{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 0, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }]3.300000000000002.20000000000000
 [{ a : 0, b : 0.00000000000000, c : 'hio', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }, { a : 32, b : 0.00000000000000, c : '', d : [{ e : 0.00000000000000, s : '' }, { e : 0.00000000000000, s : '' }] }])");
 }
 
@@ -390,7 +392,7 @@ print("After Pass\n")
 print(a.obj)
     )");
 
-  O(R"({ a : 100 }After Pass
+  EXPECT_EQ(getOutput(), R"({ a : 100 }After Pass
 { a : 21 })");
 }
 
@@ -422,7 +424,7 @@ print("After Pass\n")
 print(a.obj)
     )");
 
-  O(R"({ a : 100 }After Pass
+  EXPECT_EQ(getOutput(), R"({ a : 100 }After Pass
 { a : 100 })");
 }
 
@@ -453,7 +455,7 @@ print("After Pass")
 
     )");
 
-  O(R"({ a : 100 }{ a : 21 }After Pass)");
+  EXPECT_EQ(getOutput(), R"({ a : 100 }{ a : 21 }After Pass)");
 }
 TEST_F(InoutTest, passingClassObjectWithInout) {
   I(R"(
@@ -481,7 +483,7 @@ print("After Pass")
 print(a.obj)
     )");
 
-  O(R"({ a : 100 }After Pass{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 100 }After Pass{ a : 21 })");
 }
 TEST_F(InoutTest, passingClassObjectWithoutInout) {
   I(R"(
@@ -509,7 +511,7 @@ print("After Pass")
 print(a.obj)
     )");
 
-  O(R"({ a : 100 }After Pass{ a : 100 })");
+  EXPECT_EQ(getOutput(), R"({ a : 100 }After Pass{ a : 100 })");
 }
 TEST_F(InoutTest, objectTypeWithoutInoutType1) {
   I(R"(
@@ -532,7 +534,7 @@ var d:T = getAA(b)
 print(d)
     )");
 
-  O(R"({ a : 21 }{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }{ a : 21 })");
 }
 TEST_F(InoutTest, objectTypeWithInoutType1) {
   I(R"(
@@ -555,7 +557,7 @@ var d:T = getAA(b)
 print(d)
     )");
 
-  O(R"({ a : 21 }{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }{ a : 21 })");
 }
 
 TEST_F(InoutTest, objectTypeWithoutInoutType2) {
@@ -578,7 +580,7 @@ var d:T = getAA(b)
 print(d)
     )");
 
-  O(R"({ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 })");
 }
 
 TEST_F(InoutTest, objectTypeWithInoutType2) {
@@ -601,7 +603,7 @@ var d:T = getAA(b)
 print(d)
     )");
 
-  O(R"({ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 })");
 }
 
 TEST_F(InoutTest, classesWithoutInout) {
@@ -636,7 +638,7 @@ print(d.obj)
 print(b.obj)
     )");
 
-  O(R"({ a : 21 }{ a : 21 }{ a : 10 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }{ a : 21 }{ a : 10 })");
 }
 
 TEST_F(InoutTest, classesWithInout) {
@@ -671,7 +673,7 @@ print(d.obj)
 print(b.obj)
     )");
 
-  O(R"({ a : 21 }{ a : 21 }{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }{ a : 21 }{ a : 21 })");
 }
 TEST_F(InoutTest, classesWithInoutPartial) {
   I(R"(
@@ -705,5 +707,5 @@ print(d.obj)
 print(b.obj)
     )");
 
-  O(R"({ a : 21 }{ a : 21 }{ a : 10 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }{ a : 21 }{ a : 10 })");
 }

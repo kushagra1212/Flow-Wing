@@ -1,18 +1,11 @@
 #ifndef __CONTAINER_TEST_H__
 #define __CONTAINER_TEST_H__
 
-#include "../../Common.h"
+#include "../../helpers/handlers/IOHandler.h"
 
-class ContainerTest : public ::testing::Test {
+class ContainerTest : public ::testing::Test, public IOHandler {
 protected:
-  ContainerTest();
-
   void SetUp() override;
   void TearDown() override;
-  void setInput(const std::string &input);
-  std::string getOutput() const;
-  void runEvaluator();
-
-  std::unique_ptr<BaseTest> _test;
 };
 #endif // __CONTAINER_TEST_H__

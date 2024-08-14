@@ -1,20 +1,8 @@
 #include "For-Loop.h"
 
-ForLoopReplTest::ForLoopReplTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void ForLoopReplTest::SetUp() { _test->SetUp(); }
 
 void ForLoopReplTest::TearDown() { _test->TearDown(); }
-
-void ForLoopReplTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string ForLoopReplTest::getOutput() const { return _test->getOutput(); }
-
-void ForLoopReplTest::runEvaluator() { _test->runEvaluator(); }
 
 // Basic for loop
 TEST_F(ForLoopReplTest, BasicForLoop) {

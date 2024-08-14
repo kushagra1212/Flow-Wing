@@ -1,22 +1,8 @@
 #include "VariableDeclaration.h"
 
-VariableDeclaration::VariableDeclaration() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void VariableDeclaration::SetUp() { _test->SetUp(); }
 
 void VariableDeclaration::TearDown() { _test->TearDown(); }
-
-void VariableDeclaration::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string VariableDeclaration::getOutput() const {
-  return _test->getOutput();
-}
-
-void VariableDeclaration::runEvaluator() { _test->runEvaluator(); }
 
 // Variable Declaration
 

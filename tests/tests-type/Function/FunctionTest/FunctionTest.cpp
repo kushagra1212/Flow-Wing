@@ -1,18 +1,9 @@
 #include "FunctionTest.h"
 
-FunctionTest::FunctionTest() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void FunctionTest::SetUp() { _test->SetUp(); }
 
 void FunctionTest::TearDown() { _test->TearDown(); }
 
-void FunctionTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string FunctionTest::getOutput() const { return _test->getOutput(); }
-
-void FunctionTest::runEvaluator() { _test->runEvaluator(); }
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
 // TEST_F(FunctionTest, F) {
@@ -44,7 +35,7 @@ void FunctionTest::runEvaluator() { _test->runEvaluator(); }
 // print("ss: ",ss+2)
 //     )");
 
-//   O(R"(22222222)");
+//   EXPECT_EQ(getOutput(),R"(22222222)");
 // }
 
 #endif
