@@ -3701,3 +3701,207 @@ print(getX())
 )");
   EXPECT_EQ(getOutput(), R"(3)");
 }
+TEST_F(ClassesTests, ClassInitTest) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10,"Nice")
+
+
+a.test(2,5.3)
+)");
+  EXPECT_EQ(getOutput(), R"(init B 10Nicea: 2
+b: Nice
+x: 10
+k: 5.30000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest2) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10)
+
+
+a.test(2,5.3)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: He
+x: 10
+k: 5.30000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest3) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10)
+
+
+a.test(2)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: He
+x: 10
+k: 3.30000000000000)");
+}
+
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrun) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci = a.test(2)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 4
+x: 10
+k: Hello2335.50000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignment) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci 
+
+
+b,c =a.test(2)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 4
+x: 10
+k: Hello2335.50000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignment2) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci 
+
+
+b,c =a.test(2,53)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 53
+x: 10
+k: Hello2335.50000000000000)");
+}

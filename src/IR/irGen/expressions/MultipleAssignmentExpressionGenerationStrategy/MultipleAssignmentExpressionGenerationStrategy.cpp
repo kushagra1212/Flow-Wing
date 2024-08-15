@@ -58,16 +58,19 @@ void MultipleAssignmentExpressionGenerationStrategy::
         BoundMultipleAssignmentExpression *boundMultipleAssignmentExpression) {
   auto firstVariableAssignment =
       boundMultipleAssignmentExpression->getAssignmentListRef()[0].get();
-  if (firstVariableAssignment->getRightPtr().get() &&
-      firstVariableAssignment->getRightPtr()->getKind() ==
-          BinderKindUtils::BoundNodeKind::CallExpression) {
+
+  if (!firstVariableAssignment->getRightPtr().get()) {
+    return;
+  }
+
+  BoundCallExpression *callExpression = BoundUtils::getCallExpression(
+      firstVariableAssignment->getRightPtr().get());
+
+  if (callExpression) {
 
     std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
         std::make_unique<AssignmentExpressionGenerationStrategy>(
             _codeGenerationContext);
-
-    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
-        firstVariableAssignment->getRightPtr().get());
 
     uint64_t offset = 0;
     for (const auto &expr :
@@ -95,7 +98,7 @@ void MultipleAssignmentExpressionGenerationStrategy::
     assignmentEGS->handleAssignExpression(
         callExpression->getArgumentAlloca(0).first,
         callExpression->getArgumentAlloca(0).second, "_retrunArg",
-        callExpression);
+        firstVariableAssignment->getRightPtr().get());
   }
 }
 
@@ -115,8 +118,8 @@ void MultipleAssignmentExpressionGenerationStrategy::declare(
   if (this->hasSingleCallExpr(boundMultipleAssignmentExpression)) {
     auto firstAssignmentExpr =
         boundMultipleAssignmentExpression->getAssignmentListRef()[0].get();
-    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
-        firstAssignmentExpr->getRightPtr().get());
+    BoundCallExpression *callExpression =
+        BoundUtils::getCallExpression(firstAssignmentExpr->getRightPtr().get());
 
     if (!(_codeGenerationContext->_functionTypes.find(
               callExpression->getCallerNameRef()) !=
@@ -157,10 +160,13 @@ bool MultipleAssignmentExpressionGenerationStrategy::hasSingleCallExpr(
                ->getRightPtr()) {
         return false;
       }
-      if (boundMultipleAssignmentExpression->getAssignmentListRef()[i]
-              ->getRightPtr()
-              ->getKind() != BinderKindUtils::BoundNodeKind::CallExpression) {
 
+      BoundCallExpression *callExpression = BoundUtils::getCallExpression(
+          boundMultipleAssignmentExpression->getAssignmentListRef()[i]
+              ->getRightPtr()
+              .get());
+
+      if (!callExpression) {
         return false;
       }
     }

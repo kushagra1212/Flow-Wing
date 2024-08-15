@@ -270,8 +270,6 @@ Parser::parseFunctionDeclaration(bool isMemberFunction) {
   functionDeclaration->setOpenParenthesisToken(std::move(
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken)));
 
-  bool isOptionalParameterType = false;
-
   while (this->getKind() !=
              SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
          this->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {

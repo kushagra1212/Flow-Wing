@@ -1,16 +1,16 @@
-; ModuleID = '-Users-apple-code-per-Flow-Wing-docs-local-ERR-module'
-source_filename = "-Users-apple-code-per-Flow-Wing-docs-local-ERR-module"
+; ModuleID = '-Users-apple-code-per-Flow-Wing-docs-local-Err-module'
+source_filename = "-Users-apple-code-per-Flow-Wing-docs-local-Err-module"
 
-%"ERR::Error::VTableType" = type {}
-%"ERR::Error" = type { ptr, ptr }
+%"Err::Result::VTableType" = type {}
+%"Err::Result" = type { ptr, ptr }
 
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_GLOBAL_NULL = external global i8
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_BREAK_COUNT = global i32 0
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_CONTINUE_COUNT = global i32 0
-@-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
-@"vtable.ERR::Error.fg" = common global %"ERR::Error::VTableType" zeroinitializer
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_GLOBAL_NULL = external global i8
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_BREAK_COUNT = global i32 0
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_CONTINUE_COUNT = global i32 0
+@-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
+@"vtable.Err::Result.fg" = common global %"Err::Result::VTableType" zeroinitializer
 @0 = private unnamed_addr constant [8 x i8] c"Error: \00", align 1
 
 declare i32 @compare_strings(ptr, ptr)
@@ -53,7 +53,7 @@ declare void @raise_exception(ptr)
 
 declare ptr @malloc(i64)
 
-define i32 @-Users-apple-code-per-Flow-Wing-docs-local-ERR-module() {
+define i32 @-Users-apple-code-per-Flow-Wing-docs-local-Err-module() {
 entry:
   br label %returnBlock
 
@@ -61,10 +61,10 @@ returnBlock:                                      ; preds = %entry
   ret i32 0
 }
 
-define void @"ERR::Error.init1"(ptr %0, ptr %1) !rt !0 {
+define void @"Err::Result.init1"(ptr %0, ptr %1) !rt !0 {
 entry:
   %2 = load ptr, ptr %1, align 8
-  %3 = getelementptr inbounds %"ERR::Error", ptr %2, i32 0, i32 1
+  %3 = getelementptr inbounds %"Err::Result", ptr %2, i32 0, i32 1
   %message = alloca ptr, align 8
   %4 = load ptr, ptr %0, align 8
   store ptr %4, ptr %message, align 8
@@ -75,13 +75,13 @@ afterNestedBlock:                                 ; preds = %checkContinueBlock,
 
 nestedBlock:                                      ; preds = %entry
   %5 = load ptr, ptr %1, align 8
-  %6 = getelementptr inbounds %"ERR::Error", ptr %5, i32 0, i32 1
+  %6 = getelementptr inbounds %"Err::Result", ptr %5, i32 0, i32 1
   %message1 = load ptr, ptr %6, align 8
   %message2 = load ptr, ptr %message, align 8
   %7 = load ptr, ptr %message, align 8
   %8 = call ptr @concat_strings(ptr @0, ptr %7)
   store ptr %8, ptr %6, align 8
-  %9 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-ERR-module_FLOWWING_BREAK_COUNT, align 4
+  %9 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-Err-module_FLOWWING_BREAK_COUNT, align 4
   %10 = icmp eq i32 %9, 0
   br i1 %10, label %checkContinueBlock, label %afterNestedBlock
 
@@ -89,4 +89,4 @@ checkContinueBlock:                               ; preds = %nestedBlock
   br label %afterNestedBlock
 }
 
-!0 = !{!"ERR::Error.init1:rt:pr:27"}
+!0 = !{!"Err::Result.init1:rt:pr:27"}

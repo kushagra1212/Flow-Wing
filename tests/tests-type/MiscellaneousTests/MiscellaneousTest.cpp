@@ -784,3 +784,67 @@ if(a != Nir){
 )");
   EXPECT_EQ(getOutput(), R"()");
 }
+TEST_F(MiscellaneousTest, OptionalArgumentsBasic) {
+  I(R"(
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> nthg {
+  
+  print("a: ",a,b,c,d)
+}
+
+test(2,5,10)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 25103.30000000000000)");
+}
+TEST_F(MiscellaneousTest, OptionalArgumentsBasic2) {
+  I(R"(
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> nthg {
+  
+  print("a: ",a,b,c,d)
+}
+
+test(2)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2323.30000000000000)");
+}
+TEST_F(MiscellaneousTest, OptionalArgumentsBasicReturnCall) {
+  I(R"(
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> deci  {
+  
+  print("a: ",a,b,c,d)
+  return 2.3 
+}
+
+var e:deci = test(2)
+print("\nE:",e)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2323.30000000000000
+E:2.30000000000000)");
+}
+TEST_F(MiscellaneousTest, OptionalArgumentsBasicReturnCall2) {
+  I(R"(
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> deci  {
+  
+  print("a: ",a,b,c,d)
+  return 2.3 
+}
+
+var e:deci = test(2,100)
+print("\nE:",e)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 210023.30000000000000
+E:2.30000000000000)");
+}
+TEST_F(MiscellaneousTest, OptionalArgumentsBasicReturnCall2WithPairReturn) {
+  I(R"(
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> deci,str  {
+  
+  print("a: ",a,b,c,d)
+  return 2.3,"Hello World"
+}
+
+var e:deci,s:str = test(2,100)
+print("\nE:",e,s)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 210023.30000000000000
+E:2.30000000000000Hello World)");
+}

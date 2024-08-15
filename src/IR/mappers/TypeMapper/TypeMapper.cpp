@@ -110,6 +110,20 @@ const bool TypeMapper::isInt8Type(llvm::Type *type) const {
 const bool TypeMapper::isPtrType(llvm::Type *type) const {
   return type->isPointerTy();
 }
+
+std::string TypeMapper::getLLVMTypeName(const std::vector<llvm::Type *> &types,
+                                        bool withColor) const {
+  std::string text = "List[";
+  uint64_t i = 0;
+  for (const auto &type : types) {
+    text +=
+        getLLVMTypeName(type, withColor) + (i == types.size() - 1 ? "" : " ");
+    i++;
+  }
+  text += "]";
+  return text;
+}
+
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                                         bool withColor) const {
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);

@@ -30,10 +30,10 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       callExpression->getLocation());
   if (BuiltInFunction::isBuiltInFunction(callExpression->getCallerNameRef())) {
-    for (auto &arg : callExpression->getArgumentsRef()) {
+    for (auto &arg : callExpression->getArgumentPtrList()) {
       if (arg->getKind() == BinderKindUtils::CallExpression) {
         BoundCallExpression *boundCallExpression =
-            static_cast<BoundCallExpression *>(arg.get());
+            static_cast<BoundCallExpression *>(arg);
 
         auto funType =
             &_codeGenerationContext
@@ -52,10 +52,10 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
             callExpressionGenerationStrategy =
                 std::make_unique<CallExpressionGenerationStrategy>(
                     _codeGenerationContext);
-        callExpressionGenerationStrategy->declare(arg.get());
+        callExpressionGenerationStrategy->declare(arg);
       }
       IRCodeGenerator irCodeGen(_codeGenerationContext);
-      irCodeGen.declareVariables(arg.get(), false);
+      irCodeGen.declareVariables(arg, false);
     }
     return;
   }
@@ -85,8 +85,26 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(
           callExpression->getCallerNameRef());
 
-  uint64_t argsCount = functionType->getNumParams(),
-           callArgsCount = callExpression->getArgumentsRef().size();
+  uint64_t funArgsCount = functionType->getNumParams(),
+           callArgsCount = callExpression->getArgumentPtrList().size();
+
+  while (
+      callArgsCount < _codeGenerationContext
+                          ->_functionTypes[callExpression->getCallerNameRef()]
+                          ->getParameterListRef()
+                          .size() &&
+      _codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
+          ->hasOptionalParameters()) {
+
+    callExpression->getArgumentPtrList().push_back(
+        _codeGenerationContext
+            ->_functionTypes[callExpression->getCallerNameRef()]
+            ->getParameterListRef()[callArgsCount]
+            ->getInitializerPtr()
+            .get());
+
+    callArgsCount++;
+  }
 
   if (_codeGenerationContext->isClassMemberFunction(
           callExpression->getCallerNameRef())) {
@@ -96,15 +114,15 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
 
     // ClassPtr removed from the args count
 
-    argsCount--;
+    funArgsCount--;
     if (Utils::isClassInit(callExpression->getCallerNameRef())) {
       // Its the Initilizer Function
       //? (A1, ClassPtr) | (A1) -> Case 1
-      if (argsCount != callArgsCount) {
+      if (funArgsCount != callArgsCount) {
         _codeGenerationContext->getLogger()->LogError(
             "Calling Class Initializer " + callExpression->getCallerNameRef() +
-            " with " + std::to_string(argsCount) + " arguments but Expected " +
-            std::to_string(callArgsCount));
+            " with " + std::to_string(funArgsCount) +
+            " arguments but Expected " + std::to_string(callArgsCount));
 
         return;
       }
@@ -117,15 +135,16 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
     // primitive return type
     //? (ReturnType, A1, ClassPtr) | (A1) -> Case 2
     //? (ReturnType, A1) | (A1) -> Case 3
+    funArgsCount--;
+  } else {
     //? (A1) | (A1) -> Case 4
-    argsCount--;
   }
 
-  if (argsCount != callArgsCount) {
+  if (funArgsCount != callArgsCount) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
-        std::to_string(argsCount) + " arguments but got " +
+        std::to_string(funArgsCount) + " arguments but got " +
         std::to_string(callArgsCount));
     return;
   }
@@ -165,7 +184,7 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
     rhsValue = callExpression->getArgumentAlloca(0).first;
   }
 
-  for (uint64_t i = 0; i < callExpression->getArgumentsRef().size(); i++) {
+  for (uint64_t i = 0; i < callExpression->getArgumentPtrList().size(); i++) {
     uint64_t callArgIndex = i;
     bool retFlag;
 
@@ -177,9 +196,9 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
   if (Utils::isClassInit(callExpression->getCallerNameRef())) {
 
     if (!callExpression->doesArgumentAllocaExist(
-            callExpression->getArgumentsRef().size())) {
+            callExpression->getArgumentPtrList().size())) {
       callExpression->setArgumentAlloca(
-          callExpression->getArgumentsRef().size(),
+          callExpression->getArgumentPtrList().size(),
           {_codeGenerationContext->createMemoryGetPtr(
                llvm::Type::getInt8PtrTy(*TheContext), "clPtr",
                BinderKindUtils::MemoryKind::Stack),
@@ -234,7 +253,7 @@ llvm::Type *CallExpressionGenerationStrategy::isLocalArray(llvm::Value *value) {
 
 llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
     BoundCallExpression *callExpression) {
-  std::size_t arguments_size = callExpression->getArgumentsRef().size();
+  std::size_t arguments_size = callExpression->getArgumentPtrList().size();
 
   const std::string errorMessage =
       "Unexpected Function Call Arguments Does Not Match in " +
@@ -242,11 +261,11 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
   if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Print) {
 
-    for (auto &callexp : callExpression->getArgumentsRef()) {
+    for (auto &callexp : callExpression->getArgumentPtrList()) {
       _codeGenerationContext->getValueStackHandler()->popAll();
       llvm::Value *value =
           _expressionGenerationFactory->createStrategy(callexp->getKind())
-              ->generateExpression(callexp.get());
+              ->generateExpression(callexp);
 
       handlePrintFunction(value);
     }
@@ -258,8 +277,8 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
       llvm::Value *val =
           _expressionGenerationFactory
               ->createStrategy(
-                  callExpression->getArgumentsRef()[0].get()->getKind())
-              ->generateExpression(callExpression->getArgumentsRef()[0].get());
+                  callExpression->getArgumentPtrList()[0]->getKind())
+              ->generateExpression(callExpression->getArgumentPtrList()[0]);
 
       if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
         val = Builder->CreateLoad(
@@ -367,9 +386,8 @@ void CallExpressionGenerationStrategy::handleInBuiltFunctionCall(
       callExpression->getLocation());
 
   val = _expressionGenerationFactory
-            ->createStrategy(
-                callExpression->getArgumentsRef()[0].get()->getKind())
-            ->generateExpression(callExpression->getArgumentsRef()[0].get());
+            ->createStrategy(callExpression->getArgumentPtrList()[0]->getKind())
+            ->generateExpression(callExpression->getArgumentPtrList()[0]);
 
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
 
@@ -587,7 +605,7 @@ void CallExpressionGenerationStrategy::printPremitives(
 
 llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     BoundCallExpression *callExpression) {
-  std::size_t arguments_size = callExpression->getArgumentsRef().size();
+  std::size_t arguments_size = callExpression->getArgumentPtrList().size();
 
   llvm::Function *calleeFunction =
       TheModule->getFunction(callExpression->getCallerNameRef());
@@ -606,10 +624,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
             _codeGenerationContext->_classTypes.end() &&
         _codeGenerationContext->_classTypes[classType->getStructName().str()]
             ->isChildOf(callExpression->getCallerNameRef().substr(
-                0,
-                callExpression->getCallerNameRef().find(
-                    FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
-                    std::to_string(callExpression->getArgumentsRef().size()))));
+                0, callExpression->getCallerNameRef().find(
+                       FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
+                       std::to_string(
+                           callExpression->getArgumentPtrList().size()))));
 
     if (value && classType && llvm::isa<llvm::StructType>(classType) &&
         (!Utils::isClassInit(callExpression->getCallerNameRef()) ||
@@ -628,7 +646,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
       className = className.substr(
           0, className.find(
                  FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
-                 std::to_string(callExpression->getArgumentsRef().size())));
+                 std::to_string(callExpression->getArgumentPtrList().size())));
 
       if (_codeGenerationContext->_classTypes.find(className) !=
           _codeGenerationContext->_classTypes.end()) {
@@ -690,7 +708,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         }
         value =
             callExpression
-                ->getArgumentAlloca(callExpression->getArgumentsRef().size())
+                ->getArgumentAlloca(callExpression->getArgumentPtrList().size())
                 .first;
 
         Builder->CreateStore(classPtr, value);
@@ -741,8 +759,26 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
       _codeGenerationContext->getArgsTypeHandler()->getArgsType(
           callExpression->getCallerNameRef());
 
-  uint64_t argsCount = functionType->getNumParams(),
-           callArgsCount = callExpression->getArgumentsRef().size();
+  uint64_t funArgsCount = functionType->getNumParams(),
+           callArgsCount = callExpression->getArgumentPtrList().size();
+
+  while (
+      callArgsCount < _codeGenerationContext
+                          ->_functionTypes[callExpression->getCallerNameRef()]
+                          ->getParameterListRef()
+                          .size() &&
+      _codeGenerationContext->_functionTypes[callExpression->getCallerNameRef()]
+          ->hasOptionalParameters()) {
+
+    callExpression->getArgumentPtrList().push_back(
+        _codeGenerationContext
+            ->_functionTypes[callExpression->getCallerNameRef()]
+            ->getParameterListRef()[callArgsCount]
+            ->getInitializerPtr()
+            .get());
+
+    callArgsCount++;
+  }
 
   if (_codeGenerationContext->isClassMemberFunction(
           callExpression->getCallerNameRef())) {
@@ -752,15 +788,15 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
 
     // ClassPtr removed from the args count
 
-    argsCount--;
+    funArgsCount--;
     if (Utils::isClassInit(callExpression->getCallerNameRef())) {
       // Its the Initilizer Function
       //? (A1, ClassPtr) | (A1) -> Case 1
-      if (argsCount != callArgsCount) {
+      if (funArgsCount != callArgsCount) {
         _codeGenerationContext->getLogger()->LogError(
             "Calling Class Initializer " + callExpression->getCallerNameRef() +
-            " with " + std::to_string(argsCount) + " arguments but Expected " +
-            std::to_string(callArgsCount));
+            " with " + std::to_string(funArgsCount) +
+            " arguments but Expected " + std::to_string(callArgsCount));
 
         return nullptr;
       }
@@ -774,14 +810,14 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     //? (A0, A1, ClassPtr) | (A1) -> Case 2
     //? (A0, A1) | (A1) -> Case 3
     //? (A1) | (A1) -> Case 4
-    argsCount--;
+    funArgsCount--;
   }
 
-  if (argsCount != callArgsCount) {
+  if (funArgsCount != callArgsCount) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
-        std::to_string(argsCount) + " arguments but got " +
+        std::to_string(funArgsCount) + " arguments but got " +
         std::to_string(callArgsCount));
     return nullptr;
   }
@@ -796,7 +832,8 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
         if (_codeGenerationContext->verifyType(
                 callExpression->getReturnTypeList(),
                 llvmArrayArgs[0]->getStructTypeListRef(),
-                " in assignment expression") == EXIT_FAILURE) {
+                " in " + callExpression->getCallerNameRef() +
+                    " call expression") == EXIT_FAILURE) {
           return nullptr;
         }
       } else if (_codeGenerationContext->verifyType(
@@ -812,7 +849,7 @@ llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     functionArgs.push_back(rhsValue);
   }
 
-  for (uint64_t i = 0; i < callExpression->getArgumentsRef().size(); i++) {
+  for (uint64_t i = 0; i < callExpression->getArgumentPtrList().size(); i++) {
     uint64_t callArgIndex = i;
     bool retFlag;
 
@@ -877,14 +914,14 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
     bool &retFlag) {
   llvm::Argument *arg = calleeFunction->getArg(llvmArgsIndex);
   BinderKindUtils::BoundNodeKind kind =
-      callExpression->getArgumentsRef()[callArgIndex]->getKind();
+      callExpression->getArgumentPtrList()[callArgIndex]->getKind();
   std::unique_ptr<CallExpressionGenerationStrategy>
       callExpressionGenerationStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
               _codeGenerationContext);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
+      callExpression->getArgumentPtrList()[callArgIndex]->getLocation());
   llvm::Value *retVal = nullptr;
   switch (kind) {
     //!!! INDEX EXPRESSION AND CALL EXPRESSION ARE NOT IMPLEMENTED
@@ -898,7 +935,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
       BoundVariableExpression *variableExpression =
           static_cast<BoundVariableExpression *>(
-              callExpression->getArgumentsRef()[callArgIndex].get());
+              callExpression->getArgumentPtrList()[callArgIndex]);
 
       if (variableExpression->getDotExpressionList().size() > 0 &&
           variableExpression->getDotExpressionList()[0]->getKind() ==
@@ -950,7 +987,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
   case BinderKindUtils::CallExpression: {
 
     BoundCallExpression *cE = static_cast<BoundCallExpression *>(
-        callExpression->getArgumentsRef()[callArgIndex].get());
+        callExpression->getArgumentPtrList()[callArgIndex]);
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         cE->getLocation());
@@ -1039,7 +1076,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
                BinderKindUtils::MemoryKind::Stack),
            llvmArrayArgs[llvmArgsIndex]->getLLVMType()});
 
-      cE->setArgumentAlloca(cE->getArgumentsRef().size(),
+      cE->setArgumentAlloca(cE->getArgumentPtrList().size(),
                             callExpression->getArgumentAlloca(llvmArgsIndex));
 
       callExpressionGenerationStrategy->declare(cE);
@@ -1103,9 +1140,8 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
 
   _expressionGenerationFactory
       ->createStrategy(
-          callExpression->getArgumentsRef()[callArgIndex]->getKind())
-      ->generateExpression(
-          callExpression->getArgumentsRef()[callArgIndex].get());
+          callExpression->getArgumentPtrList()[callArgIndex]->getKind())
+      ->generateExpression(callExpression->getArgumentPtrList()[callArgIndex]);
 
   llvm::Type *rhsType =
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
@@ -1166,7 +1202,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
     llvm::Value *&rhsValue, bool &retFlag) {
   retFlag = true;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
+      callExpression->getArgumentPtrList()[callArgIndex]->getLocation());
   if (!llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
       !llvm::isa<llvm::ArrayType>(
           llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
@@ -1217,7 +1253,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
 
     assignStrategy->handleAssignExpression(
         clPtr, arrayType, arg->getName().str(),
-        callExpression->getArgumentsRef()[callArgIndex].get());
+        callExpression->getArgumentPtrList()[callArgIndex]);
 
     rhsValue = clPtr;
 
@@ -1284,7 +1320,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
   objExpGenStrat->setTypeName(objectTypeName);
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
+      callExpression->getArgumentPtrList()[callArgIndex]->getLocation());
 
   if (_codeGenerationContext->_classTypes.find(objectTypeName) !=
           _codeGenerationContext->_classTypes.end() &&
@@ -1316,7 +1352,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
 
     // objExpGenStrat->setVariable(classPtr);
     // objExpGenStrat->generateGlobalExpression(
-    //     callExpression->getArgumentsRef()[callArgIndex].get());
+    //     callExpression->getArgumentPtrList()[callArgIndex].get());
   }
 
   if (_isDeclarationNeeded) {
@@ -1339,7 +1375,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
 
     objExpGenStrat->setVariable(rhsValue);
     objExpGenStrat->generateExpression(
-        callExpression->getArgumentsRef()[callArgIndex].get());
+        callExpression->getArgumentPtrList()[callArgIndex]);
   }
 
   retFlag = false;
@@ -1354,7 +1390,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     llvm::Argument *arg, bool &retFlag) {
   retFlag = true;
 
-  if (!callExpression->getArgumentsRef()[callArgIndex]) {
+  if (!callExpression->getArgumentPtrList()[callArgIndex]) {
     _codeGenerationContext->getLogger()->LogError(
         "Function call argument mismatch in " +
         callExpression->getCallerNameRef() + " function Expected " +
@@ -1365,13 +1401,12 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
 
   BoundVariableExpression *variableExpression =
       static_cast<BoundVariableExpression *>(
-          callExpression->getArgumentsRef()[callArgIndex].get());
+          callExpression->getArgumentPtrList()[callArgIndex]);
 
   _expressionGenerationFactory
       ->createStrategy(
-          callExpression->getArgumentsRef()[callArgIndex]->getKind())
-      ->generateExpression(
-          callExpression->getArgumentsRef()[callArgIndex].get());
+          callExpression->getArgumentPtrList()[callArgIndex]->getKind())
+      ->generateExpression(callExpression->getArgumentPtrList()[callArgIndex]);
 
   rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
 
@@ -1530,12 +1565,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
     llvm::Argument *arg, bool &retFlag) {
   retFlag = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-      callExpression->getArgumentsRef()[callArgIndex]->getLocation());
+      callExpression->getArgumentPtrList()[callArgIndex]->getLocation());
   _expressionGenerationFactory
       ->createStrategy(
-          callExpression->getArgumentsRef()[callArgIndex]->getKind())
-      ->generateExpression(
-          callExpression->getArgumentsRef()[callArgIndex].get());
+          callExpression->getArgumentPtrList()[callArgIndex]->getKind())
+      ->generateExpression(callExpression->getArgumentPtrList()[callArgIndex]);
   rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   BoundFunctionDeclaration *functionDeclaration =
       _codeGenerationContext

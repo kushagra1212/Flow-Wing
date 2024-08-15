@@ -1,9 +1,10 @@
 #ifndef __FLOWWING_IRGEN_STATEMENTS_MULTIPLE_VARIABLE_DECLARATION_STATEMENT_GENERATION_STRATEGY_H__
 #define __FLOWWING_IRGEN_STATEMENTS_MULTIPLE_VARIABLE_DECLARATION_STATEMENT_GENERATION_STRATEGY_H__
 
+#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
+#include "../../../../bind/BoundUtils.h"
 #include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
-
 class MultipleVariableDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
 public:

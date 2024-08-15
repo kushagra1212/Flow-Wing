@@ -1276,12 +1276,12 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   if (declared_fd &&
-      callExpression->getArguments().size() !=
-          declared_fd->getParametersRef().size() &&
+      callExpression->getArguments().size() <
+          declared_fd->getMinNumberOfParametersNeeded() &&
       !IS_A_BUILTIN_FUNCTION_CALL) {
     _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + CALLER_NAME + " requires " +
-            std::to_string(declared_fd->getParametersRef().size()) +
+        "Function " + CALLER_NAME + " requires minimum " +
+            std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
             " arguments",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
@@ -1566,12 +1566,26 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
   }
 
   fd->setFunctionName(function_name);
-  for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
+
+  for (int64_t i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =
         syntax->getParametersPtr()[i]->getIdentifierRef()->getText();
 
     std::unique_ptr<BoundVariableDeclaration> varDeclaration =
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
+
+    if (varDeclaration->getInitializerPtr() && !fd->hasOptionalParameters()) {
+      fd->setOptionalParameterStartIndex(i);
+    } else if (!varDeclaration->getInitializerPtr() &&
+               fd->hasOptionalParameters()) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Missing value for optional parameter: " + variable_str +
+                         " in " + function_name,
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     syntax->getParametersPtr()[i]->getSourceLocation()));
+    }
+
     fd->addParameter(std::move(varDeclaration));
   }
 

@@ -23,6 +23,7 @@ MultipleVariableDeclarationStatementGenerationStrategy::generateStatement(
       varDecGenStrat =
           std::make_unique<VariableDeclarationStatementGenerationStrategy>(
               _codeGenerationContext);
+
   for (auto &variable :
        multipleVariableDeclaration->getVariableDeclarationListRef()) {
     varDecGenStrat->generateStatement(variable.get());
@@ -42,10 +43,13 @@ bool MultipleVariableDeclarationStatementGenerationStrategy::hasSingleCallExpr(
                ->getInitializerPtr()) {
         return false;
       }
-      if (multipleVariableDeclaration->getVariableDeclarationListRef()[i]
-              ->getInitializerPtr()
-              ->getKind() != BinderKindUtils::BoundNodeKind::CallExpression) {
 
+      BoundCallExpression *callExpression = BoundUtils::getCallExpression(
+          multipleVariableDeclaration->getVariableDeclarationListRef()[i]
+              ->getInitializerPtr()
+              .get());
+
+      if (!callExpression) {
         return false;
       }
     }
@@ -65,21 +69,24 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
         BoundMultipleVariableDeclaration *multipleVariableDeclaration) {
   auto firstVariableDeclaration =
       multipleVariableDeclaration->getVariableDeclarationListRef()[0].get();
-  if (firstVariableDeclaration->getInitializerPtr().get() &&
-      firstVariableDeclaration->getInitializerPtr()->getKind() ==
-          BinderKindUtils::BoundNodeKind::CallExpression) {
 
-    std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
-        std::make_unique<AssignmentExpressionGenerationStrategy>(
-            _codeGenerationContext);
+  if (!firstVariableDeclaration->getInitializerPtr()) {
+    return;
+  }
 
-    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
-        firstVariableDeclaration->getInitializerPtr().get());
+  BoundCallExpression *callExpression = BoundUtils::getCallExpression(
+      firstVariableDeclaration->getInitializerPtr().get());
+
+  std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
+      std::make_unique<AssignmentExpressionGenerationStrategy>(
+          _codeGenerationContext);
+
+  if (callExpression) {
 
     assignmentEGS->handleAssignExpression(
         callExpression->getArgumentAlloca(0).first,
         callExpression->getArgumentAlloca(0).second, "_retrunArg",
-        callExpression);
+        firstVariableDeclaration->getInitializerPtr().get());
 
     for (auto &expr :
          multipleVariableDeclaration->getVariableDeclarationListRef()) {
@@ -108,6 +115,7 @@ MultipleVariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
       varDecGenStrat =
           std::make_unique<VariableDeclarationStatementGenerationStrategy>(
               _codeGenerationContext);
+
   for (auto &variable :
        multipleVariableDeclaration->getVariableDeclarationListRef()) {
     varDecGenStrat->generateGlobalStatement(variable.get());
@@ -146,6 +154,7 @@ MultipleVariableDeclarationStatementGenerationStrategy::declareLocal(
 
   BoundMultipleVariableDeclaration *multipleVariableDeclaration =
       static_cast<BoundMultipleVariableDeclaration *>(statement);
+
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       multipleVariableDeclaration->getLocation());
 
@@ -172,12 +181,14 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
   auto firstVariableDeclaration =
       multipleVariableDeclaration->getVariableDeclarationListRef()[0].get();
 
-  if (firstVariableDeclaration->getInitializerPtr().get() &&
-      firstVariableDeclaration->getInitializerPtr()->getKind() ==
-          BinderKindUtils::BoundNodeKind::CallExpression) {
-    BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
-        firstVariableDeclaration->getInitializerPtr().get());
+  if (!firstVariableDeclaration->getInitializerPtr()) {
+    return;
+  }
 
+  BoundCallExpression *callExpression = BoundUtils::getCallExpression(
+      firstVariableDeclaration->getInitializerPtr().get());
+
+  if (callExpression) {
     std::vector<llvm::Type *> _structElementTypes(
         multipleVariableDeclaration->getVariableDeclarationListRef().size(),
         llvm::Type::getInt8PtrTy(*TheContext));

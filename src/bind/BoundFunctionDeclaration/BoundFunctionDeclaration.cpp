@@ -25,6 +25,11 @@ std::vector<BoundNode *> BoundFunctionDeclaration::getChildren() {
 
 void BoundFunctionDeclaration::addParameter(
     std::unique_ptr<BoundVariableDeclaration> parameter) {
+
+  if (!parameter->getInitializerPtr()) {
+    _minNumberOfParametersNeeded++;
+  }
+
   this->_parameters.push_back(std::move(parameter));
 }
 

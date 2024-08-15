@@ -486,9 +486,10 @@ CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
                                   const std::string &inExp) {
 
   if (lhsTypes.size() != rhsTypes.size()) {
-    this->getLogger()->LogError(
-        "Type mismatch Expected " + std::to_string(lhsTypes.size()) +
-        " but found " + std::to_string(rhsTypes.size()) + inExp);
+
+    this->getLogger()->LogError("Type mismatch Expected " +
+                                this->getMapper()->getLLVMTypeName(lhsTypes) +
+                                inExp);
     return EXIT_FAILURE;
   }
 

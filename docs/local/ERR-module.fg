@@ -1,6 +1,6 @@
-module [ERR]
+module [Err]
 
-class Error {
+class Result {
   var message:str 
 
   init(message:str) -> nthg {

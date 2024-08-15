@@ -33,10 +33,33 @@ public:
     return true;
   }
 
+  inline auto addParameter(BoundVariableDeclaration *parameter) -> void {
+    _parameters.push_back(parameter);
+  }
+
+  inline auto getParameterListRef() const
+      -> const std::vector<BoundVariableDeclaration *> & {
+    return _parameters;
+  }
+
+  inline auto setOptionalParameterStartIndex(int64_t index) -> void {
+    _optionalParameterStartIndex = index;
+  }
+
+  inline auto getOptionalParameterStartIndex() -> int64_t {
+    return _optionalParameterStartIndex;
+  }
+
+  inline auto hasOptionalParameters() -> bool {
+    return _optionalParameterStartIndex != -1;
+  }
+
 private:
   std::string _functionName;
   llvm::Type *_returnType;
   bool _hasAsReturnType = false;
+  std::vector<BoundVariableDeclaration *> _parameters;
+  int64_t _optionalParameterStartIndex = -1;
 };
 } // namespace FlowWing
 

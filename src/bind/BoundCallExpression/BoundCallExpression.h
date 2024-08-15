@@ -13,6 +13,7 @@ class BoundCallExpression : public BoundExpression {
 private:
   std::unique_ptr<BoundLiteralExpression<std::any>> _callerIdentifier;
   std::vector<std::unique_ptr<BoundExpression>> _arguments;
+  std::vector<BoundExpression *> _argumentPtrList;
   std::map<uint64_t, std::pair<llvm::Value *, llvm::Type *>> _argumentsMap;
   std::string _callerName = "";
   std::vector<llvm::Type *> _returnTypeList;
@@ -51,6 +52,10 @@ public:
 
   inline auto addReturnTypeToList(llvm::Type *returnType) -> void {
     _returnTypeList.push_back(returnType);
+  }
+
+  inline auto getArgumentPtrList() -> std::vector<BoundExpression *> & {
+    return _argumentPtrList;
   }
 
   inline auto getReturnTypeList() -> const std::vector<llvm::Type *> & {

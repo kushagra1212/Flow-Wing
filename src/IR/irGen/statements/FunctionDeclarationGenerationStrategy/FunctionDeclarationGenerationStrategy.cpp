@@ -112,10 +112,16 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     }
   }
 
+  _codeGenerationContext->_functionTypes[FUNCTION_NAME]
+      ->setOptionalParameterStartIndex(fd->getOptionalParameterStartIndex());
+
   for (int i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         fd->getParametersRef()[i]->getLocation());
+
+    _codeGenerationContext->_functionTypes[FUNCTION_NAME]->addParameter(
+        fd->getParametersRef()[i].get());
 
     llvm::Type *_argType = nullptr;
     std::unique_ptr<LLVMType> argLLVMType = nullptr;
