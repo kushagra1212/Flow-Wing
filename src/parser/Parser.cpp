@@ -1549,7 +1549,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseModuleIdentifierExpression() {
                SyntaxKindUtils::SyntaxKind::IndexExpression) {
       IndexExpressionSyntax *memberExp =
           static_cast<IndexExpressionSyntax *>(assignExpr->getLeftPtr().get());
-
+      //! TODO:
       memberExp->getIndexIdentifierExpressionPtr()->setValue(
           PREFIX +
           std::any_cast<std::string>(
@@ -1557,7 +1557,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parseModuleIdentifierExpression() {
       memberExp->getIndexIdentifierExpressionPtr()->setText(
           std::any_cast<std::string>(
               memberExp->getIndexIdentifierExpressionPtr()->getValue()));
-      //! TODO:
     }
   } else if (member->getKind() == SyntaxKindUtils::SyntaxKind::CallExpression) {
 
@@ -1876,6 +1875,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression(
                  SyntaxKindUtils::SyntaxKind::ColonToken) {
     return std::move(parseModuleIdentifierExpression());
   } else if (!_isInsideCallExpression && !_isInsideContainerExpression &&
+             !_isInsideReturnStatement &&
              this->peek(1)->getKind() ==
                  SyntaxKindUtils::SyntaxKind::CommaToken) {
     return std::move(
@@ -1897,6 +1897,32 @@ std::unique_ptr<ExpressionSyntax> Parser::parseCallExpression() {
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
   std::any val = identifierToken->getValue();
+
+  if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+    std::unique_ptr<ExpressionSyntax> expectedCallExpr =
+        std::move(this->parseNameorCallExpression(nullptr));
+
+    const std::string PREFIX = std::any_cast<std::string>(val) +
+                               FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX;
+
+    if (expectedCallExpr->getKind() ==
+        SyntaxKindUtils::SyntaxKind::CallExpression) {
+
+      CallExpressionSyntax *callExp =
+          static_cast<CallExpressionSyntax *>(expectedCallExpr.get());
+
+      callExp->getIdentifierPtr()->setValue(
+          PREFIX + std::any_cast<std::string>(
+                       (callExp->getIdentifierPtr()->getValue())));
+
+      callExp->getIdentifierPtr()->setText(
+          std::any_cast<std::string>(callExp->getIdentifierPtr()->getValue()));
+    }
+
+    return std::move(expectedCallExpr);
+  }
 
   std::unique_ptr<CallExpressionSyntax> callExpression =
       std::make_unique<CallExpressionSyntax>(

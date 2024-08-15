@@ -8,25 +8,56 @@ llvm::Value *NirastBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
+  TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
   std::string errorMessage = "";
   switch (binaryExpression->getOperator()) {
 
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
-    return Builder->CreateLogicalAnd(lhsValue, rhsValue);
-    break;
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr:
-    return Builder->CreateLogicalOr(lhsValue, rhsValue);
-    break;
-
   case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
-    llvm::Value *_val = Builder->CreateICmpEQ(lhsValue, rhsValue);
-    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
+
+    if (lhsValue ==
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
+      return Builder->CreateNot(rhsValue);
+    }
+
+    if (rhsValue ==
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))
+
+    ) {
+      return Builder->CreateNot(lhsValue);
+    }
+
+    if (lhsValue == llvm::ConstantPointerNull::get(
+                        llvm::Type::getInt8PtrTy(*TheContext)) &&
+        rhsValue == llvm::ConstantPointerNull::get(
+                        llvm::Type::getInt8PtrTy(*TheContext))) {
+
+      return Builder->getTrue();
+    }
+
+    errorMessage = "Unsupported equality operator for Nirast ";
+
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals: {
-    llvm::Value *_val = Builder->CreateICmpNE(lhsValue, rhsValue);
-    return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
+    if (lhsValue ==
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
+      return rhsValue;
+    }
+
+    if (rhsValue ==
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
+      return (lhsValue);
+    }
+
+    if (lhsValue == llvm::ConstantPointerNull::get(
+                        llvm::Type::getInt8PtrTy(*TheContext)) &&
+        rhsValue == llvm::ConstantPointerNull::get(
+                        llvm::Type::getInt8PtrTy(*TheContext))) {
+
+      return Builder->getTrue();
+    }
+
+    errorMessage = "Unsupported not-equality operator for Nirast ";
     break;
   }
   default: {

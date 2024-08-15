@@ -1,0 +1,12 @@
+module [ERR]
+
+class Error {
+  var message:str 
+
+  init(message:str) -> nthg {
+    self.message = "Error: " + message
+  }
+}
+
+
+

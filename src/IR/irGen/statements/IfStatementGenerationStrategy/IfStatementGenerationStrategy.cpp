@@ -12,11 +12,23 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   BoundIfStatement *ifStatement = static_cast<BoundIfStatement *>(statement);
   llvm::Value *exitValue = nullptr;
 
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
   llvm::Value *conditionValue =
       _expressionGenerationFactory
           ->createStrategy(ifStatement->getConditionPtr().get()->getKind())
           ->generateExpression(ifStatement->getConditionPtr().get());
 
+  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+    if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
+            _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Using Objects in If Statement is not allowed");
+      return nullptr;
+    }
+    conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
+        llvm::Type::getInt8PtrTy(*TheContext), conditionValue));
+  }
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     conditionValue = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
@@ -63,9 +75,11 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
       llvm::BasicBlock::Create(*TheContext, "afterIfElse", function);
 
   if (ifStatement->getOrIfStatementsPtr().size()) {
-    Builder->CreateCondBr(conditionValue, thenBlock, orIfBlock[0]);
+    Builder->CreateCondBr(_boolTypeConverter->convertExplicit(conditionValue),
+                          thenBlock, orIfBlock[0]);
   } else {
-    Builder->CreateCondBr(conditionValue, thenBlock, elseBlock);
+    Builder->CreateCondBr(_boolTypeConverter->convertExplicit(conditionValue),
+                          thenBlock, elseBlock);
   }
 
   for (int i = 0; i < orIfBlock.size(); i++) {
@@ -74,12 +88,27 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     BoundExpression *conditionExp =
         ifStatement->getOrIfStatementsPtr()[i]->getConditionPtr().get();
 
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        ifStatement->getOrIfStatementsPtr()[i]->getLocation());
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
     llvm::Value *orIfConditionValue =
         _expressionGenerationFactory->createStrategy(conditionExp->getKind())
             ->generateExpression(conditionExp);
 
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        ifStatement->getOrIfStatementsPtr()[i]->getLocation());
+    if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+      if (!_codeGenerationContext->isValidClassType(
+              llvm::cast<llvm::StructType>(
+                  _codeGenerationContext->getValueStackHandler()
+                      ->getLLVMType()))) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Using Objects in Or If Statement is not allowed");
+        return nullptr;
+      }
+      conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
+          llvm::Type::getInt8PtrTy(*TheContext), orIfConditionValue));
+    }
 
     if (orIfConditionValue == nullptr) {
 
@@ -90,10 +119,13 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     }
 
     if (i == orIfBlock.size() - 1) {
-      Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i], elseBlock);
+      Builder->CreateCondBr(
+          _boolTypeConverter->convertExplicit(orIfConditionValue),
+          orIfThenBlocks[i], elseBlock);
     } else {
-      Builder->CreateCondBr(orIfConditionValue, orIfThenBlocks[i],
-                            orIfBlock[i + 1]);
+      Builder->CreateCondBr(
+          _boolTypeConverter->convertExplicit(orIfConditionValue),
+          orIfThenBlocks[i], orIfBlock[i + 1]);
     }
   }
 

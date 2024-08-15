@@ -1,198 +1,217 @@
-var x:int, y:str = 2,"hello"
-
-print(x,y)
-
-y,x = "Hi",5
-
-print(x,y)
+bring ERR
 
 
-type J ={
-  a:str 
-}
-
-type T = {
-
-  a:int,
-  b:deci,
-  c:J
-}
-
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x
+fun div(a: int, b: int) -> deci,ERR::Error {
+  if(b == 0) {
+    return 0.0, new ERR::Error("Can not divide "+a+" with 0")
   }
-
-  printX() -> nthg {
-    print(x)
-  }
+  return a/b, Nir
 }
+var a:int,b:int 
 
-var aw:A = new A(23)
-/# 
-var a:int,b:str,c:deci,e:bool,g:T,f:T[10]  = 2,"e"
+a = Int32(input("Enter Value for a: "))
+b = Int32(input("Enter value for b: "))
 
-var l:int,aa:A = 45,new A(22)
 
-c,g = 2.3,{b:3.3}
+var ans:deci,err:ERR::Error = (div(a,b))
 
-e,f  =true,[{a:10}]
-
-print(e,f)
-print(aa.x)
-aa.printX()
-l,aa = 12,new A(32)
-print(l)
-print(aa.x)
-aa.printX()
-/#
-class A {
-  var x:int 
-
-  init(x:int) -> nthg {
-      self.x =x 
-  }
-
-  printX() -> nthg {
-      print(x)
-    }
-
-}
-fun get() -> int,str {
-  return 2,"H"
-}
-
-fun getX() ->  int {
-    return 2
+if(err == Nir) {
+  print(ans)
+}else{
+    print(err.message)
   }
 
 
-type T = {
- a:int 
-}
-type L = {
-  x:int,
-  u:str,
-  g:T,
-  l:T[2]
-}
-
-fun getT() -> T[2] {
-    return [{a:10}]
-  }
-
-
-fun getA() -> A {
-return new A(23)
-
-  }
-
-fun getFAndAPar() -> T[2], A  {
-  return getT(),getA()
-}
-fun getFAndA() -> T[2], A  {
-  return getFAndAPar()
-}
-
-
-var u:T[2] ,b:A = getFAndA() 
-b.printX()
-print(u)
-print(b.x)
- 
-
-
-/#{
-    
-
-
-  /;print(u,"\n",a)
-  /;a.printX()
-  
-}
-/;x,y = get()
-/#
-
-var x:int, y:str = 2,"hello"
-
-print(x,y)
-
-y,x = "Hi",5
-
-print(x,y)
-
-
-type J ={
-  a:str 
-}
-
-type T = {
-
-  a:int,
-  b:deci,
-  c:J
-}
-
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x
-  }
-
-  printX() -> nthg {
-    print(x)
-  }
-}
-
-var a:int,b:str,c:deci,e:bool,g:T,f:T[10]  = 2,"e"
-
-var l:int,aa:A = 45,new A(22)
-
-c,g = 2.3,{b:3.3}
-
-e,f  =true,[{a:10}]
-
-print(e,f)
-print(aa.x)
-aa.printX()
-
-l,aa = 12,new A(32)
-print(l)
-print(aa.x)
-aa.printX()
-
-/#fun get() -> str,int {
-  return "",2
-}
-
-var x:str = err ? get()
 
 
 
-/#
 
 
-fun fopen(fileName: as str, mode: as str) -> as str decl 
-fun fread(buffer:int[5000] ,size: as int, count: as int, file: as str) -> as int decl
 
 
-const fileName:str = "2temp3.txt"
-var file:str = fopen(fileName, "r")
-if(file == Nir) {
-    print("NULL")
-  }
 
-/#
-print(file)
-var buffer:int[5]
-print(file)
 
-var res: int = fread(buffer,4,10,file)
 
-print(res)
 
-print(String(buffer))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

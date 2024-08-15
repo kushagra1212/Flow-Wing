@@ -3,8 +3,18 @@
 llvm::Value *UnaryOperationStrategy::performOperation(
     llvm::Value *val, BoundUnaryExpression *unaryExpression) {
 
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      _codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
+
+    val = Builder->CreateIsNotNull(Builder->CreateLoad(
+        llvm::Type::getInt8PtrTy(*TheContext),
+        _codeGenerationContext->getValueStackHandler()->getValue()));
+  }
+
   llvm::Value *result = nullptr;
   llvm::Type *type = val->getType();
+
   TypeMapper *typeMapper = this->_codeGenerationContext->getMapper().get();
   switch (unaryExpression->getOperatorPtr()) {
   case BinderKindUtils::BoundUnaryOperatorKind::Identity: {

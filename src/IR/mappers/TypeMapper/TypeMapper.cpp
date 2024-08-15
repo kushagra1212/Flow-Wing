@@ -76,7 +76,7 @@ const bool TypeMapper::isStringType(llvm::Type *type) const {
 
 const bool TypeMapper::isNirastValue(llvm::Value *value) const {
   return value ==
-         llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
+         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
 }
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==

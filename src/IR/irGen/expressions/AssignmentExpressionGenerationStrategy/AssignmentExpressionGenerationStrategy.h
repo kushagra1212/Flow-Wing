@@ -5,11 +5,13 @@
 #include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
+#include "../../../../bind/BoundNirastExpression/BoundNirastExpression.h"
 #include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
 #include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
 #include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
 #include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 

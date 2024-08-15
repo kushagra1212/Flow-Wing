@@ -4,48 +4,49 @@ BinaryExpressionGenerationStrategy::BinaryExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
+llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
+    BoundExpression *expression, bool &isClassType) {
+  llvm::Value *value =
+      _expressionGenerationFactory->createStrategy(expression->getKind())
+          ->generateExpression(expression);
+
+  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+    if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
+            _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
+      _codeGenerationContext->getLogger()->LogError(
+          "This Binary Expression is not supported for objects");
+      return nullptr;
+    }
+
+    value = Builder->CreateIsNotNull(Builder->CreateLoad(
+        llvm::Type::getInt8PtrTy(*TheContext),
+        _codeGenerationContext->getValueStackHandler()->getValue()));
+    isClassType = true;
+  }
+  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+    value = Builder->CreateLoad(
+        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  }
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  return value;
+}
+
 llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)expression;
 
+  bool isClassType = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       binaryExpression->getLocation());
   _codeGenerationContext->getValueStackHandler()->popAll();
-  llvm::Value *lhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(binaryExpression->getLeftPtr().get()->getKind())
-          ->generateExpression(binaryExpression->getLeftPtr().get());
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "This Binary Expression is not supported for objects as of now");
-    return nullptr;
-  }
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    lhsValue = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-  }
+  llvm::Value *lhsValue = this->getExpressionValue(
+      binaryExpression->getLeftPtr().get(), isClassType);
 
-  TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
-
-  _codeGenerationContext->getValueStackHandler()->popAll();
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory
-          ->createStrategy(binaryExpression->getRightPtr().get()->getKind())
-          ->generateExpression(binaryExpression->getRightPtr().get());
-
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "This Binary Expression is not supported for objects as of now");
-    return nullptr;
-  }
-
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    rhsValue = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-  }
+  llvm::Value *rhsValue = this->getExpressionValue(
+      binaryExpression->getRightPtr().get(), isClassType);
 
   if (!lhsValue || !rhsValue) {
     _codeGenerationContext->getLogger()->LogError(
@@ -58,8 +59,10 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   llvm::Value *result = nullptr;
 
-  if (_typeMapper->isNirastValue(lhsValue) ||
-      _typeMapper->isNirastValue(rhsValue)) {
+  TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
+
+  if (isClassType && (_typeMapper->isNirastValue(lhsValue) ||
+                      _typeMapper->isNirastValue(rhsValue))) {
     result = _nirastBinaryOperationStrategy->performOperation(
         lhsValue, rhsValue, binaryExpression);
   } else if (_typeMapper->isStringType(lhsType) ||
@@ -96,6 +99,8 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         "Unsupported Binary Operation !");
     return nullptr;
   }
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   _codeGenerationContext->getValueStackHandler()->push("", result, "constant",
                                                        result->getType());

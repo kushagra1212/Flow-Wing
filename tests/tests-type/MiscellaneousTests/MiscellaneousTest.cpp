@@ -568,3 +568,219 @@ print(a.x)
 )");
   EXPECT_EQ(getOutput(), R"({ white : -1 })");
 }
+
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimple) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+
+if(a){
+  print("A")
+}
+)");
+  EXPECT_EQ(getOutput(), R"(A)");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIF) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+
+if(!a){
+  print("A")
+}or if(a){
+    print("or A")
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(or A)");
+}
+
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFBinary) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+
+if(a && false){
+  print("A")
+}or if(a && true){
+    print("or A")
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(or A)");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnary) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+
+if(!a){
+  print("A")
+}or if(a && true){
+    print("or A")
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(or A)");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNir) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A 
+
+if(!a){
+  print("A")
+}or if(a && true){
+    print("or A")
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(A)");
+}
+TEST_F(MiscellaneousTest,
+       IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A 
+
+if(a && 2){
+  print("A")
+}
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest,
+       IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical2) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A 
+
+if(a || 2){
+  print("A")
+}
+)");
+  EXPECT_EQ(getOutput(), R"(A)");
+}
+TEST_F(MiscellaneousTest,
+       IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical3) {
+  I(R"(
+class a {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:a  = new a(2)
+
+if(a && 2){
+  print("a")
+}
+)");
+  EXPECT_EQ(getOutput(), R"(a)");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithNir) {
+  I(R"(
+class a {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:a  = new a(2)
+
+if(a == Nir){
+  print("a")
+}
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithNir2) {
+  I(R"(
+class a {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:a  = new a(2)
+
+if(a == Nir){
+  print("a")
+}
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithNir3) {
+  I(R"(
+class a {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:a  = new a(2)
+
+if(a != Nir){
+  print("a")
+}
+)");
+  EXPECT_EQ(getOutput(), R"(a)");
+}
+TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithNir4) {
+  I(R"(
+class a {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:a 
+if(a != Nir){
+  print("a")
+}
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
