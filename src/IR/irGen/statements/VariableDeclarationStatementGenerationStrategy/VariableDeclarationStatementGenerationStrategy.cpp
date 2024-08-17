@@ -124,7 +124,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
-  Utils::DEBUG_LOG("Declaring Variable: " + _variableName);
+  DEBUG_LOG("Declaring Variable: " + _variableName);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =

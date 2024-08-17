@@ -71,7 +71,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       BoundObjectTypeExpression *objectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
 
-      Utils::DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
+      DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
 
       //! This Handles when the Type is Class Type in that Case Since we are
       //! only receiving class Name not the type along with Module name e.g A
@@ -93,7 +93,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       if (boundClassStatement) {
         className = boundClassStatement->getClassName();
       }
-      Utils::DEBUG_LOG("CN " + className);
+      DEBUG_LOG("CN " + className);
     }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
@@ -364,6 +364,9 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
   boundModuleStat->addModuleNameIdentifier(std::move(
       bindLiteralExpression(moduleStatement->getModuleNameRef().get())));
 
+  _currentModuleName = boundModuleStat->getModuleName();
+
+  this->root->tryDeclareModule(boundModuleStat.get());
   for (auto &cusType : moduleStatement->getCustomTypeStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
@@ -375,7 +378,6 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
     _currentModuleName = "";
   }
 
-  this->root->tryDeclareModule(boundModuleStat.get());
   for (auto &classStmt : moduleStatement->getClassStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
@@ -668,6 +670,7 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
   }
 
   this->root = std::make_unique<BoundScope>(std::move(this->root));
+
   this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(true);
@@ -1134,7 +1137,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   BoundFunctionDeclaration *declared_fd = nullptr;
   std::string updatedCallerName = CALLER_NAME;
-
+  bool isSuperFunctionCall = false;
   if (!IS_A_BUILTIN_FUNCTION_CALL) {
 
     const std::string CLASS_NAME = this->root->getClassName();
@@ -1167,6 +1170,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
             std::to_string(callExpression->getArguments().size());
         declared_fd = boundClassStatement->getParentClass()->getMemberFunction(
             updatedCallerName);
+        isSuperFunctionCall = true;
       }
       if (boundClassStatement) {
         const std::string CLASS_MEMBER_FUNCTION_NAME =
@@ -1227,6 +1231,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
       boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
       boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
+      boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
       for (int i = 0; i < callExpression->getArguments().size(); i++) {
         boundCallExpression->addArgument(
             std::move(bindExpression(callExpression->getArguments()[i].get())));
@@ -1296,7 +1301,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   boundIdentifier->setValue(updatedCallerName);
   boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
-
+  boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
   for (int i = 0; i < callExpression->getArguments().size(); i++) {
     boundCallExpression->addArgument(
         std::move(bindExpression(callExpression->getArguments()[i].get())));
@@ -1447,7 +1452,20 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         variableExpressionSyntax->getModuleNameorCallExpression().get());
   }
 
-  if (!variable) {
+  if (variableExpressionSyntax->getVariableName() == "self") {
+    std::unique_ptr<BoundVariableExpression> boundVariableExpression =
+        std::make_unique<BoundVariableExpression>(
+            variableExpressionSyntax->getSourceLocation(),
+            std::move(bindLiteralExpression(
+                variableExpressionSyntax->getIdentifierTokenRef().get())),
+            variableExpressionSyntax->isConstant(), nullptr);
+    boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
+    boundVariableExpression->setHasNewKeyword(
+        variableExpressionSyntax->getHasNewKeyword());
+    return std::move(boundVariableExpression);
+  }
+
+  if (!variable && variableExpressionSyntax->getVariableName() != "self") {
 
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
@@ -1458,8 +1476,8 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     return nullptr;
   }
 
-  if (variable->getTypeExpression().get()->getKind() ==
-      BinderKindUtils::BoundObjectExpression) {
+  if (variable && variable->getTypeExpression().get()->getKind() ==
+                      BinderKindUtils::BoundObjectExpression) {
     BoundObjectTypeExpression *boundObjTypeExp =
         static_cast<BoundObjectTypeExpression *>(
             variable->getTypeExpression().get());
@@ -1484,6 +1502,7 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
+
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
     if (dotExpression->getKind() ==
@@ -1542,7 +1561,7 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
       prefix != "" ? prefix + syntax->getIdentifierTokenPtr()->getText()
                    : syntax->getIdentifierTokenPtr()->getText();
 
-  Utils::DEBUG_LOG("Binder:: Declaring function: " + function_name);
+  DEBUG_LOG("Binder:: Declaring function: " + function_name);
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
@@ -1700,6 +1719,7 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
     //? name -> class Type or Object Type
 
     BoundCustomTypeStatement *bCT = this->root->tryGetCustomType(name);
+    DEBUG_LOG("CURRENT_MODULE_NAME: " + name);
 
     if (!bCT && !this->root->tryGetClass(name)) {
       this->_diagnosticHandler->addDiagnostic(

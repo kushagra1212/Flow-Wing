@@ -124,14 +124,6 @@ public:
     }
   }
 
-  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
-  std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
-
-  // custom struct types
-  std::unordered_map<std::string, FlowWing::Type> _typesMap;
-  std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
-      _functionTypes;
-
   inline auto setCurrentClassName(std::string className) -> void {
     _currentClassName = className;
   }
@@ -181,7 +173,21 @@ public:
     return this->_typesMap[typeName];
   }
 
+  inline auto addClass(const std::string &name,
+                       std::unique_ptr<Class> classType) -> void {
+    this->_classes.push_back(std::move(classType));
+    this->_classTypes[name] = this->_classes.back().get();
+  }
+
   auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
+
+  std::unordered_map<std::string, Class *> _classTypes;
+  std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
+
+  // custom struct types
+  std::unordered_map<std::string, FlowWing::Type> _typesMap;
+  std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
+      _functionTypes;
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;
@@ -205,6 +211,8 @@ private:
 
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
+
+  std::vector<std::unique_ptr<Class>> _classes;
 
   std::string _currentClassName = "";
 };

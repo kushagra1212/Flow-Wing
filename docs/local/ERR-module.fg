@@ -2,9 +2,54 @@ module [Err]
 
 class Result {
   var message:str 
+  var code: int
+  var details: str 
 
-  init(message:str) -> nthg {
-    self.message = "Error: " + message
+  init(message: str = "") -> nthg {
+    self.message = message
+  }
+
+
+  init(message: str = "", code: int = 0) -> nthg {
+    self.message = message
+    self.code = code
+  }
+
+
+  init(message: str = "", code: int = 0, details: str = "") -> nthg {
+    self.message = message
+    self.code = code
+    self.details = details
+  }
+
+
+  getMessage() -> str {
+    return self.message
+  }
+
+  getCode() -> int {
+    return self.code
+  }
+
+  getDetails() -> str {
+    return self.details
+  }
+
+
+  withMessage(extraMessage: str) -> Err::Result {
+    return new Err::Result(self.message + " -> " + extraMessage, self.code, self.details)
+  }
+
+  withDetails(details: str) -> Err::Result {
+    return new Err::Result(self.message, self.code, details)
+  }
+
+  toString() -> str {
+    var result: str = "Error: " + self.message
+    if self.details != "" {
+      result = result + " (Details: " + self.details + ")"
+    }
+    return result
   }
 }
 

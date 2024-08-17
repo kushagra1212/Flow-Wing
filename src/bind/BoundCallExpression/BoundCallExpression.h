@@ -18,6 +18,7 @@ private:
   std::string _callerName = "";
   std::vector<llvm::Type *> _returnTypeList;
   bool _hasNewKeyword = false;
+  bool _isSuperFunctionCall = false;
 
 public:
   BoundCallExpression(const DiagnosticUtils::SourceLocation &location);
@@ -60,6 +61,14 @@ public:
 
   inline auto getReturnTypeList() -> const std::vector<llvm::Type *> & {
     return _returnTypeList;
+  }
+
+  inline auto setSuperFunctionCall(bool isSuperFunctionCall) -> void {
+    _isSuperFunctionCall = isSuperFunctionCall;
+  }
+
+  inline auto getIsSuperFunctionCall() const -> bool {
+    return _isSuperFunctionCall;
   }
 
   inline auto getArgumentAlloca(uint64_t index)

@@ -84,7 +84,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getClassMember(
            ->getDotExpressionList()[pos]
            .get())
           ->getValue());
-  if (_codeGenerationContext->_classTypes[className] &&
+  if (_codeGenerationContext->_classTypes.find(className) !=
+          _codeGenerationContext->_classTypes.end() &&
       _codeGenerationContext->_classTypes[className]->doesElementExist(
           memberName)) {
     auto [elementType, elementIndex, elementName, classType] =
@@ -283,10 +284,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   Class *classObj = nullptr;
 
   if (itsClass) {
-    classObj = _codeGenerationContext
-                   ->_classTypes[Utils::getActualTypeName(
-                       parObjType->getStructName().str())]
-                   .get();
+    classObj = _codeGenerationContext->_classTypes[Utils::getActualTypeName(
+        parObjType->getStructName().str())];
   }
 
   if (!itsClass && !boundCustomTypeStatement) {

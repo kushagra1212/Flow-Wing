@@ -16,7 +16,21 @@
 #include "../syntax/SyntaxNode.h"
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
+// Implementation function
+template <typename... Args>
+void DEBUG_LOG_IMPL(const std::string &format, Args &&...args) {
+  std::stringstream ss;
+  ((ss << std::forward<Args>(args)),
+   ...); // Perfect forwarding of variadic arguments
+  std::cout << "[DEBUG] " << format << ss.str() << std::endl;
+}
 
+// Macro to expand the variadic arguments correctly
+#ifdef DEBUG
+#define DEBUG_LOG(format, ...) DEBUG_LOG_IMPL(format, ##__VA_ARGS__)
+#else
+#define DEBUG_LOG(format, ...) // No-op in release builds
+#endif
 namespace Utils {
 enum type {
   INT8,
@@ -120,11 +134,15 @@ inline std::string print_log(const std::string &str, const std::string &color) {
   return res;
 }
 
-inline auto DEBUG_LOG(const std::string &str) -> void {
 #ifdef DEBUG
-  std::cout << "[DEBUG] " << BLUE_TEXT << str << RESET << std::endl;
-#endif
+template <typename... Args>
+inline auto DEBUG_LOG(const std::string &format, Args... args) {
+  std::stringstream ss;
+  ((ss << args), ...);
+  std::cout << "[DEBUG] " << BLUE_TEXT << format << ss.str() << RESET
+            << std::endl;
 }
+#endif
 
 std::vector<std::string>
 getAllFilesInDirectoryWithExtension(std::string directoryPath,

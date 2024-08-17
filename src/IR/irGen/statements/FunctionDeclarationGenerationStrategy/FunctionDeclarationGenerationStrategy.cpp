@@ -33,7 +33,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       static_cast<BoundFunctionDeclaration *>(statement);
   const std::string FUNCTION_NAME = fd->getFunctionNameRef();
 
-  Utils::DEBUG_LOG("Declaring Function: " + FUNCTION_NAME);
+  DEBUG_LOG("Declaring Function: " + FUNCTION_NAME);
 
   bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
   _codeGenerationContext->_functionTypes[FUNCTION_NAME] =
@@ -375,7 +375,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
                ->getFlowWingType(boundObjectTypeExpression->getTypeName())
                .getStructType());
 
-      if (!structType) {
+      if (!structType && _codeGenerationContext->_classTypes.find(
+                             boundObjectTypeExpression->getTypeName()) !=
+                             _codeGenerationContext->_classTypes.end()) {
 
         structType = _codeGenerationContext
                          ->_classTypes[boundObjectTypeExpression->getTypeName()]

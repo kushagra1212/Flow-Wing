@@ -618,7 +618,8 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     const bool IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION =
-        classType && Utils::isClassInit(callExpression->getCallerNameRef()) &&
+        classType && callExpression->getIsSuperFunctionCall() &&
+        Utils::isClassInit(callExpression->getCallerNameRef()) &&
         _codeGenerationContext->_classTypes.find(
             classType->getStructName().str()) !=
             _codeGenerationContext->_classTypes.end() &&
@@ -640,6 +641,8 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
           std::string::npos) {
         classArg = {value};
       }
+      DEBUG_LOG("ITS is CLASS INIT", callExpression->getCallerNameRef(),
+                Utils::isClassInit(callExpression->getCallerNameRef()));
     } else if (Utils::isClassInit(callExpression->getCallerNameRef())) {
       std::string className = callExpression->getCallerNameRef();
 

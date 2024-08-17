@@ -3905,3 +3905,85 @@ b: 53
 x: 10
 k: Hello2335.50000000000000)");
 }
+
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignmentClassItSelf) {
+  I(R"(
+class B {
+    init()->nthg {
+
+      }
+  }
+class A {
+
+  var x:int 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getA() -> A {
+    return new A(12)    
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+var b:A = a.getA()
+
+var ba:B = a.getB()
+print(a.x)
+print(b.x)
+)");
+  EXPECT_EQ(getOutput(), R"(1112)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignmentClassItSelf2) {
+  I(R"(
+
+class B {
+    init()->nthg {
+
+      }
+  }
+class A {
+
+  var x:int
+  var y:deci 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getAS() -> A {
+
+    self.x = 12
+    return self 
+  }
+  getA() -> A {
+    x =32
+
+    return self 
+  }
+  printX() -> nthg {
+    print("Y: ",y)
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+print(a.x)
+
+var b:A = a.getA()
+
+print(b.x)
+a.getAS()
+print(a.x)
+print(b.x)
+)");
+  EXPECT_EQ(getOutput(), R"(11321212)");
+}

@@ -710,7 +710,7 @@ std::unique_ptr<CustomTypeStatementSyntax> Parser::parseCustomTypeStatement() {
     typeToken->setValue(val);
     typeToken->setText(std::any_cast<std::string>(val));
   }
-  Utils::DEBUG_LOG("Declared Type: " + std::any_cast<std::string>(val));
+  DEBUG_LOG("Declared Type: " + std::any_cast<std::string>(val));
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
       std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(typeToken),
                                                           val);
@@ -872,7 +872,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
       std::string moduleFilePath =
           Utils::findFile(currentDirPath, relativeFilePath + "-module.fg");
 
-      Utils::DEBUG_LOG("Module File Path: " + moduleFilePath);
+      DEBUG_LOG("Module File Path: " + moduleFilePath);
 
       if (moduleFilePath.empty()) {
         this->_diagnosticHandler->addDiagnostic(
@@ -1581,9 +1581,30 @@ std::unique_ptr<ExpressionSyntax> Parser::parseVariableExpression(
 
   if (identifierToken->getValue().type() == typeid(std::string) &&
       std::any_cast<std::string>(identifierToken->getValue()) == "self") {
-    this->match(SyntaxKindUtils::SyntaxKind::DotToken);
-    return std::move(
-        this->parseNameorCallExpression(std::move(identifierToken)));
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
+      this->match(SyntaxKindUtils::SyntaxKind::DotToken);
+      return std::move(
+          this->parseNameorCallExpression(std::move(identifierToken)));
+    } else {
+      std::any value = identifierToken->getValue();
+
+      std::unique_ptr<TypeExpressionSyntax> typeExpression =
+          std::make_unique<TypeExpressionSyntax>(
+              std::make_unique<SyntaxToken<std::any>>(
+                  this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+                  SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
+                  "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
+
+      std::unique_ptr<VariableExpressionSyntax> variExp =
+          std::make_unique<VariableExpressionSyntax>(
+              std::make_unique<LiteralExpressionSyntax<std::any>>(
+                  std::move(identifierToken), value),
+              false, std::move(typeExpression));
+
+      variExp->setSelfKeyword(std::move(selfKeyword));
+
+      return std::move(variExp);
+    }
   }
 
   std::any value = identifierToken->getValue();

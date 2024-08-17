@@ -19,29 +19,23 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  Utils::DEBUG_LOG("LLVM: Declaring Class: " +
-                   boundClassStatement->getClassName());
+  DEBUG_LOG("LLVM: Declaring Class: " + boundClassStatement->getClassName());
 
-  std::unique_ptr<Class> classObjectSave = std::make_unique<Class>(
-      boundClassStatement->getClassName(), boundClassStatement);
+  _codeGenerationContext->addClass(
+      boundClassStatement->getClassName(),
+      std::make_unique<Class>(boundClassStatement->getClassName(),
+                              boundClassStatement));
+
+  auto classObject =
+      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()];
 
   //! Initialize parent class
   {
-    classObjectSave->setParentClassName(
-        boundClassStatement->getParentClassName());
+    classObject->setParentClassName(boundClassStatement->getParentClassName());
 
-    classObjectSave->setParent(
-        _codeGenerationContext
-            ->_classTypes[classObjectSave->getParentClassName()]
-            .get());
+    classObject->setParent(
+        _codeGenerationContext->_classTypes[classObject->getParentClassName()]);
   }
-
-  _codeGenerationContext->_classTypes[boundClassStatement->getClassName()] =
-      std::move(classObjectSave);
-
-  auto classObject =
-      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
-          .get();
 
   std::unique_ptr<CustomTypeStatementGenerationStrategy>
       customTypeStatementGenerationStrategy =
@@ -118,11 +112,11 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
   _codeGenerationContext->_classLLVMTypes[boundClassStatement->getClassName()] =
       classType;
+  classObject->setClassType(classType);
   std::unique_ptr<FunctionDeclarationGenerationStrategy>
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
-  uint64_t count = 0;
 
   for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
@@ -136,28 +130,27 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
       classObject->insertFunctionType(fd->getFunctionNameRef(),
                                       F->getFunctionType());
-      count++;
     }
   }
+  {
+    //! Create vTableType
 
-  //! Create vTableType
+    uint64_t inde = 0;
+    _codeGenerationContext->createVTableMapEntry(
+        classObject->getVTableElementsMap(),
+        boundClassStatement->getClassName(), inde);
 
-  uint64_t inde = 0;
-  _codeGenerationContext->createVTableMapEntry(
-      classObject->getVTableElementsMap(), boundClassStatement->getClassName(),
-      inde);
+    std::vector<llvm::Type *> vTableElements(
+        classObject->getVTableElementsMap().size(),
+        llvm::Type::getInt8PtrTy(*TheContext));
+    classObject->setVTableType(llvm::StructType::create(
+        *TheContext, vTableElements,
+        boundClassStatement->getClassName() + "::" + "VTableType"));
 
-  std::vector<llvm::Type *> vTableElements(
-      classObject->getVTableElementsMap().size(),
-      llvm::Type::getInt8PtrTy(*TheContext));
-  classObject->setVTableType(llvm::StructType::create(
-      *TheContext, vTableElements,
-      boundClassStatement->getClassName() + "::" + "VTableType"));
+    //!
 
-  //!
-
-  classObject->createVTable(classType->getStructName().str(), TheModule);
-  classObject->setClassType(classType);
+    classObject->createVTable(classType->getStructName().str(), TheModule);
+  }
 
   // Reset current class name
   _codeGenerationContext->resetCurrentClassName();

@@ -1,34 +1,167 @@
-class A {
-  var x:int 
-  var b:str 
-  init(x:int,b: str = "Hello" ) -> nthg {
-      self.x = x
-      print("init B ",x,b)
-      self.b = b 
+class C {
+  var z:deci 
+  var v:str 
+  init() -> nthg {
+    z  = 22.2
+    v ="Hello"
+    print("C Constructor is Called\n",z)
+    self.z = z+2.2
   }
   init(x:int) -> nthg {
-      self.x = x
-      self.b = "He"
+print("Called super",x)
+    }
+  printW() -> nthg {
+    print("world")
   }
-  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
-    print("a: "+a)
-   print("\nb: "+b)
-    print("\nx: "+self.x)
-    print("\nk: "+k)
-
-    return 23,35.5
-  } 
 }
 
-var a:A = new A(10)
-var b:int,c:deci 
+class B extends C {
+  var z:int
+  var j:deci
+  init() -> nthg  {
+    z =1 
+    print(j,"B Constructor is Called\n",self.z)
+  }
+
+  init(j:str) -> nthg {
+      print(j)
+    }
+
+  getZ() -> int {
+    
+    return z
+  }
+  getS() -> deci {
+    return 2.4
+  }
+}
 
 
-b,c =a.test(2,53)
-print(b,c)
+class A extends B {
+  var x: int
+  var y: deci
+  init() -> nthg {
+    super("CalledB")
+    print("A Constructor is Called\n",self.z)
+    print(v)
+  }
+
+  getX() -> int {
+
+    return x
+  }
+
+  getZ() -> int {
+ 
+    return z
+  }
+
+  getS() -> deci {
+    return 45.2
+  }
+
+}
+
+var a:A = new A()
+print(a.z)
+
+/#type T = {
+  a:int 
+}
+type K = {
+  j:T[2]
+}
+
+class B {
+  var u:K
+
+  init(u:K) -> nthg {
+    self.u = u
+  }
+
+  getU() -> K {
+    return u
+  }
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+
+  printB(b:B) -> nthg {
+    print(b.getU())
+  }
+}
+
+
+fun getA(d:A) -> A {
+ d.obj.a = 21
+  return d
+}
+fun getAA(a:A) -> A {
+  return getA(a)
+}
+fun createA() -> A {
+  return new A({a:22})
+}
+var a:A = new A({a:1})
+print(a.obj)
+a = createA()
+print(a.obj)
+a = new A({a:322})
+print(a.obj)
+a.obj = {a:32}
+print("After Pass")
+print(a.printB(new B({j:[{a:2}]})))
 /#
+class B {
+    init()->nthg {
 
-bring Err 
+      }
+  }
+class A {
+
+  var x:int
+  var y:deci 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getAS() -> A {
+
+    self.x = 12
+    return self 
+  }
+  getA() -> A {
+    x =32
+
+    return self 
+  }
+  printX() -> nthg {
+    print("Y: ",y)
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+print(a.x)
+
+var b:A = a.getA()
+
+print(b.x)
+a.getAS()
+print(a.x)
+print(b.x)
+
+/#bring Err 
+
 
 
 fun div(a: int, b: int) -> deci,Err::Result {

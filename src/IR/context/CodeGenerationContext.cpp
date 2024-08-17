@@ -180,7 +180,7 @@ auto CodeGenerationContext::createVTableMapEntry(
         &vTableElementsMap,
     std::string className, uint64_t &index) -> void {
 
-  auto classVar = this->_classTypes[className].get();
+  auto classVar = this->_classTypes[className];
 
   if (!classVar)
     return;
@@ -445,10 +445,13 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
                                                llvm::StructType *rhsType,
                                                std::string inExp) {
 
-  if (this->_classTypes[lhsType->getStructName().str()] &&
-      this->_classTypes[rhsType->getStructName().str()]) {
+  if (this->_classTypes.find(lhsType->getStructName().str()) !=
+          this->_classTypes.end() &&
+      this->_classTypes.find(rhsType->getStructName().str()) !=
+          this->_classTypes.end()) {
 
-    if (this->_classTypes[rhsType->getStructName().str()]->isChildOf(
+    if (this->_classTypes[rhsType->getStructName().str()] &&
+        this->_classTypes[rhsType->getStructName().str()]->isChildOf(
             lhsType->getStructName().str()))
       return EXIT_SUCCESS;
   }
