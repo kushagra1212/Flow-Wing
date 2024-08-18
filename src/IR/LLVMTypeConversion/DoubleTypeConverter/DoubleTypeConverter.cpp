@@ -35,9 +35,7 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to double"));
+  _logger->LogError(("Unsupported type for conversion to double"));
 
   return nullptr;
 }
@@ -63,15 +61,13 @@ llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
-        "Implicit conversion from bool to double is not "
-        "supported for variable with predefined type"));
+    _logger->LogError(("Implicit conversion from bool to double is not "
+                       "supported for variable with predefined type"));
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Implicit conversion from string to double is not "
         "supported for variable with predefined type"));
 
@@ -81,9 +77,7 @@ llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to double"));
+  _logger->LogError(("Unsupported type for conversion to double"));
 
   return nullptr;
 }

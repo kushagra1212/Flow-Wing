@@ -88,6 +88,6 @@ llvm::Value *BoolBinaryOperationStrategy::performOperation(
     break;
   }
 
-  this->_codeGenerationContext->callREF(errorMessage);
+  this->_codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

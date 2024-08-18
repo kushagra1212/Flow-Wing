@@ -46,7 +46,7 @@ llvm::Value *StringBinaryOperationStrategy::performOperation(
   }
   }
 
-  _codeGenerationContext->callREF(errorMessage);
+  _codeGenerationContext->getLogger()->LogError(errorMessage);
 
   return nullptr;
 }

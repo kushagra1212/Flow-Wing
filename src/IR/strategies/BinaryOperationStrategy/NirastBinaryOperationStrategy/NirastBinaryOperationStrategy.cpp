@@ -67,6 +67,6 @@ llvm::Value *NirastBinaryOperationStrategy::performOperation(
   }
   }
 
-  _codeGenerationContext->callREF(errorMessage);
+  _codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

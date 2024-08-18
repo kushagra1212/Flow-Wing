@@ -46,9 +46,7 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to bool"));
+  _logger->LogError(("Unsupported type for conversion to bool"));
 
   return nullptr;
 }
@@ -61,53 +59,40 @@ llvm::Value *BoolTypeConverter::convertImplicit(llvm::Value *&value) {
 
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    this->_logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int32 to bool is not "
-                                "supported for variable with predefined type"));
+    this->_logger->LogError(("Implicit conversion from int32 to bool is not "
+                             "supported for variable with predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
-    this->_logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int64 to bool is not "
-                                "supported for variable with predefined type"));
+    this->_logger->LogError(("Implicit conversion from int64 to bool is not "
+                             "supported for variable with predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
-    this->_logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from int8 to bool is not "
-                                "supported for variable with predefined type"));
+    this->_logger->LogError(("Implicit conversion from int8 to bool is not "
+                             "supported for variable with predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    this->_logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(), "Implicit conversion from deci to bool "
-                                        "is not supported for variable with "
-                                        "predefined type"));
+    this->_logger->LogError(("Implicit conversion from deci to bool "
+                             "is not supported for variable with "
+                             "predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    this->_logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from deci32 to bool "
-                                "is not supported for variable with "
-                                "predefined type"));
+    this->_logger->LogError(("Implicit conversion from deci32 to bool "
+                             "is not supported for variable with "
+                             "predefined type"));
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     return value;
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    this->_logger->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Implicit conversion from string to bool is "
-                                "not supported for variable with predefined "
-                                "type"));
+    this->_logger->LogError(("Implicit conversion from string to bool is "
+                             "not supported for variable with predefined "
+                             "type"));
   }
   default:
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to bool"));
+  _logger->LogError(("Unsupported type for conversion to bool"));
 
   return res;
 }

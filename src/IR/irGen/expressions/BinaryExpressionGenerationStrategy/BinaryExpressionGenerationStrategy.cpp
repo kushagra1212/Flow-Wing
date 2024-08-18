@@ -99,7 +99,6 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
         "Unsupported Binary Operation !");
     return nullptr;
   }
-
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   _codeGenerationContext->getValueStackHandler()->push("", result, "constant",

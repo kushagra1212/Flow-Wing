@@ -44,7 +44,8 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     // // Set up the 'if' block
     // Builder->SetInsertPoint(ifBlock);
 
-    // _codeGenerationContext->callREF("Division by zero is not allowed");
+    // _codeGenerationContext->getLogger()->LogError("Division by zero is not
+    // allowed");
 
     // Builder->CreateBr(mergeBlock);
 
@@ -78,7 +79,8 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     // // Set up the 'if' block
     // Builder->SetInsertPoint(ifBlock);
 
-    // _codeGenerationContext->callREF("Division by zero is not allowed");
+    // _codeGenerationContext->getLogger()->LogError("Division by zero is not
+    // allowed");
 
     // Builder->CreateBr(mergeBlock);
 
@@ -163,6 +165,6 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
   }
   }
 
-  _codeGenerationContext->callREF(errorMessage);
+  _codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }
