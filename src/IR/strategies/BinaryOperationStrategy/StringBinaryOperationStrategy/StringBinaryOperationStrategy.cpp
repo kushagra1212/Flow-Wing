@@ -59,9 +59,8 @@ llvm::Value *StringBinaryOperationStrategy::createStringComparison(
 
   if (!stringComparison) {
 
-    this->_codeGenerationContext->getLogger()->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                "Function " + functionName + " not found"));
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Function " + functionName + " not found");
 
     return nullptr;
   }
@@ -71,12 +70,9 @@ llvm::Value *StringBinaryOperationStrategy::createStringComparison(
 
   if (!globalTrueStr) {
 
-    this->_codeGenerationContext->getLogger()->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-
-                                this->_codeGenerationContext->getPrefixedName(
-                                    FLOWWING_GLOBAL_TRUE) +
-                                    " variable not found"));
+    this->_codeGenerationContext->getLogger()->LogError(
+        this->_codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_TRUE) +
+        " variable not found");
 
     return nullptr;
   }
@@ -86,11 +82,9 @@ llvm::Value *StringBinaryOperationStrategy::createStringComparison(
 
   if (!globalFalseStr) {
 
-    this->_codeGenerationContext->getLogger()->logLLVMError(
-        llvm::createStringError(llvm::inconvertibleErrorCode(),
-                                this->_codeGenerationContext->getPrefixedName(
-                                    FLOWWING_GLOBAL_FALSE) +
-                                    " variable not found"));
+    this->_codeGenerationContext->getLogger()->LogError(
+        this->_codeGenerationContext->getPrefixedName(FLOWWING_GLOBAL_FALSE) +
+        " variable not found");
 
     return nullptr;
   }
@@ -98,12 +92,12 @@ llvm::Value *StringBinaryOperationStrategy::createStringComparison(
   llvm::Value *args[] = {lhsValue, rhsValue};
   llvm::CallInst *stringsCall = Builder->CreateCall(stringComparison, args);
   llvm::Value *resultStr =
-      operand == "!="
-          ? Builder->CreateSelect(stringsCall, globalFalseStr, globalTrueStr)
-          : Builder->CreateSelect(stringsCall, globalTrueStr, globalFalseStr);
+      operand == "!=" ? Builder->CreateSelect(stringsCall, Builder->getFalse(),
+                                              Builder->getTrue())
+                      : Builder->CreateSelect(stringsCall, Builder->getTrue(),
+                                              Builder->getFalse());
 
-  return Builder->CreateBitCast(resultStr,
-                                llvm::Type::getInt8PtrTy(*TheContext));
+  return resultStr;
 }
 
 llvm::Value *

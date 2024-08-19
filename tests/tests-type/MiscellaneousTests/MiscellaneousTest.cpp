@@ -848,3 +848,123 @@ print("\nE:",e,s)
   EXPECT_EQ(getOutput(), R"(a: 210023.30000000000000
 E:2.30000000000000Hello World)");
 }
+TEST_F(MiscellaneousTest, NotUnaryOperationTest1) {
+  I(R"(
+var x:str 
+
+if(!x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(x)");
+}
+TEST_F(MiscellaneousTest, NotUnaryOperationTest2) {
+  I(R"(
+var x:str = "" 
+
+if(!x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(x)");
+}
+TEST_F(MiscellaneousTest, NotUnaryOperationTest3) {
+  I(R"(
+var x:str = "d" 
+
+if(!x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTestIden1) {
+  I(R"(
+var x:str = "" 
+
+if(x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTestIden2) {
+  I(R"(
+var x:str
+
+if(x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTestIden3) {
+  I(R"(
+var x:str = "d" 
+
+if(x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(xd)");
+}
+TEST_F(MiscellaneousTest, UnaryOperationEqTest1) {
+  I(R"(
+var x:str 
+
+if(x == ""){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(x)");
+}
+TEST_F(MiscellaneousTest, UnaryOperationEqTest2) {
+  I(R"(
+var x:str = ""
+
+if(x == ""){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(x)");
+}
+TEST_F(MiscellaneousTest, UnaryOperationEqTest3) {
+  I(R"(
+var x:str = "d"
+
+if(x == ""){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTest4) {
+  I(R"(
+var x:str = "" 
+
+if(x != ""){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTest5) {
+  I(R"(
+var x:str 
+
+if(!x){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"(x)");
+}
+TEST_F(MiscellaneousTest, UnaryOperationTest6) {
+  I(R"(
+var x:str 
+
+if(x ){
+    print("x",x)
+  }
+)");
+  EXPECT_EQ(getOutput(), R"()");
+}

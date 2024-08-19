@@ -34,18 +34,24 @@ llvm::Value *UnaryOperationStrategy::performOperation(
       return Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
     } else if (typeMapper->isStringType(type)) {
-      // Get the string length
 
-      // llvm::ArrayRef<llvm::Value *> Args = {
-      //     _stringTypeConverter->convertExplicit(val)};
-      // llvm::Value *length = Builder->CreateCall(
-      //     TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH), Args);
-      // val = length;
+      auto stringLengthFunc =
+          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH);
+
+      if (!stringLengthFunc) {
+        // Function not found, handle error
+        _codeGenerationContext->getLogger()->LogError(
+            "function " + INNERS::FUNCTIONS::STRING_LENGTH + " not found");
+        return nullptr;
+      }
+      // Get the string length
+      llvm::Value *v = Builder->CreateCall(
+          stringLengthFunc, {_stringTypeConverter->convertExplicit(val)});
 
       // Compare the string Length to Zero
 
-      //! For String and Null Ptr
-      return Builder->CreateIsNotNull(val);
+      //! For String
+      return Builder->CreateICmpEQ(v, llvm::ConstantInt::get(v->getType(), 0));
     } else if (typeMapper->isBoolType(type)) {
       // For boolean values, perform logical NOT
       return Builder->CreateNot(val);
@@ -65,9 +71,8 @@ llvm::Value *UnaryOperationStrategy::performOperation(
   }
   }
 
-  this->_codeGenerationContext->getLogger()->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported Unary Expression Type "));
+  this->_codeGenerationContext->getLogger()->LogError(
+      "Unsupported Unary Expression Type ");
 
   return nullptr;
 }

@@ -1,169 +1,11 @@
-class C {
-  var z:deci 
-  var v:str 
-  init() -> nthg {
-    z  = 22.2
-    v ="Hello"
-    print("C Constructor is Called\n",z)
-    self.z = z+2.2
+/;bring Err 
+
+var x:str 
+
+if(!x){
+ /;   print("x",x)
   }
-  init(x:int) -> nthg {
-print("Called super",x)
-    }
-  printW() -> nthg {
-    print("world")
-  }
-}
-
-class B extends C {
-  var z:int
-  var j:deci
-  init() -> nthg  {
-    z =1 
-    print(j,"B Constructor is Called\n",self.z)
-  }
-
-  init(j:str) -> nthg {
-      print(j)
-    }
-
-  getZ() -> int {
-    
-    return z
-  }
-  getS() -> deci {
-    return 2.4
-  }
-}
-
-
-class A extends B {
-  var x: int
-  var y: deci
-  init() -> nthg {
-    super("CalledB")
-    print("A Constructor is Called\n",self.z)
-    print(v)
-  }
-
-  getX() -> int {
-
-    return x
-  }
-
-  getZ() -> int {
- 
-    return z
-  }
-
-  getS() -> deci {
-    return 45.2
-  }
-
-}
-
-var a:A = new A()
-print(a.z)
-
-/#type T = {
-  a:int 
-}
-type K = {
-  j:T[2]
-}
-
-class B {
-  var u:K
-
-  init(u:K) -> nthg {
-    self.u = u
-  }
-
-  getU() -> K {
-    return u
-  }
-}
-
-class A{
-  var obj:T 
-
-  init(obj:T) -> nthg {
-    self.obj = obj 
-  }
-
-  printB(b:B) -> nthg {
-    print(b.getU())
-  }
-}
-
-
-fun getA(d:A) -> A {
- d.obj.a = 21
-  return d
-}
-fun getAA(a:A) -> A {
-  return getA(a)
-}
-fun createA() -> A {
-  return new A({a:22})
-}
-var a:A = new A({a:1})
-print(a.obj)
-a = createA()
-print(a.obj)
-a = new A({a:322})
-print(a.obj)
-a.obj = {a:32}
-print("After Pass")
-print(a.printB(new B({j:[{a:2}]})))
 /#
-class B {
-    init()->nthg {
-
-      }
-  }
-class A {
-
-  var x:int
-  var y:deci 
-  init(x:int )-> nthg {
-    self.x = x
-  }
-  
-  getAS() -> A {
-
-    self.x = 12
-    return self 
-  }
-  getA() -> A {
-    x =32
-
-    return self 
-  }
-  printX() -> nthg {
-    print("Y: ",y)
-  }
-
-  getB() -> B {
-      return new B()
-    }
-
-}
-
-var a:A = new A(11)
-print(a.x)
-
-var b:A = a.getA()
-
-print(b.x)
-a.getAS()
-print(a.x)
-print(b.x)
-
-/#bring Err 
-
-
-
 fun div(a: int, b: int) -> deci,Err::Result {
   if(b == 0) {
     return 0.0, new Err::Result("Can not divide "+a+" with 0")
@@ -181,8 +23,8 @@ var ans:deci,err:Err::Result = (div(a,b))
 if(err == Nir) {
   print(ans)
 }else{
-    print(err.message)
-  }
+    print(err.toString())
+}
 
 
 

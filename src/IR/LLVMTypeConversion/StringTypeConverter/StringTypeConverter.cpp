@@ -106,26 +106,20 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
 
   switch (type) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    _logger->LogError((
-
-        "Implicit conversion from int32 to string is not "
-        "supported for variable with predefined type"));
+    _logger->LogError(("Implicit conversion from int32 to string is not "
+                       "supported for variable with predefined type"));
 
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
-    _logger->LogError((
-
-        "Implicit conversion from int64 to string is not "
-        "supported for variable with predefined type"));
+    _logger->LogError(("Implicit conversion from int64 to string is not "
+                       "supported for variable with predefined type"));
 
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
-    _logger->LogError((
-
-        "Implicit conversion from int8 to string is not "
-        "supported for variable with predefined type"));
+    _logger->LogError(("Implicit conversion from int8 to string is not "
+                       "supported for variable with predefined type"));
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
@@ -137,10 +131,8 @@ llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
   }
 
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    _logger->LogError((
-
-        "Implicit conversion from deci32 to string is not "
-        "supported for variable with predefined type"));
+    _logger->LogError(("Implicit conversion from deci32 to string is not "
+                       "supported for variable with predefined type"));
 
     return nullptr;
   }
@@ -190,9 +182,7 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
     } else if (constInt->getType()->isIntegerTy(1)) {
       return constInt->getSExtValue() ? "true" : "false";
     } else {
-      _logger->LogError((
-
-          "Unsupported integer type for conversion to string"));
+      _logger->LogError(("Unsupported integer type for conversion to string"));
       return "";
     }
   }
@@ -203,9 +193,8 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
     if (constFP->getType()->isDoubleTy()) {
       return std::to_string(constFP->getValueAPF().convertToDouble());
     } else {
-      _logger->LogError((
-
-          "Unsupported floating point type for conversion to string"));
+      _logger->LogError(
+          ("Unsupported floating point type for conversion to string"));
       return "";
     }
   }
@@ -228,9 +217,7 @@ std::string StringTypeConverter::valueToString(llvm::Value *val) {
         return cmpResult == llvm::ConstantInt::get(i1Type, 1) ? "true"
                                                               : "false";
       } else {
-        _logger->LogError((
-
-            "Unsupported type for conversion to string"));
+        _logger->LogError(("Unsupported type for conversion to string"));
         return "";
       }
     }
