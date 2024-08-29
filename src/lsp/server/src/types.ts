@@ -24,7 +24,6 @@ type FunctionKeyword = Token;
 type DeclKeyword = Token;
 type Askeyword = Token;
 type ClassKeyword = Token;
-
 // Expression
 interface LiteralExpression {
   NumberToken?: NumberToken;
@@ -49,6 +48,13 @@ type ObjectTypeExpression = [{ LiteralExpression?: LiteralExpression[] }];
 type ClassStatement = [
   { ClassKeyword: ClassKeyword },
   { IdentifierToken: IdentifierToken },
+  any
+];
+
+type ModuleStatement = [
+  { OpenBracketToken: Token },
+  { LiteralExpression: [LiteralExpression] },
+  { OpenBracketToken: Token },
   any
 ];
 
@@ -107,6 +113,7 @@ export {
   ArrayTypeExpression,
   ObjectTypeExpression,
   ClassStatement,
+  ModuleStatement,
   IdentifierToken,
   NumberToken,
   EndOfFileToken,

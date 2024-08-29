@@ -32,8 +32,8 @@ ModuleStatementGenerationStrategy::declare(BoundStatement *statement) {
        i < boundModuleStatement->getFunctionStatementsRef().size(); i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundModuleStatement->getFunctionStatementsRef()[i].get());
-
-    functionDeclarationGenerationStrategy->generate(fd);
+    if (fd->isOnlyDeclared())
+      functionDeclarationGenerationStrategy->generate(fd);
   }
 
   return nullptr;

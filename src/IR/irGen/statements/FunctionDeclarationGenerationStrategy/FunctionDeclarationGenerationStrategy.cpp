@@ -438,7 +438,9 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       "rt", llvm::MDNode::get(*TheContext,
                               llvm::MDString::get(*TheContext, returnInfo)));
 
+#ifdef DEBUG
   _codeGenerationContext->verifyFunction(F, FUNCTION_NAME);
+#endif
   _codeGenerationContext->addBoundedUserFunction(FUNCTION_NAME, fd);
 
   return F;

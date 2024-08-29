@@ -1173,7 +1173,8 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
   //    return nullptr;
   //  }
 
-  if (!_codeGenerationContext->getDynamicType()->isDyn(
+  if (llvmArrayArgs.size() &&
+      !_codeGenerationContext->getDynamicType()->isDyn(
           llvmArrayArgs[llvmArgsIndex]->getType()) &&
       llvmArrayArgs[llvmArgsIndex]->getLLVMType() != rhsType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -1186,7 +1187,8 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
         Utils::CE(
             _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType)));
     return rhsValue;
-  } else if (_codeGenerationContext->getDynamicType()->isDyn(
+  } else if (llvmArrayArgs.size() &&
+             _codeGenerationContext->getDynamicType()->isDyn(
                  llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
     _codeGenerationContext->getLogger()->LogError(
         "Dynamic type not supported in function call expression " +
@@ -1446,7 +1448,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
   //   return nullptr;
   // }
 
-  if (llvmArrayArgs[llvmArgsIndex]->isPointerToArray()) {
+  if (llvmArrayArgs.size() &&
+      llvmArrayArgs[llvmArgsIndex]->isPointerToArray()) {
 
     LLVMArrayType *llvmArrayType =
         static_cast<LLVMArrayType *>(llvmArrayArgs[llvmArgsIndex].get());

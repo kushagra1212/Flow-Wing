@@ -1,10 +1,14 @@
 
 fun rand() -> as int decl
 
+
 fun time() -> as int decl
 
+
 fun srand(x: as int) -> nthg decl
+
 
 expose fun getRandomNumber(start: int, end: int) -> int {
   return rand() % (end - start + 1) + start
 }
+

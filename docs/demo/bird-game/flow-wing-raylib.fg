@@ -41,55 +41,77 @@ type LOG_TYPE = {
 
 fun InitWindow(width: as int, height: as int, title: as str) -> nthg decl
 
+
 fun SetTargetFPS(fps: as int) -> nthg decl
+
 
 fun ClearBackground(color: as int) -> nthg decl
 
+
 fun WindowShouldClose() -> as bool decl
+
 
 fun BeginDrawing() -> nthg decl
 
+
 fun DrawRectangle(posX: as int, posY: as int, width: as int, height: as int, color: as int) -> nthg decl
 
+
 fun EndDrawing() -> nthg decl
+
 
 fun CloseWindow() -> nthg decl/; window releated  
 
 
+
 fun GetScreenHeight() -> as int decl
+
 
 fun GetScreenWidth() -> as int decl/; Draw Shapes
 /; Draw Circle
 
 
+
 fun DrawCircle(centerX: as int, centerY: as int, radius: as deci32, color: as int) -> nthg decl/; Text Drawing Function
+
 
 
 fun DrawText(text: as str, posX: as int, posY: as int, fontSize: as int, color: as int) -> nthg decl/; Input-related functions: keyboard
 
 
+
 fun IsKeyPressed(key: as int) -> as bool decl
 
+
 fun IsKeyDown(key: as int) -> as bool decl/; Format Text
+
 
 
 fun TextFormat(text: as str) -> as str decl/; Texture functions
 
 
+
 fun LoadTexture(fileName: as str) -> Texture decl/; Texture Drawing Functions 
+
 
 
 fun DrawTexture(texture: Texture, posX: as int, posY: as int, color: as int) -> nthg decl
 
+
 fun UnloadTexture(texture: Texture) -> nthg decl
+
 
 fun DrawTexturePro(texture: Texture, source: as deci32[4], dest: as deci32[4], origin: as deci32[2], rotation: as deci32, color: as int) -> nthg decl/; Basic shapes drawing functions
 /;fun DrawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg decl    
 /; logs
 
 
+
 fun TraceLog(logLevel: as int, text: as str) -> nthg decl
+
 
 fun GetTime() -> as deci decl
 
+
 fun GetFrameTime() -> as deci32 decl
+

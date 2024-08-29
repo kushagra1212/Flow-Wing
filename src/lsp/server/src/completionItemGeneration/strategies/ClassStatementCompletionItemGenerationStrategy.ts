@@ -20,6 +20,14 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       this.syntaxObj["ClassStatement"] as ClassStatement
     );
 
+    if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+      (this.result.completionItem.documentation as MarkupContent).value += (
+        this.programCtx.rootProgram.modules.get(
+          this.programCtx.getCurrentParsingModuleName()
+        ).moduleCompletionItem.documentation as MarkupContent
+      ).value;
+    }
+
     this.programCtx.setCurrentParsingClassName(this.result.name);
 
     this.programCtx.rootProgram.classes.set(
@@ -84,7 +92,11 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
         });
       }
     }
+    this.programCtx.rootProgram.classes.forEach((completionItem: any, key) => {
+      this.setMoudleMembersIfNeeded("classes", { name: key, completionItem });
+    });
 
+    this.setMoudleMembersIfNeeded("classes", this.result);
     return [];
   }
 

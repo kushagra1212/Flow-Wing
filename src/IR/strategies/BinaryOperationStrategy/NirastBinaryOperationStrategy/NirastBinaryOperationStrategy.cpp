@@ -16,14 +16,14 @@ llvm::Value *NirastBinaryOperationStrategy::performOperation(
 
     if (lhsValue ==
         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
-      return Builder->CreateNot(rhsValue);
+      return Builder->CreateIsNull(rhsValue);
     }
 
     if (rhsValue ==
         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))
 
     ) {
-      return Builder->CreateNot(lhsValue);
+      return Builder->CreateIsNull(lhsValue);
     }
 
     if (lhsValue == llvm::ConstantPointerNull::get(
@@ -41,12 +41,12 @@ llvm::Value *NirastBinaryOperationStrategy::performOperation(
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals: {
     if (lhsValue ==
         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
-      return rhsValue;
+      return Builder->CreateIsNotNull(rhsValue);
     }
 
     if (rhsValue ==
         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext))) {
-      return (lhsValue);
+      return Builder->CreateIsNotNull(lhsValue);
     }
 
     if (lhsValue == llvm::ConstantPointerNull::get(

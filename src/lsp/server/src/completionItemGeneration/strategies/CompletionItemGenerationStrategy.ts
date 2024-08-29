@@ -26,4 +26,15 @@ export abstract class CompletionItemGenerationStrategy {
         ?.[expressionName]?.set(value.name, value.completionItem);
     }
   }
+
+  public setMoudleMembersIfNeeded(
+    expressionName: keyof ProgramStructure,
+    value: { name: string; completionItem: CompletionItem }
+  ) {
+    if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+      this.programCtx.rootProgram?.modules
+        .get(this.programCtx.getCurrentParsingModuleName())
+        ?.[expressionName]?.set(value.name, value.completionItem);
+    }
+  }
 }

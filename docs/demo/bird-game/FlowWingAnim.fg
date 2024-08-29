@@ -30,6 +30,7 @@ expose class FlowWingAnim {
     self.screenName = screenName 
   }
 
+
   beforeInit() -> nthg {
     colors = {
       WHITE: getColor(255, 255, 255, 255),
@@ -61,54 +62,67 @@ expose class FlowWingAnim {
     setTargetFPS()
   }
 
+
   setTargetFPS() -> nthg {
     SetTargetFPS(fps)
   }
+
 
   getColor(r: int, g: int, b: int, a: int) -> int {
     return a * 256 * 256 * 256 + b * 256 * 256 + g * 256 + r
   }
 
+
   createWindow() -> nthg {
     InitWindow(self.screenHeight, self.screenWidth, self.screenName)
   }
+
 
   clearBackground(color: int) -> nthg {
     ClearBackground(color)
   }
 
+
   windowShouldClose() -> bool {
     return WindowShouldClose()
   }
+
 
   beginDrawing() -> nthg {
     BeginDrawing()
   }
 
+
   drawRectangle(posX: int, posY: int, width: int, height: int, color: int) -> nthg {
     DrawRectangle(posX, posY, width, height, color)
   }
 
+
   endDrawing() -> nthg {
     EndDrawing()
   }
+
 
   closeWindow() -> nthg {
     CloseWindow()
   }/; window releated  
 
 
+
   getTime() -> deci {
     return GetTime()
   }
+
 
   getFrameTime() -> deci32 {
     return GetFrameTime()
   }
 
+
   getScreenHeight() -> int {
     return GetScreenHeight()
   }
+
 
   getScreenWidth() -> int {
     return GetScreenWidth()
@@ -116,9 +130,11 @@ expose class FlowWingAnim {
 /; Draw Circle
 
 
+
   drawCircle(centerX: int, centerY: int, radius: deci32, color: int) -> nthg {
     DrawCircle(centerX, centerY, radius, color)
   }/; Text Drawing Function
+
 
 
   drawText(text: str, posX: int, posY: int, fontSize: int, color: int) -> nthg {
@@ -126,9 +142,11 @@ expose class FlowWingAnim {
   }/; Input-related functions: keyboard
 
 
+
   drawTexture(texture: Texture, posX: int, posY: int, color: int) -> nthg {
     DrawTexture(texture, posX, posY, color)
   }
+
 
   drawTexturePro(inout texture: Texture, inout source: deci32[4], inout dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
     DrawTexturePro(texture, source, dest, origin, rotation, color)
@@ -139,33 +157,41 @@ expose class FlowWingAnim {
 #/
 
 
+
   traceLog(logLevel: int, text: str) -> nthg {
     TraceLog(logLevel, text)
   }
+
 
   loadTexture(fileName: str) -> Texture {
     return LoadTexture(fileName)
   }
 
+
   unloadTexture(texture: Texture) -> nthg {
     UnloadTexture(texture)
   }
 
+
   isKeyPressed(key: int) -> bool {
     return IsKeyPressed(key)
   }
+
 
   isKeyDown(key: int) -> bool {
     return IsKeyDown(key)
   }/; Format Text
 
 
+
   textFormat(text: str) -> str {
     return TextFormat(text)
   }
+
 
 }
 
 fun drawTexturePro(texture: Texture, source: deci32[4], dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
   DrawTexturePro(texture, source, dest, origin, rotation, color)
 }
+

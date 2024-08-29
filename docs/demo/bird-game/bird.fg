@@ -55,14 +55,17 @@ class Bird {
     }] 
   }
 
+
   var pos: Position
   setTexture(birdTexture: Texture) -> nthg {
     self.birdTexture = birdTexture 
   }
 
+
   getTexturePath() -> str {
     return self.birdTexturePath
   }
+
 
   update(frameTime: deci32) -> nthg {
     birdTimmer = birdTimmer - Decimal(frameTime) 
@@ -72,39 +75,45 @@ class Bird {
       if birdSpriteIndex >= BIRD_SPRITE_SIZE {
         birdSpriteIndex = 0 
       }
-
       pos.y = pos.y + frameTime * (1 + 1 * (-150)) 
     }
-
   }
+
 
   isTextureLoaded() -> bool {
     return self.birdTexture.id != 0
   }
 
+
   getSource() -> deci32[4] {
     return [birdSpritePosition[birdSpriteIndex].x, birdSpritePosition[birdSpriteIndex].y, ACTUAL_BIRD_SIZE, ACTUAL_BIRD_SIZE]
   }
+
 
   getDistination() -> deci32[4] {
     return [Decimal32(screenWidth / 3 - birdSize / 2), Decimal32(screenHeight / 2 - birdSize / 2), birdSize, birdSize]
   }
 
+
   getOrigin() -> deci32[2] {
     return [self.pos.x, self.pos.y]
   }
+
 
   getRotation() -> deci32 {
     return 0.0d
   }
 
+
   getTexture() -> Texture {
     return self.birdTexture
   }
 
+
   updateY(frameTime: deci32) -> nthg {
     pos.y = pos.y + frameTime * (1 + 1 * (300)) 
   }
+
 
 }
 class Cloud {
@@ -147,17 +156,21 @@ class Cloud {
     }, ] 
   }
 
+
   setTexture(cloudTexture: Texture) -> nthg {
     self.cloudTexture = cloudTexture 
   }
+
 
   getTexture() -> Texture {
     return self.cloudTexture
   }
 
+
   getTexturePath() -> str {
     return self.texturePath
   }
+
 
   update(frameTime: deci32) -> nthg {
     for var i = 0 to 4 {
@@ -166,15 +179,16 @@ class Cloud {
         clouds[i].origin[0]= Decimal32(getRandomNumber(-2 * screenWidth, -1 * screenWidth))
         clouds[i].origin[1]= -1 * Decimal32(getRandomNumber(0, Int32(screenHeight / 3)))
       }
-
     }
   }
+
 
   draw(inout fgAnim: FlowWingAnim) -> nthg {
     for var i = 0 to 4 {
       fgAnim.drawTexturePro(cloudTexture, clouds[i].source, clouds[i].distination, clouds[i].origin, clouds[i].rotation, fgAnim.colors.WHITE)
     }
   }
+
 
 }
 
@@ -221,7 +235,6 @@ fun main() -> int {
     fgAnim.closeWindow()
     return 1
   }
-
   while !fgAnim.windowShouldClose() {
     bird.update(fgAnim.getFrameTime())
     {
@@ -230,37 +243,31 @@ fun main() -> int {
       if mountL1Pos1.x > 1542 {
         mountL1Pos1.x = Decimal32(-1 * 1542) 
       }
-
       if mountL1Pos2.x > 1542 {
         mountL1Pos2.x = Decimal32(-1 * 1542) 
       }
-
     }
     {
       mountL2Pos1.x = mountL2Pos1.x + fgAnim.getFrameTime() * 10 
       if mountL2Pos1.x > screenWidth + screenWidth / 2 {
         mountL2Pos1.x = Decimal32(-1 * screenWidth) 
       }
-
     }
     {
       mount2L2Pos1.x = mount2L2Pos1.x + fgAnim.getFrameTime() * 10 
       if mount2L2Pos1.x > screenWidth + screenWidth / 2 {
         mount2L2Pos1.x = Decimal32(-1 * screenWidth) 
       }
-
     }
     {
       mount1L3Pos1.x = mount1L3Pos1.x + fgAnim.getFrameTime() * 10 
       if mount1L3Pos1.x > screenWidth + screenWidth / 2 {
         mount1L3Pos1.x = Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth / 2))) 
       }
-
     }
     if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
       bird.updateY(fgAnim.getFrameTime())
     }
-
     cloud.update(fgAnim.getFrameTime())
     fgAnim.beginDrawing()
     fgAnim.clearBackground(fgAnim.colors.RED)/; background
@@ -286,4 +293,5 @@ fun main() -> int {
   fgAnim.closeWindow()
   return 0
 }
+
 main()

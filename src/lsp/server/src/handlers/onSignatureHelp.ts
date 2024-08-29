@@ -33,6 +33,12 @@ export const onSignatureHelp = (
 
     if (!result?.length || !suggestion?.hasFunctionSignature) return;
 
+    let res = result.find((item) => item.label === suggestion.word);
+
+    if (!res) {
+      res = result[0];
+    }
+
     return {
       signatures: result[0].data?.signatures,
       activeSignature: 0,

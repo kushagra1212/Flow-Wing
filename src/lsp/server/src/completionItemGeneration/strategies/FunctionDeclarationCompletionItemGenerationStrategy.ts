@@ -99,13 +99,19 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
         functionDeclaration
       );
 
-    functionDeclarationStr = this.programCtx?.isInsideClass()
-      ? `${(functionDeclarationStr =
-          this.programCtx.getCurrentParsingClassName())}:${functionDeclarationStr.replace(
-          "fun",
-          ""
-        )}`
-      : functionDeclarationStr;
+    if (this.programCtx?.isInsideClass()) {
+      functionDeclarationStr = `${this.programCtx.getCurrentParsingClassName()}:${functionDeclarationStr.replace(
+        "fun",
+        ""
+      )}`;
+    }
+
+    if (this.programCtx?.isInsideAModuleButNotInsideFunction()) {
+      functionDeclarationStr = `${this.programCtx.getCurrentParsingModuleName()}:${functionDeclarationStr.replace(
+        "fun",
+        ""
+      )}`;
+    }
 
     return {
       label: functionName,

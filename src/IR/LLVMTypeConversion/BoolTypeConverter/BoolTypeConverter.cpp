@@ -28,6 +28,28 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
     return value;
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+
+    llvm::BasicBlock *currentBlock = _builder->GetInsertBlock();
+    llvm::BasicBlock *nullBlock =
+        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NullBlock",
+                                 _builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *notNullBlock =
+        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NotNullBlock",
+                                 _builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *mergeBlock =
+        llvm::BasicBlock::Create(value->getContext(), "BoolTC::MergeBlock",
+                                 _builder->GetInsertBlock()->getParent());
+
+    _builder->CreateCondBr(_builder->CreateIsNull(value), nullBlock,
+                           notNullBlock);
+
+    _builder->SetInsertPoint(nullBlock);
+
+    llvm::Value *resultFromNullBlock = _builder->getFalse();
+
+    _builder->CreateBr(mergeBlock);
+
+    _builder->SetInsertPoint(notNullBlock);
     std::unique_ptr<StringTypeConverter> stringConverter =
         std::make_unique<StringTypeConverter>(this->_codeGenerationContext);
 
@@ -38,9 +60,18 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
     llvm::Value *strLenIsZero =
         _builder->CreateICmpEQ(strLen, _builder->getInt32(0));
 
-    return _builder->CreateSelect(
+    llvm::Value *resultFromNotNullBlock = _builder->CreateSelect(
         strLenIsZero, llvm::ConstantInt::get(_builder->getInt1Ty(), 0),
         llvm::ConstantInt::get(_builder->getInt1Ty(), 1));
+
+    _builder->CreateBr(mergeBlock);
+
+    _builder->SetInsertPoint(mergeBlock);
+    llvm::PHINode *conditionPHI = _builder->CreatePHI(_builder->getInt1Ty(), 2);
+    conditionPHI->addIncoming(resultFromNullBlock, nullBlock);
+    conditionPHI->addIncoming(resultFromNotNullBlock, notNullBlock);
+
+    return conditionPHI;
   }
   default:
     break;

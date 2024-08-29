@@ -35,44 +35,51 @@ public:
   addOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracketToken)
       -> void {
     this->_openBracketToken = std::move(openBracketToken);
+    _children.push_back(_openBracketToken.get());
   }
 
   inline auto
   addModuleName(std::unique_ptr<LiteralExpressionSyntax<std::any>> moduleName)
       -> void {
     this->_moduleName = std::move(moduleName);
+    _children.push_back(_moduleName.get());
   }
 
   inline auto
   addCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracketToken)
       -> void {
     this->_closeBracketToken = std::move(closeBracketToken);
+    _children.push_back(_closeBracketToken.get());
   }
 
   inline auto
   addClassStatement(std::unique_ptr<ClassStatementSyntax> classStatement)
       -> void {
+    _children.push_back(classStatement.get());
     _classStatements.push_back(std::move(classStatement));
   }
 
   inline auto
   addVariableStatement(std::unique_ptr<VariableDeclarationSyntax> member)
       -> void {
+    _children.push_back(member.get());
     _variableStatements.push_back(std::move(member));
   }
 
   inline auto addCustomTypeStatement(
       std::unique_ptr<CustomTypeStatementSyntax> customTypeStatement) -> void {
+    _children.push_back(customTypeStatement.get());
     _customTypeStatements.push_back(std::move(customTypeStatement));
   }
 
   inline auto
   addFunctionStatement(std::unique_ptr<FunctionDeclarationSyntax> function)
       -> void {
+    _children.push_back(function.get());
     _functionStatements.push_back(std::move(function));
   }
 
-  inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
+  const inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
     return _moduleKeyword;
   }
 

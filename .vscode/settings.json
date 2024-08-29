@@ -143,5 +143,6 @@
   "editor.guides.bracketPairs": "active",
   "C_Cpp.dimInactiveRegions": false,
   "editor.wordWrap": "on",
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "disabled",
+  "cmake.ignoreCMakeListsMissing": true
 }

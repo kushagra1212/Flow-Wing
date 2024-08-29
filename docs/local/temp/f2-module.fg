@@ -1,0 +1,5 @@
+bring f1
+
+module [f2]
+var z: int
+

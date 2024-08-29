@@ -1,4 +1,8 @@
-import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  MarkupContent,
+} from "vscode-languageserver";
 import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStrategy";
 import { CustomTypeExpressionStrategy } from "../../strategies/CustomTypeExpressionStrategy";
 import { CustomTypeStatement } from "../../types";
@@ -35,7 +39,16 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
       );
     }
 
+    if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+      (this.result.completionItem.documentation as MarkupContent).value += (
+        this.programCtx.rootProgram.modules.get(
+          this.programCtx.getCurrentParsingModuleName()
+        ).moduleCompletionItem.documentation as MarkupContent
+      ).value;
+    }
+
     this.setClassMembersIfNeeded("customTypes", this.result);
+    this.setMoudleMembersIfNeeded("customTypes", this.result);
 
     return [];
   }
@@ -112,11 +125,12 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     if (customTypeStatement?.[index]?.["LiteralExpression"]) {
       custumTypeIdef =
         customTypeStatement[index]["LiteralExpression"][0]["IdentifierToken"];
+      let typeName = new LiteralExpressionStrategy().getExpressionAsString(
+        customTypeStatement[index++]["LiteralExpression"][0]
+      );
 
-      customTypeStatementString +=
-        new LiteralExpressionStrategy().getExpressionAsString(
-          customTypeStatement[index++]["LiteralExpression"][0]
-        ) + " = {\n";
+      typeName = typeName.substring(0, typeName.lastIndexOf("."));
+      customTypeStatementString += typeName + " = {\n";
     }
     const data = [];
     for (let i = index; i < customTypeStatement.length; i++) {

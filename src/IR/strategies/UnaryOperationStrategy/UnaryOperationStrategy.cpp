@@ -34,24 +34,50 @@ llvm::Value *UnaryOperationStrategy::performOperation(
       return Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
     } else if (typeMapper->isStringType(type)) {
+      llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
+      llvm::BasicBlock *nullBlock =
+          llvm::BasicBlock::Create(val->getContext(), "UnaryOP::NullBlock",
+                                   Builder->GetInsertBlock()->getParent());
+      llvm::BasicBlock *notNullBlock =
+          llvm::BasicBlock::Create(val->getContext(), "UnaryOP::NotNullBlock",
+                                   Builder->GetInsertBlock()->getParent());
+      llvm::BasicBlock *mergeBlock =
+          llvm::BasicBlock::Create(val->getContext(), "UnaryOP::MergeBlock",
+                                   Builder->GetInsertBlock()->getParent());
 
-      auto stringLengthFunc =
-          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH);
+      Builder->CreateCondBr(Builder->CreateIsNull(val), nullBlock,
+                            notNullBlock);
 
-      if (!stringLengthFunc) {
-        // Function not found, handle error
-        _codeGenerationContext->getLogger()->LogError(
-            "function " + INNERS::FUNCTIONS::STRING_LENGTH + " not found");
-        return nullptr;
-      }
+      Builder->SetInsertPoint(nullBlock);
+      // true if null [ BoundUnaryOperatorKind::LogicalNegation ]
+      llvm::Value *resultFromNullBlock = Builder->getTrue();
+
+      Builder->CreateBr(mergeBlock);
+
+      Builder->SetInsertPoint(notNullBlock);
       // Get the string length
-      llvm::Value *v = Builder->CreateCall(
-          stringLengthFunc, {_stringTypeConverter->convertExplicit(val)});
-
       // Compare the string Length to Zero
 
       //! For String
-      return Builder->CreateICmpEQ(v, llvm::ConstantInt::get(v->getType(), 0));
+
+      llvm::Value *strLen = Builder->CreateCall(
+          TheModule->getFunction(INNERS::FUNCTIONS::STRING_LENGTH),
+          {_stringTypeConverter->convertExplicit(val)});
+
+      llvm::Value *strLenIsZero =
+          Builder->CreateICmpEQ(strLen, Builder->getInt32(0));
+
+      llvm::Value *resultFromNotNullBlock = Builder->CreateSelect(
+          strLenIsZero, llvm::ConstantInt::get(Builder->getInt1Ty(), 1),
+          llvm::ConstantInt::get(Builder->getInt1Ty(), 0));
+      Builder->CreateBr(mergeBlock);
+
+      Builder->SetInsertPoint(mergeBlock);
+      llvm::PHINode *conditionPHI = Builder->CreatePHI(Builder->getInt1Ty(), 2);
+      conditionPHI->addIncoming(resultFromNullBlock, nullBlock);
+      conditionPHI->addIncoming(resultFromNotNullBlock, notNullBlock);
+
+      return conditionPHI;
     } else if (typeMapper->isBoolType(type)) {
       // For boolean values, perform logical NOT
       return Builder->CreateNot(val);

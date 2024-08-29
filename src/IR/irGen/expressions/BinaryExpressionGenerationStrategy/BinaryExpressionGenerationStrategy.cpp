@@ -61,12 +61,21 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
 
-  if (isClassType && (_typeMapper->isNirastValue(lhsValue) ||
-                      _typeMapper->isNirastValue(rhsValue))) {
+  if ((_typeMapper->isNirastValue(lhsValue) ||
+       _typeMapper->isNirastValue(rhsValue))) {
     result = _nirastBinaryOperationStrategy->performOperation(
         lhsValue, rhsValue, binaryExpression);
-  } else if (_typeMapper->isStringType(lhsType) ||
-             _typeMapper->isStringType(rhsType)) {
+  }
+  // TODO: NULL CHeck
+
+  //! When lhs or rhs is null
+  // TODO: Implement runtime null checking
+  //? input -> lhs (null | value) | rhs (null | value)
+  //? output -> true | false
+  //? Method -> CreateIsNull
+
+  else if (_typeMapper->isStringType(lhsType) ||
+           _typeMapper->isStringType(rhsType)) {
     result = _stringBinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),

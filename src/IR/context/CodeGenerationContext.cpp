@@ -687,6 +687,7 @@ void CodeGenerationContext::verifyFunction(llvm::Function *F,
     this->getLogger()->LogError("Error verifying function " + FUNCTION_NAME +
                                 errorInfo);
   } else {
+
     this->getLogger()->LogInfo("Function " + FUNCTION_NAME +
                                " verified successfully");
   }

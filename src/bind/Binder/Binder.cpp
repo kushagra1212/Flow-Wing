@@ -366,7 +366,7 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
 
   _currentModuleName = boundModuleStat->getModuleName();
 
-  this->root->tryDeclareModule(boundModuleStat.get());
+  this->root->tryDeclareModuleGlobal(boundModuleStat.get());
   for (auto &cusType : moduleStatement->getCustomTypeStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
@@ -375,17 +375,38 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
 
     boundModuleStat->addCustomTypeStatement(
         std::move(boundCustomTypeStatement));
-    _currentModuleName = "";
+  }
+
+  // Function Declaration
+  for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
+    if (fun->isOnlyDeclared()) {
+      _currentModuleName = boundModuleStat->getModuleName();
+
+      boundModuleStat->addFunctionStatement(
+          std::move(this->bindFunctionDeclaration(fun.get(), "")));
+
+      continue;
+    }
+    _currentModuleName = boundModuleStat->getModuleName();
+
+    fun->setIsOnlyDeclared(true);
+    boundModuleStat->addFunctionStatement(
+        std::move(this->bindFunctionDeclaration(
+            fun.get(), boundModuleStat->getModuleName() +
+                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
+
+    // Define Functions
+    fun->setIsOnlyDeclared(false);
   }
 
   for (auto &classStmt : moduleStatement->getClassStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
+
     auto boundClassStatement =
         std::move(this->bindClassStatement(classStmt.get()));
 
     boundModuleStat->addClassStatement(std::move(boundClassStatement));
-    _currentModuleName = "";
   }
 
   //  std::unordered_map<std::string, int> varMemberMap;
@@ -402,45 +423,26 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
                                          boundMemberVariable.get());
 
     boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
-    _currentModuleName = "";
   }
 
   // this->root = std::make_unique<BoundScope>(std::move(this->root));
 
   for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
     if (fun->isOnlyDeclared()) {
-      _currentModuleName = boundModuleStat->getModuleName();
-      // boundModuleStat->addFunctionStatement(
-      //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
-
-      boundModuleStat->addFunctionStatement(
-          std::move(this->bindFunctionDeclaration(fun.get(), "")));
-      _currentModuleName = "";
       continue;
     }
-
-    fun->setIsOnlyDeclared(true);
     _currentModuleName = boundModuleStat->getModuleName();
-    // boundModuleStat->addFunctionStatement(
-    //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
 
     boundModuleStat->addFunctionStatement(
         std::move(this->bindFunctionDeclaration(
             fun.get(), boundModuleStat->getModuleName() +
                            FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
-
-    // Define Functions
-    fun->setIsOnlyDeclared(false);
-    boundModuleStat->addFunctionStatement(
-        std::move(this->bindFunctionDeclaration(
-            fun.get(), boundModuleStat->getModuleName() +
-                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
-    _currentModuleName = "";
   }
+  _currentModuleName = "";
   // this->root = std::move(this->root->parent);
 
   // this->root = std::move(this->root->parent);
-  // this->root->tryDeclareModule(boundModuleStat.get());
+  // this->root->tryDeclareModuleGlobal(boundModuleStat.get());
 
   return std::move(boundModuleStat);
 }
@@ -840,7 +842,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   }
 
   for (auto &module : globalScope->modules) {
-    if (!this->root->tryDeclareModule(module.second)) {
+    if (!this->root->tryDeclareModuleGlobal(module.second)) {
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Module " + module.first + " Already Declared",
                      DiagnosticUtils::DiagnosticLevel::Error,
@@ -1251,7 +1253,6 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
     BoundModuleStatement *boundModuleStatement =
         this->root->tryGetModule(MODULE_NAME);
-
     if (boundModuleStatement) {
       updatedCallerName = CALLER_NAME;
       declared_fd = this->root->tryGetFunction(updatedCallerName);

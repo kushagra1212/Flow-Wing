@@ -41,12 +41,34 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
         .get(this.programCtx.getCurrentParsingClassName() + ".")
         .push(this.result.completionItem);
     }
+    if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+      (this.result.completionItem.documentation as MarkupContent).value += (
+        this.programCtx.rootProgram.modules.get(
+          this.programCtx.getCurrentParsingModuleName()
+        ).moduleCompletionItem.documentation as MarkupContent
+      ).value;
+
+      // if (
+      //   !this.programCtx.rootProgram.variableExpressions.get(
+      //     this.programCtx.getCurrentParsingModuleName() + "::"
+      //   )
+      // ) {
+      //   this.programCtx.rootProgram.variableExpressions.set(
+      //     this.programCtx.getCurrentParsingModuleName() + "::",
+      //     []
+      //   );
+      // }
+      // this.programCtx.rootProgram.variableExpressions
+      //   .get(this.programCtx.getCurrentParsingModuleName() + "::")
+      //   .push(this.result.completionItem);
+    }
 
     this.programCtx.stack
       ?.peek()
       ?.variableDeclarations?.set(this.result.name, this.result.completionItem);
 
     this.setClassMembersIfNeeded("variableDeclarations", this.result);
+    this.setMoudleMembersIfNeeded("variableDeclarations", this.result);
     return [];
   }
 

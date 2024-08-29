@@ -75,6 +75,30 @@ class FileUtils {
     const filePath = path.join(tempDir, fileName);
     return filePath;
   }
+
+  public async findFileBreadthFirst(startDir: string, targetFileName: string) {
+    const queue = [startDir];
+
+    while (queue.length > 0) {
+      const currentDir = queue.shift();
+      const filesAndDirs = await fs.readdir(currentDir);
+
+      for (const item of filesAndDirs) {
+        const fullPath = path.join(currentDir, item);
+        const stat = await fs.stat(fullPath);
+
+        if (stat.isFile() && item === targetFileName) {
+          return fullPath;
+        }
+
+        if (stat.isDirectory()) {
+          queue.push(fullPath);
+        }
+      }
+    }
+
+    return null; // If the file is not found
+  }
 }
 
 export const fileUtils = FileUtils.getInstance();

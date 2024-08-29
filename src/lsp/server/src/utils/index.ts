@@ -307,6 +307,17 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
         isDot = true;
         word = tokens[i - 3].value + tokens[i - 2].value + tokens[i - 1].value;
         token = tokens[i - 3];
+      } else if (
+        i - 4 >= 0 &&
+        tokens[i - 2].value == ":" &&
+        tokens[i - 3].value == ":"
+      ) {
+        word =
+          tokens[i - 4].value +
+          tokens[i - 3].value +
+          tokens[i - 2].value +
+          tokens[i - 1].value;
+        token = tokens[i - 4];
       } else {
         word = tokens[i - 1].value;
         token = tokens[i - 1];
@@ -329,6 +340,9 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
 
 export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
   let word = "";
+
+  console.log("TOKENs", tokens?.[tokens.length - 1]);
+
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;
   }
@@ -636,6 +650,12 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
           wasVar = false;
           continue;
         }
+
+        if (tokens[i].value === ":") {
+          response = tokens[i--].value + response;
+          wasVar = false;
+          continue;
+        }
         break;
       }
 
@@ -649,6 +669,20 @@ export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
               isDot: true,
             },
           };
+    } else if (
+      i - 2 >= 0 &&
+      tokens[i].value === ":" &&
+      tokens[i - 1].value === ":" &&
+      isValidVariableName(tokens[i - 2].value)
+    ) {
+      return {
+        hasObjectSuggestions: true,
+        token: tokens[i - 2],
+        word: tokens[i - 2].value,
+        data: {
+          isDot: true,
+        },
+      };
     }
     if (isSquareBracket(tokens[i].value)) {
       return defaultValueNoSuggestion;
@@ -749,4 +783,23 @@ export const userDefinedKeywordsFilter = (keyword: CompletionItem) => {
   if (index === -1) return true;
 
   return false;
+};
+
+export const getUnique = (
+  arr1: CompletionItem[],
+  arr2: CompletionItem[]
+): CompletionItem[] => {
+  const mp = new Map();
+
+  for (let i = 0; i < arr1.length; i++) {
+    mp.set(arr1[i].label, arr1[i]);
+  }
+
+  for (let i = 0; i < arr2.length; i++) {
+    if (!mp.has(arr2[i].label)) {
+      mp.set(arr2[i].label, arr2[i]);
+    }
+  }
+
+  return Array.from(mp.values());
 };

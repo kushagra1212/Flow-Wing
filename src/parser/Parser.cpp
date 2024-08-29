@@ -319,6 +319,7 @@ Parser::parseFunctionDeclaration(bool isMemberFunction) {
     functionDeclaration->setBody(std::move(this->parseBlockStatement()));
 
   appendNewLine();
+  appendNewLine();
   return std::move(functionDeclaration);
 }
 
@@ -872,18 +873,17 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
       std::string moduleFilePath =
           Utils::findFile(currentDirPath, relativeFilePath + "-module.fg");
 
+      // if (moduleFilePath.empty()) {
+      //   this->_diagnosticHandler->addDiagnostic(
+      //       Diagnostic("Module <" + relativeFilePath + "> not found",
+      //                  DiagnosticUtils::DiagnosticLevel::Error,
+      //                  DiagnosticUtils::DiagnosticType::Syntactic,
+      //                  Utils::getSourceLocation(stringToken.get())));
+
+      //   return std::move(bringStatement);
+      // }
+
       DEBUG_LOG("Module File Path: " + moduleFilePath);
-
-      if (moduleFilePath.empty()) {
-        this->_diagnosticHandler->addDiagnostic(
-            Diagnostic("Module <" + relativeFilePath + "> not found",
-                       DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
-                       Utils::getSourceLocation(stringToken.get())));
-
-        return std::move(bringStatement);
-      }
-
       relativeFilePath =
           std::filesystem::relative(moduleFilePath, currentDirPath);
       stringToken->setValue((relativeFilePath));
@@ -1047,6 +1047,7 @@ std::unique_ptr<ElseClauseSyntax> Parser::parseElseStatement() {
 std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
   std::unique_ptr<IfStatementSyntax> ifStatement =
       std::make_unique<IfStatementSyntax>();
+
   std::unique_ptr<SyntaxToken<std::any>> keyword =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IfKeyword));
   appendWithSpace();
@@ -1057,7 +1058,7 @@ std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
 
   std::unique_ptr<BlockStatementSyntax> statement =
       std::move(this->parseBlockStatement());
-  appendNewLine();
+  // appendNewLine();
   ifStatement->addIfKeyword(std::move(keyword));
   ifStatement->addCondition(std::move(condition));
   ifStatement->addStatement(std::move(statement));
@@ -1078,7 +1079,7 @@ std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
 
     std::unique_ptr<BlockStatementSyntax> statement =
         std::move(this->parseBlockStatement());
-    appendNewLine();
+    // appendNewLine();
 
     ifStatement->addOrIfStatement(std::make_unique<OrIfStatementSyntax>(
         std::move(orKeyword), std::move(ifKeyword), std::move(condition),
@@ -1910,6 +1911,8 @@ std::unique_ptr<ExpressionSyntax> Parser::parseCallExpression() {
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
     newKeywordToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::NewKeyword));
+
+    appendWithSpace();
   }
 
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
