@@ -382,8 +382,11 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
 std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
   if (this->peek(1)->getKind() ==
           SyntaxKindUtils::SyntaxKind::OpenBracketToken ||
-      this->peek(4)->getKind() ==
-          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+      (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken &&
+       this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
+       this->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
+       this->peek(4)->getKind() ==
+           SyntaxKindUtils::SyntaxKind::OpenBracketToken)) {
     return std::move(this->parseArrayTypeExpression());
   }
 
