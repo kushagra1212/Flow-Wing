@@ -88,7 +88,7 @@ export class InitializationHandler {
             "Workspace folder change event received."
           );
         });
-        this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
+        //      this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
       }
     });
   }

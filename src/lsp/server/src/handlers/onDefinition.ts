@@ -28,11 +28,17 @@ export const onDefinition = async (
       checkForHover
     );
     let uri = _textDocsParams.textDocument.uri;
-
+    console.log("suggestionDEf", suggestion);
     if (suggestion.word && suggestion.word.endsWith(".fg")) {
       uri = await getImportedFileUri(
         suggestion.word,
         _textDocsParams.textDocument.uri
+      );
+    } else if (suggestion.word && suggestion.word.indexOf("::") !== -1) {
+      const moduleName = suggestion.word.split("::")[0];
+      uri = await fileUtils.findFileBreadthFirst(
+        path.dirname(getFileFullPath(_textDocsParams.textDocument.uri)),
+        moduleName + "-module.fg"
       );
     }
 
@@ -45,15 +51,14 @@ export const onDefinition = async (
       suggestion,
       _textDocsParams.textDocument.uri
     );
-
-    let range =
+    const range =
       result?.find((item) => item.label === suggestion.word)?.data?.range ??
       (result?.length === 1 && result?.[0]?.data?.range
         ? result?.[0]?.data?.range
         : null);
 
     if (uri !== _textDocsParams.textDocument.uri) {
-      range = createRange(undefined).range;
+      // range = createRange(undefined).range;
     }
 
     if (!range) return undefined;

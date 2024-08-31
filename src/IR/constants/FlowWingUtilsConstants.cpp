@@ -4,7 +4,7 @@ namespace FLOWWING::UTILS::CONSTANTS {
 const std::string GLOBAL_VARIABLE_PREFIX = "[:global:]";
 const std::string MEMBER_FUN_PREFIX = ".";
 const std::string MODULE_PREFIX = "::";
-const std::string RETURN_VAR_NAME = "r::v";
+const std::string RETURN_VAR_NAME = "return value";
 
 #ifdef _WIN32
 const std::string NULL_DEVICE = "NUL";

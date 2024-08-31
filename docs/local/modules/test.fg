@@ -1,6 +1,10 @@
 bring File
 
-const res: str, err: Err::Result = File::read("test.fg", "rb")
+const m_: str, err2: Err::Result = File::write("test.txt", "Hellodsqwd", "a")
+if (err2) {
+  print(err2.toString())
+}
+const res: str, err: Err::Result = File::read("test.txt", "rb")
 if (err) {
   print(err.toString())
 }else {
@@ -23,6 +27,26 @@ if (err == Nir) {
 }else {
   print(err.toString())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

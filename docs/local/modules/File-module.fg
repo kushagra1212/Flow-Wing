@@ -40,7 +40,16 @@ type IO_FILE = {
 fun fopen(fileName: as str, mode: as str) -> as str decl
 
 
+fun fclose(file: as str) -> as int decl
+
+
 fun fread(buffer: as str, size: as int, count: as int, file: as str) -> as int decl
+
+
+fun fwrite(data: as str, size: as int, count: as int, file: as str) -> as int decl
+
+
+fun strlen(string: as str) -> as int decl
 
 
 fun fseek(file: as str, start: as int, end: as int) -> as int decl
@@ -62,14 +71,14 @@ fun read(filePath: as str, mode: as str) -> str, Err::Result {
   Err::CODE.INVALID_ARGUMENT
   var file: str = fopen(filePath, mode)
   const SEEK_END: int = 2
-  if (file == Nir) {
+  if file == Nir {
     return "", new Err::Result(filePath + " not found !", Err::CODE.NOT_FOUND)
   }
   fseek(file, 0, SEEK_END)
   var fileSize: int = ftell(file)
   rewind(file)
   var buffer: str = calloc(fileSize + 1, 4)
-  if (buffer == Nir) {
+  if buffer == Nir {
     return "", new Err::Result("Failed to allocate memory !", Err::CODE.FAILED)
   }
   var bytesRead: int = fread(buffer, 1, fileSize, file)
@@ -77,6 +86,34 @@ fun read(filePath: as str, mode: as str) -> str, Err::Result {
     return "", new Err::Result("Failed to read the entire file '" + filePath + "'", Err::CODE.FAILED)
   }
   return buffer, Nir
+}
+
+
+fun write(filePath: as str, data: as str, mode: as str) -> str, Err::Result {
+  if (mode != "w" && mode != "wb" && mode != "a" && mode != "ab") {
+    return "", new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
+  }
+  var file: str = fopen(filePath, mode)
+  if file == Nir {
+    return "", new Err::Result("Failed to open file: " + filePath, Err::CODE.NOT_FOUND)
+  }
+  const len: int = strlen(data)
+  const bytesWritten: int = fwrite(data, 1, len, file)
+  if (bytesWritten != len) {
+    return new Err::Result("Failed to write the entire data to file: " + filePath, Err::CODE.FAILED)
+  }
+  fclose(file)
+  return "", Nir
+}
+
+
+fun createFile(filePath: as str) -> str, Err::Result {
+  var file: str = fopen(filePath, "w")
+  if (file == Nir) {
+    return new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
+  }
+  fclose(file)
+  return "", Nir
 }
 
 
