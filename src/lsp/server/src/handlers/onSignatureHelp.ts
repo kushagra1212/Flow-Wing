@@ -38,9 +38,8 @@ export const onSignatureHelp = (
     if (!res) {
       res = result[0];
     }
-
     return {
-      signatures: result[0].data?.signatures,
+      signatures: res.data?.signatures,
       activeSignature: 0,
       activeParameter: suggestion?.data?.argumentNumber - 1,
     };

@@ -49,6 +49,7 @@ export type ModuleCompletionItem = {
   functions: Map<FunctionName, CompletionItem>;
   classes: Map<ClassName, ClassCompletionItem>;
   moduleCompletionItem: CompletionItem;
+  variableExpressions: Map<VariableName, Array<CompletionItem>>;
 };
 export interface ProgramStructure {
   variableDeclarations: Map<VariableName, CompletionItem>;

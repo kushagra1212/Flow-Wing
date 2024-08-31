@@ -331,7 +331,29 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE, 0, "NBU_ARRAY_TYPE",
               "NBU_ARRAY_TYPE"));
 
-  if (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken &&
+      this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
+      this->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
+    std::unique_ptr<SyntaxToken<std::any>> iden =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+    this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
+
+    std::unique_ptr<ObjectTypeExpressionSyntax> objectType =
+        std::move(this->parseObjectTypeExpression());
+
+    objectType->getObjectTypeIdentifierRef()->getTokenPtr()->setValue(
+        std::any_cast<std::string>(iden->getValue()) +
+        FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
+        std::any_cast<std::string>(objectType->getObjectTypeIdentifierRef()
+                                       ->getTokenPtr()
+                                       ->getValue()));
+    objectType->getObjectTypeIdentifierRef()->getTokenPtr()->setText(
+        (iden->getText()) + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
+        (objectType->getObjectTypeIdentifierRef()->getTokenPtr()->getText()));
+    arrayTypeExpression->setNonTrivialElementType(std::move(objectType));
+  } else if (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
     arrayTypeExpression->setNonTrivialElementType(
         std::move(this->parseObjectTypeExpression()));
 
@@ -359,7 +381,9 @@ std::unique_ptr<ArrayTypeExpressionSyntax> Parser::parseArrayTypeExpression() {
 
 std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
   if (this->peek(1)->getKind() ==
-      SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
+          SyntaxKindUtils::SyntaxKind::OpenBracketToken ||
+      this->peek(4)->getKind() ==
+          SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
     return std::move(this->parseArrayTypeExpression());
   }
 
@@ -543,7 +567,7 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
     case SyntaxKindUtils::SyntaxKind::ConstKeyword: {
       _currentModuleName =
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText();
-      moduleStatement->addVariableStatement(
+      moduleStatement->addStatement(
           std::move(this->parseSingleVariableDeclaration()));
       _currentModuleName = "";
       break;
@@ -551,7 +575,7 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
     case SyntaxKindUtils::SyntaxKind::TypeKeyword: {
       _currentModuleName =
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText();
-      moduleStatement->addCustomTypeStatement(
+      moduleStatement->addStatement(
           std::move(this->parseCustomTypeStatement()));
       _currentModuleName = "";
       break;
@@ -560,18 +584,18 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
     case SyntaxKindUtils::SyntaxKind::ClassKeyword: {
       _currentModuleName =
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText();
-      moduleStatement->addClassStatement(
-          std::move(this->parseClassStatement()));
+      moduleStatement->addStatement(std::move(this->parseClassStatement()));
       _currentModuleName = "";
       break;
     }
-
-    default: {
-      moduleStatement->addFunctionStatement(
+    case SyntaxKindUtils::SyntaxKind::FunctionKeyword: {
+      moduleStatement->addMemberStatement(
           std::move(this->parseFunctionDeclaration(false)));
+      break;
     }
-
-    break;
+    default: {
+      break;
+    }
     }
     appendNewLine();
   }

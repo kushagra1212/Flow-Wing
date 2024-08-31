@@ -96,6 +96,17 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       this.setMoudleMembersIfNeeded("classes", { name: key, completionItem });
     });
 
+    this.programCtx.rootProgram.classes.get(
+      this.programCtx.getCurrentParsingClassName()
+    ).classCompletionItem.data = {
+      ...(this.programCtx.rootProgram.classes
+        .get(this.programCtx.getCurrentParsingClassName())
+        .functions.get("init").data ?? {}),
+      ...this.programCtx.rootProgram.classes.get(
+        this.programCtx.getCurrentParsingClassName()
+      ).classCompletionItem.data,
+    };
+
     this.setMoudleMembersIfNeeded("classes", this.result);
     return [];
   }

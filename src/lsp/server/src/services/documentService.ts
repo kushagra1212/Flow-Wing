@@ -39,7 +39,7 @@ export const validateTextDocument = async (
   }
 };
 
-const validateFile = (
+export const validateFile = (
   textDocUri: string,
   filePath: string
 ): Promise<Partial<ErrorResult>> => {

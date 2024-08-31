@@ -140,4 +140,31 @@ var z:deci32 = 1.23
       `,
     },
   },
+  {
+    label: "Nir",
+    kind: CompletionItemKind.TypeParameter,
+    data: "Nir",
+    detail: "Nir Data Type",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Nir Data Type** 
+
+The \`Nir\` datatype represents the null or Nirast value, often used as a return type for functions that can return null values.
+
+### Example Usage:
+\`\`\`flowwing
+const val:int, err: Err::Result = File.read("file.txt","r")
+
+if err {
+  print(err.getMessage())
+}
+
+\`\`\`
+
+### Properties:
+- **Usage**: Used to indicate that a function can return null values.
+      `,
+    },
+  },
 ];

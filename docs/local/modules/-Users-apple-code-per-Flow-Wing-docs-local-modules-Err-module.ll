@@ -13,19 +13,75 @@ source_filename = "-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module
 @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_GLOBAL_ERROR_COUNT = global i32 0
 @"vtable.Err::Result.fg" = common global %"Err::Result::VTableType" zeroinitializer
 @"Err::CODE" = common global %"Err::ErrorCode.0" zeroinitializer
-@0 = private unnamed_addr constant [9 x i8] c"Error: \0A\00", align 1
-@1 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@2 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@3 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@4 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@5 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@6 = private unnamed_addr constant [5 x i8] c" -> \00", align 1
-@7 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@8 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@9 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
-@10 = private unnamed_addr constant [8 x i8] c"Error: \00", align 1
-@11 = private unnamed_addr constant [12 x i8] c" (Details: \00", align 1
-@12 = private unnamed_addr constant [2 x i8] c")\00", align 1
+@"Err::x" = common global [2 x %"Err::ErrorCode.0"] zeroinitializer
+@0 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s" = private constant ptr @0
+@1 = private unnamed_addr constant [2 x i8] c"[\00", align 1
+@openBracket = private constant ptr @1
+@2 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.1" = private constant ptr @2
+@3 = private unnamed_addr constant [3 x i8] c", \00", align 1
+@comma = private constant ptr @3
+@4 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.2" = private constant ptr @4
+@5 = private unnamed_addr constant [3 x i8] c"{ \00", align 1
+@"{ " = private constant ptr @5
+@6 = private unnamed_addr constant [10 x i8] c"NOT_FOUND\00", align 1
+@7 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.3" = private constant ptr @7
+@8 = private unnamed_addr constant [4 x i8] c" : \00", align 1
+@" : " = private constant ptr @8
+@9 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.4" = private constant ptr @9
+@10 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d" = private constant ptr @10
+@11 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.5" = private constant ptr @11
+@12 = private unnamed_addr constant [3 x i8] c", \00", align 1
+@" , " = private constant ptr @12
+@13 = private unnamed_addr constant [7 x i8] c"FAILED\00", align 1
+@14 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.6" = private constant ptr @14
+@15 = private unnamed_addr constant [4 x i8] c" : \00", align 1
+@" : .7" = private constant ptr @15
+@16 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.8" = private constant ptr @16
+@17 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.9" = private constant ptr @17
+@18 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.10" = private constant ptr @18
+@19 = private unnamed_addr constant [3 x i8] c", \00", align 1
+@" , .11" = private constant ptr @19
+@20 = private unnamed_addr constant [17 x i8] c"INVALID_ARGUMENT\00", align 1
+@21 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.12" = private constant ptr @21
+@22 = private unnamed_addr constant [4 x i8] c" : \00", align 1
+@" : .13" = private constant ptr @22
+@23 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.14" = private constant ptr @23
+@24 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@"%d.15" = private constant ptr @24
+@25 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.16" = private constant ptr @25
+@26 = private unnamed_addr constant [3 x i8] c" }\00", align 1
+@"}" = private constant ptr @26
+@27 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@"%s.17" = private constant ptr @27
+@28 = private unnamed_addr constant [2 x i8] c"]\00", align 1
+@closeBracket = private constant ptr @28
+@29 = private unnamed_addr constant [9 x i8] c"Error: \0A\00", align 1
+@30 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@31 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@32 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@33 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@34 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@35 = private unnamed_addr constant [5 x i8] c" -> \00", align 1
+@36 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@37 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@38 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
+@39 = private unnamed_addr constant [8 x i8] c"Error: \00", align 1
+@40 = private unnamed_addr constant [12 x i8] c" (Details: \00", align 1
+@41 = private unnamed_addr constant [2 x i8] c")\00", align 1
 
 declare i32 @compare_strings(ptr, ptr)
 
@@ -70,6 +126,7 @@ declare ptr @malloc(i64)
 define i32 @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module() {
 entry:
   call void @"assign_<ObjectErr::ErrorCode.0>"(ptr @"Err::CODE")
+  call void @"assign_<Array[2]<ObjectErr::ErrorCode.0>>:2,"(ptr @"Err::x")
   br label %returnBlock
 
 returnBlock:                                      ; preds = %entry
@@ -228,28 +285,39 @@ entry:
   %5 = getelementptr inbounds %"Err::Result", ptr %2, i32 0, i32 3
   br label %nestedBlock
 
-afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
+afterNestedBlock:                                 ; preds = %checkContinueBlock2, %mergeBlock, %checkContinueBlock, %nestedBlock
   ret void
 
 nestedBlock:                                      ; preds = %entry
+  call void @"print_<Array[2]<ObjectErr::ErrorCode.0>>:2,"(ptr @"Err::x")
+  %6 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_BREAK_COUNT, align 4
+  %7 = icmp eq i32 %6, 0
+  br i1 %7, label %checkContinueBlock, label %afterNestedBlock
+
+checkContinueBlock:                               ; preds = %nestedBlock
+  %8 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_CONTINUE_COUNT, align 4
+  %9 = icmp eq i32 %8, 0
+  br i1 %9, label %nestedBlock1, label %afterNestedBlock
+
+nestedBlock1:                                     ; preds = %checkContinueBlock
   br label %returnBlock
 
-checkContinueBlock:                               ; preds = %mergeBlock
+checkContinueBlock2:                              ; preds = %mergeBlock
   br label %afterNestedBlock
 
-returnBlock:                                      ; preds = %nestedBlock
-  %6 = load ptr, ptr %1, align 8
-  %7 = getelementptr inbounds %"Err::Result", ptr %6, i32 0, i32 1
-  %message = load ptr, ptr %7, align 8
-  %8 = load ptr, ptr %7, align 8
-  %9 = call ptr @concat_strings(ptr @0, ptr %8)
-  store ptr %9, ptr %0, align 8
+returnBlock:                                      ; preds = %nestedBlock1
+  %10 = load ptr, ptr %1, align 8
+  %11 = getelementptr inbounds %"Err::Result", ptr %10, i32 0, i32 1
+  %message = load ptr, ptr %11, align 8
+  %12 = load ptr, ptr %11, align 8
+  %13 = call ptr @concat_strings(ptr @29, ptr %12)
+  store ptr %13, ptr %0, align 8
   ret void
 
 mergeBlock:                                       ; No predecessors!
-  %10 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_BREAK_COUNT, align 4
-  %11 = icmp eq i32 %10, 0
-  br i1 %11, label %checkContinueBlock, label %afterNestedBlock
+  %14 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_BREAK_COUNT, align 4
+  %15 = icmp eq i32 %14, 0
+  br i1 %15, label %checkContinueBlock2, label %afterNestedBlock
 }
 
 define void @"Err::Result.getCode"(ptr %0, ptr %1) !rt !4 {
@@ -355,17 +423,17 @@ returnBlock:                                      ; preds = %nestedBlock
   %17 = getelementptr inbounds %"Err::Result::VTableType", ptr %11, i32 0, i32 0
   store ptr @"Err::Result.toString", ptr %17, align 8
   %18 = getelementptr inbounds %"Err::Result", ptr %9, i32 0, i32 1
-  store ptr @4, ptr %18, align 8
+  store ptr @33, ptr %18, align 8
   %19 = getelementptr inbounds %"Err::Result", ptr %9, i32 0, i32 2
   store i32 0, ptr %19, align 4
   %20 = getelementptr inbounds %"Err::Result", ptr %9, i32 0, i32 3
-  store ptr @5, ptr %20, align 8
+  store ptr @34, ptr %20, align 8
   store ptr %9, ptr %0, align 8
   %21 = load ptr, ptr %2, align 8
   %22 = getelementptr inbounds %"Err::Result", ptr %21, i32 0, i32 1
   %message = load ptr, ptr %22, align 8
   %23 = load ptr, ptr %22, align 8
-  %24 = call ptr @concat_strings(ptr %23, ptr @6)
+  %24 = call ptr @concat_strings(ptr %23, ptr @35)
   %extraMessage1 = load ptr, ptr %extraMessage, align 8
   %25 = load ptr, ptr %extraMessage, align 8
   %26 = call ptr @concat_strings(ptr %24, ptr %25)
@@ -425,11 +493,11 @@ returnBlock:                                      ; preds = %nestedBlock
   %16 = getelementptr inbounds %"Err::Result::VTableType", ptr %10, i32 0, i32 0
   store ptr @"Err::Result.toString", ptr %16, align 8
   %17 = getelementptr inbounds %"Err::Result", ptr %8, i32 0, i32 1
-  store ptr @7, ptr %17, align 8
+  store ptr @36, ptr %17, align 8
   %18 = getelementptr inbounds %"Err::Result", ptr %8, i32 0, i32 2
   store i32 0, ptr %18, align 4
   %19 = getelementptr inbounds %"Err::Result", ptr %8, i32 0, i32 3
-  store ptr @8, ptr %19, align 8
+  store ptr @37, ptr %19, align 8
   store ptr %8, ptr %0, align 8
   %20 = load ptr, ptr %2, align 8
   %21 = getelementptr inbounds %"Err::Result", ptr %20, i32 0, i32 1
@@ -454,7 +522,7 @@ entry:
   %4 = getelementptr inbounds %"Err::Result", ptr %2, i32 0, i32 2
   %5 = getelementptr inbounds %"Err::Result", ptr %2, i32 0, i32 3
   %result = alloca ptr, align 8
-  store ptr @9, ptr %result, align 8
+  store ptr @38, ptr %result, align 8
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock4, %mergeBlock, %checkContinueBlock2, %afterIfElse, %checkContinueBlock, %nestedBlock
@@ -465,7 +533,7 @@ nestedBlock:                                      ; preds = %entry
   %7 = getelementptr inbounds %"Err::Result", ptr %6, i32 0, i32 1
   %message = load ptr, ptr %7, align 8
   %8 = load ptr, ptr %7, align 8
-  %9 = call ptr @concat_strings(ptr @10, ptr %8)
+  %9 = call ptr @concat_strings(ptr @39, ptr %8)
   store ptr %9, ptr %result, align 8
   %10 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_BREAK_COUNT, align 4
   %11 = icmp eq i32 %10, 0
@@ -526,13 +594,13 @@ nestedBlock6:                                     ; preds = %then
   %result8 = load ptr, ptr %result, align 8
   %result9 = load ptr, ptr %result, align 8
   %26 = load ptr, ptr %result, align 8
-  %27 = call ptr @concat_strings(ptr %26, ptr @11)
+  %27 = call ptr @concat_strings(ptr %26, ptr @40)
   %28 = load ptr, ptr %1, align 8
   %29 = getelementptr inbounds %"Err::Result", ptr %28, i32 0, i32 3
   %details10 = load ptr, ptr %29, align 8
   %30 = load ptr, ptr %29, align 8
   %31 = call ptr @concat_strings(ptr %27, ptr %30)
-  %32 = call ptr @concat_strings(ptr %31, ptr @12)
+  %32 = call ptr @concat_strings(ptr %31, ptr @41)
   store ptr %32, ptr %result, align 8
   %33 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-local-modules-Err-module_FLOWWING_BREAK_COUNT, align 4
   %34 = icmp eq i32 %33, 0
@@ -564,16 +632,149 @@ entry:
   ret void
 }
 
+define internal void @"assign_<Array[2]<ObjectErr::ErrorCode.0>>:2,"(ptr %0) {
+entry:
+  %"0_i" = alloca i32, align 4
+  %numberOfElementsFilled = alloca i32, align 4
+  store i32 0, ptr %numberOfElementsFilled, align 4
+  br label %AssignExpr.loopStart-0
+
+AssignExpr.loopStart-0:                           ; preds = %entry
+  store i32 0, ptr %"0_i", align 4
+  br label %AssignExpr.loopCmp-0
+
+AssignExpr.loopCmp-0:                             ; preds = %AssignExpr.loopBody-0, %AssignExpr.loopStart-0
+  %1 = load i32, ptr %"0_i", align 4
+  %2 = icmp slt i32 %1, 2
+  %3 = load i32, ptr %numberOfElementsFilled, align 4
+  %4 = icmp slt i32 %3, 2
+  %5 = and i1 %2, %4
+  br i1 %5, label %AssignExpr.loopBody-0, label %AssignExpr.loopEnd-0
+
+AssignExpr.loopBody-0:                            ; preds = %AssignExpr.loopCmp-0
+  %6 = load i32, ptr %"0_i", align 4
+  %7 = getelementptr [2 x %"Err::ErrorCode.0"], ptr %0, i32 0, i32 %6
+  call void @"assign_<ObjectErr::ErrorCode.0>"(ptr %7)
+  %8 = load i32, ptr %"0_i", align 4
+  %9 = add i32 %8, 1
+  store i32 %9, ptr %"0_i", align 4
+  %10 = load i32, ptr %numberOfElementsFilled, align 4
+  %11 = add i32 %10, 1
+  store i32 %11, ptr %numberOfElementsFilled, align 4
+  br label %AssignExpr.loopCmp-0
+
+AssignExpr.loopEnd-0:                             ; preds = %AssignExpr.loopCmp-0
+  br label %AssignExpr.exit
+
+AssignExpr.exit:                                  ; preds = %AssignExpr.loopEnd-0
+  ret void
+}
+
+define internal void @"print_<Array[2]<ObjectErr::ErrorCode.0>>:2,"(ptr %0) {
+entry:
+  %"0_i" = alloca i32, align 4
+  %numberOfElementsFilled = alloca i32, align 4
+  store i32 0, ptr %numberOfElementsFilled, align 4
+  br label %con_print.loopStart
+
+con_print.loopStart:                              ; preds = %entry
+  store i32 0, ptr %"0_i", align 4
+  %1 = load ptr, ptr @"%s", align 8
+  %2 = load ptr, ptr @openBracket, align 8
+  call void (ptr, ...) @printf(ptr %1, ptr %2)
+  br label %con_print.loopCmp
+
+con_print.loopCmp:                                ; preds = %con_print.loopBody, %con_print.loopStart
+  %3 = load i32, ptr %"0_i", align 4
+  %4 = icmp slt i32 %3, 2
+  %5 = icmp sgt i32 %3, 0
+  %6 = and i1 %4, %5
+  br i1 %6, label %con_print.print.lobby, label %con_print.stage
+
+con_print.loopBody:                               ; preds = %con_print.stage, %con_print.print.lobby
+  %7 = load i32, ptr %"0_i", align 4
+  %8 = getelementptr [2 x %"Err::ErrorCode.0"], ptr %0, i32 0, i32 %7
+  call void @"print_Err::ErrorCode.0"(ptr %8)
+  %9 = load i32, ptr %"0_i", align 4
+  %10 = add i32 %9, 1
+  store i32 %10, ptr %"0_i", align 4
+  br label %con_print.loopCmp
+
+con_print.loopEnd:                                ; preds = %con_print.stage
+  %11 = load ptr, ptr @"%s.17", align 8
+  %12 = load ptr, ptr @closeBracket, align 8
+  call void (ptr, ...) @printf(ptr %11, ptr %12)
+  br label %con_print.exit
+
+con_print.print.lobby:                            ; preds = %con_print.loopCmp
+  %13 = load ptr, ptr @"%s.1", align 8
+  %14 = load ptr, ptr @comma, align 8
+  call void (ptr, ...) @printf(ptr %13, ptr %14)
+  br label %con_print.loopBody
+
+con_print.stage:                                  ; preds = %con_print.loopCmp
+  %15 = load i32, ptr %"0_i", align 4
+  %16 = icmp slt i32 %15, 2
+  br i1 %16, label %con_print.loopBody, label %con_print.loopEnd
+
+con_print.exit:                                   ; preds = %con_print.loopEnd
+  ret void
+}
+
+define internal void @"print_Err::ErrorCode.0"(ptr %0) {
+entry:
+  %1 = load ptr, ptr @"%s.2", align 8
+  %2 = load ptr, ptr @"{ ", align 8
+  call void (ptr, ...) @printf(ptr %1, ptr %2)
+  call void @print(ptr @6, i1 false)
+  %3 = load ptr, ptr @"%s.3", align 8
+  %4 = load ptr, ptr @" : ", align 8
+  call void (ptr, ...) @printf(ptr %3, ptr %4)
+  %5 = getelementptr inbounds %"Err::ErrorCode.0", ptr %0, i32 0, i32 0
+  %6 = load i32, ptr %5, align 4
+  %7 = load ptr, ptr @"%s.4", align 8
+  %8 = load ptr, ptr @"%d", align 8
+  call void (ptr, ...) @printf(ptr %8, i32 %6)
+  %9 = load ptr, ptr @"%s.5", align 8
+  %10 = load ptr, ptr @" , ", align 8
+  call void (ptr, ...) @printf(ptr %9, ptr %10)
+  call void @print(ptr @13, i1 false)
+  %11 = load ptr, ptr @"%s.6", align 8
+  %12 = load ptr, ptr @" : .7", align 8
+  call void (ptr, ...) @printf(ptr %11, ptr %12)
+  %13 = getelementptr inbounds %"Err::ErrorCode.0", ptr %0, i32 0, i32 1
+  %14 = load i32, ptr %13, align 4
+  %15 = load ptr, ptr @"%s.8", align 8
+  %16 = load ptr, ptr @"%d.9", align 8
+  call void (ptr, ...) @printf(ptr %16, i32 %14)
+  %17 = load ptr, ptr @"%s.10", align 8
+  %18 = load ptr, ptr @" , .11", align 8
+  call void (ptr, ...) @printf(ptr %17, ptr %18)
+  call void @print(ptr @20, i1 false)
+  %19 = load ptr, ptr @"%s.12", align 8
+  %20 = load ptr, ptr @" : .13", align 8
+  call void (ptr, ...) @printf(ptr %19, ptr %20)
+  %21 = getelementptr inbounds %"Err::ErrorCode.0", ptr %0, i32 0, i32 2
+  %22 = load i32, ptr %21, align 4
+  %23 = load ptr, ptr @"%s.14", align 8
+  %24 = load ptr, ptr @"%d.15", align 8
+  call void (ptr, ...) @printf(ptr %24, i32 %22)
+  %25 = load ptr, ptr @"%s.16", align 8
+  %26 = load ptr, ptr @"}", align 8
+  call void (ptr, ...) @printf(ptr %25, ptr %26)
+  ret void
+}
+
 define internal void @"assign_<Class<Err::Result>>"(ptr %0) {
 entry:
   %1 = getelementptr inbounds %"Err::Result", ptr %0, i32 0, i32 0
-  store ptr @1, ptr %1, align 8
+  store ptr @30, ptr %1, align 8
   %2 = getelementptr inbounds %"Err::Result", ptr %0, i32 0, i32 1
-  store ptr @2, ptr %2, align 8
+  store ptr @31, ptr %2, align 8
   %3 = getelementptr inbounds %"Err::Result", ptr %0, i32 0, i32 2
   store i32 0, ptr %3, align 4
   %4 = getelementptr inbounds %"Err::Result", ptr %0, i32 0, i32 3
-  store ptr @3, ptr %4, align 8
+  store ptr @32, ptr %4, align 8
   ret void
 }
 

@@ -17,7 +17,6 @@ export const onHover = async (
       checkForHover
     );
 
-    console.log("suggestionOnHover", suggestion);
     if (!suggestion?.hasHoverResult) {
       return {
         contents: null,

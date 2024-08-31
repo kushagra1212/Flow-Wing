@@ -26,10 +26,6 @@ export class AllCompletionItemsStrategy implements CompletionItemStrategy {
       });
     }
 
-    console.log(
-      "programCtx.rootProgram.modules",
-      programCtx.rootProgram.modules
-    );
     // Module
     Array.from(programCtx.rootProgram.modules.values()).forEach((value) => {
       mapping.modules.set(value.moduleCompletionItem.label, value);

@@ -99,6 +99,31 @@ class FileUtils {
 
     return null; // If the file is not found
   }
+
+  async bfsTraverseVisit(
+    rootFolder: string,
+    callBack: (uri: string) => void
+  ): Promise<void> {
+    const queue: string[] = [rootFolder];
+
+    while (queue.length > 0) {
+      const currentPath = queue.shift();
+      const filesAndDirs = await fs.readdir(currentPath);
+
+      for (const item of filesAndDirs) {
+        const fullPath = path.join(currentPath, item);
+
+        if ((await fs.stat(fullPath)).isDirectory()) {
+          queue.push(fullPath);
+        } else if (
+          (await fs.stat(fullPath)).isFile() &&
+          path.extname(fullPath) === ".fg"
+        ) {
+          callBack(fullPath);
+        }
+      }
+    }
+  }
 }
 
 export const fileUtils = FileUtils.getInstance();

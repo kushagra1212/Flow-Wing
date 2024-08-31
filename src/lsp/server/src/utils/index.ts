@@ -189,7 +189,26 @@ export const checkForHover = (tokens: Token[]): SuggestHandler => {
 
   while (i >= 0) {
     const isIdentifier = isValidVariableName(tokens[i].value);
-
+    if (
+      isIdentifier &&
+      i - 3 >= 0 &&
+      tokens[i - 1].value === ":" &&
+      tokens[i - 2].value == ":"
+    ) {
+      return {
+        hasHoverResult: true,
+        token: tokens[i - 3],
+        word:
+          tokens[i - 3].value +
+          tokens[i - 2].value +
+          tokens[i - 1].value +
+          tokens[i].value,
+        data: {
+          isDot: isDot,
+          argumentNumber: 0,
+        },
+      };
+    }
     if (
       isIdentifier &&
       ((i - 1 >= 0 && tokens[i - 1].value !== ".") || i - 1 < 0)
@@ -340,8 +359,6 @@ export const checkForFunctionSignatures = (tokens: Token[]): SuggestHandler => {
 
 export const checkForObjectSuggestions = (tokens: Token[]): SuggestHandler => {
   let word = "";
-
-  console.log("TOKENs", tokens?.[tokens.length - 1]);
 
   if (tokens[tokens.length - 1].value === "}") {
     return defaultValueNoSuggestion;

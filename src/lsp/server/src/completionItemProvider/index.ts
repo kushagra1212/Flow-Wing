@@ -101,6 +101,7 @@ const traverseJson = async ({
         programCtx,
         suggestion,
       });
+
       if (result.length) return result;
     }
     if (obj["ClassKeyword"]) {
@@ -113,18 +114,38 @@ const traverseJson = async ({
       ) {
         programCtx.setCurrentParsingClassName(null);
 
-        if (!suggestion.data.isDot)
-          return new CompletionItemService(
-            new AllCompletionItemsStrategy()
-          ).getCompletionItems({ programCtx: programCtx });
+        // if (!suggestion.data.isDot)
+        //   return new CompletionItemService(
+        //     new AllCompletionItemsStrategy()
+        //   ).getCompletionItems({ programCtx: programCtx });
 
-        return [];
+        // return [];
       }
     }
 
     if (obj["ModuleStatement"]) {
       programCtx.setCurrentParsingModuleName(null);
     }
+
+    // if (obj["columnNumber"] && obj["lineNumber"]) {
+    //   if (
+    //     suggestion.token.columnNumber === obj["columnNumber"] &&
+    //     suggestion.token.lineNumber === obj["lineNumber"]
+    //   ) {
+    //     if (suggestion.data.isDot) {
+    //       return getCompletionItemsForDot(suggestion, programCtx);
+    //     }
+    //     const identifierResult = [];
+
+    //     const allResult =
+    //       new CompletionItemService(
+    //         new AllCompletionItemsStrategy()
+    //       ).getCompletionItems({ programCtx: programCtx }) ?? [];
+
+    //     const result = getUnique(identifierResult, allResult);
+    //     if (result?.length) return result;
+    //   }
+    // }
 
     if (obj["IdentifierToken"]) {
       const identifierToken: IdentifierToken = obj["IdentifierToken"];
@@ -155,6 +176,7 @@ const traverseJson = async ({
         if (result?.length) return result;
       }
     }
+
     if (
       obj["BlockStatement"] ||
       obj["ClassStatement"] ||
@@ -168,7 +190,6 @@ const traverseJson = async ({
       programCtx,
       obj
     )?.generateCompletionItems();
-
     for (const value of Object.values(obj)) {
       const result = await traverseJson({
         obj: value,
@@ -284,6 +305,21 @@ const getCompletionItemsForDot = (
   }
   if (programCtx.doesModuleExist(firstWord.split("::")[0])) {
     const moduleName = firstWord.split("::")[0];
+    if (suggestion.word.indexOf(".") !== -1) {
+      const typeName = programCtx.rootProgram.modules
+        .get(moduleName)
+        .variableDeclarations.get(firstWord).data?.typeName;
+
+      return [
+        ...Array.from(
+          programCtx.rootProgram.modules
+            .get(moduleName)
+            .variableExpressions.get(typeName + ".")
+            .values()
+        ),
+      ];
+    }
+
     const className = firstWord.split("::")[1];
 
     if (
@@ -434,7 +470,7 @@ const handleBringStatement = async ({
 
   programCtx.setInsideBring(true);
 
-  let possbileModuleIdef: Token | undefined =
+  const possbileModuleIdef: Token | undefined =
     obj["BringStatementSyntax"]?.[1]?.["IdentifierToken"];
   {
     let index = 2;
@@ -447,8 +483,6 @@ const handleBringStatement = async ({
         obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
           "IdentifierToken"
         ];
-
-      possbileModuleIdef = idefImportToken;
 
       programCtx.bringStatementMap.set(idefImportToken.value, true);
 
@@ -477,8 +511,6 @@ const handleBringStatement = async ({
         possbileModuleIdef.value + "-module.fg"
       );
     }
-
-    console.log("relPath", relPath, possbileModuleIdef?.value);
 
     if (!!relPath && typeof relPath === "string") {
       const importedFileURI = await getImportedFileUri(

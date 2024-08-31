@@ -18,7 +18,6 @@ export class ModuleStatementCompletionItemGenerationStrategy extends CompletionI
     this.result.completionItem = this.createCompletionItem(
       this.syntaxObj["ModuleStatement"] as ModuleStatement
     );
-    console.log("this.result.name", this.result.name);
     this.programCtx.setCurrentParsingModuleName(this.result.name);
 
     this.programCtx.rootProgram.modules.set(
@@ -29,6 +28,7 @@ export class ModuleStatementCompletionItemGenerationStrategy extends CompletionI
         variableDeclarations: new Map(),
         functions: new Map(),
         moduleCompletionItem: this.result.completionItem,
+        variableExpressions: new Map(),
       }
     );
 

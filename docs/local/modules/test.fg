@@ -1,5 +1,11 @@
 bring File
 
+const res: str, err: Err::Result = File::read("test.fg", "rb")
+if (err) {
+  print(err.toString())
+}else {
+  print(res)
+}/#
 
 fun div(a: int, b: int) -> deci, Err::Result {
   if (b == 0) {
@@ -17,3 +23,20 @@ if (err == Nir) {
 }else {
   print(err.toString())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

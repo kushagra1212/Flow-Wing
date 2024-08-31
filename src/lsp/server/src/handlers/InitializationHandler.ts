@@ -3,8 +3,17 @@ import {
   DidChangeConfigurationNotification,
   InitializeParams,
   InitializeResult,
+  TextDocuments,
   TextDocumentSyncKind,
+  WorkspaceFolder,
 } from "vscode-languageserver";
+import {
+  validateFile,
+  validateTextDocument,
+} from "../services/documentService";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { fileUtils } from "../utils/fileUtils";
+import { getFileFullPath } from "../utils";
 
 export const onInitialize = () => {};
 
@@ -65,7 +74,7 @@ export class InitializationHandler {
   }
 
   private onInitialize() {
-    this.connection.onInitialized(() => {
+    this.connection.onInitialized((handler) => {
       if (this.hasConfigurationCapability) {
         // Register for all configuration changes.
         this.connection.client.register(
@@ -79,6 +88,7 @@ export class InitializationHandler {
             "Workspace folder change event received."
           );
         });
+        this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
       }
     });
   }
@@ -88,5 +98,25 @@ export class InitializationHandler {
 
   public getHasWorkspaceFolderCapability(): boolean {
     return this.hasWorkspaceFolderCapability;
+  }
+
+  private async validateAll(folders: WorkspaceFolder[]) {
+    if (folders) {
+      folders.forEach((folder) => {
+        const rootPath = folder.uri?.split("file:/")?.[1];
+
+        if (rootPath) {
+          fileUtils.bfsTraverseVisit(rootPath, async (uri) => {
+            const data = await fileUtils.readFile(uri);
+            const path = await fileUtils.createTempFile({
+              fileName: uri,
+              data,
+            });
+
+            await validateFile("file:/" + uri, path);
+          });
+        }
+      });
+    }
   }
 }
