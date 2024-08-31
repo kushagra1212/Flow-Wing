@@ -7,6 +7,7 @@ import { CustomTypeCompletionItemGenerationStrategy } from "./strategies/CustomT
 import { BracketedExpressionCompletionItemGenerationStrategy } from "./strategies/BracketedExpressionCompletionItemGenerationStrategy";
 import { FunctionDeclarationCompletionItemGenerationStrategy } from "./strategies/FunctionDeclarationCompletionItemGenerationStrategy";
 import { ClassStatementCompletionItemGenerationStrategy } from "./strategies/ClassStatementCompletionItemGenerationStrategy";
+import { ModuleStatementCompletionItemGenerationStrategy } from "./strategies/ModuleStatementCompletionItemGenerationStrategy";
 
 export class CompletionItemGenerationFactory {
   static create(
@@ -40,6 +41,11 @@ export class CompletionItemGenerationFactory {
       );
     } else if (syntaxObj["ClassStatement"]) {
       return new ClassStatementCompletionItemGenerationStrategy(
+        programContext,
+        syntaxObj
+      );
+    } else if (syntaxObj["ModuleStatement"]) {
+      return new ModuleStatementCompletionItemGenerationStrategy(
         programContext,
         syntaxObj
       );

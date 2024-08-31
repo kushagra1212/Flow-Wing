@@ -9,6 +9,7 @@ export class ProgramContext {
   rootProgram: ProgramStructure;
   currentFunctionName: string | null = null;
   currentClassName: string | null = null;
+  currentModuleName: string | null = null;
   private isInsideBring: boolean = false;
   bringStatementMap: Map<string, boolean> = new Map();
   private _syntaxTree: RootObject;
@@ -24,7 +25,7 @@ export class ProgramContext {
     this.populateBuiltInKeywords();
 
     declareGlobals(this.rootProgram, this._syntaxTree, {
-      skip: ["ClassStatement"],
+      skip: ["ClassStatement", "ModuleStatement"],
     });
   }
 
@@ -32,6 +33,7 @@ export class ProgramContext {
     this.stack.push({
       variableDeclarations: new Map(),
       customTypes: new Map(),
+      modules: new Map(),
       classes: new Map(),
       functions: new Map(),
       callExpression: new Map(),
@@ -44,8 +46,16 @@ export class ProgramContext {
     this.currentClassName = className;
   }
 
+  public setCurrentParsingModuleName(moduleName: string): void {
+    this.currentModuleName = moduleName;
+  }
+
   public getCurrentParsingClassName(): string | null {
     return this.currentClassName;
+  }
+
+  public getCurrentParsingModuleName(): string | null {
+    return this.currentModuleName;
   }
 
   public setCurrentParsingFunctionName(functionName: string): void {
@@ -64,6 +74,10 @@ export class ProgramContext {
     return this.currentClassName !== null;
   }
 
+  public isInsideModule(): boolean {
+    return this.currentModuleName !== null;
+  }
+
   public isInsideFunction(): boolean {
     return this.currentFunctionName !== null;
   }
@@ -71,9 +85,15 @@ export class ProgramContext {
   public doesClassExist(className: string): boolean {
     return this.rootProgram.classes.has(className);
   }
+  public doesModuleExist(moduleName: string): boolean {
+    return this.rootProgram.modules.has(moduleName);
+  }
 
   public isInsideAClassButNotInsideCassMemberFunction(): boolean {
     return this.isInsideClass() && !this.isInsideFunction();
+  }
+  public isInsideAModuleButNotInsideFunction(): boolean {
+    return this.isInsideModule() && !this.isInsideFunction();
   }
 
   public setInsideBring(val: boolean): void {

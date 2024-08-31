@@ -162,6 +162,15 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       _codeGenerationContext->getValueStackHandler()->getLLVMType();
   llvm::Value *rhsValue = nullptr;
 
+  if (!rhsType) {
+    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+        exp->getLocation());
+    _codeGenerationContext->getLogger()->LogError(
+        "No right expression found in assignment expression");
+
+    return nullptr;
+  }
+
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
 
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
@@ -254,6 +263,17 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
 
   if (handleWhenRHSIsConstant(expression) == EXIT_SUCCESS)
     return nullptr;
+
+  if (expression->getKind() ==
+      BinderKindUtils::BoundNodeKind::BoundNirastExpression) {
+
+    std::unique_ptr<NirastExpressionGenerationStrategy>
+        nirastExpressionGenerationStrategy =
+            std::make_unique<NirastExpressionGenerationStrategy>(
+                _codeGenerationContext);
+    return nirastExpressionGenerationStrategy->generateExpression(
+        static_cast<BoundNirastExpression *>(expression));
+  }
 
   _codeGenerationContext->getLogger()->LogError("Invalid Expression found ");
 

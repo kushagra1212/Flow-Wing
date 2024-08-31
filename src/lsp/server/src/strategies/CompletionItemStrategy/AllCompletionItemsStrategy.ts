@@ -13,6 +13,7 @@ export class AllCompletionItemsStrategy implements CompletionItemStrategy {
       variableDeclarations: new Map(),
       customTypes: new Map(),
       classes: new Map(),
+      modules: new Map(),
       functions: new Map(),
       callExpression: new Map(),
       variableExpressions: new Map(),
@@ -24,6 +25,27 @@ export class AllCompletionItemsStrategy implements CompletionItemStrategy {
         result.push(value);
       });
     }
+
+    // Module
+    Array.from(programCtx.rootProgram.modules.values()).forEach((value) => {
+      mapping.modules.set(value.moduleCompletionItem.label, value);
+
+      value.classes.forEach((value, key) => {
+        mapping.classes.set(key, value);
+      });
+
+      value.customTypes.forEach((value, key) => {
+        mapping.customTypes.set(key, value);
+      });
+
+      value.functions.forEach((value, key) => {
+        mapping.functions.set(key, value);
+      });
+
+      value.variableDeclarations.forEach((value, key) => {
+        mapping.variableDeclarations.set(key, value);
+      });
+    });
 
     while (!reversedStack.isEmpty()) {
       const current = reversedStack?.pop();
@@ -58,7 +80,11 @@ export class AllCompletionItemsStrategy implements CompletionItemStrategy {
           mapping.functions.set(key, value);
         });
     }
-
+    programCtx.rootProgram.modules.forEach((value) => {
+      value.functions.forEach((value, key) => {
+        mapping.functions.set(key, value);
+      });
+    });
     // Update Result
 
     if (mapping.variableDeclarations)
@@ -79,6 +105,12 @@ export class AllCompletionItemsStrategy implements CompletionItemStrategy {
     if (mapping.classes) {
       Array.from(mapping.classes.values()).forEach((value) => {
         result.push(value.classCompletionItem);
+      });
+    }
+
+    if (mapping.modules) {
+      Array.from(mapping.modules.values()).forEach((value) => {
+        result.push(value.moduleCompletionItem);
       });
     }
 

@@ -1,16 +1,8 @@
 #include "JITFunction.h"
 
-JITFunction::JITFunction() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void JITFunction::SetUp() { _test->SetUp(); }
 
 void JITFunction::TearDown() { _test->TearDown(); }
-
-void JITFunction::setInput(const std::string &input) { _test->setInput(input); }
-
-std::string JITFunction::getOutput() const { return _test->getOutput(); }
-
-void JITFunction::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE)
 
@@ -423,7 +415,7 @@ return true
 print(mainTest())
 )");
 
-  O(R"(true)");
+  EXPECT_EQ(getOutput(), R"(true)");
 }
 
 TEST_F(JITFunction, BoolReturnTypeWithBoolReturnValueFalse2) {
@@ -711,7 +703,7 @@ fun sum(n:int) -> int {
 }
 print(sum(10))
 )");
-  O(R"(55)");
+  EXPECT_EQ(getOutput(), R"(55)");
 }
 
 // sum of n numbers using loop

@@ -1,18 +1,8 @@
 #include "ClassesTests.h"
 
-ClassesTests::ClassesTests() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void ClassesTests::SetUp() { _test->SetUp(); }
 
 void ClassesTests::TearDown() { _test->TearDown(); }
-
-void ClassesTests::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string ClassesTests::getOutput() const { return _test->getOutput(); }
-
-void ClassesTests::runEvaluator() { _test->runEvaluator(); }
 
 TEST_F(ClassesTests, DefaultInitilizer) {
   I(R"(
@@ -49,9 +39,12 @@ class A {
 var a: A  = new A() 
 a.printDefaults()
 )");
-  O("Pinting u: { x1 : '', x2 : 0 }00.00000000000000false{ x1 : '', x2 : 0 }[{ "
-    "x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : '', "
-    "x2 : 0 }]");
+  EXPECT_EQ(
+      getOutput(),
+      "Pinting u: { x1 : '', x2 : 0 }00.00000000000000false{ x1 : '', x2 : 0 "
+      "}[{ "
+      "x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : '', "
+      "x2 : 0 }]");
 }
 
 TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlock) {
@@ -93,9 +86,11 @@ class A {
 var a: A  = new A(2,"Hello",3.3) 
 a.printDefaults()
 )");
-  O("Pinting u: { x1 : '', x2 : 0 }203.30000000000000false{ x1 : '', x2 : 0 "
-    "}[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : "
-    "'', x2 : 0 }]");
+  EXPECT_EQ(
+      getOutput(),
+      "Pinting u: { x1 : '', x2 : 0 }203.30000000000000false{ x1 : '', x2 : 0 "
+      "}[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : "
+      "'', x2 : 0 }]");
 }
 
 TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlockAssignment) {
@@ -137,9 +132,11 @@ class A {
 var a: A  = new A(2,"Hello",3.3) 
 a.printDefaults()
 )");
-  O("Pinting u: { x1 : '', x2 : 0 }22Hello3.30000000000000false{ x1 : '', x2 : "
-    "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : "
-    "'', x2 : 0 }]");
+  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
+                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
+                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : "
+                         "'', x2 : 0 }, { x1 : "
+                         "'', x2 : 0 }]");
 }
 
 TEST_F(ClassesTests,
@@ -193,8 +190,9 @@ type X = {
 var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
 a.printDefaults()  
 )");
-  O("Pinting u: { x1 : '', x2 : 0 }22Hello3.30000000000000false{ x1 : '', x2 : "
-    "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]");
+  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
+                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
+                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]");
 }
 
 TEST_F(
@@ -242,8 +240,9 @@ class A {
 var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
 a.printDefaults()  
 )");
-  O("22Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { "
-    "x1 : '', x2 : 0 }]");
+  EXPECT_EQ(getOutput(), "22Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ "
+                         "x1 : '', x2 : 0 }, { "
+                         "x1 : '', x2 : 0 }]");
 }
 
 TEST_F(
@@ -299,7 +298,7 @@ print("AfterUpdate\n")
 a.updateA()
 a.printDefaults()
 )");
-  O(R"(initCalledBeforeUpdate
+  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
 2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
 100Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
 }
@@ -359,7 +358,7 @@ print("AfterUpdate\n")
 a.updateA()
 a.printDefaults()
 )");
-  O(R"(initCalledBeforeUpdate
+  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
 2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
 100Nice2.20000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
 }
@@ -425,7 +424,9 @@ print("\n")
 a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
 a.printComplex()
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 [{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
 }
 
@@ -490,7 +491,9 @@ print("\n")
 a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
 a.printComplex()
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
 }
 
@@ -555,7 +558,9 @@ print("\n")
 a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
 a.printComplex()
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
 }
 
@@ -620,7 +625,9 @@ print("\n")
 a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
 a.printComplex()
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 [{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
 }
 
@@ -685,7 +692,9 @@ print("\n")
 a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
 a.printComplex()
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 [{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
 }
 
@@ -778,7 +787,9 @@ print(a.obj2.a )
 print("\n")
 print(a.obj2.j[0].x2 ) 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 After Update
@@ -889,7 +900,9 @@ print(a.obj2.a )
 print("\n")
 print(a.obj2.j[0].x2 ) 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1002,7 +1015,9 @@ print("\n")
 print(a.obj2.j[0].x2 ) 
 }
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1114,7 +1129,9 @@ print("\n")
 print(a.obj2.j[0].x2 ) 
 }
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1234,7 +1251,9 @@ a.updateComplex([{
 print("\n")
 a.printAll() 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1354,7 +1373,9 @@ a.updateComplex([{
 print("\n")
 a.printAll() 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1474,7 +1495,9 @@ a.updateComplex([{
 print("\n")
 a.printAll() 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1595,7 +1618,9 @@ a.updateComplex([{
 print("\n")
 a.printAll() 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1722,7 +1747,9 @@ a.printAll()
 a.printNice()
 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1849,7 +1876,9 @@ print("\n")
 a.printAll()
 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -1976,7 +2005,9 @@ print("\n")
 a.printAll()
 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -2114,7 +2145,9 @@ printNice()
 outsidefun()
 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -2254,7 +2287,9 @@ outsidefun()
 }
 
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -2402,7 +2437,9 @@ var b:A = new A(5,"e",5.5,{
 })
 a.printBsa(b)
 )");
-  O(R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 Before Update
 [{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
 40
@@ -2459,7 +2496,7 @@ a = getA()
 print("After Pass")
 print(a.obj)
 )");
-  O(R"({ a : 32 }After Pass{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 32 }After Pass{ a : 21 })");
 }
 
 TEST_F(ClassesTests, ReturnClassObjectFromFunction2) {
@@ -2490,7 +2527,7 @@ a = getA()
 print("After Pass")
 print(a.obj)
 )");
-  O(R"({ a : 32 }After Pass{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 32 }After Pass{ a : 21 })");
 }
 TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturining) {
   I(R"(
@@ -2525,7 +2562,7 @@ a = getA()
 print("After Pass")
 print(a.obj)
 )");
-  O(R"({ a : 32 }After Pass{ a : 21 })");
+  EXPECT_EQ(getOutput(), R"({ a : 32 }After Pass{ a : 21 })");
 }
 TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturiningComplexTwo) {
   I(R"(
@@ -2558,7 +2595,7 @@ a.obj = {a:32}
 print("After Pass")
 print(a.obj)
 )");
-  O(R"({ a : 21 }After Pass{ a : 32 })");
+  EXPECT_EQ(getOutput(), R"({ a : 21 }After Pass{ a : 32 })");
 }
 TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturiningComplexTwo3) {
   I(R"(
@@ -2609,7 +2646,8 @@ print("After Pass")
 var d:B = new B({j:[{a:2}]})
 print(d.getU())
 )");
-  O(R"({ a : 21 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 21 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturiningComplexTwo3Direct) {
   I(R"(
@@ -2661,7 +2699,8 @@ a.obj = {a:32}
 print("After Pass")
 print(a.printB( new B({j:[{a:2}]})))
 )");
-  O(R"({ a : 21 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 21 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 TEST_F(ClassesTests, CreatingObjectFromFunction) {
   I(R"(
@@ -2715,7 +2754,8 @@ a.obj = {a:32}
 print("After Pass")
 print(a.printB( new B({j:[{a:2}]})))
 )");
-  O(R"({ a : 22 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 22 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 
 TEST_F(ClassesTests, CreatingObjectFromFunctionAssignment) {
@@ -2772,7 +2812,9 @@ a.obj = {a:32}
 print("After Pass")
 print(a.printB(new B({j:[{a:2}]})))
 )");
-  O(R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 TEST_F(ClassesTests, CreatingObjectFromFunctionAssignmentLocal) {
   I(R"(
@@ -2834,7 +2876,9 @@ print(a.printB(new B({j:[{a:2}]})))
 
   }
 )");
-  O(R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 TEST_F(ClassesTests, CreatingObjectFromFunctionAssignmentLocalVaradicPrint) {
   I(R"(
@@ -2896,7 +2940,9 @@ a.obj = {a:32}
 print("After Pass")
 print(a.printB(new B({j:[{a:2}]})))
 )");
-  O(R"(123ssdweqdfwe{ a : 1 }{ a : 22 }{ a : 322 }{ j : [{ a : 0 }, { a : 0 }] }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"(123ssdweqdfwe{ a : 1 }{ a : 22 }{ a : 322 }{ j : [{ a : 0 }, { a : 0 }] }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
 
 TEST_F(ClassesTests, ClassTestBasicInheritanceWithSuper) {
@@ -2969,7 +3015,7 @@ var a:A = new A()
 print(a.z)
 
 )");
-  O(R"(C Constructor is Called
+  EXPECT_EQ(getOutput(), R"(C Constructor is Called
 22.200000000000000.00000000000000B Constructor is Called
 1C Constructor is Called
 22.20000000000000CalledBA Constructor is Called
@@ -3042,7 +3088,7 @@ class A extends B {
 var a:A = new A()
 print(a.z)
 )");
-  O(R"(C Constructor is Called
+  EXPECT_EQ(getOutput(), R"(C Constructor is Called
 22.20000000000000Called super30.00000000000000B Constructor is Called
 1A Constructor is Called
 1Hello1)");
@@ -3114,7 +3160,8 @@ class A extends B {
 var a:A = new A()
 print(a.z)
 )");
-  O(R"(C Constructor is Called22.200000000000000.00000000000000
+  EXPECT_EQ(getOutput(),
+            R"(C Constructor is Called22.200000000000000.00000000000000
 B Constructor is Called1
 A Constructor is Called1Hello1)");
 }
@@ -3189,7 +3236,8 @@ class A extends B {
 var a:A = new A(4.4)
 print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
 )");
-  O(R"(C Constructor is Called22.200000000000000.00000000000000
+  EXPECT_EQ(getOutput(),
+            R"(C Constructor is Called22.200000000000000.00000000000000
 B Constructor is Called1
 A Constructor is Called1Hello
 1
@@ -3272,7 +3320,8 @@ var a:A = new A(4.4)
 print("\n",a.getZ(),"\n",a.getS(),"\n",a.getX(),"\n",a.printFromB(),"\n",a.printW())
 }
 )");
-  O(R"(C Constructor is Called22.200000000000000.00000000000000
+  EXPECT_EQ(getOutput(),
+            R"(C Constructor is Called22.200000000000000.00000000000000
 B Constructor is Called1
 A Constructor is Called1Hello
 1
@@ -3317,7 +3366,8 @@ print(a.a)
 print(a.x)
 print(a.u)
 )");
-  O(R"(22.200000000000002{ a : 43, b : 54.20000000000000 })");
+  EXPECT_EQ(getOutput(),
+            R"(22.200000000000002{ a : 43, b : 54.20000000000000 })");
 }
 TEST_F(
     ClassesTests,
@@ -3357,7 +3407,7 @@ var a:A = new A("Hello")
 printT(a.getT())
 printTAr(a.getTA())
 )");
-  O(R"({ a : 0 }[{ a : 0 }, { a : 0 }])");
+  EXPECT_EQ(getOutput(), R"({ a : 0 }[{ a : 0 }, { a : 0 }])");
 }
 TEST_F(
     ClassesTests,
@@ -3401,7 +3451,8 @@ var a:A = new A("Hello")
 printT(a.getT("IH"))
 printTAr(a.getTA("Hi"))
 )");
-  O(R"({ a : 0, b : 'IH' }[{ a : 0, b : 'Hi' }, { a : 0, b : '' }])");
+  EXPECT_EQ(getOutput(),
+            R"({ a : 0, b : 'IH' }[{ a : 0, b : 'Hi' }, { a : 0, b : '' }])");
 }
 TEST_F(
     ClassesTests,
@@ -3464,7 +3515,7 @@ printAge(animal)
 main()
 
 )");
-  O(R"(x 14{ x : 12, d : 'Hi' }142I'm 2 years old!
+  EXPECT_EQ(getOutput(), R"(x 14{ x : 12, d : 'Hi' }142I'm 2 years old!
 I'm 14 years old!
 )");
 }
@@ -3540,7 +3591,8 @@ print(a.getX(a.getXX()))
 a.setX(a.getX(a.getXX()))
 a.setX(a.getX(a.getXXX(5))) 
 )");
-  O(R"(33HellHell{ a : 0, b : 'hel' }{ a : 0, b : 'hel' }3x: 3x: 5)");
+  EXPECT_EQ(getOutput(),
+            R"(33HellHell{ a : 0, b : 'hel' }{ a : 0, b : 'hel' }3x: 3x: 5)");
 }
 
 TEST_F(
@@ -3613,7 +3665,7 @@ fun main() -> int {
 
   main()
 )");
-  O(R"(Hello)");
+  EXPECT_EQ(getOutput(), R"(Hello)");
 }
 TEST_F(
     ClassesTests,
@@ -3647,5 +3699,291 @@ var x:int
 print(getX())
 }
 )");
-  O(R"(3)");
+  EXPECT_EQ(getOutput(), R"(3)");
+}
+TEST_F(ClassesTests, ClassInitTest) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10,"Nice")
+
+
+a.test(2,5.3)
+)");
+  EXPECT_EQ(getOutput(), R"(init B 10Nicea: 2
+b: Nice
+x: 10
+k: 5.30000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest2) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10)
+
+
+a.test(2,5.3)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: He
+x: 10
+k: 5.30000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest3) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,k:deci = 3.3 ) -> nthg {
+    print("a: "+a)
+    print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+  }
+  
+}
+
+var a:A = new A(10)
+
+
+a.test(2)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: He
+x: 10
+k: 3.30000000000000)");
+}
+
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrun) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci = a.test(2)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 4
+x: 10
+k: Hello2335.50000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignment) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci 
+
+
+b,c =a.test(2)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 4
+x: 10
+k: Hello2335.50000000000000)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignment2) {
+  I(R"(
+class A {
+  var x:int 
+  var b:str 
+  init(x:int,b: str = "Hello" ) -> nthg {
+      self.x = x
+      print("init B ",x,b)
+      self.b = b 
+  }
+  init(x:int) -> nthg {
+      self.x = x
+      self.b = "He"
+  }
+  test(a:int,b:int = 4,k:str ="Hello" ) -> int,deci  {
+    print("a: "+a)
+   print("\nb: "+b)
+    print("\nx: "+self.x)
+    print("\nk: "+k)
+
+    return 23,35.5
+  } 
+}
+
+var a:A = new A(10)
+var b:int,c:deci 
+
+
+b,c =a.test(2,53)
+print(b,c)
+)");
+  EXPECT_EQ(getOutput(), R"(a: 2
+b: 53
+x: 10
+k: Hello2335.50000000000000)");
+}
+
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignmentClassItSelf) {
+  I(R"(
+class B {
+    init()->nthg {
+
+      }
+  }
+class A {
+
+  var x:int 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getA() -> A {
+    return new A(12)    
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+var b:A = a.getA()
+
+var ba:B = a.getB()
+print(a.x)
+print(b.x)
+)");
+  EXPECT_EQ(getOutput(), R"(1112)");
+}
+TEST_F(ClassesTests, ClassInitTest4WithMultiRetrunAssignmentClassItSelf2) {
+  I(R"(
+
+class B {
+    init()->nthg {
+
+      }
+  }
+class A {
+
+  var x:int
+  var y:deci 
+  init(x:int )-> nthg {
+    self.x = x
+  }
+  
+  getAS() -> A {
+
+    self.x = 12
+    return self 
+  }
+  getA() -> A {
+    x =32
+
+    return self 
+  }
+  printX() -> nthg {
+    print("Y: ",y)
+  }
+
+  getB() -> B {
+      return new B()
+    }
+
+}
+
+var a:A = new A(11)
+print(a.x)
+
+var b:A = a.getA()
+
+print(b.x)
+a.getAS()
+print(a.x)
+print(b.x)
+)");
+  EXPECT_EQ(getOutput(), R"(11321212)");
 }

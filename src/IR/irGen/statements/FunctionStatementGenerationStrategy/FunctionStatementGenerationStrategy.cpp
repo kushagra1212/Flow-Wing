@@ -58,11 +58,11 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
   std::vector<std::string> parameterNames;
 
   llvm::Type *returnType = _codeGenerationContext->getReturnTypeHandler()
-                               ->getReturnType(FUNCTION_NAME)
+                               ->getReturnType(FUNCTION_NAME, 0)
                                ->getLLVMType();
 
   if (_codeGenerationContext->getReturnTypeHandler()
-          ->isHavingReturnTypeAsParameter(FUNCTION_NAME)) {
+          ->isHavingReturnTypeAsParameter(FUNCTION_NAME, 0)) {
     parameterNames.push_back(FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
   }
 

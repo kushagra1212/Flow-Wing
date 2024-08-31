@@ -9,7 +9,13 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
       _customTypeStatementGenerationStrategy(
           std::make_unique<CustomTypeStatementGenerationStrategy>(context)),
       _classStatementGenerationStrategy(
-          std::make_unique<ClassStatementGenerationStrategy>(context)) {}
+          std::make_unique<ClassStatementGenerationStrategy>(context)),
+      _multipleVariableDeclarationStatementGenerationStrategy(
+          std::make_unique<
+              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
+      _multipleAssignmentExpressionGenerationStrategy(
+          std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
+              context)) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
                                                  bool isGlobal) {
@@ -44,6 +50,22 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     declareVariables(child, isGlobal);
     break;
   }
+  case BinderKindUtils::BoundNodeKind::
+      BoundMultipleVariableDeclarationStatement: {
+    BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
+        static_cast<BoundMultipleVariableDeclaration *>(child);
+
+    declareVariables(child, isGlobal);
+    if (isGlobal) {
+      _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(
+          boundMultipleVariableDeclaration);
+    } else {
+      _multipleVariableDeclarationStatementGenerationStrategy->declareLocal(
+          boundMultipleVariableDeclaration);
+    }
+
+    break;
+  }
   case BinderKindUtils::BoundNodeKind::CallExpression: {
 
     _callExpressionGenerationStrategy->declare(
@@ -68,6 +90,14 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
         static_cast<BoundAssignmentExpression *>(child));
 
     declareVariables(child, isGlobal);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression: {
+
+    declareVariables(child, isGlobal);
+    _multipleAssignmentExpressionGenerationStrategy->declare(
+        static_cast<BoundAssignmentExpression *>(child));
+
     break;
   }
   default:

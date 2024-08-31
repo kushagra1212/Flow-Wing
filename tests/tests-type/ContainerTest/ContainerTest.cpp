@@ -1,20 +1,8 @@
 #include "ContainerTest.h"
 
-ContainerTest::ContainerTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void ContainerTest::SetUp() { _test->SetUp(); }
 
 void ContainerTest::TearDown() { _test->TearDown(); }
-
-void ContainerTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string ContainerTest::getOutput() const { return _test->getOutput(); }
-
-void ContainerTest::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 

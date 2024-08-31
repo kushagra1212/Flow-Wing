@@ -74,7 +74,11 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
       );
 
     functionDeclarationStr += ") -> ";
+    let count = 0;
     while (index < functionDeclaration.length) {
+      if (count) {
+        functionDeclarationStr += ", ";
+      }
       if (functionDeclaration[index]["Askeyword"])
         functionDeclarationStr +=
           functionDeclaration[index]["Askeyword"].value + " ";
@@ -86,10 +90,12 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
         const strategy = ExpressionStrategyFactory.createStrategy(
           functionDeclaration[index]
         );
-        if (strategy)
+        if (strategy) {
           functionDeclarationStr += strategy.getExpressionAsString(
             functionDeclaration[index]
           );
+          count++;
+        }
       }
       index++;
     }
@@ -99,13 +105,19 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
         functionDeclaration
       );
 
-    functionDeclarationStr = this.programCtx?.isInsideClass()
-      ? `${(functionDeclarationStr =
-          this.programCtx.getCurrentParsingClassName())}:${functionDeclarationStr.replace(
-          "fun",
-          ""
-        )}`
-      : functionDeclarationStr;
+    if (this.programCtx?.isInsideClass()) {
+      functionDeclarationStr = `${this.programCtx.getCurrentParsingClassName()}:${functionDeclarationStr.replace(
+        "fun",
+        ""
+      )}`;
+    }
+
+    if (this.programCtx?.isInsideAModuleButNotInsideFunction()) {
+      functionDeclarationStr = `${this.programCtx.getCurrentParsingModuleName()}:${functionDeclarationStr.replace(
+        "fun",
+        ""
+      )}`;
+    }
 
     return {
       label: functionName,

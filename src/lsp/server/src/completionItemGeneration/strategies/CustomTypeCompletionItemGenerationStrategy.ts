@@ -1,4 +1,8 @@
-import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  MarkupContent,
+} from "vscode-languageserver";
 import { CompletionItemGenerationStrategy } from "./CompletionItemGenerationStrategy";
 import { CustomTypeExpressionStrategy } from "../../strategies/CustomTypeExpressionStrategy";
 import { CustomTypeStatement } from "../../types";
@@ -13,6 +17,7 @@ import { CompletionItemService } from "../../services/completionItemService";
 import { ScopeCompletionItemsStrategy } from "../../strategies/CompletionItemStrategy/ScopeCompletionItemsStrategy";
 import { BracketedExpressionCompletionItemGenerationStrategy } from "./BracketedExpressionCompletionItemGenerationStrategy";
 import { typesCompletionItems } from "../../store/completionItems/keywords/types";
+import { ClassCompletionItem } from "../../ds/stack";
 
 export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGenerationStrategy {
   public generateCompletionItems(): CompletionItem[] {
@@ -35,7 +40,16 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
       );
     }
 
+    if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+      (this.result.completionItem.documentation as MarkupContent).value += (
+        this.programCtx.rootProgram.modules.get(
+          this.programCtx.getCurrentParsingModuleName()
+        ).moduleCompletionItem.documentation as MarkupContent
+      ).value;
+    }
+
     this.setClassMembersIfNeeded("customTypes", this.result);
+    this.setMoudleMembersIfNeeded("customTypes", this.result);
 
     return [];
   }
@@ -47,6 +61,11 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     if (isPrimitiveType(typeName)) {
       const ci = typesCompletionItems.find((item) => item.label === typeName);
       this.programCtx.stack?.peek().variableExpressions.set(variableName, [ci]);
+      if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+        this.programCtx.rootProgram.modules
+          .get(this.programCtx.getCurrentParsingModuleName())
+          .variableExpressions.set(variableName, [ci]);
+      }
       return;
     }
 
@@ -62,36 +81,53 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
       this.programCtx.stack
         ?.peek()
         .variableExpressions.set(variableName, [customTypesCompletionItem]);
-    }
 
+      if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+        this.programCtx.rootProgram.modules
+          .get(this.programCtx.getCurrentParsingModuleName())
+          .variableExpressions.set(variableName, [customTypesCompletionItem]);
+      }
+    }
+    const handleItem = (
+      innerVariableName: string,
+      item: any,
+      variableExpression: ClassCompletionItem["variableExpressions"]
+    ) => {
+      if (!variableExpression.get(innerVariableName)) {
+        variableExpression.set(innerVariableName, []);
+      }
+      variableExpression.get(innerVariableName).push(item);
+
+      const array = getArrayType(item.data.typeName);
+
+      if (array.isArray) {
+        this.populateVariableExpressionCompletionItem(
+          innerVariableName + item.label + array.dim,
+          array.ofType
+        );
+      } else {
+        this.populateVariableExpressionCompletionItem(
+          innerVariableName + item.label,
+          item.data.typeName
+        );
+      }
+    };
     if (customTypesCompletionItem && customTypesCompletionItem.data?.items) {
       const innerVariableName = variableName + ".";
       for (const item of customTypesCompletionItem.data.items) {
-        if (
-          !this.programCtx.stack
-            ?.peek()
-            .variableExpressions.get(innerVariableName)
-        ) {
-          this.programCtx.stack
-            ?.peek()
-            .variableExpressions.set(innerVariableName, []);
-        }
-        this.programCtx.stack
-          ?.peek()
-          .variableExpressions.get(innerVariableName)
-          .push(item);
+        handleItem(
+          innerVariableName,
+          item,
+          this.programCtx.stack?.peek().variableExpressions
+        );
 
-        const array = getArrayType(item.data.typeName);
-
-        if (array.isArray) {
-          this.populateVariableExpressionCompletionItem(
-            innerVariableName + item.label + array.dim,
-            array.ofType
-          );
-        } else {
-          this.populateVariableExpressionCompletionItem(
-            innerVariableName + item.label,
-            item.data.typeName
+        if (this.programCtx.isInsideAModuleButNotInsideFunction()) {
+          handleItem(
+            innerVariableName,
+            item,
+            this.programCtx.rootProgram.modules.get(
+              this.programCtx.getCurrentParsingModuleName()
+            ).variableExpressions
           );
         }
       }
@@ -112,11 +148,12 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     if (customTypeStatement?.[index]?.["LiteralExpression"]) {
       custumTypeIdef =
         customTypeStatement[index]["LiteralExpression"][0]["IdentifierToken"];
+      let typeName = new LiteralExpressionStrategy().getExpressionAsString(
+        customTypeStatement[index++]["LiteralExpression"][0]
+      );
 
-      customTypeStatementString +=
-        new LiteralExpressionStrategy().getExpressionAsString(
-          customTypeStatement[index++]["LiteralExpression"][0]
-        ) + " = {\n";
+      typeName = typeName.substring(0, typeName.lastIndexOf("."));
+      customTypeStatementString += typeName + " = {\n";
     }
     const data = [];
     for (let i = index; i < customTypeStatement.length; i++) {

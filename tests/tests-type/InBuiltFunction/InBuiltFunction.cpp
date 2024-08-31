@@ -1,20 +1,8 @@
 #include "InBuiltFunction.h"
 
-InBuiltFunction::InBuiltFunction() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void InBuiltFunction::SetUp() { _test->SetUp(); }
 
 void InBuiltFunction::TearDown() { _test->TearDown(); }
-
-void InBuiltFunction::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string InBuiltFunction::getOutput() const { return _test->getOutput(); }
-
-void InBuiltFunction::runEvaluator() { _test->runEvaluator(); }
 
 // TESTS
 

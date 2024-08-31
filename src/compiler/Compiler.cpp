@@ -202,7 +202,7 @@ void Compiler::compile(std::vector<std::string> &text,
           Utils::getAbsoluteFilePath(this->_filePath));
 
   currentDiagnosticHandler->setOutputFilePath(_outputFilePath);
-
+  logNoErrorJSONIfAsked();
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
@@ -338,7 +338,6 @@ void Compiler::compile(std::vector<std::string> &text,
 
     if (!_evaluator->hasErrors()) {
       logNoErrorJSONIfAsked();
-
       this->execute();
     }
     outputStream << std::endl;

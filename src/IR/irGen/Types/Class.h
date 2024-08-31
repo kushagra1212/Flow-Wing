@@ -55,7 +55,7 @@ public:
 
   inline auto getParent() -> Class * { return _parent; }
 
-  inline auto hasParent() -> bool { return _parentClassName != ""; }
+  inline auto hasParent() -> bool { return !_parentClassName.empty(); }
 
   inline auto getParentClassName() -> std::string { return _parentClassName; }
 

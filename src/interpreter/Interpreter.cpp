@@ -391,21 +391,21 @@ void Interpreter::evaluateStatement(BoundStatement *node) {
         this->return_type_stack.top().first;
 
     if (return_type != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
-        returnStatement->getReturnExpressionPtr() == nullptr) {
+        returnStatement->getReturnExpressionListRef().size() == 0) {
       this->_interpreterUtils->logError(
           "Function return type is not Nothing, return "
           "expression is not found");
     }
 
     else if (return_type == SyntaxKindUtils::SyntaxKind::NthgKeyword &&
-             returnStatement->getReturnExpressionPtr() != nullptr) {
+             returnStatement->getReturnExpressionListRef()[0] != nullptr) {
       this->_interpreterUtils->logError(
           "Function return type is Nothing, return "
           "expression is found");
     } else {
-      if (returnStatement->getReturnExpressionPtr() != nullptr) {
+      if (returnStatement->getReturnExpressionListRef()[0] != nullptr) {
         this->last_value = this->evaluate<std::any>(
-            returnStatement->getReturnExpressionPtr().get());
+            returnStatement->getReturnExpressionListRef()[0].get());
 
         if (Utils::getTypeFromAny(this->last_value) != return_type) {
           this->_interpreterUtils->logError(
@@ -727,7 +727,9 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
           function_Variables;
       std::unordered_map<std::string, std::any> function__value_variables;
       BoundTypeExpression *returnTypeExpression =
-          (BoundTypeExpression *)functionDefination->getReturnType().get();
+          (BoundTypeExpression *)functionDefination
+              ->getReturnTypeExprListRef()[0]
+              .get();
 
       this->return_type_stack.push({returnTypeExpression->getSyntaxType(), 0});
 

@@ -1,20 +1,8 @@
 #include "InheritanceTest.h"
 
-InheritanceTest::InheritanceTest() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void InheritanceTest::SetUp() { _test->SetUp(); }
 
 void InheritanceTest::TearDown() { _test->TearDown(); }
-
-void InheritanceTest::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string InheritanceTest::getOutput() const { return _test->getOutput(); }
-
-void InheritanceTest::runEvaluator() { _test->runEvaluator(); }
 
 TEST_F(InheritanceTest, Basic) {
   I(R"(
@@ -55,7 +43,9 @@ class B extends A  {
 var a:A = new A({a:2})
 a.printX()
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest, BasicWithObjectOfBWithOutSuper) {
   I(R"(
@@ -95,7 +85,9 @@ class B extends A  {
 var b:B = new B({a:2})
 b.printX()
 )");
-  O(R"({ a : 0, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 0, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest, BasicWithObjectOfBWithSuper) {
   I(R"(
@@ -136,7 +128,9 @@ class B extends A  {
 var b:B = new B({a:2})
 b.printX()
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest,
        BasicWithObjectOfBWithSuperBaseClassRefAndChildClassObj) {
@@ -183,7 +177,7 @@ class B extends A  {
 var b:A = new B({a:2})
 b.printX()
 )");
-  O(R"(Not printing it )");
+  EXPECT_EQ(getOutput(), R"(Not printing it )");
 }
 TEST_F(InheritanceTest,
        BasicWithObjectOfBWithSuperBaseClassRefAndChildClassObj2) {
@@ -244,7 +238,7 @@ var b:A = new B({a:2})
 b.printX()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it { a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -307,7 +301,7 @@ var b:B = new B({a:2})
 b.printX()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it { a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -372,7 +366,9 @@ var b:A = new A({a:2})
 b.printX()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 
 TEST_F(InheritanceTest,
@@ -436,7 +432,9 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ u : 'Nice' }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ u : 'Nice' }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 
 TEST_F(InheritanceTest,
@@ -500,7 +498,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -568,7 +566,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -617,7 +615,9 @@ class B extends A  {
 a.printX()
 }
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest, BasicWithObjectOfBWithOutSuperLocal) {
   I(R"(
@@ -659,7 +659,9 @@ var b:B = new B({a:2})
   b.printX()
 }
 )");
-  O(R"({ a : 0, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 0, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest, BasicWithObjectOfBWithSuperLocal) {
   I(R"(
@@ -702,7 +704,9 @@ class B extends A  {
 b.printX()
 }
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 TEST_F(InheritanceTest,
        BasicWithObjectOfBWithSuperBaseClassRefAndChildClassObjLocal) {
@@ -751,7 +755,7 @@ var b:A = new B({a:2})
 b.printX()
 }
 )");
-  O(R"(Not printing it )");
+  EXPECT_EQ(getOutput(), R"(Not printing it )");
 }
 TEST_F(InheritanceTest,
        BasicWithObjectOfBWithSuperBaseClassRefAndChildClassObj2Local) {
@@ -814,7 +818,7 @@ b.printX()
 print(b.x)
 }
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it { a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -879,7 +883,7 @@ b.printX()
 print(b.x)
 }
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it { a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -946,7 +950,9 @@ b.printX()
 print(b.x)
 }
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 
 TEST_F(InheritanceTest,
@@ -1012,7 +1018,9 @@ b.printNice()
 print(b.x)
 }
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ u : 'Nice' }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ u : 'Nice' }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 
 TEST_F(InheritanceTest,
@@ -1078,7 +1086,7 @@ b.printNice()
 print(b.x)
 }
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1148,7 +1156,7 @@ b.printNice()
 print(b.x)
 }
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1222,7 +1230,9 @@ b.printNice()
 print(b.x)
 
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 3, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1300,7 +1310,9 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1376,7 +1388,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1452,7 +1464,9 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1528,7 +1542,9 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1605,7 +1621,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1682,7 +1698,9 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
+  EXPECT_EQ(
+      getOutput(),
+      R"({ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
 }
 
 TEST_F(
@@ -1757,7 +1775,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1838,7 +1856,7 @@ b.printX()
 b.printNice()
 print(b.x)
 )");
-  O(R"(02.20000000000000
+  EXPECT_EQ(getOutput(), R"(02.20000000000000
 2
 hi
 0.00000000000000Not printing it Hi Printint Nice{ a : 5, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] }Hi Printint Nice{ a : 2, b : '', c : { d : 0.00000000000000 }, d : [{ d : 0.00000000000000 }, { d : 0.00000000000000 }] })");
@@ -1885,7 +1903,7 @@ fun main() -> nthg {
 
 main()
 )");
-  O(R"(I'm 2 years old!
+  EXPECT_EQ(getOutput(), R"(I'm 2 years old!
 I'm 14 years old!
 )");
 }

@@ -226,6 +226,20 @@ bool BoundScope::tryDeclareModule(BoundModuleStatement *module) {
   return false;
 }
 
+bool BoundScope::tryDeclareModuleGlobal(BoundModuleStatement *module) {
+
+  if (this->modules.find(module->getModuleName()) != this->modules.end()) {
+    return false;
+  }
+
+  if (this->parent) {
+    return this->parent->tryDeclareModuleGlobal(module);
+  }
+
+  this->modules[module->getModuleName()] = module;
+  return true;
+}
+
 // Functions
 
 bool BoundScope::tryDeclareMemberFunction(BoundFunctionDeclaration *function) {

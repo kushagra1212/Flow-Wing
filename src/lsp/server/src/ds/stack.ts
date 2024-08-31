@@ -43,11 +43,19 @@ export type ClassCompletionItem = {
   variableExpressions: Map<VariableName, Array<CompletionItem>>;
   classCompletionItem: CompletionItem;
 };
-
+export type ModuleCompletionItem = {
+  variableDeclarations: Map<VariableName, CompletionItem>;
+  customTypes: Map<TypeName, CompletionItem>;
+  functions: Map<FunctionName, CompletionItem>;
+  classes: Map<ClassName, ClassCompletionItem>;
+  moduleCompletionItem: CompletionItem;
+  variableExpressions: Map<VariableName, Array<CompletionItem>>;
+};
 export interface ProgramStructure {
   variableDeclarations: Map<VariableName, CompletionItem>;
   customTypes: Map<TypeName, CompletionItem>;
   classes: Map<ClassName, ClassCompletionItem>;
+  modules: Map<ClassName, ModuleCompletionItem>;
   functions: Map<FunctionName, CompletionItem>;
   callExpression: Map<FunctionName, CompletionItem>;
   variableExpressions: Map<VariableName, Array<CompletionItem>>;
@@ -58,6 +66,7 @@ export const defaultProgramStructure: ProgramStructure = {
   variableDeclarations: new Map(),
   customTypes: new Map(),
   classes: new Map(),
+  modules: new Map(),
   functions: new Map(),
   callExpression: new Map(),
   variableExpressions: new Map(),

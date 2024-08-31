@@ -46,13 +46,9 @@ onDefinition(documents, connection);
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
+
 onChangeContent(documents, connection);
-
-connection.onDidChangeWatchedFiles((_change) => {
-  // Monitored files have change in VS Code
-
-  console.log("We received a file change event");
-});
+//? connection.onDidChangeWatchedFiles((_change) => {});
 
 // This handler provides the initial list of the completion items.
 onCompletion(documents, connection);

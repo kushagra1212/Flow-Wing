@@ -10,6 +10,7 @@ import {
   getArrayType,
   getFileFullPath,
   getImportedFileUri,
+  getUnique,
   SuggestHandler,
   userDefinedKeywordsFilter,
 } from "../utils";
@@ -43,7 +44,8 @@ export const declareGlobals = (
       (option.skip.includes("VariableDeclarations") &&
         obj["VariableDeclarations"]) ||
       (option.skip.includes("BringStatementSyntax") &&
-        obj["BringStatementSyntax"])
+        obj["BringStatementSyntax"]) ||
+      (option.skip.includes("ModuleStatement") && obj["ModuleStatement"])
     ) {
       return;
     }
@@ -93,70 +95,14 @@ const traverseJson = async ({
     }
   } else if (typeof obj === "object" && obj !== null) {
     if (obj["BringStatementSyntax"]) {
-      const bringkeyword = obj["BringStatementSyntax"]?.[0]?.[
-        "BringKeyword"
-      ] as Token;
+      const result = await handleBringStatement({
+        obj,
+        currentTextDocUri,
+        programCtx,
+        suggestion,
+      });
 
-      programCtx.setInsideBring(true);
-
-      {
-        let index = 2;
-        while (
-          obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
-            "IdentifierToken"
-          ]
-        ) {
-          const idefImportToken =
-            obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
-              "IdentifierToken"
-            ];
-
-          programCtx.bringStatementMap.set(idefImportToken.value, true);
-
-          index++;
-        }
-      }
-
-      const suggestionToken = suggestion?.token;
-      if (
-        bringkeyword?.lineNumber === suggestionToken?.lineNumber &&
-        bringkeyword?.columnNumber === suggestionToken?.columnNumber
-      ) {
-        const relPath = (
-          obj["BringStatementSyntax"]?.[1]?.["StringToken"] as Token
-        )?.value?.split(`"`)?.[1];
-
-        try {
-          const importedFileURI = await getImportedFileUri(
-            relPath,
-            currentTextDocUri
-          );
-
-          if (importedFileURI && importedFileURI !== "") {
-            await validateTextDocument(documents.get(importedFileURI), null);
-
-            const result = (
-              await getCompletionItems(
-                fileUtils.getTempFilePath({
-                  fileName:
-                    getFileFullPath(importedFileURI) +
-                    flowWingConfig.temp.syntaxFileExt,
-                }),
-                {
-                  data: {
-                    isDot: false,
-                  },
-                } as SuggestHandler,
-                importedFileURI
-              )
-            )?.filter(userDefinedKeywordsFilter);
-
-            return result;
-          }
-        } catch (err) {
-          console.error(`Error reading and processing JSON file: ${err}`);
-        }
-      }
+      if (result.length) return result;
     }
     if (obj["ClassKeyword"]) {
       if (
@@ -168,62 +114,74 @@ const traverseJson = async ({
       ) {
         programCtx.setCurrentParsingClassName(null);
 
-        if (!suggestion.data.isDot)
-          return new CompletionItemService(
-            new AllCompletionItemsStrategy()
-          ).getCompletionItems({ programCtx: programCtx });
+        // if (!suggestion.data.isDot)
+        //   return new CompletionItemService(
+        //     new AllCompletionItemsStrategy()
+        //   ).getCompletionItems({ programCtx: programCtx });
 
-        return [];
+        // return [];
       }
     }
-    if (obj["lineNumber"] && obj["columnNumber"]) {
-      if (
-        suggestion.token &&
-        (obj["lineNumber"] > suggestion.token.lineNumber ||
-          (obj["columnNumber"] >= suggestion.token.columnNumber &&
-            obj["lineNumber"] === suggestion.token.lineNumber))
-      ) {
-        if (suggestion.data.isDot || suggestion?.data?.argumentNumber) {
-          const res = getCompletionItemsForDot(suggestion, programCtx);
 
-          return res;
-        }
-
-        let result = [];
-        if (!suggestion.data.isDot)
-          result = new CompletionItemService(
-            new AllCompletionItemsStrategy()
-          ).getCompletionItems({ programCtx: programCtx });
-
-        return result;
-      }
+    if (obj["ModuleStatement"]) {
+      programCtx.setCurrentParsingModuleName(null);
     }
+
+    // if (obj["columnNumber"] && obj["lineNumber"]) {
+    //   if (
+    //     suggestion.token.columnNumber === obj["columnNumber"] &&
+    //     suggestion.token.lineNumber === obj["lineNumber"]
+    //   ) {
+    //     if (suggestion.data.isDot) {
+    //       return getCompletionItemsForDot(suggestion, programCtx);
+    //     }
+    //     const identifierResult = [];
+
+    //     const allResult =
+    //       new CompletionItemService(
+    //         new AllCompletionItemsStrategy()
+    //       ).getCompletionItems({ programCtx: programCtx }) ?? [];
+
+    //     const result = getUnique(identifierResult, allResult);
+    //     if (result?.length) return result;
+    //   }
+    // }
+
     if (obj["IdentifierToken"]) {
       const identifierToken: IdentifierToken = obj["IdentifierToken"];
 
       if (
         suggestion.token &&
-        identifierToken.columnNumber === suggestion.token.columnNumber &&
-        identifierToken.lineNumber === suggestion.token.lineNumber
+        suggestion.token.columnNumber === identifierToken.columnNumber &&
+        suggestion.token.lineNumber === identifierToken.lineNumber
       ) {
         if (suggestion.data.isDot) {
           return getCompletionItemsForDot(suggestion, programCtx);
         }
 
-        const result = new CompletionItemService(
-          new IdentifierCompletionItemsStrategy()
-        ).getCompletionItems({
-          programCtx: programCtx,
-          identifier: identifierToken.value,
-        });
+        const identifierResult =
+          new CompletionItemService(
+            new IdentifierCompletionItemsStrategy()
+          ).getCompletionItems({
+            programCtx: programCtx,
+            identifier: identifierToken.value,
+          }) ?? [];
 
+        const allResult =
+          new CompletionItemService(
+            new AllCompletionItemsStrategy()
+          ).getCompletionItems({ programCtx: programCtx }) ?? [];
+
+        const result = getUnique(identifierResult, allResult);
         if (result?.length) return result;
       }
     }
+
     if (
       obj["BlockStatement"] ||
       obj["ClassStatement"] ||
-      obj["FunctionDeclarationSyntax"]
+      obj["FunctionDeclarationSyntax"] ||
+      obj["ModuleStatement"]
     ) {
       programCtx.pushEmptyProgramStructure();
     }
@@ -232,7 +190,6 @@ const traverseJson = async ({
       programCtx,
       obj
     )?.generateCompletionItems();
-
     for (const value of Object.values(obj)) {
       const result = await traverseJson({
         obj: value,
@@ -251,12 +208,15 @@ const traverseJson = async ({
     if (
       obj["BlockStatement"] ||
       obj["ClassStatement"] ||
-      obj["FunctionDeclarationSyntax"]
+      obj["FunctionDeclarationSyntax"] ||
+      obj["ModuleStatement"]
     ) {
       if (obj["FunctionDeclarationSyntax"])
         programCtx.setCurrentParsingFunctionName(null);
 
       if (obj["ClassStatement"]) programCtx.setCurrentParsingClassName(null);
+
+      if (obj["ModuleStatement"]) programCtx.setCurrentParsingModuleName(null);
 
       programCtx.stack?.pop();
     }
@@ -343,6 +303,52 @@ const getCompletionItemsForDot = (
       ).filter((item) => item.label !== "init"),
     ];
   }
+  if (programCtx.doesModuleExist(firstWord.split("::")[0])) {
+    const moduleName = firstWord.split("::")[0];
+    if (suggestion.word.indexOf(".") !== -1) {
+      const typeName = programCtx.rootProgram.modules
+        .get(moduleName)
+        .variableDeclarations.get(firstWord).data?.typeName;
+
+      return [
+        ...Array.from(
+          programCtx.rootProgram.modules
+            .get(moduleName)
+            .variableExpressions.get(typeName + ".")
+            .values()
+        ),
+      ];
+    }
+
+    const className = firstWord.split("::")[1];
+
+    if (
+      programCtx.rootProgram.classes.get(firstWord) &&
+      programCtx.rootProgram.classes.get(firstWord).functions.get("init")
+    ) {
+      return [
+        programCtx.rootProgram.classes.get(firstWord).functions.get("init"),
+      ];
+    }
+
+    return [
+      ...Array.from(
+        programCtx.rootProgram.modules
+          .get(moduleName)
+          .variableDeclarations.values()
+      ),
+      ...Array.from(
+        programCtx.rootProgram.modules.get(moduleName).functions.values()
+      ),
+      ...Array.from(
+        programCtx.rootProgram.modules.get(moduleName).customTypes.values()
+      ),
+      ...Array.from(
+        programCtx.rootProgram.modules.get(moduleName).classes.values()
+      ).map((item) => item.classCompletionItem),
+    ];
+  }
+
   if (suggestion.data.argumentNumber) {
     {
       let className = new CompletionItemService(
@@ -445,4 +451,98 @@ const getCompletionItemsForDot = (
   });
 
   return result;
+};
+
+const handleBringStatement = async ({
+  obj,
+  programCtx,
+  suggestion,
+  currentTextDocUri,
+}: {
+  obj: any;
+  programCtx: ProgramContext;
+  suggestion: SuggestHandler;
+  currentTextDocUri: string;
+}) => {
+  const bringkeyword = obj["BringStatementSyntax"]?.[0]?.[
+    "BringKeyword"
+  ] as Token;
+
+  programCtx.setInsideBring(true);
+
+  const possbileModuleIdef: Token | undefined =
+    obj["BringStatementSyntax"]?.[1]?.["IdentifierToken"];
+  {
+    let index = 2;
+    while (
+      obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
+        "IdentifierToken"
+      ]
+    ) {
+      const idefImportToken =
+        obj["BringStatementSyntax"]?.[index]?.["LiteralExpression"]?.[0]?.[
+          "IdentifierToken"
+        ];
+
+      programCtx.bringStatementMap.set(idefImportToken.value, true);
+
+      index++;
+    }
+  }
+
+  try {
+    const suggestionToken = suggestion?.token;
+    let relPath = null;
+
+    if (
+      bringkeyword?.lineNumber === suggestionToken?.lineNumber &&
+      bringkeyword?.columnNumber === suggestionToken?.columnNumber
+    ) {
+      relPath = (
+        obj["BringStatementSyntax"]?.[1]?.["StringToken"] as Token
+      )?.value?.split(`"`)?.[1];
+    } else if (
+      possbileModuleIdef &&
+      possbileModuleIdef.columnNumber === suggestionToken?.columnNumber &&
+      possbileModuleIdef.lineNumber === suggestionToken?.lineNumber
+    ) {
+      relPath = await fileUtils.findFileBreadthFirst(
+        __dirname,
+        possbileModuleIdef.value + "-module.fg"
+      );
+    }
+
+    if (!!relPath && typeof relPath === "string") {
+      const importedFileURI = await getImportedFileUri(
+        relPath,
+        currentTextDocUri
+      );
+
+      if (importedFileURI && importedFileURI !== "") {
+        await validateTextDocument(documents.get(importedFileURI), null);
+
+        const result = (
+          await getCompletionItems(
+            fileUtils.getTempFilePath({
+              fileName:
+                getFileFullPath(importedFileURI) +
+                flowWingConfig.temp.syntaxFileExt,
+            }),
+            {
+              data: {
+                isDot: false,
+              },
+            } as SuggestHandler,
+            importedFileURI
+          )
+        )?.filter(userDefinedKeywordsFilter);
+
+        return result ?? [];
+      }
+    }
+  } catch (err) {
+    console.error(`Error reading and processing JSON file: ${err}`);
+  }
+
+  return [];
 };

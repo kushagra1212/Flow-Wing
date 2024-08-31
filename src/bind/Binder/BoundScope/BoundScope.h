@@ -67,6 +67,7 @@ public:
   BoundClassStatement *tryGetClass(const std::string &name);
 
   bool tryDeclareModule(BoundModuleStatement *module);
+  bool tryDeclareModuleGlobal(BoundModuleStatement *module);
   BoundModuleStatement *tryGetModule(const std::string &name);
 
   bool isInsideInitFunction();

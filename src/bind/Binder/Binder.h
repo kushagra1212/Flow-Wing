@@ -32,6 +32,7 @@
 #include "../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "../../syntax/statements/MultipleVariableDeclarationSyntax/MultipleVariableDeclarationSyntax.h"
 #include "../../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "../../syntax/statements/StatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
@@ -60,6 +61,8 @@
 #include "../BoundIndexExpression/BoundIndexExpression.h"
 #include "../BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../BoundModuleStatement/BoundModuleStatement.h"
+#include "../BoundMultipleAssignmentExpression/BoundMultipleAssignmentExpression.h"
+#include "../BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
 #include "../BoundNirastExpression/BoundNirastExpression.h"
 #include "../BoundObjectExpression/BoundObjectExpression.h"
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
@@ -148,6 +151,10 @@ public:
   std::unique_ptr<BoundStatement>
   bindModuleStatement(ModuleStatementSyntax *moduleStatement);
 
+  std::unique_ptr<BoundMultipleVariableDeclaration>
+  bindMultipleVariableDeclaration(
+      MultipleVariableDeclarationSyntax *multipleVariableDeclaration);
+
   // BoundExpressions
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
@@ -175,6 +182,10 @@ public:
 
   std::unique_ptr<BoundExpression>
   bindContainerExpression(ContainerExpressionSyntax *containerExpression);
+
+  std::unique_ptr<BoundMultipleAssignmentExpression>
+  bindMultipleAssignmentExpression(
+      MultipleAssignmentExpressionSyntax *multipleAssignmentExpressionSyntax);
 
   std::unique_ptr<BoundExpression>
   bindFillExpression(FillExpressionSyntax *fillExpression);

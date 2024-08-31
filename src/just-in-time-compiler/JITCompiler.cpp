@@ -46,10 +46,9 @@ void JITCompiler::execute() {
   int hasError = 1;
   llvm::Type *returnType = mainFunction->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
-  llvm::ArrayRef<llvm::GenericValue> ArgValues = {};
 
   try {
-    resultValue = executionEngine->runFunction(mainFunction, ArgValues);
+    resultValue = executionEngine->runFunction(mainFunction, {});
 
     if (returnType->isIntegerTy()) {
       hasError = (resultValue.IntVal != 0) ? 1 : 0;

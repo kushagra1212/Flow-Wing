@@ -18,7 +18,9 @@ public:
 
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
-
+  inline virtual const std::type_info &getType() override {
+    return typeid(BoundObjectExpression);
+  }
   /*
     Setters
   */
@@ -38,11 +40,6 @@ public:
       std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
                             std::unique_ptr<BoundExpression>>> & {
     return this->_key_value_pairs;
-  }
-
-public:
-  inline virtual const std::type_info &getType() override {
-    return typeid(BoundObjectExpression);
   }
 };
 

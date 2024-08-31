@@ -84,7 +84,7 @@ public:
     return _asKeyword;
   }
 
-  inline auto getInitializerRef() -> const std::unique_ptr<ExpressionSyntax> & {
+  inline auto getInitializerRef() -> std::unique_ptr<ExpressionSyntax> & {
     return _initializer;
   }
   inline auto getHasNewKeyWord() -> bool & { return _hasNewKeyword; }

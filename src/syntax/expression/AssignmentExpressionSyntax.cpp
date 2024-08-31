@@ -2,10 +2,11 @@
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> left,
-    std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+    SyntaxKindUtils::SyntaxKind operatorToken,
     std::unique_ptr<ExpressionSyntax> right, bool needDefaultInitialize)
-    : _left(std::move(left)), _operatorToken(std::move(operatorToken)),
-      _right(std::move(right)), _needDefaultInitialize(needDefaultInitialize) {}
+    : _left(std::move(left)), _right(std::move(right)),
+      _operatorTokenKind(operatorToken),
+      _needDefaultInitialize(needDefaultInitialize) {}
 
 const SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
@@ -14,21 +15,24 @@ const SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
 const std::vector<SyntaxNode *> &AssignmentExpressionSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
-    this->_children.push_back(_left.get());
-    this->_children.push_back(_operatorToken.get());
-    this->_children.push_back(_right.get());
+    if (_left)
+      this->_children.push_back(_left.get());
+
+    if (_right)
+      this->_children.push_back(_right.get());
   }
 
   return this->_children;
 }
 const DiagnosticUtils::SourceLocation
 AssignmentExpressionSyntax::getSourceLocation() const {
-  return this->_operatorToken->getSourceLocation();
-}
+  if (_left)
+    return _left->getSourceLocation();
 
-std::unique_ptr<SyntaxToken<std::any>>
-AssignmentExpressionSyntax::getOperatorToken() {
-  return std::move(this->_operatorToken);
+  if (_right)
+    return _right->getSourceLocation();
+
+  return DiagnosticUtils::SourceLocation();
 }
 
 std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
@@ -37,11 +41,6 @@ std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getRight() {
 
 std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getLeft() {
   return std::move(this->_left);
-}
-
-std::unique_ptr<SyntaxToken<std::any>> &
-AssignmentExpressionSyntax::getOperatorTokenPtr() {
-  return this->_operatorToken;
 }
 
 std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightPtr() {

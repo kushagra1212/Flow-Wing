@@ -60,6 +60,20 @@ export class IdentifierCompletionItemsStrategy
       //   update(identifier, result, current.callExpression.get(identifier));
     }
 
+    if (programCtx.rootProgram.modules.get(identifier.split("::")[0])) {
+      const moduleCI = programCtx.rootProgram.modules.get(
+        identifier.split("::")[0]
+      );
+      if (moduleCI.classes.get(identifier)) {
+        if (moduleCI.classes.get(identifier).functions.get("init")) {
+          update(
+            identifier,
+            result,
+            moduleCI.classes.get(identifier).functions.get("init")
+          );
+        }
+      }
+    }
     if (programCtx.rootProgram.functions.get(identifier))
       update(
         identifier,
@@ -81,7 +95,29 @@ export class IdentifierCompletionItemsStrategy
           .functions.get(identifier)
       );
     }
+    // if (programCtx.rootProgram.modules.get(identifier.split("::")[0])) {
+    //   const moduleCI = programCtx.rootProgram.modules.get(
+    //     identifier.split("::")[0]
+    //   );
 
+    //   update(identifier, result, moduleCI.moduleCompletionItem);
+
+    //   moduleCI.classes.forEach((value) => {
+    //     result.push(value.classCompletionItem);
+    //   });
+
+    //   moduleCI.customTypes.forEach((value) => {
+    //     result.push(value);
+    //   });
+
+    //   moduleCI.functions.forEach((value) => {
+    //     result.push(value);
+    //   });
+
+    //   moduleCI.variableDeclarations.forEach((value) => {
+    //     result.push(value);
+    //   });
+    // }
     return result;
   }
 }

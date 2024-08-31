@@ -18,6 +18,14 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
           ->createStrategy(unaryExpression->getOperandPtr().get()->getKind())
           ->generateExpression(unaryExpression->getOperandPtr().get());
 
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      !_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
+    _codeGenerationContext->getLogger()->LogError(
+        "This Unary Expression is not supported for objects");
+    return nullptr;
+  }
+
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     val = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
@@ -31,6 +39,8 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
   }
   llvm::Value *res =
       _unaryOperationStrategy->performOperation(val, unaryExpression);
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
                                                        res->getType());

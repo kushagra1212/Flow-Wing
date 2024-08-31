@@ -22,6 +22,7 @@ enum BoundNodeKind {
   BoundObjectTypeExpression,
   BoundObjectExpression,
   BoundNirastExpression,
+  BoundMultipleAssignmentExpression,
 
   // Statements
   BoundStatementKind,
@@ -39,6 +40,7 @@ enum BoundNodeKind {
   CustomTypeStatement,
   ClassStatement,
   BoundModuleStatement,
+  BoundMultipleVariableDeclarationStatement,
 
   // declarations
 

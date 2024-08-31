@@ -27,37 +27,45 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(returnBlock);
 
-  llvm::Value *returnValue = nullptr; // default return value
-
   llvm::Value *hasError = Builder->getFalse();
   std::string errorMessage = "";
-  BoundExpression *returnStat = returnStatement->getReturnExpressionPtr().get();
-
   llvm::Function *currentFunction = Builder->GetInsertBlock()->getParent();
-
   std::string functionName = currentFunction->getName().str();
 
-  LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
-                             ->getReturnType(functionName)
-                             .get();
+  auto [rtPtr, rtType] = _codeGenerationContext->getAllocaChain()->getPtr(
+      FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
 
-  SyntaxKindUtils::SyntaxKind returnTypeCustomType =
-      _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-          returnType->getLLVMType());
-  if (returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword &&
-      returnStat == nullptr) {
-    errorMessage = "Function return type is not Nothing, return "
-                   "expression is not found";
-  } else if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword &&
-             returnStat != nullptr) {
-    errorMessage = "Function return type is Nothing, return "
-                   "expression is found";
-  } else if (returnStat != nullptr) {
-    _codeGenerationContext->getValueStackHandler()->popAll();
+  if (rtPtr && rtType) {
 
-    auto [rtPtr, rtType] = _codeGenerationContext->getAllocaChain()->getPtr(
-        FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME);
-    if (rtPtr && rtType) {
+    if (returnStatement->getReturnExpressionListRef().size() == 0) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Function expects a return expression but no return expression "
+          "found");
+      return nullptr;
+    }
+
+    uint64_t offset = 0;
+    if (returnStatement->getReturnExpressionListRef().size() == 1) {
+      auto returnStat = returnStatement->getReturnExpressionListRef()[0].get();
+
+      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+          returnStatement->getLocation());
+
+      LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
+                                 ->getReturnType(functionName, 0)
+                                 .get();
+
+      SyntaxKindUtils::SyntaxKind returnTypeCustomType =
+          _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+              returnType->getLLVMType());
+
+      if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "Function return type is Nothing, return "
+            "expression is found");
+        return nullptr;
+      }
 
       std::unique_ptr<AssignmentExpressionGenerationStrategy>
           assignmentExpressionGenerationStrategy =
@@ -72,6 +80,25 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
           boundCallExpression->setArgumentAlloca(
               boundCallExpression->getArgumentsRef().size(), {rtPtr, rtType});
         } else {
+          const std::vector<std::unique_ptr<LLVMType>> &currentFunctionArgs =
+              _codeGenerationContext->getArgsTypeHandler()->getArgsType(
+                  functionName);
+
+          const std::vector<std::unique_ptr<LLVMType>> &callingFunctionArg =
+              _codeGenerationContext->getArgsTypeHandler()->getArgsType(
+                  functionName);
+          if (_codeGenerationContext->verifyType(
+                  currentFunctionArgs[0]->getStructTypeListRef(),
+                  callingFunctionArg[0]->getStructTypeListRef(),
+                  " in Return Expression") == EXIT_FAILURE) {
+            return nullptr;
+          }
+
+          for (const auto &type :
+               currentFunctionArgs[0]->getStructTypeListRef()) {
+            boundCallExpression->addReturnTypeToList(type);
+          }
+
           boundCallExpression->setArgumentAlloca(0, {rtPtr, rtType});
         }
       }
@@ -79,17 +106,112 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
       assignmentExpressionGenerationStrategy->handleAssignExpression(
           rtPtr, rtType, FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME,
           returnStat);
+    } else {
+      if (returnStatement->getReturnExpressionListRef().size() !=
+          _codeGenerationContext->getReturnTypeHandler()
+              ->getReturnTypeListRef(functionName)
+              .size()) {
 
-      Builder->CreateRetVoid();
+        _codeGenerationContext->getLogger()->LogError(
+            "Function expects " +
+            std::to_string(_codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnTypeListRef(functionName)
+                               .size()) +
+            " return expression but " +
+            std::to_string(
+                returnStatement->getReturnExpressionListRef().size()) +
+            " return expression found");
+        return nullptr;
+      }
+      for (auto &returnStat : returnStatement->getReturnExpressionListRef()) {
 
-      _codeGenerationContext->getReturnAllocaStack().top() = 1;
-      Builder->SetInsertPoint(mergeBlock);
-      return rtPtr;
+        _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+            returnStat->getLocation());
+
+        LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
+                                   ->getReturnType(functionName, offset)
+                                   .get();
+
+        SyntaxKindUtils::SyntaxKind returnTypeCustomType =
+            _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+                returnType->getLLVMType());
+
+        if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+
+          _codeGenerationContext->getLogger()->LogError(
+              "Function return type is Nothing, return "
+              "expression is found");
+          return nullptr;
+        }
+        _codeGenerationContext->getValueStackHandler()->popAll();
+
+        llvm::Value *rtElementGEP =
+            Builder->CreateStructGEP(rtType, rtPtr, offset);
+
+        llvm::Value *rtElementPtr = Builder->CreateLoad(
+            llvm::Type::getInt8PtrTy(*TheContext), rtElementGEP);
+
+        std::unique_ptr<AssignmentExpressionGenerationStrategy>
+            assignmentExpressionGenerationStrategy =
+                std::make_unique<AssignmentExpressionGenerationStrategy>(
+                    _codeGenerationContext);
+
+        if (returnStat->getKind() == BinderKindUtils::CallExpression) {
+          BoundCallExpression *boundCallExpression =
+              static_cast<BoundCallExpression *>(returnStat.get());
+
+          if (Utils::isClassInit(boundCallExpression->getCallerNameRef())) {
+            boundCallExpression->setArgumentAlloca(
+                boundCallExpression->getArgumentsRef().size(),
+                {rtElementPtr, returnType->getLLVMType()});
+
+          } else {
+            boundCallExpression->setArgumentAlloca(
+                0, {rtElementPtr, returnType->getLLVMType()});
+          }
+        }
+        assignmentExpressionGenerationStrategy->handleAssignExpression(
+            rtElementPtr, returnType->getLLVMType(),
+            FLOWWING::UTILS::CONSTANTS::RETURN_VAR_NAME +
+                std::to_string(offset),
+            returnStat.get());
+        offset++;
+      }
     }
 
-    returnValue =
-        _expressionGenerationFactory->createStrategy(returnStat->getKind())
-            ->generateExpression(returnStat);
+    Builder->CreateRetVoid();
+  } else if (returnStatement->getReturnExpressionListRef().size()) {
+    //? This is the case when the return type is not a paramater
+    //? So, first element of getReturnExpressionListRef is the return value
+
+    const uint64_t firstElementIndex = 0;
+
+    BoundExpression *directReturnStat =
+        returnStatement->getReturnExpressionListRef()[firstElementIndex].get();
+
+    LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnType(functionName, firstElementIndex)
+                               .get();
+
+    SyntaxKindUtils::SyntaxKind returnTypeCustomType =
+        _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+            returnType->getLLVMType());
+
+    if (returnTypeCustomType == SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Function return type is Nothing, return "
+          "expression is found");
+      return nullptr;
+    }
+    // default return value =
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    // TODO: Return Value Can be Nir
+    llvm::Value *returnValue = _expressionGenerationFactory
+                                   ->createStrategy(directReturnStat->getKind())
+                                   ->generateExpression(directReturnStat);
+
     llvm::Value *returnLLVMValue =
         _codeGenerationContext->getValueStackHandler()->getValue();
     llvm::Type *rtypeLLVM =
@@ -98,75 +220,55 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
     if (returnType->isPointerToObject()) {
       LLVMObjectType *llvmObjectType =
           static_cast<LLVMObjectType *>(returnType);
-      if (!_codeGenerationContext->getValueStackHandler()->isStructType()) {
-        errorMessage =
-            "Return Type Mismatch " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                llvmObjectType->getStructType()) +
-            " is expected but " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM) +
-            " is found";
-      }
 
-      _codeGenerationContext->verifyType(llvmObjectType->getStructType(),
-                                         rtypeLLVM, " in Return Expression");
+      if (_codeGenerationContext->verifyType(
+              llvmObjectType->getStructType(), rtypeLLVM,
+              " in Return Expression") == EXIT_FAILURE)
+        return nullptr;
 
     } else if (returnType->isPointerToArray()) {
       LLVMArrayType *llvmArrayType = static_cast<LLVMArrayType *>(returnType);
 
-      if (!_codeGenerationContext->getValueStackHandler()->isArrayType()) {
-        errorMessage =
-            "Return Type Mismatch " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(
-                returnType->getType()) +
-            " is expected but " +
-            _codeGenerationContext->getMapper()->getLLVMTypeName(rtypeLLVM) +
-            " is found";
-      }
-      _codeGenerationContext->verifyType(llvmArrayType->getElementType(),
-                                         rtypeLLVM, " in Return Expression");
+      if (_codeGenerationContext->verifyType(
+              llvmArrayType->getElementType(), rtypeLLVM,
+              " in Return Expression") == EXIT_FAILURE)
+        return nullptr;
 
-    } else if (returnTypeCustomType !=
-               _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
-                   returnValue->getType())) {
-      llvm::Type *type =
-          _codeGenerationContext->getValueStackHandler()->getLLVMType();
-      errorMessage =
-          "Return Type Mismatch " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              returnTypeCustomType) +
-          " is expected but " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(type) +
-          " is found";
-    }
-  }
+    } else {
 
-  _codeGenerationContext->getValueStackHandler()->popAll();
-  if (errorMessage != "") {
-    _codeGenerationContext->getLogger()->LogError(errorMessage);
-  }
-
-  if (returnStat != nullptr &&
-      returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
-    if (!returnValue) {
-      returnValue =
-          _expressionGenerationFactory->createStrategy(returnStat->getKind())
-              ->generateExpression(returnStat);
+      if (_codeGenerationContext->verifyType(
+              returnType->getLLVMType(), rtypeLLVM, " in Return Expression") ==
+          EXIT_FAILURE)
+        return nullptr;
     }
 
-    // create alloca for return value
+    _codeGenerationContext->getValueStackHandler()->popAll();
 
     Builder->CreateRet(returnValue);
-
   } else {
+
+    LLVMType *returnType = _codeGenerationContext->getReturnTypeHandler()
+                               ->getReturnType(functionName, 0)
+                               .get();
+
+    SyntaxKindUtils::SyntaxKind returnTypeCustomType =
+        _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
+            returnType->getLLVMType());
+
+    if (returnTypeCustomType != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Function expects a return expression but no return expression "
+          "found");
+      return nullptr;
+    }
+
     Builder->CreateRetVoid();
   }
 
   _codeGenerationContext->getReturnAllocaStack().top() = 1;
-
   Builder->SetInsertPoint(mergeBlock);
 
-  return returnValue;
+  return nullptr;
 }
 
 llvm::Value *ReturnStatementGenerationStrategy::generateGlobalStatement(

@@ -22,7 +22,6 @@ export const onHover = async (
         contents: null,
       };
     }
-
     const documentation = await getDocumentationForCompletionItem(
       params.textDocument.uri,
       suggestion

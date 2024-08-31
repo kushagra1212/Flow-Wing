@@ -23,7 +23,7 @@ private:
   std::unique_ptr<BlockStatementSyntax> _body;
 
   std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
-  std::unique_ptr<ExpressionSyntax> _returnExpression;
+  std::vector<std::unique_ptr<ExpressionSyntax>> _returnTypeExpressionList;
   std::unique_ptr<SyntaxToken<std::any>> _declKeyword;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
@@ -47,7 +47,7 @@ public:
   void setCloseParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> closeParenthesisToken);
   void setBody(std::unique_ptr<BlockStatementSyntax> body);
-  void setReturnType(std::unique_ptr<ExpressionSyntax> returnExpression);
+  void addReturnExpression(std::unique_ptr<ExpressionSyntax> returnExpression);
 
   inline auto
   setExposedKeyword(std::unique_ptr<SyntaxToken<std::any>> exposedKeyword) {
@@ -81,9 +81,9 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
   std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
 
-  inline auto getReturnExpression() const
-      -> const std::unique_ptr<ExpressionSyntax> & {
-    return _returnExpression;
+  inline auto getReturnTypeExpressionListRef() const
+      -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
+    return _returnTypeExpressionList;
   }
 
   inline auto getDeclKeywordRef() const

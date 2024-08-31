@@ -1,32 +1,20 @@
 #include "MultiDimContainer.h"
 
-MultiDimContainer::MultiDimContainer() {
-  _test = std::move(Tests::FlowWing::getTest());
-}
-
 void MultiDimContainer::SetUp() { _test->SetUp(); }
 
 void MultiDimContainer::TearDown() { _test->TearDown(); }
 
-void MultiDimContainer::setInput(const std::string &input) {
-  _test->setInput(input);
-}
-
-std::string MultiDimContainer::getOutput() const { return _test->getOutput(); }
-
-void MultiDimContainer::runEvaluator() { _test->runEvaluator(); }
-
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 TEST_F(MultiDimContainer, BasicContainerIntDeclaration) {
   I("var x:int[2] = [1,2] print(x)");
-  O("[1, 2]");
+  EXPECT_EQ(getOutput(), "[1, 2]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment) {
   I(R"(    var x : int[2][2] = [ [ 1, 2 ], [ 3, 4 ] ] x[0][0] =
         5 print(x) )");
 
-  O("[[5, 2], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[5, 2], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2) {
@@ -36,7 +24,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2) {
         
     )");
 
-  O("[[1, 5], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[1, 5], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill) {
@@ -46,7 +34,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill) {
         
     )");
 
-  O("[[4, 4], [4, 0]]");
+  EXPECT_EQ(getOutput(), "[[4, 4], [4, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2) {
@@ -56,7 +44,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2) {
         
     )");
 
-  O("[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAll) {
@@ -66,7 +54,8 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAll) {
         
     )");
 
-  O("[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignment) {
@@ -76,8 +65,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignment) {
         
     )");
 
-  O("[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignmentAccess) {
@@ -88,8 +79,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignmentAccess) {
         
     )");
 
-  O("[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInit) {
@@ -99,7 +92,7 @@ TEST_F(MultiDimContainer, 2DContainerInit) {
         
     )");
 
-  O("[[1, 2], [0, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [0, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInit2) {
@@ -109,7 +102,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2) {
         
     )");
 
-  O("[[1, 2], [3, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [3, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInit2DiffDim) {
@@ -120,7 +113,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2DiffDim) {
             
         )");
 
-  O("[[1, 2, 0], [3, 4, 5]]");
+  EXPECT_EQ(getOutput(), "[[1, 2, 0], [3, 4, 5]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFill) {
@@ -131,7 +124,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFill) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar) {
 
@@ -142,7 +136,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2) {
@@ -154,7 +149,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2) {
             
         )");
 
-  O("[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2) {
@@ -166,7 +162,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
 }
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3) {
 
@@ -177,7 +174,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
 }
 
 // Indexing
@@ -189,7 +187,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexing) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexing2) {
@@ -199,7 +197,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexing2) {
         
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 
 // Indexing with variable
@@ -212,7 +210,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithVar) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D
@@ -224,7 +222,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexing) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D multiple
@@ -236,7 +234,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexing2) {
         
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 
 // Indexing 3D with variable
@@ -249,7 +247,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVar) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D with variable y = 1
@@ -262,7 +260,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVar2) {
         
     )");
 
-  O("8");
+  EXPECT_EQ(getOutput(), "8");
 }
 
 // Indexing 2D when fill is used
@@ -274,7 +272,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill) {
         
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 
 // Indexing 3D when fill is used
@@ -286,7 +284,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFill) {
         
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 
 // Indexing 3D when fill is used dofferent index
@@ -298,7 +296,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFill2) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 
 // Indexing 2D when fill is used different variable index
@@ -311,7 +309,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill2) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 
 // Adding 2D containers values found using index
@@ -324,7 +322,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill3) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 
 // Updating 2D containers values found using index
@@ -338,7 +336,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill4) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 
 // Updating 2D containers values found using index
@@ -352,7 +350,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill5) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 
 // Updating 2D containers values from another container
@@ -367,7 +365,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill6) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 
 // Update and printing before and after
@@ -383,7 +381,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill7) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 10]]");
 }
 
 // Update and 2D container when init with fill and variable
@@ -399,7 +397,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill8) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 1]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 1]]");
 }
 
 // Update and 2D container when init normal and variable
@@ -415,7 +413,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill9) {
         print(z)     
     )");
 
-  O("[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
 }
 
 // Accessing 2D container using container of same dim directly
@@ -431,7 +429,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill10) {
         print(z)     
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 // Accessing 2D container using container of with different dim directly 5x3 and
@@ -448,8 +446,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11) {
         print(z)     
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // Filling 2D container using fill of with different dim directly 5x3 and
@@ -465,8 +465,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11) {
 //         print(z)
 //     )");
 
-//   O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, 5], [5,
-//   5, "
+//   EXPECT_EQ(getOutput(),"[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0,
+//   0]][[5, 5, 5], [5, 5, "
 //     "5], [5, 5, 5], [5, 5, 5], [5, 5, 5]][[4, 1, 1], [5, 6, 2]]");
 // }
 
@@ -489,7 +489,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill13) {
         print(z)     
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 // For loop with 2D container with different dim
@@ -511,8 +511,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill14) {
         print(z)     
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // For loop with 2D container with different dim and fill
@@ -534,8 +536,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15) {
         print(z)     
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, 5], [5, 5, "
-    "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, "
+            "5], [5, 5, "
+            "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // Container of containers
@@ -557,7 +561,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15) {
 //         print(a[1][0][0])
 //     )");
 
-//   O("[[[4, 0], [6, 0]], [[4, 1], [5, 6]]]4\n6\n6\n1\n0\n0\n0\n0\n");
+//   EXPECT_EQ(getOutput(),"[[[4, 0], [6, 0]], [[4, 1], [5,
+//   6]]]4\n6\n6\n1\n0\n0\n0\n0\n");
 // }
 
 // Str container
@@ -579,7 +584,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17) {
         print(z[1][1])
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
+  EXPECT_EQ(getOutput(),
+            "[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -602,7 +608,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18) {
         print(y)
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
+  EXPECT_EQ(getOutput(), "[['4', ''], ['6', '']][['4', 'y'], ['5', "
+                         "'6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container
@@ -624,12 +631,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill19) {
         print(z[1][1])
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "00000000000000");
 }
 
 // Deci Container  with fill expression and variable
@@ -652,12 +661,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill20) {
         print(y)
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "000000000000001.00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "000000000000001.00000000000000");
 }
 
 // Bool Container
@@ -679,8 +690,9 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill21) {
         print(z[1][1])
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalse");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalse");
 }
 
 // Bool Container  with fill expression and variable
@@ -703,34 +715,35 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill22) {
         print(y)
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalsetrue");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalsetrue");
 }
 
 // SCOPE
 
 TEST_F(MultiDimContainer, BasicContainerIntDeclarationLOCAL) {
   I("{var x:int[2] = [1,2] print(x)}");
-  O("[1, 2]");
+  EXPECT_EQ(getOutput(), "[1, 2]");
 }
 
 TEST_F(MultiDimContainer, BasicContainerIntDeclarationGL) {
   I("var x:int[2] = [1,2]{ print(x)}");
-  O("[1, 2]");
+  EXPECT_EQ(getOutput(), "[1, 2]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignmentLOCAL) {
   I(R"(   { var x : int[2][2] = [ [ 1, 2 ], [ 3, 4 ] ] x[0][0] =
         5 print(x)} )");
 
-  O("[[5, 2], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[5, 2], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignmentGL) {
   I(R"(    var x : int[2][2] = [ [ 1, 2 ], [ 3, 4 ] ]{ x[0][0] =
         5 print(x)} )");
 
-  O("[[5, 2], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[5, 2], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2LOCAL) {
@@ -740,7 +753,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2LOCAL) {
         
     )");
 
-  O("[[1, 5], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[1, 5], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2GL) {
@@ -750,7 +763,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2GL) {
         
     )");
 
-  O("[[1, 5], [3, 4]]");
+  EXPECT_EQ(getOutput(), "[[1, 5], [3, 4]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillLOCAL) {
@@ -760,7 +773,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillLOCAL) {
         
     )");
 
-  O("[[4, 4], [4, 0]]");
+  EXPECT_EQ(getOutput(), "[[4, 4], [4, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillGL) {
@@ -770,7 +783,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillGL) {
         
     )");
 
-  O("[[4, 4], [4, 0]]");
+  EXPECT_EQ(getOutput(), "[[4, 4], [4, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2LOCAL) {
@@ -780,7 +793,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2LOCAL) {
         }
     )");
 
-  O("[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2GL) {
@@ -790,7 +803,7 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFill2GL) {
         
     )");
 
-  O("[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
+  EXPECT_EQ(getOutput(), "[[10, 10, 10, 10, 10], [0, 0, 0, 0, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAllLOCAL) {
@@ -800,7 +813,8 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAllLOCAL) {
         }
     )");
 
-  O("[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAllGL) {
@@ -810,7 +824,8 @@ TEST_F(MultiDimContainer, 2DContainerAssignment2WithFillAllGL) {
         
     )");
 
-  O("[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignmentLOCAL) {
@@ -820,8 +835,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignmentLOCAL) {
         }
     )");
 
-  O("[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignmentGL) {
@@ -831,8 +848,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignmentGL) {
         
     )");
 
-  O("[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignmentAccessLOCAL) {
@@ -843,8 +862,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignmentAccessLOCAL) {
         
     )");
 
-  O("[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerAssignmentAccessGL) {
@@ -855,8 +876,10 @@ TEST_F(MultiDimContainer, 3DContainerAssignmentAccessGL) {
         
     )");
 
-  O("[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, 0], [0, "
-    "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 2], [2, 2], [2, 2]], [[2, 2], [2, 2], [2, 2]], [[2, 2], [2, "
+            "0], [0, "
+            "0]], [[0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInitLOCAL) {
@@ -866,7 +889,7 @@ TEST_F(MultiDimContainer, 2DContainerInitLOCAL) {
         
     )");
 
-  O("[[1, 2], [0, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [0, 0]]");
 }
 TEST_F(MultiDimContainer, 2DContainerInitGL) {
   I(R"(
@@ -875,7 +898,7 @@ TEST_F(MultiDimContainer, 2DContainerInitGL) {
         
     )");
 
-  O("[[1, 2], [0, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [0, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInit2LOCAL) {
@@ -885,7 +908,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2LOCAL) {
         
     )");
 
-  O("[[1, 2], [3, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [3, 0]]");
 }
 TEST_F(MultiDimContainer, 2DContainerInit2GL) {
   I(R"(
@@ -894,7 +917,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2GL) {
         
     )");
 
-  O("[[1, 2], [3, 0]]");
+  EXPECT_EQ(getOutput(), "[[1, 2], [3, 0]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerInit2DiffDimLOCAL) {
@@ -905,7 +928,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2DiffDimLOCAL) {
             
         )");
 
-  O("[[1, 2, 0], [3, 4, 5]]");
+  EXPECT_EQ(getOutput(), "[[1, 2, 0], [3, 4, 5]]");
 }
 TEST_F(MultiDimContainer, 2DContainerInit2DiffDimGL) {
 
@@ -915,7 +938,7 @@ TEST_F(MultiDimContainer, 2DContainerInit2DiffDimGL) {
             
         )");
 
-  O("[[1, 2, 0], [3, 4, 5]]");
+  EXPECT_EQ(getOutput(), "[[1, 2, 0], [3, 4, 5]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillLOCAL) {
@@ -926,7 +949,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillLOCAL) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillGL) {
@@ -937,7 +961,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillGL) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVarLOCAL) {
@@ -949,7 +974,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVarLOCAL) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVarGL) {
 
@@ -960,7 +986,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVarGL) {
             
         )");
 
-  O("[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 5], [5, 5], [5, 5]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2LOCAL) {
@@ -972,7 +999,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2LOCAL) {
             
         )");
 
-  O("[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2GL) {
@@ -984,7 +1012,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithFillWithVar2GL) {
             
         )");
 
-  O("[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[6, 6], [6, 6], [6, 6]], [[0, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2LOCAL) {
@@ -996,7 +1025,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2LOCAL) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
 }
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2GL) {
 
@@ -1007,7 +1037,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar2GL) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [0, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3LOCAL) {
@@ -1019,7 +1050,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3LOCAL) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
 }
 
 TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3GL) {
@@ -1031,7 +1063,8 @@ TEST_F(MultiDimContainer, 3DContainerInit2DiffDimWithVar3GL) {
             
         )");
 
-  O("[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
+  EXPECT_EQ(getOutput(),
+            "[[[5, 0], [0, 0], [0, 0]], [[6, 0], [7, 0], [0, 0]]]");
 }
 
 // Indexing
@@ -1043,7 +1076,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingLOCAL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingGL) {
@@ -1053,7 +1086,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingGL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexing2LOCAL) {
@@ -1063,7 +1096,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexing2LOCAL) {
         }
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexing2GL) {
@@ -1073,7 +1106,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexing2GL) {
         
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 
 // Indexing with variable
@@ -1086,7 +1119,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithVarLOCAL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithVarGL) {
@@ -1097,7 +1130,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithVarGL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D
@@ -1109,7 +1142,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingLOCAL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 TEST_F(MultiDimContainer, 3DContainerIndexingGL) {
   I(R"(
@@ -1118,7 +1151,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingGL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D multiple
@@ -1130,7 +1163,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexing2LOCAL) {
         }
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 
 TEST_F(MultiDimContainer, 3DContainerIndexing2GL) {
@@ -1140,7 +1173,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexing2GL) {
         
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 // Indexing 3D with variable
 
@@ -1152,7 +1185,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVarLOCAL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 TEST_F(MultiDimContainer, 3DContainerIndexingWithVarGL) {
   I(R"(
@@ -1162,7 +1195,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVarGL) {
         
     )");
 
-  O("1");
+  EXPECT_EQ(getOutput(), "1");
 }
 
 // Indexing 3D with variable y = 1
@@ -1175,7 +1208,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVar2LOCAL) {
         
     )");
 
-  O("8");
+  EXPECT_EQ(getOutput(), "8");
 }
 TEST_F(MultiDimContainer, 3DContainerIndexingWithVar2GL) {
   I(R"(
@@ -1185,7 +1218,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithVar2GL) {
         
     )");
 
-  O("8");
+  EXPECT_EQ(getOutput(), "8");
 }
 
 // Indexing 2D when fill is used
@@ -1197,7 +1230,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFillLOCAL) {
         
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFillGL) {
   I(R"(
@@ -1206,7 +1239,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFillGL) {
         
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 
 // Indexing 3D when fill is used
@@ -1218,7 +1251,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFillLOCAL) {
         }
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 
 TEST_F(MultiDimContainer, 3DContainerIndexingWithFillGL) {
@@ -1228,7 +1261,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFillGL) {
         }
     )");
 
-  O("5");
+  EXPECT_EQ(getOutput(), "5");
 }
 
 // Indexing 3D when fill is used dofferent index
@@ -1240,7 +1273,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFill2LOCAL) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 TEST_F(MultiDimContainer, 3DContainerIndexingWithFill2GL) {
   I(R"(
@@ -1249,7 +1282,7 @@ TEST_F(MultiDimContainer, 3DContainerIndexingWithFill2GL) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 
 // Indexing 2D when fill is used different variable index
@@ -1262,7 +1295,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill2LOCAL) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill2GL) {
   I(R"(
@@ -1272,7 +1305,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill2GL) {
         
     )");
 
-  O("0");
+  EXPECT_EQ(getOutput(), "0");
 }
 // Adding 2D containers values found using index
 
@@ -1284,7 +1317,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill3LOCAL) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill3GL) {
   I(R"(
@@ -1294,7 +1327,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill3GL) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 
 // Updating 2D containers values found using index
@@ -1308,7 +1341,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill4LOCAL) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill4GL) {
   I(R"(
@@ -1319,7 +1352,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill4GL) {
         
     )");
 
-  O("10");
+  EXPECT_EQ(getOutput(), "10");
 }
 
 // Updating 2D containers values found using index
@@ -1333,7 +1366,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill5LOCAL) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill5GL) {
   I(R"(
@@ -1344,7 +1377,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill5GL) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 
 // Updating 2D containers values from another container
@@ -1359,7 +1392,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill6LOCAL) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill6GL) {
   I(R"(
@@ -1371,7 +1404,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill6GL) {
         
     )");
 
-  O("[[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 10]]");
 }
 
 // Update and printing before and after
@@ -1387,7 +1420,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill7LOCAL) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 10]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill7GL) {
   I(R"(
@@ -1400,7 +1433,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill7GL) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 10]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 10]]");
 }
 
 // Update and 2D container when init with fill and variable
@@ -1416,7 +1449,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill8LOCAL) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 1]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 1]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill8GL) {
   I(R"(
@@ -1429,7 +1462,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill8GL) {
         
     )");
 
-  O("[[5, 5], [5, 5]][[5, 5], [5, 1]]");
+  EXPECT_EQ(getOutput(), "[[5, 5], [5, 5]][[5, 5], [5, 1]]");
 }
 
 // Update and 2D container when init normal and variable
@@ -1445,7 +1478,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill9LOCAL) {
         print(z)     }
     )");
 
-  O("[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill9GL) {
   I(R"(
@@ -1458,7 +1491,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill9GL) {
         print(z)     }
     )");
 
-  O("[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 0], [6, 6]][[4, 1], [5, 6]]");
 }
 
 // Accessing 2D container using container of same dim directly
@@ -1474,7 +1507,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill10LOCAL) {
         print(z)    } 
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill10GL) {
@@ -1488,7 +1521,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill10GL) {
         print(z)  }   
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 // Accessing 2D container using container of with different dim directly 5x3 and
@@ -1505,8 +1538,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11LOCAL) {
         print(z)     }
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11GL) {
   I(R"(
@@ -1519,8 +1554,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11GL) {
         print(z)  }   
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // Filling 2D container using fill of with different dim directly 5x3 and
@@ -1536,8 +1573,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill11GL) {
 //         print(z)
 //     )");
 
-//   O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, 5], [5,
-//   5, "
+//   EXPECT_EQ(getOutput(),"[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0,
+//   0]][[5, 5, 5], [5, 5, "
 //     "5], [5, 5, 5], [5, 5, 5], [5, 5, 5]][[4, 1, 1], [5, 6, 2]]");
 // }
 
@@ -1560,7 +1597,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill13LOCAL) {
         print(z)     }
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill13GL) {
@@ -1580,7 +1617,7 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill13GL) {
         print(z)     
     )");
 
-  O("[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
+  EXPECT_EQ(getOutput(), "[[4, 0], [6, 0]][[4, 1], [5, 6]][[4, 1], [5, 6]]");
 }
 
 // For loop with 2D container with different dim
@@ -1602,8 +1639,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill14LOCAL) {
         print(z) }    
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill14GL) {
@@ -1623,8 +1662,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill14GL) {
         print(z)   }  
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, "
-    "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, "
+            "1], [5, 6, "
+            "2], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // For loop with 2D container with different dim and fill
@@ -1646,8 +1687,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15LOCAL) {
         print(z)     }
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, 5], [5, 5, "
-    "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, "
+            "5], [5, 5, "
+            "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15GL) {
@@ -1667,8 +1710,10 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15GL) {
         print(z)     
     )");
 
-  O("[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, 5], [5, 5, "
-    "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
+  EXPECT_EQ(getOutput(),
+            "[[4, 0, 0], [6, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[5, 5, "
+            "5], [5, 5, "
+            "5], [0, 0, 0], [0, 0, 0], [0, 0, 0]][[4, 1, 1], [5, 6, 2]]");
 }
 
 // Container of containers
@@ -1690,7 +1735,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill15GL) {
 //         print(a[1][0][0])
 //     )");
 
-//   O("[[[4, 0], [6, 0]], [[4, 1], [5, 6]]]4\n6\n6\n1\n0\n0\n0\n0\n");
+//   EXPECT_EQ(getOutput(),"[[[4, 0], [6, 0]], [[4, 1], [5,
+//   6]]]4\n6\n6\n1\n0\n0\n0\n0\n");
 // }
 
 // Str container
@@ -1712,7 +1758,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17LOCAL) {
         print(z[1][1])}
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
+  EXPECT_EQ(getOutput(),
+            "[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17GL) {
   I(R"(
@@ -1731,7 +1778,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill17GL) {
         print(z[1][1])}
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
+  EXPECT_EQ(getOutput(),
+            "[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56");
 }
 
 // Str container  with fill expression and variable
@@ -1754,7 +1802,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18LOCAL) {
         print(y)}
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
+  EXPECT_EQ(getOutput(), "[['4', ''], ['6', '']][['4', 'y'], ['5', "
+                         "'6']]464y56[['Hello', 'Hello']]");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18GL) {
   I(R"(
@@ -1774,7 +1823,8 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill18GL) {
         print(y)
     )");
 
-  O("[['4', ''], ['6', '']][['4', 'y'], ['5', '6']]464y56[['Hello', 'Hello']]");
+  EXPECT_EQ(getOutput(), "[['4', ''], ['6', '']][['4', 'y'], ['5', "
+                         "'6']]464y56[['Hello', 'Hello']]");
 }
 
 // Deci Container
@@ -1796,12 +1846,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill19LOCAL) {
         print(z[1][1])}
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "00000000000000");
 }
 
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill19GL) {
@@ -1821,12 +1873,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill19GL) {
         print(z[1][1])}
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "00000000000000");
 }
 
 // Deci Container  with fill expression and variable
@@ -1849,12 +1903,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill20LOCAL) {
         print(y)}
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "000000000000001.00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "000000000000001.00000000000000");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill20GL) {
   I(R"(
@@ -1874,12 +1930,14 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill20GL) {
         print(y)}
     )");
 
-  O("[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
-    "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
-    "[5.00000000000000, "
-    "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
-    "000000000000004.000000000000001.000000000000005.000000000000006."
-    "000000000000001.00000000000000");
+  EXPECT_EQ(
+      getOutput(),
+      "[[4.00000000000000, 0.00000000000000], [6.00000000000000, "
+      "0.00000000000000]][[4.00000000000000, 1.00000000000000], "
+      "[5.00000000000000, "
+      "6.00000000000000]]4.000000000000000.000000000000006.000000000000000."
+      "000000000000004.000000000000001.000000000000005.000000000000006."
+      "000000000000001.00000000000000");
 }
 
 // Bool Container
@@ -1901,8 +1959,9 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill21LOCAL) {
         print(z[1][1])}
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalse");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalse");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill21GL) {
   I(R"(
@@ -1921,8 +1980,9 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill21GL) {
         print(z[1][1])}
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalse");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalse");
 }
 
 // Bool Container  with fill expression and variable
@@ -1945,8 +2005,9 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill22LOCAL) {
         print(y)}
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalsetrue");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalsetrue");
 }
 TEST_F(MultiDimContainer, 2DContainerIndexingWithFill22GL) {
   I(R"(
@@ -1966,8 +2027,9 @@ TEST_F(MultiDimContainer, 2DContainerIndexingWithFill22GL) {
         print(y)}
     )");
 
-  O("[[true, false], [false, false]][[true, true], [false, "
-    "false]]truefalsefalsefalsetruetruefalsefalsetrue");
+  EXPECT_EQ(getOutput(),
+            "[[true, false], [false, false]][[true, true], [false, "
+            "false]]truefalsefalsefalsetruetruefalsefalsetrue");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignmentWithFill) {
@@ -1979,7 +2041,9 @@ TEST_F(MultiDimContainer, 2DContainerAssignmentWithFill) {
         
     )");
 
-  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
 }
 
 TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilLOCAL) {
@@ -1991,7 +2055,9 @@ TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilLOCAL) {
         }
     )");
 
-  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
 }
 TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilGL) {
   I(R"(
@@ -2002,7 +2068,9 @@ TEST_F(MultiDimContainer, 2DContainerAssignmentWithFilGL) {
         }
     )");
 
-  O("[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
+  EXPECT_EQ(
+      getOutput(),
+      "[[3, 3, 3, 3, 3], [3, 3, 3, 3, 3]][[5, 5, 3, 3, 3], [3, 3, 3, 3, 3]]");
 }
 
 #endif

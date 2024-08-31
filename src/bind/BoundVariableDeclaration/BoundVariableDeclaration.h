@@ -102,4 +102,8 @@ public:
   inline auto getLLVMVariable() -> std::pair<llvm::Value *, llvm::Type *> {
     return _llvmVariable;
   }
+
+  inline auto setIsConst(bool isConst) { _isConst = isConst; }
+
+  inline auto setIsExposed(bool isExposed) { _isExposed = isExposed; }
 };

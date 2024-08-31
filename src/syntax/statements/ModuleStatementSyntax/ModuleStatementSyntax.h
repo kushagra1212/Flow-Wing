@@ -15,10 +15,8 @@ class ModuleStatementSyntax : public StatementSyntax {
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _moduleName;
   std::unique_ptr<SyntaxToken<std::any>> _closeBracketToken;
 
-  std::vector<std::unique_ptr<VariableDeclarationSyntax>> _variableStatements;
-  std::vector<std::unique_ptr<FunctionDeclarationSyntax>> _functionStatements;
-  std::vector<std::unique_ptr<ClassStatementSyntax>> _classStatements;
-  std::vector<std::unique_ptr<CustomTypeStatementSyntax>> _customTypeStatements;
+  std::vector<std::unique_ptr<StatementSyntax>> _statements;
+  std::vector<std::unique_ptr<MemberSyntax>> _membersStatements;
 
 public:
   const SyntaxKindUtils::SyntaxKind getKind() const override;
@@ -49,30 +47,16 @@ public:
     this->_closeBracketToken = std::move(closeBracketToken);
   }
 
-  inline auto
-  addClassStatement(std::unique_ptr<ClassStatementSyntax> classStatement)
+  inline auto addStatement(std::unique_ptr<StatementSyntax> statement) -> void {
+    _statements.push_back(std::move(statement));
+  }
+
+  inline auto addMemberStatement(std::unique_ptr<MemberSyntax> memberStatement)
       -> void {
-    _classStatements.push_back(std::move(classStatement));
+    _membersStatements.push_back(std::move(memberStatement));
   }
 
-  inline auto
-  addVariableStatement(std::unique_ptr<VariableDeclarationSyntax> member)
-      -> void {
-    _variableStatements.push_back(std::move(member));
-  }
-
-  inline auto addCustomTypeStatement(
-      std::unique_ptr<CustomTypeStatementSyntax> customTypeStatement) -> void {
-    _customTypeStatements.push_back(std::move(customTypeStatement));
-  }
-
-  inline auto
-  addFunctionStatement(std::unique_ptr<FunctionDeclarationSyntax> function)
-      -> void {
-    _functionStatements.push_back(std::move(function));
-  }
-
-  inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
+  const inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
     return _moduleKeyword;
   }
 
@@ -85,28 +69,18 @@ public:
     return _moduleName;
   }
 
-  inline auto getClassStatementsRef()
-      -> const std::vector<std::unique_ptr<ClassStatementSyntax>> & {
-    return _classStatements;
-  }
-
   std::unique_ptr<SyntaxToken<std::any>> &getCloseBracketTokenRef() {
     return _closeBracketToken;
   }
 
-  inline auto getVariableStatementsRef()
-      -> const std::vector<std::unique_ptr<VariableDeclarationSyntax>> & {
-    return _variableStatements;
+  inline auto getStatementsRef()
+      -> const std::vector<std::unique_ptr<StatementSyntax>> & {
+    return _statements;
   }
 
-  inline auto getFunctionStatementsRef()
-      -> const std::vector<std::unique_ptr<FunctionDeclarationSyntax>> & {
-    return _functionStatements;
-  }
-
-  inline auto getCustomTypeStatementsRef()
-      -> const std::vector<std::unique_ptr<CustomTypeStatementSyntax>> & {
-    return _customTypeStatements;
+  inline auto getMembersStatementsRef()
+      -> const std::vector<std::unique_ptr<MemberSyntax>> & {
+    return _membersStatements;
   }
 };
 

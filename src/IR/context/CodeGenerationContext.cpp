@@ -180,7 +180,7 @@ auto CodeGenerationContext::createVTableMapEntry(
         &vTableElementsMap,
     std::string className, uint64_t &index) -> void {
 
-  auto classVar = this->_classTypes[className].get();
+  auto classVar = this->_classTypes[className];
 
   if (!classVar)
     return;
@@ -445,15 +445,19 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
                                                llvm::StructType *rhsType,
                                                std::string inExp) {
 
-  if (this->_classTypes[lhsType->getStructName().str()] &&
-      this->_classTypes[rhsType->getStructName().str()]) {
+  if (this->_classTypes.find(lhsType->getStructName().str()) !=
+          this->_classTypes.end() &&
+      this->_classTypes.find(rhsType->getStructName().str()) !=
+          this->_classTypes.end()) {
 
-    if (this->_classTypes[rhsType->getStructName().str()]->isChildOf(
+    if (this->_classTypes[rhsType->getStructName().str()] &&
+        this->_classTypes[rhsType->getStructName().str()]->isChildOf(
             lhsType->getStructName().str()))
       return EXIT_SUCCESS;
   }
 
-  if (lhsType != rhsType) {
+  if (this->getMapper()->getLLVMTypeName(lhsType) !=
+      this->getMapper()->getLLVMTypeName(rhsType)) {
     this->getLogger()->LogError(
         "Type mismatch Expected " +
         this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
@@ -462,7 +466,7 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   }
 
   if (lhsType->getNumElements() != rhsType->getNumElements()) {
-    this->getLogger()->LogError("Object type mismatch " + inExp + " Expected " +
+    this->getLogger()->LogError("Type mismatch " + inExp + " Expected " +
                                 std::to_string(lhsType->getNumElements()) +
                                 " but found " +
                                 std::to_string(rhsType->getNumElements()));
@@ -470,12 +474,34 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   }
 
   if (lhsType->getStructName() != rhsType->getStructName()) {
-    this->getLogger()->LogError("Object type mismatch " + inExp + " Expected " +
+    this->getLogger()->LogError("Type mismatch " + inExp + " Expected " +
                                 lhsType->getStructName().str() + " but found " +
                                 rhsType->getStructName().str());
 
     return EXIT_FAILURE;
   }
+  return EXIT_SUCCESS;
+}
+
+int8_t
+CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
+                                  const std::vector<llvm::Type *> &rhsTypes,
+                                  const std::string &inExp) {
+
+  if (lhsTypes.size() != rhsTypes.size()) {
+
+    this->getLogger()->LogError("Type mismatch Expected " +
+                                this->getMapper()->getLLVMTypeName(lhsTypes) +
+                                inExp);
+    return EXIT_FAILURE;
+  }
+
+  for (int i = 0; i < lhsTypes.size(); i++) {
+    if (this->verifyType(lhsTypes[i], rhsTypes[i], inExp) == EXIT_FAILURE) {
+      return EXIT_FAILURE;
+    }
+  }
+
   return EXIT_SUCCESS;
 }
 
@@ -661,6 +687,7 @@ void CodeGenerationContext::verifyFunction(llvm::Function *F,
     this->getLogger()->LogError("Error verifying function " + FUNCTION_NAME +
                                 errorInfo);
   } else {
+
     this->getLogger()->LogInfo("Function " + FUNCTION_NAME +
                                " verified successfully");
   }

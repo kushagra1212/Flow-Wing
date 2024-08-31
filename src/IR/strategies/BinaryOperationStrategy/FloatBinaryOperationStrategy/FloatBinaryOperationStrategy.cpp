@@ -124,6 +124,6 @@ llvm::Value *FloatBinaryOperationStrategy::performOperation(
   }
   }
 
-  this->_codeGenerationContext->callREF(errorMessage);
+  this->_codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

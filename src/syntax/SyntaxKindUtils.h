@@ -114,12 +114,15 @@ enum SyntaxKind {
   NirastExpression,
   FillExpression,
   BracketedExpression,
+  MultipleAssignmentExpression,
+
   // Statements
   GlobalStatement,
   ExpressionStatement,
   CustomTypeStatement,
   BlockStatement,
   VariableDeclaration,
+  MultipleVariableDeclaration,
   ClassStatement,
   IfStatement,
   OrIfStatement,

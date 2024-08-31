@@ -1,26 +1,16 @@
+bring File/#
+var res: str, err: Err::Result = File::read("test.fg", "r")
+if (err != Nir) {
+  print(err.getMessage())
+}else {
+  print(res)
+}
 
 
 
-fun fopen(fileName: as str, mode: as str) -> as str decl 
-fun fread(buffer:int[5000] ,size: as int, count: as int, file: as str) -> as int decl
 
 
-const fileName:str = "2temp3.txt"
-var file:str = fopen(fileName, "r")
-if(file == Nir) {
-    print("NULL")
-  }
 
-/#
-print(file)
-var buffer:int[5]
-print(file)
-
-var res: int = fread(buffer,4,10,file)
-
-print(res)
-
-print(String(buffer))
 
 
 

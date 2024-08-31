@@ -6,18 +6,16 @@
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<ExpressionSyntax> _left;
-  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _right;
+  SyntaxKindUtils::SyntaxKind _operatorTokenKind;
   bool _needDefaultInitialize = false;
 
 public:
-  AssignmentExpressionSyntax(
-      std::unique_ptr<ExpressionSyntax> left,
-      std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-      std::unique_ptr<ExpressionSyntax> right,
-      bool needDefaultInitialize = false);
+  AssignmentExpressionSyntax(std::unique_ptr<ExpressionSyntax> left,
+                             SyntaxKindUtils::SyntaxKind operatorTokenKind,
+                             std::unique_ptr<ExpressionSyntax> right,
+                             bool needDefaultInitialize = false);
 
-  std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
   std::unique_ptr<ExpressionSyntax> getRight();
   std::unique_ptr<ExpressionSyntax> getLeft();
 
@@ -25,11 +23,14 @@ public:
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
   std::unique_ptr<ExpressionSyntax> &getRightPtr();
   std::unique_ptr<ExpressionSyntax> &getLeftPtr();
 
   auto inline getNeedDefaulInitilization() -> bool {
     return _needDefaultInitialize;
+  }
+
+  inline auto getOperatorTokenKind() const -> SyntaxKindUtils::SyntaxKind {
+    return _operatorTokenKind;
   }
 };

@@ -11,10 +11,10 @@
 #include "FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 #include "IfStatementGenerationStrategy/IfStatementGenerationStrategy.h"
 #include "ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
+#include "MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
 #include "ReturnStatementGenerationStrategy/ReturnStatementGenerationStrategy.h"
 #include "VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "WhileStatementGenerationStrategy/WhileStatementGenerationStrategy.h"
-
 StatementGenerationFactory::StatementGenerationFactory(
     CodeGenerationContext *context)
     : _codeGenerationContext(context){};
@@ -64,6 +64,11 @@ StatementGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::BoundModuleStatement:
     return std::make_unique<ModuleStatementGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::
+      BoundMultipleVariableDeclarationStatement:
+    return std::make_unique<
+        MultipleVariableDeclarationStatementGenerationStrategy>(
         _codeGenerationContext);
   default: {
     _codeGenerationContext->getLogger()->LogError(

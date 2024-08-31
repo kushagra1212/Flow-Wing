@@ -1,16 +1,9 @@
 #include "Comment.h"
 
-CommentTest::CommentTest() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void CommentTest::SetUp() { _test->SetUp(); }
 
 void CommentTest::TearDown() { _test->TearDown(); }
 
-void CommentTest::setInput(const std::string &input) { _test->setInput(input); }
-
-std::string CommentTest::getOutput() const { return _test->getOutput(); }
-
-void CommentTest::runEvaluator() { _test->runEvaluator(); }
 TEST_F(CommentTest, BasicSingleLineComment) {
   std::string input = R"(print(5)
 /; print(2) print(3)

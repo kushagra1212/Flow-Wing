@@ -76,7 +76,7 @@ const bool TypeMapper::isStringType(llvm::Type *type) const {
 
 const bool TypeMapper::isNirastValue(llvm::Value *value) const {
   return value ==
-         llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
+         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
 }
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
@@ -110,6 +110,20 @@ const bool TypeMapper::isInt8Type(llvm::Type *type) const {
 const bool TypeMapper::isPtrType(llvm::Type *type) const {
   return type->isPointerTy();
 }
+
+std::string TypeMapper::getLLVMTypeName(const std::vector<llvm::Type *> &types,
+                                        bool withColor) const {
+  std::string text = "List[";
+  uint64_t i = 0;
+  for (const auto &type : types) {
+    text +=
+        getLLVMTypeName(type, withColor) + (i == types.size() - 1 ? "" : " ");
+    i++;
+  }
+  text += "]";
+  return text;
+}
+
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                                         bool withColor) const {
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
@@ -126,7 +140,14 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                          : text;
       }
 
-      const std::string text = "<Object<" + structType->getName().str() + ">>";
+      std::string structName = structType->getName().str().length()
+                                   ? structType->getName().str()
+                                   : ".";
+      //! This Might break
+      // const std::string formatedStructName =
+      //     "<" + structName.substr(0, structName.find_last_of(".")) + ">";
+
+      const std::string text = "<Object" + structName + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;
@@ -134,8 +155,8 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
 
       const std::string text =
-          "<Array" + getLLVMTypeName(arrayType->getElementType(), withColor) +
-          ">";
+          "<Array[" + std::to_string(arrayType->getNumElements()) + "]" +
+          getLLVMTypeName(arrayType->getElementType(), withColor) + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;

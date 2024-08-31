@@ -6,6 +6,7 @@ BoundCallExpression::BoundCallExpression(
 
 void BoundCallExpression::addArgument(
     std::unique_ptr<BoundExpression> argument) {
+  _argumentPtrList.push_back(argument.get());
   _arguments.push_back(std::move(argument));
 }
 

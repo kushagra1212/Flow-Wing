@@ -36,9 +36,7 @@ llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to double"));
+  _logger->LogError(("Unsupported type for conversion to double"));
 
   return nullptr;
 }
@@ -56,15 +54,15 @@ llvm::Value *FloatTypeConverter::convertImplicit(llvm::Value *&value) {
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
   case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Implicit conversion from int64 to deci32 is not "
         "supported for variable with predefined type"));
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Implicit conversion from deci to deci32 is not "
         "supported for variable with predefined type"));
     return nullptr;
@@ -73,15 +71,15 @@ llvm::Value *FloatTypeConverter::convertImplicit(llvm::Value *&value) {
     return value;
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Implicit conversion from bool to double is not "
         "supported for variable with predefined type"));
     return nullptr;
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Implicit conversion from string to double is not "
         "supported for variable with predefined type"));
 
@@ -91,9 +89,7 @@ llvm::Value *FloatTypeConverter::convertImplicit(llvm::Value *&value) {
     break;
   }
 
-  _logger->logLLVMError(
-      llvm::createStringError(llvm::inconvertibleErrorCode(),
-                              "Unsupported type for conversion to double"));
+  _logger->LogError(("Unsupported type for conversion to double"));
 
   return nullptr;
 }

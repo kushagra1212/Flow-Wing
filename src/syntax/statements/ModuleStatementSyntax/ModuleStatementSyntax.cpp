@@ -6,6 +6,7 @@ const SyntaxKindUtils::SyntaxKind ModuleStatementSyntax::getKind() const {
 
 const DiagnosticUtils::SourceLocation
 ModuleStatementSyntax::getSourceLocation() const {
+
   if (_moduleKeyword)
     return _moduleKeyword->getSourceLocation();
 
@@ -18,19 +19,11 @@ ModuleStatementSyntax::getSourceLocation() const {
   if (_closeBracketToken)
     return _closeBracketToken->getSourceLocation();
 
-  for (const auto &m : _customTypeStatements) {
-    return m->getSourceLocation();
+  for (const auto &s : _statements) {
+    return s->getSourceLocation();
   }
 
-  for (const auto &m : _variableStatements) {
-    return m->getSourceLocation();
-  }
-
-  for (const auto &m : _functionStatements) {
-    return m->getSourceLocation();
-  }
-
-  for (const auto &m : _classStatements) {
+  for (const auto &m : _membersStatements) {
     return m->getSourceLocation();
   }
 
@@ -39,27 +32,25 @@ ModuleStatementSyntax::getSourceLocation() const {
 
 const std::vector<SyntaxNode *> &ModuleStatementSyntax::getChildren() {
   if (_children.empty()) {
-    if (_moduleKeyword)
-      this->_children.push_back(_moduleKeyword.get());
+
+    //! BUG: Not Showing up as Chiild in lsp
+    // if (_moduleKeyword)
+    //   this->_children.push_back(_moduleKeyword.get());
+
     if (_openBracketToken)
       this->_children.push_back(_openBracketToken.get());
+
     if (_moduleName)
       this->_children.push_back(_moduleName.get());
+
     if (_closeBracketToken)
       this->_children.push_back(_closeBracketToken.get());
 
-    for (const auto &type : _customTypeStatements) {
-      _children.push_back(type.get());
+    for (const auto &s : _statements) {
+      _children.push_back(s.get());
     }
 
-    for (const auto &c : _classStatements) {
-      _children.push_back(c.get());
-    }
-
-    for (const auto &m : _variableStatements) {
-      _children.push_back(m.get());
-    }
-    for (const auto &m : _functionStatements) {
+    for (const auto &m : _membersStatements) {
       _children.push_back(m.get());
     }
   }

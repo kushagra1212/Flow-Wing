@@ -13,11 +13,13 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::vector<std::unique_ptr<BoundVariableDeclaration>> _parameters;
   std::string _functionName;
   bool _isExposed;
-  std::unique_ptr<BoundExpression> _returnType;
+  std::vector<std::unique_ptr<BoundExpression>> _returnTypeExprList;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
   bool _isVariadicFunction = false;
   bool _hasAsReturnType = false;
+  int64_t _minNumberOfParametersNeeded = 0;
+  int64_t _optionalParameterStartIndex = -1;
 
 public:
   BoundFunctionDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -34,8 +36,8 @@ public:
     _isOnlyDeclared = isOnlyDeclared;
   }
 
-  inline void setReturnType(std::unique_ptr<BoundExpression> returnType) {
-    _returnType = std::move(returnType);
+  inline void addReturnExpr(std::unique_ptr<BoundExpression> retrunExprType) {
+    _returnTypeExprList.push_back(std::move(retrunExprType));
   }
 
   inline void setIsMemberFunction(bool isMemberFunction) {
@@ -63,9 +65,26 @@ public:
 
   inline auto isVariadicFunction() const { return _isVariadicFunction; }
 
-  inline auto getReturnType() const
-      -> const std::unique_ptr<BoundExpression> & {
-    return _returnType;
+  inline auto getReturnTypeExprListRef() const
+      -> const std::vector<std::unique_ptr<BoundExpression>> & {
+    return _returnTypeExprList;
+  }
+
+  inline auto getMinNumberOfParametersNeeded() const -> int64_t {
+    return _minNumberOfParametersNeeded;
+  }
+
+  inline auto
+  setOptionalParameterStartIndex(int64_t optionalParameterStartIndex) {
+    _optionalParameterStartIndex = optionalParameterStartIndex;
+  }
+
+  inline auto getOptionalParameterStartIndex() const -> int64_t {
+    return _optionalParameterStartIndex;
+  }
+
+  inline auto hasOptionalParameters() const -> bool {
+    return _optionalParameterStartIndex >= 0;
   }
 
   inline auto isMemberFunction() const -> bool { return _isMemberFunction; }

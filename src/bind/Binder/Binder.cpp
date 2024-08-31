@@ -39,6 +39,8 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       variableDeclaration->getIdentifierRef()->getValue());
   bool isConst = false;
 
+  DEBUG_LOG("Declaring variable " + variable_str);
+
   if (variableDeclaration->getKeywordRef()) {
     isConst = variableDeclaration->getKeywordRef()->getKind() ==
               SyntaxKindUtils::SyntaxKind::ConstKeyword;
@@ -71,7 +73,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       BoundObjectTypeExpression *objectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
 
-      Utils::DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
+      DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
 
       //! This Handles when the Type is Class Type in that Case Since we are
       //! only receiving class Name not the type along with Module name e.g A
@@ -93,7 +95,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
       if (boundClassStatement) {
         className = boundClassStatement->getClassName();
       }
-      Utils::DEBUG_LOG("CN " + className);
+      DEBUG_LOG("CN " + className);
     }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
@@ -236,26 +238,26 @@ Binder::bindContinueStatement(ContinueStatementSyntax *continueStatement) {
 
 std::unique_ptr<BoundStatement>
 Binder::bindReturnStatement(ReturnStatementSyntax *returnStatement) {
-  std::unique_ptr<BoundExpression> boundExpression = nullptr;
+  std::unique_ptr<BoundReturnStatement> boundRetExpression =
+      std::make_unique<BoundReturnStatement>(
+          returnStatement->getSourceLocation());
+
   if (!this->root->isInFunction()) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Return Statement Outside Of Function",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       returnStatement->getReturnKeywordPtr().get())));
+                   returnStatement->getSourceLocation()));
   } else {
-    ExpressionSyntax *returnExpression =
-        returnStatement->getExpressionPtr().get();
+    // TODO IMPLEMENT all Expression
 
-    if (returnExpression) {
-      // TODO IMPLEMENT all Expression
-      boundExpression = std::move(bindExpression(returnExpression));
+    for (const auto &expr : returnStatement->getReturnExpressionListRef()) {
+      boundRetExpression->addReturnExpression(
+          std::move(bindExpression(expr.get())));
     }
   }
 
-  return std::make_unique<BoundReturnStatement>(
-      returnStatement->getSourceLocation(), std::move(boundExpression));
+  return std::move(boundRetExpression);
 }
 
 std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
@@ -302,9 +304,56 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::ModuleStatement: {
     return std::move(bindModuleStatement((ModuleStatementSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::MultipleVariableDeclaration: {
+    return std::move(bindMultipleVariableDeclaration(
+        (MultipleVariableDeclarationSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
+}
+
+std::unique_ptr<BoundMultipleVariableDeclaration>
+Binder::bindMultipleVariableDeclaration(
+    MultipleVariableDeclarationSyntax *multipleVariableDeclaration) {
+
+  std::unique_ptr<BoundMultipleVariableDeclaration>
+      boundMultipleVariableDeclaration =
+          std::make_unique<BoundMultipleVariableDeclaration>(
+              multipleVariableDeclaration->getSourceLocation());
+
+  for (auto &variableDeclaration :
+       multipleVariableDeclaration->getVariableDeclarationListRef()) {
+    boundMultipleVariableDeclaration->addVariableDeclaration(
+        std::move(this->bindVariableDeclaration(variableDeclaration.get())));
+  }
+
+  auto firstVariableDeclaration =
+      boundMultipleVariableDeclaration->getVariableDeclarationListRef()[0]
+          .get();
+
+  for (auto i = 1;
+       i <
+       boundMultipleVariableDeclaration->getVariableDeclarationListRef().size();
+       i++) {
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setIsConst(firstVariableDeclaration->isConst());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setHasAsKeyword(firstVariableDeclaration->getHasAsKeyword());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setHasInOutKeyword(firstVariableDeclaration->getHasInOutKeyword());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setMemoryKind(firstVariableDeclaration->getMemoryKind());
+
+    boundMultipleVariableDeclaration->getVariableDeclarationListRef()[i]
+        ->setIsExposed(firstVariableDeclaration->isExposed());
+  }
+
+  return std::move(boundMultipleVariableDeclaration);
 }
 
 std::unique_ptr<BoundStatement>
@@ -317,81 +366,123 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
   boundModuleStat->addModuleNameIdentifier(std::move(
       bindLiteralExpression(moduleStatement->getModuleNameRef().get())));
 
-  for (auto &cusType : moduleStatement->getCustomTypeStatementsRef()) {
+  _currentModuleName = boundModuleStat->getModuleName();
+
+  this->root->tryDeclareModuleGlobal(boundModuleStat.get());
+
+  for (auto &stat : moduleStatement->getStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
-    auto boundCustomTypeStatement =
-        std::move(this->bindCustomTypeStatement(cusType.get()));
 
-    boundModuleStat->addCustomTypeStatement(
-        std::move(boundCustomTypeStatement));
-    _currentModuleName = "";
+    switch (stat->getKind()) {
+    case SyntaxKindUtils::SyntaxKind::CustomTypeStatement: {
+      CustomTypeStatementSyntax *customTypeStatement =
+          static_cast<CustomTypeStatementSyntax *>(stat.get());
+
+      auto boundCustomTypeStatement =
+          std::move(this->bindCustomTypeStatement(customTypeStatement));
+
+      boundModuleStat->addCustomTypeStatement(
+          std::move(boundCustomTypeStatement));
+      break;
+    }
+    case SyntaxKindUtils::SyntaxKind::ClassStatement: {
+      ClassStatementSyntax *classStatement =
+          static_cast<ClassStatementSyntax *>(stat.get());
+      auto boundClassStatement =
+          std::move(this->bindClassStatement(classStatement));
+
+      boundModuleStat->addClassStatement(std::move(boundClassStatement));
+      break;
+    }
+    case SyntaxKindUtils::SyntaxKind::VariableDeclaration: {
+
+      VariableDeclarationSyntax *var =
+          static_cast<VariableDeclarationSyntax *>(stat.get());
+
+      auto boundMemberVariable = std::move(
+          this->bindVariableDeclaration(var, boundModuleStat->getModuleName()));
+      // boundModuleStat->addMemberVariablePtr(boundMemberVariable.get());
+
+      // varMemberMap[boundMemberVariable->getVariableName()] = 1;
+      this->root->tryDeclareVariableGlobal(
+          boundMemberVariable->getVariableName(), boundMemberVariable.get());
+
+      boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
+      break;
+    }
+    default: {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Unsupported Expression or Statement used in Module [" +
+                         _currentModuleName + "]",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     stat->getSourceLocation()));
+
+      break;
+    }
+    }
   }
 
-  this->root->tryDeclareModule(boundModuleStat.get());
-  for (auto &classStmt : moduleStatement->getClassStatementsRef()) {
+  for (auto &mem : moduleStatement->getMembersStatementsRef()) {
 
     _currentModuleName = boundModuleStat->getModuleName();
-    auto boundClassStatement =
-        std::move(this->bindClassStatement(classStmt.get()));
 
-    boundModuleStat->addClassStatement(std::move(boundClassStatement));
-    _currentModuleName = "";
-  }
+    switch (mem->getKind()) {
+    // Only Function Declaration
+    case SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax: {
+      FunctionDeclarationSyntax *fun =
+          static_cast<FunctionDeclarationSyntax *>(mem.get());
+      if (fun->isOnlyDeclared()) {
+        boundModuleStat->addFunctionStatement(
+            std::move(this->bindFunctionDeclaration(fun, "")));
 
-  //  std::unordered_map<std::string, int> varMemberMap;
+        break;
+      }
 
-  for (auto &var : moduleStatement->getVariableStatementsRef()) {
+      fun->setIsOnlyDeclared(true);
+      boundModuleStat->addFunctionStatement(
+          std::move(this->bindFunctionDeclaration(
+              fun, boundModuleStat->getModuleName() +
+                       FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
 
-    _currentModuleName = boundModuleStat->getModuleName();
-    auto boundMemberVariable = std::move(this->bindVariableDeclaration(
-        var.get(), boundModuleStat->getModuleName()));
-    // boundModuleStat->addMemberVariablePtr(boundMemberVariable.get());
-
-    // varMemberMap[boundMemberVariable->getVariableName()] = 1;
-    this->root->tryDeclareVariableGlobal(boundMemberVariable->getVariableName(),
-                                         boundMemberVariable.get());
-
-    boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
-    _currentModuleName = "";
+      // Define Functions
+      fun->setIsOnlyDeclared(false);
+      break;
+    }
+    default:
+      this->_diagnosticHandler->addDiagnostic(Diagnostic(
+          "Unsupported Expression or Statement used in Module " +
+              _currentModuleName,
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic, mem->getSourceLocation()));
+      break;
+    }
   }
 
   // this->root = std::make_unique<BoundScope>(std::move(this->root));
 
-  for (const auto &fun : moduleStatement->getFunctionStatementsRef()) {
-    if (fun->isOnlyDeclared()) {
+  for (auto &stat : moduleStatement->getMembersStatementsRef()) {
+    if (stat->getKind() ==
+        SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
+      FunctionDeclarationSyntax *fun =
+          static_cast<FunctionDeclarationSyntax *>(stat.get());
+      if (fun->isOnlyDeclared()) {
+        continue;
+      }
       _currentModuleName = boundModuleStat->getModuleName();
-      // boundModuleStat->addFunctionStatement(
-      //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
 
       boundModuleStat->addFunctionStatement(
-          std::move(this->bindFunctionDeclaration(fun.get(), "")));
-      _currentModuleName = "";
-      continue;
+          std::move(this->bindFunctionDeclaration(
+              fun, boundModuleStat->getModuleName() +
+                       FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
     }
-
-    fun->setIsOnlyDeclared(true);
-    _currentModuleName = boundModuleStat->getModuleName();
-    // boundModuleStat->addFunctionStatement(
-    //     std::any_cast<std::string>(fun->getIdentifierTokenPtr()->getValue()));
-
-    boundModuleStat->addFunctionStatement(
-        std::move(this->bindFunctionDeclaration(
-            fun.get(), boundModuleStat->getModuleName() +
-                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
-
-    // Define Functions
-    fun->setIsOnlyDeclared(false);
-    boundModuleStat->addFunctionStatement(
-        std::move(this->bindFunctionDeclaration(
-            fun.get(), boundModuleStat->getModuleName() +
-                           FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX)));
-    _currentModuleName = "";
   }
+  _currentModuleName = "";
   // this->root = std::move(this->root->parent);
 
   // this->root = std::move(this->root->parent);
-  // this->root->tryDeclareModule(boundModuleStat.get());
+  // this->root->tryDeclareModuleGlobal(boundModuleStat.get());
 
   return std::move(boundModuleStat);
 }
@@ -621,6 +712,7 @@ Binder::bindClassStatement(ClassStatementSyntax *classStatement) {
   }
 
   this->root = std::make_unique<BoundScope>(std::move(this->root));
+
   this->root->tryDeclareClass(boundClassStat.get());
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
     fun->setIsOnlyDeclared(true);
@@ -790,7 +882,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   }
 
   for (auto &module : globalScope->modules) {
-    if (!this->root->tryDeclareModule(module.second)) {
+    if (!this->root->tryDeclareModuleGlobal(module.second)) {
       this->_diagnosticHandler->addDiagnostic(
           Diagnostic("Module " + module.first + " Already Declared",
                      DiagnosticUtils::DiagnosticLevel::Error,
@@ -804,8 +896,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     //   if (!this->root->tryDeclareVariable(variable->getVariableName(),
     //                                       variable.get())) {
     //     this->_diagnosticHandler->addDiagnostic(Diagnostic(
-    //         "Variable " + variable->getVariableName() + " Already Declared",
-    //         DiagnosticUtils::DiagnosticLevel::Error,
+    //         "Variable " + variable->getVariableName() + " Already
+    //         Declared", DiagnosticUtils::DiagnosticLevel::Error,
     //         DiagnosticUtils::DiagnosticType::Semantic,
     //         Utils::getSourceLocation(
     //             bringStatement->getBringKeywordPtr().get())));
@@ -968,8 +1060,7 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
         Diagnostic("Invalid Assignment Expression",
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(bindExpression(assignmentExpression->getLeftPtr().get()));
   }
@@ -979,15 +1070,14 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(
-          assignmentExpression->getOperatorTokenPtr()->getKind());
+          assignmentExpression->getOperatorTokenKind());
 
   if (!root->tryLookupVariable(variable_str)) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Can Not Assign To Undeclared Variable " + variable_str,
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(boundIdentifierExpression);
   }
@@ -997,20 +1087,28 @@ std::unique_ptr<BoundExpression> Binder::bindAssignmentExpression(
         Diagnostic("Can Not Assign To Constant Variable " + variable_str,
                    DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       assignmentExpression->getOperatorTokenPtr().get())));
+                   assignmentExpression->getLeftPtr()->getSourceLocation()));
 
     return std::move(boundIdentifierExpression);
   }
 
-  std::unique_ptr<BoundExpression> boundRight =
-      bindExpression(assignmentExpression->getRightPtr().get());
+  if (assignmentExpression->getRightPtr()) {
 
-  return std::make_unique<BoundAssignmentExpression>(
-      assignmentExpression->getSourceLocation(),
-      root->tryGetVariable(variable_str), std::move(boundIdentifierExpression),
-      op, std::move(boundRight),
-      assignmentExpression->getNeedDefaulInitilization());
+    std::unique_ptr<BoundExpression> boundRight =
+        std::move(bindExpression(assignmentExpression->getRightPtr().get()));
+    return std::make_unique<BoundAssignmentExpression>(
+        assignmentExpression->getSourceLocation(),
+        root->tryGetVariable(variable_str),
+        std::move(boundIdentifierExpression), op, std::move(boundRight),
+        assignmentExpression->getNeedDefaulInitilization());
+  } else {
+
+    return std::make_unique<BoundAssignmentExpression>(
+        assignmentExpression->getSourceLocation(),
+        root->tryGetVariable(variable_str),
+        std::move(boundIdentifierExpression), op, nullptr,
+        assignmentExpression->getNeedDefaulInitilization());
+  }
 }
 
 std::unique_ptr<BoundExpression>
@@ -1081,7 +1179,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
   BoundFunctionDeclaration *declared_fd = nullptr;
   std::string updatedCallerName = CALLER_NAME;
-
+  bool isSuperFunctionCall = false;
   if (!IS_A_BUILTIN_FUNCTION_CALL) {
 
     const std::string CLASS_NAME = this->root->getClassName();
@@ -1114,6 +1212,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
             std::to_string(callExpression->getArguments().size());
         declared_fd = boundClassStatement->getParentClass()->getMemberFunction(
             updatedCallerName);
+        isSuperFunctionCall = true;
       }
       if (boundClassStatement) {
         const std::string CLASS_MEMBER_FUNCTION_NAME =
@@ -1174,6 +1273,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
       boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
       boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
+      boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
       for (int i = 0; i < callExpression->getArguments().size(); i++) {
         boundCallExpression->addArgument(
             std::move(bindExpression(callExpression->getArguments()[i].get())));
@@ -1193,7 +1293,6 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
 
     BoundModuleStatement *boundModuleStatement =
         this->root->tryGetModule(MODULE_NAME);
-
     if (boundModuleStatement) {
       updatedCallerName = CALLER_NAME;
       declared_fd = this->root->tryGetFunction(updatedCallerName);
@@ -1223,12 +1322,12 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   }
 
   if (declared_fd &&
-      callExpression->getArguments().size() !=
-          declared_fd->getParametersRef().size() &&
+      callExpression->getArguments().size() <
+          declared_fd->getMinNumberOfParametersNeeded() &&
       !IS_A_BUILTIN_FUNCTION_CALL) {
     _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + CALLER_NAME + " requires " +
-            std::to_string(declared_fd->getParametersRef().size()) +
+        "Function " + CALLER_NAME + " requires minimum " +
+            std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
             " arguments",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
@@ -1243,7 +1342,7 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   boundIdentifier->setValue(updatedCallerName);
   boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
-
+  boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
   for (int i = 0; i < callExpression->getArguments().size(); i++) {
     boundCallExpression->addArgument(
         std::move(bindExpression(callExpression->getArguments()[i].get())));
@@ -1311,10 +1410,36 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
   case SyntaxKindUtils::SyntaxKind::NirastExpression: {
     return std::move(bindNirastExpression((NirastExpressionSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::MultipleAssignmentExpression: {
+    return std::move(bindMultipleAssignmentExpression(
+        (MultipleAssignmentExpressionSyntax *)syntax));
+  }
+
   default:
     throw "Unexpected syntax";
   }
   return nullptr;
+}
+
+std::unique_ptr<BoundMultipleAssignmentExpression>
+Binder::bindMultipleAssignmentExpression(
+    MultipleAssignmentExpressionSyntax *multipleAssignmentExpressionSyntax) {
+
+  std::unique_ptr<BoundMultipleAssignmentExpression>
+      boundMultipleAssignmentExpression =
+          std::make_unique<BoundMultipleAssignmentExpression>(
+              multipleAssignmentExpressionSyntax->getSourceLocation());
+
+  for (const auto &assignment :
+       multipleAssignmentExpressionSyntax->getAssignmentExprListRef()) {
+    boundMultipleAssignmentExpression->addAssignment(
+        std::unique_ptr<BoundAssignmentExpression>(
+            (BoundAssignmentExpression *)bindAssignmentExpression(
+                assignment.get())
+                .release()));
+  }
+
+  return std::move(boundMultipleAssignmentExpression);
 }
 
 std::unique_ptr<BoundExpression>
@@ -1347,6 +1472,9 @@ Binder::bindNirastExpression(NirastExpressionSyntax *nirastExpressionSyntax) {
 std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     VariableExpressionSyntax *variableExpressionSyntax) {
 
+  DEBUG_LOG("Checking out variable " +
+            variableExpressionSyntax->getVariableName());
+
   BoundVariableDeclaration *variable =
       this->root->tryGetVariable(variableExpressionSyntax->getVariableName());
 
@@ -1368,7 +1496,20 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         variableExpressionSyntax->getModuleNameorCallExpression().get());
   }
 
-  if (!variable) {
+  if (variableExpressionSyntax->getVariableName() == "self") {
+    std::unique_ptr<BoundVariableExpression> boundVariableExpression =
+        std::make_unique<BoundVariableExpression>(
+            variableExpressionSyntax->getSourceLocation(),
+            std::move(bindLiteralExpression(
+                variableExpressionSyntax->getIdentifierTokenRef().get())),
+            variableExpressionSyntax->isConstant(), nullptr);
+    boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
+    boundVariableExpression->setHasNewKeyword(
+        variableExpressionSyntax->getHasNewKeyword());
+    return std::move(boundVariableExpression);
+  }
+
+  if (!variable && variableExpressionSyntax->getVariableName() != "self") {
 
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
@@ -1379,8 +1520,8 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     return nullptr;
   }
 
-  if (variable->getTypeExpression().get()->getKind() ==
-      BinderKindUtils::BoundObjectExpression) {
+  if (variable && variable->getTypeExpression().get()->getKind() ==
+                      BinderKindUtils::BoundObjectExpression) {
     BoundObjectTypeExpression *boundObjTypeExp =
         static_cast<BoundObjectTypeExpression *>(
             variable->getTypeExpression().get());
@@ -1405,6 +1546,7 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
+
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
     if (dotExpression->getKind() ==
@@ -1463,7 +1605,7 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
       prefix != "" ? prefix + syntax->getIdentifierTokenPtr()->getText()
                    : syntax->getIdentifierTokenPtr()->getText();
 
-  Utils::DEBUG_LOG("Binder:: Declaring function: " + function_name);
+  DEBUG_LOG("Binder:: Declaring function: " + function_name);
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
     this->_diagnosticHandler->addDiagnostic(Diagnostic(
@@ -1487,16 +1629,33 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
   }
 
   fd->setFunctionName(function_name);
-  for (int i = 0; i < syntax->getParametersPtr().size(); i++) {
+
+  for (int64_t i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =
         syntax->getParametersPtr()[i]->getIdentifierRef()->getText();
 
     std::unique_ptr<BoundVariableDeclaration> varDeclaration =
         std::move(bindVariableDeclaration(syntax->getParametersPtr()[i].get()));
+
+    if (varDeclaration->getInitializerPtr() && !fd->hasOptionalParameters()) {
+      fd->setOptionalParameterStartIndex(i);
+    } else if (!varDeclaration->getInitializerPtr() &&
+               fd->hasOptionalParameters()) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Missing value for optional parameter: " + variable_str +
+                         " in " + function_name,
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     syntax->getParametersPtr()[i]->getSourceLocation()));
+    }
+
     fd->addParameter(std::move(varDeclaration));
   }
-  fd->setReturnType(std::move(bindTypeExpression(
-      (TypeExpressionSyntax *)syntax->getReturnExpression().get())));
+
+  for (const auto &expr : syntax->getReturnTypeExpressionListRef()) {
+    fd->addReturnExpr(
+        std::move(bindTypeExpression((TypeExpressionSyntax *)expr.get())));
+  }
 
   if (syntax->isOnlyDeclared()) {
     fd->setOnlyDeclared(true);
@@ -1604,6 +1763,7 @@ Binder::bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax) {
     //? name -> class Type or Object Type
 
     BoundCustomTypeStatement *bCT = this->root->tryGetCustomType(name);
+    DEBUG_LOG("CURRENT_MODULE_NAME: " + name);
 
     if (!bCT && !this->root->tryGetClass(name)) {
       this->_diagnosticHandler->addDiagnostic(

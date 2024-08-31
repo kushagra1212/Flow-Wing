@@ -362,4 +362,29 @@ bring { Animal } from "dependencies.fg"
       `,
     },
   },
+  {
+    label: "module",
+    kind: CompletionItemKind.Keyword,
+    data: "module",
+    detail: "Module Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Module Keyword**
+
+The \`module\` keyword is used to declare a module.
+
+### Example:
+\`\`\`flowwing
+module [Math]
+
+
+fun sum(a:int, b:int) -> int {
+  return a + b
+}
+
+\`\`\`
+      `,
+    },
+  },
 ];

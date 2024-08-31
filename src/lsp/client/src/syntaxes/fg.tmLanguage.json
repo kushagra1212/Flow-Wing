@@ -13,6 +13,9 @@
       "include": "#imports"
     },
     {
+      "include": "#modules"
+    },
+    {
       "include": "#keywords"
     },
     {
@@ -153,6 +156,14 @@
         {
           "name": "keyword.from.fg",
           "match": "\\bfrom\\b"
+        }
+      ]
+    },
+    "modules": {
+      "patterns": [
+        {
+          "name": "keyword.module.fg",
+          "match": "\\bmodule\\b"
         }
       ]
     },

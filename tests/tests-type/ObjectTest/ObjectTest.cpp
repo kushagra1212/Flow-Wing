@@ -1,16 +1,8 @@
 #include "ObjectTest.h"
 
-ObjectTest::ObjectTest() { _test = std::move(Tests::FlowWing::getTest()); }
-
 void ObjectTest::SetUp() { _test->SetUp(); }
 
 void ObjectTest::TearDown() { _test->TearDown(); }
-
-void ObjectTest::setInput(const std::string &input) { _test->setInput(input); }
-
-std::string ObjectTest::getOutput() const { return _test->getOutput(); }
-
-void ObjectTest::runEvaluator() { _test->runEvaluator(); }
 
 #if defined(JIT_TEST_MODE) || defined(AOT_TEST_MODE)
 
@@ -26,7 +18,7 @@ TEST_F(ObjectTest, DefineCustomType) {
 
     )");
 
-  O("");
+  EXPECT_EQ(getOutput(), "");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUse) {
@@ -50,8 +42,10 @@ TEST_F(ObjectTest, DefineCustomTypeUse) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, height : 5.10000000000000, weight : "
-    "50.50000000000000, isEmployed : false }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ name : 'Kushagra', age : 30, height : 5.10000000000000, weight : "
+      "50.50000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues) {
@@ -70,8 +64,9 @@ TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues) {
 
     )");
 
-  O("{ name : '', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : '', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues2) {
@@ -92,8 +87,9 @@ TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues2) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseDefaultValuesCompletePropertyPrint) {
@@ -122,7 +118,7 @@ TEST_F(ObjectTest, DefineCustomTypeUseDefaultValuesCompletePropertyPrint) {
 
     )");
 
-  O("Kushagra305.1000000000000050.50000000000000true");
+  EXPECT_EQ(getOutput(), "Kushagra305.1000000000000050.50000000000000true");
 }
 
 TEST_F(ObjectTest, MultipleCustomTypes) {
@@ -153,8 +149,9 @@ TEST_F(ObjectTest, MultipleCustomTypes) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
-    ": 50.50000000000000, isEmployed : true } }");
+  EXPECT_EQ(getOutput(), "{ name : 'Kushagra', age : 30, obj : { height : "
+                         "5.10000000000000, weight "
+                         ": 50.50000000000000, isEmployed : true } }");
 }
 
 TEST_F(ObjectTest, PartialFill) {
@@ -176,8 +173,9 @@ TEST_F(ObjectTest, PartialFill) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 // TEST_F(ObjectTest, SelfType) {
@@ -206,7 +204,8 @@ TEST_F(ObjectTest, PartialFill) {
 
 //     )");
 
-//   O("{ name : 'Kushagra', age : 30, height : 5.10000000000000, type1 : { name
+//   EXPECT_EQ(getOutput(),"{ name : 'Kushagra', age : 30, height
+//   : 5.10000000000000, type1 : { name
 //   "
 //     ": 'Rathore', age : 0, height : 0.00000000000000, type1 :  } }");
 // }
@@ -227,7 +226,7 @@ TEST_F(ObjectTest, DefineCustomTypeScoped) {
 
     )");
 
-  O("");
+  EXPECT_EQ(getOutput(), "");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseScoped) {
@@ -254,8 +253,10 @@ TEST_F(ObjectTest, DefineCustomTypeUseScoped) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, height : 5.10000000000000, weight : "
-    "50.50000000000000, isEmployed : false }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ name : 'Kushagra', age : 30, height : 5.10000000000000, weight : "
+      "50.50000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseDefaultValuesScoped) {
@@ -276,8 +277,9 @@ TEST_F(ObjectTest, DefineCustomTypeUseDefaultValuesScoped) {
 
     )");
 
-  O("{ name : '', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : '', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues2Scoped) {
@@ -300,8 +302,9 @@ TEST_F(ObjectTest, DefineCustomTypeUseDefaultValues2Scoped) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 TEST_F(ObjectTest,
@@ -333,7 +336,7 @@ TEST_F(ObjectTest,
 
     )");
 
-  O("Kushagra305.1000000000000050.50000000000000true");
+  EXPECT_EQ(getOutput(), "Kushagra305.1000000000000050.50000000000000true");
 }
 
 TEST_F(ObjectTest, MultipleCustomTypesScoped) {
@@ -366,8 +369,9 @@ TEST_F(ObjectTest, MultipleCustomTypesScoped) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
-    ": 50.50000000000000, isEmployed : true } }");
+  EXPECT_EQ(getOutput(), "{ name : 'Kushagra', age : 30, obj : { height : "
+                         "5.10000000000000, weight "
+                         ": 50.50000000000000, isEmployed : true } }");
 }
 
 TEST_F(ObjectTest, PartialFillScoped) {
@@ -391,8 +395,9 @@ TEST_F(ObjectTest, PartialFillScoped) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
-    "0.00000000000000, isEmployed : false }");
+  EXPECT_EQ(getOutput(),
+            "{ name : 'Kushagra', age : 0, height : 0.00000000000000, weight : "
+            "0.00000000000000, isEmployed : false }");
 }
 
 // TEST_F(ObjectTest, SelfTypeScoped) {
@@ -419,7 +424,8 @@ TEST_F(ObjectTest, PartialFillScoped) {
 
 //     )");
 
-//   O("{ name : 'Kushagra', age : 30, height : 5.10000000000000, type1 : { name
+//   EXPECT_EQ(getOutput(),"{ name : 'Kushagra', age : 30, height
+//   : 5.10000000000000, type1 : { name
 //   "
 //     ": 'Rathore', age : 0, height : 0.00000000000000, type1 :  } }");
 // }
@@ -455,9 +461,12 @@ TEST_F(ObjectTest, MultipleCustomTypesPrintSubobjectScoped) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
-    ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
-    "weight : 50.50000000000000, isEmployed : true }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, "
+      "weight "
+      ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
+      "weight : 50.50000000000000, isEmployed : true }");
 }
 
 TEST_F(ObjectTest, MultipleCustomTypesPrintSubobject) {
@@ -489,9 +498,12 @@ TEST_F(ObjectTest, MultipleCustomTypesPrintSubobject) {
 
     )");
 
-  O("{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, weight "
-    ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
-    "weight : 50.50000000000000, isEmployed : true }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ name : 'Kushagra', age : 30, obj : { height : 5.10000000000000, "
+      "weight "
+      ": 50.50000000000000, isEmployed : true } }{ height : 5.10000000000000, "
+      "weight : 50.50000000000000, isEmployed : true }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimple) {
@@ -520,8 +532,10 @@ TEST_F(ObjectTest, AssignObjectSimple) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested1) {
@@ -554,8 +568,10 @@ TEST_F(ObjectTest, AssignObjectSimpleNested1) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested2) {
@@ -590,8 +606,10 @@ TEST_F(ObjectTest, AssignObjectSimpleNested2) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested3) {
@@ -626,8 +644,10 @@ TEST_F(ObjectTest, AssignObjectSimpleNested3) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignObjectSimpleNested4) {
@@ -662,8 +682,10 @@ TEST_F(ObjectTest, AssignObjectSimpleNested4) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimple) {
@@ -692,8 +714,10 @@ TEST_F(ObjectTest, AssignValueSimple) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimpleScope) {
@@ -724,8 +748,10 @@ TEST_F(ObjectTest, AssignValueSimpleScope) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
-    "200.00000000000000, c : false, d : 'world' }");
+  EXPECT_EQ(
+      getOutput(),
+      "{ a : 1, b : 2.00000000000000, c : true, d : 'hello' }{ a : 100, b : "
+      "200.00000000000000, c : false, d : 'world' }");
 }
 
 TEST_F(ObjectTest, AssignValueSimpleObject) {
@@ -758,9 +784,11 @@ TEST_F(ObjectTest, AssignValueSimpleObject) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
-    "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
-    "}");
+  EXPECT_EQ(getOutput(), "{ a : 1, b : 2.00000000000000, c : true, d : "
+                         "'hello', p : { a : 100 } }{ "
+                         "a : 100, b : 200.00000000000000, c : false, d : "
+                         "'world', p : { a : 400 } "
+                         "}");
 }
 TEST_F(ObjectTest, AssignValueSimpleObject2) {
   I(R"(
@@ -792,9 +820,11 @@ TEST_F(ObjectTest, AssignValueSimpleObject2) {
 
     )");
 
-  O("{ a : 1, b : 2.00000000000000, c : true, d : 'hello', p : { a : 100 } }{ "
-    "a : 100, b : 200.00000000000000, c : false, d : 'world', p : { a : 400 } "
-    "}");
+  EXPECT_EQ(getOutput(), "{ a : 1, b : 2.00000000000000, c : true, d : "
+                         "'hello', p : { a : 100 } }{ "
+                         "a : 100, b : 200.00000000000000, c : false, d : "
+                         "'world', p : { a : 400 } "
+                         "}");
 }
 TEST_F(ObjectTest, AssignValueSimpleObject2Constant) {
   I(R"(
@@ -819,7 +849,7 @@ fun getN() -> int {
   pos.y = pos.y - pos.y % side
     )");
 
-  O("2");
+  EXPECT_EQ(getOutput(), "2");
 }
 // TEST_F(ObjectTest, AssignCompleteObject) {
 //   I(R"(
@@ -855,7 +885,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1
 //     "
@@ -899,7 +930,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1
 //     "
@@ -942,7 +974,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1
 //     "
@@ -987,7 +1020,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : true, type1
 //     "
@@ -1023,7 +1057,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : '', age : 0, height : 0.00000000000000, is : false, type1 : {
 //     name "
@@ -1060,7 +1095,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : '', age : 0, height : 0.00000000000000, is : false, type1 : {
 //     name "
@@ -1099,7 +1135,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : '', age : 0, height : 0.00000000000000, is : false, type1 : {
 //     name "
@@ -1139,7 +1176,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : '', age : 0, height : 0.00000000000000, is : false, type1 : {
 //     name "
@@ -1174,7 +1212,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1210,7 +1249,8 @@ fun getN() -> int {
 
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1245,7 +1285,8 @@ fun getN() -> int {
 // }
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1280,7 +1321,8 @@ fun getN() -> int {
 // }
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1315,7 +1357,8 @@ fun getN() -> int {
 //         print(b)
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1353,7 +1396,8 @@ fun getN() -> int {
 //         print(b)
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1393,7 +1437,8 @@ fun getN() -> int {
 // }
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1433,7 +1478,8 @@ fun getN() -> int {
 //         print(b)
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "
@@ -1473,7 +1519,8 @@ fun getN() -> int {
 // }
 //     )");
 
-//   O("{ name : '', age : 0, height : 0.00000000000000, is : false, type1 :  }{
+//   EXPECT_EQ(getOutput(),"{ name : '', age : 0, height : 0.00000000000000, is
+//   : false, type1 :  }{
 //   "
 //     "name : 'Kushagra', age : 30, height : 5.10000000000000, is : false,
 //     type1 "

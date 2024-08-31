@@ -5,7 +5,7 @@ NirastExpressionGenerationStrategy::NirastExpressionGenerationStrategy(
     : ExpressionGenerationStrategy(context) {}
 
 llvm::Value *NirastExpressionGenerationStrategy::generate() {
-  return llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*TheContext));
+  return llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*TheContext));
 }
 
 llvm::Value *NirastExpressionGenerationStrategy::generateExpression(

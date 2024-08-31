@@ -8,13 +8,16 @@ class Vehicle {
     self.year = year 
   }
 
+
   getDetails() -> str {
     return self.year + " " + self.make + " " + self.model
   }
 
+
   printDetails() -> nthg {
     print("Vehicle: ", self.getDetails())
   }
+
 
 }
 class Car extends Vehicle {
@@ -24,19 +27,23 @@ class Car extends Vehicle {
     self.doors = doors 
   }
 
+
   getDetails() -> str {
     return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
   }
 
+
   printDetails() -> nthg {
     print("Car: ", self.getDetails())
   }
+
 
 }
 
 fun printVehicleDetails(v: Vehicle) -> nthg {
   v.printDetails()
 }
+
 
 fun main() -> nthg {
   var vehicle: Vehicle = new Vehicle("Toyota", "Camry", 2020)
@@ -52,4 +59,5 @@ fun main() -> nthg {
 
   print("Updated color assignments: ", colorAssignments)
 }
+
 main()

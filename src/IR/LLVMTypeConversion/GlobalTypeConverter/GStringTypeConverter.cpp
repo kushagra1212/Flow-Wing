@@ -15,8 +15,8 @@ GStringTypeConverter::convertImplicit(llvm::Value *&possibleGlobalVariable) {
   auto globalVar = llvm::dyn_cast<llvm::GlobalVariable>(possibleGlobalVariable);
 
   if (!globalVar) {
-    _logger->logLLVMError(llvm::createStringError(
-        llvm::inconvertibleErrorCode(),
+    _logger->LogError((
+
         "Unsupported type for conversion to String (not a global variable)"));
     return res;
   }
@@ -63,8 +63,8 @@ GStringTypeConverter::convertImplicit(llvm::Value *&possibleGlobalVariable) {
                                 {val});
   }
 
-  // _logger->logLLVMError(llvm::createStringError(
-  //     llvm::inconvertibleErrorCode(),
+  // _logger->LogError((
+  //
   //     "Unsupported type for conversion to String (not a global variable)"));
 
   return nullptr;

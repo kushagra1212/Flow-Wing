@@ -104,6 +104,7 @@ const void DiagnosticHandler::logDiagnostics(
     std::function<bool(const Diagnostic &)> filter) {
 
   if (parent != nullptr) {
+    parent->setOutputFilePath(_outputFilePath);
     parent->logDiagnostics(outputStream, filter);
   }
 
