@@ -672,12 +672,21 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     if (global)
       return global;
 
-    llvm::GlobalVariable *variable = new llvm::GlobalVariable(
-        *this->_module, type, false,
-        initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
-                     : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-        initialValue ? initialValue : llvm::Constant::getNullValue(type),
-        variableName);
+    llvm::GlobalVariable *variable =
+        variableName == ""
+            ? new llvm::GlobalVariable(
+                  *this->_module, type, false,
+                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                  initialValue ? initialValue
+                               : llvm::Constant::getNullValue(type))
+            : new llvm::GlobalVariable(
+                  *this->_module, type, false,
+                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                  initialValue ? initialValue
+                               : llvm::Constant::getNullValue(type),
+                  variableName);
     variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
 
     return variable;

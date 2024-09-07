@@ -605,6 +605,8 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
       break;
     }
     default: {
+
+      this->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);
       break;
     }
     }

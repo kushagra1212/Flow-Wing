@@ -105,7 +105,7 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
       llvm::ConstantDataArray::getString(*_llvmContext, value);
 
   return _codeGenerationContext->createMemoryGetPtr(
-      strConstant->getType(), "arr_of", BinderKindUtils::MemoryKind::Global,
+      strConstant->getType(), "", BinderKindUtils::MemoryKind::Global,
       strConstant);
 
   // llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
