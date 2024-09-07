@@ -35,8 +35,9 @@ CodeGenerationContext ::CodeGenerationContext(
   auto CPU = "generic";
   auto Features = "";
   llvm::TargetOptions opt;
-  _targetMachine = Target->createTargetMachine(
-      _module->getTargetTriple(), CPU, Features, opt, llvm::Reloc::PIC_);
+  _targetMachine =
+      Target->createTargetMachine(_module->getTargetTriple(), CPU, Features,
+                                  opt, std::optional<llvm::Reloc::Model>());
 
   _module->setDataLayout(_targetMachine->createDataLayout());
   //!
@@ -675,7 +676,8 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
         *this->_module, type, false,
         initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
                      : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-        initialValue ? initialValue : llvm::Constant::getNullValue(type));
+        initialValue ? initialValue : llvm::Constant::getNullValue(type),
+        variableName);
     variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
 
     return variable;

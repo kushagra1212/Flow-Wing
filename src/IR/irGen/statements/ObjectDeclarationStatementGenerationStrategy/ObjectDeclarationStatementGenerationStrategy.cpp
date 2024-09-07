@@ -72,6 +72,7 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
     }
   }
 
+  CODEGEN_DEBUG_LOG("Declared Object: " + _variableName);
   return nullptr;
 }
 

@@ -24,6 +24,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   std::string FUNCTION_NAME = functionDeclaration->getFunctionNameRef();
 
+  CODEGEN_DEBUG_LOG("Defining Function : " + FUNCTION_NAME);
+
   llvm::Function *F = TheModule->getFunction(FUNCTION_NAME);
 
   if (!F && functionDeclaration->isMemberFunction()) {
