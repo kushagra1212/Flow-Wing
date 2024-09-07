@@ -11,13 +11,20 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
       _codeGenerationContext->getAllocaChain()->getPtr(variableName);
 
   // When Local Variable is an array type
-  if (var.second && var.second && llvm::isa<llvm::ArrayType>(var.second)) {
+  if (var.second && var.first && llvm::isa<llvm::ArrayType>(var.second)) {
 
-    llvm::Value *varValue =
-        Builder->CreateLoad(var.second, var.first, variableName);
+    // llvm::Value *varValue =
+    //     Builder->CreateLoad(var.second, var.first, variableName);
     _arrayType = llvm::cast<llvm::ArrayType>(var.second);
     _variable = var.first;
 
+    return true;
+  }
+
+  if (var.second && var.first &&
+      var.second == llvm::Type::getInt8PtrTy(*TheContext)) {
+    _arrayType = nullptr;
+    _variable = var.first;
     return true;
   }
 
@@ -31,7 +38,9 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType())) {
+  if (variable && !llvm::isa<llvm::ArrayType>(variable->getValueType()) &&
+      variable->getValueType() !=
+          llvm::Type::getInt8PtrTy(Builder->getContext())) {
 
     _codeGenerationContext->getLogger()->LogError(
         "variable " + _variableName + " Expected to be of type array of " +
@@ -44,7 +53,9 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
+  if (llvm::isa<llvm::ArrayType>(variable->getValueType()))
+    _arrayType = llvm::cast<llvm::ArrayType>(variable->getValueType());
+
   _variable = variable;
 
   return true;
@@ -104,6 +115,10 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
 
   _arrayElementType = _arrayType;
 
+  if (_arrayType == nullptr) {
+    return handleStringIndexing();
+  }
+
   _codeGenerationContext->createArraySizesAndArrayElementType(
       sizes, _arrayElementType);
 
@@ -112,6 +127,27 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   }
 
   return this->handleArrayTypeIndexing();
+}
+
+llvm::Value *IndexExpressionGenerationStrategy::handleStringIndexing() {
+  if (_indices.size() != 1) {
+    _codeGenerationContext->getLogger()->LogError(
+        "String index expression must have one index");
+    return nullptr;
+  }
+
+  // TODO Throw Error From Binder Check of index count
+
+  llvm::Value *loadedStrPtr =
+      Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), _variable);
+
+  llvm::Value *strElementPtr = Builder->CreateInBoundsGEP(
+      llvm::Type::getInt8Ty(*TheContext), loadedStrPtr, _indices, "arrayInx");
+
+  _codeGenerationContext->getValueStackHandler()->push(
+      "", strElementPtr, "primary", llvm::Type::getInt8Ty(*TheContext));
+
+  return strElementPtr;
 }
 
 void IndexExpressionGenerationStrategy::verifyBounds(

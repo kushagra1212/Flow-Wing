@@ -100,6 +100,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "CloseBraceToken";
   case SyntaxKind::StringToken:
     return "StringToken";
+  case SyntaxKind::CharacterToken:
+    return "CharacterToken";
   case SyntaxKind::IdentifierToken:
     return "IdentifierToken";
   case SyntaxKind::SemicolonToken:

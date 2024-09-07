@@ -126,7 +126,9 @@
     "__errc": "cpp",
     "print": "cpp",
     "execution": "cpp",
-    "strstream": "cpp"
+    "strstream": "cpp",
+    "types.h": "c",
+    "string.h": "c"
   },
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,

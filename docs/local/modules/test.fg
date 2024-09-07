@@ -1,10 +1,13 @@
-bring File
+bring File/; const m_: str, err2: Err::Result = File::write("test.txt", "Hellodsqwd", "a")
+/; if (err2) {
+/;   print(err2.toString())
+/; }
 
-const m_: str, err2: Err::Result = File::write("test.txt", "Hellodsqwd", "a")
-if (err2) {
-  print(err2.toString())
-}
-const res: str, err: Err::Result = File::read("test.txt", "rb")
+
+
+fun perror(s: as str) -> nthg decl
+
+const res: str, err: Err::Result = File::read("test2.txt", "rb")
 if (err) {
   print(err.toString())
 }else {
@@ -27,6 +30,57 @@ if (err == Nir) {
 }else {
   print(err.toString())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

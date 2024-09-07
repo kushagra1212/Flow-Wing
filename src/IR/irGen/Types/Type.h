@@ -17,10 +17,8 @@ public:
   Type(const std::string &name, llvm::Type *type, int64_t index,
        BoundCustomTypeStatement *customType)
       : name(name), type(type), index(index), customType(customType) {
-#ifdef DEBUG
-    std::cout << "Type: " << name << " " << type << " " << index << " "
-              << customType << std::endl;
-#endif
+
+    CODEGEN_DEBUG_LOG("Type: " + name + " ", type, index);
   }
 
   const std::string &getName() const { return name; }

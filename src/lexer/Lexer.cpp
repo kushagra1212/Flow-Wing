@@ -198,6 +198,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readKeyword() {
     return std::make_unique<SyntaxToken<std::any>>(
         this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
         SyntaxKindUtils::SyntaxKind::BoolKeyword, start, text, "bool");
+  } else if (text == "unknown") {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, start, text, "unknown");
   }
 
   else if (text == "str") {
@@ -591,6 +595,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
     return std::move(this->readString(start));
   }
 
+  case '\'': {
+    return std::move(this->readChar(start));
+  }
+
   default: {
     break;
   }
@@ -681,6 +689,7 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
 
       return std::move(newSyntaxToken);
     }
+
     if (this->getCurrent() == '\\') {
       text += this->getCurrent();
       this->next();
@@ -746,5 +755,95 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
       SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"',
+      valueText);
+}
+std::unique_ptr<SyntaxToken<std::any>> Lexer::readChar(const int &start) {
+  this->next();
+  std::string text = "", valueText = "";
+  while (!this->isEndOfLineOrFile() && this->getCurrent() != '\'') {
+    if (this->getCurrent() == '\0') {
+      std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+              SyntaxKindUtils::SyntaxKind::BadToken, start,
+              this->_sourceCode[lineNumber].substr(start,
+                                                   this->position - start),
+              0);
+
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Unterminated String Literal",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Lexical,
+                     Utils::getSourceLocation(newSyntaxToken.get())));
+
+      return std::move(newSyntaxToken);
+    }
+
+    if (this->getCurrent() == '\\') {
+      text += this->getCurrent();
+      this->next();
+      text += this->getCurrent();
+      switch (this->getCurrent()) {
+      case '"':
+        valueText += '"';
+        break;
+      case '\\':
+        valueText += '\\';
+        break;
+      case 'n':
+        valueText += '\n';
+        break;
+      case 'r':
+        valueText += '\r';
+        break;
+      case 't':
+        valueText += '\t';
+        break;
+      default:
+        std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+            std::make_unique<SyntaxToken<std::any>>(
+                this->_diagnosticHandler->getAbsoluteFilePath(),
+                this->lineNumber, SyntaxKindUtils::SyntaxKind::BadToken, start,
+                this->_sourceCode[lineNumber].substr(start,
+                                                     this->position - start),
+                0);
+
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Bad Character Escape Sequence: \\" +
+                this->_sourceCode[lineNumber].substr(this->position, 1),
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Lexical,
+            Utils::getSourceLocation(newSyntaxToken.get())));
+
+        return std::move(newSyntaxToken);
+      }
+    } else {
+      text += this->getCurrent();
+      valueText += this->getCurrent();
+    }
+    this->next();
+  }
+
+  if (this->getCurrent() != '\'') {
+    std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+        std::make_unique<SyntaxToken<std::any>>(
+            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+            SyntaxKindUtils::SyntaxKind::BadToken, start,
+            this->_sourceCode[lineNumber].substr(start, this->position - start),
+            0);
+
+    this->_diagnosticHandler->addDiagnostic(
+        Diagnostic("Unterminated Character Literal",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Lexical,
+                   Utils::getSourceLocation(newSyntaxToken.get())));
+
+    return std::move(newSyntaxToken);
+  }
+
+  this->next();
+  return std::make_unique<SyntaxToken<std::any>>(
+      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+      SyntaxKindUtils::SyntaxKind::CharacterToken, start, '\'' + text + '\'',
       valueText);
 }

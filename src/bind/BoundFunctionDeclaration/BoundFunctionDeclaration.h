@@ -14,6 +14,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::string _functionName;
   bool _isExposed;
   std::vector<std::unique_ptr<BoundExpression>> _returnTypeExprList;
+  std::unique_ptr<BoundTypeExpression> _functionType;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
   bool _isVariadicFunction = false;
@@ -42,6 +43,10 @@ public:
 
   inline void setIsMemberFunction(bool isMemberFunction) {
     _isMemberFunction = isMemberFunction;
+  }
+
+  inline auto setFunctionType(std::unique_ptr<BoundTypeExpression> type) {
+    _functionType = std::move(type);
   }
 
   inline auto setHasAsReturnType(const bool hasAsReturnType) {
@@ -94,6 +99,11 @@ public:
   inline auto isExposed() const -> bool { return _isExposed; }
 
   inline auto hasAsReturnType() const -> bool { return _hasAsReturnType; }
+
+  inline auto getFunctionTypeRef() const
+      -> const std::unique_ptr<BoundTypeExpression> & {
+    return _functionType;
+  }
 };
 
 #endif

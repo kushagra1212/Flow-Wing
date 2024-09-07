@@ -21,7 +21,7 @@ TEST_F(ModuleTest, ModuleImportTest) {
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(), "\n0");
+  EXPECT_EQ(getOutput(), "\n2");
 }
 
 TEST_F(ModuleTest, ModuleImportTestFunction) {

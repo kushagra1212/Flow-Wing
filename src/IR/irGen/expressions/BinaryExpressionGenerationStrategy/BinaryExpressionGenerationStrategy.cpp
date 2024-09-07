@@ -96,6 +96,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
              _typeMapper->isBoolType(rhsType)) {
     result = _boolBinaryOperationStrategy->performOperation(lhsValue, rhsValue,
                                                             binaryExpression);
+  } else if (_typeMapper->isInt8Type(lhsType) &&
+             _typeMapper->isInt8Type(rhsType)) {
+    result = _int32BinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), rhsValue),
+        binaryExpression);
   } else {
     result = _int32BinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),

@@ -48,6 +48,7 @@ const std::string STRING_TO_LONG = "string_to_long";
 const std::string STRING_TO_DOUBLE = "string_to_double";
 const std::string RAISE_EXCEPTION = "raise_exception";
 const std::string MALLOC = "malloc";
+const std::string PUT_CHAR = "putchar";
 
 }; // namespace FUNCTIONS
 }; // namespace INNERS

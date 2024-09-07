@@ -15,10 +15,31 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmParser();
 
 #if defined(__APPLE__)
-  //_module->setTargetTriple("x86_64-apple-macosx14.0.0");
+  _module->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #elif defined(__LINUX__)
   _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
 #endif
+
+  //! TODO MOVE
+
+  std::string Error;
+  auto Target =
+      llvm::TargetRegistry::lookupTarget(_module->getTargetTriple(), Error);
+
+  if (Error.size() > 0) {
+    this->_llvmLogger->LogError("Failed to lookup target: " + Error);
+    exit(1);
+    return;
+  }
+
+  auto CPU = "generic";
+  auto Features = "";
+  llvm::TargetOptions opt;
+  _targetMachine = Target->createTargetMachine(
+      _module->getTargetTriple(), CPU, Features, opt, llvm::Reloc::PIC_);
+
+  _module->setDataLayout(_targetMachine->createDataLayout());
+  //!
 
   // Assign diagnosticHandler
   _diagnosticHandler = diagnosticHandler;
@@ -625,7 +646,7 @@ void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
 
 llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     llvm::Type *type, std::string variableName,
-    BinderKindUtils::MemoryKind memoryKind) {
+    BinderKindUtils::MemoryKind memoryKind, llvm::Constant *initialValue) {
   switch (memoryKind) {
   case BinderKindUtils::MemoryKind::Heap: {
     auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
@@ -650,10 +671,14 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     if (global)
       return global;
 
-    return new llvm::GlobalVariable(
+    llvm::GlobalVariable *variable = new llvm::GlobalVariable(
         *this->_module, type, false,
-        llvm::GlobalValue::LinkageTypes::CommonLinkage,
-        llvm::Constant::getNullValue(type), variableName);
+        initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                     : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+        initialValue ? initialValue : llvm::Constant::getNullValue(type));
+    variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
+
+    return variable;
   }
 
   default:

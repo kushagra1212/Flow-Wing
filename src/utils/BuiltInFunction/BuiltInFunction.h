@@ -9,6 +9,7 @@ namespace FW::BI::FUNCTION {
 // Function Names
 
 extern const std::string Int32;
+extern const std::string Int8;
 extern const std::string Decimal;
 extern const std::string Decimal32;
 extern const std::string String;
@@ -37,6 +38,13 @@ public:
       -> SyntaxKindUtils::SyntaxKind {
     if (functionName == FW::BI::FUNCTION::Int32)
       return SyntaxKindUtils::SyntaxKind::Int32Keyword;
+
+    // TODO: One Day
+    // if (functionName == FW::BI::FUNCTION::Int64)
+    //   return SyntaxKindUtils::SyntaxKind::Int64Keyword;
+
+    if (functionName == FW::BI::FUNCTION::Int8)
+      return SyntaxKindUtils::SyntaxKind::Int8Keyword;
 
     if (functionName == FW::BI::FUNCTION::Decimal)
       return SyntaxKindUtils::SyntaxKind::DeciKeyword;

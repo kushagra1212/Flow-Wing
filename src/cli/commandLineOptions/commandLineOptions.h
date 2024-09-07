@@ -60,6 +60,9 @@ public:
 
   //? Framework
   static Option<std::string> Framework;
+
+  //? Entry Point
+  static Option<std::string> EntryPoint;
 }; // namespace FlowWing_OPTIONS
 
 } // namespace FlowWingCliOptions

@@ -68,7 +68,6 @@ fun read(filePath: as str, mode: as str) -> str, Err::Result {
   if (mode != "r" && mode != "rb") {
     return "", new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
   }
-  Err::CODE.INVALID_ARGUMENT
   var file: str = fopen(filePath, mode)
   const SEEK_END: int = 2
   if file == Nir {

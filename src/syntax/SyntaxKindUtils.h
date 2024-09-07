@@ -66,6 +66,7 @@ enum SyntaxKind {
   // Strings
 
   StringToken,
+  CharacterToken,
 
   SemicolonToken,
   // Keywords

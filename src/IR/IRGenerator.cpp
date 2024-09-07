@@ -92,6 +92,7 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareStringToLongFn();
   functionDeclarationManager->declareRaiseExceptionFn();
   functionDeclarationManager->declareMallocFunctionFn();
+  functionDeclarationManager->declarePutChar();
 }
 
 void IRGenerator::initializeGlobalVariables() {
@@ -253,13 +254,15 @@ void IRGenerator::generateEvaluateGlobalStatement(
     llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
+    objectFile->writeModuleToFile(*TheModule,
+                                  _codeGenerationContext->getTargetMachine());
 #elif defined(RELEASE) && (defined(JIT_MODE) || defined(JIT_TEST_MODE))
     bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
 #elif RELEASE
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
+    objectFile->writeModuleToFile(*TheModule,
+                                  _codeGenerationContext->getTargetMachine());
 #endif
   }
 

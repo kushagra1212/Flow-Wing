@@ -944,7 +944,9 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
   BoundVariableDeclaration *variable = root->tryGetVariable(variableName);
 
   if (variable->getTypeExpression().get()->getSyntaxType() !=
-      SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
+          SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
+      variable->getTypeExpression().get()->getSyntaxType() !=
+          SyntaxKindUtils::SyntaxKind::StrKeyword) {
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableName + " is not a array",
                    DiagnosticUtils::DiagnosticLevel::Error,
@@ -1509,7 +1511,11 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     return std::move(boundVariableExpression);
   }
 
-  if (!variable && variableExpressionSyntax->getVariableName() != "self") {
+  auto func =
+      this->root->tryGetFunction(variableExpressionSyntax->getVariableName());
+
+  if (!variable && variableExpressionSyntax->getVariableName() != "self" &&
+      !func) {
 
     this->_diagnosticHandler->addDiagnostic(
         Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
@@ -1536,13 +1542,19 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
     }
   }
 
+  BoundTypeExpression *typeExpr = nullptr;
+  if (variable) {
+    typeExpr = variable->getTypeExpression().get();
+  } else {
+    typeExpr = func->getFunctionTypeRef().get();
+  }
+
   std::unique_ptr<BoundVariableExpression> boundVariableExpression =
       std::make_unique<BoundVariableExpression>(
           variableExpressionSyntax->getSourceLocation(),
           std::move(bindLiteralExpression(
               variableExpressionSyntax->getIdentifierTokenRef().get())),
-          variableExpressionSyntax->isConstant(),
-          variable->getTypeExpression().get());
+          variableExpressionSyntax->isConstant(), typeExpr);
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
@@ -1616,6 +1628,9 @@ void Binder::handleFunctionDefAndDec(FunctionDeclarationSyntax *syntax,
   }
 
   fd->setIsMemberFunction(syntax->isMemberFunction());
+
+  fd->setFunctionType(
+      std::move(this->bindTypeExpression(syntax->getFunctionTypeRef().get())));
 
   if (syntax->getAsKeyword()) {
     fd->setHasAsReturnType(true);
@@ -1704,6 +1719,7 @@ Binder::bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
           Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
     }
   }
+
   return std::move(fd);
 }
 

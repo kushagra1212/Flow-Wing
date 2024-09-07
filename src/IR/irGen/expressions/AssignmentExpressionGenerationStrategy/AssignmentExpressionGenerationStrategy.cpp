@@ -332,7 +332,6 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
       handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
     } else {
-
       if (_lhsType != rhsType) {
 
         _codeGenerationContext->getLogger()->LogError(

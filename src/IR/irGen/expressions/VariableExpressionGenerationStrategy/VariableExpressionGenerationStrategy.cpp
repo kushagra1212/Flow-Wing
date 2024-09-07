@@ -26,7 +26,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
   }
 
   _codeGenerationContext->getLogger()->LogError(
-      "Variable " + variableName + " not found in variable expression ");
+      "Variable " + variableName + " not found in variable expression");
 
   return nullptr;
 }
@@ -455,7 +455,17 @@ VariableExpressionGenerationStrategy::getPropertyName(size_t listIndex) {
 
 llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
     const std::string &variableName, llvm::GlobalVariable *variable) {
+
   if (!variable) {
+
+    llvm::Function *function = TheModule->getFunction(variableName);
+    if (function) {
+      _codeGenerationContext->getValueStackHandler()->push(
+          "", function, "function", function->getFunctionType());
+
+      return function;
+    }
+
     _codeGenerationContext->getLogger()->LogError(
         "Variable " + variableName + " not found in variable expression ");
 

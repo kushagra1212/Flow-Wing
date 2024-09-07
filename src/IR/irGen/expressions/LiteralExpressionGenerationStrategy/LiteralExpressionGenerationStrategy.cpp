@@ -10,6 +10,8 @@ llvm::Value *LiteralExpressionGenerationStrategy::generateExpression(
       (BoundLiteralExpression<std::any> *)expression;
   std::any value = literalExpression->getValue();
 
+  DEBUG_LOG("LiteralExpressionGenerationStrategy::generateExpression",
+            SyntaxKindUtils::to_string(literalExpression->getSyntaxKind()));
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       literalExpression->getLocation());
 

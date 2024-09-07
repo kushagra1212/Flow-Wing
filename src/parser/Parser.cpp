@@ -208,7 +208,10 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::parsePrimitiveType() {
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::BoolKeyword));
   }
-
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
+    return std::move(
+        this->match(SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
+  }
   case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
     return std::move(this->match(SyntaxKindUtils::SyntaxKind::NthgKeyword));
   }
@@ -284,6 +287,11 @@ Parser::parseFunctionDeclaration(bool isMemberFunction) {
       appendWithSpace();
     }
   }
+
+  functionDeclaration->setFunctionType(std::make_unique<TypeExpressionSyntax>(
+      std::make_unique<SyntaxToken<std::any>>(
+          this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+          SyntaxKindUtils::SyntaxKind::StrKeyword, 0, "str", "str")));
 
   functionDeclaration->setCloseParenthesisToken(std::move(
       this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken)));
@@ -1415,6 +1423,15 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
     std::any value = stringToken->getValue();
     return std::make_unique<LiteralExpressionSyntax<std::any>>(
         std::move(stringToken), value);
+  }
+  case SyntaxKindUtils::SyntaxKind::CharacterToken: {
+    std::unique_ptr<SyntaxToken<std::any>> characterToken =
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::CharacterToken));
+
+    std::any value = characterToken->getValue();
+
+    return std::make_unique<LiteralExpressionSyntax<std::any>>(
+        std::move(characterToken), value);
   }
   case SyntaxKindUtils::SyntaxKind::TrueKeyword: {
     std::unique_ptr<SyntaxToken<std::any>> trueKeywordToken =

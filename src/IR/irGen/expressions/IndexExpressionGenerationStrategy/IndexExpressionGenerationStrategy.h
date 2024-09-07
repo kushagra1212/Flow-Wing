@@ -16,6 +16,8 @@ public:
   llvm::Value *handleGlobalVariable(llvm::GlobalVariable *variable,
                                     std::string variableName);
 
+  llvm::Value *handleStringIndexing();
+
   llvm::Value *handleArrayTypeIndexing();
 
   void verifyBounds(llvm::Value *index, llvm::ConstantInt *actualSize);

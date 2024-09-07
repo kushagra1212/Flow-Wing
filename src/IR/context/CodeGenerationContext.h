@@ -22,7 +22,70 @@
 #include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
+//! TODO: Refactor Import
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/MC/TargetRegistry.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/TargetParser/Host.h"
+#include "llvm/Transforms/Scalar.h"
+#include <llvm/ADT/APInt.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/IRPrintingPasses.h>
+#include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Type.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/raw_ostream.h"
+// ExecutionEngine
+#include "llvm//IR/Value.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/Signals.h"
+#include "llvm/Support/raw_ostream.h"
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/ExecutionEngine/Interpreter.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/SourceMgr.h>
+// JIT
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/raw_ostream.h>
+//!
 class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
@@ -111,7 +174,8 @@ public:
                     const std::string &inExp);
 
   llvm::Value *createMemoryGetPtr(llvm::Type *type, std::string variableName,
-                                  BinderKindUtils::MemoryKind memoryKind);
+                                  BinderKindUtils::MemoryKind memoryKind,
+                                  llvm::Constant *initialValue = nullptr);
 
   void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
   inline auto
@@ -179,6 +243,10 @@ public:
     this->_classTypes[name] = this->_classes.back().get();
   }
 
+  inline auto getTargetMachine() -> llvm::TargetMachine * {
+    return this->_targetMachine;
+  }
+
   auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
 
   std::unordered_map<std::string, Class *> _classTypes;
@@ -214,6 +282,7 @@ private:
 
   std::vector<std::unique_ptr<Class>> _classes;
 
+  llvm::TargetMachine *_targetMachine = nullptr;
   std::string _currentClassName = "";
 };
 

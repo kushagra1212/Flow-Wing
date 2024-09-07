@@ -7,6 +7,7 @@
 #include "../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "../LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
+#include "../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
 #include "../LLVMTypeConversion/LLVMValueConverter/LLVMValueConverter.h"
 #include "../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "../LLVMTypeConversion/TypeSpecificValueVisitor.h"
@@ -53,6 +54,7 @@ public:
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
+        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
 
@@ -89,6 +91,7 @@ public:
   std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
   std::unique_ptr<FloatTypeConverter> _floatTypeConverter;
+  std::unique_ptr<Int8TypeConverter> _int8TypeConverter;
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
   std::unique_ptr<StringTypeConverter> _stringTypeConverter;
 

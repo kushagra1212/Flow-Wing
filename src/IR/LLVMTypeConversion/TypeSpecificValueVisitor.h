@@ -19,6 +19,9 @@ public:
 
   llvm::Value *visit(FloatTypeConverter *converter,
                      llvm::Value *&value) override;
+
+  llvm::Value *visit(Int8TypeConverter *converter,
+                     llvm::Value *&value) override;
 };
 
 #endif // TYPE_SPECIFIC_VALUE_VISITOR_H

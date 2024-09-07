@@ -1,0 +1,42 @@
+
+fun mg_mgr_init(inout mg_mgr: as str) -> as nthg decl
+
+
+fun mg_http_listen(inout mg_mgr: as str, url: as str, fn: as str, fn_data: as str) -> as str decl
+
+
+fun mg_http_reply(inout mg: as str, status_code: as int, headers: as str, body_fmt: as str) -> as nthg decl
+
+
+fun mg_mgr_poll(inout mg_mgr: as str, ms: as int) -> as nthg decl
+
+
+fun mg_match(mg_str: as str, pattern: as str, caps: as str) -> as bool decl
+
+
+fun mg_http_serve_dir(m: as str, hm: as str, otps: as str) -> as nthg decl
+
+const MG_EV_HTTP_MSG: int = 11
+
+fun fn(c: as str, ev: as int, ev_data: as str) -> as nthg {
+  if (ev == MG_EV_HTTP_MSG) {/; var res: bool = mg_match(ev_data.uri, ("/api/hello"), Nir)
+/; if (res) {
+/;   mg_http_reply(c, 200, "", "status code: %d\n")
+/; }    else {
+/;   mg_http_serve_dir(c, ev_data, ".")
+/; }
+
+  }
+}
+
+
+fun main() -> int {
+  var mgr: str
+  mg_mgr_init(mgr)
+  mg_http_listen(mgr, "http://0.0.0.0:8000", fn, Nir)
+  while (true) {
+    mg_mgr_poll(mgr, 1000)
+  }
+  return 0
+}
+

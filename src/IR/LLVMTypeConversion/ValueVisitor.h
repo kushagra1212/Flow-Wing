@@ -5,6 +5,7 @@
 #include "DoubleTypeConverter/DoubleTypeConverter.h"
 #include "FloatTypeConverter/FloatTypeConverter.h"
 #include "Int32TypeConverter/Int32TypeConverter.h"
+#include "Int8TypeConverter/Int8TypeConverter.h"
 #include "StringTypeConverter/StringTypeConverter.h"
 
 class ValueVisitor {
@@ -20,6 +21,9 @@ public:
                              llvm::Value *&value) = 0;
 
   virtual llvm::Value *visit(FloatTypeConverter *converter,
+                             llvm::Value *&value) = 0;
+
+  virtual llvm::Value *visit(Int8TypeConverter *converter,
                              llvm::Value *&value) = 0;
 };
 

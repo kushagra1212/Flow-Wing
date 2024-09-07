@@ -73,28 +73,37 @@ public:
   ObjectFile(std::string fileName) : _fileName(fileName) {}
   ~ObjectFile() = default;
 
-  void writeModuleToFile(Module *module) {
-    auto TargetTriple = getDefaultTargetTriple();
+  void writeModuleToFile(Module &module, TargetMachine *targetMachine) {
+
+    DEBUG_LOG("Writing module to file: " + _fileName);
+
+    auto TargetTriple = module.getTargetTriple();
 
     std::string Error;
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
-    auto CPU = "generic";
-    auto Features = "";
+
+    if (Error.size() > 0) {
+      errs() << "Error looking up target: " << Error;
+      return;
+    }
+
     llvm::sys::fs::create_directories(
         FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR);
 
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
-    TargetOptions opt;
-    auto TargetMachine = Target->createTargetMachine(
-        TargetTriple, CPU, Features, opt, std::optional<Reloc::Model>());
 
-    module->setDataLayout(TargetMachine->createDataLayout());
-    module->setTargetTriple(TargetTriple);
+    // module.setDataLayout(TargetMachine->createDataLayout());
+    // module.setTargetTriple(TargetTriple);
 
     std::error_code EC;
     raw_fd_ostream dest(FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR +
                             _fileName + ".o",
                         EC, sys::fs::OF_None);
+
+    if (EC) {
+      errs() << "Could not open file: " << EC.message();
+      return;
+    }
 
     legacy::PassManager pass = legacy::PassManager();
     pass.add(createVerifierPass());
@@ -103,11 +112,11 @@ public:
 
     auto FileType = CGFT_ObjectFile;
 
-    if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
       errs() << "TargetMachine can't emit a file of this type";
       return;
     }
-    pass.run(*module);
+    pass.run(module);
     dest.flush();
   }
 };

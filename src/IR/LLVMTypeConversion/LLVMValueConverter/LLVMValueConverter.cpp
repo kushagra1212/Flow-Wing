@@ -24,6 +24,7 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
   }
 
   else if (value.type() == typeid(std::string)) {
+
     return stringToLLVMValue(std::any_cast<std::string>(value), kind);
   }
 
@@ -79,32 +80,45 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
 
       return llvmValue;
     }
+  } else if (kind == SyntaxKindUtils::SyntaxKind::CharacterToken) {
+    if (value == "\\0") {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), 0);
+    }
+
+    if (value.length() == 1) {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), value[0]);
+    } else {
+      _codeGenerationContext->getLogger()->LogError(
+          "Invalid character Constant, " +
+          COLORED_STRING::GET("<" + value + ">", YELLOW, RED));
+      return nullptr;
+    }
   }
 
   // if (value.length() == 0) {
   //   return llvm::ConstantInt::getNullValue(_builder->getInt8PtrTy());
   // }
 
-  return _builder->CreateGlobalStringPtr(value);
+  // return _builder->CreateGlobalStringPtr(value);
 
-  // llvm::Constant *strConstant =
-  //     llvm::ConstantDataArray::getString(*_llvmContext, value);
+  llvm::Constant *strConstant =
+      llvm::ConstantDataArray::getString(*_llvmContext, value);
+
+  return _codeGenerationContext->createMemoryGetPtr(
+      strConstant->getType(), "arr_of", BinderKindUtils::MemoryKind::Global,
+      strConstant);
 
   // llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
   //     *_module, strConstant->getType(),
   //     true, // isConstant
   //     llvm::GlobalValue::ExternalLinkage, strConstant, value + ".str");
 
-  // llvm::Value *zero =
-  //     llvm::ConstantInt::get(llvm::Type::getInt32Ty(*_llvmContext), 0);
-  // llvm::Value *indices[] = {zero, zero};
-  // llvm::Value *strPtr = _builder->CreateInBoundsGEP(strConstant->getType(),
-  //                                                   strVar, indices,
-  //                                                   "str_ptr");
-
   // llvm::Value *elementPtr = _builder->CreateBitCast(
-  //     strPtr, llvm::IntegerType::getInt8PtrTy((*_llvmContext)),
-  //     "element_ptr");
+  //     _builder->CreateInBoundsGEP(
+  //         strConstant->getType(), strVar,
+  //         {_builder->getInt32(0), _builder->getInt32(0)}),
+  //     llvm::IntegerType::getInt8PtrTy((*_llvmContext)));
+
   // return strPtr;
 }
 
@@ -189,6 +203,8 @@ LLVMValueConverter::stringToTypedLLVMValue(std::string value,
       }
     }
   }
+
+  DEBUG_LOG("value: " + value);
 
   return _builder->CreateGlobalStringPtr(value);
 }

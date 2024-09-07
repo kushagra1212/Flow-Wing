@@ -11,6 +11,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
+
+  CODEGEN_DEBUG_LOG("Var Type" + Utils::typeToString(variableType));
+
   llvm::Type *llvmType =
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           variableType);
@@ -124,7 +127,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
-  DEBUG_LOG("Declaring Variable: " + _variableName);
+  CODEGEN_DEBUG_LOG("Declaring Variable: " + _variableName);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =
@@ -154,6 +157,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
     ptrType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
         _variableType);
+    CODEGEN_DEBUG_LOG("_variableType " +
+                      SyntaxKindUtils::to_string(_variableType));
 
     ptr = _codeGenerationContext->createMemoryGetPtr(
         ptrType, _variableName, _variableDeclaration->getMemoryKind());

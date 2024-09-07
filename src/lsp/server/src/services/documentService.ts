@@ -5,7 +5,7 @@ import { ErrorResult } from "../utils/types";
 import { getFileFullPath, parseErrorAndExtractLocation } from "../utils";
 import { createDiagnostic } from "./diagnosticService";
 import { _Connection } from "vscode-languageserver";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 
 export const validateTextDocument = async (
   textDocument: TextDocument,
@@ -47,58 +47,115 @@ export const validateFile = (
     fileName: getFileFullPath(textDocUri) + flowWingConfig.temp.syntaxFileExt,
   });
 
-  const command = `${flowWingConfig.compiler.flowWingPath} --file=${filePath} -O=${SYNTAX_FILE_PATH}`;
+  const commandArgs = [`--file=${filePath}`, `-O=${SYNTAX_FILE_PATH}`];
 
   return new Promise((resolve, reject) => {
-    exec(command, async (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Compilation error: ${error.message}`);
-        return;
+    const childProcess = execFile(
+      flowWingConfig.compiler.flowWingPath,
+      commandArgs,
+      async (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Compilation error: ${error.message}`);
+          return reject(error);
+        }
+
+        if (!stderr) {
+          return resolve({ hasError: false });
+        }
+
+        const ERROR_JSON_FILE_PATH = fileUtils.getTempFilePath({
+          fileName:
+            getFileFullPath(textDocUri) + flowWingConfig.temp.errorFileExt,
+        });
+
+        try {
+          const errorResult = parseErrorAndExtractLocation(stderr);
+
+          const errorObject = await fileUtils.readJsonFile<
+            ErrorResult["errorObject"]
+          >(ERROR_JSON_FILE_PATH);
+
+          resolve({ ...errorResult, errorObject });
+        } catch (err) {
+          console.error(
+            `Error reading error file: ${ERROR_JSON_FILE_PATH}`,
+            err
+          );
+          reject(err);
+        }
       }
+    );
 
-      if (!stderr) {
-        resolve({ hasError: false });
-        return;
-      }
+    childProcess.on("error", (err) => {
+      console.error(`Process error: ${err.message}`);
+      reject(err);
+    });
 
-      const ERROR_JSON_FILE_PATH = fileUtils.getTempFilePath({
-        fileName:
-          getFileFullPath(textDocUri) + flowWingConfig.temp.errorFileExt,
-      });
-
-      try {
-        const errorResult = parseErrorAndExtractLocation(stderr);
-
-        const errorObject = await fileUtils.readJsonFile<
-          ErrorResult["errorObject"]
-        >(ERROR_JSON_FILE_PATH);
-
-        resolve({ ...errorResult, errorObject });
-        return;
-      } catch (err) {
-        console.error(`Error reading error file: ${ERROR_JSON_FILE_PATH}`, err);
-        reject(err);
-        return;
+    childProcess.on("exit", (code, signal) => {
+      if (code !== 0) {
+        console.error(`Process exited with code: ${code}, signal: ${signal}`);
       }
     });
+    const TIMEOUT_MS = 10000; // 10 seconds timeout
+    setTimeout(() => {
+      if (!childProcess.killed) {
+        childProcess.kill();
+        reject(new Error("Process timeout"));
+      }
+    }, TIMEOUT_MS);
   });
 };
 
 const formatFile = (filePath: string): Promise<string> => {
-  const command = `${flowWingConfig.compiler.flowWingPath} --file=${filePath} --format`;
+  const commandArgs = [`--file=${filePath}`, `--format`];
 
   return new Promise((resolve, reject) => {
-    exec(command, async (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error formating: ${error.message}`);
-        reject(error);
-        return;
+    const childProcess = execFile(
+      flowWingConfig.compiler.flowWingPath,
+      commandArgs,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error formatting: ${error.message}`);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(`Formatting stderr: ${stderr}`);
+          reject(
+            new Error(`Formatting process encountered an issue: ${stderr}`)
+          );
+          return;
+        }
+
+        resolve("Successfully formatted Flow-Wing code");
       }
-      resolve("Successfully formatted flowwing code");
+    );
+
+    // Handle potential process errors
+    childProcess.on("error", (err) => {
+      console.error(`Process error: ${err.message}`);
+      reject(err);
     });
+
+    childProcess.on("exit", (code, signal) => {
+      if (code !== 0) {
+        console.error(`Process exited with code: ${code}, signal: ${signal}`);
+        reject(
+          new Error(`Process exited with code: ${code}, signal: ${signal}`)
+        );
+      }
+    });
+
+    const TIMEOUT_MS = 10000; // 10 seconds timeout
+    setTimeout(() => {
+      if (!childProcess.killed) {
+        childProcess.kill();
+        reject(new Error("Formatting process timeout"));
+      }
+    }, TIMEOUT_MS);
   });
 };
-
 export const formatFlowWingFile = async (
   textDocUri: string,
   text: string

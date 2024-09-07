@@ -32,6 +32,7 @@ public:
   llvm::Function *declareStringToLongFn();
   llvm::Function *declareStringToDoubleFn();
   llvm::Function *declarePrintfFn();
+  llvm::Function *declarePutChar();
 
   llvm::Function *declareRaiseExceptionFn();
   llvm::Function *declareMallocFunctionFn();

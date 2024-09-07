@@ -126,6 +126,10 @@ std::string TypeMapper::getLLVMTypeName(const std::vector<llvm::Type *> &types,
 
 std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
                                         bool withColor) const {
+  if (!type) {
+    return "<'Type_not_found'>";
+  }
+
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
   if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
     if (llvm::isa<llvm::StructType>(type)) {
@@ -245,7 +249,8 @@ llvm::Value *TypeMapper::getDefaultValue(llvm::Type *type) {
 
 const bool TypeMapper::isPrimitiveType(llvm::Type *type) const {
   return isBoolType(type) || isDoubleType(type) || isInt32Type(type) ||
-         isStringType(type) || isFloatType(type);
+         isStringType(type) || isFloatType(type) || isInt8Type(type) ||
+         isInt64Type(type);
 }
 
 const bool TypeMapper::isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const {

@@ -128,7 +128,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         functionDeclaration->getParametersRef()[callIndex]->getLocation());
-    if (llvmArgsTypes[i]->isPointer() &&
+    if (i < llvmArgsTypes.size() && llvmArgsTypes[i]->isPointer() &&
         !llvm::isa<llvm::PointerType>(argValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(
           "Type mismatch in function parameter " + parameterNames[i]);
@@ -161,7 +161,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             {argValue, _codeGenerationContext->getDynamicType()->get()});
       }
     } else {
-      if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
+      if (llvmArgsTypes.size() > i &&
+          llvm::isa<llvm::PointerType>(argValue->getType()) &&
           llvmArgsTypes[i]->isPointerToArray()) {
         std::unique_ptr<ContainerAssignmentExpressionGenerationStrategy>
             containerAssignmentExpressionGenerationStrategy = std::make_unique<
@@ -192,7 +193,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
                                                          {variable, arrayType});
 
-      } else if (llvmArgsTypes[i]->isPointerToObject()) {
+      } else if (i < llvmArgsTypes.size() &&
+                 llvmArgsTypes[i]->isPointerToObject()) {
         LLVMObjectType *llvmObjectType =
             static_cast<LLVMObjectType *>(llvmArgsTypes[i].get());
 
@@ -228,7 +230,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
                                                            {ptr, structType});
         }
 
-      } else if (llvmArgsTypes[i]->isPointerToPrimitive()) {
+      } else if (i < llvmArgsTypes.size() &&
+                 llvmArgsTypes[i]->isPointerToPrimitive()) {
         LLVMPrimitiveType *llvmPrimitiveType =
             static_cast<LLVMPrimitiveType *>(llvmArgsTypes[i].get());
 
@@ -244,7 +247,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
         // _codeGenerationContext->getNamedValueChain()->setNamedValue(
         //     parameterNames[i], loaded);
-      } else {
+      } else if (i < llvmArgsTypes.size()) {
 
         llvm::Value *alloca = Builder->CreateAlloca(
             llvmArgsTypes[i]->getLLVMType(), nullptr, parameterNames[i]);

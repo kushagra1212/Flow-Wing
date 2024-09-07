@@ -11,6 +11,7 @@ class CommandManager {
 
   argh::parser *_cmdl;
   std::string _outputFileNameWithoutExtension = "output";
+  bool hasEntryPoint = false;
 
 public:
   CommandManager(argh::parser *cmdl,
@@ -27,8 +28,6 @@ public:
 
     cmd += this->getOutputArgument();
 
-    cmd += this->getEntryPoint();
-
     cmd += this->getObjectFilesJoinedAsString();
 
     // Linking with BuiltIn Module
@@ -39,7 +38,13 @@ public:
         cmd += this->getOtherLibrariesPath(key, value);
         cmd += this->getLinkLibrary(key, value);
         cmd += this->getFramework(key, value);
+        cmd += this->getEntryPoint(key, value);
       }
+    }
+
+    if (!hasEntryPoint) {
+
+      cmd += this->getDefaultEntryPoint();
     }
 
 #if defined(AOT_TEST_MODE)
@@ -87,8 +92,19 @@ private:
     return " -O3 ";
   }
 
-  auto inline getEntryPoint() -> std::string {
+  auto inline getDefaultEntryPoint() -> std::string {
     return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
+  }
+
+  auto inline getEntryPoint(const std::string &key, const std::string &value)
+      -> std::string {
+    if (!hasEntryPoint &&
+        FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
+      hasEntryPoint = true;
+      return " -e _" + value + " ";
+    }
+
+    return "";
   }
 
   auto inline getOutputArgument() -> std::string {

@@ -6,15 +6,17 @@
 #include "../../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "../../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "../../LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
+#include "../../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
 #include "../../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "../../LLVMTypeConversion/TypeSpecificValueVisitor.h"
 #include "llvm/IR/Value.h"
 
 class UnaryOperationStrategy {
- public:
+public:
   std::unique_ptr<BoolTypeConverter> _boolTypeConverter;
   std::unique_ptr<DoubleTypeConverter> _doubleTypeConverter;
   std::unique_ptr<Int32TypeConverter> _int32TypeConverter;
+  std::unique_ptr<Int8TypeConverter> _int8TypeConverter;
   std::unique_ptr<StringTypeConverter> _stringTypeConverter;
   std::unique_ptr<TypeSpecificValueVisitor> _typeSpecificValueVisitor;
 
@@ -28,10 +30,10 @@ class UnaryOperationStrategy {
       : _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
+        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
-        _codeGenerationContext(context),
-        TheModule(context->getModule().get()),
+        _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()){};
 
@@ -39,4 +41,4 @@ class UnaryOperationStrategy {
                                 BoundUnaryExpression *unaryExpression);
 };
 
-#endif  // FLOWWING_BINARYOPERATIONSTRATEGY_H
+#endif // FLOWWING_BINARYOPERATIONSTRATEGY_H

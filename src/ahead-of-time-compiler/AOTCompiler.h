@@ -83,12 +83,13 @@ public:
 #endif
   }
 
-  inline auto DEBUG_LOG_LINKING_INFO() {
+  inline auto DEBUG_LOG_LINKING_INFO(std::string &cmd) {
 
 #if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
 
-    std::cout << YELLOW_TEXT << "Linking: Files" << RESET << std::endl;
+    std::cout << YELLOW_TEXT << "[Linking]: " << GREEN << cmd << RESET
+              << std::endl;
 #endif
   }
 };

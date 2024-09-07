@@ -223,3 +223,12 @@ llvm::Function *FunctionDeclarationManager::declareMallocFunctionFn() {
 
   return declareFunction(INNERS::FUNCTIONS::MALLOC, mallocFunctionFn);
 }
+
+llvm::Function *FunctionDeclarationManager::declarePutChar() {
+
+  llvm::FunctionType *putCharFnType =
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              {llvm::Type::getInt32Ty(*TheContext)}, false);
+
+  return declareFunction(INNERS::FUNCTIONS::PUT_CHAR, putCharFnType);
+}

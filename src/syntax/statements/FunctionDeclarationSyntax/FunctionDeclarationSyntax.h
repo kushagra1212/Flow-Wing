@@ -25,6 +25,9 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
   std::vector<std::unique_ptr<ExpressionSyntax>> _returnTypeExpressionList;
   std::unique_ptr<SyntaxToken<std::any>> _declKeyword;
+
+  std::unique_ptr<TypeExpressionSyntax> _functionType;
+
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;
 
@@ -99,6 +102,15 @@ public:
   inline auto getAsKeyword() const
       -> const std::unique_ptr<SyntaxToken<std::any>> & {
     return _asKeyword;
+  }
+  inline auto
+  setFunctionType(std::unique_ptr<TypeExpressionSyntax> functionType) {
+    _functionType = std::move(functionType);
+  }
+
+  inline auto getFunctionTypeRef() const
+      -> const std::unique_ptr<TypeExpressionSyntax> & {
+    return _functionType;
   }
 };
 

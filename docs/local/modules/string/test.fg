@@ -1,0 +1,8 @@
+bring Str
+
+
+fun main() -> nthg {
+  print(Str::strToUpper("Hel"))
+}
+
+main()

@@ -968,3 +968,25 @@ if(x ){
 )");
   EXPECT_EQ(getOutput(), R"()");
 }
+TEST_F(MiscellaneousTest, Int8Test) {
+  I(R"(
+ var x:int8 = Int8(98)
+
+   x= x+ Int8(1)
+
+   print(x)
+)");
+  EXPECT_EQ(getOutput(), R"(c)");
+}
+TEST_F(MiscellaneousTest, Int8TestScoped) {
+  I(R"(
+  {
+  
+ var x:int8 = Int8(98)
+
+   x= x+ Int8(1)
+
+   print(x)}
+)");
+  EXPECT_EQ(getOutput(), R"(c)");
+}

@@ -21,7 +21,7 @@ void AOTCompiler::link() {
 
     std::string cmd = _commandManager->create();
 
-    DEBUG_LOG_LINKING_INFO();
+    DEBUG_LOG_LINKING_INFO(cmd);
 
     int status = std::system(cmd.c_str());
 
@@ -30,11 +30,10 @@ void AOTCompiler::link() {
       return;
     }
 
-    // delete object files
     deleteObjectFiles();
   } catch (const std::exception &e) {
     std::cerr << "Exception occurred: " << e.what() << std::endl;
-    // delete object files
+
     deleteObjectFiles();
   }
 }

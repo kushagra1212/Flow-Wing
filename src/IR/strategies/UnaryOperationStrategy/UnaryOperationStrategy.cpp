@@ -29,7 +29,7 @@ llvm::Value *UnaryOperationStrategy::performOperation(
   case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation: {
 
     if (typeMapper->isInt32Type(type) || typeMapper->isDoubleType(type) ||
-        typeMapper->isFloatType(type)) {
+        typeMapper->isFloatType(type) || typeMapper->isInt8Type(type)) {
       // Convert non-boolean values to boolean (true if zero, false if non-zero)
       return Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
@@ -89,8 +89,25 @@ llvm::Value *UnaryOperationStrategy::performOperation(
   }
   case BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation: {
 
-    return Builder->CreateXor(
-        val, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, -1, true)));
+    if (typeMapper->isInt32Type(type)) {
+      return Builder->CreateXor(
+          val, llvm::ConstantInt::get(*TheContext, llvm::APInt(32, -1, true)));
+    }
+
+    if (typeMapper->isInt8Type(type)) {
+      return Builder->CreateXor(
+          val, llvm::ConstantInt::get(*TheContext, llvm::APInt(8, -1, true)));
+    }
+
+    if (typeMapper->isInt64Type(type)) {
+      return Builder->CreateXor(
+          val, llvm::ConstantInt::get(*TheContext, llvm::APInt(64, -1, true)));
+    }
+    _codeGenerationContext->getLogger()->LogError(
+        "Not Supported Bitwise Negation with " +
+        typeMapper->getLLVMTypeName(type));
+    return nullptr;
+    break;
   }
   default: {
     break;

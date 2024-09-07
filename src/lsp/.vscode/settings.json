@@ -1,5 +1,12 @@
 {
-	"editor.insertSpaces": false,
-	"typescript.tsc.autoDetect": "off",
-	"typescript.preferences.quoteStyle": "single"
+  "editor.insertSpaces": false,
+  "typescript.tsc.autoDetect": "off",
+  "typescript.preferences.quoteStyle": "single",
+  "files.associations": {
+    "*.cpp": "cpp",
+    "socket.h": "c",
+    "unistd.h": "c",
+    "stdlib.h": "c",
+    "ios": "cpp"
+  }
 }

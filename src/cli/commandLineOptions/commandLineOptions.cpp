@@ -53,4 +53,8 @@ Option<std::string> OPTIONS::LinkLibrary{"-l",
 Option<std::string> OPTIONS::Framework{"-framework",
                                        "Specify frameworks to link with"};
 
+// Entry Point
+Option<std::string> OPTIONS::EntryPoint{"-e",
+                                        "Specify the entry point function"};
+
 } // namespace FlowWingCliOptions

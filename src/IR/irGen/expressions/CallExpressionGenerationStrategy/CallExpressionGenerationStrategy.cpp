@@ -346,6 +346,13 @@ llvm::Value *CallExpressionGenerationStrategy::buildInFunctionCall(
 
       return handleInBuiltFunctionReturnValue(res, callExpression);
     }
+  } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int8) {
+    llvm::Value *val = nullptr;
+    handleInBuiltFunctionCall(callExpression, val);
+
+    llvm::Value *res = _int8TypeConverter->convertExplicit(val);
+
+    return handleInBuiltFunctionReturnValue(res, callExpression);
   }
 
   _codeGenerationContext->getLogger()->LogError(errorMessage);
@@ -597,6 +604,11 @@ void CallExpressionGenerationStrategy::printPremitives(
     _stringTypeConverter->setBuilder(&Builder);
     value = _stringTypeConverter->convertExplicit(value);
     _stringTypeConverter->resetBuilder();
+  } else if (value->getType()->isIntegerTy(8)) {
+    Builder.CreateCall(
+        TheModule->getFunction(INNERS::FUNCTIONS::PUT_CHAR),
+        {(Builder.CreateSExt(value, llvm::Type::getInt32Ty(*TheContext)))});
+    return;
   }
 
   Builder.CreateCall(TheModule->getFunction(INNERS::FUNCTIONS::PRINT_F),
@@ -1176,7 +1188,8 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
   if (llvmArrayArgs.size() &&
       !_codeGenerationContext->getDynamicType()->isDyn(
           llvmArrayArgs[llvmArgsIndex]->getType()) &&
-      llvmArrayArgs[llvmArgsIndex]->getLLVMType() != rhsType) {
+      llvmArrayArgs[llvmArgsIndex]->getLLVMType() != rhsType &&
+      !rhsType->isFunctionTy()) {
     _codeGenerationContext->getLogger()->LogError(
         "Expected type " +
         Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
@@ -1189,7 +1202,8 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
     return rhsValue;
   } else if (llvmArrayArgs.size() &&
              _codeGenerationContext->getDynamicType()->isDyn(
-                 llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
+                 llvmArrayArgs[llvmArgsIndex]->getLLVMType()) &&
+             !rhsType->isFunctionTy()) {
     _codeGenerationContext->getLogger()->LogError(
         "Dynamic type not supported in function call expression " +
         Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
@@ -1540,7 +1554,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
       return nullptr;
     }
   } else {
-    if (llvmArrayArgs[llvmArgsIndex]->getLLVMType() != varType) {
+    if (llvmArrayArgs[llvmArgsIndex]->getLLVMType() != varType &&
+        !varType->isFunctionTy()) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected type " +
           Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
