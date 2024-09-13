@@ -2,6 +2,7 @@
 #define __STRING_TYPE_CONVERTER_H__
 
 #include "../GlobalTypeConverter/GStringTypeConverter.h"
+#include "../Int32TypeConverter/Int32TypeConverter.h"
 #include "../TypeConverterBase.h"
 
 class StringTypeConverter : public TypeConverterBase {

@@ -63,6 +63,12 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
     return value;
   }
+  case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
+    std::unique_ptr<Int32TypeConverter> int32Converter =
+        std::make_unique<Int32TypeConverter>(this->_codeGenerationContext);
+    llvm::Value *val = int32Converter->convertExplicit(value);
+    return convertExplicit(val);
+  }
   default:
     break;
   }

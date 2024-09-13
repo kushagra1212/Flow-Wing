@@ -1,0 +1,55 @@
+/; Function Declarations
+
+fun map_new() -> as str decl
+
+
+fun map_insert(mapHandler: as str, key: as str, value: as str) -> as nthg decl
+
+
+fun map_get(mapHandler: as str, key: as str) -> as str decl
+
+
+fun map_remove(mapHandler: as str, key: as str) -> as bool decl
+
+
+fun map_contains(mapHandler: as str, key: as str) -> as bool decl
+
+
+fun map_free(mapHandler: as str) -> as nthg decl/; Class Definition
+
+
+module [Map]
+class String {
+  var mapHandler: str
+  init() -> nthg {
+    self.mapHandler = map_new() 
+  }
+
+
+  get(inout key: str) -> str {
+    return map_get(self.mapHandler, key)
+  }
+
+
+  insert(inout key: str, inout value: str) -> nthg {
+    map_insert(self.mapHandler, key, value)
+  }
+
+
+  remove(inout key: str) -> bool {
+    return map_remove(self.mapHandler, key)
+  }
+
+
+  contains(inout key: str) -> bool {
+    return map_contains(self.mapHandler, key)
+  }
+
+
+  free() -> nthg {
+    map_free(self.mapHandler)
+  }
+
+
+}
+

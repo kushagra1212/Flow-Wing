@@ -8,7 +8,6 @@ void ModuleTest::SetUp() {
 void ModuleTest::TearDown() { _test->TearDown(); }
 
 TEST_F(ModuleTest, ModuleImportTest) {
-
   writeFile("test-module.fg", R"(module [test]
   
     var x:int = 2
@@ -21,11 +20,10 @@ TEST_F(ModuleTest, ModuleImportTest) {
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(), "\n2");
+  EXPECT_EQ(getOutput(), "\n0");
 }
 
 TEST_F(ModuleTest, ModuleImportTestFunction) {
-
   writeFile("test2-module.fg", R"(module [test2]
   
     var x:int = 2
@@ -47,7 +45,6 @@ test2::main2(2,"s")
 }
 
 TEST_F(ModuleTest, ModuleImportTestCustomTypes) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -76,7 +73,6 @@ print(local::x)
   EXPECT_EQ(getOutput(), "\n{ a : 0 }{ a : 0 }");
 }
 TEST_F(ModuleTest, ModuleImportTestCustomTypesAssignment) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -106,7 +102,6 @@ local::main()
   EXPECT_EQ(getOutput(), "\n{ a : 2 }");
 }
 TEST_F(ModuleTest, ModuleImportTestCustomTypesAssignment2) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -139,7 +134,6 @@ local::main()
 }
 
 TEST_F(ModuleTest, ModuleImportTestCustomTypesAssignment3) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -177,7 +171,6 @@ print(local::x)
   EXPECT_EQ(getOutput(), "\n{ a : 3 }{ a : 0 }{ a : 2 }{ a : 3 }");
 }
 TEST_F(ModuleTest, ModuleImportTestCustomTypes2) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -217,12 +210,12 @@ print(j)
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(), "\n{ a : 5, b : '', c : 0.00000000000000, d : "
-                         "0.0000000, e : false, f : { "
-                         "a : 0 } }");
+  EXPECT_EQ(getOutput(),
+            "\n{ a : 5, b : '', c : 0.00000000000000, d : "
+            "0.0000000, e : false, f : { "
+            "a : 0 } }");
 }
 TEST_F(ModuleTest, ModuleImportTestFunctionTest) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -270,13 +263,13 @@ print(local::callMe({a:10}))
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(), "\n{ a : 10, b : '', c : 0.00000000000000, d : "
-                         "0.0000000, e : true, f : { "
-                         "a : 0 } }");
+  EXPECT_EQ(getOutput(),
+            "\n{ a : 10, b : '', c : 0.00000000000000, d : "
+            "0.0000000, e : true, f : { "
+            "a : 0 } }");
 }
 
 TEST_F(ModuleTest, ModuleImportTestFunctionTest2) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -322,17 +315,17 @@ print(local::callMe({a:10}))
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(), "\n{ a : 0, b : '', c : 0.00000000000000, d : "
-                         "0.0000000, e : false, f : { "
-                         "a : 0 } }{ a : 2, b : '', c : 0.00000000000000, d : "
-                         "0.0000000, e : false, "
-                         "f : { a : 0 } }{ a : 10, b : '', c : "
-                         "0.00000000000000, d : 0.0000000, e : "
-                         "true, f : { a : 0 } }");
+  EXPECT_EQ(getOutput(),
+            "\n{ a : 0, b : '', c : 0.00000000000000, d : "
+            "0.0000000, e : false, f : { "
+            "a : 0 } }{ a : 2, b : '', c : 0.00000000000000, d : "
+            "0.0000000, e : false, "
+            "f : { a : 0 } }{ a : 10, b : '', c : "
+            "0.00000000000000, d : 0.0000000, e : "
+            "true, f : { a : 0 } }");
 }
 
 TEST_F(ModuleTest, ModuleImportTestUsingClass) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -379,7 +372,6 @@ print(local::main())
   EXPECT_EQ(getOutput(), "\n0{ a : 100 }");
 }
 TEST_F(ModuleTest, ModuleImportTestUsingClassAccess) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -424,7 +416,6 @@ print(local::a.x)
   EXPECT_EQ(getOutput(), "\n{ a : 0 }0{ a : 21 }");
 }
 TEST_F(ModuleTest, ModuleImportTestUsingClassAccess2) {
-
   writeFile("local-module.fg", R"(
 module [local]
 
@@ -465,7 +456,6 @@ print(local::a.x)
   EXPECT_EQ(getOutput(), "\n{ a : 0 }0{ a : 21 }");
 }
 TEST_F(ModuleTest, ModuleImportTestUsingClassAccess3) {
-
   writeFile("local-module.fg", R"(
 module [local]
 

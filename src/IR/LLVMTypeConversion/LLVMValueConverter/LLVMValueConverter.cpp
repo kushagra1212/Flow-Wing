@@ -87,6 +87,20 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
 
     if (value.length() == 1) {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), value[0]);
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'n') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\n');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 't') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\t');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'r') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\r');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '0') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\0');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '\\') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\\');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '\'') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\'');
+    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '\"') {
+      return llvm::ConstantInt::get(_builder->getInt8Ty(), '\"');
     } else {
       _codeGenerationContext->getLogger()->LogError(
           "Invalid character Constant, " +

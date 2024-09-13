@@ -10,20 +10,15 @@
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-
 class FunctionDeclarationGenerationStrategy
     : public StatementGenerationStrategy {
-public:
+ public:
   FunctionDeclarationGenerationStrategy(CodeGenerationContext *context);
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
   llvm::Function *generate(BoundStatement *statement,
                            std::vector<llvm::Type *> classArgs = {},
                            std::string className = "");
-
-  llvm::StructType *
-  getStructType(BoundObjectTypeExpression *objectTypeExpression,
-                std::__1::string &className);
 };
 
-#endif // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__
+#endif  // __FLOWWING_FUNCTION_DECLARATION_STRATEGY_H__

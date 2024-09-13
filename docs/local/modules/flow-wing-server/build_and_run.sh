@@ -4,12 +4,12 @@
 export FLOW_WING_COMPILER_PATH="/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
 export FLOW_WING_LIB_PATH="/Users/apple/code/per/Flow-Wing/docs/local/modules/flow-wing-server"
 export FLOW_WING_FILE="server.fg"
-export SHARED_LIB_PATH="libwing.so"
+export SHARED_LIB_PATH="libwing.a"
 export OUTPUT_EXECUTABLE="build/bin/server"
 
 # Compile the C code into a shared library
 echo "Compiling C code into shared library..."
-clang -fPIC -shared -o $SHARED_LIB_PATH server.c -I/opt/homebrew/include -L/opt/homebrew/lib
+clang -fPIC -o $SHARED_LIB_PATH -c server.c -I/opt/homebrew/include
 
 # Check for errors in the C compilation step
 if [ $? -ne 0 ]; then
@@ -25,6 +25,7 @@ if [ ! -f "$SHARED_LIB_PATH" ]; then
     exit 1
 fi
 
+export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DYLD_LIBRARY_PATH
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."

@@ -1,33 +1,17 @@
 {
     "configurations": [
-        // {
-        //     "name": "Linux",
-        //     "includePath": [
-        //         "${workspaceFolder}/**",
-        //         "/usr/include/gtest/internal",
-        //         "/usr/include/gtest",
-        //         "/usr/lib/llvm-17/**",
-        //         "/usr/include/llvm-17/"
-        //     ],
-        //     "defines": [],
-        //     "compilerPath": "/usr/lib/llvm-17/bin/clang",
-        //     "cStandard": "c11",
-        //     "cppStandard": "c++17",
-        //     "intelliSenseMode": "clang-x64"
-        // }
-        // ,
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/**",
                 "/opt/homebrew/Cellar/googletest/1.14.0/include/**",
                 "/opt/homebrew/opt/llvm@17/include/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/clang",
+            "compilerPath": "/usr/bin/clang++",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
+            "intelliSenseMode": "macos-clang-arm64"
         }
     ],
     "version": 4

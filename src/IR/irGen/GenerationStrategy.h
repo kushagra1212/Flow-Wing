@@ -19,13 +19,14 @@
 #include "../strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
 #include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
+#include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
 #include "expressions/ExpressionGenerationFactory.h"
 #include "statements/StatementGenerationFactory.h"
-
 class GenerationStrategy {
-public:
+ public:
   GenerationStrategy(CodeGenerationContext *context)
-      : _codeGenerationContext(context), TheModule(context->getModule().get()),
+      : _codeGenerationContext(context),
+        TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()),
         _llvmValueConverter(std::make_unique<LLVMValueConverter>(context)),
@@ -64,7 +65,9 @@ public:
         _expressionGenerationFactory(
             std::make_unique<ExpressionGenerationFactory>(context)),
         _statementGenerationFactory(
-            std::make_unique<StatementGenerationFactory>(context)){};
+            std::make_unique<StatementGenerationFactory>(context)),
+        _typeGenerationFactory(
+            std::make_unique<LLVMTypeGenerationFactory>(context)){};
   CodeGenerationContext *_codeGenerationContext;
 
   llvm::Module *TheModule = nullptr;
@@ -99,6 +102,7 @@ public:
 
   std::unique_ptr<ExpressionGenerationFactory> _expressionGenerationFactory;
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
+  std::unique_ptr<LLVMTypeGenerationFactory> _typeGenerationFactory;
 };
 
-#endif // __FLOWWING_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING_GENERATION_STRATEGY_H__

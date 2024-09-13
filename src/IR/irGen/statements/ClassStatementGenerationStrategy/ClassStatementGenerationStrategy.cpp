@@ -1,16 +1,18 @@
 
 #include "ClassStatementGenerationStrategy.h"
 
+#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+
 ClassStatementGenerationStrategy::ClassStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
-llvm::Value *
-ClassStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
+llvm::Value *ClassStatementGenerationStrategy::generateStatement(
+    BoundStatement *statement) {
   return nullptr;
 }
 
-llvm::Value *
-ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
+llvm::Value *ClassStatementGenerationStrategy::generateClassType(
+    BoundStatement *statement) {
   BoundClassStatement *boundClassStatement =
       static_cast<BoundClassStatement *>(statement);
 
@@ -69,7 +71,6 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
       for (auto &[boundLiteralExpression, bTE] :
            boundCustomTypeStatement->getKeyPairs()) {
-
         const std::string propertyName =
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
@@ -98,10 +99,14 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
   for (int64_t i = 0;
        i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
-    classElements.push_back(customTypeStatementGenerationStrategy->getType(
-        boundClassStatement->getAllMemberVariablesRef()[i]
-            ->getTypeExpression()
-            .get()));
+    classElements.push_back(
+        _typeGenerationFactory
+            ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
+                                 ->getTypeExpression()
+                                 ->getKind())
+            ->getType(boundClassStatement->getAllMemberVariablesRef()[i]
+                          ->getTypeExpression()
+                          .get()));
     classObject->setElementIndex(
         boundClassStatement->getAllMemberVariablesRef()[i]->getVariableName(),
         i + 1);
@@ -159,6 +164,5 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 }
 llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-
   return nullptr;
 }

@@ -1,0 +1,149 @@
+bring "Str-module.fg"
+
+
+fun makeCopyTest() -> nthg {
+  var x: str = "HS"
+  var y: str
+  print("Before copy x = " + x + " y = " + y, "\n")
+  Str::makeCopy(y, x)
+  print("After copy x = " + x + " y = " + y, "\n")
+  x[0]= 's'
+  print("After copy x = " + x + " y = " + y)
+}
+
+
+fun concatTest() -> nthg {
+  var x: str = "HS"
+  var y: str = "S"
+  print("Concat x = " + x + " y = " + y, " " + Str::concat(x, y))
+  var z: str = Str::concat(x, y)
+  print("\nConcat x = " + x + " y = " + y, " " + z)
+}
+
+
+fun compareTest() -> nthg {
+  var x: str = "HS"
+  var y: str = "HS"
+  print("Compare x = " + x + " y = " + y, " ", Int32(Str::compare(x, y)))
+  x = "S" 
+  print("\nCompare x = " + x + " y = " + y, " ", (Str::compare(x, y)))
+  y = "S" 
+  print("\nCompare x = " + x + " y = " + y, " ", (Str::compare(x, y)))
+  x = "swew" 
+  print("\nCompare x = " + x + " y = " + y, " ", (Str::compare(x, y)))
+  y = "swewss" 
+  print("\nCompare x = " + x + " y = " + y + " " + (Str::compare(x, y)))
+  x, y = "hs", "HS" 
+  print("\nCompare x = " + x + " y = " + y + " " + (Str::compare(x, y)))
+  print("\nCompare x = " + x + " y = " + y + " " + (Str::compare(x, y, true)))
+}
+
+
+fun toUpperTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nToUpper x = " + x, " " + Str::toUpper(x))
+}
+
+
+fun toLowerTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nToLower x = " + x, " " + Str::toLower(x))
+}
+
+
+fun lengthTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nLength x = " + x, " " + Str::length(x))
+}
+
+
+fun reverseTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nReverse x = " + x, " " + Str::reverse(x))
+  print("\n Original After Reverse ", x)
+  var reve: str = Str::reverse(x)
+  print("\nAfter Reverse  rev", reve, " and orig ", x)
+}
+
+
+fun reverseInPlaceTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nReverse x = " + x)
+  Str::reverseInPlace(x)
+  print("\n Original After Reverse ", x)
+}
+
+
+fun findSubStrIndexTest() -> nthg {
+  var x: str = "jsssHs"
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, "sss"))
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, "j"))
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, "Hs"))
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, "jsssHs"))
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, "HS"))
+  print("\nFind x = " + x, " " + Str::subStrIndex(x, ""))
+}
+
+
+fun replaceInPlaceTest() -> nthg {
+  var x: str = "js s sHs"
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, " ", "-"))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "-", ""))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "ss", "gg"))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "g", "SSSS"))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "SSSS", "x"))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "SSSS", "qwdwqdwqdwqdwqdqwdwqx"))
+  print("\nReplace x = " + x, " " + Str::replaceInPlace(x, "xx", "qwdwqdwqdwqdwqdqwdwqx"))
+}
+
+
+fun trimInPlaceTest() -> nthg {
+  var x: str = "js s sHs        \n       \t\n"
+  var z: str = Str::trimInPlace("  qwdwqd  dwqqw d wdw  ")
+  print("\nTrim x = START" + z, "END" + Str::trimInPlace(z))
+  print("\nTrim x = START" + x, "END" + Str::trimInPlace(x))
+  print("\nAfter Trim x = START" + x, "END")
+}
+
+
+fun indexOfCharTest() -> nthg {
+  var x: str = "js s spHs"
+  print("\nCharacterIndex x = " + x, " " + Str::indexOfChar(x, 'p'))
+  print("\nCharacterIndex x = " + x, " " + Str::indexOfChar(x, 'j'))
+  print("\nCharacterIndex x = " + x, " " + Str::indexOfChar(x, 's'))
+}
+
+
+fun characterAtTest() -> nthg {
+  var x: str = "js s spHs"
+  print("\nCharacterAt x = " + x, " ", Str::charAt(x, 3))
+  print("\nCharacterAt x = " + x, " ", Str::charAt(x, 6))
+}
+
+
+fun int8ToStringTest() -> nthg {
+  var x: str = "js s spHs"
+  print("\nCharacterAt x = " + x, " ", Str::int8ToString(Int8(99)))
+  print("\nCharacterAt x = " + x, " ", Str::int8ToString(Int8(21213)))
+}
+
+
+fun main() -> nthg {/;  makeCopyTest()
+/; trimInPlaceTest()
+/; makeCopyTest()
+/; concatTest()
+/; lengthTest()
+/; toLowerTest()
+/; toUpperTest()
+/; compareTest()
+/; reverseTest()
+/; reverseInPlaceTest()
+/; findSubStrIndexTest()
+/; replaceInPlaceTest()
+/; indexOfCharTest()
+/; characterAtTest()
+/; int8ToStringTest()
+
+}
+
+main()

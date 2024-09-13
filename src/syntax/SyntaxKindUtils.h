@@ -145,11 +145,13 @@ enum SyntaxKind {
   PrimitiveTypeExpression,
   ArrayTypeExpression,
   ObjectTypeExpression,
+  FunctionTypeExpression,
   ObjectExpression,
 
   // Types (Tokens) Which are not created by the User
   NBU_ARRAY_TYPE,
   NBU_OBJECT_TYPE,
+  NBU_FUNCTION_TYPE,
   NBU_UNKNOWN_TYPE,
 };
 bool isInt32(const std::string &str);

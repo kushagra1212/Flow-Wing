@@ -289,6 +289,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ObjectTypeExpression:
     return "ObjectTypeExpression";
 
+  case SyntaxKind::FunctionTypeExpression:
+    return "FunctionTypeExpression";
+
   case SyntaxKind::CustomTypeStatement:
     return "CustomTypeStatement";
 
@@ -303,6 +306,9 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
 
   case SyntaxKind::NBU_UNKNOWN_TYPE:
     return "NBU_UNKNOWN_TYPE";
+
+  case SyntaxKind::NBU_FUNCTION_TYPE:
+    return "NBU_FUNCTION_TYPE";
 
   case SyntaxKind::BreakStatement:
     return "BreakStatement";

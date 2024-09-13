@@ -10,6 +10,7 @@ import {
   getArrayType,
   getFileFullPath,
   getImportedFileUri,
+  getModulePath,
   getUnique,
   SuggestHandler,
   userDefinedKeywordsFilter,
@@ -507,9 +508,15 @@ const handleBringStatement = async ({
       possbileModuleIdef.lineNumber === suggestionToken?.lineNumber
     ) {
       relPath = await fileUtils.findFileBreadthFirst(
-        __dirname,
+        getModulePath(),
         possbileModuleIdef.value + "-module.fg"
       );
+
+      if (!relPath)
+        relPath = await fileUtils.findFileBreadthFirst(
+          __dirname,
+          possbileModuleIdef.value
+        );
     }
 
     if (!!relPath && typeof relPath === "string") {

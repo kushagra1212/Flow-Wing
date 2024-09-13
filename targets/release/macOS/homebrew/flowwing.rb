@@ -7,7 +7,10 @@ class Flowwing < Formula
 
   def install
     bin.install "bin/FlowWing"
-    (lib/"FlowWing").install "lib/libbuilt_in_module.a"
+    lib.install "lib/libbuilt_in_module.a"
+    lib.install "lib/libflowwing_vector.so"
+    lib.install "lib/libflowwing_map.so"
+    lib.install "lib/libflowwing_string.so"
   end
 
   test do

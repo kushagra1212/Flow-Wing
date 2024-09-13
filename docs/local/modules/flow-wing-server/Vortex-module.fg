@@ -1,0 +1,324 @@
+bring Str
+
+bring Vec
+
+bring Map
+
+bring Err
+
+
+fun start_server(port: as int) -> as nthg decl
+
+
+fun flush() -> as nthg decl
+
+
+fun set_route(method: as str, path: as str, handler: unknown) -> as nthg decl
+
+
+fun set_middleware(middleware: unknown) -> as nthg decl
+
+
+fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str) -> as nthg decl
+
+
+fun send(socket: as int, data: as str, len: as int, flags: as int) -> as nthg decl
+
+
+fun strlen(s: as str) -> as int decl
+
+
+fun len(s: as str) -> as int {
+  return strlen(s)
+}
+
+
+fun generate_response(content_type: as str, body: as str) -> as str {
+  return "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + len(body) + "\r\n\r\n" + body
+}
+
+
+fun json_response(data: as str) -> str {
+  return "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " + len(data) + "\r\n\r\n" + data
+}
+
+
+fun my_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {
+  if (endpoint == "/json") {
+    const json_response_data: str = "{\"message\": \"Hello, JSON!\"}"
+    var response: str = generate_response("application/json", json_response_data)
+    send_response(client_socket, "200 OK", "application/json", json_response_data)
+  } or if (endpoint == "/text") {
+    const plain_text_response: str = "Hello, World!"
+    var response: str = generate_response("text/plain", plain_text_response)
+    send_response(client_socket, "200 OK", "text/plain", plain_text_response)
+  } else {
+    const not_found_response: str = "Not Found"
+    var response: str = generate_response("text/plain", not_found_response)
+    send_response(client_socket, "404 Not Found", "text/plain", not_found_response)
+  }
+}
+
+
+fun split(s: str, delimiter: str) -> Vec::String {
+  var result: Vec::String = new Vec::String()
+  var part: str = ""
+  for var i = 0 to Str::length(s) - 1 {
+    if (Str::int8ToString(Int8(s[i])) == delimiter) {
+      if (Str::length(part)) {
+        result.add(part)
+      }
+      part = "" 
+    } or if (i + 1 < Str::length(s) && String(Str::int8ToString(Int8(s[i])) + Str::int8ToString(Int8(s[i + 1]))) == delimiter) {
+      if (Str::length(part)) {
+        result.add(part)
+      }
+      i = i + 1 
+      part = "" 
+    } else {
+      part = part + Str::int8ToString(Int8(s[i])) 
+    }
+  }
+  if Str::length(part) > 0 {
+    result.add(part)
+  }
+  return result
+}
+
+type Header = {
+  Host: str,
+  Connection: str,
+  sec_ch_ua: str,
+  sec_ch_ua_mobile: bool,
+  sec_ch_ua_platform: str,
+  Upgrade_Insecure_Requests: int,
+  User_Agent: str,
+  Sec_Purpose: str,
+  Purpose: str,
+  Accept: str,
+  Sec_Fetch_Site: str,
+  Sec_Fetch_Mode: str,
+  Sec_Fetch_User: bool,
+  Sec_Fetch_Dest: str,
+  Accept_Encoding: str,
+  Accept_Language: str,
+  content_type: str,
+  content_length: int
+}
+type HttpRequest = {
+  method: str,
+  endpoint: str,
+  version: str,
+  headers: Header,
+  body: str
+}
+
+fun parseJson(inout json_str: str) -> Map::String {
+  var i = 0
+  if (json_str[i] == '{') {
+    i = i + 1 
+  }
+  var mp: Map::String = new Map::String()
+  while (json_str[i] != '\\0') {
+    while (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+      i = i + 1 
+    }
+    if (json_str[i] == '"') {
+      i = i + 1 
+      var key = ""
+      while (json_str[i] != '"') {
+        key = key + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+      i = i + 1 
+      while json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r' {
+        i = i + 1 
+      }
+      var value = ""
+      if (json_str[i] == ':') {
+        i = i + 1 
+        while json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r' {
+          i = i + 1 
+        }
+        if (json_str[i] == '"') {
+          i = i + 1 
+          while (json_str[i] != '"') {
+            value = value + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          i = i + 1 
+        } or if (json_str[i] == '{') {
+          var obj_str = "{"
+          var brace_count = 1
+          i = i + 1 
+          while (brace_count > 0) {
+            if json_str[i] == '{' {
+              brace_count = brace_count + 1 
+            } or if json_str[i] == '}' {
+              brace_count = brace_count - 1 
+            }
+            obj_str = obj_str + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          value = obj_str 
+        } or if (json_str[i] == '[') {
+          var arr_str = "["
+          var bracket_count = 1
+          i = i + 1 
+          while (bracket_count > 0) {
+            if json_str[i] == '[' {
+              bracket_count = bracket_count + 1 
+            } or if json_str[i] == ']' {
+              bracket_count = bracket_count - 1 
+            }
+            arr_str = arr_str + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          value = arr_str 
+        } or if (json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '-' || json_str[i] == '.') {
+          while (json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '.' || json_str[i] == '-') {
+            value = value + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+        } else {
+          break
+        }
+      }
+      mp.insert(key, value)
+    }
+    if (json_str[i] == ',') {
+      i = i + 1 
+    }
+  }
+  return mp
+}
+
+
+fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
+  var lines: Vec::String = split(req_str, "\n")
+  var method: str, endpoint: str, version: str/; Headers start from the second line onwards
+
+  if (lines.size() == 0) {
+    return {
+
+    }, new Err::Result("Could not parse request", Err::CODE.FAILED, "In parse_request")
+  }
+  var body: str
+  var hasBody = false
+  var header_map: Header
+  for var i = 0 to lines.size() - 1 {
+    if i == 0 {
+      var firstLineParts: Vec::String = split(lines.get(i), " ")
+      method, endpoint, version = firstLineParts.get(0), firstLineParts.get(1), firstLineParts.get(2)/; Headers start from the second line onwards
+ 
+    } else {
+      var header_parts: Vec::String = split(lines.get(i), ":")
+      if (hasBody) {
+        body = body + lines.get(i) 
+        continue
+      }
+      if (header_parts.size() > 1) {
+        header_parts.set(1, Str::trimInPlace(header_parts.get(1)))
+      }
+      if header_parts.get(0) == "Host" {
+        header_map.Host = header_parts.get(1) 
+      } or if header_parts.get(0) == "Connection" {
+        header_map.Connection = header_parts.get(1) 
+      } or if header_parts.get(0) == "sec-ch-ua" {
+        header_map.sec_ch_ua = header_parts.get(1) 
+      } or if header_parts.get(0) == "sec-ch-ua-mobile" {
+        header_map.sec_ch_ua_mobile = header_parts.get(1) == "?1" 
+      } or if header_parts.get(0) == "sec-ch-ua-platform" {
+        header_map.sec_ch_ua_platform = header_parts.get(1) 
+      } or if header_parts.get(0) == "Upgrade-Insecure-Requests" {
+        header_map.Upgrade_Insecure_Requests = Int32(header_parts.get(1)) 
+      } or if header_parts.get(0) == "User-Agent" {
+        header_map.User_Agent = header_parts.get(1) 
+      } or if header_parts.get(0) == "Accept" {
+        header_map.Accept = header_parts.get(1) 
+      } or if header_parts.get(0) == "Sec-Fetch-Site" {
+        header_map.Sec_Fetch_Site = header_parts.get(1) 
+      } or if header_parts.get(0) == "Sec-Fetch-Mode" {
+        header_map.Sec_Fetch_Mode = header_parts.get(1) 
+      } or if header_parts.get(0) == "Sec-Fetch-User" {
+        header_map.Sec_Fetch_User = header_parts.get(1) == "?1" 
+      } or if header_parts.get(0) == "Sec-Fetch-Dest" {
+        header_map.Sec_Fetch_Dest = header_parts.get(1) 
+      } or if header_parts.get(0) == "Accept-Encoding" {
+        header_map.Accept_Encoding = header_parts.get(1) 
+      } or if header_parts.get(0) == "Accept-Language" {
+        header_map.Accept_Language = header_parts.get(1) 
+      } or if header_parts.get(0) == "Content-Type" {
+        header_map.content_type = header_parts.get(1) 
+      } or if header_parts.get(0) == "Content-Length" {
+        header_map.content_length = Int32(header_parts.get(1)) + 0 
+      } or if header_parts.get(0) == "\r" {
+        hasBody = true 
+        continue
+      }
+    }
+  }
+  return {
+    method: method,
+    endpoint: endpoint,
+    version: version,
+    headers: header_map,
+    body: Str::trimInPlace(body)
+  }, Nir
+}
+
+
+fun log_middleware(client_socket: as int, req_str: as str, endpoint: as str) -> as nthg {/;print("log_middleware: ", req_str, "\n")
+
+  flush()
+}
+
+
+fun printVector(inout vec: Vec::String) -> as nthg {
+  for var i = 0 to vec.size() - 1 {
+    print(vec.get(i), "\n")
+    flush()
+  }
+  flush()
+}
+
+
+fun post_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {/; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
+
+  var Req: HttpRequest, err: Err::Result = parse_request(req)/;print("Req: ", Req, "\n")
+
+  var mp: Map::String = parseJson(Req.body)
+  print("NAME ", mp.get("address"), "\n")
+  flush()
+  const plain_text_response: str = "Hello, World!"
+  send_response(client_socket, "200 OK", "text/plain", plain_text_response)
+}
+
+
+fun main() -> nthg {
+  set_middleware(log_middleware)
+  set_route("GET", "/json", my_request_handler)
+  set_route("GET", "/", my_request_handler)
+  set_route("GET", "/text", my_request_handler)
+  set_route("POST", "/submit", post_request_handler)
+}
+
+main()
+class Server {
+  var port: int
+  init(port: int) -> nthg {
+    self.port = port 
+  }
+
+
+  addMiddleware(middleware: unknown) -> as nthg {
+    set_middleware(middleware)
+  }
+
+
+  start() -> as nthg {
+    start_server(self.port)
+  }
+
+
+}

@@ -1,0 +1,54 @@
+bring "Vec-module.fg"
+
+
+fun test_vectors() -> nthg {
+  var intVec: Vec::Int = new Vec::Int()
+  intVec.add(10)
+  intVec.add(20)
+  print(intVec.get(0))/; Output: 10
+
+  print(intVec.size())/; Output: 2
+
+  intVec.remove(1)
+  print(intVec.size())/; Output: 1
+
+  intVec.free()
+  var boolVec: Vec::Bool = new Vec::Bool()
+  boolVec.add(true)
+  boolVec.add(false)
+  print(boolVec.get(0))/; Output: true
+
+  print(boolVec.size())/; Output: 2
+
+  boolVec.remove(1)
+  print(boolVec.size())/; Output: 1
+
+  boolVec.free()
+  var strVec: Vec::String = new Vec::String()
+  strVec.add("Hello")
+  strVec.add("World")
+  print(strVec.get(0))/; Output: Hello
+
+  print(strVec.size())/; Output: 2
+
+  strVec.remove(1)
+  print(strVec.size())/; Output: 1
+
+  strVec.free()
+  var dblVec: Vec::Deci = new Vec::Deci()
+  dblVec.add(1.23)
+  dblVec.add(4.56)
+  print(dblVec.get(0))/; Output: 1.23
+
+  dblVec.set(0, 6.78)
+  print(dblVec.get(0))/; Output: 6.78
+
+  print(dblVec.size())/; Output: 2
+
+  dblVec.remove(1)
+  print(dblVec.size())/; Output: 1
+
+  dblVec.free()
+}
+
+test_vectors()

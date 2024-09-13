@@ -115,8 +115,8 @@ const std::string &CodeGenerationContext::getSourceFileName() const {
   return this->_sourceFileName;
 }
 
-FLowWing::DiagnosticHandler *
-CodeGenerationContext::getDiagnosticHandler() const {
+FLowWing::DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler()
+    const {
   return _diagnosticHandler;
 }
 
@@ -201,11 +201,9 @@ auto CodeGenerationContext::createVTableMapEntry(
                        std::tuple<llvm::FunctionType *, uint64_t, std::string>>
         &vTableElementsMap,
     std::string className, uint64_t &index) -> void {
-
   auto classVar = this->_classTypes[className];
 
-  if (!classVar)
-    return;
+  if (!classVar) return;
 
   if (classVar->hasParent()) {
     createVTableMapEntry(vTableElementsMap, classVar->getParentClassName(),
@@ -216,14 +214,12 @@ auto CodeGenerationContext::createVTableMapEntry(
     std::string fName = element.first;
     auto functionType = element.second;
 
-    if (fName.find(".init") != std::string::npos)
-      continue;
+    if (fName.find(".init") != std::string::npos) continue;
 
     fName = fName.substr(
         fName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) + 1);
 
     if (vTableElementsMap.find(fName) == vTableElementsMap.end()) {
-
       std::get<1>(vTableElementsMap[fName]) = index;
       index++;
     }
@@ -267,8 +263,8 @@ auto CodeGenerationContext::createVTableMapEntry(
   }
 }
 
-llvm::Constant *
-CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
+llvm::Constant *CodeGenerationContext::createConstantFromValue(
+    llvm::Value *myValue) {
   llvm::Type *valueType = myValue->getType();
 
   if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
@@ -303,7 +299,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
         return strConstant;
       }
     }
-  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
+  } else if (valueType->isIntegerTy(1)) {  // Check if it's a boolean (i1).
     if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
       return llvm::ConstantInt::get(valueType,
                                     boolConstant->getUniqueInteger());
@@ -313,7 +309,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
 
   // this->logError("Unsupported type for conversion to constant");
 
-  return nullptr; // Return nullptr if the type is not recognized.
+  return nullptr;  // Return nullptr if the type is not recognized.
 }
 
 void CodeGenerationContext::callREF(const std::string &error) {
@@ -343,7 +339,6 @@ void CodeGenerationContext::setMetadata(const std::string kind, llvm::Value *v,
 
 void CodeGenerationContext::getMetaData(const std::string kind, llvm::Value *v,
                                         std::string &metaData) {
-
   if (!v) {
     return;
   }
@@ -400,8 +395,8 @@ void CodeGenerationContext::setArrayElementTypeMetadata(
       std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
   setMetadata("ET", array, metaData);
 }
-llvm::Type *
-CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
+llvm::Type *CodeGenerationContext::getArrayElementTypeMetadata(
+    llvm::Value *array) {
   std::string metaData = "";
   getMetaData("ET", array, metaData);
   std::vector<std::string> sizesStr;
@@ -466,12 +461,10 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
 int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
                                                llvm::StructType *rhsType,
                                                std::string inExp) {
-
   if (this->_classTypes.find(lhsType->getStructName().str()) !=
           this->_classTypes.end() &&
       this->_classTypes.find(rhsType->getStructName().str()) !=
           this->_classTypes.end()) {
-
     if (this->_classTypes[rhsType->getStructName().str()] &&
         this->_classTypes[rhsType->getStructName().str()]->isChildOf(
             lhsType->getStructName().str()))
@@ -505,13 +498,10 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   return EXIT_SUCCESS;
 }
 
-int8_t
-CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
-                                  const std::vector<llvm::Type *> &rhsTypes,
-                                  const std::string &inExp) {
-
+int8_t CodeGenerationContext::verifyType(
+    const std::vector<llvm::Type *> &lhsTypes,
+    const std::vector<llvm::Type *> &rhsTypes, const std::string &inExp) {
   if (lhsTypes.size() != rhsTypes.size()) {
-
     this->getLogger()->LogError("Type mismatch Expected " +
                                 this->getMapper()->getLLVMTypeName(lhsTypes) +
                                 inExp);
@@ -612,14 +602,12 @@ void CodeGenerationContext::getReturnedObjectType(
 
   Utils::split(metaData, ":", strs);
 
-  if (strs.size() == 0)
-    return;
+  if (strs.size() == 0) return;
 
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())
       objectType = _classTypes[strs[3]]->getClassType();
     else {
-
       if (!(this->getFlowWingType(strs[3]).getStructType())) {
         this->getLogger()->LogError("Expected a object of type " +
                                     Utils::getActualTypeName(strs[3]));
@@ -649,54 +637,54 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     llvm::Type *type, std::string variableName,
     BinderKindUtils::MemoryKind memoryKind, llvm::Constant *initialValue) {
   switch (memoryKind) {
-  case BinderKindUtils::MemoryKind::Heap: {
-    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
+    case BinderKindUtils::MemoryKind::Heap: {
+      auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
 
-    llvm::CallInst *malloc_call = this->_builder->CreateCall(
-        fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
-                                    this->getMapper()->getSizeOf(type)));
-    malloc_call->setTailCall(false);
+      llvm::CallInst *malloc_call = this->_builder->CreateCall(
+          fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
+                                      this->getMapper()->getSizeOf(type)));
+      malloc_call->setTailCall(false);
 
-    // Cast the result of 'malloc' to a pointer to int
-    return this->_builder->CreateBitCast(
-        malloc_call,
-        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*this->_context)));
-  }
-  case BinderKindUtils::MemoryKind::Stack: {
-    return this->_builder->CreateAlloca(type, nullptr, variableName);
-  }
-  case BinderKindUtils::MemoryKind::Global: {
+      // Cast the result of 'malloc' to a pointer to int
+      return this->_builder->CreateBitCast(
+          malloc_call, llvm::PointerType::getUnqual(
+                           llvm::Type::getInt32Ty(*this->_context)));
+    }
+    case BinderKindUtils::MemoryKind::Stack: {
+      return this->_builder->CreateAlloca(type, nullptr, variableName);
+    }
+    case BinderKindUtils::MemoryKind::Global: {
+      llvm::Value *global = this->_module->getNamedGlobal(variableName);
 
-    llvm::Value *global = this->_module->getNamedGlobal(variableName);
+      if (global) return global;
 
-    if (global)
-      return global;
+      llvm::GlobalVariable *variable =
+          variableName == ""
+              ? new llvm::GlobalVariable(
+                    *this->_module, type, false,
+                    initialValue
+                        ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                        : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                    initialValue ? initialValue
+                                 : llvm::Constant::getNullValue(type))
+              : new llvm::GlobalVariable(
+                    *this->_module, type, false,
+                    initialValue
+                        ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                        : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                    initialValue ? initialValue
+                                 : llvm::Constant::getNullValue(type),
+                    variableName);
+      variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
 
-    llvm::GlobalVariable *variable =
-        variableName == ""
-            ? new llvm::GlobalVariable(
-                  *this->_module, type, false,
-                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
-                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-                  initialValue ? initialValue
-                               : llvm::Constant::getNullValue(type))
-            : new llvm::GlobalVariable(
-                  *this->_module, type, false,
-                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
-                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-                  initialValue ? initialValue
-                               : llvm::Constant::getNullValue(type),
-                  variableName);
-    variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
+      return variable;
+    }
 
-    return variable;
-  }
-
-  default:
-    this->getLogger()->LogError(
-        "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
-        " for " + variableName + " in " + __PRETTY_FUNCTION__);
-    return nullptr;
+    default:
+      this->getLogger()->LogError(
+          "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
+          " for " + variableName + " in " + __PRETTY_FUNCTION__);
+      return nullptr;
   }
 }
 auto CodeGenerationContext::getArrayTypeAsString(llvm::ArrayType *arrayType)
@@ -723,7 +711,6 @@ void CodeGenerationContext::verifyFunction(llvm::Function *F,
     this->getLogger()->LogError("Error verifying function " + FUNCTION_NAME +
                                 errorInfo);
   } else {
-
     this->getLogger()->LogInfo("Function " + FUNCTION_NAME +
                                " verified successfully");
   }

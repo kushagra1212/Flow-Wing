@@ -48,6 +48,10 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
 #define PARSER_DEBUG_LOG(format, ...)                                          \
   DEBUG_LOG_IMPL("PARSER", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
+// Macro for binder logs
+#define BINDER_DEBUG_LOG(format, ...)                                          \
+  DEBUG_LOG_IMPL("BINDER", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+
 // Macro for code generation logs
 #define CODEGEN_DEBUG_LOG(format, ...)                                         \
   DEBUG_LOG_IMPL("CODEGEN", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
@@ -56,6 +60,7 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
 #define INFO_DEBUG_LOG(format, ...)
 #define LEXER_DEBUG_LOG(format, ...)
 #define PARSER_DEBUG_LOG(format, ...)
+#define BINDER_DEBUG_LOG(format, ...)
 #define CODEGEN_DEBUG_LOG(format, ...)
 #endif
 

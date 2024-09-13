@@ -820,3 +820,7 @@ export const getUnique = (
 
   return Array.from(mp.values());
 };
+
+export const getModulePath = () => {
+  return "/opt/homebrew/lib/FlowWing/lib/modules";
+};

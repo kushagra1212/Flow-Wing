@@ -9,7 +9,7 @@
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ClassStatementGenerationStrategy : public StatementGenerationStrategy {
-public:
+ public:
   ClassStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
@@ -17,4 +17,4 @@ public:
   llvm::Value *generateClassType(BoundStatement *statement);
 };
 
-#endif //__FLOWWING_CLASS_STATEMENT_STRATEGY_H__
+#endif  //__FLOWWING_CLASS_STATEMENT_STRATEGY_H__

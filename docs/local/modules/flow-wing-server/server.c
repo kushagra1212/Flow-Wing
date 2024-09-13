@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#define MAX_REQUEST_SIZE 10240
 typedef void (*RequestHandler)(int client_socket, const char *request,
                                const char *endpoint);
 
@@ -50,6 +50,7 @@ void handle_request(int client_socket, const char *request) {
 
   if (middleware) {
     middleware(client_socket, request, endpoint);
+    fflush(stdout);
   }
 
   Route *current = routes;
@@ -66,12 +67,12 @@ void handle_request(int client_socket, const char *request) {
   send_response(client_socket, "404 Not Found", "text/plain", "Not Found");
 }
 
-void start_server() {
+void start_server(int port) {
   int server_fd;
   struct sockaddr_in address;
   int addrlen = sizeof(address);
   int new_socket;
-  char buffer[1024] = {0};
+  char buffer[MAX_REQUEST_SIZE] = {0};
   int opt = 1;
 
   // Create socket file descriptor
@@ -82,7 +83,7 @@ void start_server() {
 
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(8080);
+  address.sin_port = htons(port);
 
   // Set SO_REUSEADDR option
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
@@ -111,7 +112,7 @@ void start_server() {
     }
 
     // Read the request
-    read(new_socket, buffer, 1024);
+    read(new_socket, buffer, MAX_REQUEST_SIZE);
 
     // Handle the request
     handle_request(new_socket, buffer);
@@ -123,3 +124,4 @@ void start_server() {
   // Close the server socket
   close(server_fd);
 }
+void flush() { fflush(stdout); }

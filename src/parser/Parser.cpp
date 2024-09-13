@@ -422,11 +422,82 @@ std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
     return std::move(objectType);
   }
 
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+    return this->parseFunctionTypeExpression();
+  }
+
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
     return std::move(this->parseObjectTypeExpression());
   }
 
   return std::make_unique<TypeExpressionSyntax>(this->parsePrimitiveType());
+}
+
+std::unique_ptr<FunctionTypeExpressionSyntax>
+Parser::parseFunctionTypeExpression() {
+  std::unique_ptr<FunctionTypeExpressionSyntax> funcTypeExpression =
+      std::make_unique<FunctionTypeExpressionSyntax>(
+          std::make_unique<SyntaxToken<std::any>>(
+              this->_diagnosticHandler->getAbsoluteFilePath(), 0,
+              SyntaxKindUtils::SyntaxKind::NBU_FUNCTION_TYPE, 0,
+              "NBU_FUNCTION_TYPE", "NBU_FUNCTION_TYPE"));
+
+  funcTypeExpression->setOpenParenthesisToken(
+      this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
+
+  appendWithSpace();
+  size_t parameterCount = 0;
+  while (this->getKind() !=
+             SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
+         this->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    if (parameterCount) {
+      this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
+      appendWithSpace();
+    }
+
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+      funcTypeExpression->addAsParameterKeyword(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+      appendWithSpace();
+    }
+
+    std::unique_ptr<TypeExpressionSyntax> typeExp =
+        std::move(this->parseTypeExpression());
+    funcTypeExpression->addParameterType(std::move(typeExp));
+
+    parameterCount++;
+  }
+
+  appendWithSpace();
+
+  funcTypeExpression->setCloseParenthesisToken(
+      this->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
+
+  appendWithSpace();
+  this->match(SyntaxKindUtils::SyntaxKind::MinusToken);
+  this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
+  appendWithSpace();
+
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+    funcTypeExpression->setAsKeyword(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+    appendWithSpace();
+  }
+
+  do {
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
+      funcTypeExpression->addSeparator(
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
+      appendWithSpace();
+    }
+
+    funcTypeExpression->addReturnType(std::move(this->parseTypeExpression()));
+
+  } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
+
+  appendWithSpace();
+
+  return std::move(funcTypeExpression);
 }
 
 std::unique_ptr<ObjectTypeExpressionSyntax>
@@ -908,17 +979,23 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
               .string();
 
       std::string moduleFilePath =
-          Utils::findFile(currentDirPath, relativeFilePath + "-module.fg");
+          Utils::findFile(PathManager::getModulesPath().string(),
+                          relativeFilePath + "-module.fg");
 
-      // if (moduleFilePath.empty()) {
-      //   this->_diagnosticHandler->addDiagnostic(
-      //       Diagnostic("Module <" + relativeFilePath + "> not found",
-      //                  DiagnosticUtils::DiagnosticLevel::Error,
-      //                  DiagnosticUtils::DiagnosticType::Syntactic,
-      //                  Utils::getSourceLocation(stringToken.get())));
+      if (moduleFilePath.empty()) {
+        moduleFilePath =
+            Utils::findFile(currentDirPath, relativeFilePath + "-module.fg");
+      }
 
-      //   return std::move(bringStatement);
-      // }
+      if (moduleFilePath.empty()) {
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Module <" + relativeFilePath + "> not found",
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       Utils::getSourceLocation(stringToken.get())));
+
+        return std::move(bringStatement);
+      }
 
       DEBUG_LOG("Module File Path: " + moduleFilePath);
       relativeFilePath =
@@ -1101,7 +1178,9 @@ std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
   ifStatement->addStatement(std::move(statement));
 
   while (this->getKind() == SyntaxKindUtils::SyntaxKind::OrKeyword) {
-    _formattedSourceCode += INDENT;
+    // _formattedSourceCode += INDENT;
+    appendWithSpace();
+
     std::unique_ptr<SyntaxToken<std::any>> orKeyword =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::OrKeyword));
     appendWithSpace();
@@ -1125,7 +1204,8 @@ std::unique_ptr<IfStatementSyntax> Parser::parseIfStatement() {
   std::unique_ptr<ElseClauseSyntax> elseClause = nullptr;
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ElseKeyword) {
-    _formattedSourceCode += INDENT;
+    // _formattedSourceCode += INDENT;
+    appendWithSpace();
     elseClause = std::move(this->parseElseStatement());
   }
 
@@ -1794,6 +1874,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parseIndexExpression(
   }
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
+    appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
     appendWithSpace();

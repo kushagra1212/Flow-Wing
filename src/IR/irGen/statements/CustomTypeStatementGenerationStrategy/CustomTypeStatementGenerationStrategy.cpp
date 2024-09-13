@@ -1,5 +1,6 @@
 #include "CustomTypeStatementGenerationStrategy.h"
 
+#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 CustomTypeStatementGenerationStrategy::CustomTypeStatementGenerationStrategy(
@@ -32,11 +33,11 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
 
   for (auto &[boundLiteralExpression, bTE] :
        boundCustomTypeStatement->getKeyPairs()) {
-
     const std::string propertyName =
         std::any_cast<std::string>(boundLiteralExpression->getValue());
 
-    llvm::Type *type = getType(bTE.get());
+    llvm::Type *type = _typeGenerationFactory->createStrategy(bTE->getKind())
+                           ->getType(bTE.get());
 
     const std::string key = KEY_PRIFIX + "." + propertyName;
 
@@ -67,111 +68,63 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
   return nullptr;
 }
 
-llvm::Type *
-CustomTypeStatementGenerationStrategy::getType(BoundTypeExpression *bTE) {
-  switch (bTE->getKind()) {
+// llvm::Type *CustomTypeStatementGenerationStrategy::getType(
+//     BoundTypeExpression *bTE) {
+//   switch (bTE->getKind()) {
+//     case BinderKindUtils::BoundObjectTypeExpression: {
+//       //! Might Have to Revert it
+//       // BoundObjectTypeExpression *bOT =
+//       //     static_cast<BoundObjectTypeExpression *>(bTE);
 
-  case BinderKindUtils::BoundTypeExpression: {
-    return _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-        bTE->getSyntaxType());
-  }
-  case BinderKindUtils::BoundArrayTypeExpression: {
-    BoundArrayTypeExpression *boundArrayTypeExpression =
-        static_cast<BoundArrayTypeExpression *>(bTE);
-    std::unique_ptr<LiteralExpressionGenerationStrategy>
-        literalExpressionGenerationStrategy =
-            std::make_unique<LiteralExpressionGenerationStrategy>(
-                _codeGenerationContext);
-    llvm::Type *elementType = nullptr;
-    if (boundArrayTypeExpression->isTrivialType()) {
-      elementType =
-          _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
-              boundArrayTypeExpression->getElementType());
-    } else if (auto objectType = static_cast<BoundObjectTypeExpression *>(
-                   boundArrayTypeExpression->getNonTrivialElementType()
-                       .get())) {
-      elementType =
-          _codeGenerationContext->getFlowWingType(objectType->getTypeName())
-              .getStructType();
-    }
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        boundArrayTypeExpression->getLocation());
-    if (!elementType) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected a array element type in custom type statement");
-      return nullptr;
-    }
-    llvm::Type *arrayType = elementType;
-    std::vector<uint64_t> dimensions(
-        boundArrayTypeExpression->getDimensions().size(), 0);
-    for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
-         k >= 0; k--) {
-      llvm::Value *arraySize =
-          literalExpressionGenerationStrategy->generateExpression(
-              boundArrayTypeExpression->getDimensions()[k].get());
-      _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-          boundArrayTypeExpression->getDimensions()[k]->getLocation());
+//       // BoundLiteralExpression<std::any> *bLE =
+//       //     bOT->getObjectTypeIdentifier().get();
 
-      if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
-        _codeGenerationContext->getLogger()->LogError(
-            "Array size must be a constant integer");
-      }
+//       // _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+//       //     bOT->getLocation());
+//       // std::string typeName = std::any_cast<std::string>(bLE->getValue());
 
-      dimensions[k] = llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+//       // llvm::StructType *type = nullptr;
+//       // if (_codeGenerationContext->_classTypes.find(typeName) !=
+//       //     _codeGenerationContext->_classTypes.end()) {
 
-      arrayType = llvm::ArrayType::get(arrayType, dimensions[k]);
-    }
-    return arrayType;
-  }
-  case BinderKindUtils::BoundObjectTypeExpression: {
-    BoundObjectTypeExpression *bOT =
-        static_cast<BoundObjectTypeExpression *>(bTE);
+//       //   type =
+//       _codeGenerationContext->_classTypes[typeName]->getClassType();
+//       // } else if ((_codeGenerationContext->getFlowWingType(typeName)
+//       //                 .getStructType())) {
 
-    BoundLiteralExpression<std::any> *bLE =
-        bOT->getObjectTypeIdentifier().get();
+//       //   type =
+//       (_codeGenerationContext->_typesMap[typeName].getStructType());
+//       // } else {
+//       //   _codeGenerationContext->getLogger()->LogError(
+//       //       "Expected an object type," +
+//       Utils::getActualTypeName(typeName));
+//       //   return nullptr;
+//       // }
 
-    _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        bOT->getLocation());
-    std::string typeName = std::any_cast<std::string>(bLE->getValue());
+//       // if (!type) {
+//       //   _codeGenerationContext->getLogger()->LogError(
+//       //       "Expected an object type, " +
+//       Utils::getActualTypeName(typeName)
+//       //       + " in type statement ");
 
-    llvm::StructType *type = nullptr;
-    if (_codeGenerationContext->_classTypes.find(typeName) !=
-        _codeGenerationContext->_classTypes.end()) {
+//       //   return nullptr;
+//       // }
 
-      type = _codeGenerationContext->_classTypes[typeName]->getClassType();
-    } else if ((_codeGenerationContext->getFlowWingType(typeName)
-                    .getStructType())) {
+//       // if (!type) {
+//       //   _codeGenerationContext->getLogger()->LogError(
+//       //       "Type " + typeName + " is not defined in Type Statement" +
+//       //       Utils::getActualTypeName(typeName));
 
-      type = (_codeGenerationContext->_typesMap[typeName].getStructType());
-    } else {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected an object type," + Utils::getActualTypeName(typeName));
-      return nullptr;
-    }
+//       //   return nullptr;
+//       // }
+//       // return type;
+//       // break;
+//     }
+//     default: {
+//       _codeGenerationContext->getLogger()->LogError(
+//           "Invalid type expression in type statement");
 
-    if (!type) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected an object type, " + Utils::getActualTypeName(typeName) +
-          " in type statement ");
-
-      return nullptr;
-    }
-
-    if (!type) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Type " + typeName + " is not defined in Type Statement" +
-          Utils::getActualTypeName(typeName));
-
-      return nullptr;
-    }
-    return type;
-    break;
-  }
-  default: {
-    _codeGenerationContext->getLogger()->LogError(
-        "Invalid type expression in type statement");
-
-    return nullptr;
-  }
-  }
-}
+//       return nullptr;
+//     }
+//   }
+// }

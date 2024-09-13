@@ -18,6 +18,7 @@
 #include "../../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../../syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../../syntax/expression/UnaryExpressionSyntax.h"
 #include "../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
@@ -69,6 +70,7 @@
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
 #include "../BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../BoundTypeExpression/BoundTypeExpression.h"
 #include "../BoundUnaryExpression/BoundUnaryExpression.h"
@@ -83,73 +85,71 @@
 #include "../../parser/Parser.h"
 
 class Binder {
-private:
+ private:
   std::unique_ptr<BoundScope> root;
   FLowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _currentModuleName;
 
-public:
+ public:
   Binder(std::unique_ptr<BoundScope> root,
          FLowWing::DiagnosticHandler *diagnosticHandler);
 
   static void verifyAllCallsAreValid(Binder *binder);
 
-  static std::unique_ptr<BoundScopeGlobal>
-  bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previous,
-                  CompilationUnitSyntax *syntax,
-                  FLowWing::DiagnosticHandler *diagnosticHandler);
+  static std::unique_ptr<BoundScopeGlobal> bindGlobalScope(
+      std::unique_ptr<BoundScopeGlobal> previous, CompilationUnitSyntax *syntax,
+      FLowWing::DiagnosticHandler *diagnosticHandler);
 
   // BoundStatements
 
-  std::unique_ptr<BoundStatement>
-  bindGlobalStatement(GlobalStatementSyntax *syntax);
+  std::unique_ptr<BoundStatement> bindGlobalStatement(
+      GlobalStatementSyntax *syntax);
 
-  std::unique_ptr<BoundStatement>
-  bindFunctionDeclaration(FunctionDeclarationSyntax *syntax,
-                          std::string className = "");
+  std::unique_ptr<BoundStatement> bindFunctionDeclaration(
+      FunctionDeclarationSyntax *syntax, std::string className = "");
 
   std::unique_ptr<BoundStatement> bindStatement(StatementSyntax *syntax);
 
-  std::unique_ptr<BoundStatement>
-  bindExpressionStatement(ExpressionStatementSyntax *syntax);
+  std::unique_ptr<BoundStatement> bindExpressionStatement(
+      ExpressionStatementSyntax *syntax);
 
-  std::unique_ptr<BoundStatement>
-  bindBlockStatement(BlockStatementSyntax *blockStatement);
+  std::unique_ptr<BoundStatement> bindBlockStatement(
+      BlockStatementSyntax *blockStatement);
 
-  std::unique_ptr<BoundVariableDeclaration>
-  bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
-                          std::string className = "");
-  std::unique_ptr<BoundStatement>
-  bindIfStatement(IfStatementSyntax *ifStatement);
+  std::unique_ptr<BoundVariableDeclaration> bindVariableDeclaration(
+      VariableDeclarationSyntax *variableDeclaration,
+      std::string className = "");
+  std::unique_ptr<BoundStatement> bindIfStatement(
+      IfStatementSyntax *ifStatement);
 
-  std::unique_ptr<BoundOrIfStatement>
-  bindOrIfStatement(OrIfStatementSyntax *orIfStatement);
+  std::unique_ptr<BoundOrIfStatement> bindOrIfStatement(
+      OrIfStatementSyntax *orIfStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindWhileStatement(WhileStatementSyntax *whileStatement);
+  std::unique_ptr<BoundStatement> bindWhileStatement(
+      WhileStatementSyntax *whileStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindForStatement(ForStatementSyntax *forStatement);
+  std::unique_ptr<BoundStatement> bindForStatement(
+      ForStatementSyntax *forStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindBreakStatement(BreakStatementSyntax *breakStatement);
+  std::unique_ptr<BoundStatement> bindBreakStatement(
+      BreakStatementSyntax *breakStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindContinueStatement(ContinueStatementSyntax *continueStatement);
-  std::unique_ptr<BoundStatement>
-  bindReturnStatement(ReturnStatementSyntax *returnStatement);
+  std::unique_ptr<BoundStatement> bindContinueStatement(
+      ContinueStatementSyntax *continueStatement);
+  std::unique_ptr<BoundStatement> bindReturnStatement(
+      ReturnStatementSyntax *returnStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindBringStatement(BringStatementSyntax *bringStatement);
+  std::unique_ptr<BoundStatement> bindBringStatement(
+      BringStatementSyntax *bringStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindClassStatement(ClassStatementSyntax *bringStatement);
+  std::unique_ptr<BoundStatement> bindClassStatement(
+      ClassStatementSyntax *bringStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindCustomTypeStatement(CustomTypeStatementSyntax *customTypeStatement);
+  std::unique_ptr<BoundStatement> bindCustomTypeStatement(
+      CustomTypeStatementSyntax *customTypeStatement);
 
-  std::unique_ptr<BoundStatement>
-  bindModuleStatement(ModuleStatementSyntax *moduleStatement);
+  std::unique_ptr<BoundStatement> bindModuleStatement(
+      ModuleStatementSyntax *moduleStatement);
 
   std::unique_ptr<BoundMultipleVariableDeclaration>
   bindMultipleVariableDeclaration(
@@ -159,48 +159,57 @@ public:
 
   std::unique_ptr<BoundExpression> bindExpression(ExpressionSyntax *syntax);
 
-  std::unique_ptr<BoundLiteralExpression<std::any>>
-  bindLiteralExpression(ExpressionSyntax *syntax);
+  std::unique_ptr<BoundLiteralExpression<std::any>> bindLiteralExpression(
+      ExpressionSyntax *syntax);
 
-  std::unique_ptr<BoundExpression>
-  bindunaryExpression(UnaryExpressionSyntax *unaryExpression);
+  std::unique_ptr<BoundExpression> bindunaryExpression(
+      UnaryExpressionSyntax *unaryExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindNirastExpression(NirastExpressionSyntax *nirastExpressionSyntax);
+  std::unique_ptr<BoundExpression> bindNirastExpression(
+      NirastExpressionSyntax *nirastExpressionSyntax);
 
-  std::unique_ptr<BoundExpression>
-  bindBinaryExpression(BinaryExpressionSyntax *binaryExpression);
+  std::unique_ptr<BoundExpression> bindBinaryExpression(
+      BinaryExpressionSyntax *binaryExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindAssignmentExpression(AssignmentExpressionSyntax *assignmentExpression);
+  std::unique_ptr<BoundExpression> bindAssignmentExpression(
+      AssignmentExpressionSyntax *assignmentExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindCallExpression(CallExpressionSyntax *callExpression);
+  std::unique_ptr<BoundExpression> bindCallExpression(
+      CallExpressionSyntax *callExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindIndexExpression(IndexExpressionSyntax *indexExpression);
+  std::unique_ptr<BoundExpression> bindIndexExpression(
+      IndexExpressionSyntax *indexExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindContainerExpression(ContainerExpressionSyntax *containerExpression);
+  std::unique_ptr<BoundExpression> bindContainerExpression(
+      ContainerExpressionSyntax *containerExpression);
 
   std::unique_ptr<BoundMultipleAssignmentExpression>
   bindMultipleAssignmentExpression(
       MultipleAssignmentExpressionSyntax *multipleAssignmentExpressionSyntax);
 
-  std::unique_ptr<BoundExpression>
-  bindFillExpression(FillExpressionSyntax *fillExpression);
+  std::unique_ptr<BoundExpression> bindFillExpression(
+      FillExpressionSyntax *fillExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindBracketedExpression(BracketedExpressionSyntax *bracketedExpression);
+  std::unique_ptr<BoundExpression> bindBracketedExpression(
+      BracketedExpressionSyntax *bracketedExpression);
 
-  std::unique_ptr<BoundExpression>
-  bindVariableExpression(VariableExpressionSyntax *variableExpressionSyntax);
+  std::unique_ptr<BoundExpression> bindVariableExpression(
+      VariableExpressionSyntax *variableExpressionSyntax);
 
-  std::unique_ptr<BoundTypeExpression>
-  bindTypeExpression(TypeExpressionSyntax *typeExpressionSyntax);
+  std::unique_ptr<BoundTypeExpression> bindTypeExpression(
+      TypeExpressionSyntax *typeExpressionSyntax);
 
-  std::unique_ptr<BoundExpression>
-  bindObjectExpression(ObjectExpressionSyntax *objectExpressionSyntax);
+  std::unique_ptr<BoundObjectTypeExpression> bindObjectTypeExpression(
+      ObjectTypeExpressionSyntax *syntax);
+
+  std::unique_ptr<BoundArrayTypeExpression> bindArrayTypeExpression(
+      ArrayTypeExpressionSyntax *arrayTypeExpressionSyntax);
+
+  std::unique_ptr<BoundFunctionTypeExpression> bindFunctionTypeExpression(
+      FunctionTypeExpressionSyntax *functionTypeExpressionSyntax);
+
+  std::unique_ptr<BoundExpression> bindObjectExpression(
+      ObjectExpressionSyntax *objectExpressionSyntax);
 
   // Utils
   auto getMemberMap(const std::vector<std::unique_ptr<MemberSyntax>> &members,
@@ -212,4 +221,4 @@ public:
                                std::string className);
 };
 
-#endif // __BIND_BINDER_H__
+#endif  // __BIND_BINDER_H__

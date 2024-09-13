@@ -141,6 +141,29 @@ var z:deci32 = 1.23
     },
   },
   {
+    label: "int8",
+    kind: CompletionItemKind.TypeParameter,
+    data: "int8",
+    detail: "8-bit Integer Data Type",
+    documentation: {
+      kind: "markdown",
+      value: `
+**8-bit Integer Data Type**
+
+The \`int8\` datatype represents a 8-bit signed integer, used for storing small integer values.
+
+### Example Usage:
+\`\`\`flowwing
+var x:int8 = Int8(42)
+\`\`\`
+
+### Properties:
+- **Range**: -128 to 127
+- **Usage**: Suitable for scenarios where memory usage is a concern and high precision is not required.
+      `,
+    },
+  },
+  {
     label: "Nir",
     kind: CompletionItemKind.TypeParameter,
     data: "Nir",

@@ -19,22 +19,10 @@
 #include "../irGen/Types/Type.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
-#include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
+#include "utils/ValueStack/ValueStackHandler.h"
 //! TODO: Refactor Import
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/FileSystem.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
-#include "llvm/TargetParser/Host.h"
-#include "llvm/Transforms/Scalar.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -55,11 +43,33 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/TargetParser/Host.h"
+#include "llvm/Transforms/Scalar.h"
 // ExecutionEngine
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/ExecutionEngine/Interpreter.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/SourceMgr.h>
+
 #include "llvm//IR/Value.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -72,16 +82,6 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
-#include <llvm/ExecutionEngine/GenericValue.h>
-#include <llvm/ExecutionEngine/Interpreter.h>
-#include <llvm/ExecutionEngine/MCJIT.h>
-#include <llvm/ExecutionEngine/SectionMemoryManager.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Linker/Linker.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/SourceMgr.h>
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
@@ -89,7 +89,7 @@
 class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
-public:
+ public:
   CodeGenerationContext(FLowWing::DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
@@ -178,9 +178,9 @@ public:
                                   llvm::Constant *initialValue = nullptr);
 
   void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
-  inline auto
-  createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
-                                      llvm::Type *&arrayElementType) -> void {
+  inline auto createArraySizesAndArrayElementType(
+      std::vector<uint64_t> &actualSizes, llvm::Type *&arrayElementType)
+      -> void {
     while (llvm::ArrayType *arrayType =
                llvm::dyn_cast<llvm::ArrayType>(arrayElementType)) {
       actualSizes.push_back(arrayType->getNumElements());
@@ -227,7 +227,6 @@ public:
     const bool isClassType =
         this->_classTypes.find(typeName) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {
-
       this->getLogger()->LogError("Type " + typeName +
                                   " is not defined in this scope");
 
@@ -257,7 +256,7 @@ public:
   std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
       _functionTypes;
 
-private:
+ private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -286,4 +285,4 @@ private:
   std::string _currentClassName = "";
 };
 
-#endif // CODEGENERATIONCONTEXT_H
+#endif  // CODEGENERATIONCONTEXT_H

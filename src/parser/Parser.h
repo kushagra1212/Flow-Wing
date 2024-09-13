@@ -2,6 +2,7 @@
 #define PARSER_H
 #include <typeindex>
 
+#include "../common/managers/PathManager.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"
@@ -19,6 +20,7 @@
 #include "../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
+#include "../syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "../syntax/expression/UnaryExpressionSyntax.h"
@@ -167,6 +169,7 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> parsePrimitiveType();
   std::unique_ptr<ObjectExpressionSyntax> parseObjectExpression();
   std::unique_ptr<ExpressionSyntax> parseModuleIdentifierExpression();
+  std::unique_ptr<FunctionTypeExpressionSyntax> parseFunctionTypeExpression();
 
   std::unordered_map<std::string, int8_t> _bringStatementsPathsMap;
 

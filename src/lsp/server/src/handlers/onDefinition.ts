@@ -11,6 +11,7 @@ import {
   createRange,
   getFileFullPath,
   getImportedFileUri,
+  getModulePath,
 } from "../utils";
 import { getCompletionItems } from "../completionItemProvider";
 import { fileUtils } from "../utils/fileUtils";
@@ -34,12 +35,19 @@ export const onDefinition = async (
         suggestion.word,
         _textDocsParams.textDocument.uri
       );
-    } else if (suggestion.word && suggestion.word.indexOf("::") !== -1) {
+    } else if (suggestion.word && suggestion.word.split("::")[0]) {
       const moduleName = suggestion.word.split("::")[0];
+
       uri = await fileUtils.findFileBreadthFirst(
-        path.dirname(getFileFullPath(_textDocsParams.textDocument.uri)),
+        getModulePath(),
         moduleName + "-module.fg"
       );
+
+      if (!uri)
+        uri = await fileUtils.findFileBreadthFirst(
+          path.dirname(getFileFullPath(_textDocsParams.textDocument.uri)),
+          moduleName + "-module.fg"
+        );
     }
 
     const result = await getCompletionItems(
@@ -56,6 +64,10 @@ export const onDefinition = async (
       (result?.length === 1 && result?.[0]?.data?.range
         ? result?.[0]?.data?.range
         : null);
+
+    if (!uri) {
+      uri = _textDocsParams.textDocument.uri;
+    }
 
     if (uri !== _textDocsParams.textDocument.uri) {
       // range = createRange(undefined).range;

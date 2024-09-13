@@ -2,8 +2,9 @@
 #define __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
 #include "../../GenerationStrategy.h"
 
+class LLVMTypeGenerationFactory;
 class StatementGenerationStrategy : public GenerationStrategy {
-public:
+ public:
   StatementGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 
@@ -12,4 +13,4 @@ public:
   virtual ~StatementGenerationStrategy() = default;
 };
 
-#endif // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
+#endif  // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__

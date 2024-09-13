@@ -179,6 +179,17 @@
               "match": "\\\\."
             }
           ]
+        },
+        {
+          "name": "string.quoted.double.fg",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.fg",
+              "match": "\\\\."
+            }
+          ]
         }
       ]
     },

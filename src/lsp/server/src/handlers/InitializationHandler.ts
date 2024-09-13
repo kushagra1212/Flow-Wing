@@ -13,7 +13,7 @@ import {
 } from "../services/documentService";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileUtils } from "../utils/fileUtils";
-import { getFileFullPath } from "../utils";
+import { getFileFullPath, getModulePath } from "../utils";
 
 export const onInitialize = () => {};
 
@@ -88,7 +88,7 @@ export class InitializationHandler {
             "Workspace folder change event received."
           );
         });
-        // this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
+        this.connection.workspace.getWorkspaceFolders().then(this.validateAll);
       }
     });
   }
@@ -103,7 +103,7 @@ export class InitializationHandler {
   private async validateAll(folders: WorkspaceFolder[]) {
     if (folders) {
       folders.forEach((folder) => {
-        const rootPath = folder.uri?.split("file:/")?.[1];
+        const rootPath = getModulePath();
 
         if (rootPath) {
           fileUtils.bfsTraverseVisit(rootPath, async (uri) => {

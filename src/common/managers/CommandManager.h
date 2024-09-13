@@ -8,12 +8,11 @@
 #include "PathManager.h"
 
 class CommandManager {
-
   argh::parser *_cmdl;
   std::string _outputFileNameWithoutExtension = "output";
   bool hasEntryPoint = false;
 
-public:
+ public:
   CommandManager(argh::parser *cmdl,
                  const std::string &outputFileNameWithoutExtension)
       : _cmdl(cmdl),
@@ -43,7 +42,6 @@ public:
     }
 
     if (!hasEntryPoint) {
-
       cmd += this->getDefaultEntryPoint();
     }
 
@@ -55,9 +53,8 @@ public:
     return cmd;
   }
 
-private:
+ private:
   auto inline getObjectFilesJoinedAsString() -> std::string {
-
     std::vector<std::string> objectFiles =
         Utils::getAllFilesInDirectoryWithExtension(
             FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
@@ -113,12 +110,26 @@ private:
   }
 
   auto inline getBuiltInModuleLinked() -> std::string {
-    return " -L " + PathManager::getLibPath().string() + " -l built_in_module ";
+#if defined(AOT_TEST_MODE) || defined(AOT_MODE)
+    return " -L" + PathManager::getLibPath().string() + " " +
+           getDynamicLibraryPath("built_in_module") + " " +
+           getDynamicLibraryPath("flowwing_string") + " ";
+#else
+    return " -L" + PathManager::getLibPath().string() + " " +
+           getDynamicLibraryPath("built_in_module") + " " +
+           getDynamicLibraryPath("flowwing_string") + " " +
+           getDynamicLibraryPath("flowwing_vector") + " " +
+           getDynamicLibraryPath("flowwing_map") + " ";
+
+#endif
+  }
+
+  auto inline getDynamicLibraryPath(const std::string &libName) -> std::string {
+    return " -l" + libName;
   }
 
   auto inline getOtherLibrariesPath(const std::string &key,
                                     const std::string &value) -> std::string {
-
     if (FlowWingCliOptions::OPTIONS::LibraryPath.name == "-" + key)
       return " -L " + value + " ";
 

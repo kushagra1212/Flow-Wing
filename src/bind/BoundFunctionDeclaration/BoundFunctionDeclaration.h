@@ -14,6 +14,7 @@ class BoundFunctionDeclaration : public BoundStatement,
   std::string _functionName;
   bool _isExposed;
   std::vector<std::unique_ptr<BoundExpression>> _returnTypeExprList;
+
   std::unique_ptr<BoundTypeExpression> _functionType;
   bool _isOnlyDeclared = false;
   bool _isMemberFunction = false;

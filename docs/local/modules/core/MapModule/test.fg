@@ -1,0 +1,18 @@
+bring "Map-module.fg"
+
+
+fun test_map() -> nthg {
+  var m: Map::String = new Map::String()
+  m.insert("key1", "value1")
+  m.insert("key2", "value2")
+  m.insert("key3", "value3")
+  m.insert("key4", "value4")
+  print(m.get("key1"))
+  print(m.get("key2"))
+  print(m.contains("key3"))
+  m.remove("key3")
+  print(m.contains("key3"))
+  m.free()
+}
+
+test_map()

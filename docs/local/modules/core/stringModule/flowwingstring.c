@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 // Copy a string from src to dest
-char *strCopy(char *dest, char *src) { return strcpy(dest, src); }
-
-// Concatenate two strings (append src to dest)
-char *strConcat(char *dest, const char *src) { return strcat(dest, src); }
+void strCopy(char *dest, char *src) {
+  strcpy(dest, src);
+  return;
+}
 
 // Compare two strings
 int strCompare(const char *str1, const char *str2) {
@@ -20,25 +20,13 @@ size_t strLength(const char *str) { return strlen(str); }
 
 // Convert a string to uppercase
 char *strToUpper(char *instr) {
-  // Allocate memory for instr2 (length of instr + 1 for the null terminator)
-  // char *instr2 = (char *)malloc((strlen(instr) + 1) * sizeof(char));
-
-  // if (instr2 == NULL) {
-  //   // Handle memory allocation failure
-  //   return NULL;
-  // }
-
-  // // Copy the contents of instr to instr2
-  // strcpy(instr2, instr);
-
-  // // Convert instr2 to uppercase
-  // int c = 0;
-  // while (instr2[c] != '\0') {
-  //   if ((instr2[c] >= 'a') && (instr2[c] <= 'z')) {
-  //     instr2[c] = instr2[c] - ('a' - 'A'); // Convert to uppercase
-  //   }
-  //   c++;
-  // }
+  int c = 0;
+  while (instr[c] != '\0') {
+    if ((instr[c] >= 'a') && (instr[c] <= 'z')) {
+      instr[c] = instr[c] - ('a' - 'A');
+    }
+    c++;
+  }
 
   return instr;
 }
@@ -48,6 +36,12 @@ char *strToLower(char *str) {
   for (char *p = str; *p; ++p) {
     *p = tolower((unsigned char)*p);
   }
+  return str;
+}
+
+// Convert an int to a string
+char *int8ToStr(int8_t num, char *str) {
+  sprintf(str, "%c", num);
   return str;
 }
 
@@ -131,30 +125,14 @@ char *strSplit(char *str, const char *delim) {
   return token;
 }
 
-// Find the index of the first occurrence of a character (ch is a string of
-// length 1)
-int strFindChar(const char *str, const char *ch) {
-  if (strlen(ch) != 1) {
-    return -1; // Error: ch should be a single character
-  }
-  const char *ptr = strchr(str, ch[0]);
-  if (ptr != NULL) {
-    return ptr - str; // Calculate the index
-  }
-  return -1; // Character not found
-}
-
-// Get the character at a specified index and return it as a single-character
-// string
 char *strCharAt(const char *str, size_t index) {
-  static char
-      result[2]; // Buffer to hold the single character and null terminator
+  static char result[2];
 
   if (index < strlen(str)) {
-    result[0] = str[index]; // Get the character at the index
-    result[1] = '\0';       // Null-terminate the string
+    result[0] = str[index];
+    result[1] = '\0';
     return result;
   }
 
-  return NULL; // Index out of bounds
+  return NULL;
 }
