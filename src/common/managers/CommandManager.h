@@ -12,7 +12,7 @@ class CommandManager {
   std::string _outputFileNameWithoutExtension = "output";
   bool hasEntryPoint = false;
 
- public:
+public:
   CommandManager(argh::parser *cmdl,
                  const std::string &outputFileNameWithoutExtension)
       : _cmdl(cmdl),
@@ -39,6 +39,7 @@ class CommandManager {
     }
 
     if (!hasEntryPoint) {
+
       cmd += this->getDefaultEntryPoint();
     }
 
@@ -49,11 +50,11 @@ class CommandManager {
     cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
            _outputFileNameWithoutExtension;
 #endif
-
+    cmd += " -lstdc++ ";
     return cmd;
   }
 
- private:
+private:
   auto inline getObjectFilesJoinedAsString() -> std::string {
     std::vector<std::string> objectFiles =
         Utils::getAllFilesInDirectoryWithExtension(
@@ -90,15 +91,25 @@ class CommandManager {
   }
 
   auto inline getDefaultEntryPoint() -> std::string {
-    return " -e " + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + "  ";
+
+#if defined(__linux__)
+    return "";
+#endif
+
+    return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
   }
 
   auto inline getEntryPoint(const std::string &key, const std::string &value)
       -> std::string {
+
+#if defined(__linux__)
+    return "";
+#endif
+
     if (!hasEntryPoint &&
         FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
       hasEntryPoint = true;
-      return " -e " + value + " -nostartfiles  ";
+      return " -e _" + value + " ";
     }
 
     return "";

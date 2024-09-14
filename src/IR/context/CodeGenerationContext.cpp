@@ -30,11 +30,11 @@ CodeGenerationContext ::CodeGenerationContext(
 
   auto CPU = "generic";
   auto Features = "";
-  llvm::TargetOptions opt = llvm::TargetOptions();
-  llvm::Reloc::Model RelocModel = llvm::Reloc::PIC_;
+  llvm::TargetOptions opt ;
+  llvm::Reloc::Model RelocModel = llvm::Reloc::Model::PIC_;
   _targetMachine = Target->createTargetMachine(
       _module->getTargetTriple(), CPU, Features, opt,
-      std::optional<llvm::Reloc::Model>(RelocModel));
+    RelocModel);
 
   _module->setDataLayout(_targetMachine->createDataLayout());
   //!

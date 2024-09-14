@@ -37,6 +37,10 @@
 #include "llvm/TargetParser/Host.h"
 #include "llvm/Transforms/Scalar.h"
 // ExecutionEngine
+#include <llvm-c-17/llvm-c/Analysis.h>
+#include <llvm-c-17/llvm-c/BitWriter.h>
+#include <llvm-c-17/llvm-c/Core.h>
+#include <llvm-c-17/llvm-c/TargetMachine.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
@@ -61,15 +65,17 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
 // JIT
+#include "../../Common.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+
 using namespace llvm;
 using namespace llvm::sys;
 
 class ObjectFile {
   std::string _fileName;
 
- public:
+public:
   ObjectFile(std::string fileName) : _fileName(fileName) {}
   ~ObjectFile() = default;
 
@@ -92,7 +98,7 @@ class ObjectFile {
     const std::string destPath =
         FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + _fileName + ".o";
 
-    CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
+    DEBUG_LOG("Writing object file to: " + destPath);
 
     std::error_code EC;
     raw_fd_ostream dest(destPath, EC, sys::fs::OF_None);
@@ -102,12 +108,13 @@ class ObjectFile {
       return;
     }
 
-    legacy::PassManager pass = legacy::PassManager();
+    llvm::legacy::PassManager pass = legacy::PassManager();
+    ;
     pass.add(createVerifierPass());
     pass.add(createCFGSimplificationPass());
     pass.add(createDeadCodeEliminationPass());
 
-    auto FileType = CGFT_ObjectFile;
+    auto FileType = CodeGenFileType::CGFT_ObjectFile;
 
     if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
       errs() << "TargetMachine can't emit a file of this type";
@@ -115,6 +122,78 @@ class ObjectFile {
     }
     pass.run(module);
     dest.flush();
+  }
+
+  void writeModuleToFile(const Module *_module) {
+
+    LLVMModuleRef module = wrap(_module);
+
+    char *errors = 0;
+    LLVMTargetRef target;
+    LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
+    // printf("error: %s\n", errors);
+    // LLVMPrintModuleToFile(module, "module.txt", &errors);
+    // printf("error: %s\n", errors);
+    LLVMDisposeMessage(errors);
+
+    //  LLVMInitializeAllTargetInfos();
+    //   LLVMInitializeAllTargets();
+    //   LLVMInitializeAllTargetMCs();
+    //   LLVMInitializeAllAsmParsers();
+    //   LLVMInitializeAllAsmPrinters();
+
+    LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
+
+    if (errors) {
+      errs() << "error: " << errors;
+      LLVMDisposeMessage(errors);
+      return;
+    }
+
+    LLVMDisposeMessage(errors);
+
+    CODEGEN_DEBUG_LOG("Target Name: " << LLVMGetTargetName(target));
+
+    CODEGEN_DEBUG_LOG(
+        "Target Description: " << LLVMGetTargetDescription(target));
+
+    CODEGEN_DEBUG_LOG("Target Has JIT: " << LLVMTargetHasJIT(target));
+
+    CODEGEN_DEBUG_LOG(
+        "Target Has Target Machine: " << LLVMTargetHasTargetMachine(target));
+
+    CODEGEN_DEBUG_LOG("Triple: " << LLVMGetDefaultTargetTriple());
+
+    CODEGEN_DEBUG_LOG("Features: " << LLVMGetHostCPUFeatures());
+
+    LLVMTargetMachineRef machine = LLVMCreateTargetMachine(
+        target, LLVMGetDefaultTargetTriple(), LLVMGetHostCPUName(),
+        LLVMGetHostCPUFeatures(), LLVMCodeGenLevelDefault,
+        LLVMRelocMode::LLVMRelocPIC, LLVMCodeModel::LLVMCodeModelDefault);
+
+    LLVMSetTarget(module, LLVMGetDefaultTargetTriple());
+    LLVMTargetDataRef datalayout = LLVMCreateTargetDataLayout(machine);
+    char *datalayout_str = LLVMCopyStringRepOfTargetData(datalayout);
+
+    CODEGEN_DEBUG_LOG("datalayout: " << datalayout_str);
+
+    LLVMSetDataLayout(module, datalayout_str);
+    LLVMDisposeMessage(datalayout_str);
+
+    llvm::sys::fs::create_directories(
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR);
+
+    llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
+
+    std::string destPath =
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + _fileName + ".o";
+
+    CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
+
+    LLVMTargetMachineEmitToFile(machine, module, (char *)destPath.c_str(),
+                                LLVMObjectFile, &errors);
+
+    LLVMDisposeMessage(errors);
   }
 };
 

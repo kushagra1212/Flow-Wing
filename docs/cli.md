@@ -39,8 +39,42 @@ clang++ -std=c++20 -fPIC -shared -o libcrow.so crowex.cpp -I/opt/homebrew/includ
 
 ## Local Development
 
- export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DYLD_LIBRARY_PATH    
+### For Mac
+ export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DYLD_LIBRARY_PATH   
+
+### For Linux
+ export LD_LIBRARY_PATH=/home/kushagra/code/Flow-Wing/lib/linux-x86_64/lib:$LD_LIBRARY_PATH 
 
  ### Symbolic link
 
  ln -s /Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib /opt/homebrew/lib/FlowWing/lib
+
+
+
+
+
+
+
+
+
+
+
+
+### Creating Static lib for built in modules
+
+
+ llc -opaque-pointers -relocation-model=pic  -filetype=asm temp/libbuilt_in_module.ll -o temp/libbuilt_in_module.s
+clang-17 -c -fPIC temp/libbuilt_in_module.s -o temp/libbuilt_in_module.o
+or
+
+llc -opaque-pointers -relocation-model=pic -filetype=obj temp/libbuilt_in_module.ll -o temp/libbuilt_in_module.o
+
+
+
+ar rcs libbuilt_in_module.a temp/libbuilt_in_module.o
+
+## Creating Dynamic lib (Linux/Mac)
+
+clang-17 -shared -o libbuilt_in_module.so temp/libbuilt_in_module.o
+
+

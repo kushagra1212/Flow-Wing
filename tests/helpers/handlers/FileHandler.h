@@ -7,7 +7,7 @@ class FileHandler {
 public:
   void initialize() {
     namespace fs = std::filesystem;
-    std::string buildDir = "../../aot-compiler/aot-compiler-build";
+    std::string buildDir = "../../aot-compiler/aot-compiler-build-for-test";
 
     if (!fs::exists(buildDir)) {
       if (!fs::create_directory(buildDir)) {
@@ -47,7 +47,7 @@ public:
   }
 
   std::string createBuildAndRunCmd(const std::string &fileName) {
-    return (currentPath.string() + "/../aot-compiler-build" +
+    return (currentPath.string() + "/../aot-compiler-build-for-test" +
             "/FlowWing -O0 --F=" + currentPath.string() + "/" + fileName +
             " && build/bin/" + fileName.substr(0, fileName.find_last_of('.')));
   }

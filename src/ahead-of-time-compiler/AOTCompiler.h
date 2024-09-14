@@ -16,7 +16,8 @@
 #include "../utils/Utils.h"
 #include "ObjectFile/ObjectFile.h"
 
-class AOTCompiler : public Compiler {
+class AOTCompiler : public Compiler 
+{
   argh::parser *_cmdl;
 
 public:

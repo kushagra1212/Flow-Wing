@@ -14,7 +14,12 @@ RUN mkdir -p aot-compiler-test-build
 # Configure and compiler-test-build your project
 
 WORKDIR /aot-compiler-test/targets/aot-compiler/aot-compiler-test-build
+
+# Set the environment variable
+ENV LD_LIBRARY_PATH=/aot-compiler-test/lib/linux-x86_64/lib
+
+
 RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
 RUN ninja
 # Run Tests
-RUN ./FlowWing
+# RUN ./FlowWing

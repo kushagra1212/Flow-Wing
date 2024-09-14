@@ -133,11 +133,9 @@
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold",
-  "editor.defaultFormatter": "xaver.clang-format",
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
-  "clang-format.executable": "/opt/homebrew/opt/llvm@17/bin/clang-format",
   "workbench.colorTheme": "Snazzy Operator",
    "editor.codeActionsOnSave": {
   },

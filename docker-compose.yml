@@ -4,7 +4,7 @@ services:
     tty: true
     build:
       context: .
-      dockerfile: Dockerfile.AOTCompilerDevarm
+      dockerfile: Dockerfile.AOTCompilerDev
     volumes:
       - .:/aot-compiler-dev
   aot-compiler-test:
