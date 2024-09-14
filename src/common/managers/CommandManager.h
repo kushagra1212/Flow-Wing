@@ -90,7 +90,8 @@ class CommandManager {
   }
 
   auto inline getDefaultEntryPoint() -> std::string {
-    return " -e " + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + "  ";
+    return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT +
+           "  ";
   }
 
   auto inline getEntryPoint(const std::string &key, const std::string &value)
@@ -98,7 +99,7 @@ class CommandManager {
     if (!hasEntryPoint &&
         FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
       hasEntryPoint = true;
-      return " -e " + value + " -nostartfiles  ";
+      return " -e _" + value + " ";
     }
 
     return "";
