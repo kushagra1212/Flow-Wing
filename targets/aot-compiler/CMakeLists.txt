@@ -23,7 +23,7 @@ add_definitions(${LLVM_DEFINITIONS})
 
 # Check if the system is Linux
 if(UNIX AND NOT APPLE)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/linux-x86_64/lib/ DESTINATION "/usr/local/lib/FlowWing")
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/linux/lib/ DESTINATION "/usr/local/lib/FlowWing")
 endif()
 
 # use ccache if available

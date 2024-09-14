@@ -19,7 +19,7 @@ const std::string FLOWWING_GLOBAL_TRUE = "FLOWWING_GLOBAL_TRUE";
 const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 // Entry Point
-const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";
 namespace INNERS {
@@ -50,9 +50,9 @@ const std::string RAISE_EXCEPTION = "raise_exception";
 const std::string MALLOC = "malloc";
 const std::string PUT_CHAR = "putchar";
 
-}; // namespace FUNCTIONS
-}; // namespace INNERS
+};  // namespace FUNCTIONS
+};  // namespace INNERS
 
 const std::string IS_EXISTS = "is_exists";
 
-}; // namespace FLOWWING::IR::CONSTANTS
+};  // namespace FLOWWING::IR::CONSTANTS

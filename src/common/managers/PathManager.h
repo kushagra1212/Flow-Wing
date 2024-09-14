@@ -3,8 +3,7 @@
 #include <filesystem>
 
 class PathManager {
-
-public:
+ public:
   auto static inline getClangPath() -> std::filesystem::path {
     std::filesystem::path CLANG_PATH = "";
 
@@ -21,11 +20,17 @@ public:
     std::filesystem::path LIB_PATH = "";
 
 #if defined(DEBUG) && defined(__linux__)
-    LIB_PATH = "/usr/local/lib/FlowWing";
+#if defined(__x86_64__)
+    LIB_PATH = "../../../lib/linux-x86_64/lib";
+#else
+    LIB_PATH = "../../../lib/linux/lib";
+#endif
 #elif defined(DEBUG) && defined(__APPLE__)
     LIB_PATH = "/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib";
+#elif defined(RELEASE) && defined(__linux__) && defined(AOT_TEST_MOD)
+    LIB_PATH = "../../../lib/linux/lib";
 #elif defined(RELEASE) && defined(__linux__)
-    LIB_PATH = "/usr/local/lib/FlowWing";
+    LIB_PATH = "../../../lib/linux/lib";
 #elif defined(RELEASE) && defined(__APPLE__)
     LIB_PATH = "/opt/homebrew/opt/flowwing/lib/FlowWing/lib";
 #endif

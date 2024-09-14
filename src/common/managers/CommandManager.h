@@ -29,9 +29,6 @@ class CommandManager {
 
     cmd += this->getObjectFilesJoinedAsString();
 
-    // Linking with BuiltIn Module
-    cmd += this->getBuiltInModuleLinked();
-
     if (_cmdl) {
       for (const auto &[key, value] : (*_cmdl).params()) {
         cmd += this->getOtherLibrariesPath(key, value);
@@ -44,6 +41,9 @@ class CommandManager {
     if (!hasEntryPoint) {
       cmd += this->getDefaultEntryPoint();
     }
+
+    // Linking with BuiltIn Module
+    cmd += this->getBuiltInModuleLinked();
 
 #if defined(AOT_TEST_MODE)
     cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
@@ -90,7 +90,7 @@ class CommandManager {
   }
 
   auto inline getDefaultEntryPoint() -> std::string {
-    return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
+    return " -e " + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + "  ";
   }
 
   auto inline getEntryPoint(const std::string &key, const std::string &value)
@@ -98,7 +98,7 @@ class CommandManager {
     if (!hasEntryPoint &&
         FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
       hasEntryPoint = true;
-      return " -e _" + value + " ";
+      return " -e " + value + " -nostartfiles  ";
     }
 
     return "";

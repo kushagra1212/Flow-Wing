@@ -1,0 +1,241 @@
+/; Function Declarations
+
+fun int_vector_new() -> as str decl
+
+
+fun int_vector_add(vectorHandler: as str, element: as int) -> as nthg decl
+
+
+fun int_vector_get(vectorHandler: as str, index: as int) -> as int decl
+
+
+fun int_vector_set(vectorHandler: as str, index: as int, element: as int) -> as nthg decl
+
+
+fun int_vector_remove(vectorHandler: as str, index: as int) -> as nthg decl
+
+
+fun int_vector_size(vectorHandler: as str) -> as int decl
+
+
+fun int_vector_free(vectorHandler: as str) -> as nthg decl
+
+
+fun bool_vector_new() -> as str decl
+
+
+fun bool_vector_add(vectorHandler: as str, element: as bool) -> as nthg decl
+
+
+fun bool_vector_set(vectorHandler: as str, index: as int, element: as bool) -> as nthg decl
+
+
+fun bool_vector_get(vectorHandler: as str, index: as int) -> as bool decl
+
+
+fun bool_vector_remove(vectorHandler: as str, index: as int) -> as nthg decl
+
+
+fun bool_vector_size(vectorHandler: as str) -> as int decl
+
+
+fun bool_vector_free(vectorHandler: as str) -> as nthg decl
+
+
+fun string_vector_new() -> as str decl
+
+
+fun string_vector_add(vectorHandler: as str, element: as str) -> as nthg decl
+
+
+fun string_vector_set(vectorHandler: as str, index: as int, element: as str) -> as nthg decl
+
+
+fun string_vector_get(vectorHandler: as str, index: as int) -> as str decl
+
+
+fun string_vector_remove(vectorHandler: as str, index: as int) -> as nthg decl
+
+
+fun string_vector_size(vectorHandler: as str) -> as int decl
+
+
+fun string_vector_free(vectorHandler: as str) -> as nthg decl
+
+
+fun double_vector_new() -> as str decl
+
+
+fun double_vector_add(vectorHandler: as str, element: as deci) -> as nthg decl
+
+
+fun double_vector_set(vectorHandler: as str, index: as int, element: as deci) -> as nthg decl
+
+
+fun double_vector_get(vectorHandler: as str, index: as int) -> as deci decl
+
+
+fun double_vector_remove(vectorHandler: as str, index: as int) -> as nthg decl
+
+
+fun double_vector_size(vectorHandler: as str) -> as int decl
+
+
+fun double_vector_free(vectorHandler: as str) -> as nthg decl/; Class Definitions
+
+
+module [Vec]
+class Int {
+  var vectorHandler: str
+  init() -> nthg {
+    self.vectorHandler = int_vector_new() 
+  }
+
+
+  add(inout element: int) -> nthg {
+    int_vector_add(self.vectorHandler, element)
+  }
+
+
+  get(inout index: int) -> int {
+    return int_vector_get(self.vectorHandler, index)
+  }
+
+
+  set(inout index: int, inout element: int) -> nthg {
+    int_vector_set(self.vectorHandler, index, element)
+  }
+
+
+  remove(inout index: int) -> nthg {
+    int_vector_remove(self.vectorHandler, index)
+  }
+
+
+  size() -> int {
+    return int_vector_size(self.vectorHandler)
+  }
+
+
+  free() -> nthg {
+    int_vector_free(self.vectorHandler)
+  }
+
+
+}
+class Bool {
+  var vectorHandler: str
+  init() -> nthg {
+    self.vectorHandler = bool_vector_new() 
+  }
+
+
+  add(inout element: bool) -> nthg {
+    bool_vector_add(self.vectorHandler, element)
+  }
+
+
+  get(inout index: int) -> bool {
+    return bool_vector_get(self.vectorHandler, index)
+  }
+
+
+  set(inout index: int, inout element: bool) -> nthg {
+    bool_vector_set(self.vectorHandler, index, element)
+  }
+
+
+  remove(inout index: int) -> nthg {
+    bool_vector_remove(self.vectorHandler, index)
+  }
+
+
+  size() -> int {
+    return bool_vector_size(self.vectorHandler)
+  }
+
+
+  free() -> nthg {
+    bool_vector_free(self.vectorHandler)
+  }
+
+
+}
+class String {
+  var vectorHandler: str
+  init() -> nthg {
+    self.vectorHandler = string_vector_new() 
+  }
+
+
+  add(inout element: str) -> nthg {
+    string_vector_add(self.vectorHandler, element)
+  }
+
+
+  get(inout index: int) -> str {
+    return string_vector_get(self.vectorHandler, index)
+  }
+
+
+  set(inout index: int, inout element: str) -> nthg {
+    string_vector_set(self.vectorHandler, index, element)
+  }
+
+
+  remove(inout index: int) -> nthg {
+    string_vector_remove(self.vectorHandler, index)
+  }
+
+
+  size() -> int {
+    return string_vector_size(self.vectorHandler)
+  }
+
+
+  free() -> nthg {
+    string_vector_free(self.vectorHandler)
+  }
+
+
+}
+class Deci {
+  var vectorHandler: str
+  init() -> nthg {
+    self.vectorHandler = double_vector_new() 
+  }
+
+
+  add(inout element: deci) -> nthg {
+    double_vector_add(self.vectorHandler, element)
+  }
+
+
+  get(inout index: int) -> deci {
+    return double_vector_get(self.vectorHandler, index)
+  }
+
+
+  set(inout index: int, inout element: deci) -> nthg {
+    double_vector_set(self.vectorHandler, index, element)
+  }
+
+
+  remove(inout index: int) -> nthg {
+    double_vector_remove(self.vectorHandler, index)
+  }
+
+
+  size() -> int {
+    return double_vector_size(self.vectorHandler)
+  }
+
+
+  free() -> nthg {
+    double_vector_free(self.vectorHandler)
+  }
+
+
+}/; Example Usage for Each Vector Type
+
+

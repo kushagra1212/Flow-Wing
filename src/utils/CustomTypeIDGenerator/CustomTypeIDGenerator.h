@@ -6,17 +6,17 @@
 
 namespace IDGenerator {
 class CustomTypeIDGenerator {
-public:
+ public:
   static CustomTypeIDGenerator *instance();
-  uint32_t next() { return _id++; }
+  unsigned int next() { return _id++; }
   std::string nextString() { return std::to_string(_id++); }
 
-public:
+ public:
   CustomTypeIDGenerator() : _id(0) {}
 
   static CustomTypeIDGenerator *only_copy;
-  uint32_t _id;
+  unsigned int _id;
 };
-} // namespace IDGenerator
+}  // namespace IDGenerator
 
 #endif

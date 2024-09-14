@@ -1,0 +1,119 @@
+bring Err
+
+module [File]
+type IO_FILE = {
+  flags: int,
+  IO_read_ptr: str,
+  IO_read_end: str,
+  IO_read_base: str,
+  IO_write_base: str,
+  IO_write_ptr: str,
+  IO_write_end: str,
+  IO_buf_base: str,
+  IO_buf_end: str,
+  IO_save_base: str,
+  IO_backup_base: str,
+  IO_save_end: str,/; struct ptr 
+
+  IO_marker: str,
+  IO_FILE: str,/; 
+
+  fileno: int,
+  blksize: int,
+  flags2: int64,/;
+
+  t8_1: int8,
+  t8_2: int8,
+  t8: int8,
+  s: str[1],
+  b: str,
+  c: int64,
+  IO_codecvt: str,
+  IO_wide_data: str,
+  IO_FILE2: str,/; 
+
+  j: str,
+  k: int64,
+  l: int,
+  p: int8[20]
+}
+fun fopen(fileName: as str, mode: as str) -> as str decl
+
+
+fun fclose(file: as str) -> as int decl
+
+
+fun fread(buffer: as str, size: as int, count: as int, file: as str) -> as int decl
+
+
+fun fwrite(data: as str, size: as int, count: as int, file: as str) -> as int decl
+
+
+fun strlen(string: as str) -> as int decl
+
+
+fun fseek(file: as str, start: as int, end: as int) -> as int decl
+
+
+fun ftell(file: as str) -> as int decl
+
+
+fun calloc(fileSize: as int, elemetSize: as int) -> as str decl
+
+
+fun rewind(file: as str) -> as nthg decl
+
+
+fun read(filePath: as str, mode: as str) -> str, Err::Result {
+  if (mode != "r" && mode != "rb") {
+    return "", new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
+  }
+  var file: str = fopen(filePath, mode)
+  const SEEK_END: int = 2
+  if file == Nir {
+    return "", new Err::Result(filePath + " not found !", Err::CODE.NOT_FOUND)
+  }
+  fseek(file, 0, SEEK_END)
+  var fileSize: int = ftell(file)
+  rewind(file)
+  var buffer: str = calloc(fileSize + 1, 4)
+  if buffer == Nir {
+    return "", new Err::Result("Failed to allocate memory !", Err::CODE.FAILED)
+  }
+  var bytesRead: int = fread(buffer, 1, fileSize, file)
+  if (bytesRead != fileSize) {
+    return "", new Err::Result("Failed to read the entire file '" + filePath + "'", Err::CODE.FAILED)
+  }
+  return buffer, Nir
+}
+
+
+fun write(filePath: as str, data: as str, mode: as str) -> str, Err::Result {
+  if (mode != "w" && mode != "wb" && mode != "a" && mode != "ab") {
+    return "", new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
+  }
+  var file: str = fopen(filePath, mode)
+  if file == Nir {
+    return "", new Err::Result("Failed to open file: " + filePath, Err::CODE.NOT_FOUND)
+  }
+  const len: int = strlen(data)
+  const bytesWritten: int = fwrite(data, 1, len, file)
+  if (bytesWritten != len) {
+    return new Err::Result("Failed to write the entire data to file: " + filePath, Err::CODE.FAILED)
+  }
+  fclose(file)
+  return "", Nir
+}
+
+
+fun createFile(filePath: as str) -> str, Err::Result {
+  var file: str = fopen(filePath, "w")
+  if (file == Nir) {
+    return new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
+  }
+  fclose(file)
+  return "", Nir
+}
+
+
+

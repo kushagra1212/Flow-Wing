@@ -14,11 +14,7 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
-#if defined(__APPLE__)
   _module->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-#elif defined(__LINUX__)
-  _module->setTargetTriple(llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
-#endif
 
   //! TODO MOVE
 
@@ -34,10 +30,11 @@ CodeGenerationContext ::CodeGenerationContext(
 
   auto CPU = "generic";
   auto Features = "";
-  llvm::TargetOptions opt;
-  _targetMachine =
-      Target->createTargetMachine(_module->getTargetTriple(), CPU, Features,
-                                  opt, std::optional<llvm::Reloc::Model>());
+  llvm::TargetOptions opt = llvm::TargetOptions();
+  llvm::Reloc::Model RelocModel = llvm::Reloc::PIC_;
+  _targetMachine = Target->createTargetMachine(
+      _module->getTargetTriple(), CPU, Features, opt,
+      std::optional<llvm::Reloc::Model>(RelocModel));
 
   _module->setDataLayout(_targetMachine->createDataLayout());
   //!

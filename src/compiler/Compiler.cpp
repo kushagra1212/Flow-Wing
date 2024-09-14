@@ -6,7 +6,6 @@ Compiler::Compiler(std::string filePath)
       _currentDiagnosticHandler(
           std::make_unique<FLowWing::DiagnosticHandler>(filePath)),
       executionEngine(nullptr) {
-
   // Define command-line options
 
   //! Version
@@ -39,8 +38,8 @@ const std::string Compiler::getBuiltInModulePath() const {
   return filePath;
 }
 
-std::unique_ptr<llvm::MemoryBuffer>
-Compiler::getMemoryBuffer(std::string filePath) {
+std::unique_ptr<llvm::MemoryBuffer> Compiler::getMemoryBuffer(
+    std::string filePath) {
   if (auto bufferOrErr = llvm::MemoryBuffer::getFile(filePath)) {
     return std::move(*bufferOrErr);
   } else {
@@ -55,9 +54,9 @@ Compiler::getMemoryBuffer(std::string filePath) {
   }
 }
 
-std::unique_ptr<llvm::Module>
-Compiler::createModuleFromIR(const std::string &filePath,
-                             std::unique_ptr<llvm::LLVMContext> &TheContext) {
+std::unique_ptr<llvm::Module> Compiler::createModuleFromIR(
+    const std::string &filePath,
+    std::unique_ptr<llvm::LLVMContext> &TheContext) {
   llvm::SMDiagnostic Err;
   std::unique_ptr<llvm::Module> module =
       llvm::parseIRFile(filePath, Err, *TheContext);
@@ -117,8 +116,8 @@ std::vector<std::string> Compiler::getIRFilePaths() const {
   return _userDefinedIRFilePaths;
 }
 
-std::unique_ptr<llvm::Module>
-Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
+std::unique_ptr<llvm::Module> Compiler::getLinkedModule(
+    std::unique_ptr<llvm::LLVMContext> &TheContext) {
   std::vector<std::string> _userDefinedIRFilePaths = getIRFilePaths();
 
   const std::string &filePath = getBuiltInModulePath();
@@ -145,13 +144,13 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
   TheModule->setTargetTriple(getDefaultTargetTriple());
 #elif defined(__LINUX__)
   TheModule->setTargetTriple(
-      llvm::Triple::normalize("x86_64-unknown-linux-gnu"));
+      llvm::Triple::normalize(llvm::sys::getDefaultTargetTriple()));
 #endif
 
   for (const std::string &path : _userDefinedIRFilePaths) {
     llvm::SMDiagnostic err;
 
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+#if (defined(DEBUG) && defined(JIT_MODE)) || \
     (defined(DEBUG) && defined(AOT_MODE))
 
     _currentDiagnosticHandler->printDiagnostic(
@@ -176,7 +175,7 @@ Compiler::getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
     }
   }
 
-#if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
+#if (defined(DEBUG) && defined(JIT_MODE)) || \
     (defined(DEBUG) && defined(AOT_MODE))
 
   _currentDiagnosticHandler->printDiagnostic(
@@ -207,7 +206,6 @@ void Compiler::compile(std::vector<std::string> &text,
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
 
   if (Utils::getExtension(_outputFilePath) == ".json") {
-
     JSON jsonObject = Utils::outJSON(parser->getTokensRef());
     Utils::logJSON(jsonObject, _outputFilePath.substr(
                                    0, _outputFilePath.find_last_of(".")) +
@@ -253,7 +251,6 @@ void Compiler::compile(std::vector<std::string> &text,
 
 #endif
   if (Utils::getExtension(_outputFilePath) == ".json") {
-
     JSON jsonObject = Utils::outJSON(compilationUnit.get());
     Utils::logJSON(jsonObject, _outputFilePath);
   }
@@ -264,7 +261,6 @@ void Compiler::compile(std::vector<std::string> &text,
       DiagnosticUtils::DiagnosticType::Semantic);
 
   if (hasSemanticError) {
-
     currentDiagnosticHandler->logDiagnostics(
         std::cerr, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
@@ -292,7 +288,6 @@ void Compiler::compile(std::vector<std::string> &text,
     // false); Utils::logJSON(jsonObject, _outputFilePath);
 
   } else if (this->Format.getValue() || this->ShortFormat.getValue()) {
-
     //? format and Save to file
     std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
                        std::ios::out);
@@ -316,13 +311,11 @@ void Compiler::compile(std::vector<std::string> &text,
     return;
   } else if (this->FormatPrint.getValue() ||
              this->ShortFormatPrint.getValue()) {
-
     std::cout << parser->getFormattedSourceCode() << std::endl;
     return;
   }
 
   try {
-
     std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
         ENVIRONMENT::SOURCE_FILE, currentDiagnosticHandler.get(),
         globalScope.get()->functions, _outputFilePath);
@@ -342,7 +335,6 @@ void Compiler::compile(std::vector<std::string> &text,
     }
     outputStream << std::endl;
   } catch (const std::exception &e) {
-
     outputStream << RED << e.what() << RESET << "\n";
   }
 }

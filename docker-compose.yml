@@ -1,11 +1,10 @@
-version: "3.8"
 
 services:
   aot-compiler-dev:
     tty: true
     build:
       context: .
-      dockerfile: Dockerfile.AOTCompilerDev
+      dockerfile: Dockerfile.AOTCompilerDevarm
     volumes:
       - .:/aot-compiler-dev
   aot-compiler-test:

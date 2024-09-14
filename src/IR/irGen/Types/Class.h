@@ -1,13 +1,14 @@
 #ifndef __FLOWING_CLASS_H__
 #define __FLOWING_CLASS_H__
 
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/IRBuilder.h>
+
 #include "../../../bind/BoundClassStatement/BoundClassStatement.h"
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 #include "llvm/IR/Module.h"
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/IRBuilder.h>
 class Class {
-private:
+ private:
   std::string _className;
   BoundClassStatement *_boundClassStatement;
   //   std::vector<llvm::Type *> _vTableElements;
@@ -34,7 +35,7 @@ private:
       std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>>
       _key_type_pairs;
 
-public:
+ public:
   Class(std::string className, BoundClassStatement *boundClassStatement)
       : _className(className), _boundClassStatement(boundClassStatement) {}
   inline auto setClassType(llvm::StructType *type) { _classType = type; }
@@ -137,12 +138,10 @@ public:
                              llvm::Module *TheModule,
                              llvm::LLVMContext *context, llvm::Value *ptrPtr)
       -> void {
-
     llvm::Value *vTablePtr =
         builder->CreateLoad(llvm::PointerType::getInt8PtrTy(*context), ptrPtr);
 
     for (auto &element : _vTableElementsMap) {
-
       std::string className = std::get<2>(element.second);
 
       std::string fName = className +
@@ -162,13 +161,11 @@ public:
                              llvm::LLVMContext *context,
                              std::string functionName, llvm::Value *ptr)
       -> llvm::Value * {
-
     llvm::Value *vTablePtr =
         builder->CreateLoad(llvm::PointerType::getInt8PtrTy(*context),
                             builder->CreateStructGEP(_classType, ptr, 0));
     std::string fName = functionName.substr(functionName.find(".") + 1);
     if (!_vTableElementsMap.count(fName)) {
-
       return nullptr;
     }
 
@@ -180,7 +177,6 @@ public:
   }
 
   inline auto isChildOf(std::string className) -> bool {
-
     if (this->hasParent()) {
       return this->getParent()->isChildOf(className);
     }
@@ -188,12 +184,11 @@ public:
     return this->_className == className;
   }
 
-  inline auto
-  callAllParentsConstructor(llvm::IRBuilder<> *builder, llvm::Module *module,
-                            std::__1::vector<llvm::Value *> &classArg,
-                            llvm::Value *_classPtr, std::string className)
-      -> void {
-
+  inline auto callAllParentsConstructor(llvm::IRBuilder<> *builder,
+                                        llvm::Module *module,
+                                        std::vector<llvm::Value *> &classArg,
+                                        llvm::Value *_classPtr,
+                                        std::string className) -> void {
     if (this->hasParent()) {
       this->getParent()->callAllParentsConstructor(builder, module, classArg,
                                                    _classPtr, className);

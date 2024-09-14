@@ -1,18 +1,6 @@
 #ifndef __EXECUTABLE_H__
 #define __EXECUTABLE_H__
 
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/PassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Pass.h"
-#include "llvm/Support/FileSystem.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetOptions.h"
-#include "llvm/TargetParser/Host.h"
-#include "llvm/Transforms/Scalar.h"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -33,11 +21,33 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instruction.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/TargetParser/Host.h"
+#include "llvm/Transforms/Scalar.h"
 // ExecutionEngine
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/ExecutionEngine/Interpreter.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/SourceMgr.h>
+
 #include "llvm//IR/Value.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -50,16 +60,6 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
-#include <llvm/ExecutionEngine/GenericValue.h>
-#include <llvm/ExecutionEngine/Interpreter.h>
-#include <llvm/ExecutionEngine/MCJIT.h>
-#include <llvm/ExecutionEngine/SectionMemoryManager.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Linker/Linker.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/SourceMgr.h>
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
@@ -69,14 +69,11 @@ using namespace llvm::sys;
 class ObjectFile {
   std::string _fileName;
 
-public:
+ public:
   ObjectFile(std::string fileName) : _fileName(fileName) {}
   ~ObjectFile() = default;
 
   void writeModuleToFile(Module &module, TargetMachine *targetMachine) {
-
-    DEBUG_LOG("Writing module to file: " + _fileName);
-
     auto TargetTriple = module.getTargetTriple();
 
     std::string Error;
@@ -92,13 +89,13 @@ public:
 
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
-    // module.setDataLayout(TargetMachine->createDataLayout());
-    // module.setTargetTriple(TargetTriple);
+    const std::string destPath =
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + _fileName + ".o";
+
+    CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
 
     std::error_code EC;
-    raw_fd_ostream dest(FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR +
-                            _fileName + ".o",
-                        EC, sys::fs::OF_None);
+    raw_fd_ostream dest(destPath, EC, sys::fs::OF_None);
 
     if (EC) {
       errs() << "Could not open file: " << EC.message();

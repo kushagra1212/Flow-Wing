@@ -9,16 +9,15 @@
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
-public:
+ public:
   CallExpressionGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
   llvm::Value *buildInFunctionCall(BoundCallExpression *callExpression);
-  llvm::Value *
-  handleInBuiltFunctionReturnValue(llvm::Value *res,
-                                   BoundCallExpression *callExpression);
+  llvm::Value *handleInBuiltFunctionReturnValue(
+      llvm::Value *res, BoundCallExpression *callExpression);
   void handleInBuiltFunctionCall(BoundCallExpression *callExpression,
                                  llvm::Value *&val);
   llvm::Value *handlePrintFunction(llvm::Value *&value);
@@ -27,21 +26,21 @@ public:
 
   llvm::Value *generateCommonCallExpression(
       BoundCallExpression *callExpression, llvm::Function *calleeFunction,
-      std::__1::vector<llvm::Value *> &classArg, llvm::Type *_classType,
+      std::vector<llvm::Value *> &classArg, llvm::Type *_classType,
       llvm::Value *_classPtr, llvm::Value *calleeValue = nullptr);
 
-  llvm::Value *
-  handleExpression(llvm::Function *calleeFunction, uint64_t callArgIndex,
-                   uint64_t llvmArgsIndex, BoundCallExpression *callExpression,
-                   llvm::Value *&rhsValue, llvm::FunctionType *functionType,
-                   const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
-                   bool &retFlag);
+  llvm::Value *handleExpression(
+      llvm::Function *calleeFunction, uint64_t callArgIndex,
+      uint64_t llvmArgsIndex, BoundCallExpression *callExpression,
+      llvm::Value *&rhsValue, llvm::FunctionType *functionType,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      bool &retFlag);
 
-  llvm::Value *
-  handlePremitive(llvm::Value *&rhsValue, BoundCallExpression *callExpression,
-                  uint64_t callArgIndex, uint64_t llvmArgsIndex,
-                  const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
-                  llvm::Argument *arg, bool &retFlag);
+  llvm::Value *handlePremitive(
+      llvm::Value *&rhsValue, BoundCallExpression *callExpression,
+      uint64_t callArgIndex, uint64_t llvmArgsIndex,
+      const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+      llvm::Argument *arg, bool &retFlag);
 
   llvm::Value *handleBracketExpression(
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
@@ -96,9 +95,9 @@ public:
                    llvm::IRBuilder<> &Builder);
   void printPremitives(llvm::Value *&value, llvm::IRBuilder<> &Builder);
 
-private:
+ private:
   bool _isGlobal = false;
   bool _isDeclarationNeeded = false;
 };
 
-#endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
+#endif  // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
