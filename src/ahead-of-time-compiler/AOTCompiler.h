@@ -65,10 +65,6 @@ public:
         Utils::getAllFilesInDirectoryWithExtension(
             std::filesystem::current_path(), ".ll", false);
 
-#if !defined(FLOWWING_CLANG_PATH)
-#define FLOWWING_CLANG_PATH "clang"
-#endif
-
     for (auto llFile : llFiles) {
 
       const std::string space = " ";

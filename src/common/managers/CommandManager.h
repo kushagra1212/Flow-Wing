@@ -21,10 +21,6 @@ public:
   auto inline create() -> std::string {
     std::string cmd = "";
 
-#ifndef FLOWWING_CLANG_PATH
-#error "FLOWWING_CLANG_PATH is not defined"
-#endif
-
     cmd += std::string(FLOWWING_CLANG_PATH) + " ";
 
     cmd += this->getOptimizationLevel();
