@@ -6,18 +6,17 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../common/managers/CommandManager.h"
-#include "../common/managers/PathManager.h"
 #include "../compiler/Compiler.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
 #include "ObjectFile/ObjectFile.h"
 
-class AOTCompiler : public Compiler 
-{
+class AOTCompiler : public Compiler {
   argh::parser *_cmdl;
 
 public:
@@ -66,12 +65,22 @@ public:
         Utils::getAllFilesInDirectoryWithExtension(
             std::filesystem::current_path(), ".ll", false);
 
+#if !defined(FLOWWING_CLANG_PATH)
+#define FLOWWING_CLANG_PATH "clang"
+#endif
+
     for (auto llFile : llFiles) {
-      std::string cmd = PathManager::getClangPath().string() + " " + llFile +
+
+      const std::string space = " ";
+
+      std::string cmd = (FLOWWING_CLANG_PATH) + space + llFile +
                         " -emit-llvm -c " + " -o " +
                         llFile.substr(0, llFile.length() - 3) + ".bc";
       std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
                 << std::endl;
+
+      CODEGEN_DEBUG_LOG("Emit LLVM IR as BC file: ", cmd);
+
       const int status = std::system(cmd.c_str());
 
       if (status != 0) {

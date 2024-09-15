@@ -2,7 +2,6 @@
 #define PARSER_H
 #include <typeindex>
 
-#include "../common/managers/PathManager.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../lexer/Lexer.h"
 #include "../syntax/CompilationUnitSyntax.h"

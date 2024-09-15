@@ -5,7 +5,7 @@
 #include "../../cli/argh.h"
 #include "../../cli/commandLineOptions/commandLineOptions.h"
 #include "../../utils/Utils.h"
-#include "PathManager.h"
+#include <string>
 
 class CommandManager {
   argh::parser *_cmdl;
@@ -21,7 +21,11 @@ public:
   auto inline create() -> std::string {
     std::string cmd = "";
 
-    cmd += PathManager::getClangPath().string() + " ";
+#ifndef FLOWWING_CLANG_PATH
+#error "FLOWWING_CLANG_PATH is not defined"
+#endif
+
+    cmd += std::string(FLOWWING_CLANG_PATH) + " ";
 
     cmd += this->getOptimizationLevel();
 
@@ -50,7 +54,11 @@ public:
     cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
            _outputFileNameWithoutExtension;
 #endif
+
+#if defined(__linux__)
     cmd += " -lstdc++ ";
+#endif
+
     return cmd;
   }
 
@@ -121,12 +129,13 @@ private:
   }
 
   auto inline getBuiltInModuleLinked() -> std::string {
+
 #if defined(AOT_TEST_MODE) || defined(AOT_MODE)
-    return " -L" + PathManager::getLibPath().string() + " " +
+    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " ";
 #else
-    return " -L" + PathManager::getLibPath().string() + " " +
+    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " " +
            getDynamicLibraryPath("flowwing_vector") + " " +

@@ -1,5 +1,8 @@
-#ifndef COMMON_H
-#define COMMON_H
+#pragma once
+#include "IR/constants//FlowWingIRConstants.h"
+#include "IR/constants/FlowWingUtilsConstants.h"
+#include "external/include/json.hpp"
+#include "utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
 #include <algorithm>
 #include <any>
 #include <chrono>
@@ -24,11 +27,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "IR/constants//FlowWingIRConstants.h"
-#include "IR/constants/FlowWingUtilsConstants.h"
-#include "external/include/json.hpp"
-#include "utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
 // TODO: Add support for Windows
 // #include <windows.h>
 #include "utils/Colors.h"
@@ -44,4 +42,3 @@ inline std::string GET(std::string str, const char *color, const char *reset) {
   return ss.str();
 }
 } // namespace COLORED_STRING
-#endif

@@ -1,4 +1,6 @@
 #include "Parser.h"
+#include <string>
+
 Parser::Parser(const std::vector<std::string> &sourceCode,
                FLowWing::DiagnosticHandler *diagnosticHandler,
                std::unordered_map<std::string, int8_t> bringStatementPathsMap) {
@@ -978,9 +980,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
               .parent_path()
               .string();
 
-      std::string moduleFilePath =
-          Utils::findFile(PathManager::getModulesPath().string(),
-                          relativeFilePath + "-module.fg");
+      std::string moduleFilePath = Utils::findFile(
+          std::string(FLOWWING_MODULE_PATH), relativeFilePath + "-module.fg");
 
       if (moduleFilePath.empty()) {
         moduleFilePath =

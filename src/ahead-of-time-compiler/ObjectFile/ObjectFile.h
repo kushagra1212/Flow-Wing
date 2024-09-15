@@ -37,10 +37,10 @@
 #include "llvm/TargetParser/Host.h"
 #include "llvm/Transforms/Scalar.h"
 // ExecutionEngine
-#include <llvm-c-17/llvm-c/Analysis.h>
-#include <llvm-c-17/llvm-c/BitWriter.h>
-#include <llvm-c-17/llvm-c/Core.h>
-#include <llvm-c-17/llvm-c/TargetMachine.h>
+#include "llvm-c/Analysis.h"
+#include "llvm-c/BitWriter.h"
+#include "llvm-c/Core.h"
+#include "llvm-c/TargetMachine.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Interpreter.h>
@@ -152,19 +152,18 @@ public:
 
     LLVMDisposeMessage(errors);
 
-    CODEGEN_DEBUG_LOG("Target Name: " << LLVMGetTargetName(target));
+    CODEGEN_DEBUG_LOG("Target Name: ", LLVMGetTargetName(target));
 
-    CODEGEN_DEBUG_LOG(
-        "Target Description: " << LLVMGetTargetDescription(target));
+    CODEGEN_DEBUG_LOG("Target Description: ", LLVMGetTargetDescription(target));
 
-    CODEGEN_DEBUG_LOG("Target Has JIT: " << LLVMTargetHasJIT(target));
+    CODEGEN_DEBUG_LOG("Target Has JIT: ", LLVMTargetHasJIT(target));
 
-    CODEGEN_DEBUG_LOG(
-        "Target Has Target Machine: " << LLVMTargetHasTargetMachine(target));
+    CODEGEN_DEBUG_LOG("Target Has Target Machine: ",
+                      LLVMTargetHasTargetMachine(target));
 
-    CODEGEN_DEBUG_LOG("Triple: " << LLVMGetDefaultTargetTriple());
+    CODEGEN_DEBUG_LOG("Triple: ", LLVMGetDefaultTargetTriple());
 
-    CODEGEN_DEBUG_LOG("Features: " << LLVMGetHostCPUFeatures());
+    CODEGEN_DEBUG_LOG("Features: ", LLVMGetHostCPUFeatures());
 
     LLVMTargetMachineRef machine = LLVMCreateTargetMachine(
         target, LLVMGetDefaultTargetTriple(), LLVMGetHostCPUName(),
@@ -175,7 +174,7 @@ public:
     LLVMTargetDataRef datalayout = LLVMCreateTargetDataLayout(machine);
     char *datalayout_str = LLVMCopyStringRepOfTargetData(datalayout);
 
-    CODEGEN_DEBUG_LOG("datalayout: " << datalayout_str);
+    CODEGEN_DEBUG_LOG("datalayout: ", datalayout_str);
 
     LLVMSetDataLayout(module, datalayout_str);
     LLVMDisposeMessage(datalayout_str);
