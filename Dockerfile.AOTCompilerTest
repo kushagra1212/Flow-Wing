@@ -9,11 +9,11 @@ COPY . /aot-compiler-test
 WORKDIR /aot-compiler-test/targets/aot-compiler
 
 # Create a compiler-test-build directory
-RUN mkdir -p aot-compiler-test-build
+RUN mkdir -p aot-compiler-test-build-in-linux
 
 # Configure and compiler-test-build your project
 
-WORKDIR /aot-compiler-test/targets/aot-compiler/aot-compiler-test-build
+WORKDIR /aot-compiler-test/targets/aot-compiler/aot-compiler-test-build-in-linux
 
 # Set the environment variable
 ENV LD_LIBRARY_PATH=/aot-compiler-test/lib/linux-x86_64/lib
@@ -22,4 +22,4 @@ ENV LD_LIBRARY_PATH=/aot-compiler-test/lib/linux-x86_64/lib
 RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
 RUN ninja
 # Run Tests
-# RUN ./FlowWing
+RUN ./FlowWing

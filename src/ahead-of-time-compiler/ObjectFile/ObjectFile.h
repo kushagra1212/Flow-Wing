@@ -109,7 +109,7 @@ public:
     }
 
     llvm::legacy::PassManager pass = legacy::PassManager();
-    ;
+
     pass.add(createVerifierPass());
     pass.add(createCFGSimplificationPass());
     pass.add(createDeadCodeEliminationPass());

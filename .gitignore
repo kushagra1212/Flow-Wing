@@ -10,5 +10,7 @@ jit-compiler-build/
 jit-compiler-test-build/
 aot-compiler-build/
 aot-compiler-test-build/
+aot-compiler-test/
 aot-compiler-build-for-test/
+aot-compiler-test-build-in-linux/
 .cache/

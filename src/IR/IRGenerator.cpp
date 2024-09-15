@@ -1,4 +1,5 @@
 #include "IRGenerator.h"
+#include <string>
 
 IRGenerator::IRGenerator(
     int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
@@ -252,9 +253,21 @@ void IRGenerator::generateEvaluateGlobalStatement(
   _codeGenerationContext->verifyModule(TheModule);
 #endif
 
+  llvm::legacy::PassManager pass = legacy::PassManager();
+  char **OutMessage = nullptr;
+  LLVMVerifyModule(wrap(TheModule),
+                   LLVMVerifierFailureAction::LLVMAbortProcessAction,
+                   OutMessage);
+
+  if (OutMessage) {
+    fprintf(stderr, "error: %s\n", *OutMessage);
+    exit(1);
+  }
+
   if (!this->hasErrors()) {
 #ifdef DEBUG
-    llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
+    const char *Filename = (blockName + std::string(".ll")).c_str();
+    LLVMPrintModuleToFile(wrap(TheModule), Filename, OutMessage);
 
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
@@ -264,8 +277,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #elif RELEASE
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(*TheModule,
-                                  _codeGenerationContext->getTargetMachine());
+    objectFile->writeModuleToFile(TheModule);
 #endif
   }
 
