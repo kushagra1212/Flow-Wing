@@ -253,16 +253,16 @@ void IRGenerator::generateEvaluateGlobalStatement(
   _codeGenerationContext->verifyModule(TheModule);
 #endif
 
-  llvm::legacy::PassManager pass = legacy::PassManager();
   char **OutMessage = nullptr;
-  LLVMVerifyModule(wrap(TheModule),
-                   LLVMVerifierFailureAction::LLVMAbortProcessAction,
-                   OutMessage);
+  // llvm::legacy::PassManager pass = legacy::PassManager();
+  // LLVMVerifyModule(wrap(TheModule),
+  //                  LLVMVerifierFailureAction::LLVMAbortProcessAction,
+  //                  OutMessage);
 
-  if (OutMessage) {
-    fprintf(stderr, "error: %s\n", *OutMessage);
-    exit(1);
-  }
+  // if (OutMessage) {
+  //   fprintf(stderr, "error: %s\n", *OutMessage);
+  //   exit(1);
+  // }
 
   if (!this->hasErrors()) {
 #ifdef DEBUG

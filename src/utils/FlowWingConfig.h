@@ -20,42 +20,46 @@
 #endif
 #endif
 
-// Define the library path based on the configuration
-#if PLATFORM_ARCH == PLATFORM_LINUX_X86_64 && defined(DEBUG) &&                \
-    defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
-#elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64 && defined(RELEASE) &&            \
-    defined(AOT_TEST_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
-#elif PLATFORM_ARCH == PLATFORM_LINUX_OTHER && defined(DEBUG) &&               \
-    defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/linux/lib"
-#elif PLATFORM_ARCH == PLATFORM_LINUX_OTHER && defined(RELEASE) &&             \
-    defined(AOT_TEST_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/linux/lib"
-#elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(DEBUG) &&               \
-    defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
-#elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) &&             \
-    defined(AOT_TEST_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
-#elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) &&             \
-    defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
-#elif PLATFORM_ARCH == PLATFORM_MACOS_X86_64 && defined(RELEASE) &&            \
-    defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
+// // Define the library path based on the configuration
+// #if PLATFORM_ARCH == PLATFORM_LINUX_X86_64 && defined(DEBUG) && \
+//     defined(AOT_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
+// #elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64 && defined(RELEASE) && \
+//     defined(AOT_TEST_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
+// #elif PLATFORM_ARCH == PLATFORM_LINUX_OTHER && defined(DEBUG) && \
+//     defined(AOT_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/linux/lib"
+// #elif PLATFORM_ARCH == PLATFORM_LINUX_OTHER && defined(RELEASE) && \
+//     defined(AOT_TEST_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/linux/lib"
+// #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(DEBUG) && \
+//     defined(AOT_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
+// #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) && \
+//     defined(AOT_TEST_MODE)
+// #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
+// #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) && \
+//     defined(AOT_MODE)
+// #define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
+// #elif PLATFORM_ARCH == PLATFORM_MACOS_X86_64 && defined(RELEASE) && \
+//     defined(AOT_MODE)
+// #define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
 
-#endif
+// #endif
 
-// Define the module path based on the library path
-#ifdef FLOWWING_LIB_PATH
+// // Define the module path based on the library path
+// #ifdef FLOWWING_LIB_PATH
+// #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
+// #endif
+
+// // Define the Clang path based on the platform
+// #if defined(__linux__)
+// #define FLOWWING_CLANG_PATH "/usr/bin/clang-17"
+// #elif defined(__APPLE__)
+// #define FLOWWING_CLANG_PATH "/usr/bin/clang++"
+// #endif
+
+#define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
 #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
-#endif
-
-// Define the Clang path based on the platform
-#if defined(__linux__)
 #define FLOWWING_CLANG_PATH "/usr/bin/clang-17"
-#elif defined(__APPLE__)
-#define FLOWWING_CLANG_PATH "/usr/bin/clang++"
-#endif

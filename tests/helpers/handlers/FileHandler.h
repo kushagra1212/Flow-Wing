@@ -9,6 +9,14 @@ public:
     namespace fs = std::filesystem;
     std::string buildDir = "../../aot-compiler/aot-compiler-build-for-test";
 
+    // Check if directory exists and remove it
+    if (fs::exists(buildDir)) {
+      if (!fs::remove_all(buildDir)) {
+        std::cerr << "Failed to delete directory: " << buildDir << std::endl;
+        return; // Return an error code
+      }
+    }
+
     if (!fs::exists(buildDir)) {
       if (!fs::create_directory(buildDir)) {
         std::cerr << "Failed to create directory: " << buildDir << std::endl;
