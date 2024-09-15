@@ -31,6 +31,7 @@
 // #include <windows.h>
 #include "utils/Colors.h"
 #include "utils/Macros.h"
+#include <stdint.h>
 #include <unistd.h>
 
 using JSON = nlohmann::json;

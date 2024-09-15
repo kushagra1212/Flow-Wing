@@ -85,7 +85,7 @@ void LLVMLogger::setCurrentSourceLocation(
   _location = location;
 }
 
-const int32_t LLVMLogger::getErrorCount() const { return errorCount; }
+const unsigned int LLVMLogger::getErrorCount() const { return errorCount; }
 
 DiagnosticUtils::SourceLocation LLVMLogger::getCurrentSourceLocation() const {
   return _location;

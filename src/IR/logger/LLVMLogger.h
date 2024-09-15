@@ -10,13 +10,13 @@
 #include "llvm/Support/raw_ostream.h"
 class LLVMLogger {
   FLowWing::DiagnosticHandler *_diagnosticHandler;
-  int32_t errorCount;
+  unsigned int errorCount;
 
 public:
   LLVMLogger(FLowWing::DiagnosticHandler *diagnosticHandler)
       : _sourceMgr(), _errs(llvm::errs()), _llvmErrorMsg("FlowWing::Error: "),
         _llvmWarningMsg("FlowWing::Warning: "), _llvmInfoMsg("FlowWing::Info"),
-        _diagnosticHandler(diagnosticHandler) {}
+        _diagnosticHandler(diagnosticHandler), errorCount(0) {}
 
   void logLLVMError(llvm::Error E);
   void logLLVMWarning(llvm::Error E);
@@ -37,7 +37,7 @@ public:
 
   DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
 
-  const int32_t getErrorCount() const;
+  const unsigned int getErrorCount() const;
 
   auto increaseErrorCount() -> void;
 

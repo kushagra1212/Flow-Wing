@@ -4,14 +4,14 @@
 #include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 
 class BoundSourceLocation {
- public:
+public:
   BoundSourceLocation(DiagnosticUtils::SourceLocation location);
   DiagnosticUtils::SourceLocation getLocation() const;
 
   BoundSourceLocation() = delete;
 
- private:
+private:
   DiagnosticUtils::SourceLocation _location;
 };
 
-#endif  // BOUND_SOURCE_LOCATION_H
+#endif // BOUND_SOURCE_LOCATION_H

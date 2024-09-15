@@ -248,21 +248,20 @@ void IRGenerator::generateEvaluateGlobalStatement(
       }
     }
   }
-#if DEBUG
-  this->printIR();
-  _codeGenerationContext->verifyModule(TheModule);
-#endif
 
   char **OutMessage = nullptr;
-  // llvm::legacy::PassManager pass = legacy::PassManager();
-  // LLVMVerifyModule(wrap(TheModule),
-  //                  LLVMVerifierFailureAction::LLVMAbortProcessAction,
-  //                  OutMessage);
 
-  // if (OutMessage) {
-  //   fprintf(stderr, "error: %s\n", *OutMessage);
-  //   exit(1);
-  // }
+#if DEBUG
+  LLVMVerifyModule(wrap(TheModule),
+                   LLVMVerifierFailureAction::LLVMAbortProcessAction,
+                   OutMessage);
+
+  if (OutMessage) {
+    std::cout << "error: " << *OutMessage << std::endl;
+  }
+
+  this->printIR();
+#endif
 
   if (!this->hasErrors()) {
 #ifdef DEBUG

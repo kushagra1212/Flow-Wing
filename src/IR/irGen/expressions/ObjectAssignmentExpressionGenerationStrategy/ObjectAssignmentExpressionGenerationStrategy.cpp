@@ -19,7 +19,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
     llvm::StructType *parStructType, llvm::Value *lshPtr, llvm::Value *rhsPtr) {
 
   auto processKeyTypePairs = [&](auto &keyTypePairs) {
-    uint64_t i = 0;
+    unsigned long i = 0;
     for (const auto &[bLE, bTE] : keyTypePairs) {
       llvm::Value *LHSinnerElementPtr =
           Builder->CreateStructGEP(parStructType, lshPtr, i);
@@ -63,9 +63,9 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
   std::string typeName = parStructType->getStructName().str();
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;
-  std::unordered_map<std::string, uint64_t> propertiesMapIndexed;
+  std::unordered_map<std::string, unsigned long> propertiesMapIndexed;
 
-  uint64_t index = 0;
+  unsigned long index = 0;
 
   const std::string KEY_PRIFIX = typeName.substr(0, typeName.find("."));
   if (_codeGenerationContext->isValidClassType(parStructType)) {
@@ -96,7 +96,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
        parObjectExpression->getKeyValuePairs()) {
     std::string propertyName =
         KEY_PRIFIX + "." + std::any_cast<std::string>(bLitExpr->getValue());
-    uint64_t indexValue = propertiesMapIndexed[propertyName];
+    unsigned long indexValue = propertiesMapIndexed[propertyName];
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bLitExpr->getLocation());
 

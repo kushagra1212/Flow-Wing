@@ -5,6 +5,7 @@
 class FileHandler {
 
 public:
+  FileHandler() {}
   void initialize() {
     namespace fs = std::filesystem;
     std::string buildDir = "../../aot-compiler/aot-compiler-build-for-test";
@@ -27,9 +28,10 @@ public:
     // Change to the build directory
     fs::current_path(buildDir);
 
-    const std::string cmakeCommand =
-        "cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Release .. > " +
-        FLOWWING::UTILS::CONSTANTS::NULL_DEVICE + " 2>&1";
+    const std::string cmakeCommand = "cmake -G Ninja -DTESTS_ENABLED=OFF "
+                                     "-DCMAKE_BUILD_TYPE=Release .. > " +
+                                     FLOWWING::UTILS::CONSTANTS::NULL_DEVICE +
+                                     " 2>&1";
 
     if (std::system(cmakeCommand.c_str()) != EXIT_SUCCESS) {
       std::cerr << "Failed to run cmake command" << std::endl;

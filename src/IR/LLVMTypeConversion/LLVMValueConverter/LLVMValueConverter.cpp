@@ -33,7 +33,7 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
   }
 }
 
-llvm::Value *LLVMValueConverter::int32ToLLVMValue(int32_t value) {
+llvm::Value *LLVMValueConverter::int32ToLLVMValue(int value) {
   return llvm::ConstantInt::get(*_llvmContext, llvm::APInt(32, value, true));
 }
 

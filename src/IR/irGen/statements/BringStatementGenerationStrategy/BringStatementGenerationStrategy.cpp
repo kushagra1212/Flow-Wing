@@ -96,6 +96,9 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       bringStatement->getDiagnosticHandlerPtr()->getOutputFilePath(),
       absoluteFilePathWithoutExtension);
 
+  CODEGEN_DEBUG_LOG("absoluteFilePathWithoutExtension",
+                    absoluteFilePathWithoutExtension);
+
   _evaluator->generateEvaluateGlobalStatement(
       bringStatement->getGlobalScopePtr()->globalStatement.get(),
       absoluteFilePathWithoutExtension);

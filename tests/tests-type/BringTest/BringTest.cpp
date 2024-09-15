@@ -1,8 +1,8 @@
 #include "BringTest.h"
 
 void BringTest::SetUp() {
+  initialize();
   _test->SetUp();
-  this->initialize();
 }
 
 void BringTest::TearDown() { _test->TearDown(); }

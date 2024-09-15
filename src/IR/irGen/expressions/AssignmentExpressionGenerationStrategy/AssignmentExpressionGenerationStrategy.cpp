@@ -246,8 +246,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
   case BinderKindUtils::VariableExpression:
   case BinderKindUtils::IndexExpression:
   case BinderKindUtils::CallExpression:
-    return handleAssignmentByVariable(
-        static_cast<BoundVariableExpression *>(expression));
+    return handleAssignmentByVariable((expression));
 
   case BinderKindUtils::BoundBracketedExpression:
     return handleAssignmentByBracketedExpression(
@@ -315,7 +314,7 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
     BoundExpression *expression) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
-
+  _codeGenerationContext->getValueStackHandler()->popAll();
   _expressionGenerationFactory->createStrategy(expression->getKind())
       ->generateExpression(expression);
 
@@ -327,7 +326,7 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
 
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
-    _codeGenerationContext->getValueStackHandler()->popAll();
+
     if (_lhsDynamicPtr) {
       handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
@@ -409,6 +408,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy ::handleAssignExpression(
   _lhsPtr = lshPtr;
   _lhsType = lhsType;
   _lhsVariableName = lhsVarName;
+  _lhsDynamicPtr = nullptr;
 
   return handleRHSExpression(expression);
 }
