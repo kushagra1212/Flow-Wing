@@ -9,11 +9,16 @@ COPY . /jit-compiler-test
 WORKDIR /jit-compiler-test/targets/jit-compiler
 
 # Create a compiler-test-build directory
-RUN mkdir -p jit-compiler-test-build
+RUN mkdir -p jit-compiler-test-build-in-linux
 
 # Configure and compiler-test-build your project
 
-WORKDIR /jit-compiler-test/targets/jit-compiler/jit-compiler-test-build
+WORKDIR /jit-compiler-test/targets/jit-compiler/jit-compiler-test-build-in-linux
+
+# Set the environment variable
+ENV LD_LIBRARY_PATH=/jit-compiler-test/lib/linux-x86_64/lib
+
+
 RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
 RUN ninja
 # Run Tests
