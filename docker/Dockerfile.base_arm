@@ -27,4 +27,4 @@ RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17
 
 #! Buildx Command
 
-#? docker buildx build --platform linux/amd64,linux/arm64 -t common-base-llvm-arm:latest Dockerfile.base_mac .       
+#? docker buildx build --platform linux/amd64,linux/arm64 -t common-base-llvm-arm:latest Dockerfile.base_arm .       
