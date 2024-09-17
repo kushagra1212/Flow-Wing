@@ -45,7 +45,10 @@
 #elif PLATFORM_ARCH == PLATFORM_MACOS_X86_64 && defined(RELEASE) &&            \
     defined(AOT_MODE)
 #define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
-
+#elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64
+#define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
+#elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64
+#define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
 #endif
 
 // Define the module path based on the library path
