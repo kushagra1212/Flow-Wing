@@ -8,8 +8,6 @@ public:
   BoundSourceLocation(DiagnosticUtils::SourceLocation location);
   DiagnosticUtils::SourceLocation getLocation() const;
 
-  BoundSourceLocation() = delete;
-
 private:
   DiagnosticUtils::SourceLocation _location;
 };

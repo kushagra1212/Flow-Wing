@@ -1,11 +1,11 @@
 #include "AOTCompilerTest.h"
 
-AOTCompilerTest::AOTCompilerTest() {
+AOTCompilerTest::AOTCompilerTest() {}
 
+void AOTCompilerTest::SetUp() {
   compiler = std::make_unique<AOTCompiler>();
+  testing::internal::CaptureStdout();
 }
-
-void AOTCompilerTest::SetUp() { testing::internal::CaptureStdout(); }
 void AOTCompilerTest::TearDown() {}
 
 void AOTCompilerTest::setInput(const std::string &input) {

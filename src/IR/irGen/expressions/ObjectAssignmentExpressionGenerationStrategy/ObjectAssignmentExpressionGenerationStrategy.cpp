@@ -60,6 +60,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       parObjectExpression->getLocation());
+
   std::string typeName = parStructType->getStructName().str();
 
   std::unordered_map<std::string, BoundTypeExpression *> propertiesMap;

@@ -18,8 +18,8 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
   ((ss << std::forward<Args>(args)), ...);
 
   std::cout << BOLD << "[DEBUG]" << BLUE_TEXT
-            << (type.empty() ? "" : "[" + type + "]") << BLACK_TEXT << " ("
-            << file << ":" << line << " in " << func << "): " << GREEN_TEXT
+            << (type.empty() ? "" : "[" + type + "]") << GREY_TEXT << " ("
+            << file << ":" << line << " in " << func << "):\n " << GREEN_TEXT
             << format << YELLOW_TEXT << ss.str() << RESET << std::endl;
 }
 

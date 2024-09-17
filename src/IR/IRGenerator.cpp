@@ -252,6 +252,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
   char **OutMessage = nullptr;
 
 #if DEBUG
+
+  this->printIR();
   LLVMVerifyModule(wrap(TheModule),
                    LLVMVerifierFailureAction::LLVMAbortProcessAction,
                    OutMessage);
@@ -260,7 +262,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
     std::cout << "error: " << *OutMessage << std::endl;
   }
 
-  this->printIR();
 #endif
 
   if (!this->hasErrors()) {

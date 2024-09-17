@@ -4,1638 +4,6 @@ void ClassesTests::SetUp() { _test->SetUp(); }
 
 void ClassesTests::TearDown() { _test->TearDown(); }
 
-TEST_F(ClassesTests, DefaultInitilizer) {
-  I(R"(
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  type X = {
-    x1: str,
-    x2: int
-  }
-  var obj: X 
-  type Complex = {
-    a:int[3],
-    j:X[2]
-  }
-  var arr:X[2] 
-  init() -> nthg {
-    var obj:X
-    print("Pinting u: ")
-    print(obj)
-  }
-  printDefaults()-> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-    print(arr)
-  }
-}
-var a: A  = new A() 
-a.printDefaults()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      "Pinting u: { x1 : '', x2 : 0 }00.00000000000000false{ x1 : '', x2 : 0 "
-      "}[{ "
-      "x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : '', "
-      "x2 : 0 }]");
-}
-
-TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlock) {
-  I(R"(
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  type X = {
-    x1: str,
-    x2: int
-  }
-  var obj: X 
-  type Complex = {
-    a:int[3],
-    j:X[2]
-  }
-  var arr:X[2] 
-  init(a:int,b:str,yesD:deci) -> nthg {
-    var obj:X
-    print("Pinting u: ")
-    print(obj)
-    print(a)
-    a = a 
-    b = b 
-    d = yesD
-  }
-  printDefaults()-> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-    print(arr)
-  }
-}
-var a: A  = new A(2,"Hello",3.3) 
-a.printDefaults()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      "Pinting u: { x1 : '', x2 : 0 }203.30000000000000false{ x1 : '', x2 : 0 "
-      "}[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : "
-      "'', x2 : 0 }]");
-}
-
-TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlockAssignment) {
-  I(R"(
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  type X = {
-    x1: str,
-    x2: int
-  }
-  var obj: X 
-  type Complex = {
-    a:int[3],
-    j:X[2]
-  }
-  var arr:X[2] 
-  init(a:int,b:str,yesD:deci) -> nthg {
-    var obj:X
-    print("Pinting u: ")
-    print(obj)
-    print(a)
-    self.a = a 
-    self.b = b 
-    d = yesD
-  }
-  printDefaults()-> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-    print(arr)
-  }
-}
-var a: A  = new A(2,"Hello",3.3) 
-a.printDefaults()
-)");
-  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
-                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
-                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : "
-                         "'', x2 : 0 }, { x1 : "
-                         "'', x2 : 0 }]");
-}
-
-TEST_F(ClassesTests,
-       DefaultInitilizerScopeSelfAndFunctionBlockAssignmentOveride) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-type X = { 
-    x1: str, 
-    x2: int  
-}      
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-    var obj: X 
-    print("Pinting u: ")
-    print(obj)
-    print(a)
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()  
-)");
-  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
-                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
-                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgs) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print(a)
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()  
-)");
-  EXPECT_EQ(getOutput(), "22Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ "
-                         "x1 : '', x2 : 0 }, { "
-                         "x1 : '', x2 : 0 }]");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-print("BeforeUpdate\n")
-a.printDefaults()  
-print("AfterUpdate\n")
-a.updateA()
-a.printDefaults()
-)");
-  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
-2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
-100Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-   
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-  type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-  var arr: X[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-print("BeforeUpdate\n")
-a.printDefaults()  
-print("AfterUpdate\n")
-a.updateA()
-a.printDefaults()
-)");
-  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
-2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
-100Nice2.20000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2Complex) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-     type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-
-  var arr: Complex[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-  updateComplex(arr:Complex[2]) -> nthg {
-    self.arr = arr 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-print("\n")
-a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
-a.printComplex()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexOwnMember) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-     type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-
-  var arr: Complex[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-  updateComplex(ar:Complex[2]) -> nthg {
-    self.arr = arr 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-print("\n")
-a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
-a.printComplex()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBody) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-     type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-
-  var arr: Complex[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-  updateComplex(arr:Complex[2]) -> nthg {
-    arr = arr 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-print("\n")
-a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
-a.printComplex()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelf) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-     type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-
-  var arr: Complex[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-  updateComplex(ar:Complex[2]) -> nthg {
-    arr = ar
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-print("\n")
-a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
-a.printComplex()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdate) {
-  I(R"(
-type X = {    
-    x1: str,  
-    x2: int   
-}             
-     type Complex = {
-    a: int[3],
-    j: X[2]
-  }
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-
-
-  var obj: X 
-
-  var arr: Complex[2]
-  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
-
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-      a = 100
-      self.d = 2.2
-      b = "Nice"
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-  updateComplex(ar:Complex[2]) -> nthg {
-    arr = ar
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-}
-
-var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
-a.printDefaults()
-print("\n")
-a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
-a.printComplex()
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdateAccessingOutSideClass) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr )
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults() 
-print("\n")
-print("Before Update\n")
-print(a.arr )
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}]) 
-print("\nAfter Update\n")
-print(a.arr )
-print("\nprint nested\n")
-print(a.arr[0].a[1] )
-print("\n")
-print(a.arr[0].j[0].x2 )
-print("\n")
-a.arr[0].j[1].x1 = "WAY" 
-print(a.arr[0].j[1].x1 )
-print("\n")
-print(a.obj )
-print("\n")
-print(a.obj.x2 )
-print("\n")
-print(a.obj.x1 )
-print("\n")
-print(a.obj2 )
-print("\n")
-print(a.obj2.a )
-print("\n")
-print(a.obj2.j[0].x2 ) 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-After Update
-[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-print nested
-5
-40
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdateAccessingOutSideClassAssignment) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr )
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults() 
-print("\n")
-print("Before Update\n")
-print(a.arr )
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}]) 
-print("\n")
-print(a.arr[0].j[0].x2 )
-a.arr[0].j[0].x2 = 2
-print("\n")
-print(a.arr[0].j[0].x2)
-print("\n")
-a.arr[0].j[1].x1 = "WAY" 
-print(a.arr[0].j[1].x1 )
-print("\n")
-print(a.obj )
-print("\n")
-print(a.obj.x2 )
-print("\n")
-print(a.obj.x1 )
-print("\n")
-print(a.obj2 )
-print("\n")
-a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
-print(a.obj2)
-print("\n")
-a.obj2 <- {}
-print(a.obj2)
-print("\n")
-print(a.obj2.a )
-print("\n")
-print(a.obj2.j[0].x2 ) 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeInsideScopeAndAfterUpdateAccessingOutSideClassAssignment) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr )
-  }
-
-}
-{
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults() 
-print("\n")
-print("Before Update\n")
-print(a.arr )
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}]) 
-
-    print("\n")
-print(a.arr[0].j[0].x2 )
-a.arr[0].j[0].x2 = 2
-print("\n")
-print(a.arr[0].j[0].x2)
-print("\n")
-a.arr[0].j[1].x1 = "WAY" 
-print(a.arr[0].j[1].x1 )
-print("\n")
-print(a.obj )
-print("\n")
-print(a.obj.x2 )
-print("\n")
-print(a.obj.x1 )
-print("\n")
-print(a.obj2 )
-print("\n")
-a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
-print(a.obj2)
-print("\n")
-a.obj2 <- {}
-print(a.obj2)
-print("\n")
-print(a.obj2.a )
-print("\n")
-print(a.obj2.j[0].x2 ) 
-}
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(
-    ClassesTests,
-    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeInsideScopeAndAfterUpdatePartialScopeAccessingOutSideClassAssignment) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr )
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults() 
-print("\n")
-print("Before Update\n")
-print(a.arr )
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}]) 
-{
-    print("\n")
-print(a.arr[0].j[0].x2 )
-a.arr[0].j[0].x2 = 2
-print("\n")
-print(a.arr[0].j[0].x2)
-print("\n")
-a.arr[0].j[1].x1 = "WAY" 
-print(a.arr[0].j[1].x1 )
-print("\n")
-print(a.obj )
-print("\n")
-print(a.obj.x2 )
-print("\n")
-print(a.obj.x1 )
-print("\n")
-print(a.obj2 )
-print("\n")
-a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
-print(a.obj2)
-print("\n")
-a.obj2 <- {}
-print(a.obj2)
-print("\n")
-print(a.obj2.a )
-print("\n")
-print(a.obj2.j[0].x2 ) 
-}
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(ClassesTests, InsideClassPrint) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-  printAll() -> nthg {
-    print(self.arr[0].j[0].x2)
-    arr[0].j[0].x2= 2
-    print("\n")
-    print(self.arr[0].j[0].x2)
-    print("\n")
-    arr[0].j[1].x1= "WAY"
-    print(self.arr[0].j[1].x1)
-    print("\n")
-    print(self.obj)
-    print("\n")
-    print(self.obj.x2)
-    print("\n")
-    print(self.obj.x1)
-    print("\n")
-    print(self.obj2)
-    print("\n")
-    obj2 = {
-      j: [{
-        x2: 2,
-        x1: "Ge"
-      }],
-      a: [2 fill 1]
-    } 
-    print(self.obj2)
-    print("\n")
-    obj2 <- {
-
-    } 
-    print(self.obj2)
-    print("\n")
-    print(self.obj2.a)
-    print("\n")
-    print(self.obj2.j[0].x2)
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults()
-print("\n")
-print("Before Update\n")
-print(a.arr)
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}])
-print("\n")
-a.printAll() 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(ClassesTests, InsideClassPrintAssignWithSelf) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-  printAll() -> nthg {
-    print(self.arr[0].j[0].x2)
-    arr[0].j[0].x2= 2
-    print("\n")
-    print(self.arr[0].j[0].x2)
-    print("\n")
-    self.arr[0].j[1].x1= "WAY"
-    print(self.arr[0].j[1].x1)
-    print("\n")
-    print(self.obj)
-    print("\n")
-    print(self.obj.x2)
-    print("\n")
-    print(self.obj.x1)
-    print("\n")
-    print(self.obj2)
-    print("\n")
-    self.obj2 = {
-      j: [{
-        x2: 2,
-        x1: "Ge"
-      }],
-      a: [2 fill 1]
-    } 
-    print(self.obj2)
-    print("\n")
-    obj2 <- {
-
-    } 
-    print(self.obj2)
-    print("\n")
-    print(self.obj2.a)
-    print("\n")
-    print(self.obj2.j[0].x2)
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults()
-print("\n")
-print("Before Update\n")
-print(a.arr)
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}])
-print("\n")
-a.printAll() 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(ClassesTests, InsideClassPrintAssignWithOutSelf) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-  printAll() -> nthg {
-    print(arr[0].j[0].x2)
-    arr[0].j[0].x2= 2
-    print("\n")
-    print(arr[0].j[0].x2)
-    print("\n")
-    arr[0].j[1].x1= "WAY"
-    print(arr[0].j[1].x1)
-    print("\n")
-    print(obj)
-    print("\n")
-    print(obj.x2)
-    print("\n")
-    print(obj.x1)
-    print("\n")
-    print(obj2)
-    print("\n")
-    obj2 = {
-      j: [{
-        x2: 2,
-        x1: "Ge"
-      }],
-      a: [2 fill 1]
-    } 
-    print(obj2)
-    print("\n")
-    obj2 <- {
-
-    } 
-    print(obj2)
-    print("\n")
-    print(obj2.a)
-    print("\n")
-    print(obj2.j[0].x2)
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults()
-print("\n")
-print("Before Update\n")
-print(a.arr)
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}])
-print("\n")
-a.printAll() 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0)");
-}
-
-TEST_F(ClassesTests, InsideClassPrintAssignWithOutSelfFunctionCall) {
-  I(R"(
-type X = {
-  x1: str,
-  x2: int
-}
-type Complex = {
-  a: int[3],
-  j: X[2]
-}
-class A {
-  var a: int
-  var b: str
-  var d: deci
-  var e: bool
-  var obj: X 
-  var arr: Complex[2]
-  var obj2: Complex 
-  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
-    print("initCalled")
-    self.a = a 
-    self.b = b 
-    d = yesD 
-    self.obj = obj 
-  }
-
-  updateA() -> nthg {
-    a = 100 
-    self.d = 2.2 
-    b = "Nice" 
-  }
-
-  printDefaults() -> nthg {
-    print(a)
-    print(b)
-    print(d)
-    print(e)
-    print(obj)
-    print(arr)
-  }
-
-  updateComplex(ar: Complex[2]) -> nthg {
-    arr = ar 
-  }
-
-  printComplex() -> nthg {
-    print(self.arr)
-  }
-
-  printAll() -> nthg {
-    print(arr[0].j[0].x2)
-    arr[0].j[0].x2= 2
-    print("\n")
-    print(arr[0].j[0].x2)
-    print("\n")
-    arr[0].j[1].x1= "WAY"
-    print(arr[0].j[1].x1)
-    print("\n")
-    print(obj)
-    print("\n")
-    print(obj.x2)
-    print("\n")
-    print(obj.x1)
-    print("\n")
-    print(obj2)
-    print("\n")
-    obj2 = {
-      j: [{
-        x2: 2,
-        x1: "Ge"
-      }],
-      a: [2 fill 1]
-    } 
-    print(obj2)
-    print("\n")
-    obj2 <- {
-
-    } 
-    print(obj2)
-    print("\n")
-    print(obj2.a)
-    print("\n")
-    print(obj2.j[0].x2)
-    printComplex()
-  }
-
-}
-var a: A  = new A(2, "Hello", 3.3, {
-  x1: "HI",
-  x2: 45
-})
-a.printDefaults()
-print("\n")
-print("Before Update\n")
-print(a.arr)
-a.updateComplex([{
-  a: [2 fill 5],
-  j: [{
-    x1: "yo",
-    x2: 40
-  }]
-}])
-print("\n")
-a.printAll() 
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-Before Update
-[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
-40
-2
-WAY
-{ x1 : 'HI', x2 : 45 }
-45
-HI
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
-{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
-[0, 0, 0]
-0[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 2 }, { x1 : 'WAY', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
-}
-
 TEST_F(ClassesTests, PrintNiceOutsideClass) {
   I(R"(
 type X = {
@@ -2564,6 +932,1516 @@ print(a.obj)
 )");
   EXPECT_EQ(getOutput(), R"({ a : 32 }After Pass{ a : 21 })");
 }
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdate) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(ar:Complex[2]) -> nthg {
+    arr = ar
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdateAccessingOutSideClass) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr )
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults() 
+print("\n")
+print("Before Update\n")
+print(a.arr )
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}]) 
+print("\nAfter Update\n")
+print(a.arr )
+print("\nprint nested\n")
+print(a.arr[0].a[1] )
+print("\n")
+print(a.arr[0].j[0].x2 )
+print("\n")
+a.arr[0].j[1].x1 = "WAY" 
+print(a.arr[0].j[1].x1 )
+print("\n")
+print(a.obj )
+print("\n")
+print(a.obj.x2 )
+print("\n")
+print(a.obj.x1 )
+print("\n")
+print(a.obj2 )
+print("\n")
+print(a.obj2.a )
+print("\n")
+print(a.obj2.j[0].x2 ) 
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+After Update
+[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+print nested
+5
+40
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeAndAfterUpdateAccessingOutSideClassAssignment) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr )
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults() 
+print("\n")
+print("Before Update\n")
+print(a.arr )
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}]) 
+print("\n")
+print(a.arr[0].j[0].x2 )
+a.arr[0].j[0].x2 = 2
+print("\n")
+print(a.arr[0].j[0].x2)
+print("\n")
+a.arr[0].j[1].x1 = "WAY" 
+print(a.arr[0].j[1].x1 )
+print("\n")
+print(a.obj )
+print("\n")
+print(a.obj.x2 )
+print("\n")
+print(a.obj.x1 )
+print("\n")
+print(a.obj2 )
+print("\n")
+a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
+print(a.obj2)
+print("\n")
+a.obj2 <- {}
+print(a.obj2)
+print("\n")
+print(a.obj2.a )
+print("\n")
+print(a.obj2.j[0].x2 ) 
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeInsideScopeAndAfterUpdateAccessingOutSideClassAssignment) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr )
+  }
+
+}
+{
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults() 
+print("\n")
+print("Before Update\n")
+print(a.arr )
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}]) 
+
+    print("\n")
+print(a.arr[0].j[0].x2 )
+a.arr[0].j[0].x2 = 2
+print("\n")
+print(a.arr[0].j[0].x2)
+print("\n")
+a.arr[0].j[1].x1 = "WAY" 
+print(a.arr[0].j[1].x1 )
+print("\n")
+print(a.obj )
+print("\n")
+print(a.obj.x2 )
+print("\n")
+print(a.obj.x1 )
+print("\n")
+print(a.obj2 )
+print("\n")
+a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
+print(a.obj2)
+print("\n")
+a.obj2 <- {}
+print(a.obj2)
+print("\n")
+print(a.obj2.a )
+print("\n")
+print(a.obj2.j[0].x2 ) 
+}
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelfBeforeInsideScopeAndAfterUpdatePartialScopeAccessingOutSideClassAssignment) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr )
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults() 
+print("\n")
+print("Before Update\n")
+print(a.arr )
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}]) 
+{
+    print("\n")
+print(a.arr[0].j[0].x2 )
+a.arr[0].j[0].x2 = 2
+print("\n")
+print(a.arr[0].j[0].x2)
+print("\n")
+a.arr[0].j[1].x1 = "WAY" 
+print(a.arr[0].j[1].x1 )
+print("\n")
+print(a.obj )
+print("\n")
+print(a.obj.x2 )
+print("\n")
+print(a.obj.x1 )
+print("\n")
+print(a.obj2 )
+print("\n")
+a.obj2 = {j:[{x2:2,x1:"Ge"}], a:[2 fill 1]}
+print(a.obj2)
+print("\n")
+a.obj2 <- {}
+print(a.obj2)
+print("\n")
+print(a.obj2.a )
+print("\n")
+print(a.obj2.j[0].x2 ) 
+}
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(ClassesTests, InsideClassPrint) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+  printAll() -> nthg {
+    print(self.arr[0].j[0].x2)
+    arr[0].j[0].x2= 2
+    print("\n")
+    print(self.arr[0].j[0].x2)
+    print("\n")
+    arr[0].j[1].x1= "WAY"
+    print(self.arr[0].j[1].x1)
+    print("\n")
+    print(self.obj)
+    print("\n")
+    print(self.obj.x2)
+    print("\n")
+    print(self.obj.x1)
+    print("\n")
+    print(self.obj2)
+    print("\n")
+    obj2 = {
+      j: [{
+        x2: 2,
+        x1: "Ge"
+      }],
+      a: [2 fill 1]
+    } 
+    print(self.obj2)
+    print("\n")
+    obj2 <- {
+
+    } 
+    print(self.obj2)
+    print("\n")
+    print(self.obj2.a)
+    print("\n")
+    print(self.obj2.j[0].x2)
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults()
+print("\n")
+print("Before Update\n")
+print(a.arr)
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}])
+print("\n")
+a.printAll() 
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(ClassesTests, InsideClassPrintAssignWithSelf) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+  printAll() -> nthg {
+    print(self.arr[0].j[0].x2)
+    arr[0].j[0].x2= 2
+    print("\n")
+    print(self.arr[0].j[0].x2)
+    print("\n")
+    self.arr[0].j[1].x1= "WAY"
+    print(self.arr[0].j[1].x1)
+    print("\n")
+    print(self.obj)
+    print("\n")
+    print(self.obj.x2)
+    print("\n")
+    print(self.obj.x1)
+    print("\n")
+    print(self.obj2)
+    print("\n")
+    self.obj2 = {
+      j: [{
+        x2: 2,
+        x1: "Ge"
+      }],
+      a: [2 fill 1]
+    } 
+    print(self.obj2)
+    print("\n")
+    obj2 <- {
+
+    } 
+    print(self.obj2)
+    print("\n")
+    print(self.obj2.a)
+    print("\n")
+    print(self.obj2.j[0].x2)
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults()
+print("\n")
+print("Before Update\n")
+print(a.arr)
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}])
+print("\n")
+a.printAll() 
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(ClassesTests, InsideClassPrintAssignWithOutSelf) {
+  I(R"(
+type X = {
+  x1: str,
+  x2: int
+}
+type Complex = {
+  a: int[3],
+  j: X[2]
+}
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  var obj: X 
+  var arr: Complex[2]
+  var obj2: Complex 
+  init(a: int, b: str, yesD: deci, obj: X ) -> nthg {
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD 
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+    a = 100 
+    self.d = 2.2 
+    b = "Nice" 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+  updateComplex(ar: Complex[2]) -> nthg {
+    arr = ar 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+  printAll() -> nthg {
+    print(arr[0].j[0].x2)
+    arr[0].j[0].x2= 2
+    print("\n")
+    print(arr[0].j[0].x2)
+    print("\n")
+    arr[0].j[1].x1= "WAY"
+    print(arr[0].j[1].x1)
+    print("\n")
+    print(obj)
+    print("\n")
+    print(obj.x2)
+    print("\n")
+    print(obj.x1)
+    print("\n")
+    print(obj2)
+    print("\n")
+    obj2 = {
+      j: [{
+        x2: 2,
+        x1: "Ge"
+      }],
+      a: [2 fill 1]
+    } 
+    print(obj2)
+    print("\n")
+    obj2 <- {
+
+    } 
+    print(obj2)
+    print("\n")
+    print(obj2.a)
+    print("\n")
+    print(obj2.j[0].x2)
+  }
+
+}
+var a: A  = new A(2, "Hello", 3.3, {
+  x1: "HI",
+  x2: 45
+})
+a.printDefaults()
+print("\n")
+print("Before Update\n")
+print(a.arr)
+a.updateComplex([{
+  a: [2 fill 5],
+  j: [{
+    x1: "yo",
+    x2: 40
+  }]
+}])
+print("\n")
+a.printAll() 
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+Before Update
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+40
+2
+WAY
+{ x1 : 'HI', x2 : 45 }
+45
+HI
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+{ a : [1, 1, 0], j : [{ x1 : 'Ge', x2 : 2 }, { x1 : '', x2 : 0 }] }
+{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }
+[0, 0, 0]
+0)");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBodyWithOutSelf) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(ar:Complex[2]) -> nthg {
+    arr = ar
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexInMemberBody) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(arr:Complex[2]) -> nthg {
+    arr = arr 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
+}
+
+TEST_F(ClassesTests, DefaultInitilizer) {
+  I(R"(
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init() -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A() 
+a.printDefaults()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      "Pinting u: { x1 : '', x2 : 0 }00.00000000000000false{ x1 : '', x2 : 0 "
+      "}[{ "
+      "x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : '', "
+      "x2 : 0 }]");
+}
+
+TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlock) {
+  I(R"(
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init(a:int,b:str,yesD:deci) -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    a = a 
+    b = b 
+    d = yesD
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A(2,"Hello",3.3) 
+a.printDefaults()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      "Pinting u: { x1 : '', x2 : 0 }203.30000000000000false{ x1 : '', x2 : 0 "
+      "}[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : '', x2 : 0 }, { x1 : "
+      "'', x2 : 0 }]");
+}
+
+TEST_F(ClassesTests, DefaultInitilizerScopeSelfAndFunctionBlockAssignment) {
+  I(R"(
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init(a:int,b:str,yesD:deci) -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A(2,"Hello",3.3) 
+a.printDefaults()
+)");
+  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
+                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
+                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }][{ x1 : "
+                         "'', x2 : 0 }, { x1 : "
+                         "'', x2 : 0 }]");
+}
+
+TEST_F(ClassesTests,
+       DefaultInitilizerScopeSelfAndFunctionBlockAssignmentOveride) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+   
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+type X = { 
+    x1: str, 
+    x2: int  
+}      
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+    var obj: X 
+    print("Pinting u: ")
+    print(obj)
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()  
+)");
+  EXPECT_EQ(getOutput(), "Pinting u: { x1 : '', x2 : 0 "
+                         "}22Hello3.30000000000000false{ x1 : '', x2 : "
+                         "0 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgs) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+   
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print(a)
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()  
+)");
+  EXPECT_EQ(getOutput(), "22Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ "
+                         "x1 : '', x2 : 0 }, { "
+                         "x1 : '', x2 : 0 }]");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+   
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+print("BeforeUpdate\n")
+a.printDefaults()  
+print("AfterUpdate\n")
+a.updateA()
+a.printDefaults()
+)");
+  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
+2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
+100Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+   
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+  type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+  var arr: X[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+print("BeforeUpdate\n")
+a.printDefaults()  
+print("AfterUpdate\n")
+a.updateA()
+a.printDefaults()
+)");
+  EXPECT_EQ(getOutput(), R"(initCalledBeforeUpdate
+2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }]AfterUpdate
+100Nice2.20000000000000false{ x1 : 'HI', x2 : 45 }[{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }])");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2Complex) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(arr:Complex[2]) -> nthg {
+    self.arr = arr 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+[{ a : [5, 5, 0], j : [{ x1 : 'yo', x2 : 40 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
+}
+
+TEST_F(
+    ClassesTests,
+    DefaultInitilizerScopeSelfAndFunctionBlockAssignmentAssigningThroughArgsWithUpdateFunction2ComplexOwnMember) {
+  I(R"(
+type X = {    
+    x1: str,  
+    x2: int   
+}             
+     type Complex = {
+    a: int[3],
+    j: X[2]
+  }
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+
+
+  var obj: X 
+
+  var arr: Complex[2]
+  init(a: int, b: str, yesD: deci,obj: X) -> nthg {
+
+    print("initCalled")
+    self.a = a 
+    self.b = b 
+    d = yesD
+    self.obj = obj 
+  }
+
+  updateA() -> nthg {
+      a = 100
+      self.d = 2.2
+      b = "Nice"
+  }
+
+  printDefaults() -> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+  }
+  updateComplex(ar:Complex[2]) -> nthg {
+    self.arr = arr 
+  }
+
+  printComplex() -> nthg {
+    print(self.arr)
+  }
+
+}
+
+var a: A  = new A(2, "Hello", 3.3,{x1:"HI",x2:45})
+a.printDefaults()
+print("\n")
+a.updateComplex([{a:[2 fill 5],j:[{x1:"yo",x2:40}]}])
+a.printComplex()
+)");
+  EXPECT_EQ(
+      getOutput(),
+      R"(initCalled2Hello3.30000000000000false{ x1 : 'HI', x2 : 45 }[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }]
+[{ a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }, { a : [0, 0, 0], j : [{ x1 : '', x2 : 0 }, { x1 : '', x2 : 0 }] }])");
+}
+
 TEST_F(ClassesTests, ReturnClassObjectFromFunctionReturiningComplexTwo) {
   I(R"(
 type T = {
@@ -2880,71 +2758,6 @@ print(a.printB(new B({j:[{a:2}]})))
       getOutput(),
       R"({ a : 1 }{ a : 22 }{ a : 322 }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
 }
-TEST_F(ClassesTests, CreatingObjectFromFunctionAssignmentLocalVaradicPrint) {
-  I(R"(
-
-
-print(1,2,3,"ssdweqdfwe")
-
-type T = {
-  a:int 
-}
-
-type K = {
-  j:T[2]
-}
-
-class B {
-  var u:K
-
-  init(u:K) -> nthg {
-    self.u = u
-  }
-
-  getU() -> K {
-    return u
-  }
-}
-
-class A{
-  var obj:T 
-
-  init(obj:T) -> nthg {
-    self.obj = obj 
-  }
-
-  printB(b:B) -> nthg {
-    print(b.getU())
-  }
-}
-
-
-fun getA(d:A) -> A {
- d.obj.a = 21
-  return d
-}
-fun getAA(a:A) -> A {
-  return getA(a)
-}
-fun createA() -> A {
-  return new A({a:22})
-}
-
-    var a:A = new A({a:1})
-print(a.obj)
-a = createA()
-print(a.obj)
-a = new A({a:322})
-print(a.obj,a.printB(new B({j:[]})))
-a.obj = {a:32}
-print("After Pass")
-print(a.printB(new B({j:[{a:2}]})))
-)");
-  EXPECT_EQ(
-      getOutput(),
-      R"(123ssdweqdfwe{ a : 1 }{ a : 22 }{ a : 322 }{ j : [{ a : 0 }, { a : 0 }] }After Pass{ j : [{ a : 2 }, { a : 0 }] })");
-}
-
 TEST_F(ClassesTests, ClassTestBasicInheritanceWithSuper) {
   I(R"(
 class C {
@@ -3501,7 +3314,7 @@ class Dog extends Animal {
 fun printAge(a: Animal) ->nthg{
  print("I'm "+a.getAge()+" years old!\n")
 }
-fun main() -> nthg {
+fun main2() -> nthg {
   var animal:Animal = new Animal(2)
   var  dog:Dog = new Dog(2)
 var x:int = dog.getAge()
@@ -3512,7 +3325,7 @@ print(animal.getAge())
 printAge(animal) 
  printAge(dog) 
 }
-main()
+main2()
 
 )");
   EXPECT_EQ(getOutput(), R"(x 14{ x : 12, d : 'Hi' }142I'm 2 years old!
@@ -3657,13 +3470,13 @@ init(s: str) -> nthg{
 
 var a:A = new A("Hello")
 
-fun main() -> int {
+fun main2() -> int {
 
    print(a.s) 
     return 0 
   }
 
-  main()
+  main2()
 )");
   EXPECT_EQ(getOutput(), R"(Hello)");
 }

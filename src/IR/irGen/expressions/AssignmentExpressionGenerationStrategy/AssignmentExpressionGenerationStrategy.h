@@ -58,21 +58,21 @@ public:
 
 private:
   std::string _variableName;
-  llvm::Value *_allocaInst;
-  llvm::GlobalVariable *_previousGlobalVariable;
+  llvm::Value *_allocaInst = nullptr;
+  llvm::GlobalVariable *_previousGlobalVariable = nullptr;
   SyntaxKindUtils::SyntaxKind _variableType;
   bool _isGlobal;
   std::vector<llvm::Value *> _indices;
-  BoundVariableExpression *_variableExpression;
-  BoundExpression *_rhsExpression;
+  BoundVariableExpression *_variableExpression = nullptr;
+  BoundExpression *_rhsExpression = nullptr;
 
   // Complete Assignment
   std::string _lhsVariableName;
-  llvm::Type *_lhsType, *_rhsType;
-  llvm::Value *_lhsPtr, *_rhsPtr;
+  llvm::Type *_lhsType = nullptr, *_rhsType = nullptr;
+  llvm::Value *_lhsPtr = nullptr, *_rhsPtr = nullptr;
   SyntaxKindUtils::SyntaxKind _lhsTypeKind;
 
-  llvm::Value *_lhsDynamicPtr;
+  llvm::Value *_lhsDynamicPtr = nullptr;
 };
 
 #endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

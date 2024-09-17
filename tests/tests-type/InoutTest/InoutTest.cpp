@@ -379,14 +379,14 @@ class A{
 }
 
 
-fun main(inout a:A) -> nthg {
+fun main2(inout a:A) -> nthg {
   print(a.obj)
   a.obj.a = 21
 }
 
 var a:A = new A({a:100})
 
-main(a)
+main2(a)
 
 print("After Pass\n")
 print(a.obj)
@@ -411,14 +411,14 @@ class A{
 }
 
 
-fun main( a:A) -> nthg {
+fun main2( a:A) -> nthg {
   print(a.obj)
   a.obj.a = 21
 }
 
 var a:A = new A({a:100})
 
-main(a)
+main2(a)
 
 print("After Pass\n")
 print(a.obj)
@@ -443,13 +443,13 @@ class A{
 }
 
 
-fun main( a:A) -> nthg {
+fun main2( a:A) -> nthg {
   print(a.obj)
   a.obj.a = 21
   print(a.obj)
 }
 
-main( new A({a:100}))
+main2( new A({a:100}))
 
 print("After Pass")
 
@@ -473,12 +473,12 @@ class A{
 }
 
 
-fun main(inout a:A) -> nthg {
+fun main2(inout a:A) -> nthg {
   a.obj.a = 21
 }
 var a:A =  new A({a:100})
 print(a.obj)
-main(a)
+main2(a)
 print("After Pass")
 print(a.obj)
     )");
@@ -501,12 +501,12 @@ class A{
 }
 
 
-fun main( a:A) -> nthg {
+fun main2( a:A) -> nthg {
   a.obj.a = 21
 }
 var a:A =  new A({a:100})
 print(a.obj)
-main(a)
+main2(a)
 print("After Pass")
 print(a.obj)
     )");

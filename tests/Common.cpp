@@ -15,7 +15,7 @@ std::unique_ptr<BaseTest> getTest() {
   _test = std::make_unique<ReplTest>();
 #endif
 
-  return _test;
+  return std::move(_test);
 }
 } // namespace FlowWing
 } // namespace Tests

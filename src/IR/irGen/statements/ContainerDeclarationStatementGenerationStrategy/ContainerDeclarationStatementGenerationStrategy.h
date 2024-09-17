@@ -25,7 +25,7 @@ public:
 private:
   // private members
   std::vector<uint64_t> _actualSizes;
-  llvm::Type *_elementType;
+  llvm::Type *_elementType = nullptr;
   std::string _containerName;
 
   BoundExpression *_initializer;
