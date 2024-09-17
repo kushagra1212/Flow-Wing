@@ -1,9 +1,6 @@
 #include "ModuleTest.h"
 
-void ModuleTest::SetUp() {
-  _test->SetUp();
-  this->initialize();
-}
+void ModuleTest::SetUp() { _test->SetUp(); }
 
 void ModuleTest::TearDown() { _test->TearDown(); }
 
@@ -210,10 +207,9 @@ print(j)
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(),
-            "\n{ a : 5, b : '', c : 0.00000000000000, d : "
-            "0.0000000, e : false, f : { "
-            "a : 0 } }");
+  EXPECT_EQ(getOutput(), "\n{ a : 5, b : '', c : 0.00000000000000, d : "
+                         "0.0000000, e : false, f : { "
+                         "a : 0 } }");
 }
 TEST_F(ModuleTest, ModuleImportTestFunctionTest) {
   writeFile("local-module.fg", R"(
@@ -263,10 +259,9 @@ print(local::callMe({a:10}))
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(),
-            "\n{ a : 10, b : '', c : 0.00000000000000, d : "
-            "0.0000000, e : true, f : { "
-            "a : 0 } }");
+  EXPECT_EQ(getOutput(), "\n{ a : 10, b : '', c : 0.00000000000000, d : "
+                         "0.0000000, e : true, f : { "
+                         "a : 0 } }");
 }
 
 TEST_F(ModuleTest, ModuleImportTestFunctionTest2) {
@@ -315,14 +310,13 @@ print(local::callMe({a:10}))
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
-  EXPECT_EQ(getOutput(),
-            "\n{ a : 0, b : '', c : 0.00000000000000, d : "
-            "0.0000000, e : false, f : { "
-            "a : 0 } }{ a : 2, b : '', c : 0.00000000000000, d : "
-            "0.0000000, e : false, "
-            "f : { a : 0 } }{ a : 10, b : '', c : "
-            "0.00000000000000, d : 0.0000000, e : "
-            "true, f : { a : 0 } }");
+  EXPECT_EQ(getOutput(), "\n{ a : 0, b : '', c : 0.00000000000000, d : "
+                         "0.0000000, e : false, f : { "
+                         "a : 0 } }{ a : 2, b : '', c : 0.00000000000000, d : "
+                         "0.0000000, e : false, "
+                         "f : { a : 0 } }{ a : 10, b : '', c : "
+                         "0.00000000000000, d : 0.0000000, e : "
+                         "true, f : { a : 0 } }");
 }
 
 TEST_F(ModuleTest, ModuleImportTestUsingClass) {

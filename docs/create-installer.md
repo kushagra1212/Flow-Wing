@@ -3,13 +3,13 @@
 This file contains the instructions to create an AOT installer for FlowWing.
 
 ## Commands for AOT Compiler
- 
+
 - For Ubuntu (Debian) / Linux
 
 - From the root of the FlowWing repository directory
 
-  ```bash   
-  cd dev-tools
+  ```bash
+  cd scripts/dev
   sudo ./run-aot-compiler-dev.sh
   ```
 
@@ -18,5 +18,5 @@ This file contains the instructions to create an AOT installer for FlowWing.
     ninja
       cpack -G DEB
     cd release
-    sudo dpkg -i FlowWing-0.0.1-Linux.deb   
+    sudo dpkg -i FlowWing-0.0.1-Linux.deb
 ```

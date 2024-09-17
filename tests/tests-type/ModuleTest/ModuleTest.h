@@ -8,6 +8,7 @@ class ModuleTest : public ::testing::Test,
                    public FileHandler,
                    public IOHandler {
 protected:
+  ModuleTest() { this->initialize(); }
   void SetUp() override;
   void TearDown() override;
 };

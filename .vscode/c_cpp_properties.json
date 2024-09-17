@@ -9,7 +9,7 @@
         "/opt/homebrew/opt/llvm@17/Toolchains/LLVM17.0.6.xctoolchain/usr/include/**"
       ],
       "defines": [],
-      "compilerPath": "/usr/bin/clang++",
+      "compilerPath": "/usr/bin/clang",
       "cStandard": "c11",
       "cppStandard": "c++17",
       "intelliSenseMode": "macos-clang-arm64"

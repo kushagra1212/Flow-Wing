@@ -266,8 +266,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   if (!this->hasErrors()) {
 #ifdef DEBUG
-    const char *Filename = (blockName + std::string(".ll")).c_str();
-    LLVMPrintModuleToFile(wrap(TheModule), Filename, OutMessage);
+    const std::string Filename = (std::string(blockName + std::string(".ll")));
+    LLVMPrintModuleToFile(wrap(TheModule), Filename.c_str(), OutMessage);
 
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
