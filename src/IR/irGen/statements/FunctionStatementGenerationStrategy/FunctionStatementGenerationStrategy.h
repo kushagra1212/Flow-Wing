@@ -27,7 +27,7 @@ public:
                         std::vector<std::string> classVariables = {});
 
 private:
-  std::unique_ptr<IRCodeGenerator> _irCodeGenerator;
+  std::unique_ptr<IRCodeGenerator> _irCodeGenerator = nullptr;
 };
 
 #endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

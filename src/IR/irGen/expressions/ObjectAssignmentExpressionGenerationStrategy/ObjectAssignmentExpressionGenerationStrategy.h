@@ -32,9 +32,9 @@ public:
                             std::string lhsVarName);
 
 private:
-  BoundAssignmentExpression *_assignmentExp;
+  BoundAssignmentExpression *_assignmentExp = nullptr;
   llvm::Value *_lhsVar;
-  BoundVariableExpression *_lhsVarExpr;
+  BoundVariableExpression *_lhsVarExpr = nullptr;
   bool _isGlobal = false;
 };
 

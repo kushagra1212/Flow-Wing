@@ -1893,7 +1893,7 @@ class Dog extends Animal {
 fun printAge(a: Animal) ->nthg{
   print("I'm "+a.getAge()+" years old!\n")
 }
-fun main() -> nthg {
+fun main2() -> nthg {
   var animal:Animal = new Animal(2)
   var  dog:Dog = new Dog(2)
 
@@ -1901,7 +1901,7 @@ fun main() -> nthg {
   printAge(dog) 
 }
 
-main()
+main2()
 )");
   EXPECT_EQ(getOutput(), R"(I'm 2 years old!
 I'm 14 years old!

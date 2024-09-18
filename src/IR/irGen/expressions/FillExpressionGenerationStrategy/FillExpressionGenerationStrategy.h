@@ -59,11 +59,11 @@ private:
   llvm::Value *_elementToFill;
   uint64_t _sizeToFillInt;
   llvm::Value *_allocaInst;
-  BoundExpression *_objectExpression;
-  BoundExpression *_variableExpression;
+  BoundExpression *_objectExpression = nullptr;
+  BoundExpression *_variableExpression = nullptr;
   bool _isGlobal = false;
   llvm::Type *_elementToFillType;
-  BoundFillExpression *_fillExpression;
+  BoundFillExpression *_fillExpression = nullptr;
 };
 
 #endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

@@ -28,9 +28,9 @@ public:
   // Specialized for BoundBracketedExpression
 
 private:
-  llvm::GlobalVariable *_previousGlobalVariable;
+  llvm::GlobalVariable *_previousGlobalVariable = nullptr;
   std::string _containerName;
-  llvm::AllocaInst *_allocaInst;
+  llvm::AllocaInst *_allocaInst = nullptr;
 };
 
 #endif // __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__

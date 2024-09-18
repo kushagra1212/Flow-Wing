@@ -1,4 +1,5 @@
 #include "IRGenerator.h"
+#include <string>
 
 IRGenerator::IRGenerator(
     int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
@@ -139,7 +140,10 @@ const int32_t IRGenerator::hasErrors() const {
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
   llvm::FunctionType *FT =
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), false);
+      llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+                              {llvm::Type::getInt32Ty(*TheContext),
+                               llvm::Type::getInt8PtrTy(*TheContext)},
+                              false);
 
   llvm::Function *F = llvm::Function::Create(
       FT, llvm::Function::ExternalLinkage, blockName, *TheModule);
@@ -244,25 +248,36 @@ void IRGenerator::generateEvaluateGlobalStatement(
       }
     }
   }
+
+  char **OutMessage = nullptr;
+
 #if DEBUG
+
   this->printIR();
-  _codeGenerationContext->verifyModule(TheModule);
+  LLVMVerifyModule(wrap(TheModule),
+                   LLVMVerifierFailureAction::LLVMAbortProcessAction,
+                   OutMessage);
+
+  if (OutMessage) {
+    std::cout << "error: " << *OutMessage << std::endl;
+  }
+
 #endif
 
   if (!this->hasErrors()) {
 #ifdef DEBUG
-    llFileSaveStrategy->saveToFile(blockName + ".ll", TheModule);
+    const std::string Filename = (std::string(blockName + std::string(".ll")));
+    LLVMPrintModuleToFile(wrap(TheModule), Filename.c_str(), OutMessage);
+
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(*TheModule,
-                                  _codeGenerationContext->getTargetMachine());
+    objectFile->writeModuleToFile(TheModule);
 #elif defined(RELEASE) && (defined(JIT_MODE) || defined(JIT_TEST_MODE))
     bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
 #elif RELEASE
     std::unique_ptr<ObjectFile> objectFile =
         std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(*TheModule,
-                                  _codeGenerationContext->getTargetMachine());
+    objectFile->writeModuleToFile(TheModule);
 #endif
   }
 

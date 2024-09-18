@@ -45,17 +45,17 @@ public:
 private:
   // LHS
   std::string _containerName;
-  llvm::Value *_variable;
-  llvm::ArrayType *_arrayType;
-  llvm::Value *_size;
+  llvm::Value *_variable = nullptr;
+  llvm::ArrayType *_arrayType = nullptr;
+  llvm::Value *_size = nullptr;
 
   // RHS
-  llvm::Value *_rhsVariable;
-  llvm::ArrayType *_rhsArrayType;
-  llvm::Value *_rhsSize;
+  llvm::Value *_rhsVariable = nullptr;
+  llvm::ArrayType *_rhsArrayType = nullptr;
+  llvm::Value *_rhsSize = nullptr;
 
   std::vector<uint64_t> _lhsSizes, _rhsSizes;
-  llvm::Type *_rhsArrayElementType, *_lhsArrayElementType;
+  llvm::Type *_rhsArrayElementType = nullptr, *_lhsArrayElementType = nullptr;
 };
 
 #endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

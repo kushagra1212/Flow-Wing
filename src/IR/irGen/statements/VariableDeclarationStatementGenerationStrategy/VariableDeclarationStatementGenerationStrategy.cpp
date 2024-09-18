@@ -95,10 +95,13 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
 
-  auto [ptr, type] = _variableDeclaration->getLLVMVariable();
+  auto [ptr, type] = variableDeclaration->getLLVMVariable();
 
   // Handle Global Static Typed Variable
-  if (_codeGenerationContext->getMapper()->isPrimitiveType(_variableType)) {
+
+  CODEGEN_DEBUG_LOG(SyntaxKindUtils::to_string(_variableType), "Var Type",
+                    _variableName);
+  if (_codeGenerationContext->getMapper()->isPrimitiveType(type)) {
 
     _codeGenerationContext->getAllocaChain()->setPtr(_variableName,
                                                      {ptr, type});
@@ -157,8 +160,10 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
     ptrType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
         _variableType);
-    CODEGEN_DEBUG_LOG("_variableType " +
-                      SyntaxKindUtils::to_string(_variableType));
+    CODEGEN_DEBUG_LOG(
+        "_variableType " + SyntaxKindUtils::to_string(_variableType),
+        _variableName,
+        _codeGenerationContext->getMapper()->getLLVMTypeName(ptrType));
 
     ptr = _codeGenerationContext->createMemoryGetPtr(
         ptrType, _variableName, _variableDeclaration->getMemoryKind());
@@ -234,12 +239,12 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     return true;
   }
 
-  BoundExpression *initializerExp =
-      _variableDeclaration->getInitializerPtr().get();
-
-  if (!initializerExp) {
+  if (!_variableDeclaration->getInitializerPtr()) {
     return true;
   }
+
+  BoundExpression *initializerExp =
+      _variableDeclaration->getInitializerPtr().get();
 
   if (initializerExp->getKind() ==
           BinderKindUtils::BoundNodeKind::LiteralExpression &&

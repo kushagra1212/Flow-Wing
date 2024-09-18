@@ -17,6 +17,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile.JITCompilerTest
+          file: ./docker/Dockerfile.JITCompilerTest
           load: true
           tags: ${{ github.repository_owner }}:JITCompilerTest

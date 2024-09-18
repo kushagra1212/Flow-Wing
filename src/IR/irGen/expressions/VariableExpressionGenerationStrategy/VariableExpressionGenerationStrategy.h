@@ -61,8 +61,8 @@ public:
   }
 
 private:
-  BoundVariableExpression *_variableExpression;
-  BoundTypeExpression *_typeExpression;
+  BoundVariableExpression *_variableExpression = nullptr;
+  BoundTypeExpression *_typeExpression = nullptr;
   llvm::StructType *parObjTypeType = nullptr;
   std::string _variableName;
   bool _isGlobal = false;

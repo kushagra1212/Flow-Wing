@@ -24,10 +24,10 @@ private:
   // private members
   std::string _variableName;
 
-  BoundExpression *_initializer;
+  BoundExpression *_initializer = nullptr;
   BinderKindUtils::MemoryKind _memoryKind;
-  BoundObjectTypeExpression *_objectTypeExpr;
-  BoundVariableDeclaration *_variableDeclExpr;
+  BoundObjectTypeExpression *_objectTypeExpr = nullptr;
+  BoundVariableDeclaration *_variableDeclExpr = nullptr;
   bool _isGlobal = false;
 
   // private methods

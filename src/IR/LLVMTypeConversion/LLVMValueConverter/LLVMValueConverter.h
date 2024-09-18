@@ -23,7 +23,7 @@ public:
                                       SyntaxKindUtils::SyntaxKind kind,
                                       SyntaxKindUtils::SyntaxKind type);
 
-  llvm::Value *int32ToLLVMValue(int32_t value);
+  llvm::Value *int32ToLLVMValue(int value);
   llvm::Value *doubleToLLVMValue(double value);
   llvm::Value *boolToLLVMValue(bool value);
   llvm::Value *stringToLLVMValue(std::string value,

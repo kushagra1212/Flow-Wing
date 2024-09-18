@@ -5,14 +5,14 @@
 #include "../../cli/argh.h"
 #include "../../cli/commandLineOptions/commandLineOptions.h"
 #include "../../utils/Utils.h"
-#include "PathManager.h"
+#include <string>
 
 class CommandManager {
   argh::parser *_cmdl;
   std::string _outputFileNameWithoutExtension = "output";
   bool hasEntryPoint = false;
 
- public:
+public:
   CommandManager(argh::parser *cmdl,
                  const std::string &outputFileNameWithoutExtension)
       : _cmdl(cmdl),
@@ -21,7 +21,7 @@ class CommandManager {
   auto inline create() -> std::string {
     std::string cmd = "";
 
-    cmd += PathManager::getClangPath().string() + " ";
+    cmd += std::string(FLOWWING_CLANG_PATH) + " ";
 
     cmd += this->getOptimizationLevel();
 
@@ -39,6 +39,7 @@ class CommandManager {
     }
 
     if (!hasEntryPoint) {
+
       cmd += this->getDefaultEntryPoint();
     }
 
@@ -50,10 +51,14 @@ class CommandManager {
            _outputFileNameWithoutExtension;
 #endif
 
+#if defined(__linux__)
+    cmd += " -lstdc++ ";
+#endif
+
     return cmd;
   }
 
- private:
+private:
   auto inline getObjectFilesJoinedAsString() -> std::string {
     std::vector<std::string> objectFiles =
         Utils::getAllFilesInDirectoryWithExtension(
@@ -90,12 +95,21 @@ class CommandManager {
   }
 
   auto inline getDefaultEntryPoint() -> std::string {
-    return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT +
-           "  ";
+
+#if defined(__linux__)
+    return "";
+#endif
+
+    return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
   }
 
   auto inline getEntryPoint(const std::string &key, const std::string &value)
       -> std::string {
+
+#if defined(__linux__)
+    return "";
+#endif
+
     if (!hasEntryPoint &&
         FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
       hasEntryPoint = true;
@@ -111,12 +125,13 @@ class CommandManager {
   }
 
   auto inline getBuiltInModuleLinked() -> std::string {
+
 #if defined(AOT_TEST_MODE) || defined(AOT_MODE)
-    return " -L" + PathManager::getLibPath().string() + " " +
+    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " ";
 #else
-    return " -L" + PathManager::getLibPath().string() + " " +
+    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " " +
            getDynamicLibraryPath("flowwing_vector") + " " +

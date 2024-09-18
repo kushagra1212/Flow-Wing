@@ -1550,14 +1550,14 @@ fun getB(a:int) ->t {
   return {a:111}
 }
 
-fun main(b:int) -> t {
+fun main2(b:int) -> t {
     var u:t ={a:b}
     return getB(b)
 }
 
-var x:t = main(10)
+var x:t = main2(10)
 print(x)
-x =main(2)
+x =main2(2)
 print(x)
     )");
 
@@ -1575,15 +1575,15 @@ fun getB(a:int) ->t {
   return {a:111}
 }
 
-fun main(b:int) -> t {
+fun main2(b:int) -> t {
     var u:t ={a:b}
     return getB(b)
 }
 
 {
-  var x:t = main(10)
+  var x:t = main2(10)
 print(x)
-x =main(2)
+x =main2(2)
 print(x)
 }
     )");
@@ -1602,15 +1602,15 @@ fun getB(a:int) ->t {
   return {a:111}
 }
 
-fun main(b:int) -> t {
+fun main2(b:int) -> t {
     var u:t ={a:b}
     return getB(b)
 }
 
 
-  var x:t = main(10)
+  var x:t = main2(10)
 print(x){
-x =main(2)
+x =main2(2)
 print(x)
 }
     )");
@@ -1629,14 +1629,14 @@ fun getB(a:int) ->t {
   return {a:a}
 }
 
-fun main(b:int) -> t {
+fun main2(b:int) -> t {
     var u:t ={a:b}
     return getB(b)
 }
 
-var x:t = main(10)
+var x:t = main2(10)
 print(x)
-x =main(2)
+x =main2(2)
 print(x)
     )");
 
@@ -1661,14 +1661,14 @@ fun getB(a:int) ->t[5] {
   return [{a:a}]
 }
 
-fun main(b:int) -> t[5] {
+fun main2(b:int) -> t[5] {
     var u:t ={a:b}
     return getB(b)
 }
 
-var x:t[5] = main(10)
+var x:t[5] = main2(10)
 print(x)
-x =main(2)
+x =main2(2)
 print(x)
     )");
 
@@ -1702,14 +1702,14 @@ fun getB(a:int) -> A {
   return new A({a:a,b:[1 fill {d:2.2,s:"nice"}]})
 }
 
-fun main(b:int) -> A {
+fun main2(b:int) -> A {
     var u:t ={a:b}
     return getB(b)
 }
 
-var x:A = main(10)
+var x:A = main2(10)
 print(x.a)
-x =main(2)
+x =main2(2)
 print(x.a)
     )");
 

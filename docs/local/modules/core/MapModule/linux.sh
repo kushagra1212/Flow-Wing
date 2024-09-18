@@ -5,7 +5,7 @@ export SHARED_LIB_PATH="libflowwing_map.so"
 
 # Compile the C++ code into a shared library
 echo "Compiling C++ code into shared library..."
-clang-cpp-17  -fPIC  map.cpp -o $SHARED_LIB_PATH 
+clang-17  -fPIC -shared  -std=c++20   map.cpp -o $SHARED_LIB_PATH 
 
 # Check for errors in the C compilation step
 if [ $? -ne 0 ]; then

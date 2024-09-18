@@ -46,9 +46,9 @@ public:
 
 private:
   std::string _variableName;
-  llvm::Value *_rhsValue;
+  llvm::Value *_rhsValue = nullptr;
   SyntaxKindUtils::SyntaxKind _variableType;
-  BoundVariableDeclaration *_variableDeclaration;
+  BoundVariableDeclaration *_variableDeclaration = nullptr;
   bool _isGlobal = false;
 
   llvm::Value *declare();

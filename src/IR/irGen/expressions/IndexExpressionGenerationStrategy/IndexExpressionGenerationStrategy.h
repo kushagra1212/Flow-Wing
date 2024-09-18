@@ -48,10 +48,10 @@ private:
   std::vector<llvm::Value *> _indices;
   std::vector<llvm::ConstantInt *> _actualSizes;
   std::string _variableName;
-  llvm::Type *_arrayElementType;
-  llvm::Value *_variable;
-  llvm::ArrayType *_arrayType;
-  BoundIndexExpression *_indexExpression;
+  llvm::Type *_arrayElementType = nullptr;
+  llvm::Value *_variable = nullptr;
+  llvm::ArrayType *_arrayType = nullptr;
+  BoundIndexExpression *_indexExpression = nullptr;
 };
 
 #endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__

@@ -46,11 +46,11 @@ public:
 private:
   uint64_t _totalSize;
   std::vector<uint64_t> _actualSizes;
-  llvm::Type *_elementType;
+  llvm::Type *_elementType = nullptr;
   std::string _containerName;
   uint64_t _sizeToFill;
   bool _isGlobal;
-  llvm::Value *_allocaInst;
+  llvm::Value *_allocaInst = nullptr;
 };
 
 #endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

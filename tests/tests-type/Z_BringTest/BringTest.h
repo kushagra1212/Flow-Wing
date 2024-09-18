@@ -6,6 +6,7 @@
 
 class BringTest : public ::testing::Test, public FileHandler, public IOHandler {
 protected:
+  BringTest() { this->initialize(); }
   void SetUp() override;
   void TearDown() override;
 };

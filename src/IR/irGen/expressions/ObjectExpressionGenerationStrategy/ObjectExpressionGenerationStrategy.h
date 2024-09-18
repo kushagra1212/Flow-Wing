@@ -46,7 +46,7 @@ public:
   llvm::AllocaInst *findAllocaInstFromPtr(llvm::Value *ptr);
 
 private:
-  llvm::Value *_variable;
+  llvm::Value *_variable = nullptr;
   std::string _typeName;
   bool _variableIsGlobal = false;
 };

@@ -36,7 +36,6 @@
 #include "../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../utils/Utils.h"
-#include "IRGenerator.h"
 #include "IRParser/IRParser.h"
 #include "irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "utils/fileSaver/bc-file/BCFileSaveStrategy.h"

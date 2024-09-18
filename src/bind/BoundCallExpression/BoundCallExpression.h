@@ -59,7 +59,7 @@ public:
     return _argumentPtrList;
   }
 
-  inline auto getReturnTypeList() -> const std::vector<llvm::Type *> & {
+  inline auto getReturnTypeList() const -> const std::vector<llvm::Type *> & {
     return _returnTypeList;
   }
 

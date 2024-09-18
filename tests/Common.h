@@ -4,7 +4,6 @@
 #include "AOTCompilerTest/AOTCompilerTest.h"
 #include "JITCompilerTest/JITCompilerTest.h"
 #include "ReplTest/ReplTest.h"
-
 namespace Tests {
 namespace FlowWing {
 

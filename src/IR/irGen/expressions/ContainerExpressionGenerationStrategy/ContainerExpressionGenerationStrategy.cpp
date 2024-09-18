@@ -305,7 +305,6 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpression(
     } else {
       _defaultVal = llvm::Constant::getNullValue(_elementType);
     }
-
     fillExpressionGenerationStrategy->createExpressionLoop(
         arrayType, v, _defaultVal, _totalSize);
   }

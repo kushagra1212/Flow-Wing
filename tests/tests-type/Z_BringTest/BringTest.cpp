@@ -1,9 +1,6 @@
 #include "BringTest.h"
 
-void BringTest::SetUp() {
-  _test->SetUp();
-  this->initialize();
-}
+void BringTest::SetUp() { _test->SetUp(); }
 
 void BringTest::TearDown() { _test->TearDown(); }
 
@@ -74,6 +71,7 @@ print("print p ",p )
 
   std::system(createBuildAndRunCmd("task.fg").c_str());
 
+#if AOT_TEST_MODE
   EXPECT_EQ(getOutput(), "\n2{ a : 0, b : [{ s : '' }, { s : '' }] }[{ a : 0, "
                          "b : [{ s : '' }, { s "
                          ": '' }] }, { a : 0, b : [{ s : '' }, { s : '' }] "
@@ -82,6 +80,18 @@ print("print p ",p )
                          "b : [{ s : '' }, { s "
                          ": '' }] }Print local x88print p { a : 2, b : [{ s : "
                          "'' }, { s : '' }] }");
+#else
+
+  EXPECT_EQ(getOutput(), "2{ a : 0, b : [{ s : '' }, { s : '' }] }[{ a : 0, "
+                         "b : [{ s : '' }, { s "
+                         ": '' }] }, { a : 0, b : [{ s : '' }, { s : '' }] "
+                         "}]Printing af { a : 0, b "
+                         ": [{ s : 'Hello' }, { s : '' }] }Printing k { a : 0, "
+                         "b : [{ s : '' }, { s "
+                         ": '' }] }Print local x88print p { a : 2, b : [{ s : "
+                         "'' }, { s : '' }] }\n");
+
+#endif
 }
 
 TEST_F(BringTest, BringTestBasicTestAllChoosy) {
@@ -154,7 +164,7 @@ g.printY()
   )");
 
   std::system(createBuildAndRunCmd("task.fg").c_str());
-
+#if AOT_TEST_MODE
   EXPECT_EQ(getOutput(), "\n2{ a : 0, b : [{ s : '' }, { s : '' }] }[{ a : 0, "
                          "b : [{ s : '' }, { s "
                          ": '' }] }, { a : 0, b : [{ s : '' }, { s : '' }] "
@@ -164,4 +174,16 @@ g.printY()
                          ": '' }] }Print local x88print p { a : 2, b : [{ s : "
                          "'' }, { s : '' }] }{ "
                          "a : 0, b : [{ s : '' }, { s : '' }] }");
+#else
+  EXPECT_EQ(getOutput(), "2{ a : 0, b : [{ s : '' }, { s : '' }] }[{ a : 0, "
+                         "b : [{ s : '' }, { s "
+                         ": '' }] }, { a : 0, b : [{ s : '' }, { s : '' }] "
+                         "}]Printing af { a : 0, b "
+                         ": [{ s : 'Hello' }, { s : '' }] }Printing k { a : 0, "
+                         "b : [{ s : '' }, { s "
+                         ": '' }] }Print local x88print p { a : 2, b : [{ s : "
+                         "'' }, { s : '' }] }{ "
+                         "a : 0, b : [{ s : '' }, { s : '' }] }\n");
+
+#endif
 }

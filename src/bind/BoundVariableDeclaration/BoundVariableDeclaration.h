@@ -75,7 +75,7 @@ public:
 
   inline auto
   setLLVMVariable(std::pair<llvm::Value *, llvm::Type *> llvmVariable) {
-    _llvmVariable = std::move(llvmVariable);
+    _llvmVariable = (llvmVariable);
   }
 
   inline auto
