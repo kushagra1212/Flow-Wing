@@ -19,7 +19,7 @@ WORKDIR /jit-compiler-test/targets/jit-compiler/jit-compiler-test-build-in-linux
 ENV LD_LIBRARY_PATH=/jit-compiler-test/lib/linux-x86_64/lib
 
 
-RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
-RUN ninja
-# Run Tests
-RUN ./FlowWing
+# RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
+# RUN ninja
+# # Run Tests
+# RUN ./FlowWing

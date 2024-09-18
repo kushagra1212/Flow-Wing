@@ -66,3 +66,17 @@
 // #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
 // #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
 // #define FLOWWING_CLANG_PATH "/usr/bin/clang-17"
+
+#if defined(DEBUG) && defined(__linux__)
+#define LIB_BUILT_IN_MODULE_PATH                                               \
+  "../../../lib/linux-x86_64/libbuilt_in_module.bc"
+#elif defined(DEBUG) && defined(__APPLE__)
+#define LIB_BUILT_IN_MODULE_PATH                                               \
+  "../../../lib/mac-silicon/libbuilt_in_module.bc"
+#elif defined(RELEASE) && defined(__linux__)
+#define LIB_BUILT_IN_MODULE_PATH                                               \
+  "../../../lib/linux-x86_64/libbuilt_in_module.bc"
+#elif defined(RELEASE) && defined(__APPLE__)
+#define LIB_BUILT_IN_MODULE_PATH                                               \
+  "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"
+#endif

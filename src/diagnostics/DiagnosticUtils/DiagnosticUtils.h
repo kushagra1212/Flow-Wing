@@ -19,7 +19,7 @@ std::string toString(DiagnosticLevel level);
 
 std::string toString(DiagnosticType type);
 
-class SourceLocation {
+struct SourceLocation {
 public:
   int lineNumber;
   int columnNumber;
