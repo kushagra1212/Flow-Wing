@@ -19,9 +19,9 @@
 #include "../irGen/Types/Type.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
+#include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
-#include "utils/ValueStack/ValueStackHandler.h"
 //! TODO: Refactor Import
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
@@ -89,8 +89,8 @@
 class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
- public:
-  CodeGenerationContext(FLowWing::DiagnosticHandler *diagnosticHandler,
+public:
+  CodeGenerationContext(FlowWing::DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
   std::unique_ptr<llvm::IRBuilder<>> &getBuilder();
@@ -120,7 +120,7 @@ class CodeGenerationContext {
     return _valueStackHandler;
   }
 
-  FLowWing::DiagnosticHandler *getDiagnosticHandler() const;
+  FlowWing::DiagnosticHandler *getDiagnosticHandler() const;
 
   void addBoundedUserFunction(std::string name,
                               BoundFunctionDeclaration *functionDeclaration);
@@ -178,9 +178,9 @@ class CodeGenerationContext {
                                   llvm::Constant *initialValue = nullptr);
 
   void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
-  inline auto createArraySizesAndArrayElementType(
-      std::vector<uint64_t> &actualSizes, llvm::Type *&arrayElementType)
-      -> void {
+  inline auto
+  createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
+                                      llvm::Type *&arrayElementType) -> void {
     while (llvm::ArrayType *arrayType =
                llvm::dyn_cast<llvm::ArrayType>(arrayElementType)) {
       actualSizes.push_back(arrayType->getNumElements());
@@ -256,7 +256,7 @@ class CodeGenerationContext {
   std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
       _functionTypes;
 
- private:
+private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -270,7 +270,7 @@ class CodeGenerationContext {
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 
   std::stack<int8_t> _returnAllocaStack;
@@ -285,4 +285,4 @@ class CodeGenerationContext {
   std::string _currentClassName = "";
 };
 
-#endif  // CODEGENERATIONCONTEXT_H
+#endif // CODEGENERATIONCONTEXT_H

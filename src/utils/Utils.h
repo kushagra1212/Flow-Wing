@@ -158,6 +158,23 @@ struct Variable {
   }
 };
 
+inline auto hasFileExtenstion(const std::string &filePath,
+                              const std::string &ext) -> int8_t {
+  if (filePath.length() <= 3) {
+    throw std::runtime_error(filePath + " is not a valid file path");
+    return EXIT_FAILURE;
+  }
+
+  unsigned long lastPositionWithDot = filePath.find_last_of(".") + 1;
+
+  if (filePath.substr(lastPositionWithDot,
+                      filePath.length() - lastPositionWithDot) == ext) {
+    return EXIT_SUCCESS;
+  }
+
+  return EXIT_FAILURE;
+}
+
 class Node {
   static std::unordered_map<std::string, int> fileMap;
   static std::unordered_map<std::string, int> visitedMap;

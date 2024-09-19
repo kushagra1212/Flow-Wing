@@ -8,7 +8,7 @@ BoundScopeGlobal::BoundScopeGlobal(
     std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
     std::unordered_map<std::string, BoundClassStatement *> classes,
     std::unordered_map<std::string, BoundModuleStatement *> modules,
-    FLowWing::DiagnosticHandler *diagnosticHandler,
+    FlowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
     : variables(variables), functions(functions), customTypes(customTypes),
       classes(classes), modules(modules), variablesValues(variablesValues),

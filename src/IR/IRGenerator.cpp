@@ -2,7 +2,7 @@
 #include <string>
 
 IRGenerator::IRGenerator(
-    int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
+    int environment, FlowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
     std::string outputFilePath, const std::string sourceFileName) {
@@ -284,7 +284,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #ifdef JIT_MODE
   if (this->hasErrors()) {
     llvm::SMDiagnostic Err;
-    Err.print("FLowWing", llvm::errs());
+    Err.print("FlowWing", llvm::errs());
   }
 #endif
 }

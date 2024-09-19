@@ -1835,7 +1835,7 @@ Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 }
 
 Binder::Binder(std::unique_ptr<BoundScope> parent,
-               FLowWing::DiagnosticHandler *diagnosticHandler) {
+               FlowWing::DiagnosticHandler *diagnosticHandler) {
   BuiltInFunction::setupBuiltInFunctions();
 
   this->root = std::make_unique<BoundScope>(std::move(parent));
@@ -1889,7 +1889,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 std::unique_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         CompilationUnitSyntax *syntax,
-                        FLowWing::DiagnosticHandler *diagnosticHandler) {
+                        FlowWing::DiagnosticHandler *diagnosticHandler) {
   std::unique_ptr<Binder> binder =
       std::make_unique<Binder>(nullptr, diagnosticHandler);
   std::unordered_map<std::string, std::any> prevVariablesValues;

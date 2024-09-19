@@ -57,7 +57,7 @@ public:
   std::unique_ptr<Lexer> lexer;
 
   Parser(const std::vector<std::string> &sourceCode,
-         FLowWing::DiagnosticHandler *diagnosticHandler,
+         FlowWing::DiagnosticHandler *diagnosticHandler,
          std::unordered_map<std::string, int8_t> bringStatementPathsMap =
              std::unordered_map<std::string, int8_t>());
   ~Parser();
@@ -76,7 +76,7 @@ public:
   }
 
 private:
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit;
   int position = 0;
   std::string _currentModuleName = "";

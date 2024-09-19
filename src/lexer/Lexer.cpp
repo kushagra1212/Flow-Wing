@@ -1,7 +1,7 @@
 #include "Lexer.h"
 
 Lexer::Lexer(const std::vector<std::string> &sourceCode,
-             FLowWing::DiagnosticHandler *diagnosticHandler) {
+             FlowWing::DiagnosticHandler *diagnosticHandler) {
   textSize = sourceCode.size();
 
   this->_sourceCode = sourceCode;

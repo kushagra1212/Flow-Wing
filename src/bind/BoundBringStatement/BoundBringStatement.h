@@ -8,7 +8,7 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _globalScope;
   std::unordered_map<std::string,
                      std::unique_ptr<BoundLiteralExpression<std::any>>>
@@ -21,12 +21,12 @@ class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
 
 public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
-                      FLowWing::DiagnosticHandler *diagnosticHandler);
+                      FlowWing::DiagnosticHandler *diagnosticHandler);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
-  FLowWing::DiagnosticHandler *getDiagnosticHandlerPtr() const;
+  FlowWing::DiagnosticHandler *getDiagnosticHandlerPtr() const;
   const std::unique_ptr<BoundScopeGlobal> &getGlobalScopePtr() const;
 
   auto inline setGlobalScope(std::unique_ptr<BoundScopeGlobal> globalScope)

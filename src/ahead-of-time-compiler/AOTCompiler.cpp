@@ -8,11 +8,14 @@ AOTCompiler::AOTCompiler(std::string filePath, argh::parser *cmdl,
 
 void AOTCompiler::link() {
 
-  std::string fileNameWithOutExtension = this->getFileNameWithoutExtension();
+  std::string fileNameWithOutExtension =
+      FlowWing::AOT::getFileNameWithoutExtension(
+          _currentDiagnosticHandler.get());
+
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  DEBUG_LOG_LL_FILES_INFO();
+  FlowWing::AOT::RUN_ON_DEBUG_GENERATE_BC_FROM_LL();
 
   std::unique_ptr<CommandManager> _commandManager =
       std::make_unique<CommandManager>(_cmdl, fileNameWithOutExtension);
@@ -21,20 +24,22 @@ void AOTCompiler::link() {
 
     std::string cmd = _commandManager->create();
 
-    DEBUG_LOG_LINKING_INFO(cmd);
+    LINKING_DEBUG_LOG(cmd);
 
     int status = std::system(cmd.c_str());
 
     if (status != 0) {
-      LINKING_FAIL_ERROR(status, fileNameWithOutExtension, VERSION_INFO);
+      FlowWing::AOT::LINKING_FAIL_ERROR(status, fileNameWithOutExtension,
+                                        VERSION_INFO);
       return;
     }
 
-    deleteObjectFiles();
+    FlowWing::AOT::deleteObjectFiles();
+
   } catch (const std::exception &e) {
     std::cerr << "Exception occurred: " << e.what() << std::endl;
 
-    deleteObjectFiles();
+    FlowWing::AOT::deleteObjectFiles();
   }
 }
 
@@ -61,9 +66,7 @@ int main(int argc, char **argv) {
   return RUN_ALL_TESTS();
 }
 
-#endif
-
-#ifdef AOT_MODE
+#elif AOT_MODE
 
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);

@@ -100,7 +100,7 @@ using namespace FLOWWING::IR::CONSTANTS;
 
 class IRGenerator {
 public:
-  IRGenerator(int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
+  IRGenerator(int environment, FlowWing::DiagnosticHandler *diagnosticHandler,
               std::unordered_map<std::string, BoundFunctionDeclaration *>
                   boundedUserFunctions,
               std::string outputFilePath,

@@ -11,7 +11,8 @@ void JITCompiler::execute() {
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
 
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(getLinkedModule(TheContext));
+      std::move(FlowWing::Compiler::getLinkedModule(
+          TheContext, _currentDiagnosticHandler.get()));
 
   //  Get the main function
 

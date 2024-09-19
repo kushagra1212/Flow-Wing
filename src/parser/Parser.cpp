@@ -2,7 +2,7 @@
 #include <string>
 
 Parser::Parser(const std::vector<std::string> &sourceCode,
-               FLowWing::DiagnosticHandler *diagnosticHandler,
+               FlowWing::DiagnosticHandler *diagnosticHandler,
                std::unordered_map<std::string, int8_t> bringStatementPathsMap) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
@@ -1016,8 +1016,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
           .string() +
       "/" + relativeFilePath;
 
-  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
-      std::make_unique<FLowWing::DiagnosticHandler>(absoluteFilePath);
+  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler =
+      std::make_unique<FlowWing::DiagnosticHandler>(absoluteFilePath);
 
   if (_bringStatementsPathsMap[absoluteFilePath] == 1) {
     this->_diagnosticHandler->addDiagnostic(

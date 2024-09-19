@@ -7,7 +7,7 @@
 
 class BringStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
-  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler;
+  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler;
   std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
   std::unique_ptr<SyntaxToken<std::any>> _pathToken;
   std::string absoluteFilePath;
@@ -25,7 +25,7 @@ public:
   void addPathToken(std::unique_ptr<SyntaxToken<std::any>> pathToken);
   void setAbsoluteFilePath(const std::string &absoluteFilePath);
   void setDiagnosticHandler(
-      std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler);
+      std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler);
   void setRelativeFilePath(const std::string &relativeFilePath);
   void
   setCompilationUnit(std::unique_ptr<CompilationUnitSyntax> compilationUnit);
@@ -42,7 +42,7 @@ public:
 
   const bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
-  std::unique_ptr<FLowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
+  std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
   const std::string &getRelativeFilePathPtr();
   const std::unique_ptr<SyntaxToken<std::any>> &getBringKeywordPtr();
 

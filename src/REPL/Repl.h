@@ -37,7 +37,7 @@ private: // Data members
   bool showSyntaxTree, showBoundTree, exit;
   std::vector<std::string> text = std::vector<std::string>();
 
-  std::unique_ptr<FLowWing::DiagnosticHandler> _diagnosticHandler;
+  std::unique_ptr<FlowWing::DiagnosticHandler> _diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _previousGlobalScope;
   std::vector<std::string> previousText;
 

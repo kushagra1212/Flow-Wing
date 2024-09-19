@@ -1,6 +1,6 @@
 #include "DiagnosticHandler.h"
 
-using namespace FLowWing;
+using namespace FlowWing;
 
 DiagnosticHandler::DiagnosticHandler(std::string filePath,
                                      DiagnosticHandler *parent)
