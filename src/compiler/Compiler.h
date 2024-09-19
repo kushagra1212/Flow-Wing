@@ -1,9 +1,8 @@
 #ifndef __FLOW__WING__COMPILER__H__
 #define __FLOW__WING__COMPILER__H__
 
-#include <gtest/gtest.h>
-
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 
 #include "../IR/IRGenerator.h"
@@ -11,6 +10,7 @@
 #include "../cli/commandLineOptions/commandLineOptions.h"
 #include "../parser/Parser.h"
 #include "../utils/Utils.h"
+
 class Compiler {
 public:
   Compiler(std::string filePath = "");
