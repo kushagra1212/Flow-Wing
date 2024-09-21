@@ -67,6 +67,15 @@ auto deleteObjectFiles() -> void {
   }
 }
 
+auto deleteBcFiles() -> void {
+  std::vector<std::string> objectFiles =
+      Utils::getAllFilesInDirectoryWithExtension(
+          FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR, ".bc", false);
+  for (const auto &objectFile : objectFiles) {
+    std::filesystem::remove(objectFile);
+  }
+}
+
 } // namespace AOT
 
 } // namespace FlowWing

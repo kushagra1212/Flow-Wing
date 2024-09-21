@@ -66,6 +66,9 @@ IRGenerator::IRGenerator(
 
   //.o file save strategy
   oFileSaveStrategy = std::make_unique<OFileSaveStrategy>(_llvmLogger);
+
+  //.o
+  objectFile = std::make_unique<ObjectFile>();
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -265,19 +268,20 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #endif
 
   if (!this->hasErrors()) {
-#ifdef DEBUG
-    const std::string Filename = (std::string(blockName + std::string(".ll")));
+#if defined(DEBUG) && defined(JIT_MODE)
+    const std::string Filename =
+        (std::string(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR + blockName +
+                     std::string(".ll")));
+    llvm::sys::fs::create_directories(
+        FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
     LLVMPrintModuleToFile(wrap(TheModule), Filename.c_str(), OutMessage);
-
-    std::unique_ptr<ObjectFile> objectFile =
-        std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
+    objectFile->writeModuleToFile(TheModule, blockName);
+#elif defined(AOT_MODE) || defined(AOT_TEST_MODE)
+    objectFile->writeModuleToFile(TheModule, blockName);
 #elif defined(RELEASE) && (defined(JIT_MODE) || defined(JIT_TEST_MODE))
-    bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
-#elif RELEASE
-    std::unique_ptr<ObjectFile> objectFile =
-        std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
+    bcFileSaveStrategy->saveToFile(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
+                                       blockName + ".bc",
+                                   TheModule);
 #endif
   }
 

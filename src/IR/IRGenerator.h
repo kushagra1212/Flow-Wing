@@ -160,7 +160,7 @@ private:
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::unique_ptr<BCFileSaveStrategy> bcFileSaveStrategy;
   std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
-
+  std::unique_ptr<ObjectFile> objectFile;
   // IRCodeGenerator Instance
 
   std::unique_ptr<IRCodeGenerator> _irCodeGenerator;

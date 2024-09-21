@@ -20,10 +20,6 @@ public:
 
   void runTests(std::istream &inputStream, std::ostream &outputStream);
 
-  inline auto setOutputFilePath(const std::string &outputFilePath) {
-    _outputFilePath = outputFilePath;
-  }
-
   virtual void execute() = 0;
 
   std::string _filePath;
@@ -34,22 +30,6 @@ public:
   std::unique_ptr<FlowWing::DiagnosticHandler> _currentDiagnosticHandler;
   llvm::ExecutionEngine *executionEngine;
   std::filesystem::path _executable_path = std::filesystem::current_path();
-
-  //! Version
-  FlowWingCliOptions::Option<bool> Version;
-  FlowWingCliOptions::Option<bool> ShortVersion;
-
-  //! File
-  FlowWingCliOptions::Option<std::string> File;
-  FlowWingCliOptions::Option<std::string> ShortFile;
-
-  //! Format
-  FlowWingCliOptions::Option<bool> Format;
-  FlowWingCliOptions::Option<bool> ShortFormat;
-
-  //! Format Print
-  FlowWingCliOptions::Option<bool> FormatPrint;
-  FlowWingCliOptions::Option<bool> ShortFormatPrint;
 };
 
 #endif // __FLOW__WING__COMPILER__H__

@@ -6,23 +6,13 @@ Compiler::Compiler(std::string filePath)
       _currentDiagnosticHandler(
           std::make_unique<FlowWing::DiagnosticHandler>(filePath)),
       executionEngine(nullptr) {
-  // Define command-line options
 
-  //! Version
-  Version = FlowWingCliOptions::OPTIONS::Version;
-  ShortVersion = FlowWingCliOptions::OPTIONS::ShortVersion;
-
-  //! File
-  File = FlowWingCliOptions::OPTIONS::File;
-  ShortFile = FlowWingCliOptions::OPTIONS::ShortFile;
-
-  //! Format
-  Format = FlowWingCliOptions::OPTIONS::Format;
-  ShortFormat = FlowWingCliOptions::OPTIONS::ShortFormat;
-
-  //! Format Print
-  FormatPrint = FlowWingCliOptions::OPTIONS::FormatPrint;
-  ShortFormatPrint = FlowWingCliOptions::OPTIONS::ShortFormatPrint;
+  if (FlowWing::Cli::isParam::outputFile() ||
+      FlowWing::Cli::isParam::shortOutputFile()) {
+    _outputFilePath = (FlowWing::Cli::isParam::outputFile()
+                           ? FlowWing::Cli::Get::outputFile()
+                           : FlowWing::Cli::Get::shortOutputFile());
+  }
 }
 
 void Compiler::compile(std::vector<std::string> &text,
@@ -31,7 +21,6 @@ void Compiler::compile(std::vector<std::string> &text,
       std::make_unique<FlowWing::DiagnosticHandler>(
           Utils::getAbsoluteFilePath(this->_filePath));
 
-  currentDiagnosticHandler->setOutputFilePath(_outputFilePath);
   FlowWing::Compiler::logNoErrorJSONIfAsked(_outputFilePath);
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -43,8 +32,8 @@ void Compiler::compile(std::vector<std::string> &text,
                                    ".tokens.json");
   }
 
-  parser->setIsFormattedCodeRequired(this->Format.getValue() ||
-                                     this->ShortFormat.getValue());
+  parser->setIsFormattedCodeRequired(FlowWing::Cli::isFlag::format() ||
+                                     FlowWing::Cli::isFlag::shortFormat());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -118,7 +107,8 @@ void Compiler::compile(std::vector<std::string> &text,
     // JSON jsonObject = Utils::outJSON(globalScope->globalStatement.get(),
     // false); Utils::logJSON(jsonObject, _outputFilePath);
 
-  } else if (this->Format.getValue() || this->ShortFormat.getValue()) {
+  } else if (FlowWing::Cli::isFlag::format() ||
+             FlowWing::Cli::isFlag::shortFormat()) {
     //? format and Save to file
     std::ofstream file(currentDiagnosticHandler->getAbsoluteFilePath(),
                        std::ios::out);
@@ -140,8 +130,8 @@ void Compiler::compile(std::vector<std::string> &text,
     // Replace the content of the file with text
     file << parser->getFormattedSourceCode();
     return;
-  } else if (this->FormatPrint.getValue() ||
-             this->ShortFormatPrint.getValue()) {
+  } else if (FlowWing::Cli::isFlag::formatPrint() ||
+             FlowWing::Cli::isFlag::ShortFormatPrint()) {
     std::cout << parser->getFormattedSourceCode() << std::endl;
     return;
   }

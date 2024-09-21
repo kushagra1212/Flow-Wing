@@ -19,7 +19,8 @@ getMemoryBuffer(const std::string &filePath,
                 FlowWing::DiagnosticHandler *diagHandler);
 
 std::vector<std::string>
-getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler);
+getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
+               const std::string &directoryPath);
 
 std::unique_ptr<llvm::Module>
 createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,

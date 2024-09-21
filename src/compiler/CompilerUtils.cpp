@@ -24,27 +24,29 @@ getMemoryBuffer(const std::string &filePath,
 }
 
 std::vector<std::string>
-getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler) {
-  std::vector<std::string> _userDefinedIRFilePaths = {};
+getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
+               const std::string &directoryPath) {
+  std::vector<std::string> irFilesPath = {};
 
 #ifdef DEBUG
-  _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".ll", false);
+  irFilesPath =
+      Utils::getAllFilesInDirectoryWithExtension(directoryPath, ".ll", false);
 #else
-  _userDefinedIRFilePaths =
-      Utils::getAllFilesInDirectoryWithExtension(".", ".bc", false);
+  irFilesPath =
+      Utils::getAllFilesInDirectoryWithExtension(directoryPath, ".bc", false);
 #endif
 
-  if (_userDefinedIRFilePaths.size() == 0) {
+  if (irFilesPath.size() == 0) {
     diagHandler->printDiagnostic(
-        std::cerr, Diagnostic("No user defined IR files found.",
-                              DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
+        std::cerr,
+        Diagnostic("No user defined IR files found. in " + directoryPath,
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Linker,
+                   DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return {};
   }
 
-  return _userDefinedIRFilePaths;
+  return irFilesPath;
 }
 
 std::unique_ptr<llvm::Module>
@@ -105,10 +107,15 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
       std::move(FlowWing::Compiler::createLLVMModuleFromCodeorIR(TheContext,
                                                                  diagHandler));
 
-  std::vector<std::string> _userDefinedIRFilePaths =
-      FlowWing::Compiler::getIRFilePaths(diagHandler);
+  std::vector<std::string> filesPath = FlowWing::Compiler::getIRFilePaths(
+      diagHandler, FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
 
-  for (const std::string &path : _userDefinedIRFilePaths) {
+//! Need to Include the built in .bc files for both DEBUG and Release
+#if defined(RELEASE) && defined(JIT_MODE)
+
+#endif
+
+  for (const std::string &path : filesPath) {
     llvm::SMDiagnostic err;
 
     CODEGEN_DEBUG_LOG(" [INFO]: Linking " + path);

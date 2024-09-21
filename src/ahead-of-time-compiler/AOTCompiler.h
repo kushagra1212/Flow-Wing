@@ -18,10 +18,9 @@
 #include "ObjectFile/ObjectFile.h"
 
 class AOTCompiler : public Compiler {
-  argh::parser *_cmdl;
 
 public:
-  AOTCompiler(std::string filePath = "", argh::parser *cmdl = nullptr,
+  AOTCompiler(std::string filePath = "",
               const bool &isFormattedCodeRequired = false);
 
   void link();

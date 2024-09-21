@@ -1,7 +1,10 @@
 #include "commandLineOptions.h"
+#include <cstdint>
 
-namespace FlowWingCliOptions {
+namespace FlowWing {
+namespace Cli {
 
+argh::parser *cmdl = nullptr;
 // Version Options
 Option<bool> OPTIONS::Version{
     "--version", "When this flag is set, the version will be printed"};
@@ -57,4 +60,167 @@ Option<std::string> OPTIONS::Framework{"-framework",
 Option<std::string> OPTIONS::EntryPoint{"-e",
                                         "Specify the entry point function"};
 
-} // namespace FlowWingCliOptions
+namespace isFlag {
+int8_t versionName() {
+  return ((*cmdl)[{FlowWing::Cli::OPTIONS::Version.name.c_str(),
+                   FlowWing::Cli::OPTIONS::ShortVersion.name.c_str()}]);
+}
+
+int8_t OptimizationLevel0() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::OptimizationLevel0.name.c_str(),
+  }]);
+}
+int8_t OptimizationLevel1() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::OptimizationLevel1.name.c_str(),
+  }]);
+}
+int8_t OptimizationLevel2() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::OptimizationLevel2.name.c_str(),
+  }]);
+}
+int8_t OptimizationLevel3() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::OptimizationLevel3.name.c_str(),
+  }]);
+}
+
+int8_t format() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::Format.name.c_str(),
+  }]);
+}
+int8_t shortFormat() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::ShortFormat.name.c_str(),
+  }]);
+}
+
+int8_t formatPrint() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::FormatPrint.name.c_str(),
+  }]);
+}
+int8_t ShortFormatPrint() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::ShortFormatPrint.name.c_str(),
+  }]);
+}
+
+} // namespace isFlag
+
+namespace isParam {
+int8_t file() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::File.name.c_str()).str().empty();
+}
+
+int8_t shortFile() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::ShortFile.name.c_str()).str().empty();
+}
+
+int8_t code() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::Code.name.c_str()).str().empty();
+}
+
+int8_t shortCode() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::ShortCode.name.c_str()).str().empty();
+}
+
+int8_t outputFile() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::OutputFile.name.c_str())
+              .str()
+              .empty();
+}
+
+int8_t shortOutputFile() {
+  return !(*cmdl)(FlowWing::Cli::OPTIONS::ShortOutputFile.name.c_str())
+              .str()
+              .empty();
+}
+} // namespace isParam
+
+namespace Get {
+std::string file() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::File.name.c_str()).str();
+}
+
+std::string shortFile() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::ShortFile.name.c_str()).str();
+}
+
+std::string code() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::Code.name.c_str()).str();
+}
+
+std::string shortCode() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::ShortCode.name.c_str()).str();
+}
+
+std::string outputFile() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::OutputFile.name.c_str()).str();
+}
+
+std::string shortOutputFile() {
+  return (*cmdl)(FlowWing::Cli::OPTIONS::ShortOutputFile.name.c_str()).str();
+}
+} // namespace Get
+
+enum FlowWing::Cli::STATUS handleBasicArgs() {
+  if (FlowWing::Cli::isFlag::versionName()) {
+    std::cout << "Flowwing Compiler" << std::endl;
+    std::cout << "Version: " << VERSION_INFO << std::endl;
+    return FlowWing::Cli::STATUS::DONE;
+  }
+
+  if (!FlowWing::Cli::isParam::file() && !FlowWing::Cli::isParam::shortFile()) {
+    Utils::printErrors({"Usage: FlowWing  <file_path> "}, std::cerr, true);
+    return FlowWing::Cli::STATUS::FAILURE;
+  }
+
+  return FlowWing::Cli::STATUS::PROCEED;
+}
+
+enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
+                                          std::string &filePath, char *argv[]) {
+  filePath = FlowWing::Cli::isParam::file() ? FlowWing::Cli::Get::file()
+                                            : FlowWing::Cli::Get::shortFile();
+  // Opens the file using the provided file path
+
+  std::ifstream file;
+
+  file.open(filePath);
+
+  if (!file.is_open()) {
+    Utils::printErrors({"Unable to open file: " + std::string(filePath),
+                        "Usage: " + std::string(argv[0]) + " <file_path> "},
+                       std::cerr);
+
+    if (access(filePath.c_str(), R_OK) != 0) {
+      Utils::printErrors(
+          {"Please check if the file exists and you have read permissions."},
+          std::cerr);
+    }
+
+    return FlowWing::Cli::STATUS::FAILURE;
+  }
+  //! Close the file
+  file.close();
+
+  Utils::Node::addPath(Utils::getAbsoluteFilePath(filePath));
+
+  if (FlowWing::Cli::isParam::code()) {
+    text = Utils::readLinesFromText(FlowWing::Cli::Get::code());
+  } else if (FlowWing::Cli::isParam::shortCode()) {
+    text = Utils::readLinesFromText(FlowWing::Cli::Get::shortCode());
+  } else {
+    text = Utils::readLines(Utils::getAbsoluteFilePath(filePath));
+  }
+
+  return FlowWing::Cli::STATUS::PROCEED;
+}
+
+} // namespace Cli
+
+} // namespace FlowWing
