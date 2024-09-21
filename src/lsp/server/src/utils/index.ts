@@ -822,5 +822,5 @@ export const getUnique = (
 };
 
 export const getModulePath = () => {
-  return "/opt/homebrew/lib/FlowWing/lib/modules";
+  return "/opt/homebrew/lib/FlowWing/modules";
 };

@@ -32,12 +32,12 @@ fun printS(x: str) -> nthg {
   print("\n from printS",x)
 }
 
-fun main(f:[(int,deci,str,bool,[(str)->nthg])-> nthg]) -> nthg {
+fun main2(f:[(int,deci,str,bool,[(str)->nthg])-> nthg]) -> nthg {
 f(2,2.2,"Sss",false,printS)
 }
 
 
-  main(printX)
+  main2(printX)
     )");
 
   EXPECT_EQ(getOutput(), R"(Printing X22.20000000000000Sssfalse
@@ -61,13 +61,13 @@ fun getDeci(y:int,j:str) -> deci  {
     return 3.5
   }
 
-fun main(f:[(int,deci,str,bool,[(str)->nthg])-> nthg] , c: [(int,str)->deci]) -> int {
+fun main2(f:[(int,deci,str,bool,[(str)->nthg])-> nthg] , c: [(int,str)->deci]) -> int {
 f(2,2.2,"Sss",false,printS)c(23,"getDeci")
 return 2
 }
 
 
-  main(printX,getDeci)
+  main2(printX,getDeci)
     )");
 
   EXPECT_EQ(getOutput(), R"(Printing X22.20000000000000Sssfalse
@@ -93,12 +93,12 @@ fun getDeci(y:int,j:str) -> deci  {
     return 3.5
   }
 
-fun main(f:[(int,deci,str,bool,[(str)->nthg],deci)-> nthg] , c: [(int,str)->deci]) -> int {
+fun main2(f:[(int,deci,str,bool,[(str)->nthg],deci)-> nthg] , c: [(int,str)->deci]) -> int {
 f(2,2.2,"Sss",false,printS,c(23,"getDeci"))return 2
 }
 
 
-  main(printX,getDeci)
+  main2(printX,getDeci)
     )");
 
   EXPECT_EQ(getOutput(), R"(
