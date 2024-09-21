@@ -255,6 +255,21 @@ public:
   std::unordered_map<std::string, FlowWing::Type> _typesMap;
   std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
       _functionTypes;
+  std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
+      _functionLocalTypes;
+
+  inline auto funcPtr(const std::string &callerName) -> FlowWing::Function * {
+    if (this->_functionTypes.find(callerName) != this->_functionTypes.end()) {
+      return this->_functionTypes[callerName].get();
+    }
+
+    if (this->_functionLocalTypes.find(callerName) !=
+        this->_functionLocalTypes.end()) {
+      return this->_functionLocalTypes[callerName].get();
+    }
+
+    return nullptr;
+  }
 
 private:
   std::unique_ptr<llvm::LLVMContext> _context;

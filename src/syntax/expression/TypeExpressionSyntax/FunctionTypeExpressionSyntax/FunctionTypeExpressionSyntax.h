@@ -1,28 +1,30 @@
 #pragma once
 
 #include "../TypeExpressionSyntax.h"
+#include <cstdint>
 
 class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
- private:
-  std::unique_ptr<SyntaxToken<std::any>> _type;
+private:
   std::vector<std::unique_ptr<TypeExpressionSyntax>> _parameterTypes;
   std::vector<std::unique_ptr<TypeExpressionSyntax>> _returnTypes;
-  std::vector<std::unique_ptr<SyntaxToken<std::any>>> _asParametersKeywords;
+  std::vector<std::pair<uint64_t, std::unique_ptr<SyntaxToken<std::any>>>>
+      _asParametersKeywords;
   std::unique_ptr<SyntaxToken<std::any>> _asKeyword;
 
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
- public:
+public:
   FunctionTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
   const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
   const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
-      const override;
+  const virtual DiagnosticUtils::SourceLocation
+  getSourceLocation() const override;
 
-  inline auto addParameterType(
-      std::unique_ptr<TypeExpressionSyntax> parameterType) -> void {
+  inline auto
+  addParameterType(std::unique_ptr<TypeExpressionSyntax> parameterType)
+      -> void {
     _parameterTypes.push_back(std::move(parameterType));
   }
 
@@ -32,8 +34,9 @@ class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
   }
 
   inline auto addAsParameterKeyword(
-      std::unique_ptr<SyntaxToken<std::any>> asParameterKeyword) -> void {
-    _asParametersKeywords.push_back(std::move(asParameterKeyword));
+      uint64_t index, std::unique_ptr<SyntaxToken<std::any>> asParameterKeyword)
+      -> void {
+    _asParametersKeywords.push_back({index, std::move(asParameterKeyword)});
   }
 
   inline auto setAsKeyword(std::unique_ptr<SyntaxToken<std::any>> asKeyword)
@@ -55,11 +58,6 @@ class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
     _separators.push_back(std::move(separator));
   }
 
-  inline auto getTypeRef() const
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _type;
-  }
-
   inline auto getReturnTypesRef() const
       -> const std::vector<std::unique_ptr<TypeExpressionSyntax>> & {
     return _returnTypes;
@@ -75,8 +73,8 @@ class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
     return _asKeyword;
   }
 
-  inline auto getAsParametersKeywordsRef() const
-      -> const std::vector<std::unique_ptr<SyntaxToken<std::any>>> & {
+  inline auto getAsParametersKeywordsRef() const -> const std::vector<
+      std::pair<uint64_t, std::unique_ptr<SyntaxToken<std::any>>>> & {
     return _asParametersKeywords;
   }
 };

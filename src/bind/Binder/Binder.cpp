@@ -67,7 +67,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
         std::move(bindTypeExpression(variableDeclaration->getTypeRef().get()));
-
+    boundTypeExpression->setVariableNameitBelongsTo(variable_str);
     if (boundTypeExpression->getKind() ==
         BinderKindUtils::BoundObjectTypeExpression) {
       BoundObjectTypeExpression *objectTypeExpression =
@@ -1292,30 +1292,32 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     declared_fd = this->root->tryGetFunction(updatedCallerName);
   }
 
-  if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
-    std::string type = "Function";
+  if (!this->root->tryGetVariable((CALLER_NAME))) {
+    if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
+      std::string type = "Function";
 
-    if (!this->root->tryGetClass(CALLER_NAME)) {
-      _diagnosticHandler->addDiagnostic(
-          Diagnostic(type + " " + CALLER_NAME + " does not exist",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     callExpression->getIdentifierPtr()->getSourceLocation()));
+      if (!this->root->tryGetClass(CALLER_NAME)) {
+        _diagnosticHandler->addDiagnostic(Diagnostic(
+            type + " " + CALLER_NAME + " does not exist",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            callExpression->getIdentifierPtr()->getSourceLocation()));
+      }
     }
-  }
 
-  if (declared_fd &&
-      callExpression->getArguments().size() <
-          declared_fd->getMinNumberOfParametersNeeded() &&
-      !IS_A_BUILTIN_FUNCTION_CALL) {
-    _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + CALLER_NAME + " requires minimum " +
-            std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
-            " arguments",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
-    return std::move(boundIdentifier);
+    if (declared_fd &&
+        callExpression->getArguments().size() <
+            declared_fd->getMinNumberOfParametersNeeded() &&
+        !IS_A_BUILTIN_FUNCTION_CALL) {
+      _diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + CALLER_NAME + " requires minimum " +
+              std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
+              " arguments",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
+      return std::move(boundIdentifier);
+    }
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
@@ -1764,6 +1766,7 @@ std::unique_ptr<BoundFunctionTypeExpression> Binder::bindFunctionTypeExpression(
        functionTypeExpressionSyntax->getParameterTypesRef()) {
     boundFunctionTypeExpression->addParameterType(
         std::move(bindTypeExpression(param.get())));
+    boundFunctionTypeExpression->addAsParam(false);
   }
 
   if (functionTypeExpressionSyntax->getAsKeywordRef()) {
@@ -1772,7 +1775,7 @@ std::unique_ptr<BoundFunctionTypeExpression> Binder::bindFunctionTypeExpression(
 
   for (const auto &asType :
        functionTypeExpressionSyntax->getAsParametersKeywordsRef()) {
-    boundFunctionTypeExpression->addAsParam(asType ? true : false);
+    boundFunctionTypeExpression->setAsParam(asType.first, true);
   }
 
   for (const auto &retType :

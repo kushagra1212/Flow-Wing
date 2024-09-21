@@ -66,6 +66,26 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
 
     return v;
   }
+  if (llvm::isa<llvm::FunctionType>(variableType)) {
+
+    llvm::FunctionType *functionType =
+        llvm::cast<llvm::FunctionType>(variableType);
+
+    // if (_codeGenerationContext->_classTypes.find(
+    //         structType->getStructName().str()) !=
+    //     _codeGenerationContext->_classTypes.end()) {
+
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Access member of Class " +
+    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
+    //       " using dot operator in variable " + variableName);
+    //   return nullptr;
+    // }
+    _codeGenerationContext->getValueStackHandler()->push(
+        variableName, v, "function", functionType);
+
+    return v;
+  }
 
   llvm::Value *varValue = Builder->CreateLoad(variableType, v, variableName);
   // when Primitive Typed Global Variable (Value)

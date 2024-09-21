@@ -19,6 +19,10 @@ const std::vector<SyntaxNode *> &FunctionTypeExpressionSyntax::getChildren() {
   for (auto &parameterType : _parameterTypes)
     _children.push_back(parameterType.get());
 
+  for (auto &asType : _asParametersKeywords) {
+    _children.push_back(asType.second.get());
+  }
+
   if (this->_closeParenthesisToken)
     _children.push_back(_closeParenthesisToken.get());
 
@@ -41,6 +45,9 @@ FunctionTypeExpressionSyntax::getSourceLocation() const {
   for (auto &parameterType : _parameterTypes) {
     if (parameterType)
       return parameterType->getSourceLocation();
+  }
+  for (auto &asType : _asParametersKeywords) {
+    return (asType.second->getSourceLocation());
   }
 
   if (_closeParenthesisToken)

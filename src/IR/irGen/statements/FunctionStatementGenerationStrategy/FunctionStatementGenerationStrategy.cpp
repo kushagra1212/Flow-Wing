@@ -157,6 +157,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
+      } else if (llvmArgsTypes[i]->isPointerToFunction()) {
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
       } else {
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i],
@@ -231,6 +235,14 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
           _codeGenerationContext->getAllocaChain()->setPtr(parameterNames[i],
                                                            {ptr, structType});
         }
+
+      } else if (i < llvmArgsTypes.size() &&
+                 llvmArgsTypes[i]->isPointerToFunction()) {
+        LLVMFunctionType *llvmFunctionType =
+            static_cast<LLVMFunctionType *>(llvmArgsTypes[i].get());
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
 
       } else if (i < llvmArgsTypes.size() &&
                  llvmArgsTypes[i]->isPointerToPrimitive()) {

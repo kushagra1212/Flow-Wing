@@ -60,6 +60,9 @@ Option<std::string> OPTIONS::Framework{"-framework",
 Option<std::string> OPTIONS::EntryPoint{"-e",
                                         "Specify the entry point function"};
 
+Option<bool> OPTIONS::Help{"--help", "Displays this help page"};
+Option<bool> OPTIONS::ShortHelp{"-h", "Short hand flag for --help"};
+
 namespace isFlag {
 int8_t versionName() {
   return ((*cmdl)[{FlowWing::Cli::OPTIONS::Version.name.c_str(),
@@ -106,6 +109,17 @@ int8_t formatPrint() {
 int8_t ShortFormatPrint() {
   return ((*cmdl)[{
       FlowWing::Cli::OPTIONS::ShortFormatPrint.name.c_str(),
+  }]);
+}
+
+int8_t help() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::Help.name.c_str(),
+  }]);
+}
+int8_t shortHelp() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::ShortHelp.name.c_str(),
   }]);
 }
 
@@ -174,6 +188,12 @@ enum FlowWing::Cli::STATUS handleBasicArgs() {
     return FlowWing::Cli::STATUS::DONE;
   }
 
+  if (FlowWing::Cli::isFlag::help() || FlowWing::Cli::isFlag::shortHelp()) {
+    FlowWing::Cli::printHelp();
+
+    return FlowWing::Cli::STATUS::DONE;
+  }
+
   if (!FlowWing::Cli::isParam::file() && !FlowWing::Cli::isParam::shortFile()) {
     Utils::printErrors({"Usage: FlowWing  <file_path> "}, std::cerr, true);
     return FlowWing::Cli::STATUS::FAILURE;
@@ -219,6 +239,50 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
   }
 
   return FlowWing::Cli::STATUS::PROCEED;
+}
+
+void printHelp() {
+  std::cout << "FlowWing Compiler Help\n";
+  std::cout << "======================\n\n";
+
+  std::vector<std::pair<std::string, std::string>> options = {
+      {OPTIONS::Version.name + ", " + OPTIONS::ShortVersion.name,
+       OPTIONS::Version.description},
+      {OPTIONS::File.name + ", " + OPTIONS::ShortFile.name,
+       OPTIONS::File.description},
+      {OPTIONS::Format.name + ", " + OPTIONS::ShortFormat.name,
+       OPTIONS::Format.description},
+      {OPTIONS::FormatPrint.name + ", " + OPTIONS::ShortFormatPrint.name,
+       OPTIONS::FormatPrint.description},
+      {OPTIONS::OutputFile.name + ", " + OPTIONS::ShortOutputFile.name,
+       OPTIONS::OutputFile.description},
+      {OPTIONS::Code.name + ", " + OPTIONS::ShortCode.name,
+       OPTIONS::Code.description},
+      {OPTIONS::OptimizationLevel0.name,
+       OPTIONS::OptimizationLevel0.description},
+      {OPTIONS::OptimizationLevel1.name,
+       OPTIONS::OptimizationLevel1.description},
+      {OPTIONS::OptimizationLevel2.name,
+       OPTIONS::OptimizationLevel2.description},
+      {OPTIONS::OptimizationLevel3.name,
+       OPTIONS::OptimizationLevel3.description},
+      {OPTIONS::LibraryPath.name, OPTIONS::LibraryPath.description},
+      {OPTIONS::LinkLibrary.name, OPTIONS::LinkLibrary.description},
+      {OPTIONS::Framework.name, OPTIONS::Framework.description},
+      {OPTIONS::EntryPoint.name, OPTIONS::EntryPoint.description},
+      {OPTIONS::Help.name + ", " + OPTIONS::ShortHelp.name,
+       OPTIONS::Help.description},
+  };
+
+  size_t maxFlagLength = 0;
+  for (const auto &option : options) {
+    maxFlagLength = std::max(maxFlagLength, option.first.length());
+  }
+
+  for (const auto &option : options) {
+    std::cout << std::left << std::setw(maxFlagLength + 2) << option.first
+              << option.second << "\n";
+  }
 }
 
 } // namespace Cli

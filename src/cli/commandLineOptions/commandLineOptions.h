@@ -118,11 +118,18 @@ public:
 
   //? Entry Point
   static Option<std::string> EntryPoint;
+
+  //? Help
+
+  static Option<bool> Help;
+  static Option<bool> ShortHelp;
 }; // namespace FlowWing_OPTIONS
 
 enum FlowWing::Cli::STATUS handleBasicArgs();
 enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
                                           std::string &filePath, char *argv[]);
+
+void printHelp();
 
 } // namespace Cli
 

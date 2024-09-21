@@ -25,6 +25,7 @@ public:
   virtual inline const bool isPointerToArray() const { return false; }
 
   virtual inline const bool isPointerToObject() const { return false; }
+  virtual inline const bool isPointerToFunction() const { return false; }
 
   virtual inline const bool isPointerToPrimitive() const { return false; }
 

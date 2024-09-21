@@ -62,11 +62,10 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
     if (Utils::isClassInit(callExpression->getCallerNameRef())) {
       callExpression->setArgumentAlloca(
           callExpression->getArgumentsRef().size(), {ptr, structType});
-    } else if (_codeGenerationContext->_functionTypes.find(
-                   callExpression->getCallerNameRef()) !=
-                   _codeGenerationContext->_functionTypes.end() &&
-               _codeGenerationContext
-                   ->_functionTypes[callExpression->getCallerNameRef()]
+    } else if (_codeGenerationContext->funcPtr(
+                   callExpression->getCallerNameRef()) &&
+               (_codeGenerationContext->funcPtr(
+                    callExpression->getCallerNameRef()))
                    ->isHavingReturnTypeAsParamater()) {
       callExpression->setArgumentAlloca(0, {ptr, structType});
     }

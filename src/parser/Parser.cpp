@@ -424,7 +424,9 @@ std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
     return std::move(objectType);
   }
 
-  if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken &&
+      this->peek(1)->getKind() ==
+          SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     return this->parseFunctionTypeExpression();
   }
 
@@ -444,6 +446,8 @@ Parser::parseFunctionTypeExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_FUNCTION_TYPE, 0,
               "NBU_FUNCTION_TYPE", "NBU_FUNCTION_TYPE"));
 
+  this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+
   funcTypeExpression->setOpenParenthesisToken(
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
 
@@ -459,6 +463,7 @@ Parser::parseFunctionTypeExpression() {
 
     if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
       funcTypeExpression->addAsParameterKeyword(
+          parameterCount,
           std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
       appendWithSpace();
     }
@@ -496,6 +501,8 @@ Parser::parseFunctionTypeExpression() {
     funcTypeExpression->addReturnType(std::move(this->parseTypeExpression()));
 
   } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
+
+  this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
 
   appendWithSpace();
 

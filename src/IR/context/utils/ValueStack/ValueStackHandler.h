@@ -67,6 +67,8 @@ public:
 
   auto inline isNothingType() -> bool { return isType("nothing"); }
 
+  auto inline isFunctionType() -> bool { return isType("function"); }
+
   auto inline isArrayType() -> bool { return isType("array"); }
 
   auto inline isDynamicType() -> bool { return isType("dynamic"); }

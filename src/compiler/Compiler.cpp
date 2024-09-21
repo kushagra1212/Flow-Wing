@@ -7,8 +7,8 @@ Compiler::Compiler(std::string filePath)
           std::make_unique<FlowWing::DiagnosticHandler>(filePath)),
       executionEngine(nullptr) {
 
-  if (FlowWing::Cli::isParam::outputFile() ||
-      FlowWing::Cli::isParam::shortOutputFile()) {
+  if (FlowWing::Cli::cmdl && (FlowWing::Cli::isParam::outputFile() ||
+                              FlowWing::Cli::isParam::shortOutputFile())) {
     _outputFilePath = (FlowWing::Cli::isParam::outputFile()
                            ? FlowWing::Cli::Get::outputFile()
                            : FlowWing::Cli::Get::shortOutputFile());

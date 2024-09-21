@@ -1,4 +1,6 @@
 #include "TypeMapper.h"
+#include <cstdint>
+#include <string>
 
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
                        llvm::Module *module,
@@ -161,6 +163,17 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       const std::string text =
           "<Array[" + std::to_string(arrayType->getNumElements()) + "]" +
           getLLVMTypeName(arrayType->getElementType(), withColor) + ">";
+
+      return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
+                       : text;
+    } else if (llvm::isa<llvm::FunctionType>(type)) {
+      llvm::FunctionType *functionType = llvm::cast<llvm::FunctionType>(type);
+
+      std::string text = "<Function (";
+      uint64_t parmsSize = functionType->getNumParams(), i = 0;
+      text += " with " + std::to_string(parmsSize) + " parameters ";
+
+      text += ")>";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;
