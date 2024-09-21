@@ -12,6 +12,7 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
+  bool isPreviousEndOfLine = false;
 
   do {
     std::unique_ptr<SyntaxToken<std::any>> token =
@@ -27,6 +28,19 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
                      DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Syntactic,
                      Utils::getSourceLocation(token.get())));
+    }
+
+    if (_kind == SyntaxKindUtils::SyntaxKind::CommentStatement) {
+      if (isPreviousEndOfLine)
+        token->setText(NEW_LINE + token->getText());
+      else
+        token->setText(TWO_SPACES + token->getText());
+    }
+
+    if (_kind == SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
+      isPreviousEndOfLine = true;
+    } else if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken) {
+      isPreviousEndOfLine = false;
     }
 
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -79,6 +93,18 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
 
 SyntaxKindUtils::SyntaxKind Parser::getKind() {
   while (this->getCurrent()->getKind() == SyntaxKindUtils::CommentStatement) {
+
+    if (this->getCurrent()->getText().find_first_of(NEW_LINE) == 0) {
+
+      this->getCurrent()->setText(
+          NEW_LINE + INDENT +
+          this->getCurrent()->getText().substr(
+              1, this->getCurrent()->getText().length() - 1));
+
+    } else {
+
+      this->getCurrent()->setText(INDENT + this->getCurrent()->getText());
+    }
     _formattedSourceCode += this->getCurrent()->getText();
     (this->nextToken());
   }
@@ -1576,7 +1602,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
 }
 
 std::unique_ptr<StatementSyntax> Parser::parseCommentStatement() {
-
   (this->match(SyntaxKindUtils::SyntaxKind::CommentStatement));
   std::unique_ptr<StatementSyntax> stat = std::move(this->parseStatement());
   appendNewLine();
