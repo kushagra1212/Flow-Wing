@@ -496,8 +496,10 @@ const handleBringStatement = async ({
     let relPath = null;
 
     if (
-      bringkeyword?.lineNumber === suggestionToken?.lineNumber &&
-      bringkeyword?.columnNumber === suggestionToken?.columnNumber
+      obj["BringStatementSyntax"]?.[1]?.["StringToken"]?.lineNumber ===
+        suggestionToken?.lineNumber &&
+      obj["BringStatementSyntax"]?.[1]?.["StringToken"]?.columnNumber ===
+        suggestionToken?.columnNumber
     ) {
       relPath = (
         obj["BringStatementSyntax"]?.[1]?.["StringToken"] as Token
@@ -524,7 +526,6 @@ const handleBringStatement = async ({
         relPath,
         currentTextDocUri
       );
-
       if (importedFileURI && importedFileURI !== "") {
         await validateTextDocument(documents.get(importedFileURI), null);
 

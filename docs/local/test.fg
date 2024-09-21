@@ -1,4 +1,4 @@
-bring File/#
+bring File  /#
 var res: str, err: Err::Result = File::read("test.fg", "r")
 if (err != Nir) {
   print(err.getMessage())
@@ -7,4 +7,4 @@ if (err != Nir) {
 }
 #/
 
-
+expose const x: int = 2

@@ -59,7 +59,7 @@ export const onDefinition = async (
       suggestion,
       _textDocsParams.textDocument.uri
     );
-    const range =
+    let range =
       result?.find((item) => item.label === suggestion.word)?.data?.range ??
       (result?.length === 1 && result?.[0]?.data?.range
         ? result?.[0]?.data?.range
@@ -73,7 +73,9 @@ export const onDefinition = async (
       // range = createRange(undefined).range;
     }
 
-    if (!range) return undefined;
+    if (!range) {
+      range = Range.create(0, 0, 0, 0);
+    }
 
     return Location.create(uri, range);
   });

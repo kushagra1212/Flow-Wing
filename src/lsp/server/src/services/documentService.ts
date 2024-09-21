@@ -74,7 +74,7 @@ export const validateFile = (
           const errorObject = await fileUtils.readJsonFile<
             ErrorResult["errorObject"]
           >(ERROR_JSON_FILE_PATH);
-          console.log("errorObject", ERROR_JSON_FILE_PATH);
+
           resolve({ ...errorResult, errorObject });
         } catch (err) {
           console.error(

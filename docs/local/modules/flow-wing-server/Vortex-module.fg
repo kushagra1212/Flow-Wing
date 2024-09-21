@@ -196,7 +196,7 @@ fun parseJson(inout json_str: str) -> Map::String {
 
 fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
   var lines: Vec::String = split(req_str, "\n")
-  var method: str, endpoint: str, version: str/; Headers start from the second line onwards
+  var method: str, endpoint: str, version: str    /; Headers start from the second line onwards
 
   if (lines.size() == 0) {
     return {
@@ -209,7 +209,7 @@ fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
   for var i = 0 to lines.size() - 1 {
     if i == 0 {
       var firstLineParts: Vec::String = split(lines.get(i), " ")
-      method, endpoint, version = firstLineParts.get(0), firstLineParts.get(1), firstLineParts.get(2)/; Headers start from the second line onwards
+      method, endpoint, version = firstLineParts.get(0), firstLineParts.get(1), firstLineParts.get(2)        /; Headers start from the second line onwards
  
     } else {
       var header_parts: Vec::String = split(lines.get(i), ":")
@@ -268,7 +268,7 @@ fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
 }
 
 
-fun log_middleware(client_socket: as int, req_str: as str, endpoint: as str) -> as nthg {/;print("log_middleware: ", req_str, "\n")
+fun log_middleware(client_socket: as int, req_str: as str, endpoint: as str) -> as nthg {  /;print("log_middleware: ", req_str, "\n")
 
   flush()
 }
@@ -283,9 +283,9 @@ fun printVector(inout vec: Vec::String) -> as nthg {
 }
 
 
-fun post_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {/; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
+fun post_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {  /; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
 
-  var Req: HttpRequest, err: Err::Result = parse_request(req)/;print("Req: ", Req, "\n")
+  var Req: HttpRequest, err: Err::Result = parse_request(req)    /;print("Req: ", Req, "\n")
 
   var mp: Map::String = parseJson(Req.body)
   print("NAME ", mp.get("address"), "\n")

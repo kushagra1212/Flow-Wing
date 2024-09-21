@@ -999,7 +999,6 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
     return std::move(bringStatement);
   }
 
-  appendNewLine();
   std::string relativeFilePath = "";
 
   if (stringToken->getValue().type() == typeid(std::string)) {
@@ -1036,6 +1035,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
           std::filesystem::relative(moduleFilePath, currentDirPath);
       stringToken->setValue((relativeFilePath));
     }
+    // appendNewLine();
   }
   bringStatement->setIsModuleImport(isModule);
 
