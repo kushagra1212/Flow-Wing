@@ -21,6 +21,7 @@ void Compiler::compile(std::vector<std::string> &text,
       std::make_unique<FlowWing::DiagnosticHandler>(
           Utils::getAbsoluteFilePath(this->_filePath));
 
+  currentDiagnosticHandler->setOutputFilePath(_outputFilePath);
   FlowWing::Compiler::logNoErrorJSONIfAsked(_outputFilePath);
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
