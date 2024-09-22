@@ -33,6 +33,7 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> readSymbol();
   std::unique_ptr<SyntaxToken<std::any>> readString(const int &start);
   std::unique_ptr<SyntaxToken<std::any>> readChar(const int &start);
+  std::unique_ptr<SyntaxToken<std::any>> readTemplateString(const int &start);
   std::unique_ptr<SyntaxToken<std::any>> readEndOfFile();
   std::unique_ptr<SyntaxToken<std::any>> readEndOfLine();
   std::unique_ptr<SyntaxToken<std::any>> readMultiLineComment();

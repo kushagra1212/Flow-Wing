@@ -1,11 +1,6 @@
-bring Str
-
-bring Vec
-
-bring Map
-
 bring Err
-
+bring Str
+bring {parseObject, parseArray} from "json-parser.fg"
 
 fun start_server(port: as int) -> as nthg decl
 
@@ -13,13 +8,13 @@ fun start_server(port: as int) -> as nthg decl
 fun flush() -> as nthg decl
 
 
-fun set_route(method: as str, path: as str, handler: unknown) -> as nthg decl
+fun set_route(method: as str, path: as str, handler: unknown, handler2: unknown) -> as nthg decl
 
 
 fun set_middleware(middleware: unknown) -> as nthg decl
 
 
-fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str) -> as nthg decl
+fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int) -> as str decl
 
 
 fun send(socket: as int, data: as str, len: as int, flags: as int) -> as nthg decl
@@ -43,19 +38,69 @@ fun json_response(data: as str) -> str {
 }
 
 
+fun statusString(inout status: int) -> str {
+  if (100) {
+    return "100 Continue"
+  } or if (101) {
+    return "101 Switching Protocols"
+  } or if (200) {
+    return "200 OK"
+  } or if 201 {
+    return "201 Created"
+  } or if 202 {
+    return "202 Accepted"
+  } or if 204 {
+    return "204 No Content"
+  } or if 301 {
+    return "301 Moved Permanently"
+  } or if 302 {
+    return "302 Found"
+  } or if 303 {
+    return "303 See Other"
+  } or if 304 {
+    return "304 Not Modified"
+  } or if 307 {
+    return "307 Temporary Redirect"
+  } or if 308 {
+    return "308 Permanent Redirect"
+  } or if 400 {
+    return "400 Bad Request"
+  } or if 401 {
+    return "401 Unauthorized"
+  } or if 403 {
+    return "403 Forbidden"
+  } or if 404 {
+    return "404 Not Found"
+  } or if 405 {
+    return "405 Method Not Allowed"
+  } or if 408 {
+    return "408 Request Timeout"
+  } or if 500 {
+    return "500 Internal Server Error"
+  } or if 501 {
+    return "501 Not Implemented"
+  } or if 502 {
+    return "502 Bad Gateway"
+  } or if 503 {
+    return "503 Service Unavailable"
+  } or if 504 {
+    return "504 Gateway Timeout"
+  } else {
+    return String(status)
+  }
+}
+
+
 fun my_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {
   if (endpoint == "/json") {
     const json_response_data: str = "{\"message\": \"Hello, JSON!\"}"
-    var response: str = generate_response("application/json", json_response_data)
-    send_response(client_socket, "200 OK", "application/json", json_response_data)
+    send_response(client_socket, "200 OK", "application/json", json_response_data, 1)
   } or if (endpoint == "/text") {
     const plain_text_response: str = "Hello, World!"
-    var response: str = generate_response("text/plain", plain_text_response)
-    send_response(client_socket, "200 OK", "text/plain", plain_text_response)
+    send_response(client_socket, "200 OK", "text/plain", plain_text_response, 1)
   } else {
     const not_found_response: str = "Not Found"
-    var response: str = generate_response("text/plain", not_found_response)
-    send_response(client_socket, "404 Not Found", "text/plain", not_found_response)
+    send_response(client_socket, "404 Not Found", "text/plain", not_found_response, 1)
   }
 }
 
@@ -112,87 +157,6 @@ type HttpRequest = {
   headers: Header,
   body: str
 }
-
-fun parseJson(inout json_str: str) -> Map::String {
-  var i = 0
-  if (json_str[i] == '{') {
-    i = i + 1 
-  }
-  var mp: Map::String = new Map::String()
-  while (json_str[i] != '\\0') {
-    while (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
-      i = i + 1 
-    }
-    if (json_str[i] == '"') {
-      i = i + 1 
-      var key = ""
-      while (json_str[i] != '"') {
-        key = key + Str::int8ToString(json_str[i]) 
-        i = i + 1 
-      }
-      i = i + 1 
-      while json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r' {
-        i = i + 1 
-      }
-      var value = ""
-      if (json_str[i] == ':') {
-        i = i + 1 
-        while json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r' {
-          i = i + 1 
-        }
-        if (json_str[i] == '"') {
-          i = i + 1 
-          while (json_str[i] != '"') {
-            value = value + Str::int8ToString(json_str[i]) 
-            i = i + 1 
-          }
-          i = i + 1 
-        } or if (json_str[i] == '{') {
-          var obj_str = "{"
-          var brace_count = 1
-          i = i + 1 
-          while (brace_count > 0) {
-            if json_str[i] == '{' {
-              brace_count = brace_count + 1 
-            } or if json_str[i] == '}' {
-              brace_count = brace_count - 1 
-            }
-            obj_str = obj_str + Str::int8ToString(json_str[i]) 
-            i = i + 1 
-          }
-          value = obj_str 
-        } or if (json_str[i] == '[') {
-          var arr_str = "["
-          var bracket_count = 1
-          i = i + 1 
-          while (bracket_count > 0) {
-            if json_str[i] == '[' {
-              bracket_count = bracket_count + 1 
-            } or if json_str[i] == ']' {
-              bracket_count = bracket_count - 1 
-            }
-            arr_str = arr_str + Str::int8ToString(json_str[i]) 
-            i = i + 1 
-          }
-          value = arr_str 
-        } or if (json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '-' || json_str[i] == '.') {
-          while (json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '.' || json_str[i] == '-') {
-            value = value + Str::int8ToString(json_str[i]) 
-            i = i + 1 
-          }
-        } else {
-          break
-        }
-      }
-      mp.insert(key, value)
-    }
-    if (json_str[i] == ',') {
-      i = i + 1 
-    }
-  }
-  return mp
-}
-
 
 fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
   var lines: Vec::String = split(req_str, "\n")
@@ -287,38 +251,120 @@ fun post_request_handler(client_socket: as int, req: as str, endpoint: as str) -
 
   var Req: HttpRequest, err: Err::Result = parse_request(req)    /;print("Req: ", Req, "\n")
 
-  var mp: Map::String = parseJson(Req.body)
+  var mp: Map::String = parseObject(Req.body)
   print("NAME ", mp.get("address"), "\n")
   flush()
   const plain_text_response: str = "Hello, World!"
-  send_response(client_socket, "200 OK", "text/plain", plain_text_response)
+  send_response(client_socket, "200 OK", "text/plain", plain_text_response, 1)
+}
+
+type HttpResponseType = {
+  status: int,
+  content_type: str,
+  body: str,
+  keepAlive: int
+}
+class HttpResponse {
+  var res: HttpResponseType
+  var clientSocket: int
+  init(clientSocket: int) -> nthg {
+    self.clientSocket = clientSocket 
+  }
+
+
+  send(res: HttpResponseType) -> Err::Result {
+    res.keepAlive = 1 
+    if (res.content_type == "") {
+      res.content_type = "text/plain" 
+    }
+    if (res.body == "") {
+      return new Err::Result("Could not send response", Err::CODE.FAILED, "In send")
+    }
+    var status = statusString(res.status)
+    var r: str = send_response(clientSocket, status, res.content_type, res.body, res.keepAlive)
+    print("SSS", r)
+    return Nir
+  }
+
+
+}
+
+fun my_request_handler2(client_socket: as int, req: as str, endpoint: as str, cRouteHandler: [( HttpRequest, HttpResponse ) -> nthg] ) -> as nthg {  /; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
+
+  var Req: HttpRequest, err: Err::Result = parse_request(req)    /;print("Req: ", Req, "\n")
+
+  /; var mp: Map::String = parseObject(Req.body)
+    /; print("NAME ", mp.get("address"), "\n")
+    /; flush()
+
+  print(" Printint Endpoint From my_request_handler2 Route: ", endpoint, "\n")
+  flush()
+  const plain_text_response: str = "Hello, World!"
+  cRouteHandler(Req, new HttpResponse(client_socket))
+}
+
+
+fun customRouteHandler(inout req: HttpRequest, inout res: HttpResponse) -> nthg {
+  print(" Printint Endpoint From Custom Route: ", "\n")
+  flush()
+  var err: Err::Result = res.send({
+    status: 200,
+    content_type: "text/plain",
+    body: "Hello, World!"
+  })
+  if (!(err == Nir)) {
+    print(err.code, "\n")
+    flush()
+  }
+}
+
+
+fun customRouteHandler2(inout req: HttpRequest, inout res: HttpResponse) -> nthg {
+  print(" Printint Endpoint From Custom Route2: ", "\n")
+  flush()
+  var err: Err::Result = res.send({
+    status: 200,
+    content_type: "text/plain",
+    body: "Hello, World2!"
+  })
+  if (err != Nir) {
+  /; print(err.getMessage(), "\n")
+
+    flush()
+  }
 }
 
 
 fun main() -> nthg {
   set_middleware(log_middleware)
-  set_route("GET", "/json", my_request_handler)
-  set_route("GET", "/", my_request_handler)
-  set_route("GET", "/text", my_request_handler)
-  set_route("POST", "/submit", post_request_handler)
+  /; set_route("GET", "/json", my_request_handler)
+
+  set_route("GET", "/", my_request_handler2, customRouteHandler)
+  set_route("GET", "/hello", my_request_handler2, customRouteHandler2)
+  /; set_route("GET", "/text", my_request_handler)
+    /; set_route("POST", "/submit", post_request_handler)
+
+  start_server(8080)
 }
 
 main()
-class Server {
-  var port: int
-  init(port: int) -> nthg {
-    self.port = port 
-  }
+/; class FGVortex {
+  /;   var port: int
+  /;   init(port: int) -> nthg {
+  /;     self.port = port 
+  /;   }
 
+/;   addMiddleware(middleware: [( int, str, str ) -> nthg] ) -> as nthg {
+  /;     set_middleware(middleware)
+  /;   }
 
-  addMiddleware(middleware: unknown) -> as nthg {
-    set_middleware(middleware)
-  }
+/;   start() -> as nthg {
+  /;     start_server(self.port)
+  /;   }
 
+/;   setRoute(method: str, path: str, handler: [( int, str, str ) -> nthg] ) -> as nthg {
+  /;     set_route(method, path, handler)
+  /;   }
 
-  start() -> as nthg {
-    start_server(self.port)
-  }
+/; }
 
-
-}

@@ -14,6 +14,8 @@ private:
   std::vector<std::unique_ptr<SyntaxToken<std::any>>> _separators;
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
+  std::unique_ptr<SyntaxToken<std::any>> _openBracketToken;
+  std::unique_ptr<SyntaxToken<std::any>> _closeBracketToken;
 
 public:
   FunctionTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
@@ -47,6 +49,18 @@ public:
   inline auto setOpenParenthesisToken(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken) -> void {
     _openParenthesisToken = std::move(openParenthesisToken);
+  }
+
+  inline auto
+  setOpenBracketToken(std::unique_ptr<SyntaxToken<std::any>> openBracketToken)
+      -> void {
+    _openBracketToken = std::move(openBracketToken);
+  }
+
+  inline auto
+  setCloseBracketToken(std::unique_ptr<SyntaxToken<std::any>> closeBracketToken)
+      -> void {
+    _closeBracketToken = std::move(closeBracketToken);
   }
 
   inline auto setCloseParenthesisToken(

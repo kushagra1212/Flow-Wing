@@ -267,8 +267,10 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
         nirastExpressionGenerationStrategy =
             std::make_unique<NirastExpressionGenerationStrategy>(
                 _codeGenerationContext);
-    return nirastExpressionGenerationStrategy->generateExpression(
-        static_cast<BoundNirastExpression *>(expression));
+    Builder->CreateStore(nirastExpressionGenerationStrategy->generateExpression(
+                             static_cast<BoundNirastExpression *>(expression)),
+                         _lhsPtr);
+    return _lhsPtr;
   }
 
   _codeGenerationContext->getLogger()->LogError("Invalid Expression found ");

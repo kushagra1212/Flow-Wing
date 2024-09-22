@@ -15,6 +15,12 @@ llvm::Value *BringStatementGenerationStrategy::generateGlobalStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
 
+  if (!bringStatement->getDiagnosticHandlerPtr()) {
+    return nullptr;
+  }
+  if (bringStatement->isAlreadyImported()) {
+    return nullptr;
+  }
   const std::string onlyFileName = Utils::getNameExtension(
       bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
@@ -77,6 +83,10 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bringStatement->getLocation());
+
+  if (bringStatement->isAlreadyImported()) {
+    return nullptr;
+  }
 
   std::map<std::string, int8_t> importMap;
 

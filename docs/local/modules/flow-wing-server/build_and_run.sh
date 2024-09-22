@@ -3,9 +3,9 @@
 # Define paths and variables
 export FLOW_WING_COMPILER_PATH="/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
 export FLOW_WING_LIB_PATH="/Users/apple/code/per/Flow-Wing/docs/local/modules/flow-wing-server"
-export FLOW_WING_FILE="server.fg"
+export FLOW_WING_FILE="Vortex-module.fg"
 export SHARED_LIB_PATH="libwing.a"
-export OUTPUT_EXECUTABLE="build/bin/server"
+export OUTPUT_EXECUTABLE="build/bin/Vortex-module"
 
 # Compile the C code into a shared library
 echo "Compiling C code into shared library..."

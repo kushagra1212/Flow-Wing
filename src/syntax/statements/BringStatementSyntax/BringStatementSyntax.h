@@ -15,6 +15,7 @@ class BringStatementSyntax : public StatementSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
   std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
   bool _isModuleImport = false;
+  std::string _moduleName = "";
 
 public:
   void
@@ -40,6 +41,10 @@ public:
   getExpressionsPtr();
   const std::unique_ptr<CompilationUnitSyntax> &getCompilationUnitPtr();
 
+  inline auto setModuleName(const std::string &moduleName) -> void {
+    _moduleName = moduleName;
+  }
+
   const bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
   std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
@@ -53,6 +58,8 @@ public:
   }
 
   inline auto getIsModuleImport() -> bool { return _isModuleImport; }
+
+  inline auto getModuleName() -> std::string { return _moduleName; }
 };
 
 #endif // BRING_STATEMENT_SYNTAX_H

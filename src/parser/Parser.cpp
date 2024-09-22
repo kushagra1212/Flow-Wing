@@ -472,7 +472,8 @@ Parser::parseFunctionTypeExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_FUNCTION_TYPE, 0,
               "NBU_FUNCTION_TYPE", "NBU_FUNCTION_TYPE"));
 
-  this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
+  funcTypeExpression->setOpenBracketToken(
+      this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
 
   funcTypeExpression->setOpenParenthesisToken(
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
@@ -528,8 +529,8 @@ Parser::parseFunctionTypeExpression() {
 
   } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
 
-  this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
-
+  funcTypeExpression->setCloseBracketToken(
+      this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
   appendWithSpace();
 
   return std::move(funcTypeExpression);
@@ -1012,6 +1013,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
               .parent_path()
               .string();
 
+      bringStatement->setModuleName(relativeFilePath);
       std::string moduleFilePath = Utils::findFile(
           std::string(FLOWWING_MODULE_PATH), relativeFilePath + "-module.fg");
 

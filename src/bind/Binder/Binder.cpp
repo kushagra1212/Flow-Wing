@@ -755,26 +755,30 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get());
   }
-
+  bool isAlreadyImported = false;
   if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "File <" + bringStatement->getRelativeFilePathPtr() +
-            "> already included ",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
 
-    return std::make_unique<BoundBringStatement>(
+    auto boundBringStatement = std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get());
-  }
 
+    if (!bringStatement->getIsModuleImport()) {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("File <" + bringStatement->getRelativeFilePathPtr() +
+                         "> already included ",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     Utils::getSourceLocation(
+                         bringStatement->getBringKeywordPtr().get())));
+    }
+    //  isAlreadyImported = true;
+  }
   Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
 
   auto boundBringStatement = std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(),
       bringStatement->getDiagnosticHandlerPtr().get());
-
+  boundBringStatement->setIsAlreadyImported(isAlreadyImported);
   boundBringStatement->setIsModuleImport(bringStatement->getIsModuleImport());
 
   if (bringStatement->getIsChoosyImportPtr()) {
@@ -827,70 +831,61 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
           nullptr, bringStatement->getCompilationUnitPtr().get(),
           bringStatement->getDiagnosticHandlerPtr().get()));
 
+  if (_currentFileModules.find(bringStatement->getModuleName()) !=
+      _currentFileModules.end()) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Module " + bringStatement->getModuleName() + " Already Declared",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+  }
+
   for (auto &function : globalScope->functions) {
     if (!this->root->tryDeclareFunctionGlobal(function.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Function " + function.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
+      // this->_diagnosticHandler->addDiagnostic(
+      //     Diagnostic("Function " + function.first + " Already Declared",
+      //                DiagnosticUtils::DiagnosticLevel::Error,
+      //                DiagnosticUtils::DiagnosticType::Semantic,
+      //                Utils::getSourceLocation(
+      //                    bringStatement->getBringKeywordPtr().get())));
     }
   }
   for (auto &_class : globalScope->classes) {
     if (!this->root->tryDeclareClass(_class.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Class " + _class.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
+      // this->_diagnosticHandler->addDiagnostic(
+      //     Diagnostic("Class " + _class.first + " Already Declared",
+      //                DiagnosticUtils::DiagnosticLevel::Error,
+      //                DiagnosticUtils::DiagnosticType::Semantic,
+      //                Utils::getSourceLocation(
+      //                    bringStatement->getBringKeywordPtr().get())));
     }
   }
   for (auto &customType : globalScope->customTypes) {
     if (!this->root->tryDeclareCustomType(customType.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Type " + customType.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
+      // this->_diagnosticHandler->addDiagnostic(
+      //     Diagnostic("Type " + customType.first + " Already Declared",
+      //                DiagnosticUtils::DiagnosticLevel::Error,
+      //                DiagnosticUtils::DiagnosticType::Semantic,
+      //                Utils::getSourceLocation(
+      //                    bringStatement->getBringKeywordPtr().get())));
     }
   }
 
   for (auto &variable : globalScope->variables) {
     if (!this->root->tryDeclareVariable(variable.first, variable.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Variable " + variable.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
+      // this->_diagnosticHandler->addDiagnostic(
+      //     Diagnostic("Variable " + variable.first + " Already Declared",
+      //                DiagnosticUtils::DiagnosticLevel::Error,
+      //                DiagnosticUtils::DiagnosticType::Semantic,
+      //                Utils::getSourceLocation(
+      //                    bringStatement->getBringKeywordPtr().get())));
     }
   }
 
   for (auto &module : globalScope->modules) {
-    if (!this->root->tryDeclareModuleGlobal(module.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Module " + module.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
 
-    // for (const auto &variable :
-    //      module.second->getVariableDeclarationStatementsRef()) {
-    //   if (!this->root->tryDeclareVariable(variable->getVariableName(),
-    //                                       variable.get())) {
-    //     this->_diagnosticHandler->addDiagnostic(Diagnostic(
-    //         "Variable " + variable->getVariableName() + " Already
-    //         Declared", DiagnosticUtils::DiagnosticLevel::Error,
-    //         DiagnosticUtils::DiagnosticType::Semantic,
-    //         Utils::getSourceLocation(
-    //             bringStatement->getBringKeywordPtr().get())));
-    //   }
-    // }
+    _currentFileModules.emplace(module.first, module.second);
+    this->root->tryDeclareModuleGlobal(module.second);
   }
 
   boundBringStatement->setGlobalScope(std::move(globalScope));

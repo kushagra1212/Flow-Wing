@@ -13,6 +13,9 @@ const std::vector<SyntaxNode *> &FunctionTypeExpressionSyntax::getChildren() {
   if (_children.size() > 0)
     return _children;
 
+  if (this->_openBracketToken)
+    _children.push_back(_openBracketToken.get());
+
   if (this->_openParenthesisToken)
     _children.push_back(_openParenthesisToken.get());
 
@@ -32,6 +35,9 @@ const std::vector<SyntaxNode *> &FunctionTypeExpressionSyntax::getChildren() {
   for (auto &returnType : _returnTypes) {
     _children.push_back(returnType.get());
   }
+
+  if (this->_closeBracketToken)
+    _children.push_back(_closeBracketToken.get());
 
   return _children;
 }

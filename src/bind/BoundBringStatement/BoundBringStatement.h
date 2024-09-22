@@ -18,6 +18,7 @@ class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
   std::string _rootCallerName;
 
   bool _isModuleImport = false;
+  bool _isAlreadyImported = false;
 
 public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
@@ -45,6 +46,10 @@ public:
     _expressionMap[name] = std::move(expression);
   }
 
+  inline auto setIsAlreadyImported(bool isAlreadyImported) -> void {
+    _isAlreadyImported = isAlreadyImported;
+  }
+
   auto inline isImported(const std::string &name) -> bool {
     return _expressionMap.find(name) != _expressionMap.end();
   }
@@ -70,6 +75,8 @@ public:
   auto inline getRootCallerName() -> std::string { return _rootCallerName; }
 
   inline auto isModuleImport() -> bool { return _isModuleImport; }
+
+  inline auto isAlreadyImported() -> bool { return _isAlreadyImported; }
 };
 
 #endif // BIND_BRING_STATEMENT_H
