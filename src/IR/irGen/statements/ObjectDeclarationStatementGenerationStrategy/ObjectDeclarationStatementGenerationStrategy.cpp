@@ -37,11 +37,14 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
 
   llvm::Value *ptr = nullptr;
 
+  DEBUG_LOG("Declaring Object: " + structType->getStructName().str());
+
   if (_codeGenerationContext->isValidClassType(structType)) {
     ptr = _codeGenerationContext->createMemoryGetPtr(
-        llvm::Type::getInt8PtrTy(*TheContext), _variableName,
+        llvm::PointerType::getUnqual(structType), _variableName,
         _isGlobal ? BinderKindUtils::MemoryKind::Global
                   : BinderKindUtils::MemoryKind::Stack);
+    // assignmentStrategy->initDefaultValue(structType, ptr, *Builder);
   } else {
     ptr = _codeGenerationContext->createMemoryGetPtr(
         structType, _variableName, _variableDeclExpr->getMemoryKind());

@@ -11,12 +11,12 @@ fun printX(x: int) -> nthg {
   }
 
 
-fun main(f:[(int)-> nthg]) -> nthg {
+fun main2(f:[(int)-> nthg]) -> nthg {
 f(2)
 }
 
 
-  main(printX)
+  main2(printX)
     )");
 
   EXPECT_EQ(getOutput(), "Printing X2");

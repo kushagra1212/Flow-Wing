@@ -217,7 +217,9 @@ const traverseJson = async ({
 
       if (obj["ClassStatement"]) programCtx.setCurrentParsingClassName(null);
 
-      if (obj["ModuleStatement"]) programCtx.setCurrentParsingModuleName(null);
+      if (obj["ModuleStatement"]) {
+        programCtx.setCurrentParsingModuleName(null);
+      }
 
       programCtx.stack?.pop();
     }
@@ -441,7 +443,6 @@ const getCompletionItemsForDot = (
   if (suggestion?.hasHoverResult) {
     typeName = typeName.slice(0, typeName.lastIndexOf("."));
   }
-
   const result = new CompletionItemService(
     new ScopeCompletionItemsStrategy()
   ).getCompletionItems({

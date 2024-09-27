@@ -50,16 +50,16 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
 
       // if (
       //   !this.programCtx.rootProgram.variableExpressions.get(
-      //     this.programCtx.getCurrentParsingModuleName() + "::"
+      //     this.result.completionItem.label + "."
       //   )
       // ) {
       //   this.programCtx.rootProgram.variableExpressions.set(
-      //     this.programCtx.getCurrentParsingModuleName() + "::",
+      //     this.result.completionItem.label + ".",
       //     []
       //   );
       // }
       // this.programCtx.rootProgram.variableExpressions
-      //   .get(this.programCtx.getCurrentParsingModuleName() + "::")
+      //   .get(this.result.completionItem.label + ".")
       //   .push(this.result.completionItem);
     }
 

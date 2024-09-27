@@ -1,4 +1,5 @@
 #include "ModuleStatementGenerationStrategy.h"
+#include <memory>
 
 ModuleStatementGenerationStrategy::ModuleStatementGenerationStrategy(
     CodeGenerationContext *context)
@@ -10,6 +11,48 @@ llvm::Value *ModuleStatementGenerationStrategy::generateStatement(
 
 llvm::Value *ModuleStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
+  BoundModuleStatement *boundModuleStatement =
+      static_cast<BoundModuleStatement *>(statement);
+
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      boundModuleStatement->getLocation());
+
+  for (const auto &varDec :
+       boundModuleStatement->getVariableDeclarationStatementsRef()) {
+  }
+
+  for (auto &stat : boundModuleStatement->getStatementsRef()) {
+    switch (stat->getKind()) {
+    case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
+      std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
+          variableDeclarationStatementGenerationStrategy =
+              std::make_unique<VariableDeclarationStatementGenerationStrategy>(
+                  _codeGenerationContext);
+      BoundVariableDeclaration *varDec =
+          static_cast<BoundVariableDeclaration *>(stat);
+      variableDeclarationStatementGenerationStrategy->generateGlobalStatement(
+          varDec);
+
+      break;
+    }
+
+    case BinderKindUtils::BoundNodeKind::CallExpression: {
+
+      std::unique_ptr<CallExpressionGenerationStrategy>
+          callExpressionGenerationStrategy =
+              std::make_unique<CallExpressionGenerationStrategy>(
+                  _codeGenerationContext);
+
+      callExpressionGenerationStrategy->generateGlobalExpression(
+          static_cast<BoundCallExpression *>(stat));
+      break;
+    }
+
+    default: {
+      break;
+    }
+    }
+  }
 
   return nullptr;
 }

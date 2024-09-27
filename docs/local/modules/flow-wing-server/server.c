@@ -23,6 +23,7 @@ typedef struct Route {
 
 static Route *routes = NULL;
 static RequestHandler middleware = NULL;
+static CustomRequestHandler middlewareCustom = NULL;
 
 void set_route(const char *method, const char *path, RequestHandler handler, CustomRequestHandler custom_handler) {
   Route *new_route = (Route *)malloc(sizeof(Route));
@@ -35,7 +36,7 @@ void set_route(const char *method, const char *path, RequestHandler handler, Cus
   routes = new_route;
 }
 
-void set_middleware(RequestHandler mw) { middleware = mw; }
+void set_middleware(RequestHandler mw, CustomRequestHandler mwCustom) { middleware = mw; middlewareCustom = mwCustom; }
 
 char* send_response(int client_socket, const char *status, const char *content_type, const char *body, int keep_alive) {
     if (!status || !content_type) {
@@ -139,7 +140,7 @@ void handle_request(int client_socket, const char *request) {
   parse_http_request(request, method, endpoint);
 
   if (middleware) {
-    middleware(client_socket, request, endpoint, NULL);
+    middleware(client_socket, request, endpoint, middlewareCustom);
     fflush(stdout);
   }
 

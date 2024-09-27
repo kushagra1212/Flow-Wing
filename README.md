@@ -271,9 +271,9 @@ Flow-Wing now provides support for objects, enabling developers to define struct
 
 ```
 type Person = {
-   name:str,
-   age:int,
-   address:str
+  name:str,
+  age:int,
+  address:str
 }
 
 ```

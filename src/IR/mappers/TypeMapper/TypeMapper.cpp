@@ -149,11 +149,15 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       std::string structName = structType->getName().str().length()
                                    ? structType->getName().str()
                                    : ".";
+
+      int64_t lastIndex = structName.find_last_of(".");
       //! This Might break
       // const std::string formatedStructName =
       //     "<" + structName.substr(0, structName.find_last_of(".")) + ">";
-
-      const std::string text = "<Object" + structName + ">";
+      if (lastIndex > 0) {
+        structName = structName.substr(0, lastIndex);
+      }
+      const std::string text = "<Object<" + structName + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;

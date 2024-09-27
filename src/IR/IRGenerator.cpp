@@ -159,9 +159,14 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   // Entry Block
 
+  //! REFACTOR BELOW CODE IN SINGLE FUNCTION and DO all
+  //! Type, Variable, and Function Declaration at once in order as they
+  //! are created
+
   Builder->SetInsertPoint(entryBlock);
 
   _irCodeGenerator->declareCustomType(blockStatement);
+
   for (auto &children : blockStatement->getStatements()) {
     if (children->getKind() ==
         BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
@@ -172,7 +177,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
             ->generateGlobalStatement(children.get());
     } else if (children->getKind() ==
                BinderKindUtils::BoundNodeKind::BringStatement) {
-
       _bringStatementGenerationStrategy->declare(children.get());
     } else if (children->getKind() ==
                BinderKindUtils::BoundNodeKind::BoundModuleStatement) {

@@ -15,6 +15,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
     llvm::Value *v, llvm::Type *variableType, const std::string &variableName,
     int64_t pos) {
 
+  DEBUG_LOG("Variable Name", variableName);
+
   if (!_variableExpression ||
       _variableExpression->getDotExpressionList().size() - pos == 0) {
     return handleSingleVariable(variableType, v, variableName);
@@ -192,6 +194,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
 
     return this->getVariable(var.first, var.second, variableName);
   } else {
+
+    DEBUG_LOG("getGlobalVariableValue Name ", variableName);
     return this->getGlobalVariableValue(
         variableName, TheModule->getGlobalVariable(variableName));
   }
@@ -217,6 +221,8 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
           ->getValue());
   _variableName = variableName;
 
+  DEBUG_LOG("Variable Name ", variableName);
+
   return this->getVariableValue(variableName);
 }
 
@@ -228,6 +234,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
   std::string dotPropertyName = getPropertyName(listIndex);
   itsClass = _codeGenerationContext->isValidClassType(parObjType);
 
+  DEBUG_LOG("dotPropertyName Name", dotPropertyName);
   bool isNested =
       _variableExpression->getDotExpressionList().size() > listIndex + 1;
 
@@ -236,6 +243,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
           BinderKindUtils::BoundNodeKind::CallExpression) {
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         _variableExpression->getDotExpressionList()[listIndex].get());
+
+    DEBUG_LOG("Caller Name", callExpression->getCallerNameRef());
 
     std::string className =
         Utils::getActualTypeName(parObjType->getStructName().str());
@@ -492,6 +501,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
     return nullptr;
   }
 
+  DEBUG_LOG("Variable Name ", variableName);
+
   // when Global Variable (Value) is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
@@ -518,7 +529,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
       return nullptr;
     }
   }
-
   // When Global Variable (Value) is a struct type
   if (llvm::isa<llvm::StructType>(variable->getValueType())) {
     if (llvm::isa<llvm::GlobalVariable>(variable)) {
@@ -529,6 +539,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
           (llvm::cast<llvm::AllocaInst>(variable))->getAllocatedType());
     }
 
+    DEBUG_LOG("parObjTypeType Name ", parObjTypeType->getStructName().str());
     if (_variableExpression->getDotExpressionList().size() == 0) {
       _codeGenerationContext->getValueStackHandler()->push(
           parObjTypeType->getStructName().str(), variable, "struct",

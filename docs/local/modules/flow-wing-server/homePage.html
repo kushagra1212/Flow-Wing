@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow-Wing Programming Language</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      header {
+        background: #0077cc;
+        color: #fff;
+        padding: 10px 20px;
+        text-align: center;
+      }
+      nav ul {
+        list-style: none;
+        padding: 0;
+      }
+      nav ul li {
+        display: inline;
+        margin: 0 15px;
+      }
+      nav ul li a {
+        color: #fff;
+        text-decoration: none;
+      }
+      main {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #0077cc;
+      }
+      code {
+        background: #eaeaea;
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      footer {
+        text-align: center;
+        padding: 10px;
+        background: #0077cc;
+        color: #fff;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Flow-Wing Programming Language</h1>
+      <nav>
+        <ul>
+          <li><a href="#syntax">Language Syntax</a></li>
+          <li><a href="#complex-types">Complex Types</a></li>
+          <li><a href="#control-flow">Control Flow</a></li>
+          <li><a href="#installation">Installing Flow-Wing</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section id="introduction">
+        <h2>Introduction</h2>
+        <p>Flow-Wing: Sculpting logic with the elegance of flow.</p>
+        <p>
+          A language designed for seamless, intuitive programming, where code
+          flows like natural thought.
+        </p>
+      </section>
+
+      <section id="syntax">
+        <h2>Language Syntax</h2>
+        <h3>Classes</h3>
+        <pre><code>class Vehicle {
+  var make:str
+  var model:str
+  var year:int
+
+  init(make:str, model:str, year:int) -> nthg {
+    self.make = make
+    self.model = model
+    self.year = year
+  }
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model
+  }
+
+  printDetails() -> nthg {
+    print("Vehicle: ", self.getDetails())
+  }
+}</code></pre>
+
+        <h3>Inheritance</h3>
+        <pre><code>class Car extends Vehicle {
+  var doors: int
+  init(make: str, model: str, year: int, doors: int) -> nthg {
+    super(make, model, year)
+    self.doors = doors
+  }
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
+  }
+
+  printDetails() -> nthg {
+    print("Car: ", self.getDetails())
+  }
+}</code></pre>
+
+        <h3>Using Classes and Functions</h3>
+        <pre><code>fun printVehicleDetails(v: Vehicle) -> nthg {
+  v.printDetails()
+}
+
+fun main() -> nthg {
+  var vehicle:Vehicle = new Vehicle("Toyota", "Camry", 2020)
+  var car:Car = new Car("Honda", "Civic", 2022, 4)
+
+  printVehicleDetails(vehicle)
+  printVehicleDetails(car)
+}
+
+main()</code></pre>
+      </section>
+
+      <section id="complex-types">
+        <h2>Complex Types and Containers</h2>
+        <pre><code>type NestedType = {
+  value:int
+}
+
+type ParentType = {
+  name:str,
+  nestedArray:NestedType[5]
+}
+
+type ComplexType = {
+  id:int,
+  message:str,
+  amount:deci,
+  flag:bool,
+  parentArray:ParentType[1]
+}
+
+var complexArray:ComplexType[2] = [
+  {
+    id:1,
+    message:"hello",
+    amount:3.3,
+    flag:true,
+    parentArray:[
+      {
+        name:"Parent1",
+        nestedArray:[
+          {value:1}, {value:2}, {value:3}, {value:4}, {value:5}
+        ]
+      }
+    ]
+  },
+  {
+    id:2,
+    message:"world",
+    amount:4.4,
+    flag:false,
+    parentArray:[
+      {
+        name:"Parent2",
+        nestedArray:[
+          {value:6}, {value:7}, {value:8}, {value:9}, {value:10}
+        ]
+      }
+    ]
+  }
+]</code></pre>
+      </section>
+
+      <section id="control-flow">
+        <h2>Control Flow</h2>
+        <pre><code>if (condition) {
+  /; Code to execute if the condition is true
+} or if (condition) {
+  /; Code to execute or if the condition is true
+} else {
+  /; Code to execute if the condition is false
+}
+
+for (var i = 0 to 5 : 2) {
+  /; Code to execute in the loop
+}</code></pre>
+      </section>
+
+      <section id="installation">
+        <h2>Installing Flow-Wing</h2>
+        <h3>MacOS x86_64</h3>
+        <h4>Install Homebrew</h4>
+        <p>
+          Visit <a href="https://brew.sh">https://brew.sh</a> to install brew.
+        </p>
+        <pre><code>brew tap kushagra1212/flow-wing
+brew install flowwing</code></pre>
+        <h4>Verify Installation</h4>
+        <pre><code>flowwing --version</code></pre>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2024 Flow-Wing Language. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

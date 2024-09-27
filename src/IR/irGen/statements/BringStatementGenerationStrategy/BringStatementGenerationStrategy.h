@@ -2,12 +2,15 @@
 #define __FLOWWING_BRING_STATEMENT_STRATEGY_H__
 
 #include "../../../../bind/BoundBringStatement/BoundBringStatement.h"
+#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../utils/Utils.h"
+#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 #include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+
 class BringStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
   BringStatementGenerationStrategy(CodeGenerationContext *context);

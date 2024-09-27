@@ -3,9 +3,9 @@
 # Define paths and variables
 export FLOW_WING_COMPILER_PATH="/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
 export FLOW_WING_LIB_PATH="/Users/apple/code/per/Flow-Wing/docs/local/modules/flow-wing-server"
-export FLOW_WING_FILE="Vortex-module.fg"
-export SHARED_LIB_PATH="libwing.a"
-export OUTPUT_EXECUTABLE="build/bin/Vortex-module"
+export FLOW_WING_FILE="test.fg"
+export SHARED_LIB_PATH="libflowwing_vortex.a"
+export OUTPUT_EXECUTABLE="build/bin/test"
 
 # Compile the C code into a shared library
 echo "Compiling C code into shared library..."
@@ -29,7 +29,7 @@ export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DY
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."
-$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=wing
+$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_vortex
 
 # Check if the executable was created successfully
 if [ ! -f "$OUTPUT_EXECUTABLE" ]; then

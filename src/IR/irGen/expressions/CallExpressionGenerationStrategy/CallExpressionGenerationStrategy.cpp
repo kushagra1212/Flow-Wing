@@ -695,13 +695,20 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
             llvm::Value *ptrPtr = Builder->CreateStructGEP(
                 _codeGenerationContext->_classTypes[className]->getClassType(),
                 classPtr, 0);
-            Builder->CreateStore(
-                TheModule->getOrInsertGlobal(
-                    _codeGenerationContext->_classTypes[className]
-                        ->getVTableName(),
-                    _codeGenerationContext->_classTypes[className]
-                        ->getVTableType()),
-                ptrPtr);
+
+            // llvm::Value *vTableGV =
+            // _codeGenerationContext->createMemoryGetPtr(
+            //     _codeGenerationContext->_classTypes[className]->getVTableType(),
+            //     _codeGenerationContext->_classTypes[className]->getVTableName(),
+            //     BinderKindUtils::MemoryKind::Global);
+
+            DEBUG_LOG("VTABLE VAR NAME ", className);
+            DEBUG_LOG("VTABLE VAR NAME ",
+                      _codeGenerationContext->_classTypes[className]
+                          ->getVTableName());
+            Builder->CreateStore(_codeGenerationContext->_classTypes[className]
+                                     ->getVTableGlobalVariable(),
+                                 ptrPtr);
 
             _codeGenerationContext->_classTypes[className]->populateVTable(
                 Builder, TheModule, TheContext, ptrPtr);

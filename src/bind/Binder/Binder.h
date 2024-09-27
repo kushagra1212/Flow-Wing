@@ -90,7 +90,7 @@ private:
   FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _currentModuleName;
 
-  std::unordered_map<std::string, BoundModuleStatement *> _currentFileModules;
+  std::unordered_map<std::string, bool> _currentFileHasModules;
 
 public:
   Binder(std::unique_ptr<BoundScope> root,

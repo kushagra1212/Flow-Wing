@@ -79,8 +79,11 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
 
     for (const auto &variable :
          moduleStatement->getVariableDeclarationStatementsRef()) {
-      _variableDeclarationStatementGenerationStrategy->declareGlobal(
-          static_cast<BoundVariableDeclaration *>(variable.get()));
+      processChildForDeclaration(variable.get(), isGlobal);
+    }
+
+    for (const auto &callExpr : moduleStatement->getCallerExpressionsRef()) {
+      processChildForDeclaration(callExpr.get(), isGlobal);
     }
 
     break;
@@ -130,22 +133,9 @@ void IRCodeGenerator::processChildForCustomType(BoundNode *child) {
   }
 }
 
-void IRCodeGenerator::declareVariables(BoundStatement *statement,
-                                       bool isGlobal) {
-  for (auto &child : statement->getChildren()) {
-    processChildForDeclaration(child, isGlobal);
-  }
-}
-
 void IRCodeGenerator::declareVariables(BoundNode *node, bool isGlobal) {
   for (auto &child : node->getChildren()) {
     processChildForDeclaration(child, isGlobal);
-  }
-}
-
-void IRCodeGenerator::declareCustomType(BoundStatement *statement) {
-  for (auto &child : statement->getChildren()) {
-    processChildForCustomType(child);
   }
 }
 

@@ -707,8 +707,12 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
       break;
     }
     case SyntaxKindUtils::SyntaxKind::FunctionKeyword: {
-      moduleStatement->addMemberStatement(
+      moduleStatement->addStatement(
           std::move(this->parseFunctionDeclaration(false)));
+      break;
+    }
+    case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
+      moduleStatement->addStatement(std::move(this->parseCallExpression()));
       break;
     }
     default: {

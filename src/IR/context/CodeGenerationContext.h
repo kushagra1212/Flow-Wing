@@ -238,10 +238,9 @@ public:
 
   inline auto addClass(const std::string &name,
                        std::unique_ptr<Class> classType) -> void {
-    this->_classes.push_back(std::move(classType));
-    this->_classTypes[name] = this->_classes.back().get();
+    this->_classes.emplace_back(std::move(classType));
+    this->_classTypes.insert({name, this->_classes.back().get()});
   }
-
   inline auto getTargetMachine() -> llvm::TargetMachine * {
     return this->_targetMachine;
   }

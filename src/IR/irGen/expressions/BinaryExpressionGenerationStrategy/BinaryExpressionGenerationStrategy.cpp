@@ -6,6 +6,7 @@ BinaryExpressionGenerationStrategy::BinaryExpressionGenerationStrategy(
 
 llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
     BoundExpression *expression, bool &isClassType) {
+  _codeGenerationContext->getValueStackHandler()->popAll();
   llvm::Value *value =
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);

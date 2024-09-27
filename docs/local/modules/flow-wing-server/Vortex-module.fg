@@ -1,6 +1,7 @@
+bring {parseObject, parseArray} from "json-parser.fg"
 bring Err
 bring Str
-bring {parseObject, parseArray} from "json-parser.fg"
+bring Vec
 
 fun start_server(port: as int) -> as nthg decl
 
@@ -11,7 +12,7 @@ fun flush() -> as nthg decl
 fun set_route(method: as str, path: as str, handler: unknown, handler2: unknown) -> as nthg decl
 
 
-fun set_middleware(middleware: unknown) -> as nthg decl
+fun set_middleware(middleware: unknown, handler: unknown) -> as nthg decl
 
 
 fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int) -> as str decl
@@ -25,83 +26,6 @@ fun strlen(s: as str) -> as int decl
 
 fun len(s: as str) -> as int {
   return strlen(s)
-}
-
-
-fun generate_response(content_type: as str, body: as str) -> as str {
-  return "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + len(body) + "\r\n\r\n" + body
-}
-
-
-fun json_response(data: as str) -> str {
-  return "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " + len(data) + "\r\n\r\n" + data
-}
-
-
-fun statusString(inout status: int) -> str {
-  if (100) {
-    return "100 Continue"
-  } or if (101) {
-    return "101 Switching Protocols"
-  } or if (200) {
-    return "200 OK"
-  } or if 201 {
-    return "201 Created"
-  } or if 202 {
-    return "202 Accepted"
-  } or if 204 {
-    return "204 No Content"
-  } or if 301 {
-    return "301 Moved Permanently"
-  } or if 302 {
-    return "302 Found"
-  } or if 303 {
-    return "303 See Other"
-  } or if 304 {
-    return "304 Not Modified"
-  } or if 307 {
-    return "307 Temporary Redirect"
-  } or if 308 {
-    return "308 Permanent Redirect"
-  } or if 400 {
-    return "400 Bad Request"
-  } or if 401 {
-    return "401 Unauthorized"
-  } or if 403 {
-    return "403 Forbidden"
-  } or if 404 {
-    return "404 Not Found"
-  } or if 405 {
-    return "405 Method Not Allowed"
-  } or if 408 {
-    return "408 Request Timeout"
-  } or if 500 {
-    return "500 Internal Server Error"
-  } or if 501 {
-    return "501 Not Implemented"
-  } or if 502 {
-    return "502 Bad Gateway"
-  } or if 503 {
-    return "503 Service Unavailable"
-  } or if 504 {
-    return "504 Gateway Timeout"
-  } else {
-    return String(status)
-  }
-}
-
-
-fun my_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {
-  if (endpoint == "/json") {
-    const json_response_data: str = "{\"message\": \"Hello, JSON!\"}"
-    send_response(client_socket, "200 OK", "application/json", json_response_data, 1)
-  } or if (endpoint == "/text") {
-    const plain_text_response: str = "Hello, World!"
-    send_response(client_socket, "200 OK", "text/plain", plain_text_response, 1)
-  } else {
-    const not_found_response: str = "Not Found"
-    send_response(client_socket, "404 Not Found", "text/plain", not_found_response, 1)
-  }
 }
 
 
@@ -130,6 +54,7 @@ fun split(s: str, delimiter: str) -> Vec::String {
   return result
 }
 
+module [Vortex]
 type Header = {
   Host: str,
   Connection: str,
@@ -154,22 +79,117 @@ type HttpRequest = {
   method: str,
   endpoint: str,
   version: str,
-  headers: Header,
+  headers: Vortex::Header,
   body: str
 }
+type HttpResponseType = {
+  status: int,
+  content_type: str,
+  body: str,
+  keepAlive: int
+}
+fun statusString(status: int) -> str {
+  if (status == 100) {
+    return "100 Continue"
+  } or if (status == 101) {
+    return "101 Switching Protocols"
+  } or if (status == 200) {
+    return "200 OK"
+  } or if status == 201 {
+    return "201 Created"
+  } or if status == 202 {
+    return "202 Accepted"
+  } or if status == 204 {
+    return "204 No Content"
+  } or if status == 301 {
+    return "301 Moved Permanently"
+  } or if status == 302 {
+    return "302 Found"
+  } or if status == 303 {
+    return "303 See Other"
+  } or if status == 304 {
+    return "304 Not Modified"
+  } or if status == 307 {
+    return "307 Temporary Redirect"
+  } or if status == 308 {
+    return "308 Permanent Redirect"
+  } or if status == 400 {
+    return "400 Bad Request"
+  } or if status == 401 {
+    return "401 Unauthorized"
+  } or if status == 403 {
+    return "403 Forbidden"
+  } or if status == 404 {
+    return "404 Not Found"
+  } or if status == 405 {
+    return "405 Method Not Allowed"
+  } or if status == 408 {
+    return "408 Request Timeout"
+  } or if status == 500 {
+    return "500 Internal Server Error"
+  } or if status == 501 {
+    return "501 Not Implemented"
+  } or if status == 502 {
+    return "502 Bad Gateway"
+  } or if status == 503 {
+    return "503 Service Unavailable"
+  } or if status == 504 {
+    return "504 Gateway Timeout"
+  } else {
+    return String(status)
+  }
+}
 
-fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
+
+class HttpResponse {
+  var res: Vortex::HttpResponseType
+  var clientSocket: int
+  init(clientSocket: int) -> nthg {
+    self.clientSocket = clientSocket 
+  }
+
+
+  send(res: Vortex::HttpResponseType) -> Err::Result {
+    res.keepAlive = 1 
+    if (res.content_type == "") {
+      res.content_type = "text/plain" 
+    }
+    if (res.body == "") {
+      return new Err::Result("Could not send response", Err::CODE.FAILED, "In send")
+    }
+    var error: str = send_response(clientSocket, Vortex::statusString(res.status), res.content_type, res.body, res.keepAlive)
+    if (error) {
+      return new Err::Result(error, Err::CODE.FAILED, "In send")
+    }
+    return Nir
+  }
+
+
+}
+fun middlewareFunction(client_socket: as int, req_str: as str, endpoint: as str, customMiddleware: [( Vortex::HttpRequest, Vortex::HttpResponse ) -> nthg] ) -> as nthg {
+  var Req: Vortex::HttpRequest, err: Err::Result = Vortex::parseRequest(req_str)
+  customMiddleware(Req, new Vortex::HttpResponse(client_socket))
+}
+
+
+fun middleHandler(client_socket: as int, req: as str, endpoint: as str, customRouteHandler: [( Vortex::HttpRequest, Vortex::HttpResponse ) -> nthg] ) -> as nthg {
+  var Req: Vortex::HttpRequest, err: Err::Result = Vortex::parseRequest(req)
+  customRouteHandler(Req, new Vortex::HttpResponse(client_socket))
+}
+
+
+fun parseRequest(req_str: as str) -> Vortex::HttpRequest, Err::Result {
   var lines: Vec::String = split(req_str, "\n")
   var method: str, endpoint: str, version: str    /; Headers start from the second line onwards
 
   if (lines.size() == 0) {
     return {
 
-    }, new Err::Result("Could not parse request", Err::CODE.FAILED, "In parse_request")
+    }, new Err::Result("Could not parse request", Err::CODE.FAILED, "In parseRequest")
   }
   var body: str
   var hasBody = false
-  var header_map: Header
+  var header_map: Vortex::Header
   for var i = 0 to lines.size() - 1 {
     if i == 0 {
       var firstLineParts: Vec::String = split(lines.get(i), " ")
@@ -232,139 +252,27 @@ fun parse_request(req_str: as str) -> HttpRequest, Err::Result {
 }
 
 
-fun log_middleware(client_socket: as int, req_str: as str, endpoint: as str) -> as nthg {  /;print("log_middleware: ", req_str, "\n")
-
-  flush()
-}
-
-
-fun printVector(inout vec: Vec::String) -> as nthg {
-  for var i = 0 to vec.size() - 1 {
-    print(vec.get(i), "\n")
-    flush()
-  }
-  flush()
-}
-
-
-fun post_request_handler(client_socket: as int, req: as str, endpoint: as str) -> as nthg {  /; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
-
-  var Req: HttpRequest, err: Err::Result = parse_request(req)    /;print("Req: ", Req, "\n")
-
-  var mp: Map::String = parseObject(Req.body)
-  print("NAME ", mp.get("address"), "\n")
-  flush()
-  const plain_text_response: str = "Hello, World!"
-  send_response(client_socket, "200 OK", "text/plain", plain_text_response, 1)
-}
-
-type HttpResponseType = {
-  status: int,
-  content_type: str,
-  body: str,
-  keepAlive: int
-}
-class HttpResponse {
-  var res: HttpResponseType
-  var clientSocket: int
-  init(clientSocket: int) -> nthg {
-    self.clientSocket = clientSocket 
+class Server {
+  var port: int
+  init(port: int) -> nthg {
+    self.port = port 
   }
 
 
-  send(res: HttpResponseType) -> Err::Result {
-    res.keepAlive = 1 
-    if (res.content_type == "") {
-      res.content_type = "text/plain" 
-    }
-    if (res.body == "") {
-      return new Err::Result("Could not send response", Err::CODE.FAILED, "In send")
-    }
-    var status = statusString(res.status)
-    var r: str = send_response(clientSocket, status, res.content_type, res.body, res.keepAlive)
-    print("SSS", r)
-    return Nir
+  addMiddleware(customMiddleware: [( Vortex::HttpRequest, Vortex::HttpResponse ) -> nthg] ) -> as nthg {
+    set_middleware(Vortex::middlewareFunction, customMiddleware)
+  }
+
+
+  start() -> as nthg {
+    start_server(self.port)
+  }
+
+
+  setRoute(method: as str, path: as str, customRouteHandler: [( Vortex::HttpRequest, Vortex::HttpResponse ) -> nthg] ) -> as nthg {
+    set_route(method, path, Vortex::middleHandler, customRouteHandler)
   }
 
 
 }
-
-fun my_request_handler2(client_socket: as int, req: as str, endpoint: as str, cRouteHandler: [( HttpRequest, HttpResponse ) -> nthg] ) -> as nthg {  /; print("POST Request", Str::subStr(req, "\r\n\r\n"), "\n")
-
-  var Req: HttpRequest, err: Err::Result = parse_request(req)    /;print("Req: ", Req, "\n")
-
-  /; var mp: Map::String = parseObject(Req.body)
-    /; print("NAME ", mp.get("address"), "\n")
-    /; flush()
-
-  print(" Printint Endpoint From my_request_handler2 Route: ", endpoint, "\n")
-  flush()
-  const plain_text_response: str = "Hello, World!"
-  cRouteHandler(Req, new HttpResponse(client_socket))
-}
-
-
-fun customRouteHandler(inout req: HttpRequest, inout res: HttpResponse) -> nthg {
-  print(" Printint Endpoint From Custom Route: ", "\n")
-  flush()
-  var err: Err::Result = res.send({
-    status: 200,
-    content_type: "text/plain",
-    body: "Hello, World!"
-  })
-  if (!(err == Nir)) {
-    print(err.code, "\n")
-    flush()
-  }
-}
-
-
-fun customRouteHandler2(inout req: HttpRequest, inout res: HttpResponse) -> nthg {
-  print(" Printint Endpoint From Custom Route2: ", "\n")
-  flush()
-  var err: Err::Result = res.send({
-    status: 200,
-    content_type: "text/plain",
-    body: "Hello, World2!"
-  })
-  if (err != Nir) {
-  /; print(err.getMessage(), "\n")
-
-    flush()
-  }
-}
-
-
-fun main() -> nthg {
-  set_middleware(log_middleware)
-  /; set_route("GET", "/json", my_request_handler)
-
-  set_route("GET", "/", my_request_handler2, customRouteHandler)
-  set_route("GET", "/hello", my_request_handler2, customRouteHandler2)
-  /; set_route("GET", "/text", my_request_handler)
-    /; set_route("POST", "/submit", post_request_handler)
-
-  start_server(8080)
-}
-
-main()
-/; class FGVortex {
-  /;   var port: int
-  /;   init(port: int) -> nthg {
-  /;     self.port = port 
-  /;   }
-
-/;   addMiddleware(middleware: [( int, str, str ) -> nthg] ) -> as nthg {
-  /;     set_middleware(middleware)
-  /;   }
-
-/;   start() -> as nthg {
-  /;     start_server(self.port)
-  /;   }
-
-/;   setRoute(method: str, path: str, handler: [( int, str, str ) -> nthg] ) -> as nthg {
-  /;     set_route(method, path, handler)
-  /;   }
-
-/; }
 

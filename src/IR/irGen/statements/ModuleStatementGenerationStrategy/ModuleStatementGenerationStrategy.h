@@ -2,9 +2,11 @@
 #define __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
 
 #include "../../../../bind/BoundModuleStatement/BoundModuleStatement.h"
+#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
+#include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 
 class ModuleStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

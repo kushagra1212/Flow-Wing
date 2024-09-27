@@ -51,6 +51,18 @@ export class ScopeCompletionItemsStrategy implements CompletionItemStrategy {
           .functions.get(identifier),
       ];
     }
+
+    if (
+      programCtx.doesModuleExist(identifier.split("::")[0]) &&
+      programCtx.rootProgram.modules
+        .get(identifier.split("::")[0])
+        ?.[expressionName].get(identifier)
+    ) {
+      return programCtx.rootProgram.modules
+        .get(identifier.split("::")[0])
+        ?.[expressionName].get(identifier);
+    }
+
     return result;
   }
 }

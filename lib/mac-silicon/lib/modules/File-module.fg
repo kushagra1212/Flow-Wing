@@ -1,6 +1,7 @@
 bring Err
-
 module [File]
+
+
 type IO_FILE = {
   flags: int,
   IO_read_ptr: str,
@@ -109,7 +110,7 @@ fun write(filePath: as str, data: as str, mode: as str) -> str, Err::Result {
 fun createFile(filePath: as str) -> str, Err::Result {
   var file: str = fopen(filePath, "w")
   if (file == Nir) {
-    return new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
+    return "" ,new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
   }
   fclose(file)
   return "", Nir

@@ -39,7 +39,11 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
   DEBUG_LOG("Declaring Function: " + FUNCTION_NAME);
 
-  bool isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
+  auto isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
+
+  if (isFunctionAlreadyDeclared) {
+    return isFunctionAlreadyDeclared;
+  }
   _codeGenerationContext->_functionTypes[FUNCTION_NAME] =
       std::make_unique<FlowWing::Function>();
   _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setFunctionName(

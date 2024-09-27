@@ -15,8 +15,7 @@ class ModuleStatementSyntax : public StatementSyntax {
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _moduleName;
   std::unique_ptr<SyntaxToken<std::any>> _closeBracketToken;
 
-  std::vector<std::unique_ptr<StatementSyntax>> _statements;
-  std::vector<std::unique_ptr<MemberSyntax>> _membersStatements;
+  std::vector<std::unique_ptr<SyntaxNode>> _statements;
 
 public:
   const SyntaxKindUtils::SyntaxKind getKind() const override;
@@ -47,13 +46,8 @@ public:
     this->_closeBracketToken = std::move(closeBracketToken);
   }
 
-  inline auto addStatement(std::unique_ptr<StatementSyntax> statement) -> void {
+  inline auto addStatement(std::unique_ptr<SyntaxNode> statement) -> void {
     _statements.push_back(std::move(statement));
-  }
-
-  inline auto addMemberStatement(std::unique_ptr<MemberSyntax> memberStatement)
-      -> void {
-    _membersStatements.push_back(std::move(memberStatement));
   }
 
   const inline std::unique_ptr<SyntaxToken<std::any>> &getModuleKeywordRef() {
@@ -74,13 +68,8 @@ public:
   }
 
   inline auto getStatementsRef()
-      -> const std::vector<std::unique_ptr<StatementSyntax>> & {
+      -> const std::vector<std::unique_ptr<SyntaxNode>> & {
     return _statements;
-  }
-
-  inline auto getMembersStatementsRef()
-      -> const std::vector<std::unique_ptr<MemberSyntax>> & {
-    return _membersStatements;
   }
 };
 
