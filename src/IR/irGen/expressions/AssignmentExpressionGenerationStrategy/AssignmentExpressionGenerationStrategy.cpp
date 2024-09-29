@@ -46,11 +46,10 @@ void AssignmentExpressionGenerationStrategy::declare(
     if (Utils::isClassInit(callExpression->getCallerNameRef())) {
       callExpression->setArgumentAlloca(
           callExpression->getArgumentsRef().size(), {ptr, type});
-    } else if (_codeGenerationContext->_functionTypes.find(
-                   callExpression->getCallerNameRef()) !=
-                   _codeGenerationContext->_functionTypes.end() &&
-               _codeGenerationContext
-                   ->_functionTypes[callExpression->getCallerNameRef()]
+    } else if (_codeGenerationContext->funcPtr(
+                   callExpression->getCallerNameRef()) &&
+               (_codeGenerationContext->funcPtr(
+                    callExpression->getCallerNameRef()))
                    ->isHavingReturnTypeAsParamater()) {
       callExpression->setArgumentAlloca(0, {ptr, type});
     }
@@ -132,10 +131,8 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
     BoundCallExpression *callExp = static_cast<BoundCallExpression *>(exp);
 
     if (callExp->getCallerNameRef().find(".init") != std::string::npos ||
-        (_codeGenerationContext->_functionTypes.find(
-             callExp->getCallerNameRef()) !=
-             _codeGenerationContext->_functionTypes.end() &&
-         _codeGenerationContext->_functionTypes[callExp->getCallerNameRef()]
+        (_codeGenerationContext->funcPtr(callExp->getCallerNameRef()) &&
+         (_codeGenerationContext->funcPtr(callExp->getCallerNameRef()))
              ->isHavingReturnTypeAsParamater())) {
       std::unique_ptr<CallExpressionGenerationStrategy> callStrategy =
           std::make_unique<CallExpressionGenerationStrategy>(
@@ -270,8 +267,10 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleRHSExpression(
         nirastExpressionGenerationStrategy =
             std::make_unique<NirastExpressionGenerationStrategy>(
                 _codeGenerationContext);
-    return nirastExpressionGenerationStrategy->generateExpression(
-        static_cast<BoundNirastExpression *>(expression));
+    Builder->CreateStore(nirastExpressionGenerationStrategy->generateExpression(
+                             static_cast<BoundNirastExpression *>(expression)),
+                         _lhsPtr);
+    return _lhsPtr;
   }
 
   _codeGenerationContext->getLogger()->LogError("Invalid Expression found ");

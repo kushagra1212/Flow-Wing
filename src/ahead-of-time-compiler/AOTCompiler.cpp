@@ -2,39 +2,44 @@
 #include "../cli/argh.h"
 #include "../common/version.h"
 
-AOTCompiler::AOTCompiler(std::string filePath, argh::parser *cmdl,
+AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)
-    : Compiler(filePath), _cmdl(cmdl) {}
+    : Compiler(filePath) {}
 
 void AOTCompiler::link() {
 
-  std::string fileNameWithOutExtension = this->getFileNameWithoutExtension();
+  std::string fileNameWithOutExtension =
+      FlowWing::AOT::getFileNameWithoutExtension(
+          _currentDiagnosticHandler.get());
+
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  DEBUG_LOG_LL_FILES_INFO();
+  FlowWing::AOT::RUN_ON_DEBUG_GENERATE_BC_FROM_LL();
 
   std::unique_ptr<CommandManager> _commandManager =
-      std::make_unique<CommandManager>(_cmdl, fileNameWithOutExtension);
+      std::make_unique<CommandManager>(fileNameWithOutExtension);
 
   try {
 
     std::string cmd = _commandManager->create();
 
-    DEBUG_LOG_LINKING_INFO(cmd);
+    LINKING_DEBUG_LOG(cmd);
 
     int status = std::system(cmd.c_str());
 
     if (status != 0) {
-      LINKING_FAIL_ERROR(status, fileNameWithOutExtension, VERSION_INFO);
+      FlowWing::AOT::LINKING_FAIL_ERROR(status, fileNameWithOutExtension,
+                                        VERSION_INFO);
       return;
     }
 
-    deleteObjectFiles();
+    FlowWing::AOT::deleteObjectFiles();
+
   } catch (const std::exception &e) {
     std::cerr << "Exception occurred: " << e.what() << std::endl;
 
-    deleteObjectFiles();
+    FlowWing::AOT::deleteObjectFiles();
   }
 }
 
@@ -61,94 +66,39 @@ int main(int argc, char **argv) {
   return RUN_ALL_TESTS();
 }
 
-#endif
-
-#ifdef AOT_MODE
-
+#elif AOT_MODE
 int main(int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
-  argh::parser cmdl(argv);
+  argh::parser _cmdl(argv);
 
-  if (cmdl[{FlowWingCliOptions::OPTIONS::Version.name.c_str(),
-            FlowWingCliOptions::OPTIONS::ShortVersion.name.c_str()}]) {
-    std::cout << "Flowwing Compiler" << std::endl;
-    std::cout << "Version: " << VERSION_INFO << std::endl;
+  FlowWing::Cli::cmdl = &(_cmdl);
+
+  auto basicArgStatus = FlowWing::Cli::handleBasicArgs();
+
+  if (basicArgStatus == FlowWing::Cli::STATUS::DONE) {
     return EXIT_SUCCESS;
   }
 
-  if (!cmdl(FlowWingCliOptions::OPTIONS::File.name.c_str()) &&
-      !cmdl(FlowWingCliOptions::OPTIONS::ShortFile.name.c_str())) {
-    Utils::printErrors({"Usage: " + std::string(argv[0]) + " <file_path> "},
-                       std::cerr, true);
+  if (basicArgStatus == FlowWing::Cli::STATUS::FAILURE) {
     return EXIT_FAILURE;
   }
 
-  std::string _filePath = cmdl("file") ? cmdl("file").str() : cmdl("F").str();
-  // Opens the file using the provided file path
+  std::vector<std::string> text = {};
 
-  std::ifstream file;
+  std::string filePath = "";
 
-  file.open(_filePath);
+  auto status = FlowWing::Cli::handleFileArgs(text, filePath, argv);
 
-  if (!file.is_open()) {
-    Utils::printErrors({"Unable to open file: " + std::string(_filePath),
-                        "Usage: " + std::string(argv[0]) + " <file_path> "},
-                       std::cerr);
-
-    if (access(_filePath.c_str(), R_OK) != 0) {
-      Utils::printErrors(
-          {"Please check if the file exists and you have read permissions."},
-          std::cerr);
-
-      return EXIT_FAILURE;
-    }
+  if (status == FlowWing::Cli::STATUS::DONE) {
     return EXIT_SUCCESS;
   }
-  // Close the file (imp)
-  file.close();
 
-  Utils::Node::addPath(Utils::getAbsoluteFilePath(_filePath));
-  std::vector<std::string> text = {};
-  if (!cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str().empty() ||
-      !cmdl(FlowWingCliOptions::OPTIONS::ShortCode.name.c_str())
-           .str()
-           .empty()) {
-
-    std::string code =
-        !cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str().empty()
-            ? cmdl(FlowWingCliOptions::OPTIONS::Code.name.c_str()).str()
-            : cmdl(FlowWingCliOptions::OPTIONS::ShortCode.name.c_str()).str();
-
-    text = Utils::readLinesFromText(code);
-  } else
-    text = Utils::readLines(Utils::getAbsoluteFilePath(_filePath));
+  if (status == FlowWing::Cli::STATUS::FAILURE) {
+    return EXIT_FAILURE;
+  }
 
   std::unique_ptr<AOTCompiler> aotCompiler =
-      std::make_unique<AOTCompiler>(_filePath, &cmdl);
-
-  if (cmdl[{FlowWingCliOptions::OPTIONS::Format.name.c_str(),
-            FlowWingCliOptions::OPTIONS::ShortFormat.name.c_str()}]) {
-
-    aotCompiler->Format.setValue(true);
-    aotCompiler->ShortFormat.setValue(true);
-  }
-
-  if (cmdl[{FlowWingCliOptions::OPTIONS::FormatPrint.name.c_str(),
-            FlowWingCliOptions::OPTIONS::ShortFormatPrint.name.c_str()}]) {
-
-    aotCompiler->FormatPrint.setValue(true);
-    aotCompiler->ShortFormatPrint.setValue(true);
-  }
-
-  std::string OUTPUT_FILE_PATH =
-      !cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str().empty()
-          ? cmdl(FlowWingCliOptions::OPTIONS::OutputFile.name.c_str()).str()
-          : cmdl(FlowWingCliOptions::OPTIONS::ShortOutputFile.name.c_str())
-                .str();
-
-  if (!OUTPUT_FILE_PATH.empty()) {
-    aotCompiler->setOutputFilePath(OUTPUT_FILE_PATH);
-  }
+      std::make_unique<AOTCompiler>(filePath);
 
   aotCompiler->_executable_path = std::filesystem::path(argv[0]);
   aotCompiler->compile(text, std::cout);

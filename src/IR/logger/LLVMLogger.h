@@ -9,11 +9,11 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 class LLVMLogger {
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   unsigned int errorCount;
 
 public:
-  LLVMLogger(FLowWing::DiagnosticHandler *diagnosticHandler)
+  LLVMLogger(FlowWing::DiagnosticHandler *diagnosticHandler)
       : _sourceMgr(), _errs(llvm::errs()), _llvmErrorMsg("FlowWing::Error: "),
         _llvmWarningMsg("FlowWing::Warning: "), _llvmInfoMsg("FlowWing::Info"),
         _diagnosticHandler(diagnosticHandler), errorCount(0) {}

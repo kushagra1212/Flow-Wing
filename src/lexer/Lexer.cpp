@@ -1,7 +1,7 @@
 #include "Lexer.h"
 
 Lexer::Lexer(const std::vector<std::string> &sourceCode,
-             FLowWing::DiagnosticHandler *diagnosticHandler) {
+             FlowWing::DiagnosticHandler *diagnosticHandler) {
   textSize = sourceCode.size();
 
   this->_sourceCode = sourceCode;
@@ -595,6 +595,10 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
     return std::move(this->readString(start));
   }
 
+  case '`': {
+    return std::move(this->readTemplateString(start));
+  }
+
   case '\'': {
     return std::move(this->readChar(start));
   }
@@ -757,6 +761,53 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readString(const int &start) {
       SyntaxKindUtils::SyntaxKind::StringToken, start, '"' + text + '"',
       valueText);
 }
+
+std::unique_ptr<SyntaxToken<std::any>>
+Lexer::readTemplateString(const int &start) {
+
+  std::string text = "", valueText = "";
+  text += this->getCurrent();
+  valueText += this->getCurrent();
+  this->next();
+  while (this->getCurrent() != this->endOfFile && this->getCurrent() != '`') {
+
+    if (this->getCurrent() == endOfLine) {
+      text += "\n";
+      valueText += "\n";
+      this->lineNumber++;
+      this->position = 0;
+    } else {
+      text += this->getCurrent();
+      valueText += this->getCurrent();
+      this->next();
+    }
+  }
+
+  if (this->getCurrent() != '`') {
+    std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
+        std::make_unique<SyntaxToken<std::any>>(
+            this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+            SyntaxKindUtils::SyntaxKind::BadToken, start,
+            this->_sourceCode[lineNumber].substr(start, this->position - start),
+            0);
+
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Unterminated backtick string", DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Lexical,
+        Utils::getSourceLocation(newSyntaxToken.get())));
+
+    return std::move(newSyntaxToken);
+  }
+  text += this->getCurrent();
+  valueText += this->getCurrent();
+  this->next();
+  return std::make_unique<SyntaxToken<std::any>>(
+      this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+      SyntaxKindUtils::SyntaxKind::StringToken, start, text,
+
+      valueText);
+}
+
 std::unique_ptr<SyntaxToken<std::any>> Lexer::readChar(const int &start) {
   this->next();
   std::string text = "", valueText = "";

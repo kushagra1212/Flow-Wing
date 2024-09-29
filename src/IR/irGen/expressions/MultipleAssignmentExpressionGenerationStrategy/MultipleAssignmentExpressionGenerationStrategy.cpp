@@ -121,11 +121,8 @@ void MultipleAssignmentExpressionGenerationStrategy::declare(
     BoundCallExpression *callExpression =
         BoundUtils::getCallExpression(firstAssignmentExpr->getRightPtr().get());
 
-    if (!(_codeGenerationContext->_functionTypes.find(
-              callExpression->getCallerNameRef()) !=
-              _codeGenerationContext->_functionTypes.end() &&
-          _codeGenerationContext
-              ->_functionTypes[callExpression->getCallerNameRef()]
+    if (!(_codeGenerationContext->funcPtr(callExpression->getCallerNameRef()) &&
+          (_codeGenerationContext->funcPtr(callExpression->getCallerNameRef()))
               ->isHavingReturnTypeAsParamater())) {
       return;
     }

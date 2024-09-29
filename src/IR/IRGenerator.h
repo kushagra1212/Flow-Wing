@@ -100,7 +100,7 @@ using namespace FLOWWING::IR::CONSTANTS;
 
 class IRGenerator {
 public:
-  IRGenerator(int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
+  IRGenerator(int environment, FlowWing::DiagnosticHandler *diagnosticHandler,
               std::unordered_map<std::string, BoundFunctionDeclaration *>
                   boundedUserFunctions,
               std::string outputFilePath,
@@ -160,7 +160,7 @@ private:
   std::unique_ptr<LLFileSaveStrategy> llFileSaveStrategy;
   std::unique_ptr<BCFileSaveStrategy> bcFileSaveStrategy;
   std::unique_ptr<OFileSaveStrategy> oFileSaveStrategy;
-
+  std::unique_ptr<ObjectFile> objectFile;
   // IRCodeGenerator Instance
 
   std::unique_ptr<IRCodeGenerator> _irCodeGenerator;

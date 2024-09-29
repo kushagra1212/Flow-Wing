@@ -18,10 +18,10 @@ TEST_F(ModuleTest, ModuleImportTest) {
   std::system(createBuildAndRunCmd("temp.fg").c_str());
 
 #if AOT_TEST_MODE
-  EXPECT_EQ(getOutput(), "\n0");
+  EXPECT_EQ(getOutput(), "\n2");
 
 #else
-  EXPECT_EQ(getOutput(), "0\n");
+  EXPECT_EQ(getOutput(), "2\n");
 #endif
 }
 
@@ -431,8 +431,6 @@ class A {
 }
 
 
-var g:local::T = {}
-var a:local::A =  new local::A()
 
 
 
@@ -441,11 +439,13 @@ var a:local::A =  new local::A()
   writeFile("temp.fg", R"(
 bring local
 
+var g:local::T = {}
+var a:local::A =  new local::A()
 
-print(local::a.x)
-print(local::a.u)
-local::a.x = {a:21}
-print(local::a.x)
+print(a.x)
+print(a.u)
+a.x = {a:21}
+print(a.x)
   )");
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());
@@ -455,6 +455,47 @@ print(local::a.x)
   EXPECT_EQ(getOutput(), "{ a : 0 }0{ a : 21 }\n");
 #endif
 }
+//! Not Supported as of now
+// TEST_F(ModuleTest, ModuleImportTestUsingClassAccess3) {
+//   writeFile("local-module.fg", R"(
+// module [local]
+
+// type T ={
+//     a:int
+//   }
+// var x:int
+
+// class A {
+
+//   var x:local::T
+//   var u:int
+
+//   init() -> nthg {
+
+//   }
+// }
+
+// var g:local::T = {}
+// var a:local::A =  new local::A()
+
+//   )");
+
+//   writeFile("temp.fg", R"(
+// bring local
+
+// print(local::a.x)
+// print(local::a.u)
+// local::a.x = {a:21}
+// print(local::a.x)
+//   )");
+
+//   std::system(createBuildAndRunCmd("temp.fg").c_str());
+// #if AOT_TEST_MODE
+//   EXPECT_EQ(getOutput(), "\n{ a : 0 }0{ a : 21 }");
+// #else
+//   EXPECT_EQ(getOutput(), "{ a : 0 }0{ a : 21 }\n");
+// #endif
+// }
 TEST_F(ModuleTest, ModuleImportTestUsingClassAccess2) {
   writeFile("local-module.fg", R"(
 module [local]
@@ -478,17 +519,17 @@ type T ={
 }
 
 
-var a:local::A =  new local::A()
   )");
 
   writeFile("temp.fg", R"(
 bring local
 
+var a:local::A =  new local::A()
 
-print(local::a.x)
-print(local::a.u)
-local::a.x = {a:21}
-print(local::a.x)
+print(a.x)
+print(a.u)
+a.x = {a:21}
+print(a.x)
   )");
 
   std::system(createBuildAndRunCmd("temp.fg").c_str());

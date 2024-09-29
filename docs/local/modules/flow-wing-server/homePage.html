@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow-Wing Programming Language</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        background: linear-gradient(135deg, #1e1e2f, #2f2f3b);
+        overflow: hidden;
+      }
+
+      .container {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-size: 3em;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+
+      p {
+        font-size: 1.5em;
+        margin: 20px 0;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+
+      .backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        filter: blur(10px);
+        animation: pulse 5s infinite alternate;
+        z-index: 0;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(1.05);
+          opacity: 0.3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <div class="container">
+      <h1>Flow-Wing Programming Language</h1>
+      <p>
+        A programming language designed for seamless, intuitive programming that
+        merges technology with nature’s harmony.
+      </p>
+    </div>
+  </body>
+</html>

@@ -9,11 +9,11 @@ import { LiteralExpressionStrategy } from "./LiteralExpressionStrategy";
 import { ObjectTypeExpressionStrategy } from "./ObjectTypeExpressionStrategy";
 import { PrimitiveTypeExpressionStrategy } from "./PrimitiveTypeExpressionStrategy";
 import { VariableDeclarationExpressionStrategy } from "./VariableDeclarationExpressionStrategy";
+import { FunctionTypeExpressionStrategy } from "./FunctionTypeExpressionStrategy";
 
 export class ExpressionStrategyFactory {
   static createStrategy(expression: any): ExpressionStrategy {
     if (!expression) return null;
-
     if (expression["PrimitiveTypeExpression"]) {
       return new PrimitiveTypeExpressionStrategy();
     } else if (expression["ArrayTypeExpression"]) {
@@ -34,6 +34,8 @@ export class ExpressionStrategyFactory {
       return new CallExpressionStrategy();
     } else if (expression["ClassStatement"]) {
       return new ClassExpressionStrategy();
+    } else if (expression["FunctionTypeExpression"]) {
+      return new FunctionTypeExpressionStrategy();
     } else {
       return null;
     }

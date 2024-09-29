@@ -2,7 +2,7 @@
 #include <string>
 
 Parser::Parser(const std::vector<std::string> &sourceCode,
-               FLowWing::DiagnosticHandler *diagnosticHandler,
+               FlowWing::DiagnosticHandler *diagnosticHandler,
                std::unordered_map<std::string, int8_t> bringStatementPathsMap) {
   this->tokens = std::vector<std::unique_ptr<SyntaxToken<std::any>>>();
   this->_diagnosticHandler = diagnosticHandler;
@@ -12,6 +12,7 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
 
   SyntaxKindUtils::SyntaxKind _kind =
       SyntaxKindUtils::SyntaxKind::EndOfFileToken;
+  bool isPreviousEndOfLine = false;
 
   do {
     std::unique_ptr<SyntaxToken<std::any>> token =
@@ -27,6 +28,19 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
                      DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Syntactic,
                      Utils::getSourceLocation(token.get())));
+    }
+
+    if (_kind == SyntaxKindUtils::SyntaxKind::CommentStatement) {
+      if (isPreviousEndOfLine)
+        token->setText(NEW_LINE + token->getText());
+      else
+        token->setText(TWO_SPACES + token->getText());
+    }
+
+    if (_kind == SyntaxKindUtils::SyntaxKind::EndOfLineToken) {
+      isPreviousEndOfLine = true;
+    } else if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken) {
+      isPreviousEndOfLine = false;
     }
 
     if (_kind != SyntaxKindUtils::SyntaxKind::WhitespaceToken &&
@@ -79,6 +93,18 @@ std::unique_ptr<SyntaxToken<std::any>> Parser::nextToken() {
 
 SyntaxKindUtils::SyntaxKind Parser::getKind() {
   while (this->getCurrent()->getKind() == SyntaxKindUtils::CommentStatement) {
+
+    if (this->getCurrent()->getText().find_first_of(NEW_LINE) == 0) {
+
+      this->getCurrent()->setText(
+          NEW_LINE + INDENT +
+          this->getCurrent()->getText().substr(
+              1, this->getCurrent()->getText().length() - 1));
+
+    } else {
+
+      this->getCurrent()->setText(INDENT + this->getCurrent()->getText());
+    }
     _formattedSourceCode += this->getCurrent()->getText();
     (this->nextToken());
   }
@@ -424,7 +450,9 @@ std::unique_ptr<TypeExpressionSyntax> Parser::parseTypeExpression() {
     return std::move(objectType);
   }
 
-  if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken &&
+      this->peek(1)->getKind() ==
+          SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     return this->parseFunctionTypeExpression();
   }
 
@@ -444,6 +472,9 @@ Parser::parseFunctionTypeExpression() {
               SyntaxKindUtils::SyntaxKind::NBU_FUNCTION_TYPE, 0,
               "NBU_FUNCTION_TYPE", "NBU_FUNCTION_TYPE"));
 
+  funcTypeExpression->setOpenBracketToken(
+      this->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
+
   funcTypeExpression->setOpenParenthesisToken(
       this->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
 
@@ -459,6 +490,7 @@ Parser::parseFunctionTypeExpression() {
 
     if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
       funcTypeExpression->addAsParameterKeyword(
+          parameterCount,
           std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
       appendWithSpace();
     }
@@ -497,6 +529,8 @@ Parser::parseFunctionTypeExpression() {
 
   } while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
 
+  funcTypeExpression->setCloseBracketToken(
+      this->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
   appendWithSpace();
 
   return std::move(funcTypeExpression);
@@ -673,8 +707,12 @@ std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {
       break;
     }
     case SyntaxKindUtils::SyntaxKind::FunctionKeyword: {
-      moduleStatement->addMemberStatement(
+      moduleStatement->addStatement(
           std::move(this->parseFunctionDeclaration(false)));
+      break;
+    }
+    case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
+      moduleStatement->addStatement(std::move(this->parseCallExpression()));
       break;
     }
     default: {
@@ -966,7 +1004,6 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
     return std::move(bringStatement);
   }
 
-  appendNewLine();
   std::string relativeFilePath = "";
 
   if (stringToken->getValue().type() == typeid(std::string)) {
@@ -980,6 +1017,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
               .parent_path()
               .string();
 
+      bringStatement->setModuleName(relativeFilePath);
       std::string moduleFilePath = Utils::findFile(
           std::string(FLOWWING_MODULE_PATH), relativeFilePath + "-module.fg");
 
@@ -1003,6 +1041,7 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
           std::filesystem::relative(moduleFilePath, currentDirPath);
       stringToken->setValue((relativeFilePath));
     }
+    // appendNewLine();
   }
   bringStatement->setIsModuleImport(isModule);
 
@@ -1016,8 +1055,8 @@ std::unique_ptr<StatementSyntax> Parser::parseBringStatement() {
           .string() +
       "/" + relativeFilePath;
 
-  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler =
-      std::make_unique<FLowWing::DiagnosticHandler>(absoluteFilePath);
+  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler =
+      std::make_unique<FlowWing::DiagnosticHandler>(absoluteFilePath);
 
   if (_bringStatementsPathsMap[absoluteFilePath] == 1) {
     this->_diagnosticHandler->addDiagnostic(
@@ -1569,7 +1608,6 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
 }
 
 std::unique_ptr<StatementSyntax> Parser::parseCommentStatement() {
-
   (this->match(SyntaxKindUtils::SyntaxKind::CommentStatement));
   std::unique_ptr<StatementSyntax> stat = std::move(this->parseStatement());
   appendNewLine();

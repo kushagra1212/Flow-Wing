@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../BoundTypeExpression.h"
+#include <cstdint>
+#include <sys/types.h>
 
 class BoundFunctionTypeExpression : public BoundTypeExpression {
 private:
@@ -32,6 +34,9 @@ public:
 
   inline auto addAsParam(bool hasAsParam) {
     _hasAsParamList.push_back(hasAsParam);
+  }
+  inline auto setAsParam(uint64_t index, bool hasAsParam) {
+    _hasAsParamList[index] = (hasAsParam);
   }
 
   inline auto getParameterTypes()

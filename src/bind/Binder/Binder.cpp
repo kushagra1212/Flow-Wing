@@ -1,5 +1,7 @@
 
 #include "Binder.h"
+#include <cstdint>
+#include <memory>
 
 std::unique_ptr<BoundStatement> Binder::bindExpressionStatement(
     ExpressionStatementSyntax *expressionStatement) {
@@ -67,7 +69,7 @@ Binder::bindVariableDeclaration(VariableDeclarationSyntax *variableDeclaration,
   if (variableDeclaration->getTypeRef()) {
     std::unique_ptr<BoundTypeExpression> boundTypeExpression =
         std::move(bindTypeExpression(variableDeclaration->getTypeRef().get()));
-
+    boundTypeExpression->setVariableNameitBelongsTo(variable_str);
     if (boundTypeExpression->getKind() ==
         BinderKindUtils::BoundObjectTypeExpression) {
       BoundObjectTypeExpression *objectTypeExpression =
@@ -407,27 +409,9 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
       boundModuleStat->addVariableStatement(std::move(boundMemberVariable));
       break;
     }
-    default: {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Unsupported Expression or Statement used in Module [" +
-                         _currentModuleName + "]",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     stat->getSourceLocation()));
-
-      break;
-    }
-    }
-  }
-
-  for (auto &mem : moduleStatement->getMembersStatementsRef()) {
-    _currentModuleName = boundModuleStat->getModuleName();
-
-    switch (mem->getKind()) {
-    // Only Function Declaration
     case SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax: {
       FunctionDeclarationSyntax *fun =
-          static_cast<FunctionDeclarationSyntax *>(mem.get());
+          static_cast<FunctionDeclarationSyntax *>(stat.get());
       if (fun->isOnlyDeclared()) {
         boundModuleStat->addFunctionStatement(
             std::move(this->bindFunctionDeclaration(fun, "")));
@@ -445,19 +429,29 @@ Binder::bindModuleStatement(ModuleStatementSyntax *moduleStatement) {
       fun->setIsOnlyDeclared(false);
       break;
     }
-    default:
-      this->_diagnosticHandler->addDiagnostic(Diagnostic(
-          "Unsupported Expression or Statement used in Module " +
-              _currentModuleName,
-          DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic, mem->getSourceLocation()));
+    case SyntaxKindUtils::SyntaxKind::CallExpression: {
+      CallExpressionSyntax *call =
+          static_cast<CallExpressionSyntax *>(stat.get());
+      boundModuleStat->addCallerExpression(
+          std::move(this->bindCallExpression(call)));
       break;
+    }
+    default: {
+      this->_diagnosticHandler->addDiagnostic(
+          Diagnostic("Unsupported Expression or Statement used in Module [" +
+                         _currentModuleName + "]",
+                     DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic,
+                     stat->getSourceLocation()));
+
+      break;
+    }
     }
   }
 
   // this->root = std::make_unique<BoundScope>(std::move(this->root));
 
-  for (auto &stat : moduleStatement->getMembersStatementsRef()) {
+  for (auto &stat : moduleStatement->getStatementsRef()) {
     if (stat->getKind() ==
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
       FunctionDeclarationSyntax *fun =
@@ -742,45 +736,51 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get());
   }
+  //! Need this Check
+  // if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
+  //   this->_diagnosticHandler->addDiagnostic(Diagnostic(
+  //       "Found Circular Dependency <" +
+  //           bringStatement->getRelativeFilePathPtr() + "> ",
+  //       DiagnosticUtils::DiagnosticLevel::Error,
+  //       DiagnosticUtils::DiagnosticType::Semantic,
+  //       Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
 
-  if (Utils::Node::isCycleDetected(bringStatement->getAbsoluteFilePath())) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "Found Circular Dependency <" +
-            bringStatement->getRelativeFilePathPtr() + "> ",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+  //   return std::make_unique<BoundBringStatement>(
+  //       bringStatement->getSourceLocation(),
+  //       bringStatement->getDiagnosticHandlerPtr().get());
+  // }
+  bool isAlreadyImported = false;
+  //! Need this Check
+  // if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
 
-    return std::make_unique<BoundBringStatement>(
-        bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get());
-  }
+  //   auto boundBringStatement = std::make_unique<BoundBringStatement>(
+  //       bringStatement->getSourceLocation(),
+  //       bringStatement->getDiagnosticHandlerPtr().get());
 
-  if (Utils::Node::isPathVisited(bringStatement->getAbsoluteFilePathPtr())) {
-    this->_diagnosticHandler->addDiagnostic(Diagnostic(
-        "File <" + bringStatement->getRelativeFilePathPtr() +
-            "> already included ",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
-
-    return std::make_unique<BoundBringStatement>(
-        bringStatement->getSourceLocation(),
-        bringStatement->getDiagnosticHandlerPtr().get());
-  }
-
-  Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
+  //   if (!bringStatement->getIsModuleImport()) {
+  //     // this->_diagnosticHandler->addDiagnostic(
+  //     //     Diagnostic("File <" + bringStatement->getRelativeFilePathPtr() +
+  //     //                    "> already included ",
+  //     //                DiagnosticUtils::DiagnosticLevel::Error,
+  //     //                DiagnosticUtils::DiagnosticType::Semantic,
+  //     //                Utils::getSourceLocation(
+  //     //                    bringStatement->getBringKeywordPtr().get())));
+  //   }
+  //   isAlreadyImported = true;
+  // }
+  // Utils::Node::addPath(bringStatement->getAbsoluteFilePathPtr());
 
   auto boundBringStatement = std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(),
       bringStatement->getDiagnosticHandlerPtr().get());
 
+  boundBringStatement->setIsAlreadyImported(isAlreadyImported);
   boundBringStatement->setIsModuleImport(bringStatement->getIsModuleImport());
 
+  std::unordered_map<std::string, int> memberMap =
+      getMemberMap(bringStatement->getCompilationUnitPtr()->getMembers(),
+                   bringStatement->getCompilationUnitPtr().get());
   if (bringStatement->getIsChoosyImportPtr()) {
-    std::unordered_map<std::string, int> memberMap =
-        getMemberMap(bringStatement->getCompilationUnitPtr()->getMembers(),
-                     bringStatement->getCompilationUnitPtr().get());
 
     for (auto &expression : bringStatement->getExpressionsPtr()) {
       if (expression->getKind() !=
@@ -799,7 +799,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
       }
 
       const bool notFound =
-          memberMap.find(expression->getTokenPtr()->getText()) ==
+          memberMap.find(expression->getTokenPtr()->getText().substr(
+              0, expression->getTokenPtr()->getText().find_last_of("."))) ==
           memberMap.end();
 
       if (notFound) {
@@ -817,7 +818,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
           std::move(bindLiteralExpression(expression.get())));
     }
   }
-  Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
+  // Utils::Node::removePath(bringStatement->getAbsoluteFilePathPtr());
 
   this->_diagnosticHandler->addParentDiagnostics(
       bringStatement->getDiagnosticHandlerPtr().get());
@@ -827,70 +828,158 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
           nullptr, bringStatement->getCompilationUnitPtr().get(),
           bringStatement->getDiagnosticHandlerPtr().get()));
 
-  for (auto &function : globalScope->functions) {
-    if (!this->root->tryDeclareFunctionGlobal(function.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Function " + function.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
-  }
-  for (auto &_class : globalScope->classes) {
-    if (!this->root->tryDeclareClass(_class.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Class " + _class.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
-  }
-  for (auto &customType : globalScope->customTypes) {
-    if (!this->root->tryDeclareCustomType(customType.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Type " + customType.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
+  if (bringStatement->getModuleName().size() &&
+      _currentFileHasModules.find(bringStatement->getModuleName()) !=
+          _currentFileHasModules.end()) {
+    this->_diagnosticHandler->addDiagnostic(Diagnostic(
+        "Module " + bringStatement->getModuleName() + " Already Declared",
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
   }
 
-  for (auto &variable : globalScope->variables) {
-    if (!this->root->tryDeclareVariable(variable.first, variable.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Variable " + variable.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
-  }
+  if (bringStatement->getModuleName().size())
+    _currentFileHasModules.emplace(bringStatement->getModuleName(), true);
 
-  for (auto &module : globalScope->modules) {
-    if (!this->root->tryDeclareModuleGlobal(module.second)) {
-      this->_diagnosticHandler->addDiagnostic(
-          Diagnostic("Module " + module.first + " Already Declared",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     Utils::getSourceLocation(
-                         bringStatement->getBringKeywordPtr().get())));
-    }
+  for (auto &stat : globalScope->globalStatement->getStatements()) {
 
-    // for (const auto &variable :
-    //      module.second->getVariableDeclarationStatementsRef()) {
-    //   if (!this->root->tryDeclareVariable(variable->getVariableName(),
-    //                                       variable.get())) {
-    //     this->_diagnosticHandler->addDiagnostic(Diagnostic(
-    //         "Variable " + variable->getVariableName() + " Already
-    //         Declared", DiagnosticUtils::DiagnosticLevel::Error,
-    //         DiagnosticUtils::DiagnosticType::Semantic,
-    //         Utils::getSourceLocation(
-    //             bringStatement->getBringKeywordPtr().get())));
-    //   }
-    // }
+    switch (stat->getKind()) {
+    case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
+      auto func = static_cast<BoundFunctionDeclaration *>(stat.get());
+      if (func->isOnlyDeclared() &&
+          !this->root->tryDeclareFunctionGlobal(func)) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Function " + func->getFunctionNameRef() + " is Already Declared",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get())));
+      }
+      break;
+    }
+    case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
+      auto var = static_cast<BoundVariableDeclaration *>(stat.get());
+
+      if (!this->root->tryDeclareVariableGlobal(var->getVariableName(), var)) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Variable " + var->getVariableName() + " is Already Declared",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get())));
+      }
+      break;
+    }
+    case BinderKindUtils::BoundNodeKind::CustomTypeStatement: {
+      auto cusType = static_cast<BoundCustomTypeStatement *>(stat.get());
+
+      if (!this->root->tryDeclareCustomTypeGlobal(cusType)) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Type " + cusType->getTypeNameAsString() + " is Already Declared",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get())));
+      }
+      break;
+    }
+    case BinderKindUtils::BoundNodeKind::ClassStatement: {
+      auto classType = static_cast<BoundClassStatement *>(stat.get());
+
+      PARSER_DEBUG_LOG("CLASS,", classType->getClassName());
+
+      if (!this->root->tryDeclareClassGlobal(classType)) {
+        this->_diagnosticHandler->addDiagnostic(Diagnostic(
+            "Type " + classType->getClassName() + " is Already Declared",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get())));
+      }
+      break;
+    }
+    case BinderKindUtils::BoundNodeKind::BoundModuleStatement: {
+      auto moduleStatement = static_cast<BoundModuleStatement *>(stat.get());
+      if (!this->root->tryDeclareModuleGlobal(moduleStatement)) {
+        this->_diagnosticHandler->addDiagnostic(
+            Diagnostic("Module " + moduleStatement->getModuleName() +
+                           " is Already Declared",
+                       DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Semantic,
+                       Utils::getSourceLocation(
+                           bringStatement->getBringKeywordPtr().get())));
+      }
+
+      for (auto &stat : moduleStatement->getStatementsRef()) {
+        switch (stat->getKind()) {
+        case BinderKindUtils::BoundNodeKind::ClassStatement: {
+          auto _mClass = static_cast<BoundClassStatement *>(stat);
+          if (!this->root->tryDeclareClass(_mClass)) {
+            this->_diagnosticHandler->addDiagnostic(
+                Diagnostic(moduleStatement->getModuleName() + " Module Class " +
+                               _mClass->getClassName() + " is Already Declared",
+                           DiagnosticUtils::DiagnosticLevel::Error,
+                           DiagnosticUtils::DiagnosticType::Semantic,
+                           Utils::getSourceLocation(
+                               bringStatement->getBringKeywordPtr().get())));
+          }
+          break;
+        }
+        case BinderKindUtils::BoundNodeKind::VariableDeclaration: {
+          auto _mVarDec = static_cast<BoundVariableDeclaration *>(stat);
+          if (!this->root->tryDeclareVariableGlobal(_mVarDec->getVariableName(),
+                                                    _mVarDec)) {
+            this->_diagnosticHandler->addDiagnostic(Diagnostic(
+                moduleStatement->getModuleName() + " Module Variable " +
+                    _mVarDec->getVariableName() + " is Already Declared",
+                DiagnosticUtils::DiagnosticLevel::Error,
+                DiagnosticUtils::DiagnosticType::Semantic,
+                Utils::getSourceLocation(
+                    bringStatement->getBringKeywordPtr().get())));
+          }
+          break;
+        }
+
+        case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
+          auto _mFuncDec = static_cast<BoundFunctionDeclaration *>(stat);
+          if (_mFuncDec->isOnlyDeclared() &&
+              !this->root->tryDeclareFunctionGlobal(_mFuncDec)) {
+            this->_diagnosticHandler->addDiagnostic(Diagnostic(
+                moduleStatement->getModuleName() + " Module Function " +
+                    _mFuncDec->getFunctionNameRef() + " is Already Declared",
+                DiagnosticUtils::DiagnosticLevel::Error,
+                DiagnosticUtils::DiagnosticType::Semantic,
+                Utils::getSourceLocation(
+                    bringStatement->getBringKeywordPtr().get())));
+          }
+          break;
+        }
+
+        case BinderKindUtils::BoundNodeKind::CustomTypeStatement: {
+          auto _mCusType = static_cast<BoundCustomTypeStatement *>(stat);
+          if (!this->root->tryDeclareCustomTypeGlobal(_mCusType)) {
+            this->_diagnosticHandler->addDiagnostic(Diagnostic(
+                moduleStatement->getModuleName() + " Module Type " +
+                    _mCusType->getTypeNameAsString() + " is Already Declared",
+                DiagnosticUtils::DiagnosticLevel::Error,
+                DiagnosticUtils::DiagnosticType::Semantic,
+                Utils::getSourceLocation(
+                    bringStatement->getBringKeywordPtr().get())));
+          }
+          break;
+        }
+        default: {
+          break;
+        }
+        }
+      }
+
+      break;
+    }
+    default: {
+      break;
+    }
+    }
   }
 
   boundBringStatement->setGlobalScope(std::move(globalScope));
@@ -1240,7 +1329,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   {
     const std::string CLASS_NAME = CALLER_NAME.substr(0, CALLER_NAME.find("."));
     std::string fLastName = CALLER_NAME.substr(CALLER_NAME.find(".") + 1);
-
+    PARSER_DEBUG_LOG("Class Name: " + CLASS_NAME);
+    PARSER_DEBUG_LOG("Caller Name: " + CALLER_NAME);
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(CLASS_NAME);
 
@@ -1292,30 +1382,32 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
     declared_fd = this->root->tryGetFunction(updatedCallerName);
   }
 
-  if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
-    std::string type = "Function";
+  if (!this->root->tryGetVariable((CALLER_NAME))) {
+    if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
+      std::string type = "Function";
 
-    if (!this->root->tryGetClass(CALLER_NAME)) {
-      _diagnosticHandler->addDiagnostic(
-          Diagnostic(type + " " + CALLER_NAME + " does not exist",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     callExpression->getIdentifierPtr()->getSourceLocation()));
+      if (!this->root->tryGetClass(CALLER_NAME)) {
+        _diagnosticHandler->addDiagnostic(Diagnostic(
+            type + " " + CALLER_NAME + " does not exist",
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            callExpression->getIdentifierPtr()->getSourceLocation()));
+      }
     }
-  }
 
-  if (declared_fd &&
-      callExpression->getArguments().size() <
-          declared_fd->getMinNumberOfParametersNeeded() &&
-      !IS_A_BUILTIN_FUNCTION_CALL) {
-    _diagnosticHandler->addDiagnostic(Diagnostic(
-        "Function " + CALLER_NAME + " requires minimum " +
-            std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
-            " arguments",
-        DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
-    return std::move(boundIdentifier);
+    if (declared_fd &&
+        callExpression->getArguments().size() <
+            declared_fd->getMinNumberOfParametersNeeded() &&
+        !IS_A_BUILTIN_FUNCTION_CALL) {
+      _diagnosticHandler->addDiagnostic(Diagnostic(
+          "Function " + CALLER_NAME + " requires minimum " +
+              std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
+              " arguments",
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
+      return std::move(boundIdentifier);
+    }
   }
 
   std::unique_ptr<BoundCallExpression> boundCallExpression =
@@ -1535,7 +1627,11 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
-
+  std::string classNameVariableBelongsTo = "";
+  if (variable) {
+    classNameVariableBelongsTo = variable->getClassItBelongsTo();
+  }
+  uint64_t index = 0;
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
     if (dotExpression->getKind() ==
@@ -1563,7 +1659,7 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         CallExpressionSyntax *callExpression =
             static_cast<CallExpressionSyntax *>(dotExpression.get());
 
-        if (variable->getClassItBelongsTo() != "") {
+        if (!classNameVariableBelongsTo.empty()) {
           std::any fName = variable->getClassItBelongsTo() +
                            FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                            std::any_cast<std::string>(
@@ -1575,10 +1671,46 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         boundVariableExpression->addDotExpression(
             std::move(bindCallExpression(callExpression)));
       } else {
+
+        std::unique_ptr<BoundExpression> localBoundExpression =
+            std::move(bindExpression(dotExpression.get()));
+
+        if (!classNameVariableBelongsTo.empty()) {
+          BoundClassStatement *boundClassStatement =
+              this->root->tryGetClass(classNameVariableBelongsTo);
+          if (boundClassStatement) {
+            for (auto &_variable :
+                 boundClassStatement->getAllMemberVariablesRef()) {
+
+              if (_variable && _variable->getTypeExpression() &&
+                  _variable->getTypeExpression()->getKind() ==
+                      BinderKindUtils::BoundNodeKind::
+                          BoundObjectTypeExpression) {
+                BoundObjectTypeExpression *boundObjTypeExp =
+                    static_cast<BoundObjectTypeExpression *>(
+                        _variable->getTypeExpression().get());
+
+                BoundClassStatement *nestedBoundClassStatement =
+                    this->root->tryGetClass(Utils::getActualTypeName(
+                        boundObjTypeExp->getTypeName()));
+
+                if (nestedBoundClassStatement) {
+                  classNameVariableBelongsTo =
+                      nestedBoundClassStatement->getClassName();
+                }
+              }
+            }
+          }
+        }
         boundVariableExpression->addDotExpression(
             std::move(bindExpression(dotExpression.get())));
       }
     }
+    DEBUG_LOG("classNameVariableBelongsTo: ", classNameVariableBelongsTo);
+    if (index != 0) {
+      classNameVariableBelongsTo = "";
+    }
+    index++;
   }
 
   return std::move(boundVariableExpression);
@@ -1764,6 +1896,7 @@ std::unique_ptr<BoundFunctionTypeExpression> Binder::bindFunctionTypeExpression(
        functionTypeExpressionSyntax->getParameterTypesRef()) {
     boundFunctionTypeExpression->addParameterType(
         std::move(bindTypeExpression(param.get())));
+    boundFunctionTypeExpression->addAsParam(false);
   }
 
   if (functionTypeExpressionSyntax->getAsKeywordRef()) {
@@ -1772,7 +1905,7 @@ std::unique_ptr<BoundFunctionTypeExpression> Binder::bindFunctionTypeExpression(
 
   for (const auto &asType :
        functionTypeExpressionSyntax->getAsParametersKeywordsRef()) {
-    boundFunctionTypeExpression->addAsParam(asType ? true : false);
+    boundFunctionTypeExpression->setAsParam(asType.first, true);
   }
 
   for (const auto &retType :
@@ -1835,7 +1968,7 @@ Binder::bindGlobalStatement(GlobalStatementSyntax *syntax) {
 }
 
 Binder::Binder(std::unique_ptr<BoundScope> parent,
-               FLowWing::DiagnosticHandler *diagnosticHandler) {
+               FlowWing::DiagnosticHandler *diagnosticHandler) {
   BuiltInFunction::setupBuiltInFunctions();
 
   this->root = std::make_unique<BoundScope>(std::move(parent));
@@ -1889,7 +2022,7 @@ void Binder::verifyAllCallsAreValid(Binder *binder) {
 std::unique_ptr<BoundScopeGlobal>
 Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
                         CompilationUnitSyntax *syntax,
-                        FLowWing::DiagnosticHandler *diagnosticHandler) {
+                        FlowWing::DiagnosticHandler *diagnosticHandler) {
   std::unique_ptr<Binder> binder =
       std::make_unique<Binder>(nullptr, diagnosticHandler);
   std::unordered_map<std::string, std::any> prevVariablesValues;
@@ -1913,6 +2046,8 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
       FunctionDeclarationSyntax *functionDeclarationSyntax =
           (FunctionDeclarationSyntax *)members[i].get();
 
+      //! Declaring All Functions (whether defined or not)
+
       if (!functionDeclarationSyntax->isOnlyDeclared()) {
         functionDeclarationSyntax->setIsOnlyDeclared(true);
         functionsYetToDefine.push_back(i);
@@ -1924,9 +2059,12 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
       break;
     }
     case SyntaxKindUtils::SyntaxKind::GlobalStatement: {
+
+      GlobalStatementSyntax *globalStatementSyntax =
+          (GlobalStatementSyntax *)members[i].get();
+
       std::unique_ptr<BoundStatement> _statement =
-          std::move(binder->bindGlobalStatement(
-              (GlobalStatementSyntax *)members[i].get()));
+          std::move(binder->bindGlobalStatement(globalStatementSyntax));
 
       _globalBoundBlockStatement->addStatement(std::move(_statement));
       break;
@@ -1941,6 +2079,7 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
     FunctionDeclarationSyntax *functionDeclarationSyntax =
         (FunctionDeclarationSyntax *)members[functionsYetToDefine[i]].get();
 
+    //! Only Defining Functions
     functionDeclarationSyntax->setIsOnlyDeclared(false);
 
     std::unique_ptr<BoundStatement> _statement =
@@ -1976,6 +2115,7 @@ auto Binder::getMemberMap(
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
       FunctionDeclarationSyntax *functionDeclaration =
           dynamic_cast<FunctionDeclarationSyntax *>(member.get());
+
       memberMap[functionDeclaration->getIdentifierTokenPtr()->getText()] = 1;
     } else if (member->getKind() ==
                SyntaxKindUtils::SyntaxKind::GlobalStatement) {
@@ -1993,17 +2133,87 @@ auto Binder::getMemberMap(
             dynamic_cast<ClassStatementSyntax *>(
                 globalStatement->getStatementPtr().get());
         memberMap[classStatement->getClassNameIdentifierRef()->getText()] = 1;
+
       } else if (globalStatement->getStatementPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::CustomTypeStatement) {
         CustomTypeStatementSyntax *customTypeStatement =
             dynamic_cast<CustomTypeStatementSyntax *>(
                 globalStatement->getStatementPtr().get());
+        memberMap[customTypeStatement->getTypeNameRef()
+                      ->getTokenPtr()
+                      ->getText()
+                      .substr(0, customTypeStatement->getTypeNameRef()
+                                     ->getTokenPtr()
+                                     ->getText()
+                                     .find_last_of("."))] = 1;
+      } else if (globalStatement->getStatementPtr()->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::ModuleStatement) {
+        ModuleStatementSyntax *moduleStatement =
+            dynamic_cast<ModuleStatementSyntax *>(
+                globalStatement->getStatementPtr().get());
         memberMap
-            [customTypeStatement->getTypeNameRef()->getTokenPtr()->getText()] =
+            [moduleStatement->getModuleNameRef()->getTokenPtr()->getText()] = 1;
+
+        PARSER_DEBUG_LOG(
+            "Module ",
+            moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
+
+        for (int i = 0; i < moduleStatement->getStatementsRef().size(); i++) {
+          if (moduleStatement->getStatementsRef()[i]->getKind() ==
+              SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
+
+            FunctionDeclarationSyntax *functionDeclaration =
+                dynamic_cast<FunctionDeclarationSyntax *>(
+                    moduleStatement->getStatementsRef()[i].get());
+
+            PARSER_DEBUG_LOG(
+                "Function Belongs to Module ",
+                functionDeclaration->getIdentifierTokenPtr()->getText());
+
+            memberMap[functionDeclaration->getIdentifierTokenPtr()->getText()] =
                 1;
+          } else if (moduleStatement->getStatementsRef()[i]->getKind() ==
+                     SyntaxKindUtils::SyntaxKind::VariableDeclaration) {
+            VariableDeclarationSyntax *variableDeclaration =
+                dynamic_cast<VariableDeclarationSyntax *>(
+                    moduleStatement->getStatementsRef()[i].get());
+
+            PARSER_DEBUG_LOG(
+                "Variable Belongs to Module ",
+                variableDeclaration->getIdentifierRef()->getText());
+
+            memberMap[variableDeclaration->getIdentifierRef()->getText()] = 1;
+
+          } else if (moduleStatement->getStatementsRef()[i]->getKind() ==
+                     SyntaxKindUtils::SyntaxKind::ClassStatement) {
+            ClassStatementSyntax *classStatement =
+                dynamic_cast<ClassStatementSyntax *>(
+                    moduleStatement->getStatementsRef()[i].get());
+
+            PARSER_DEBUG_LOG(
+                "Class Belongs to Module ",
+                classStatement->getClassNameIdentifierRef()->getText());
+
+            memberMap[classStatement->getClassNameIdentifierRef()->getText()] =
+                1;
+          } else if (moduleStatement->getStatementsRef()[i]->getKind() ==
+                     SyntaxKindUtils::SyntaxKind::CustomTypeStatement) {
+            CustomTypeStatementSyntax *customTypeStatement =
+                dynamic_cast<CustomTypeStatementSyntax *>(
+                    moduleStatement->getStatementsRef()[i].get());
+
+            PARSER_DEBUG_LOG("Type Belongs to Module ",
+                             customTypeStatement->getTypeNameRef()
+                                 ->getTokenPtr()
+                                 ->getText());
+
+            memberMap[customTypeStatement->getTypeNameRef()
+                          ->getTokenPtr()
+                          ->getText()] = 1;
+          }
+        }
       }
     }
   }
-
   return memberMap;
 }

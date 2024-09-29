@@ -43,6 +43,13 @@ type ArrayTypeExpression = [
   ...{ LiteralExpression?: LiteralExpression[] }[]
 ];
 
+type FunctionTypeExpression = [
+  { OpenParenthesisToken: Token },
+  ...{ PrimitiveTypeExpression: PrimitiveTypeExpression[] }[],
+  { CloseParenthesisToken: Token },
+  { PrimitiveTypeExpression: PrimitiveTypeExpression[] }[]
+];
+
 type ObjectTypeExpression = [{ LiteralExpression?: LiteralExpression[] }];
 
 type ClassStatement = [
@@ -110,6 +117,7 @@ export {
   VariableDeclaration,
   TypeExpression,
   PrimitiveTypeExpression,
+  FunctionTypeExpression,
   ArrayTypeExpression,
   ObjectTypeExpression,
   ClassStatement,

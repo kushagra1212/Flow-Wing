@@ -26,6 +26,7 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           "Using Objects in If Statement is not allowed");
       return nullptr;
     }
+
     conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
         llvm::Type::getInt8PtrTy(*TheContext), conditionValue));
   }

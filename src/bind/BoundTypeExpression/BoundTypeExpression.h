@@ -7,6 +7,7 @@
 class BoundTypeExpression : public BoundExpression {
 private:
   SyntaxKindUtils::SyntaxKind _type;
+  std::string _variableNameItBelongsTo = "";
 
 public:
   BoundTypeExpression(const DiagnosticUtils::SourceLocation &location,
@@ -16,7 +17,15 @@ public:
   virtual BinderKindUtils::BoundNodeKind getKind() const override;
   virtual std::vector<BoundNode *> getChildren() override;
 
+  inline auto setVariableNameitBelongsTo(std::string variableName) -> void {
+    this->_variableNameItBelongsTo = variableName;
+  }
+
   inline auto getSyntaxType() const -> const SyntaxKindUtils::SyntaxKind & {
     return _type;
+  }
+
+  inline auto getVariableNameItBelongsTo() -> std::string {
+    return _variableNameItBelongsTo;
   }
 };

@@ -8,7 +8,7 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundScopeGlobal> _globalScope;
   std::unordered_map<std::string,
                      std::unique_ptr<BoundLiteralExpression<std::any>>>
@@ -18,15 +18,16 @@ class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
   std::string _rootCallerName;
 
   bool _isModuleImport = false;
+  bool _isAlreadyImported = false;
 
 public:
   BoundBringStatement(const DiagnosticUtils::SourceLocation &location,
-                      FLowWing::DiagnosticHandler *diagnosticHandler);
+                      FlowWing::DiagnosticHandler *diagnosticHandler);
 
   BinderKindUtils::BoundNodeKind getKind() const override;
 
   std::vector<BoundNode *> getChildren() override;
-  FLowWing::DiagnosticHandler *getDiagnosticHandlerPtr() const;
+  FlowWing::DiagnosticHandler *getDiagnosticHandlerPtr() const;
   const std::unique_ptr<BoundScopeGlobal> &getGlobalScopePtr() const;
 
   auto inline setGlobalScope(std::unique_ptr<BoundScopeGlobal> globalScope)
@@ -43,6 +44,10 @@ public:
       std::unique_ptr<BoundLiteralExpression<std::any>> expression) -> void {
     _expressionStrings.push_back(name);
     _expressionMap[name] = std::move(expression);
+  }
+
+  inline auto setIsAlreadyImported(bool isAlreadyImported) -> void {
+    _isAlreadyImported = isAlreadyImported;
   }
 
   auto inline isImported(const std::string &name) -> bool {
@@ -70,6 +75,8 @@ public:
   auto inline getRootCallerName() -> std::string { return _rootCallerName; }
 
   inline auto isModuleImport() -> bool { return _isModuleImport; }
+
+  inline auto isAlreadyImported() -> bool { return _isAlreadyImported; }
 };
 
 #endif // BIND_BRING_STATEMENT_H

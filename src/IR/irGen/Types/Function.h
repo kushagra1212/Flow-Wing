@@ -1,6 +1,7 @@
 #ifndef __FUNCTION_TYPE_H__
 #define __FUNCTION_TYPE_H__
 
+#include "../../../bind/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
@@ -41,6 +42,7 @@ public:
       -> const std::vector<BoundVariableDeclaration *> & {
     return _parameters;
   }
+  inline auto getParameterListSize() const { return _parameters.size(); }
 
   inline auto setOptionalParameterStartIndex(int64_t index) -> void {
     _optionalParameterStartIndex = index;
@@ -53,6 +55,11 @@ public:
   inline auto hasOptionalParameters() -> bool {
     return _optionalParameterStartIndex != -1;
   }
+  inline auto addAsParam(bool hasAsParam) -> void {
+    _hasAsParams.push_back(hasAsParam);
+  }
+
+  inline auto hasAsParamsRef() { return _hasAsParams; }
 
 private:
   std::string _functionName;
@@ -60,6 +67,7 @@ private:
   bool _hasAsReturnType = false;
   std::vector<BoundVariableDeclaration *> _parameters;
   int64_t _optionalParameterStartIndex = -1;
+  std::vector<bool> _hasAsParams;
 };
 } // namespace FlowWing
 

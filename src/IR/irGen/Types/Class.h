@@ -8,7 +8,7 @@
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 #include "llvm/IR/Module.h"
 class Class {
- private:
+private:
   std::string _className;
   BoundClassStatement *_boundClassStatement;
   //   std::vector<llvm::Type *> _vTableElements;
@@ -22,26 +22,26 @@ class Class {
   std::unordered_map<std::string,
                      std::tuple<llvm::FunctionType *, uint64_t, std::string>>
       _vTableElementsMap;
-  std::unordered_map<std::string, llvm::Function *> _classFunctionMap;
 
   llvm::StructType *_classType;
   llvm::StructType *_vTableType;
   std::string _vTableName;
   std::string _parentClassName;
-
+  llvm::ArrayRef<llvm::Type *> _classElements = {};
+  llvm::GlobalVariable *_vTableGlobalVariable = nullptr;
   Class *_parent = nullptr;
 
   std::vector<
       std::pair<BoundLiteralExpression<std::any> *, BoundTypeExpression *>>
       _key_type_pairs;
 
- public:
+public:
   Class(std::string className, BoundClassStatement *boundClassStatement)
       : _className(className), _boundClassStatement(boundClassStatement) {}
   inline auto setClassType(llvm::StructType *type) { _classType = type; }
   inline auto getClassType() -> llvm::StructType * { return _classType; }
   inline auto setElementIndex(std::string key, uint64_t index) {
-    _classElementsIndexMap[key] = index;
+    _classElementsIndexMap.insert({key, index});
   }
 
   inline auto doesElementExist(std::string key) -> bool {
@@ -87,6 +87,10 @@ class Class {
     return {nullptr, nullptr, -1};
   }
 
+  inline auto setClassElements(llvm::ArrayRef<llvm::Type *> elements) {
+    _classElements = elements;
+  }
+
   inline auto getElement(std::string key)
       -> std::tuple<llvm::Type *, uint64_t, std::string, llvm::StructType *> {
     uint64_t index = _classElementsIndexMap[key];
@@ -104,7 +108,7 @@ class Class {
 
   inline auto insertFunctionType(std::string key,
                                  llvm::FunctionType *functionType) -> void {
-    _classMemberFunctionTypeMap[key] = functionType;
+    _classMemberFunctionTypeMap.insert({key, functionType});
   }
 
   inline auto getFunctionType(std::string key) -> llvm::FunctionType * {
@@ -125,10 +129,13 @@ class Class {
       -> void {
     _vTableName = "vtable." + className + "." + "fg";
 
-    new llvm::GlobalVariable(*TheModule, _vTableType, false,
-                             llvm::GlobalValue::LinkageTypes::CommonLinkage,
-                             llvm::ConstantAggregateZero::get(_vTableType),
-                             _vTableName);
+    _vTableGlobalVariable = new llvm::GlobalVariable(
+        *TheModule, _vTableType, false, llvm::GlobalValue::CommonLinkage,
+        llvm::ConstantAggregateZero::get(_vTableType), _vTableName);
+  }
+
+  inline auto getVTableGlobalVariable() -> llvm::GlobalVariable * {
+    return _vTableGlobalVariable;
   }
 
   inline auto getVTableName() -> std::string { return _vTableName; }
@@ -213,7 +220,7 @@ class Class {
   }
 
   inline auto addMemberVariableTypeName(std::string name) -> void {
-    _memberVariablesTypeNameMap[name] = 1;
+    _memberVariablesTypeNameMap.insert({name, 1});
   }
 };
 

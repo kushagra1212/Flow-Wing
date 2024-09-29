@@ -23,10 +23,6 @@ ModuleStatementSyntax::getSourceLocation() const {
     return s->getSourceLocation();
   }
 
-  for (const auto &m : _membersStatements) {
-    return m->getSourceLocation();
-  }
-
   return DiagnosticUtils::SourceLocation();
 }
 
@@ -48,10 +44,6 @@ const std::vector<SyntaxNode *> &ModuleStatementSyntax::getChildren() {
 
     for (const auto &s : _statements) {
       _children.push_back(s.get());
-    }
-
-    for (const auto &m : _membersStatements) {
-      _children.push_back(m.get());
     }
   }
 

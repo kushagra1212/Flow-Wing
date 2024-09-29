@@ -80,5 +80,15 @@
   "../../../lib/linux-x86_64/libbuilt_in_module.bc"
 #elif defined(RELEASE) && defined(__APPLE__)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
-  "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"
+  "../../../lib/mac-silicon/libbuilt_in_module.bc"
+#else
+#define LIB_BUILT_IN_MODULE_PATH ""
+#endif
+
+#if defined(DEBUG) || defined(JIT_TEST_MODE)
+#define FLOWWING_TEMP_PATH "temp"
+#elif JIT_MODE
+#define FLOWWING_TEMP_PATH "temp"
+#else
+#define FLOWWING_TEMP_PATH "temp"
 #endif

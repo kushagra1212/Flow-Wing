@@ -13,10 +13,10 @@
 #include "../utils/Utils.h"
 
 class JITCompiler : public Compiler {
- public:
+public:
   JITCompiler(std::string filePath = "");
 
   void execute() override;
 };
 
-#endif  // JITCOMPILER_H
+#endif // JITCOMPILER_H

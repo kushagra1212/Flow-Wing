@@ -1,5 +1,7 @@
 #include "TypeMapper.h"
-
+#include "../../context/CodeGenerationContext.h"
+#include <cstdint>
+#include <string>
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
                        llvm::Module *module,
                        CodeGenerationContext *codeGenerationContext)
@@ -135,7 +137,7 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
     if (llvm::isa<llvm::StructType>(type)) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
       if (_codeGenerationContext->_classTypes.find(
-              structType->getName().str()) !=
+              Utils::getActualTypeName(structType->getName().str())) !=
           _codeGenerationContext->_classTypes.end()) {
 
         const std::string text = "<Class<" + structType->getName().str() + ">>";
@@ -147,11 +149,15 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       std::string structName = structType->getName().str().length()
                                    ? structType->getName().str()
                                    : ".";
+
+      int64_t lastIndex = structName.find_last_of(".");
       //! This Might break
       // const std::string formatedStructName =
       //     "<" + structName.substr(0, structName.find_last_of(".")) + ">";
-
-      const std::string text = "<Object" + structName + ">";
+      // if (lastIndex > 0) {
+      //   structName = structName.substr(0, lastIndex);
+      // }
+      const std::string text = "<Object<" + structName + ">";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;
@@ -161,6 +167,17 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
       const std::string text =
           "<Array[" + std::to_string(arrayType->getNumElements()) + "]" +
           getLLVMTypeName(arrayType->getElementType(), withColor) + ">";
+
+      return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
+                       : text;
+    } else if (llvm::isa<llvm::FunctionType>(type)) {
+      llvm::FunctionType *functionType = llvm::cast<llvm::FunctionType>(type);
+
+      std::string text = "<Function (";
+      uint64_t parmsSize = functionType->getNumParams(), i = 0;
+      text += " with " + std::to_string(parmsSize) + " parameters ";
+
+      text += ")>";
 
       return withColor ? COLORED_STRING::GET(text, YELLOW_TEXT, RED_TEXT)
                        : text;

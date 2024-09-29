@@ -1,6 +1,7 @@
 #ifndef FLOWWING_IR_CONSTANTS_H
 #define FLOWWING_IR_CONSTANTS_H
 
+#include "../../utils/FlowWingConfig.h"
 #include <string>
 
 namespace FLOWWING::IR::CONSTANTS {
@@ -27,6 +28,7 @@ extern const std::string FLOWWING_GLOBAL_FALSE;
 
 extern const std::string FLOWWING_GLOBAL_ENTRY_POINT;
 extern const std::string TEMP_OBJECT_FILES_DIR;
+extern const std::string TEMP_BC_FILES_DIR;
 extern const std::string TEMP_BIN_DIR;
 enum ENVIRONMENT { REPL, SOURCE_FILE };
 

@@ -73,13 +73,12 @@ using namespace llvm;
 using namespace llvm::sys;
 
 class ObjectFile {
-  std::string _fileName;
 
 public:
-  ObjectFile(std::string fileName) : _fileName(fileName) {}
   ~ObjectFile() = default;
 
-  void writeModuleToFile(Module &module, TargetMachine *targetMachine) {
+  void writeModuleToFile(Module &module, TargetMachine *targetMachine,
+                         const std::string &fileName) {
     auto TargetTriple = module.getTargetTriple();
 
     std::string Error;
@@ -96,7 +95,7 @@ public:
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
     const std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + _fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
 
     DEBUG_LOG("Writing object file to: " + destPath);
 
@@ -124,7 +123,7 @@ public:
     dest.flush();
   }
 
-  void writeModuleToFile(const Module *_module) {
+  void writeModuleToFile(const Module *_module, const std::string &fileName) {
 
     LLVMModuleRef module = wrap(_module);
 
@@ -185,7 +184,7 @@ public:
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
     std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + _fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
 
     CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
 

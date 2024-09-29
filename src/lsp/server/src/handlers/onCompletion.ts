@@ -37,8 +37,6 @@ export const getObjectSuggestion = async (
   // if (suggestion.shouldNotProvideSuggestion || !suggestion.hasObjectSuggestions)
   //   return [];
 
-  console.log("suggestion", suggestion);
-
   const result = await getCompletionItems(
     fileUtils.getTempFilePath({
       fileName:
@@ -48,6 +46,5 @@ export const getObjectSuggestion = async (
     suggestion,
     _textDocsParams.textDocument.uri
   );
-  console.log("Result", result);
   return result;
 };

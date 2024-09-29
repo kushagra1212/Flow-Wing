@@ -1,11 +1,11 @@
 #include "InterpreterUtils.h"
 
 InterpreterUtils::InterpreterUtils(
-    FLowWing::DiagnosticHandler *diagnosticHandler) {
+    FlowWing::DiagnosticHandler *diagnosticHandler) {
   this->_diagnosticHandler = diagnosticHandler;
 }
 
-FLowWing::DiagnosticHandler *InterpreterUtils::getDiagnosticHandler() {
+FlowWing::DiagnosticHandler *InterpreterUtils::getDiagnosticHandler() {
   return this->_diagnosticHandler;
 }
 

@@ -1,10 +1,26 @@
 #ifndef COMMANDLINEOPTIONS_H
 #define COMMANDLINEOPTIONS_H
 
+#include "../../common/version.h"
+#include "../../utils/Utils.h"
+#include "../argh.h"
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
 #include <optional>
 #include <string>
 
-namespace FlowWingCliOptions {
+namespace FlowWing {
+namespace Cli {
+
+enum STATUS {
+  FAILURE,
+  PROCEED,
+  DONE,
+};
+
+extern argh::parser *cmdl;
+
 template <typename T> struct Option {
   std::string name;
   std::string description;
@@ -17,6 +33,45 @@ template <typename T> struct Option {
 
   std::optional<T> getValue() const { return value; }
 };
+
+namespace isFlag {
+int8_t versionName();
+
+int8_t OptimizationLevel0();
+int8_t OptimizationLevel1();
+int8_t OptimizationLevel2();
+int8_t OptimizationLevel3();
+
+int8_t format();
+int8_t shortFormat();
+
+int8_t formatPrint();
+int8_t ShortFormatPrint();
+
+} // namespace isFlag
+
+namespace isParam {
+int8_t file();
+int8_t shortFile();
+
+int8_t code();
+int8_t shortCode();
+
+int8_t outputFile();
+int8_t shortOutputFile();
+} // namespace isParam
+
+namespace Get {
+std::string file();
+std::string shortFile();
+
+std::string code();
+std::string shortCode();
+
+std::string outputFile();
+std::string shortOutputFile();
+
+} // namespace Get
 
 // Define command-line options
 
@@ -63,8 +118,21 @@ public:
 
   //? Entry Point
   static Option<std::string> EntryPoint;
+
+  //? Help
+
+  static Option<bool> Help;
+  static Option<bool> ShortHelp;
 }; // namespace FlowWing_OPTIONS
 
-} // namespace FlowWingCliOptions
+enum FlowWing::Cli::STATUS handleBasicArgs();
+enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
+                                          std::string &filePath, char *argv[]);
+
+void printHelp();
+
+} // namespace Cli
+
+} // namespace FlowWing
 
 #endif

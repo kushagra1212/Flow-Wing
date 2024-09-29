@@ -1,7 +1,7 @@
 #include "CodeGenerationContext.h"
 
 CodeGenerationContext ::CodeGenerationContext(
-    FLowWing::DiagnosticHandler *diagnosticHandler,
+    FlowWing::DiagnosticHandler *diagnosticHandler,
     const std::string sourceFileName)
     : _sourceFileName(sourceFileName) {
   _context = std::make_unique<llvm::LLVMContext>();
@@ -30,11 +30,10 @@ CodeGenerationContext ::CodeGenerationContext(
 
   auto CPU = "generic";
   auto Features = "";
-  llvm::TargetOptions opt ;
+  llvm::TargetOptions opt;
   llvm::Reloc::Model RelocModel = llvm::Reloc::Model::PIC_;
-  _targetMachine = Target->createTargetMachine(
-      _module->getTargetTriple(), CPU, Features, opt,
-    RelocModel);
+  _targetMachine = Target->createTargetMachine(_module->getTargetTriple(), CPU,
+                                               Features, opt, RelocModel);
 
   _module->setDataLayout(_targetMachine->createDataLayout());
   //!
@@ -112,8 +111,8 @@ const std::string &CodeGenerationContext::getSourceFileName() const {
   return this->_sourceFileName;
 }
 
-FLowWing::DiagnosticHandler *CodeGenerationContext::getDiagnosticHandler()
-    const {
+FlowWing::DiagnosticHandler *
+CodeGenerationContext::getDiagnosticHandler() const {
   return _diagnosticHandler;
 }
 
@@ -198,9 +197,10 @@ auto CodeGenerationContext::createVTableMapEntry(
                        std::tuple<llvm::FunctionType *, uint64_t, std::string>>
         &vTableElementsMap,
     std::string className, uint64_t &index) -> void {
-  auto classVar = this->_classTypes[className];
+  auto classVar = this->_classTypes[className].get();
 
-  if (!classVar) return;
+  if (!classVar)
+    return;
 
   if (classVar->hasParent()) {
     createVTableMapEntry(vTableElementsMap, classVar->getParentClassName(),
@@ -211,7 +211,8 @@ auto CodeGenerationContext::createVTableMapEntry(
     std::string fName = element.first;
     auto functionType = element.second;
 
-    if (fName.find(".init") != std::string::npos) continue;
+    if (fName.find(".init") != std::string::npos)
+      continue;
 
     fName = fName.substr(
         fName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) + 1);
@@ -260,8 +261,8 @@ auto CodeGenerationContext::createVTableMapEntry(
   }
 }
 
-llvm::Constant *CodeGenerationContext::createConstantFromValue(
-    llvm::Value *myValue) {
+llvm::Constant *
+CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
   llvm::Type *valueType = myValue->getType();
 
   if (auto constant = llvm::dyn_cast<llvm::Constant>(myValue)) {
@@ -296,7 +297,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
         return strConstant;
       }
     }
-  } else if (valueType->isIntegerTy(1)) {  // Check if it's a boolean (i1).
+  } else if (valueType->isIntegerTy(1)) { // Check if it's a boolean (i1).
     if (auto boolConstant = llvm::dyn_cast<llvm::ConstantInt>(myValue)) {
       return llvm::ConstantInt::get(valueType,
                                     boolConstant->getUniqueInteger());
@@ -306,7 +307,7 @@ llvm::Constant *CodeGenerationContext::createConstantFromValue(
 
   // this->logError("Unsupported type for conversion to constant");
 
-  return nullptr;  // Return nullptr if the type is not recognized.
+  return nullptr; // Return nullptr if the type is not recognized.
 }
 
 void CodeGenerationContext::callREF(const std::string &error) {
@@ -392,8 +393,8 @@ void CodeGenerationContext::setArrayElementTypeMetadata(
       std::to_string(getMapper()->mapLLVMTypeToCustomType(elementType));
   setMetadata("ET", array, metaData);
 }
-llvm::Type *CodeGenerationContext::getArrayElementTypeMetadata(
-    llvm::Value *array) {
+llvm::Type *
+CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
   std::string metaData = "";
   getMetaData("ET", array, metaData);
   std::vector<std::string> sizesStr;
@@ -468,8 +469,8 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
       return EXIT_SUCCESS;
   }
 
-  if (this->getMapper()->getLLVMTypeName(lhsType) !=
-      this->getMapper()->getLLVMTypeName(rhsType)) {
+  if (Utils::getActualTypeName(lhsType->getStructName().str()) !=
+      Utils::getActualTypeName(rhsType->getStructName().str())) {
     this->getLogger()->LogError(
         "Type mismatch Expected " +
         this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
@@ -485,7 +486,8 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
     return EXIT_FAILURE;
   }
 
-  if (lhsType->getStructName() != rhsType->getStructName()) {
+  if (Utils::getActualTypeName(lhsType->getStructName().str()) !=
+      Utils::getActualTypeName(rhsType->getStructName().str())) {
     this->getLogger()->LogError("Type mismatch " + inExp + " Expected " +
                                 lhsType->getStructName().str() + " but found " +
                                 rhsType->getStructName().str());
@@ -495,9 +497,10 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
   return EXIT_SUCCESS;
 }
 
-int8_t CodeGenerationContext::verifyType(
-    const std::vector<llvm::Type *> &lhsTypes,
-    const std::vector<llvm::Type *> &rhsTypes, const std::string &inExp) {
+int8_t
+CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
+                                  const std::vector<llvm::Type *> &rhsTypes,
+                                  const std::string &inExp) {
   if (lhsTypes.size() != rhsTypes.size()) {
     this->getLogger()->LogError("Type mismatch Expected " +
                                 this->getMapper()->getLLVMTypeName(lhsTypes) +
@@ -599,7 +602,8 @@ void CodeGenerationContext::getReturnedObjectType(
 
   Utils::split(metaData, ":", strs);
 
-  if (strs.size() == 0) return;
+  if (strs.size() == 0)
+    return;
 
   if (strs[2] == "ob") {
     if (_classTypes.find(strs[3]) != _classTypes.end())
@@ -634,54 +638,53 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     llvm::Type *type, std::string variableName,
     BinderKindUtils::MemoryKind memoryKind, llvm::Constant *initialValue) {
   switch (memoryKind) {
-    case BinderKindUtils::MemoryKind::Heap: {
-      auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
+  case BinderKindUtils::MemoryKind::Heap: {
+    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
 
-      llvm::CallInst *malloc_call = this->_builder->CreateCall(
-          fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
-                                      this->getMapper()->getSizeOf(type)));
-      malloc_call->setTailCall(false);
+    llvm::CallInst *malloc_call = this->_builder->CreateCall(
+        fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),
+                                    this->getMapper()->getSizeOf(type)));
+    malloc_call->setTailCall(false);
 
-      // Cast the result of 'malloc' to a pointer to int
-      return this->_builder->CreateBitCast(
-          malloc_call, llvm::PointerType::getUnqual(
-                           llvm::Type::getInt32Ty(*this->_context)));
-    }
-    case BinderKindUtils::MemoryKind::Stack: {
-      return this->_builder->CreateAlloca(type, nullptr, variableName);
-    }
-    case BinderKindUtils::MemoryKind::Global: {
-      llvm::Value *global = this->_module->getNamedGlobal(variableName);
+    // Cast the result of 'malloc' to a pointer to int
+    return this->_builder->CreateBitCast(
+        malloc_call,
+        llvm::PointerType::getUnqual(llvm::Type::getInt32Ty(*this->_context)));
+  }
+  case BinderKindUtils::MemoryKind::Stack: {
+    return this->_builder->CreateAlloca(type, nullptr, variableName);
+  }
+  case BinderKindUtils::MemoryKind::Global: {
+    llvm::Value *global = this->_module->getNamedGlobal(variableName);
 
-      if (global) return global;
+    if (global)
+      return global;
 
-      llvm::GlobalVariable *variable =
-          variableName == ""
-              ? new llvm::GlobalVariable(
-                    *this->_module, type, false,
-                    initialValue
-                        ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
-                        : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-                    initialValue ? initialValue
-                                 : llvm::Constant::getNullValue(type))
-              : new llvm::GlobalVariable(
-                    *this->_module, type, false,
-                    initialValue
-                        ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
-                        : llvm::GlobalValue::LinkageTypes::CommonLinkage,
-                    initialValue ? initialValue
-                                 : llvm::Constant::getNullValue(type),
-                    variableName);
-      variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
+    llvm::GlobalVariable *variable =
+        variableName == ""
+            ? new llvm::GlobalVariable(
+                  *this->_module, type, false,
+                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                  initialValue ? initialValue
+                               : llvm::Constant::getNullValue(type))
+            : new llvm::GlobalVariable(
+                  *this->_module, type, false,
+                  initialValue ? llvm::GlobalValue::LinkageTypes::PrivateLinkage
+                               : llvm::GlobalValue::LinkageTypes::CommonLinkage,
+                  initialValue ? initialValue
+                               : llvm::Constant::getNullValue(type),
+                  variableName);
+    variable->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
 
-      return variable;
-    }
+    return variable;
+  }
 
-    default:
-      this->getLogger()->LogError(
-          "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
-          " for " + variableName + " in " + __PRETTY_FUNCTION__);
-      return nullptr;
+  default:
+    this->getLogger()->LogError(
+        "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
+        " for " + variableName + " in " + __PRETTY_FUNCTION__);
+    return nullptr;
   }
 }
 auto CodeGenerationContext::getArrayTypeAsString(llvm::ArrayType *arrayType)

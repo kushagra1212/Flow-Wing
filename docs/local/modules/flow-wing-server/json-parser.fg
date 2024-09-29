@@ -1,0 +1,212 @@
+bring Map
+bring Str
+bring Vec
+
+expose fun parseObject(inout json_str: str) -> Map::String {
+  var i = 0
+  var len: int = Str::length(json_str)
+  var mp: Map::String = new Map::String()
+  while (i < len) {
+    while i < len && (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+      i = i + 1 
+    }
+    if (json_str[i] == '"') {
+      i = i + 1 
+      var key = ""
+      while (i < len && json_str[i] != '"') {
+        key = key + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+      i = i + 1 
+      while i < len && (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+        i = i + 1 
+      }
+      var value = ""
+      if (i < len && json_str[i] == ':') {
+        i = i + 1 
+        while i < len && (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+          i = i + 1 
+        }
+        if (i < len && json_str[i] == '"') {
+          i = i + 1 
+          while (i < len && json_str[i] != '"') {
+            value = value + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          i = i + 1 
+        } or if (i < len && json_str[i] == '{') {
+          var obj_str = "{"
+          var brace_count = 1
+          i = i + 1 
+          while (i < len && brace_count > 0) {
+            if json_str[i] == '{' {
+              brace_count = brace_count + 1 
+            } or if json_str[i] == '}' {
+              brace_count = brace_count - 1 
+            }
+            obj_str = obj_str + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          value = obj_str 
+        } or if (i < len && json_str[i] == '[') {
+          var arr_str = "["
+          var bracket_count = 1
+          i = i + 1 
+          while (i < len && bracket_count > 0) {
+            if json_str[i] == '[' {
+              bracket_count = bracket_count + 1 
+            } or if json_str[i] == ']' {
+              bracket_count = bracket_count - 1 
+            }
+            arr_str = arr_str + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+          value = arr_str 
+        } or if (i < len && json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '-' || json_str[i] == '.') {
+          while (i < len && json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '.' || json_str[i] == '-') {
+            value = value + Str::int8ToString(json_str[i]) 
+            i = i + 1 
+          }
+        } or if (i < len && json_str[i] == 't' && json_str[i + 1] == 'r' && json_str[i + 2] == 'u' && json_str[i + 3] == 'e') {
+          value = value + "true" 
+          i = i + 4 
+        } or if (i < len && json_str[i] == 'f' && json_str[i + 1] == 'a' && json_str[i + 2] == 'l' && json_str[i + 3] == 's' && json_str[i + 4] == 'e') {
+          value = value + "false" 
+          i = i + 5 
+        } or if (i < len && json_str[i] == 'n' && json_str[i + 1] == 'u' && json_str[i + 2] == 'l' && json_str[i + 3] == 'l') {
+          value = value + "(null)" 
+          i = i + 4 
+        } else {
+          break
+        }
+      }
+      mp.insert(key, value)
+    }
+    while (i < len && json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+      i = i + 1 
+    }
+    if (i < len && json_str[i] == ',') {
+      i = i + 1 
+    }
+    i = i + 1 
+  }
+  return mp
+}
+
+
+expose fun parseArray(inout json_str: str) -> Vec::String {
+  var i = 0
+  var vector: Vec::String = new Vec::String()
+  var len: int = Str::length(json_str)
+  while (i < len) {
+    while i < len && (json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+      i = i + 1 
+    }
+    if (i < len && json_str[i] == '[') {
+      i = i + 1 
+    }
+    if (i < len && json_str[i] == ']') {
+      i = i + 1 
+      break
+    }
+    var found = true
+    var value: str = ""
+    if (i < len && json_str[i] == '"') {
+      i = i + 1 
+      while (i < len && json_str[i] != '"') {
+        value = value + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+      i = i + 1 
+    } or if (i < len && json_str[i] == '{') {
+      var obj_str = "{"
+      var brace_count = 1
+      i = i + 1 
+      while (i < len && brace_count > 0) {
+        if json_str[i] == '{' {
+          brace_count = brace_count + 1 
+        } or if json_str[i] == '}' {
+          brace_count = brace_count - 1 
+        }
+        obj_str = obj_str + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+      value = obj_str 
+    } or if (i < len && json_str[i] == '[') {
+      var arr_str = "["
+      var bracket_count = 1
+      i = i + 1 
+      while (i < len && bracket_count > 0) {
+        if json_str[i] == '[' {
+          bracket_count = bracket_count + 1 
+        } or if json_str[i] == ']' {
+          bracket_count = bracket_count - 1 
+        }
+        arr_str = arr_str + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+      value = arr_str 
+    } or if (i < len && json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '-' || json_str[i] == '.') {
+      while (i < len && json_str[i] >= '0' && json_str[i] <= '9' || json_str[i] == '.' || json_str[i] == '-') {
+        value = value + Str::int8ToString(json_str[i]) 
+        i = i + 1 
+      }
+    } or if (i < len && json_str[i] == 't' && json_str[i + 1] == 'r' && json_str[i + 2] == 'u' && json_str[i + 3] == 'e') {
+      value = value + "true" 
+      i = i + 4 
+    } or if (i < len && json_str[i] == 'f' && json_str[i + 1] == 'a' && json_str[i + 2] == 'l' && json_str[i + 3] == 's' && json_str[i + 4] == 'e') {
+      value = value + "false" 
+      i = i + 5 
+    } or if (i < len && json_str[i] == 'n' && json_str[i + 1] == 'u' && json_str[i + 2] == 'l' && json_str[i + 3] == 'l') {
+      value = value + "(null)" 
+      i = i + 4 
+    } else {
+      found = false 
+    }
+    while (i < len && json_str[i] == ' ' || json_str[i] == '\\t' || json_str[i] == '\\n' || json_str[i] == '\\r') {
+      i = i + 1 
+    }
+    if (i < len && json_str[i] == ',') {
+      i = i + 1 
+    }
+    if found {
+      vector.add(value)
+    }
+    i = i + 1 
+  }
+  return vector
+}
+
+const json_str = `{
+  "key1": "value1",
+  "key2": 123,
+  "key3": 45.67,
+  "key4": true,
+  "key5": null,
+  "nestedObject": {
+    "nestedKey1": "nestedValue1",
+    "nestedKey2": {
+      "deepNestedKey": "deepNestedValue"
+    }
+  },
+  "array": [
+    {
+      "id": 1,
+      "name": "item1"
+    },
+    {
+      "id": 2,
+      "name": "item2",
+      "details": {
+        "description": "This is a more complex item",
+        "price": 29.99,
+        "available": false
+      }
+    }
+  ],
+  "listOfNumbers": [1, 2, 3, 4, 5],
+  "booleanList": [true, false, true],
+  "multiTypeArray": [1, "two", 3.14, null, { "insideKey": "insideValue" }],
+  "specialChars": "Symbols like @, #, $, %, ^, & are included!"
+}
+`

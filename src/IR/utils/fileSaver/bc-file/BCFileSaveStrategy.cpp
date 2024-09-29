@@ -4,9 +4,12 @@ BCFileSaveStrategy::BCFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;
 }
 
-bool BCFileSaveStrategy::saveToFile(
-    const std::string &path,
-    llvm::Module *module) const { // Create an output stream for the .bc file
+bool BCFileSaveStrategy::saveToFile(const std::string &path,
+                                    llvm::Module *module) const {
+
+  llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
+
+  // Create an output stream for the .bc file
   std::error_code EC;
   llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
 

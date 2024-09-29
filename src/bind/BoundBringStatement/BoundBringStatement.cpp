@@ -2,7 +2,7 @@
 
 BoundBringStatement::BoundBringStatement(
     const DiagnosticUtils::SourceLocation &location,
-    FLowWing::DiagnosticHandler *diagnosticHandler)
+    FlowWing::DiagnosticHandler *diagnosticHandler)
     : BoundSourceLocation(location) {
   this->_diagnosticHandler = diagnosticHandler;
 }
@@ -23,7 +23,7 @@ std::vector<BoundNode *> BoundBringStatement::getChildren() {
   return this->_children;
 }
 
-FLowWing::DiagnosticHandler *
+FlowWing::DiagnosticHandler *
 BoundBringStatement::getDiagnosticHandlerPtr() const {
   return this->_diagnosticHandler;
 }

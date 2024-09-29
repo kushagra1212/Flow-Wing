@@ -1,6 +1,7 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+#include <cstdint>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -19,9 +20,9 @@
 #include "../irGen/Types/Type.h"
 #include "../logger/LLVMLogger.h"
 #include "../mappers/TypeMapper/TypeMapper.h"
+#include "utils/ValueStack/ValueStackHandler.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
-#include "utils/ValueStack/ValueStackHandler.h"
 //! TODO: Refactor Import
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
@@ -85,12 +86,13 @@
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+#include <memory>
 //!
 class TypeMapper;
 class BoundFunctionDeclaration;
 class CodeGenerationContext {
- public:
-  CodeGenerationContext(FLowWing::DiagnosticHandler *diagnosticHandler,
+public:
+  CodeGenerationContext(FlowWing::DiagnosticHandler *diagnosticHandler,
                         const std::string sourceFileName);
 
   std::unique_ptr<llvm::IRBuilder<>> &getBuilder();
@@ -120,7 +122,7 @@ class CodeGenerationContext {
     return _valueStackHandler;
   }
 
-  FLowWing::DiagnosticHandler *getDiagnosticHandler() const;
+  FlowWing::DiagnosticHandler *getDiagnosticHandler() const;
 
   void addBoundedUserFunction(std::string name,
                               BoundFunctionDeclaration *functionDeclaration);
@@ -178,9 +180,9 @@ class CodeGenerationContext {
                                   llvm::Constant *initialValue = nullptr);
 
   void getReturnedPrimitiveType(llvm::Function *F, llvm::Type *&type);
-  inline auto createArraySizesAndArrayElementType(
-      std::vector<uint64_t> &actualSizes, llvm::Type *&arrayElementType)
-      -> void {
+  inline auto
+  createArraySizesAndArrayElementType(std::vector<uint64_t> &actualSizes,
+                                      llvm::Type *&arrayElementType) -> void {
     while (llvm::ArrayType *arrayType =
                llvm::dyn_cast<llvm::ArrayType>(arrayElementType)) {
       actualSizes.push_back(arrayType->getNumElements());
@@ -207,9 +209,10 @@ class CodeGenerationContext {
   void verifyModule(llvm::Module *M);
 
   inline auto isValidClassType(llvm::StructType *type) -> bool {
-    return this->_classTypes.find((type->getStructName().str())) !=
-               this->_classTypes.end() &&
-           this->_classTypes[(type->getStructName().str())];
+    return this->_classTypes.find(Utils::getActualTypeName(
+               type->getStructName().str())) != this->_classTypes.end() &&
+           this->_classTypes[Utils::getActualTypeName(
+               type->getStructName().str())];
   }
 
   inline auto isClassMemberFunction(const std::string &funName) -> bool {
@@ -224,39 +227,56 @@ class CodeGenerationContext {
   }
 
   inline auto getFlowWingType(const std::string &typeName) -> FlowWing::Type {
+    const std::string pureType = Utils::getActualTypeName(typeName);
     const bool isClassType =
-        this->_classTypes.find(typeName) != this->_classTypes.end();
+        this->_classTypes.find(pureType) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {
-      this->getLogger()->LogError("Type " + typeName +
+      this->getLogger()->LogError("Type " + pureType +
                                   " is not defined in this scope");
 
       return FlowWing::Type();
     }
+
+    if (isClassType)
+      return this->_typesMap[pureType];
 
     return this->_typesMap[typeName];
   }
 
   inline auto addClass(const std::string &name,
                        std::unique_ptr<Class> classType) -> void {
-    this->_classes.push_back(std::move(classType));
-    this->_classTypes[name] = this->_classes.back().get();
+    this->_classTypes.insert({name, std::move(classType)});
   }
-
   inline auto getTargetMachine() -> llvm::TargetMachine * {
     return this->_targetMachine;
   }
 
   auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
 
-  std::unordered_map<std::string, Class *> _classTypes;
+  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
   // custom struct types
   std::unordered_map<std::string, FlowWing::Type> _typesMap;
   std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
       _functionTypes;
+  std::unordered_map<std::string, std::unique_ptr<FlowWing::Function>>
+      _functionLocalTypes;
 
- private:
+  inline auto funcPtr(const std::string &callerName) -> FlowWing::Function * {
+    if (this->_functionTypes.find(callerName) != this->_functionTypes.end()) {
+      return this->_functionTypes[callerName].get();
+    }
+
+    if (this->_functionLocalTypes.find(callerName) !=
+        this->_functionLocalTypes.end()) {
+      return this->_functionLocalTypes[callerName].get();
+    }
+
+    return nullptr;
+  }
+
+private:
   std::unique_ptr<llvm::LLVMContext> _context;
   std::unique_ptr<llvm::Module> _module;
   std::unique_ptr<llvm::IRBuilder<>> _builder;
@@ -270,7 +290,7 @@ class CodeGenerationContext {
   std::unique_ptr<ArgsTypeHandler> _argsTypeHandler;
   std::unique_ptr<ReturnTypeHandler> _returnTypeHandler;
   std::unique_ptr<StructTypeBuilder> _dynamicType;
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::string _sourceFileName;
 
   std::stack<int8_t> _returnAllocaStack;
@@ -279,10 +299,8 @@ class CodeGenerationContext {
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
 
-  std::vector<std::unique_ptr<Class>> _classes;
-
   llvm::TargetMachine *_targetMachine = nullptr;
   std::string _currentClassName = "";
 };
 
-#endif  // CODEGENERATIONCONTEXT_H
+#endif // CODEGENERATIONCONTEXT_H

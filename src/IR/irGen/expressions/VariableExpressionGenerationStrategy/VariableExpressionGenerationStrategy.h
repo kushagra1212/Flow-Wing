@@ -49,12 +49,13 @@ public:
   llvm::Value *handleSingleVariable(llvm::Type *&variableType, llvm::Value *v,
                                     const std::string &variableName);
 
-  llvm::Value *getClassMember(int64_t pos, std::string &className,
-                              llvm::Value *v);
+  llvm::Value *getClassPtr(llvm::StructType *parObjType, int64_t pos,
+                           llvm::Value *v, int64_t finalPosition);
 
   llvm::Value *getClassMemberFunctionValue(std::string className,
                                            std::string memberName,
                                            llvm::Value *classPtr);
+  llvm::StructType *getStructType();
   inline auto
   setVariableExpression(BoundVariableExpression *variableExpression) {
     _variableExpression = variableExpression;

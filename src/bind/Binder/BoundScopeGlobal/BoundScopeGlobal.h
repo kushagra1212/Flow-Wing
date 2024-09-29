@@ -21,7 +21,7 @@ public:
       std::unordered_map<std::string, BoundCustomTypeStatement *> customTypes,
       std::unordered_map<std::string, BoundClassStatement *> classes,
       std::unordered_map<std::string, BoundModuleStatement *> modules,
-      FLowWing::DiagnosticHandler *diagnosticHandler,
+      FlowWing::DiagnosticHandler *diagnosticHandler,
       std::unique_ptr<BoundBlockStatement> statement);
 
   bool tryLookupVariable(std::string name);
@@ -42,7 +42,7 @@ public:
   std::unordered_map<std::string, BoundModuleStatement *> modules;
   std::unordered_map<std::string, std::any> variablesValues;
   std::unordered_map<std::string, BoundFunctionDeclaration *> functions;
-  FLowWing::DiagnosticHandler *_diagnosticHandler;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundBlockStatement> globalStatement;
 };
 

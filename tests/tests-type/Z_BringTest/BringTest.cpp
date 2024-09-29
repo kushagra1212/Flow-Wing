@@ -140,7 +140,7 @@ expose fun callS(x:int ) -> nthg {
   )");
 
   writeFile("task.fg", R"(
-bring {x,k,j,callS} from "file1.fg"
+bring {x,k,j,callS,A} from "file1.fg"
 
 
 print(x)

@@ -12,14 +12,14 @@
 class InterpreterUtils {
 private:
   DiagnosticUtils::SourceLocation _currentSourceLocation;
-  FLowWing::DiagnosticHandler *_diagnosticHandler = nullptr;
+  FlowWing::DiagnosticHandler *_diagnosticHandler = nullptr;
 
 public:
-  InterpreterUtils(FLowWing::DiagnosticHandler *diagnosticHandler);
+  InterpreterUtils(FlowWing::DiagnosticHandler *diagnosticHandler);
 
   void setCurrentSourceLocation(DiagnosticUtils::SourceLocation sourceLocation);
   DiagnosticUtils::SourceLocation getCurrentSourceLocation();
-  FLowWing::DiagnosticHandler *getDiagnosticHandler();
+  FlowWing::DiagnosticHandler *getDiagnosticHandler();
   void logError(const std::string message);
 
   std::any

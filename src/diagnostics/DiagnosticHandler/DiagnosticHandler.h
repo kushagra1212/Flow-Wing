@@ -6,7 +6,7 @@
 #include "../Diagnostic/Diagnostic.h"
 #include "../DiagnosticUtils/DiagnosticUtils.h"
 
-namespace FLowWing {
+namespace FlowWing {
 class DiagnosticHandler {
 private:
   std::vector<Diagnostic> diagnostics;
@@ -59,6 +59,6 @@ public:
     return this->_outputFilePath;
   }
 };
-} // namespace FLowWing
+} // namespace FlowWing
 
 #endif // DIAGNOSTIC_HANDLER_H

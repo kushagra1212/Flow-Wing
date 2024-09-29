@@ -6,13 +6,14 @@ OFileSaveStrategy::OFileSaveStrategy(LLVMLogger *llvmLogger) {
 
 bool OFileSaveStrategy::saveToFile(const std::string &path,
                                    llvm::Module *module) const {
+
 #if defined(REPL) || defined(REPL_TEST_MODE)
   return true;
 #endif
 
   //  LLVMInitializeAArch64TargetInfo();
   std::string targetTriple =
-      module->getTargetTriple();  // TODO: "x86_64-pc-windows-msvc
+      module->getTargetTriple(); // TODO: "x86_64-pc-windows-msvc
   module->setTargetTriple(targetTriple);
 
   std::string error;

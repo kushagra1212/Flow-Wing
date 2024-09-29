@@ -1,17 +1,58 @@
 bring "flow-wing-raylib.fg"
-
 type KEYS_TYPE = {
   KEY_RIGHT: int,
   KEY_LEFT: int,
   KEY_DOWN: int,
-  KEY_UP: int
+  KEY_UP: int,
+  KEY_ENTER: int,
+  KEY_ESCAPE: int,
+  KEY_SPACE: int
 }
 type COLORS_TYPE = {
   WHITE: int,
   RED: int,
   GREEN: int,
   BLUE: int,
-  DARKBLUE: int
+  DARKBLUE: int,
+  TRANSPARENT: int,
+  DARKGRAY: int,
+  GRAY: int,
+  RAYWHITE: int,
+  LIGHTGRAY: int,
+  BLUR: int
+}
+type LOG_TYPE = {
+  ALL: int,    /; Display all logs
+
+  TRACE: int,    /; Trace logging, intended for internal use only
+
+  DEBUG: int,    /; Debug logging, used for internal debugging, it should be disabled on release builds
+
+  INFO: int,    /; Info logging, used for program execution info
+
+  WARNING: int,    /; Warning logging, used on recoverable failures
+
+  ERROR: int,    /; Error logging, used on unrecoverable failures
+
+  FATAL: int,    /; Fatal logging, used to abort program: exit(EXIT_FAILURE)
+
+  NONE: int    /; Disable logging
+
+}
+type BoxWithText = {
+  text: str,
+  posX: int,
+  posY: int,
+  width: int,
+  height: int,
+  textColor: int,
+  padding: int,
+  fontSize: int,
+  backgroundColor: int
+}
+expose type Position = {
+  x: deci32,
+  y: deci32
 }
 expose class FlowWingAnim {
   var screenWidth: int
@@ -37,16 +78,28 @@ expose class FlowWingAnim {
       RED: getColor(255, 0, 0, 255),
       GREEN: getColor(0, 255, 0, 255),
       BLUE: getColor(0, 0, 255, 255),
-      DARKBLUE: getColor(0, 82, 172, 255)
+      DARKBLUE: getColor(0, 82, 172, 255),
+      TRANSPARENT: getColor(0, 0, 0, 0),
+      DARKGRAY: getColor(40, 40, 40, 255),
+      GRAY: getColor(100, 100, 100, 255),
+      RAYWHITE: getColor(245, 245, 245, 255),
+      LIGHTGRAY: getColor(200, 200, 200, 255),
+      BLUR: getColor(0, 0, 0, 200)
     } 
     KEYS = {
-      KEY_RIGHT: 262,/; Key: Cursor right
+      KEY_RIGHT: 262,        /; Key: Cursor right
 
-      KEY_LEFT: 263,/; Key: Cursor left
+      KEY_LEFT: 263,        /; Key: Cursor left
 
-      KEY_DOWN: 264,/; Key: Cursor down
+      KEY_DOWN: 264,        /; Key: Cursor down
 
-      KEY_UP: 265/; Key: Cursor up 
+      KEY_UP: 265,        /; Key: Cursor up 
+
+      KEY_ENTER: 257,        /; Key: Enter
+
+      KEY_ESCAPE: 256,        /; Key: Escape
+
+      KEY_SPACE: 32        /; Key: Space
 
     } 
     LOG = {
@@ -98,6 +151,16 @@ expose class FlowWingAnim {
   }
 
 
+  drawRectangleLines(posX: int, posY: int, width: int, height: int, color: int) -> nthg {
+    DrawRectangleLines(posX, posY, width, height, color)
+  }
+
+
+  drawRectangleLinesEx(rec: Rectangle, lineThick: deci32, color: int) -> nthg {
+    DrawRectangleLinesEx(rec, lineThick, color)
+  }
+
+
   endDrawing() -> nthg {
     EndDrawing()
   }
@@ -105,7 +168,7 @@ expose class FlowWingAnim {
 
   closeWindow() -> nthg {
     CloseWindow()
-  }/; window releated  
+  }    /; window releated  
 
 
 
@@ -126,20 +189,20 @@ expose class FlowWingAnim {
 
   getScreenWidth() -> int {
     return GetScreenWidth()
-  }/; Draw Shapes
-/; Draw Circle
+  }    /; Draw Shapes
+    /; Draw Circle
 
 
 
   drawCircle(centerX: int, centerY: int, radius: deci32, color: int) -> nthg {
     DrawCircle(centerX, centerY, radius, color)
-  }/; Text Drawing Function
+  }    /; Text Drawing Function
 
 
 
   drawText(text: str, posX: int, posY: int, fontSize: int, color: int) -> nthg {
     DrawText(text, posX, posY, fontSize, color)
-  }/; Input-related functions: keyboard
+  }    /; Input-related functions: keyboard
 
 
 
@@ -148,9 +211,20 @@ expose class FlowWingAnim {
   }
 
 
+  getMousePosition() -> Position {
+    var x: int = GetMouseX()
+    var y: int = GetMouseY()
+    return {
+      x: Decimal32(x),
+      y: Decimal32(y)
+    }
+  }
+
+
   drawTexturePro(inout texture: Texture, inout source: deci32[4], inout dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
     DrawTexturePro(texture, source, dest, origin, rotation, color)
-  }/#
+  }
+  /#
   drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: as deci32, color: as int) -> nthg {
       DrawRectanglePro(rec,origin,rotation,color)
   }
@@ -180,7 +254,8 @@ expose class FlowWingAnim {
 
   isKeyDown(key: int) -> bool {
     return IsKeyDown(key)
-  }/; Format Text
+  }
+  /; Format Text
 
 
 
@@ -189,9 +264,28 @@ expose class FlowWingAnim {
   }
 
 
+  measureText(text: as str, fontSize: as int) -> as int {
+    return MeasureText(text, fontSize)
+  }
+
+
+  drawBoxWithText(boxWithtext: BoxWithText) -> nthg {
+    DrawRectangle(boxWithtext.posX, boxWithtext.posY, boxWithtext.width, boxWithtext.height, boxWithtext.backgroundColor)
+    DrawText(boxWithtext.text, boxWithtext.posX, boxWithtext.posY, boxWithtext.fontSize, boxWithtext.textColor)
+  }
+
+
 }
 
 fun drawTexturePro(texture: Texture, source: deci32[4], dest: deci32[4], inout origin: deci32[2], inout rotation: deci32, inout color: int) -> nthg {
   DrawTexturePro(texture, source, dest, origin, rotation, color)
+}
+
+
+fun sin(val: as deci) -> as deci decl
+
+
+expose fun getSin(val: deci) -> as deci {
+  return sin(val)
 }
 

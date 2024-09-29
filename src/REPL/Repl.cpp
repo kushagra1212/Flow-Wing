@@ -1,7 +1,7 @@
 #include "Repl.h"
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
-  _diagnosticHandler = std::make_unique<FLowWing::DiagnosticHandler>();
+  _diagnosticHandler = std::make_unique<FlowWing::DiagnosticHandler>();
   previousText = std::vector<std::string>();
   _previousGlobalScope = nullptr;
 }
@@ -34,8 +34,8 @@ void Repl::runWithStream(std::istream &inputStream,
     std::string line;
     int emptyLines = 0;
 
-    std::unique_ptr<FLowWing::DiagnosticHandler> _previousDiagnosticHandler =
-        std::make_unique<FLowWing::DiagnosticHandler>();
+    std::unique_ptr<FlowWing::DiagnosticHandler> _previousDiagnosticHandler =
+        std::make_unique<FlowWing::DiagnosticHandler>();
     while (std::getline(inputStream, line)) {
       if (handleSpecialCommands(line)) {
         break;
@@ -45,7 +45,7 @@ void Repl::runWithStream(std::istream &inputStream,
         emptyLines++;
         if (emptyLines == 2) {
           _diagnosticHandler = std::move(_previousDiagnosticHandler);
-          _previousDiagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+          _previousDiagnosticHandler.reset(new FlowWing::DiagnosticHandler());
           break;
         }
 
@@ -78,7 +78,7 @@ void Repl::runWithStream(std::istream &inputStream,
               return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
             });
 
-        _diagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+        _diagnosticHandler.reset(new FlowWing::DiagnosticHandler());
 
         text = previousText;
         break;
@@ -93,7 +93,7 @@ void Repl::runWithStream(std::istream &inputStream,
 
         _previousDiagnosticHandler = std::move(_diagnosticHandler);
 
-        _diagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+        _diagnosticHandler.reset(new FlowWing::DiagnosticHandler());
 
         continue;
       }
@@ -118,13 +118,13 @@ void Repl::runWithStream(std::istream &inputStream,
                      d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
             });
 
-        _diagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+        _diagnosticHandler.reset(new FlowWing::DiagnosticHandler());
 
         continue;
       }
 
       compileAndEvaluate(outputStream, std::move(compilationUnit));
-      _diagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+      _diagnosticHandler.reset(new FlowWing::DiagnosticHandler());
     }
   }
 }
@@ -148,7 +148,7 @@ void Repl::compileAndEvaluate(
     _diagnosticHandler->logDiagnostics(outputStream, [](const Diagnostic &d) {
       return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
     });
-    _diagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+    _diagnosticHandler.reset(new FlowWing::DiagnosticHandler());
     _previousGlobalScope = std::move(globalScope->previous);
     return;
   }
@@ -181,8 +181,8 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
     this->addTextString(line);
   }
 
-  std::unique_ptr<FLowWing::DiagnosticHandler> currentDiagnosticHandler =
-      std::make_unique<FLowWing::DiagnosticHandler>();
+  std::unique_ptr<FlowWing::DiagnosticHandler> currentDiagnosticHandler =
+      std::make_unique<FlowWing::DiagnosticHandler>();
 
   std::unique_ptr<Parser> parser =
       std::make_unique<Parser>(text, currentDiagnosticHandler.get());
@@ -193,7 +193,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
         std::cout, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Lexical;
         });
-    currentDiagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+    currentDiagnosticHandler.reset(new FlowWing::DiagnosticHandler());
     return;
   }
 
@@ -206,7 +206,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
         std::cout, [](const Diagnostic &d) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Syntactic;
         });
-    currentDiagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+    currentDiagnosticHandler.reset(new FlowWing::DiagnosticHandler());
 
     return;
   }
@@ -225,7 +225,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
           return d.getType() == DiagnosticUtils::DiagnosticType::Semantic;
         });
 
-    currentDiagnosticHandler.reset(new FLowWing::DiagnosticHandler());
+    currentDiagnosticHandler.reset(new FlowWing::DiagnosticHandler());
 
     return;
   }

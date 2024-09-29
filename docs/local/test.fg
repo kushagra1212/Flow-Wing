@@ -1,16 +1,10 @@
-bring File/#
+bring File  /#
 var res: str, err: Err::Result = File::read("test.fg", "r")
 if (err != Nir) {
   print(err.getMessage())
 }else {
   print(res)
 }
+#/
 
-
-
-
-
-
-
-
-
+expose const x: int = 2

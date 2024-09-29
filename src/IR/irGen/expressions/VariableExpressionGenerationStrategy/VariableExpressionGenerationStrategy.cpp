@@ -15,6 +15,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariable(
     llvm::Value *v, llvm::Type *variableType, const std::string &variableName,
     int64_t pos) {
 
+  DEBUG_LOG("Variable Name", variableName);
+
   if (!_variableExpression ||
       _variableExpression->getDotExpressionList().size() - pos == 0) {
     return handleSingleVariable(variableType, v, variableName);
@@ -66,6 +68,26 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
 
     return v;
   }
+  if (llvm::isa<llvm::FunctionType>(variableType)) {
+
+    llvm::FunctionType *functionType =
+        llvm::cast<llvm::FunctionType>(variableType);
+
+    // if (_codeGenerationContext->_classTypes.find(
+    //         structType->getStructName().str()) !=
+    //     _codeGenerationContext->_classTypes.end()) {
+
+    //   _codeGenerationContext->getLogger()->LogError(
+    //       "Access member of Class " +
+    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
+    //       " using dot operator in variable " + variableName);
+    //   return nullptr;
+    // }
+    _codeGenerationContext->getValueStackHandler()->push(
+        variableName, v, "function", functionType);
+
+    return v;
+  }
 
   llvm::Value *varValue = Builder->CreateLoad(variableType, v, variableName);
   // when Primitive Typed Global Variable (Value)
@@ -76,8 +98,26 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
   return varValue;
 }
 
-llvm::Value *VariableExpressionGenerationStrategy::getClassMember(
-    int64_t pos, std::string &className, llvm::Value *v) {
+llvm::Value *
+VariableExpressionGenerationStrategy::getClassPtr(llvm::StructType *parObjType,
+                                                  int64_t pos, llvm::Value *v,
+                                                  int64_t finalPosition) {
+
+  std::string className =
+      Utils::getActualTypeName(parObjType->getStructName().str()).c_str();
+  _codeGenerationContext->getLogger()->setCurrentSourceLocation(
+      _variableExpression->getDotExpressionList()[pos]->getLocation());
+  if (_variableExpression->getDotExpressionList()[pos]->getKind() !=
+      BinderKindUtils::BoundNodeKind::LiteralExpression) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Expected a " +
+        BinderKindUtils::to_string(BinderKindUtils::LiteralExpression) +
+        " in dot expression, but found " +
+        BinderKindUtils::to_string(
+            _variableExpression->getDotExpressionList()[pos]->getKind()) +
+        " " + _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType));
+    return nullptr;
+  }
 
   const std::string memberName = std::any_cast<std::string>(
       ((BoundLiteralExpression<std::any> *)_variableExpression
@@ -88,13 +128,24 @@ llvm::Value *VariableExpressionGenerationStrategy::getClassMember(
           _codeGenerationContext->_classTypes.end() &&
       _codeGenerationContext->_classTypes[className]->doesElementExist(
           memberName)) {
+
+    CODEGEN_DEBUG_LOG("Class Name", className);
+    CODEGEN_DEBUG_LOG("memberName Name", (memberName));
     auto [elementType, elementIndex, elementName, classType] =
-        _codeGenerationContext->_classTypes[className]->getElement(memberName);
+        _codeGenerationContext->_classTypes[(className)]->getElement(
+            memberName);
 
+    llvm::Value *ptr =
+        Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), v);
     llvm::Value *elementPtr =
-        Builder->CreateStructGEP(parObjTypeType, v, elementIndex);
+        Builder->CreateStructGEP(parObjType, ptr, elementIndex);
 
-    return getVariable(elementPtr, elementType, memberName, pos + 1);
+    if (pos == finalPosition) {
+
+      return elementPtr;
+    }
+
+    return getClassPtr(classType, pos + 1, elementPtr, finalPosition);
   }
 
   _codeGenerationContext->getLogger()->LogError(
@@ -172,6 +223,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
 
     return this->getVariable(var.first, var.second, variableName);
   } else {
+
+    DEBUG_LOG("getGlobalVariableValue Name ", variableName);
     return this->getGlobalVariableValue(
         variableName, TheModule->getGlobalVariable(variableName));
   }
@@ -197,7 +250,25 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
           ->getValue());
   _variableName = variableName;
 
+  DEBUG_LOG("Variable Name ", variableName);
+
   return this->getVariableValue(variableName);
+}
+
+llvm::StructType *VariableExpressionGenerationStrategy::getStructType() {
+  if (_typeExpression->getKind() ==
+      BinderKindUtils::BoundNodeKind::BoundObjectTypeExpression) {
+    BoundObjectTypeExpression *bObjType =
+        (static_cast<BoundObjectTypeExpression *>(_typeExpression));
+
+    return llvm::StructType::getTypeByName(*TheContext,
+                                           bObjType->getTypeName().c_str());
+  }
+
+  _codeGenerationContext->getLogger()->LogError(
+      "Expected to be an object type");
+
+  return nullptr;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
@@ -208,6 +279,10 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
   std::string dotPropertyName = getPropertyName(listIndex);
   itsClass = _codeGenerationContext->isValidClassType(parObjType);
 
+  DEBUG_LOG("dotPropertyName Name", dotPropertyName);
+  DEBUG_LOG("parObjType",
+            _codeGenerationContext->getMapper()->getLLVMTypeName(parObjType));
+  DEBUG_LOG("_variableName", _variableName);
   bool isNested =
       _variableExpression->getDotExpressionList().size() > listIndex + 1;
 
@@ -216,6 +291,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
           BinderKindUtils::BoundNodeKind::CallExpression) {
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         _variableExpression->getDotExpressionList()[listIndex].get());
+
+    DEBUG_LOG("Caller Name", callExpression->getCallerNameRef());
 
     std::string className =
         Utils::getActualTypeName(parObjType->getStructName().str());
@@ -246,7 +323,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
 
     return getVariable(ptr, type, dotPropertyName, listIndex + 1);
   }
-
   if (itsClass &&
       !_codeGenerationContext->_classTypes[(parObjType->getStructName().str())]
            ->doesElementExist(dotPropertyName)) {
@@ -260,6 +336,10 @@ llvm::Value *VariableExpressionGenerationStrategy::getObjectValueNF(
     return nullptr;
   }
 
+  // if (itsClass) {
+  //   return getClassMember(parObjType, listIndex, outerElementPtr);
+  // }
+
   return handleVariableGet(parObjType, itsClass, dotPropertyName, listIndex,
                            parPropertyName, isNested, outerElementPtr);
 }
@@ -272,7 +352,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
     _codeGenerationContext->getLogger()->LogError(
         "Property " + dotPropertyName + " is not an object in " +
         (listIndex == 0 ? "variable " : "property ") + parPropertyName +
-        " of Type " + parObjType->getStructName().str());
+        " of Type " +
+        Utils::getActualTypeName(parObjType->getStructName().str()));
 
     return nullptr;
   };
@@ -284,8 +365,10 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
   Class *classObj = nullptr;
 
   if (itsClass) {
-    classObj = _codeGenerationContext->_classTypes[Utils::getActualTypeName(
-        parObjType->getStructName().str())];
+    classObj = _codeGenerationContext
+                   ->_classTypes[Utils::getActualTypeName(
+                       parObjType->getStructName().str())]
+                   .get();
   }
 
   if (!itsClass && !boundCustomTypeStatement) {
@@ -472,6 +555,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
     return nullptr;
   }
 
+  DEBUG_LOG("Variable Name ", variableName);
+
   // when Global Variable (Value) is a dynamic type
   if (_codeGenerationContext->getDynamicType()->isDyn(
           variable->getValueType())) {
@@ -498,7 +583,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
       return nullptr;
     }
   }
-
   // When Global Variable (Value) is a struct type
   if (llvm::isa<llvm::StructType>(variable->getValueType())) {
     if (llvm::isa<llvm::GlobalVariable>(variable)) {
@@ -509,6 +593,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getGlobalVariableValue(
           (llvm::cast<llvm::AllocaInst>(variable))->getAllocatedType());
     }
 
+    DEBUG_LOG("parObjTypeType Name ", parObjTypeType->getStructName().str());
     if (_variableExpression->getDotExpressionList().size() == 0) {
       _codeGenerationContext->getValueStackHandler()->push(
           parObjTypeType->getStructName().str(), variable, "struct",

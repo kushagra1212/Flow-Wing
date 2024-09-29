@@ -4,6 +4,7 @@
 #include "../BoundSourceLocation/BoundSourceLocation.h"
 #include "../BoundStatement/BoundStatement.h"
 #include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include <vector>
 
 class BoundModuleStatement : public BoundStatement, public BoundSourceLocation {
 
@@ -13,6 +14,8 @@ class BoundModuleStatement : public BoundStatement, public BoundSourceLocation {
   std::vector<std::unique_ptr<BoundStatement>> _functionStatements;
   std::vector<std::unique_ptr<BoundStatement>> _customTypeStatements;
   std::vector<std::unique_ptr<BoundStatement>> _classStatements;
+  std::vector<std::unique_ptr<BoundExpression>> _callerExpressions;
+  std::vector<BoundNode *> _statements;
 
 public:
   BoundModuleStatement(const DiagnosticUtils::SourceLocation &location);
@@ -24,6 +27,7 @@ public:
       -> void {
     _variableDeclarationStatements.push_back(
         std::move(variableDeclarationStatement));
+    _statements.emplace_back(_variableDeclarationStatements.back().get());
   }
 
   inline auto addModuleNameIdentifier(
@@ -36,23 +40,32 @@ public:
   addFunctionStatement(std::unique_ptr<BoundStatement> functionStatement)
       -> void {
     _functionStatements.push_back(std::move(functionStatement));
+    _statements.emplace_back(_functionStatements.back().get());
   }
 
   inline auto
   addCustomTypeStatement(std::unique_ptr<BoundStatement> typeStatement)
       -> void {
     _customTypeStatements.push_back(std::move(typeStatement));
+    _statements.emplace_back(_customTypeStatements.back().get());
   }
 
   inline auto addClassStatement(std::unique_ptr<BoundStatement> classStatement)
       -> void {
-
     _classStatements.push_back(std::move(classStatement));
+    _statements.emplace_back(_classStatements.back().get());
   }
 
   inline auto getVariableDeclarationStatementsRef()
       -> std::vector<std::unique_ptr<BoundVariableDeclaration>> & {
     return _variableDeclarationStatements;
+  }
+
+  inline auto
+  addCallerExpression(std::unique_ptr<BoundExpression> callerExpression)
+      -> void {
+    _callerExpressions.push_back(std::move(callerExpression));
+    _statements.emplace_back(_callerExpressions.back().get());
   }
 
   inline auto getFunctionStatementsRef()
@@ -76,6 +89,15 @@ public:
   }
   inline auto getModuleName() -> std::string {
     return std::any_cast<std::string>(_moduleNameIdentifier->getValue());
+  }
+
+  inline auto getCallerExpressionsRef()
+      -> std::vector<std::unique_ptr<BoundExpression>> & {
+    return _callerExpressions;
+  }
+
+  inline auto getStatementsRef() -> const std::vector<BoundNode *> & {
+    return _statements;
   }
 };
 

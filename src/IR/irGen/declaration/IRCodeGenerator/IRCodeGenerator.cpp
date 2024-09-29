@@ -15,7 +15,8 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
               MultipleVariableDeclarationStatementGenerationStrategy>(context)),
       _multipleAssignmentExpressionGenerationStrategy(
           std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
-              context)) {}
+              context)),
+      _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
                                                  bool isGlobal) {
@@ -79,8 +80,11 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
 
     for (const auto &variable :
          moduleStatement->getVariableDeclarationStatementsRef()) {
-      _variableDeclarationStatementGenerationStrategy->declareGlobal(
-          static_cast<BoundVariableDeclaration *>(variable.get()));
+      processChildForDeclaration(variable.get(), isGlobal);
+    }
+
+    for (const auto &callExpr : moduleStatement->getCallerExpressionsRef()) {
+      processChildForDeclaration(callExpr.get(), isGlobal);
     }
 
     break;
@@ -119,10 +123,14 @@ void IRCodeGenerator::processChildForCustomType(BoundNode *child) {
   case BinderKindUtils::BoundNodeKind::ClassStatement: {
 
     auto classStmt = static_cast<BoundClassStatement *>(child);
-    for (auto &memberFunc : classStmt->getMemberFunctionsRef()) {
-      declareCustomType(memberFunc.get());
+
+    if (_codeGenerationContext->_classTypes.find(classStmt->getClassName()) ==
+        _codeGenerationContext->_classTypes.end()) {
+      for (auto &memberFunc : classStmt->getMemberFunctionsRef()) {
+        declareCustomType(memberFunc.get());
+      }
+      _classStatementGenerationStrategy->generateClassType(classStmt);
     }
-    _classStatementGenerationStrategy->generateClassType(classStmt);
     break;
   }
   default:
@@ -130,22 +138,9 @@ void IRCodeGenerator::processChildForCustomType(BoundNode *child) {
   }
 }
 
-void IRCodeGenerator::declareVariables(BoundStatement *statement,
-                                       bool isGlobal) {
-  for (auto &child : statement->getChildren()) {
-    processChildForDeclaration(child, isGlobal);
-  }
-}
-
 void IRCodeGenerator::declareVariables(BoundNode *node, bool isGlobal) {
   for (auto &child : node->getChildren()) {
     processChildForDeclaration(child, isGlobal);
-  }
-}
-
-void IRCodeGenerator::declareCustomType(BoundStatement *statement) {
-  for (auto &child : statement->getChildren()) {
-    processChildForCustomType(child);
   }
 }
 

@@ -8,15 +8,12 @@
 #include <string>
 
 class CommandManager {
-  argh::parser *_cmdl;
   std::string _outputFileNameWithoutExtension = "output";
   bool hasEntryPoint = false;
 
 public:
-  CommandManager(argh::parser *cmdl,
-                 const std::string &outputFileNameWithoutExtension)
-      : _cmdl(cmdl),
-        _outputFileNameWithoutExtension(outputFileNameWithoutExtension) {}
+  CommandManager(const std::string &outputFileNameWithoutExtension)
+      : _outputFileNameWithoutExtension(outputFileNameWithoutExtension) {}
 
   auto inline create() -> std::string {
     std::string cmd = "";
@@ -29,8 +26,8 @@ public:
 
     cmd += this->getObjectFilesJoinedAsString();
 
-    if (_cmdl) {
-      for (const auto &[key, value] : (*_cmdl).params()) {
+    if (FlowWing::Cli::cmdl) {
+      for (const auto &[key, value] : (*FlowWing::Cli::cmdl).params()) {
         cmd += this->getOtherLibrariesPath(key, value);
         cmd += this->getLinkLibrary(key, value);
         cmd += this->getFramework(key, value);
@@ -71,24 +68,20 @@ private:
   }
 
   auto inline getOptimizationLevel() -> std::string {
-    if (_cmdl &&
-        (*_cmdl)[{
-            FlowWingCliOptions::OPTIONS::OptimizationLevel0.name.c_str()}])
+    if (!FlowWing::Cli::cmdl) {
+      return " -O3 ";
+    }
+
+    if (FlowWing::Cli::isFlag::OptimizationLevel0())
       return " -O0 ";
 
-    if (_cmdl &&
-        (*_cmdl)[{
-            FlowWingCliOptions::OPTIONS::OptimizationLevel1.name.c_str()}])
+    if (FlowWing::Cli::isFlag::OptimizationLevel1())
       return " -O1 ";
 
-    if (_cmdl &&
-        (*_cmdl)[{
-            FlowWingCliOptions::OPTIONS::OptimizationLevel2.name.c_str()}])
+    if (FlowWing::Cli::isFlag::OptimizationLevel2())
       return " -O2 ";
 
-    if (_cmdl &&
-        (*_cmdl)[{
-            FlowWingCliOptions::OPTIONS::OptimizationLevel3.name.c_str()}])
+    if (FlowWing::Cli::isFlag::OptimizationLevel3())
       return " -O3 ";
 
     return " -O3 ";
@@ -111,7 +104,7 @@ private:
 #endif
 
     if (!hasEntryPoint &&
-        FlowWingCliOptions::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
+        FlowWing::Cli::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
       hasEntryPoint = true;
       return " -e _" + value + " ";
     }
@@ -146,7 +139,7 @@ private:
 
   auto inline getOtherLibrariesPath(const std::string &key,
                                     const std::string &value) -> std::string {
-    if (FlowWingCliOptions::OPTIONS::LibraryPath.name == "-" + key)
+    if (FlowWing::Cli::OPTIONS::LibraryPath.name == "-" + key)
       return " -L " + value + " ";
 
     return "";
@@ -154,7 +147,7 @@ private:
 
   auto inline getLinkLibrary(const std::string &key, const std::string &value)
       -> std::string {
-    if (FlowWingCliOptions::OPTIONS::LinkLibrary.name == "-" + key)
+    if (FlowWing::Cli::OPTIONS::LinkLibrary.name == "-" + key)
       return " -l " + value + " ";
 
     return "";
@@ -162,7 +155,7 @@ private:
 
   auto inline getFramework(const std::string &key, const std::string &value)
       -> std::string {
-    if (FlowWingCliOptions::OPTIONS::Framework.name == "-" + key)
+    if (FlowWing::Cli::OPTIONS::Framework.name == "-" + key)
       return " -framework " + value + " ";
 
     return "";

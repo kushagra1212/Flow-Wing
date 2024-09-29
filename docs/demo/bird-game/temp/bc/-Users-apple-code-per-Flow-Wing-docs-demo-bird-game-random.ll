@@ -1,5 +1,7 @@
 ; ModuleID = '-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random'
 source_filename = "-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random"
+target datalayout = "e-m:o-i64:64-i128:128-n32:64-S128"
+target triple = "arm64-apple-darwin23.4.0"
 
 @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random_FLOWWING_GLOBAL_TRUE = constant [5 x i8] c"true\00"
 @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random_FLOWWING_GLOBAL_FALSE = constant [6 x i8] c"false\00"
@@ -48,7 +50,9 @@ declare void @raise_exception(ptr)
 
 declare ptr @malloc(i64)
 
-define i32 @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random() {
+declare i32 @putchar(i32)
+
+define i32 @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random(i32 %0, ptr %1) {
 entry:
   br label %returnBlock
 
@@ -62,18 +66,18 @@ declare !rt !1 i32 @time()
 
 declare !rt !2 void @srand(i32)
 
-define void @getRandomNumber(ptr %0, ptr %1, ptr %2) !rt !3 {
+define i32 @getRandomNumber(ptr %0, ptr %1) !rt !3 {
 entry:
   %start = alloca i32, align 4
-  %3 = load i32, ptr %1, align 4
-  store i32 %3, ptr %start, align 4
+  %2 = load i32, ptr %0, align 4
+  store i32 %2, ptr %start, align 4
   %end = alloca i32, align 4
-  %4 = load i32, ptr %2, align 4
-  store i32 %4, ptr %end, align 4
+  %3 = load i32, ptr %1, align 4
+  store i32 %3, ptr %end, align 4
   br label %nestedBlock
 
 afterNestedBlock:                                 ; preds = %checkContinueBlock, %mergeBlock
-  ret void
+  ret i32 0
 
 nestedBlock:                                      ; preds = %entry
   br label %returnBlock
@@ -82,24 +86,23 @@ checkContinueBlock:                               ; preds = %mergeBlock
   br label %afterNestedBlock
 
 returnBlock:                                      ; preds = %nestedBlock
-  %5 = call i32 @rand()
+  %4 = call i32 @rand()
   %end1 = load i32, ptr %end, align 4
-  %6 = load i32, ptr %end, align 4
+  %5 = load i32, ptr %end, align 4
   %start2 = load i32, ptr %start, align 4
-  %7 = load i32, ptr %start, align 4
-  %8 = sub i32 %6, %7
-  %9 = add i32 %8, 1
-  %10 = srem i32 %5, %9
+  %6 = load i32, ptr %start, align 4
+  %7 = sub i32 %5, %6
+  %8 = add i32 %7, 1
+  %9 = srem i32 %4, %8
   %start3 = load i32, ptr %start, align 4
-  %11 = load i32, ptr %start, align 4
-  %12 = add i32 %10, %11
-  store i32 %12, ptr %0, align 4
-  ret void
+  %10 = load i32, ptr %start, align 4
+  %11 = add i32 %9, %10
+  ret i32 %11
 
 mergeBlock:                                       ; No predecessors!
-  %13 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random_FLOWWING_BREAK_COUNT, align 4
-  %14 = icmp eq i32 %13, 0
-  br i1 %14, label %checkContinueBlock, label %afterNestedBlock
+  %12 = load i32, ptr @-Users-apple-code-per-Flow-Wing-docs-demo-bird-game-random_FLOWWING_BREAK_COUNT, align 4
+  %13 = icmp eq i32 %12, 0
+  br i1 %13, label %checkContinueBlock, label %afterNestedBlock
 }
 
 !0 = !{!"rand:rt:pr:28"}

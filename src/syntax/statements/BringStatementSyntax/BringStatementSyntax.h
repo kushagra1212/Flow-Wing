@@ -7,7 +7,7 @@
 
 class BringStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
-  std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler;
+  std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler;
   std::unique_ptr<SyntaxToken<std::any>> _openBraceToken;
   std::unique_ptr<SyntaxToken<std::any>> _pathToken;
   std::string absoluteFilePath;
@@ -15,6 +15,7 @@ class BringStatementSyntax : public StatementSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _bringKeyword;
   std::unique_ptr<CompilationUnitSyntax> _compilationUnit;
   bool _isModuleImport = false;
+  std::string _moduleName = "";
 
 public:
   void
@@ -25,7 +26,7 @@ public:
   void addPathToken(std::unique_ptr<SyntaxToken<std::any>> pathToken);
   void setAbsoluteFilePath(const std::string &absoluteFilePath);
   void setDiagnosticHandler(
-      std::unique_ptr<FLowWing::DiagnosticHandler> diagnosticHandler);
+      std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler);
   void setRelativeFilePath(const std::string &relativeFilePath);
   void
   setCompilationUnit(std::unique_ptr<CompilationUnitSyntax> compilationUnit);
@@ -40,9 +41,13 @@ public:
   getExpressionsPtr();
   const std::unique_ptr<CompilationUnitSyntax> &getCompilationUnitPtr();
 
+  inline auto setModuleName(const std::string &moduleName) -> void {
+    _moduleName = moduleName;
+  }
+
   const bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
-  std::unique_ptr<FLowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
+  std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
   const std::string &getRelativeFilePathPtr();
   const std::unique_ptr<SyntaxToken<std::any>> &getBringKeywordPtr();
 
@@ -53,6 +58,8 @@ public:
   }
 
   inline auto getIsModuleImport() -> bool { return _isModuleImport; }
+
+  inline auto getModuleName() -> std::string { return _moduleName; }
 };
 
 #endif // BRING_STATEMENT_SYNTAX_H

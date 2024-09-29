@@ -33,10 +33,9 @@ class IRCodeGenerator {
 
 public:
   IRCodeGenerator(CodeGenerationContext *context);
-  void declareVariables(BoundStatement *statement, bool isGlobal);
   void declareVariables(BoundNode *node, bool isGlobal);
-  void declareCustomType(BoundStatement *statement);
   void declareCustomType(BoundNode *node);
+  CodeGenerationContext *_codeGenerationContext;
 };
 
 #endif

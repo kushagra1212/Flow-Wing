@@ -2,7 +2,7 @@
 #include <string>
 
 IRGenerator::IRGenerator(
-    int environment, FLowWing::DiagnosticHandler *diagnosticHandler,
+    int environment, FlowWing::DiagnosticHandler *diagnosticHandler,
     std::unordered_map<std::string, BoundFunctionDeclaration *>
         boundedUserFunctions,
     std::string outputFilePath, const std::string sourceFileName) {
@@ -66,6 +66,9 @@ IRGenerator::IRGenerator(
 
   //.o file save strategy
   oFileSaveStrategy = std::make_unique<OFileSaveStrategy>(_llvmLogger);
+
+  //.o
+  objectFile = std::make_unique<ObjectFile>();
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -156,9 +159,14 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   // Entry Block
 
+  //! REFACTOR BELOW CODE IN SINGLE FUNCTION and DO all
+  //! Type, Variable, and Function Declaration at once in order as they
+  //! are created
+
   Builder->SetInsertPoint(entryBlock);
 
   _irCodeGenerator->declareCustomType(blockStatement);
+
   for (auto &children : blockStatement->getStatements()) {
     if (children->getKind() ==
         BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
@@ -169,7 +177,6 @@ void IRGenerator::generateEvaluateGlobalStatement(
             ->generateGlobalStatement(children.get());
     } else if (children->getKind() ==
                BinderKindUtils::BoundNodeKind::BringStatement) {
-
       _bringStatementGenerationStrategy->declare(children.get());
     } else if (children->getKind() ==
                BinderKindUtils::BoundNodeKind::BoundModuleStatement) {
@@ -265,26 +272,27 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #endif
 
   if (!this->hasErrors()) {
-#ifdef DEBUG
-    const std::string Filename = (std::string(blockName + std::string(".ll")));
+#if defined(DEBUG)
+    const std::string Filename =
+        (std::string(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR + blockName +
+                     std::string(".ll")));
+    llvm::sys::fs::create_directories(
+        FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
     LLVMPrintModuleToFile(wrap(TheModule), Filename.c_str(), OutMessage);
-
-    std::unique_ptr<ObjectFile> objectFile =
-        std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
-#elif defined(RELEASE) && (defined(JIT_MODE) || defined(JIT_TEST_MODE))
-    bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
-#elif RELEASE
-    std::unique_ptr<ObjectFile> objectFile =
-        std::make_unique<ObjectFile>(blockName);
-    objectFile->writeModuleToFile(TheModule);
+    objectFile->writeModuleToFile(TheModule, blockName);
+#elif defined(AOT_MODE) || defined(AOT_TEST_MODE)
+    objectFile->writeModuleToFile(TheModule, blockName);
+#elif (defined(JIT_MODE) || defined(JIT_TEST_MODE))
+    bcFileSaveStrategy->saveToFile(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
+                                       blockName + ".bc",
+                                   TheModule);
 #endif
   }
 
 #ifdef JIT_MODE
   if (this->hasErrors()) {
     llvm::SMDiagnostic Err;
-    Err.print("FLowWing", llvm::errs());
+    Err.print("FlowWing", llvm::errs());
   }
 #endif
 }
@@ -312,7 +320,9 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
     BoundFunctionDeclaration *functionDeclaration =
         static_cast<BoundFunctionDeclaration *>(funDec.get());
     std::vector<std::string> classVariables = {};
-
+    _functionStatementGenerationStrategy =
+        std::make_unique<FunctionStatementGenerationStrategy>(
+            this->_codeGenerationContext.get());
     for (auto &variDec : boundClassStatement->getAllMemberVariablesRef()) {
       classVariables.push_back(variDec->getVariableName());
     }

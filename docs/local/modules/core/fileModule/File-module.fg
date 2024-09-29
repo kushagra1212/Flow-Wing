@@ -1,5 +1,4 @@
 bring Err
-
 module [File]
 type IO_FILE = {
   flags: int,
@@ -13,14 +12,14 @@ type IO_FILE = {
   IO_buf_end: str,
   IO_save_base: str,
   IO_backup_base: str,
-  IO_save_end: str,/; struct ptr 
+  IO_save_end: str,    /; struct ptr 
 
   IO_marker: str,
-  IO_FILE: str,/; 
+  IO_FILE: str,    /; 
 
   fileno: int,
   blksize: int,
-  flags2: int64,/;
+  flags2: int64,    /;
 
   t8_1: int8,
   t8_2: int8,
@@ -30,7 +29,7 @@ type IO_FILE = {
   c: int64,
   IO_codecvt: str,
   IO_wide_data: str,
-  IO_FILE2: str,/; 
+  IO_FILE2: str,    /; 
 
   j: str,
   k: int64,
