@@ -1,13 +1,25 @@
 bring Vortex
 bring File
 bring Err
-var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")  /; Handle GET request for the home page
-
-if (homePageLoadErr != Nir) {
-  print(homePageLoadErr.getMessage(), "\n")
-}
 
 fun handleHomePage(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
+  var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")    /; Handle GET request for the home page
+
+  if (homePageLoadErr != Nir) {
+    print(homePageLoadErr.getMessage(), "\n")
+    res.send({
+      status: 500,
+      content_type: "text/html",
+      body: `
+      <html>
+        <body>
+          <h1>Error Loading Home Page</h1>
+        </body>
+      </html>
+      `
+    })
+    return :
+  }
   var err: Err::Result = res.send({
     status: 200,
     content_type: "text/html",

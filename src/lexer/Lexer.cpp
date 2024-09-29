@@ -767,7 +767,6 @@ Lexer::readTemplateString(const int &start) {
 
   std::string text = "", valueText = "";
   text += this->getCurrent();
-  valueText += this->getCurrent();
   this->next();
   while (this->getCurrent() != this->endOfFile && this->getCurrent() != '`') {
 
@@ -799,7 +798,6 @@ Lexer::readTemplateString(const int &start) {
     return std::move(newSyntaxToken);
   }
   text += this->getCurrent();
-  valueText += this->getCurrent();
   this->next();
   return std::make_unique<SyntaxToken<std::any>>(
       this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,

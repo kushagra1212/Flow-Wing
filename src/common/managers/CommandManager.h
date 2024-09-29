@@ -119,18 +119,18 @@ private:
 
   auto inline getBuiltInModuleLinked() -> std::string {
 
-#if defined(AOT_TEST_MODE) || defined(AOT_MODE)
-    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-           getDynamicLibraryPath("built_in_module") + " " +
-           getDynamicLibraryPath("flowwing_string") + " ";
-#else
+    // #if defined(AOT_TEST_MODE) || defined(AOT_MODE)
+    //     return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
+    //            getDynamicLibraryPath("built_in_module") + " " +
+    //            getDynamicLibraryPath("flowwing_string") + " ";
+    // #else
     return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " " +
            getDynamicLibraryPath("flowwing_vector") + " " +
            getDynamicLibraryPath("flowwing_map") + " ";
 
-#endif
+    // #endif
   }
 
   auto inline getDynamicLibraryPath(const std::string &libName) -> std::string {

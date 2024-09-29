@@ -54,6 +54,15 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_compile_definitions(RELEASE)
 endif()
 
+# Compiler flags for optimization and debugging
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG)
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_definitions(RELEASE)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")  # Apply -O3 optimization for release builds
+endif()
+
 # Set the default executable name
 set(DEFAULT_EXECUTABLE_NAME "FlowWing")
 

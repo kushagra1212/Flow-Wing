@@ -29,7 +29,7 @@ export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DY
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."
-$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_vortex
+$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O=-O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_vortex
 
 # Check if the executable was created successfully
 if [ ! -f "$OUTPUT_EXECUTABLE" ]; then
