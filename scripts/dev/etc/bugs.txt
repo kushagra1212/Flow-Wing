@@ -1,6 +1,29 @@
 
 
 
+- New Bug 29/09/2024
+
+  Bug With Dynamic Type Inside class (This Feature is incomplete so it is an bug)
+
+  
+
+class MenuScreen extends Screen {
+  type OPTIONS_TYPE = {
+    START: int,
+    EXIT: int
+  }
+  const START_TEXT: int = "Press ENTER to Start"
+  const EXIT_TEXT: int = "Press ESC to Exit"
+  const OPTIONS: OPTIONS_TYPE = {
+    START: 0,
+    EXIT: 1
+  }
+  const OPTION_HEIGHT: int = 40
+
+  Getting SegFaults
+
+- OLD
+
 - 1.  Getting SegFault When I try to create a variable (Only GLOBAL) of class type in parent file and import it 
 
 file.fg 

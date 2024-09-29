@@ -1,6 +1,7 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+#include <cstdint>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -85,6 +86,7 @@
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+#include <memory>
 //!
 class TypeMapper;
 class BoundFunctionDeclaration;
@@ -207,9 +209,10 @@ public:
   void verifyModule(llvm::Module *M);
 
   inline auto isValidClassType(llvm::StructType *type) -> bool {
-    return this->_classTypes.find((type->getStructName().str())) !=
-               this->_classTypes.end() &&
-           this->_classTypes[(type->getStructName().str())];
+    return this->_classTypes.find(Utils::getActualTypeName(
+               type->getStructName().str())) != this->_classTypes.end() &&
+           this->_classTypes[Utils::getActualTypeName(
+               type->getStructName().str())];
   }
 
   inline auto isClassMemberFunction(const std::string &funName) -> bool {
@@ -224,22 +227,25 @@ public:
   }
 
   inline auto getFlowWingType(const std::string &typeName) -> FlowWing::Type {
+    const std::string pureType = Utils::getActualTypeName(typeName);
     const bool isClassType =
-        this->_classTypes.find(typeName) != this->_classTypes.end();
+        this->_classTypes.find(pureType) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {
-      this->getLogger()->LogError("Type " + typeName +
+      this->getLogger()->LogError("Type " + pureType +
                                   " is not defined in this scope");
 
       return FlowWing::Type();
     }
+
+    if (isClassType)
+      return this->_typesMap[pureType];
 
     return this->_typesMap[typeName];
   }
 
   inline auto addClass(const std::string &name,
                        std::unique_ptr<Class> classType) -> void {
-    this->_classes.emplace_back(std::move(classType));
-    this->_classTypes.insert({name, this->_classes.back().get()});
+    this->_classTypes.insert({name, std::move(classType)});
   }
   inline auto getTargetMachine() -> llvm::TargetMachine * {
     return this->_targetMachine;
@@ -247,7 +253,7 @@ public:
 
   auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
 
-  std::unordered_map<std::string, Class *> _classTypes;
+  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
   // custom struct types
@@ -292,8 +298,6 @@ private:
 
   std::unordered_map<std::string, BoundFunctionDeclaration *>
       _boundedUserFunctions;
-
-  std::vector<std::unique_ptr<Class>> _classes;
 
   llvm::TargetMachine *_targetMachine = nullptr;
   std::string _currentClassName = "";

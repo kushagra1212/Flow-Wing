@@ -1,8 +1,6 @@
 bring Vortex
 bring File
 bring Err
-
-
 var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")  /; Handle GET request for the home page
 
 if (homePageLoadErr != Nir) {
@@ -35,7 +33,7 @@ fun handleGet(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
 }
 
 const port: int = 8080
-print("Flow-Wing server running on port: ", port, "\n")
+print("Flow-Wing server starting on port: ", port, "\n")
 var server: Vortex::Server = new Vortex::Server(port)
 server.setRoute("GET", "/", handleHomePage)
 server.setRoute("GET", "/api/welcome", handleGet)

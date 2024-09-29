@@ -1,5 +1,7 @@
 
 #include "Binder.h"
+#include <cstdint>
+#include <memory>
 
 std::unique_ptr<BoundStatement> Binder::bindExpressionStatement(
     ExpressionStatementSyntax *expressionStatement) {
@@ -771,6 +773,7 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
   auto boundBringStatement = std::make_unique<BoundBringStatement>(
       bringStatement->getSourceLocation(),
       bringStatement->getDiagnosticHandlerPtr().get());
+
   boundBringStatement->setIsAlreadyImported(isAlreadyImported);
   boundBringStatement->setIsModuleImport(bringStatement->getIsModuleImport());
 
@@ -796,7 +799,8 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
       }
 
       const bool notFound =
-          memberMap.find(expression->getTokenPtr()->getText()) ==
+          memberMap.find(expression->getTokenPtr()->getText().substr(
+              0, expression->getTokenPtr()->getText().find_last_of("."))) ==
           memberMap.end();
 
       if (notFound) {
@@ -882,7 +886,9 @@ Binder::bindBringStatement(BringStatementSyntax *bringStatement) {
     case BinderKindUtils::BoundNodeKind::ClassStatement: {
       auto classType = static_cast<BoundClassStatement *>(stat.get());
 
-      if (!this->root->tryDeclareClass(classType)) {
+      PARSER_DEBUG_LOG("CLASS,", classType->getClassName());
+
+      if (!this->root->tryDeclareClassGlobal(classType)) {
         this->_diagnosticHandler->addDiagnostic(Diagnostic(
             "Type " + classType->getClassName() + " is Already Declared",
             DiagnosticUtils::DiagnosticLevel::Error,
@@ -1323,7 +1329,8 @@ Binder::bindCallExpression(CallExpressionSyntax *callExpression) {
   {
     const std::string CLASS_NAME = CALLER_NAME.substr(0, CALLER_NAME.find("."));
     std::string fLastName = CALLER_NAME.substr(CALLER_NAME.find(".") + 1);
-
+    PARSER_DEBUG_LOG("Class Name: " + CLASS_NAME);
+    PARSER_DEBUG_LOG("Caller Name: " + CALLER_NAME);
     BoundClassStatement *boundClassStatement =
         this->root->tryGetClass(CLASS_NAME);
 
@@ -1620,7 +1627,11 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
   boundVariableExpression->setSelf(variableExpressionSyntax->getIsSelf());
   boundVariableExpression->setHasNewKeyword(
       variableExpressionSyntax->getHasNewKeyword());
-
+  std::string classNameVariableBelongsTo = "";
+  if (variable) {
+    classNameVariableBelongsTo = variable->getClassItBelongsTo();
+  }
+  uint64_t index = 0;
   for (const auto &dotExpression :
        variableExpressionSyntax->getDotExpressionList()) {
     if (dotExpression->getKind() ==
@@ -1648,7 +1659,7 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         CallExpressionSyntax *callExpression =
             static_cast<CallExpressionSyntax *>(dotExpression.get());
 
-        if (variable->getClassItBelongsTo() != "") {
+        if (!classNameVariableBelongsTo.empty()) {
           std::any fName = variable->getClassItBelongsTo() +
                            FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX +
                            std::any_cast<std::string>(
@@ -1660,10 +1671,46 @@ std::unique_ptr<BoundExpression> Binder::bindVariableExpression(
         boundVariableExpression->addDotExpression(
             std::move(bindCallExpression(callExpression)));
       } else {
+
+        std::unique_ptr<BoundExpression> localBoundExpression =
+            std::move(bindExpression(dotExpression.get()));
+
+        if (!classNameVariableBelongsTo.empty()) {
+          BoundClassStatement *boundClassStatement =
+              this->root->tryGetClass(classNameVariableBelongsTo);
+          if (boundClassStatement) {
+            for (auto &_variable :
+                 boundClassStatement->getAllMemberVariablesRef()) {
+
+              if (_variable && _variable->getTypeExpression() &&
+                  _variable->getTypeExpression()->getKind() ==
+                      BinderKindUtils::BoundNodeKind::
+                          BoundObjectTypeExpression) {
+                BoundObjectTypeExpression *boundObjTypeExp =
+                    static_cast<BoundObjectTypeExpression *>(
+                        _variable->getTypeExpression().get());
+
+                BoundClassStatement *nestedBoundClassStatement =
+                    this->root->tryGetClass(Utils::getActualTypeName(
+                        boundObjTypeExp->getTypeName()));
+
+                if (nestedBoundClassStatement) {
+                  classNameVariableBelongsTo =
+                      nestedBoundClassStatement->getClassName();
+                }
+              }
+            }
+          }
+        }
         boundVariableExpression->addDotExpression(
             std::move(bindExpression(dotExpression.get())));
       }
     }
+    DEBUG_LOG("classNameVariableBelongsTo: ", classNameVariableBelongsTo);
+    if (index != 0) {
+      classNameVariableBelongsTo = "";
+    }
+    index++;
   }
 
   return std::move(boundVariableExpression);
@@ -2012,9 +2059,12 @@ Binder::bindGlobalScope(std::unique_ptr<BoundScopeGlobal> previousGlobalScope,
       break;
     }
     case SyntaxKindUtils::SyntaxKind::GlobalStatement: {
+
+      GlobalStatementSyntax *globalStatementSyntax =
+          (GlobalStatementSyntax *)members[i].get();
+
       std::unique_ptr<BoundStatement> _statement =
-          std::move(binder->bindGlobalStatement(
-              (GlobalStatementSyntax *)members[i].get()));
+          std::move(binder->bindGlobalStatement(globalStatementSyntax));
 
       _globalBoundBlockStatement->addStatement(std::move(_statement));
       break;
@@ -2065,6 +2115,7 @@ auto Binder::getMemberMap(
         SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
       FunctionDeclarationSyntax *functionDeclaration =
           dynamic_cast<FunctionDeclarationSyntax *>(member.get());
+
       memberMap[functionDeclaration->getIdentifierTokenPtr()->getText()] = 1;
     } else if (member->getKind() ==
                SyntaxKindUtils::SyntaxKind::GlobalStatement) {
@@ -2082,14 +2133,19 @@ auto Binder::getMemberMap(
             dynamic_cast<ClassStatementSyntax *>(
                 globalStatement->getStatementPtr().get());
         memberMap[classStatement->getClassNameIdentifierRef()->getText()] = 1;
+
       } else if (globalStatement->getStatementPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::CustomTypeStatement) {
         CustomTypeStatementSyntax *customTypeStatement =
             dynamic_cast<CustomTypeStatementSyntax *>(
                 globalStatement->getStatementPtr().get());
-        memberMap
-            [customTypeStatement->getTypeNameRef()->getTokenPtr()->getText()] =
-                1;
+        memberMap[customTypeStatement->getTypeNameRef()
+                      ->getTokenPtr()
+                      ->getText()
+                      .substr(0, customTypeStatement->getTypeNameRef()
+                                     ->getTokenPtr()
+                                     ->getText()
+                                     .find_last_of("."))] = 1;
       } else if (globalStatement->getStatementPtr()->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ModuleStatement) {
         ModuleStatementSyntax *moduleStatement =

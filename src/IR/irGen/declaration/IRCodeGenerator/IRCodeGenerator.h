@@ -35,6 +35,7 @@ public:
   IRCodeGenerator(CodeGenerationContext *context);
   void declareVariables(BoundNode *node, bool isGlobal);
   void declareCustomType(BoundNode *node);
+  CodeGenerationContext *_codeGenerationContext;
 };
 
 #endif

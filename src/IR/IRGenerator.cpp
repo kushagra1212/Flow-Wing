@@ -320,7 +320,9 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
     BoundFunctionDeclaration *functionDeclaration =
         static_cast<BoundFunctionDeclaration *>(funDec.get());
     std::vector<std::string> classVariables = {};
-
+    _functionStatementGenerationStrategy =
+        std::make_unique<FunctionStatementGenerationStrategy>(
+            this->_codeGenerationContext.get());
     for (auto &variDec : boundClassStatement->getAllMemberVariablesRef()) {
       classVariables.push_back(variDec->getVariableName());
     }

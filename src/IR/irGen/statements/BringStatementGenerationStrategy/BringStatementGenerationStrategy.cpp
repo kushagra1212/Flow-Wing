@@ -213,11 +213,18 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
 
         return EXIT_FAILURE;
       }
+      if (_codeGenerationContext->_classTypes.find(classDecl->getClassName()) ==
+          _codeGenerationContext->_classTypes.end()) {
 
-      classGenStrat->generateClassTypeForBring(classDecl);
+        classGenStrat->generateClassType(classDecl);
+      }
     } else {
       DEBUG_LOG("Bring Statement Class ", classDecl->getClassName());
-      classGenStrat->generateClassTypeForBring(classDecl);
+      if (_codeGenerationContext->_classTypes.find(classDecl->getClassName()) ==
+          _codeGenerationContext->_classTypes.end()) {
+
+        classGenStrat->generateClassType(classDecl);
+      }
     }
 
     return EXIT_SUCCESS;

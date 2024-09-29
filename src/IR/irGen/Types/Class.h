@@ -27,6 +27,7 @@ private:
   llvm::StructType *_vTableType;
   std::string _vTableName;
   std::string _parentClassName;
+  llvm::ArrayRef<llvm::Type *> _classElements = {};
   llvm::GlobalVariable *_vTableGlobalVariable = nullptr;
   Class *_parent = nullptr;
 
@@ -86,6 +87,10 @@ public:
     return {nullptr, nullptr, -1};
   }
 
+  inline auto setClassElements(llvm::ArrayRef<llvm::Type *> elements) {
+    _classElements = elements;
+  }
+
   inline auto getElement(std::string key)
       -> std::tuple<llvm::Type *, uint64_t, std::string, llvm::StructType *> {
     uint64_t index = _classElementsIndexMap[key];
@@ -126,7 +131,7 @@ public:
 
     _vTableGlobalVariable = new llvm::GlobalVariable(
         *TheModule, _vTableType, false, llvm::GlobalValue::CommonLinkage,
-        llvm::Constant::getNullValue(_vTableType), _vTableName);
+        llvm::ConstantAggregateZero::get(_vTableType), _vTableName);
   }
 
   inline auto getVTableGlobalVariable() -> llvm::GlobalVariable * {

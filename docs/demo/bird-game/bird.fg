@@ -1,28 +1,198 @@
-bring {FlowWingAnim} from "FlowWingAnim.fg"
-
+bring {FlowWingAnim, Position, getSin} from "FlowWingAnim.fg"
 bring {getRandomNumber} from "random.fg"
-
 const screenWidth: int = 1024
 const screenHeight: int = 500
 const FPS: int = 120
 const side: int = 10
-type Position = {
-  x: deci32,
-  y: deci32
+bring Err
+type Texture = {
+  id: int,
+  width: int,
+  height: int,
+  mipmaps: int,
+  format: int
 }
-class Bird {
+const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
+const GAME_SPEED = 100
+type GameScreenType = {
+  MENU: int,
+  GAME: int,
+  PAUSE: int,
+  EXIT: int
+}
+const GAME_SCREEN: GameScreenType = {
+  MENU: 0,
+  GAME: 1,
+  PAUSE: 2,
+  EXIT: 3
+}
+class GameUnit {
+  var texture: Texture
+  var origin: Position
+  init(text: Texture, ori: Position) -> nthg {
+    texture = text 
+    origin = ori 
+  }
+
+
+  init(text: Texture) -> nthg {
+    texture = text 
+  }
+
+
+  getTexture() -> Texture {
+    return texture
+  }
+
+
+  getOrigin() -> Position {
+    return origin
+  }
+
+
+  getOriginAsArray() -> deci32[2] {
+    return [origin.x, origin.y]
+  }
+
+
+  draw() -> nthg {
+  }
+
+
+  update() -> nthg {
+  }
+
+
+}
+class WideMountain extends GameUnit {
+  var firstMountPos: Position
+  var secondMountPos: Position
+  init(texture: Texture) -> nthg {
+    super(texture)
+    firstMountPos = {
+      x: Decimal32(0),
+      y: 0.0d
+    } 
+    secondMountPos = {
+      x: Decimal32(-1 * 1542),
+      y: 0.0d
+    } 
+  }
+
+
+  update() -> nthg {
+    firstMountPos.x = firstMountPos.x + fgAnim.getFrameTime() * GAME_SPEED 
+    secondMountPos.x = secondMountPos.x + fgAnim.getFrameTime() * GAME_SPEED 
+    if firstMountPos.x > 1542 {
+      firstMountPos.x = Decimal32(-1 * 1542) 
+    }
+    if secondMountPos.x > 1542 {
+      secondMountPos.x = Decimal32(-1 * 1542) 
+    }
+  }
+
+
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, [0.0d, 0.0d, 8982.0d, 1542.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth + screenWidth / 2), Decimal32(screenHeight / 3)], [firstMountPos.x, firstMountPos.y], 0.0d, fgAnim.colors.WHITE)
+    fgAnim.drawTexturePro(texture, [0.0d, 0.0d, 8982.0d, 1542.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth + screenWidth / 2), Decimal32(screenHeight / 3)], [secondMountPos.x, secondMountPos.y], 0.0d, fgAnim.colors.WHITE)
+  }
+
+
+  getOriginFirstMount() -> Position {
+    return firstMountPos
+  }
+
+
+  getOriginSecondMount() -> Position {
+    return secondMountPos
+  }
+
+
+}
+class HeightedMountain extends GameUnit {
+  init(texture: Texture) -> nthg {
+    super(texture)
+    origin = {
+      x: Decimal32(-1 * screenWidth),
+      y: 0.0d
+    } 
+  }
+
+
+  update() -> nthg {
+    origin.x = origin.x + fgAnim.getFrameTime() * (GAME_SPEED / 10) 
+    if origin.x > screenWidth + screenWidth / 2 {
+      origin.x = Decimal32(-1 * screenWidth) 
+    }
+  }
+
+
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, [0.0d, 0.0d, 5975.0d, 1607.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [origin.x, origin.y], 0.0d, fgAnim.colors.WHITE)
+  }
+
+
+}
+class GreenMountain extends GameUnit {
+  init(texture: Texture) -> nthg {
+    super(texture)
+    origin = {
+      x: Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth / 2))),
+      y: 0.0d
+    } 
+  }
+
+
+  update() -> nthg {
+    origin.x = origin.x + fgAnim.getFrameTime() * (GAME_SPEED / 10) 
+    if origin.x > screenWidth + screenWidth / 2 {
+      origin.x = Decimal32(-1 * screenWidth) 
+    }
+  }
+
+
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, [0.0d, 0.0d, 4461.0d, 1989.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [origin.x, origin.y], 0.0d, fgAnim.colors.WHITE)      /; 1mount1L3 
+
+  }
+
+
+}
+class BlackMountain extends GameUnit {
+  init(texture: Texture) -> nthg {
+    super(texture)
+    origin = {
+      x: Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth))),
+      y: 0.0d
+    } 
+  }
+
+
+  update() -> nthg {
+    origin.x = origin.x + fgAnim.getFrameTime() * (GAME_SPEED / 10) 
+    if origin.x > screenWidth + screenWidth / 2 {
+      origin.x = Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth / 2))) 
+    }
+  }
+
+
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, [0.0d, 0.0d, 6005.0d, 2376.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [origin.x, origin.y], 0.0d, fgAnim.colors.WHITE)
+  }
+
+
+}
+class Bird extends GameUnit {
   const ACTUAL_BIRD_SIZE: deci32 = 360.0d
   var birdSize: deci32 = 90.0d
   var BIRD_TIMMER: deci = 10 / FPS
   var birdTimmer: deci
   const BIRD_SPRITE_SIZE: int = 9
   var birdSpriteIndex: int = 0
-  var birdTexturePath: str
   var isBirdAlive: bool
-  var birdTexture: Texture
   var birdSpritePosition: Position[9]
-  init(birdTexturePath: str) -> nthg {
-    self.birdTexturePath = birdTexturePath 
+  init(birdTexture: Texture) -> nthg {
+    super(birdTexture)
     self.birdTimmer = BIRD_TIMMER 
     self.isBirdAlive = true 
     self.birdSpritePosition = [{
@@ -56,18 +226,8 @@ class Bird {
   }
 
 
-  var pos: Position
-  setTexture(birdTexture: Texture) -> nthg {
-    self.birdTexture = birdTexture 
-  }
-
-
-  getTexturePath() -> str {
-    return self.birdTexturePath
-  }
-
-
-  update(frameTime: deci32) -> nthg {
+  update() -> nthg {
+    var frameTime: deci32 = fgAnim.getFrameTime()
     birdTimmer = birdTimmer - Decimal(frameTime) 
     if birdTimmer < 0 {
       birdTimmer = BIRD_TIMMER 
@@ -75,13 +235,16 @@ class Bird {
       if birdSpriteIndex >= BIRD_SPRITE_SIZE {
         birdSpriteIndex = 0 
       }
-      pos.y = pos.y + frameTime * (1 + 1 * (-150)) 
+      origin.y = origin.y + frameTime * (1 + 1 * (-150)) 
     }
+    handleInput()
   }
 
 
-  isTextureLoaded() -> bool {
-    return self.birdTexture.id != 0
+  handleInput() -> nthg {
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
+      updateY(fgAnim.getFrameTime())
+    }
   }
 
 
@@ -95,8 +258,8 @@ class Bird {
   }
 
 
-  getOrigin() -> deci32[2] {
-    return [self.pos.x, self.pos.y]
+  getOriginAsArray() -> deci32[2] {
+    return [origin.x, origin.y]
   }
 
 
@@ -105,18 +268,18 @@ class Bird {
   }
 
 
-  getTexture() -> Texture {
-    return self.birdTexture
+  updateY(frameTime: deci32) -> nthg {
+    origin.y = origin.y + frameTime * (1 + 1 * (300)) 
   }
 
 
-  updateY(frameTime: deci32) -> nthg {
-    pos.y = pos.y + frameTime * (1 + 1 * (300)) 
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, getSource(), getDistination(), getOriginAsArray(), getRotation(), fgAnim.colors.WHITE)
   }
 
 
 }
-class Cloud {
+class Cloud extends GameUnit {
   type AttributeType = {
     source: deci32[4],
     distination: deci32[4],
@@ -124,10 +287,8 @@ class Cloud {
     rotation: deci32
   }
   var clouds: AttributeType[5]
-  var cloudTexture: Texture
-  var texturePath: str
-  init(texturePath: str) -> nthg {
-    self.texturePath = texturePath 
+  init(texture: Texture) -> nthg {
+    super(texture)
     clouds = [{
       source: [0.0d, 0.0d, 250.0d, 166.0d],
       distination: [0.0d, 0.0d, Decimal32(250.0 / 166 * (100)), 100.0d],
@@ -157,140 +318,435 @@ class Cloud {
   }
 
 
-  setTexture(cloudTexture: Texture) -> nthg {
-    self.cloudTexture = cloudTexture 
-  }
-
-
-  getTexture() -> Texture {
-    return self.cloudTexture
-  }
-
-
-  getTexturePath() -> str {
-    return self.texturePath
-  }
-
-
-  update(frameTime: deci32) -> nthg {
+  update() -> nthg {
     for var i = 0 to 4 {
-      clouds[i].origin[0]= clouds[i].origin[0] + frameTime * ((10))
+      clouds[i].origin[0] = clouds[i].origin[0] + fgAnim.getFrameTime() * ((10))
       if clouds[i].origin[0] > 250.0d {
-        clouds[i].origin[0]= Decimal32(getRandomNumber(-2 * screenWidth, -1 * screenWidth))
-        clouds[i].origin[1]= -1 * Decimal32(getRandomNumber(0, Int32(screenHeight / 3)))
+        clouds[i].origin[0] = Decimal32(getRandomNumber(-2 * screenWidth, -1 * screenWidth))
+        clouds[i].origin[1] = -1 * Decimal32(getRandomNumber(0, Int32(screenHeight / 3)))
       }
     }
   }
 
 
-  draw(inout fgAnim: FlowWingAnim) -> nthg {
+  draw() -> nthg {
     for var i = 0 to 4 {
-      fgAnim.drawTexturePro(cloudTexture, clouds[i].source, clouds[i].distination, clouds[i].origin, clouds[i].rotation, fgAnim.colors.WHITE)
+      fgAnim.drawTexturePro(texture, clouds[i].source, clouds[i].distination, clouds[i].origin, clouds[i].rotation, fgAnim.colors.WHITE)
     }
+  }
+
+
+}
+class Ground extends GameUnit {
+  var woodTexture: Texture
+  init(texture: Texture) -> nthg {
+    super(texture)
+  }
+
+
+  update() -> nthg {
+    origin.x = origin.x + fgAnim.getFrameTime() * GAME_SPEED 
+  }
+
+
+  setWoodTexture(texture: Texture) -> nthg {
+    woodTexture = texture 
+  }
+
+
+  draw() -> nthg {
+    fgAnim.drawTexturePro(texture, [310.0d, 1250.0d, 5000.0d - 640.0d, 1250.0d], [0.0d, Decimal32(screenHeight / 2 + screenHeight / 10), Decimal32(screenWidth), Decimal32(screenHeight / 2)], [Decimal32(Int32(origin.x) % (screenWidth)), origin.y], 0.0d, fgAnim.colors.WHITE)      /; ground
+
+    fgAnim.drawTexturePro(texture, [310.0d, 1250.0d, 5000.0d - 640.0d, 1250.0d], [Decimal32(screenWidth), Decimal32(screenHeight / 2 + screenHeight / 10), Decimal32(screenWidth), Decimal32(screenHeight / 2)], [Decimal32(Int32(origin.x) % (screenWidth)), origin.y], 0.0d, fgAnim.colors.WHITE)      /; ground
+
+    fgAnim.drawTexturePro(woodTexture, [507.0d, 170.0d, 507.0d, 170.0d], [Decimal32(screenWidth + 10), Decimal32(screenHeight / 2), Decimal32(screenHeight / 2), 50.0d], [0.0d, -1 * Decimal32(Int32(origin.x) % (screenWidth))], 90.0d, fgAnim.colors.WHITE)      /; Wood
+
+  }
+
+
+}
+class GameContext {
+  var bird: Bird
+  var cloud: Cloud
+  var ground: Ground
+  var wideMountain: WideMountain
+  var heightedMountain: HeightedMountain
+  var greenMountain: GreenMountain
+  var blackMountain: BlackMountain
+  var currentGameScreen: int
+  var gameScore: int
+  init(gameScreen: int) -> nthg {
+    currentGameScreen = gameScreen 
+    gameScore = 0 
+  }
+
+
+  setCurrentGameScreen(gameScreen: int) -> nthg {
+    currentGameScreen = gameScreen 
+  }
+
+
+  getCurrentGameScreen() -> int {
+    return currentGameScreen
+  }
+
+
+  getGameScore() -> int {
+    return gameScore
+  }
+
+
+}
+var NORMAL_COLOR: int = fgAnim.colors.DARKGRAY
+var HOVER_COLOR: int = fgAnim.colors.DARKBLUE
+class Screen {
+  var gameCtx: GameContext
+  init(inout gCtx: GameContext) -> nthg {
+    gameCtx = gCtx 
+  }
+
+
+  drawScreen() -> nthg {
+  }
+
+
+  updateScreen() -> nthg {
+  }
+
+
+}
+class MenuScreen extends Screen {
+  type OPTIONS_TYPE = {
+    START: int,
+    EXIT: int
+  }
+  const START_TEXT: str = "Press ENTER to Start"
+  const EXIT_TEXT: str = "Press ESC to Exit"
+  const OPTIONS: OPTIONS_TYPE = {
+    START: 0,
+    EXIT: 1
+  }
+  const OPTION_HEIGHT: int = 40
+  var timeValue: deci
+  var glowOffset: deci32
+  var startY: int
+  var startColor: int
+  var exitColor: int
+  var glowOffsetForStartText: deci32
+  var glowOffsetForExitText: deci32
+  var padding: int
+  var selectedOption: int
+  init(inout gameCtx: GameContext) -> nthg {
+    super(gameCtx)
+  }
+
+
+  handleInput() -> nthg {
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_ENTER)) {
+      if selectedOption == OPTIONS.START {
+        gameCtx.setCurrentGameScreen(GAME_SCREEN.GAME)
+      } else {
+        gameCtx.setCurrentGameScreen(GAME_SCREEN.EXIT)
+      }
+    }
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_DOWN)) {
+      selectedOption = (selectedOption + 1) % 2         /; Cycle through options
+
+    }
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP)) {
+      selectedOption = (selectedOption - 1 + 2) % 2         /; Cycle through options
+
+    }
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_ESCAPE)) {
+      gameCtx.setCurrentGameScreen(GAME_SCREEN.EXIT)
+    }
+    var mousePosition: Position = fgAnim.getMousePosition()
+    var startY: int = Int32(screenHeight / 2) - 50      /; Center the options vertically
+
+    if (isMouseOverText(mousePosition, "Press ENTER to Start", startY)) {
+      selectedOption = OPTIONS.START        /; Highlighting 
+ 
+    } or if (isMouseOverText(mousePosition, "Press ESC to Exit", startY)) {
+    /; Check if the mouse is over the "Exit" option
+
+      selectedOption = OPTIONS.EXIT 
+    }
+  }
+
+
+  updateScreen() -> nthg {
+    handleInput()
+    timeValue = fgAnim.getTime() * 10 
+    glowOffset = Decimal32(getSin(timeValue)) * 1.0d 
+    startY = Int32(screenHeight / 2) - 50       /; Center  options vertically
+
+    startColor = NORMAL_COLOR 
+    exitColor = NORMAL_COLOR 
+    glowOffsetForStartText = Decimal32(getSin(fgAnim.getTime() * 20)) * 1.0d 
+    glowOffsetForExitText = Decimal32(getSin(fgAnim.getTime() * 20)) * 1.0d 
+    padding = 0 
+    if selectedOption == 0 {
+      padding = -5 
+      startColor = HOVER_COLOR 
+      glowOffsetForExitText = 0.0d 
+    } else {
+      exitColor = HOVER_COLOR 
+      glowOffsetForStartText = 0.0d 
+    }
+  }
+
+
+  drawScreen() -> nthg {
+    var bird: Bird = gameCtx.bird
+    bird.draw()
+    fgAnim.drawRectangle(20, 20, screenWidth - 40, screenHeight - 40, fgAnim.colors.TRANSPARENT)
+    fgAnim.drawText("MAIN MENU", Int32(screenWidth / 2 - fgAnim.measureText("MAIN MENU", 60) / 2), Int32(screenHeight / 2 - 150), 60, fgAnim.colors.DARKBLUE)
+    fgAnim.drawText(START_TEXT, Int32(screenWidth / 2 - fgAnim.measureText(START_TEXT, 20) / 2 + glowOffsetForStartText), Int32(startY + padding + glowOffsetForStartText), 20, startColor)
+    /; Draw "Exit" option
+
+    fgAnim.drawText(EXIT_TEXT, Int32(screenWidth / 2 - fgAnim.measureText(EXIT_TEXT, 20) / 2 + glowOffsetForExitText), Int32(startY + OPTION_HEIGHT + 10 + padding + glowOffsetForExitText), 20, exitColor)
+    /; Draw instructions for game controls
+
+    fgAnim.drawText("Use arrow keys to navigate", Int32(screenWidth / 2 - fgAnim.measureText("Use arrow keys to navigate", 20) / 2), Int32(screenHeight / 2 + 50), 20, fgAnim.colors.GRAY)
+    fgAnim.drawText("Press ESC to exit the game", Int32(screenWidth / 2 - fgAnim.measureText("Press ESC to exit the game", 20) / 2), Int32(screenHeight / 2 + 80), 20, fgAnim.colors.GRAY)
+  }
+
+
+  isMouseOverText(mousePosition: Position, text: str, y: int) -> bool {
+    return ( mousePosition.x >= screenWidth / 2 - fgAnim.measureText(text, 20) / 2 && mousePosition.x <= screenWidth / 2 + fgAnim.measureText(text, 20) / 2 && mousePosition.y >= y && mousePosition.y <= y + OPTION_HEIGHT )
+  }
+
+
+}
+class GameScreen extends Screen {
+  const PAUSE_TEXT: str = "Press SPACE to pause"
+  init(inout gameCtx: GameContext) -> nthg {
+    super(gameCtx)
+  }
+
+
+  drawScreen() -> nthg {
+    fgAnim.clearBackground(fgAnim.colors.RAYWHITE)
+    var cloud: Cloud = gameCtx.cloud
+    cloud.draw()
+    var heightedMountain: HeightedMountain = gameCtx.heightedMountain
+    heightedMountain.draw()
+    var greenMountain: GreenMountain = gameCtx.greenMountain
+    greenMountain.draw()
+    var blackMountain: BlackMountain = gameCtx.blackMountain
+    blackMountain.draw()
+    var wideMountain: WideMountain = gameCtx.wideMountain
+    wideMountain.draw()
+    var ground: Ground = gameCtx.ground
+    ground.draw()
+    var bird: Bird = gameCtx.bird
+    bird.draw()
+    if (gameCtx.getCurrentGameScreen() == GAME_SCREEN.GAME) {
+      fgAnim.drawText(PAUSE_TEXT, Int32(screenWidth - fgAnim.measureText(PAUSE_TEXT, 15) - 15), Int32(10), 15, fgAnim.colors.GRAY)
+    }
+  }
+
+
+  handleInput() -> nthg {
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_SPACE)) {
+      gameCtx.setCurrentGameScreen(GAME_SCREEN.PAUSE)
+    }
+  }
+
+
+  updateScreen() -> nthg {
+    handleInput()
+    var ground: Ground = gameCtx.ground
+    ground.update()
+    var heightedMountain: HeightedMountain = gameCtx.heightedMountain
+    heightedMountain.update()
+    var greenMountain: GreenMountain = gameCtx.greenMountain
+    greenMountain.update()
+    var blackMountain: BlackMountain = gameCtx.blackMountain
+    blackMountain.update()
+    var wideMountain: WideMountain = gameCtx.wideMountain
+    wideMountain.update()
+    var bird: Bird = gameCtx.bird
+    bird.update()
+    var cloud: Cloud = gameCtx.cloud
+    cloud.update()
+    fgAnim.drawBoxWithText({
+      text: "Score " + (gameCtx.gameScore),
+      posX: 10,
+      posY: 10,
+      width: 300,
+      height: 50,
+      textColor: fgAnim.colors.BLUE,
+      padding: 20,
+      fontSize: 40,
+      backgroundColor: fgAnim.colors.TRANSPARENT
+    })
+  }
+
+
+}
+class PauseScreen extends Screen {
+  init(inout gameCtx: GameContext) -> nthg {
+    super(gameCtx)
+  }
+
+
+  drawScreen() -> nthg {
+    fgAnim.clearBackground(fgAnim.colors.RAYWHITE)
+    fgAnim.drawRectangle(20, 20, screenWidth - 40, screenHeight - 40, fgAnim.colors.BLUR)
+    fgAnim.drawText("Game Paused", Int32(screenWidth / 2 - fgAnim.measureText("Game Paused", 40) / 2), Int32(screenHeight / 2 - 50), 40, fgAnim.colors.WHITE)
+    fgAnim.drawText("Press SPACE to resume", Int32(screenWidth / 2 - fgAnim.measureText("Press SPACE to resume", 20) / 2), Int32(screenHeight / 2 + 50), 20, fgAnim.colors.WHITE)
+    fgAnim.drawText("Press ESC to exit the game", Int32(screenWidth / 2 - fgAnim.measureText("Press ESC to exit the game", 20) / 2), Int32(screenHeight / 2 + 80), 20, fgAnim.colors.RED)
+  }
+
+
+  handleInput() -> nthg {
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_SPACE)) {
+      gameCtx.setCurrentGameScreen(GAME_SCREEN.GAME)
+    }
+    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_ESCAPE)) {
+      gameCtx.setCurrentGameScreen(GAME_SCREEN.EXIT)
+    }
+  }
+
+
+  updateScreen() -> nthg {
+    handleInput()
+  }
+
+
+}
+class TextureManager {
+  var backgroundTexture: Texture
+  var groundTexture: Texture
+  var mountL1Texture: Texture
+  var mountL2Texture: Texture
+  var mount2L2Texture: Texture
+  var mount1L3Texture: Texture
+  var wood1Texture: Texture
+  var birdTexture: Texture
+  var cloudTexture: Texture
+  init() -> nthg {
+  }
+
+
+  loadAllTextures() -> Err::Result {
+    self.backgroundTexture = fgAnim.loadTexture("./assets/skyBackground.png") 
+    self.groundTexture = fgAnim.loadTexture("./assets/ground.png") 
+    self.mountL1Texture = fgAnim.loadTexture("./assets/mountain/1mountL1.png") 
+    self.mountL2Texture = fgAnim.loadTexture("./assets/mountain/1mountL2.png") 
+    self.mount2L2Texture = fgAnim.loadTexture("./assets/mountain/2mountL2.png") 
+    self.mount1L3Texture = fgAnim.loadTexture("./assets/mountain/1mountL3.png") 
+    self.wood1Texture = fgAnim.loadTexture("./assets/wood1.png") 
+    self.birdTexture = fgAnim.loadTexture("./assets/bird.png") 
+    self.cloudTexture = fgAnim.loadTexture("./assets/3clouds.png") 
+    return hasAllTexturesLoaded()
+  }
+
+
+  hasAllTexturesLoaded() -> Err::Result {
+    if backgroundTexture.id == 0 || groundTexture.id == 0 || mountL1Texture.id == 0 || mountL2Texture.id == 0 || mount2L2Texture.id == 0 || mount1L3Texture.id == 0 || wood1Texture.id == 0 || birdTexture.id == 0 || cloudTexture.id == 0 {
+      return new Err::Result("Failed to load all textures")
+    }
+    return Nir
+  }
+
+
+}
+class BirdGame {
+  var textureManager: TextureManager
+  var gameCtx: GameContext
+  /; Screens
+
+  var menuScreen: MenuScreen
+  var gameScreen: GameScreen
+  var pauseScreen: PauseScreen
+  init() -> nthg {
+    fgAnim.createWindow()
+    gameCtx = new GameContext(GAME_SCREEN.MENU) 
+    textureManager = new TextureManager() 
+    /;
+
+    menuScreen = new MenuScreen(gameCtx) 
+    gameScreen = new GameScreen(gameCtx) 
+    pauseScreen = new PauseScreen(gameCtx) 
+  }
+
+
+  Initialize() -> Err::Result {
+    fgAnim.createWindow()
+    var err: Err::Result = textureManager.loadAllTextures()
+    if err != Nir {
+      fgAnim.closeWindow()
+      print("Error loading textures: " + err.getDetails())
+      return err
+    }
+    gameCtx.bird = new Bird(textureManager.birdTexture) 
+    gameCtx.cloud = new Cloud(textureManager.cloudTexture) 
+    gameCtx.ground = new Ground(textureManager.groundTexture) 
+    gameCtx.wideMountain = new WideMountain(textureManager.mountL1Texture) 
+    gameCtx.heightedMountain = new HeightedMountain(textureManager.mountL2Texture) 
+    gameCtx.greenMountain = new GreenMountain(textureManager.mount2L2Texture) 
+    gameCtx.blackMountain = new BlackMountain(textureManager.mount1L3Texture) 
+    var g: Ground = gameCtx.ground
+    g.setWoodTexture(textureManager.wood1Texture)
+    return Nir
+  }
+
+
+  update() -> nthg {
+    if gameCtx.getCurrentGameScreen() == GAME_SCREEN.MENU {
+      menuScreen.updateScreen()
+    } or if gameCtx.getCurrentGameScreen() == GAME_SCREEN.GAME {
+      gameScreen.updateScreen()
+    } or if gameCtx.getCurrentGameScreen() == GAME_SCREEN.PAUSE {
+      pauseScreen.updateScreen()
+    } else {
+      fgAnim.closeWindow()
+      return :
+    }
+  }
+
+
+  draw() -> nthg {
+    fgAnim.beginDrawing()
+    fgAnim.clearBackground(fgAnim.colors.RAYWHITE)
+    if gameCtx.getCurrentGameScreen() == GAME_SCREEN.MENU {
+      menuScreen.drawScreen()
+    } or if gameCtx.getCurrentGameScreen() == GAME_SCREEN.GAME {
+      gameScreen.drawScreen()
+    } or if gameCtx.getCurrentGameScreen() == GAME_SCREEN.PAUSE {
+      gameScreen.drawScreen()
+      pauseScreen.drawScreen()
+    } else {
+      fgAnim.endDrawing()
+      fgAnim.closeWindow()
+      return :
+    }
+    fgAnim.endDrawing()
+  }
+
+
+  runGameLoop() -> nthg {
+    while !fgAnim.windowShouldClose() {
+      update()
+      draw()
+    }
+    fgAnim.closeWindow()
+    return :
   }
 
 
 }
 
 fun main() -> int {
-  const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
-  fgAnim.createWindow()
-  const bird: Bird = new Bird("./assets/bird.png")
-  const cloud: Cloud = new Cloud("./assets/3clouds.png")
-  bird.setTexture(fgAnim.loadTexture(bird.getTexturePath()))/; Check if textures loaded successfully
-
-  cloud.setTexture(fgAnim.loadTexture(cloud.getTexturePath()))/; Check if textures loaded successfully
-
-  var backgroundTexture: Texture = fgAnim.loadTexture("./assets/skyBackground.png")
-  const groundTexture: Texture = fgAnim.loadTexture("./assets/ground.png")
-  var mountL1Texture: Texture = fgAnim.loadTexture("./assets/mountain/1mountL1.png")
-  var mountL2Texture: Texture = fgAnim.loadTexture("./assets/mountain/1mountL2.png")
-  var mount2L2Texture: Texture = fgAnim.loadTexture("./assets/mountain/2mountL2.png")
-  var mount1L3Texture: Texture = fgAnim.loadTexture("./assets/mountain/1mountL3.png")
-  var mountL1Pos1: Position = {
-    x: Decimal32(0),
-    y: 0.0d
-  }
-  var mountL1Pos2: Position = {
-    x: Decimal32(-1 * 1542),
-    y: 0.0d
-  }
-  var mountL2Pos1: Position = {
-    x: Decimal32(-1 * screenWidth),
-    y: 0.0d
-  }
-  var mount2L2Pos1: Position = {
-    x: Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth / 2))),
-    y: 0.0d
-  }
-  var mount1L3Pos1: Position = {
-    x: Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth))),
-    y: 0.0d
-  }
-  if !bird.isTextureLoaded() || backgroundTexture.id == 0 {/; If any texture failed to load, print error and exit
-
-    fgAnim.traceLog(fgAnim.LOG.ERROR, "Failed to load bird texture")/; Clean up and exit
-
-    fgAnim.unloadTexture(bird.getTexture())
-    fgAnim.closeWindow()
+  var birdGame: BirdGame = new BirdGame()
+  var err: Err::Result = birdGame.Initialize()
+  if err != Nir {
+    print("Error initializing game: " + err.getMessage())
     return 1
   }
-  while !fgAnim.windowShouldClose() {
-    bird.update(fgAnim.getFrameTime())
-    {
-      mountL1Pos1.x = mountL1Pos1.x + fgAnim.getFrameTime() * 100 
-      mountL1Pos2.x = mountL1Pos2.x + fgAnim.getFrameTime() * 100 
-      if mountL1Pos1.x > 1542 {
-        mountL1Pos1.x = Decimal32(-1 * 1542) 
-      }
-      if mountL1Pos2.x > 1542 {
-        mountL1Pos2.x = Decimal32(-1 * 1542) 
-      }
-    }
-    {
-      mountL2Pos1.x = mountL2Pos1.x + fgAnim.getFrameTime() * 10 
-      if mountL2Pos1.x > screenWidth + screenWidth / 2 {
-        mountL2Pos1.x = Decimal32(-1 * screenWidth) 
-      }
-    }
-    {
-      mount2L2Pos1.x = mount2L2Pos1.x + fgAnim.getFrameTime() * 10 
-      if mount2L2Pos1.x > screenWidth + screenWidth / 2 {
-        mount2L2Pos1.x = Decimal32(-1 * screenWidth) 
-      }
-    }
-    {
-      mount1L3Pos1.x = mount1L3Pos1.x + fgAnim.getFrameTime() * 10 
-      if mount1L3Pos1.x > screenWidth + screenWidth / 2 {
-        mount1L3Pos1.x = Decimal32(-1 * screenWidth - getRandomNumber(Int32(screenWidth / 4), Int32(screenWidth / 2))) 
-      }
-    }
-    if (fgAnim.isKeyPressed(fgAnim.KEYS.KEY_UP) || fgAnim.isKeyDown(fgAnim.KEYS.KEY_UP)) {
-      bird.updateY(fgAnim.getFrameTime())
-    }
-    cloud.update(fgAnim.getFrameTime())
-    fgAnim.beginDrawing()
-    fgAnim.clearBackground(fgAnim.colors.RED)/; background
-
-    fgAnim.drawTexturePro(backgroundTexture, [0.0d, 0.0d, 3840.0d, 2160.0d], [0.0d, 0.0d, Decimal32(screenWidth), Decimal32(screenHeight)], [0.0d, 0.0d], 0.0d, fgAnim.colors.WHITE)/;clouds
-
-    cloud.draw(fgAnim)/; mount1L2
-
-    fgAnim.drawTexturePro(mountL2Texture, [0.0d, 0.0d, 5975.0d, 1607.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [mountL2Pos1.x, mountL2Pos1.y], 0.0d, fgAnim.colors.WHITE)/; 2mount1L2 
-
-    fgAnim.drawTexturePro(mount2L2Texture, [0.0d, 0.0d, 4461.0d, 1989.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [mount2L2Pos1.x, mount2L2Pos1.y], 0.0d, fgAnim.colors.WHITE)/; 1mount1L3
-
-    fgAnim.drawTexturePro(mount1L3Texture, [0.0d, 0.0d, 6005.0d, 2376.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth / 2), Decimal32(screenHeight / 3)], [mount1L3Pos1.x, mount1L3Pos1.y], 0.0d, fgAnim.colors.WHITE)/; muont1L1
-
-    fgAnim.drawTexturePro(mountL1Texture, [0.0d, 0.0d, 8982.0d, 1542.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth + screenWidth / 2), Decimal32(screenHeight / 3)], [mountL1Pos1.x, mountL1Pos1.y], 0.0d, fgAnim.colors.WHITE)
-    fgAnim.drawTexturePro(mountL1Texture, [0.0d, 0.0d, 8982.0d, 1542.0d], [0.0d, Decimal32(screenHeight / 3), Decimal32(screenWidth + screenWidth / 2), Decimal32(screenHeight / 3)], [mountL1Pos2.x, mountL1Pos2.y], 0.0d, fgAnim.colors.WHITE)/; ground
-
-    fgAnim.drawTexturePro(groundTexture, [310.0d, 1250.0d, 5000.0d - 640.0d, 1250.0d], [0.0d, Decimal32(screenHeight / 2 + screenHeight / 10), Decimal32(screenWidth), Decimal32(screenHeight / 2)], [mountL1Pos1.x, mountL1Pos1.y], 0.0d, fgAnim.colors.WHITE)
-    fgAnim.drawTexturePro(groundTexture, [310.0d, 1250.0d, 5000.0d - 640.0d, 1250.0d], [0.0d, Decimal32(screenHeight / 2 + screenHeight / 10), Decimal32(screenWidth), Decimal32(screenHeight / 2)], [mountL1Pos2.x, mountL1Pos2.y], 0.0d, fgAnim.colors.WHITE)
-    fgAnim.drawTexturePro(bird.getTexture(), bird.getSource(), bird.getDistination(), bird.getOrigin(), bird.getRotation(), fgAnim.colors.WHITE)
-    fgAnim.endDrawing()
-  }
-  fgAnim.closeWindow()
+  birdGame.runGameLoop()
   return 0
 }
 

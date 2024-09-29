@@ -15,7 +15,8 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
               MultipleVariableDeclarationStatementGenerationStrategy>(context)),
       _multipleAssignmentExpressionGenerationStrategy(
           std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
-              context)) {}
+              context)),
+      _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
                                                  bool isGlobal) {
@@ -122,10 +123,14 @@ void IRCodeGenerator::processChildForCustomType(BoundNode *child) {
   case BinderKindUtils::BoundNodeKind::ClassStatement: {
 
     auto classStmt = static_cast<BoundClassStatement *>(child);
-    for (auto &memberFunc : classStmt->getMemberFunctionsRef()) {
-      declareCustomType(memberFunc.get());
+
+    if (_codeGenerationContext->_classTypes.find(classStmt->getClassName()) ==
+        _codeGenerationContext->_classTypes.end()) {
+      for (auto &memberFunc : classStmt->getMemberFunctionsRef()) {
+        declareCustomType(memberFunc.get());
+      }
+      _classStatementGenerationStrategy->generateClassType(classStmt);
     }
-    _classStatementGenerationStrategy->generateClassType(classStmt);
     break;
   }
   default:

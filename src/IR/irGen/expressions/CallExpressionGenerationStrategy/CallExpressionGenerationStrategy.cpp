@@ -647,9 +647,11 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
         classType && callExpression->getIsSuperFunctionCall() &&
         Utils::isClassInit(callExpression->getCallerNameRef()) &&
         _codeGenerationContext->_classTypes.find(
-            classType->getStructName().str()) !=
+            Utils::getActualTypeName(classType->getStructName().str())) !=
             _codeGenerationContext->_classTypes.end() &&
-        _codeGenerationContext->_classTypes[classType->getStructName().str()]
+        _codeGenerationContext
+            ->_classTypes[Utils::getActualTypeName(
+                classType->getStructName().str())]
             ->isChildOf(callExpression->getCallerNameRef().substr(
                 0, callExpression->getCallerNameRef().find(
                        FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX + "init" +
@@ -702,7 +704,7 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
             //     _codeGenerationContext->_classTypes[className]->getVTableName(),
             //     BinderKindUtils::MemoryKind::Global);
 
-            DEBUG_LOG("VTABLE VAR NAME ", className);
+            DEBUG_LOG("VTABLE VAR NAME CLASS NAME ", className);
             DEBUG_LOG("VTABLE VAR NAME ",
                       _codeGenerationContext->_classTypes[className]
                           ->getVTableName());
@@ -1208,16 +1210,16 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
           llvmArrayArgs[llvmArgsIndex]->getType()) &&
       llvmArrayArgs[llvmArgsIndex]->getLLVMType() != rhsType &&
       !rhsType->isFunctionTy()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Expected type " +
-        Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-            llvmArrayArgs[llvmArgsIndex]->getLLVMType())) +
-        " in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        ", but found type " +
-        Utils::CE(
-            _codeGenerationContext->getMapper()->getLLVMTypeName(rhsType)));
-    return rhsValue;
+
+    if (_codeGenerationContext->verifyType(
+            llvmArrayArgs[llvmArgsIndex]->getLLVMType(), rhsType,
+            " in function call expression " +
+                Utils::CE(callExpression->getCallerNameRef()) +
+                " as parameter") == EXIT_FAILURE) {
+
+      return rhsValue;
+    }
+
   } else if (llvmArrayArgs.size() &&
              _codeGenerationContext->getDynamicType()->isDyn(
                  llvmArrayArgs[llvmArgsIndex]->getLLVMType()) &&
@@ -1531,7 +1533,9 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
             _codeGenerationContext->getMapper()->getLLVMTypeName(structType));
         return nullptr;
       }
-    } else if (fParamStructType->getStructName().str() != structName) {
+    } else if (Utils::getActualTypeName(
+                   fParamStructType->getStructName().str()) !=
+               Utils::getActualTypeName(structName)) {
       _codeGenerationContext->getLogger()->LogError(
           "Expected Object of type " +
           _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +

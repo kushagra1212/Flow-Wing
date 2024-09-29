@@ -8,6 +8,7 @@ ClassStatementGenerationStrategy::ClassStatementGenerationStrategy(
     : StatementGenerationStrategy(context) {}
 llvm::Value *
 ClassStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
+
   return nullptr;
 }
 
@@ -29,14 +30,16 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
                               boundClassStatement));
 
   auto classObject =
-      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()];
+      _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
+          .get();
 
   //! Initialize parent class
   {
     classObject->setParentClassName(boundClassStatement->getParentClassName());
 
     classObject->setParent(
-        _codeGenerationContext->_classTypes[classObject->getParentClassName()]);
+        _codeGenerationContext->_classTypes[classObject->getParentClassName()]
+            .get());
   }
 
   std::unique_ptr<CustomTypeStatementGenerationStrategy>
@@ -113,11 +116,13 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   }
 
   llvm::StructType *classType = llvm::StructType::create(
-      *TheContext, classElements, boundClassStatement->getClassName());
+      *TheContext, llvm::ArrayRef<llvm::Type *>(classElements),
+      boundClassStatement->getClassName());
 
   _codeGenerationContext->_classLLVMTypes[boundClassStatement->getClassName()] =
       classType;
   classObject->setClassType(classType);
+  classObject->setClassElements(llvm::ArrayRef<llvm::Type *>(classElements));
   std::unique_ptr<FunctionDeclarationGenerationStrategy>
       functionDeclarationGenerationStrategy =
           std::make_unique<FunctionDeclarationGenerationStrategy>(
@@ -180,14 +185,16 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
       std::make_unique<Class>(boundClassStatement->getClassName(),
                               boundClassStatement));
 
-  auto classObject = _codeGenerationContext->_classTypes.at(
-      boundClassStatement->getClassName());
+  auto classObject = _codeGenerationContext->_classTypes
+                         .at(boundClassStatement->getClassName())
+                         .get();
   //! Initialize parent class
   {
     classObject->setParentClassName(boundClassStatement->getParentClassName());
 
     classObject->setParent(
-        _codeGenerationContext->_classTypes[classObject->getParentClassName()]);
+        _codeGenerationContext->_classTypes[classObject->getParentClassName()]
+            .get());
   }
 
   std::unique_ptr<CustomTypeStatementGenerationStrategy>
@@ -235,18 +242,29 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
     }
   }
 
+  std::vector<llvm::Type *> classElements = {};
+
   classObject->addKeyTypePair(nullptr, nullptr);
 
   for (auto &keyPair : boundClassStatement->getKeyPairsRef()) {
     classObject->addKeyTypePair(keyPair.first, keyPair.second);
   }
 
+  classElements.push_back(llvm::Type::getInt8PtrTy(*TheContext));
+
   classObject->setElementIndex(
       boundClassStatement->getClassName() + "::vTableElement", 0);
 
   for (int64_t i = 0;
        i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
-
+    classElements.push_back(
+        _typeGenerationFactory
+            ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
+                                 ->getTypeExpression()
+                                 ->getKind())
+            ->getType(boundClassStatement->getAllMemberVariablesRef()[i]
+                          ->getTypeExpression()
+                          .get()));
     classObject->setElementIndex(
         boundClassStatement->getAllMemberVariablesRef()[i]->getVariableName(),
         i + 1);
@@ -254,6 +272,11 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
 
   llvm::StructType *classType = llvm::StructType::getTypeByName(
       *TheContext, boundClassStatement->getClassName().c_str());
+
+  if (!classType) {
+    classType = llvm::StructType::create(*TheContext, classElements,
+                                         boundClassStatement->getClassName());
+  }
 
   _codeGenerationContext->_classLLVMTypes[boundClassStatement->getClassName()] =
       classType;
@@ -303,5 +326,5 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
 }
 llvm::Value *ClassStatementGenerationStrategy::generateGlobalStatement(
     BoundStatement *statement) {
-  return nullptr;
+  return this->generateStatement(statement);
 }

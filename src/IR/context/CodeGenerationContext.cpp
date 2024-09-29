@@ -197,7 +197,7 @@ auto CodeGenerationContext::createVTableMapEntry(
                        std::tuple<llvm::FunctionType *, uint64_t, std::string>>
         &vTableElementsMap,
     std::string className, uint64_t &index) -> void {
-  auto classVar = this->_classTypes[className];
+  auto classVar = this->_classTypes[className].get();
 
   if (!classVar)
     return;
@@ -469,8 +469,8 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
       return EXIT_SUCCESS;
   }
 
-  if (this->getMapper()->getLLVMTypeName(lhsType) !=
-      this->getMapper()->getLLVMTypeName(rhsType)) {
+  if (Utils::getActualTypeName(lhsType->getStructName().str()) !=
+      Utils::getActualTypeName(rhsType->getStructName().str())) {
     this->getLogger()->LogError(
         "Type mismatch Expected " +
         this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
@@ -486,7 +486,8 @@ int8_t CodeGenerationContext::verifyStructType(llvm::StructType *lhsType,
     return EXIT_FAILURE;
   }
 
-  if (lhsType->getStructName() != rhsType->getStructName()) {
+  if (Utils::getActualTypeName(lhsType->getStructName().str()) !=
+      Utils::getActualTypeName(rhsType->getStructName().str())) {
     this->getLogger()->LogError("Type mismatch " + inExp + " Expected " +
                                 lhsType->getStructName().str() + " but found " +
                                 rhsType->getStructName().str());

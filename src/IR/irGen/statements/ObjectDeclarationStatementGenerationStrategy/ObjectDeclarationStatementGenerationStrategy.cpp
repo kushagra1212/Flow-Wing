@@ -40,6 +40,7 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
   DEBUG_LOG("Declaring Object: " + structType->getStructName().str());
 
   if (_codeGenerationContext->isValidClassType(structType)) {
+    DEBUG_LOG("Declaring Class Object: ", _variableName);
     ptr = _codeGenerationContext->createMemoryGetPtr(
         llvm::PointerType::getUnqual(structType), _variableName,
         _isGlobal ? BinderKindUtils::MemoryKind::Global

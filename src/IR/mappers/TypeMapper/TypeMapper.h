@@ -9,7 +9,6 @@
 #include "../../../Common.h"
 #include "../../../utils/Utils.h"
 #include "../../constants/FlowWingIRConstants.h"
-#include "../../context/CodeGenerationContext.h"
 using namespace FLOWWING::IR::CONSTANTS;
 class CodeGenerationContext;
 class TypeMapper {

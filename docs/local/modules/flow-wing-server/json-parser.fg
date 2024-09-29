@@ -1,6 +1,6 @@
 bring Map
-bring Vec
 bring Str
+bring Vec
 
 expose fun parseObject(inout json_str: str) -> Map::String {
   var i = 0

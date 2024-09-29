@@ -1,5 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include <cstdint>
 #include <filesystem>
 #include <regex>
 #include <typeinfo>
@@ -107,7 +108,11 @@ std::filesystem::path findFile(const std::filesystem::path &directory,
                                const std::string &filename);
 
 inline auto getActualTypeName(const std::string &typeName) -> std::string {
-  return typeName.substr(0, typeName.find("."));
+  uint64_t index = typeName.find_last_of(".");
+  if (index == std::string::npos) {
+    return typeName;
+  }
+  return typeName.substr(0, index);
 }
 
 inline auto isClassInit(const std::string &name) -> bool {
