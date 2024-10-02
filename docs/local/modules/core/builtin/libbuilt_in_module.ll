@@ -87,30 +87,30 @@ define  i8* @itos(i32 %num) {
     ret i8* %buffer
 }
 
-; Override malloc with GC_malloc
-define  i8* @malloc(i64 %num) {
-    %buffer = call i8* @GC_malloc(i64 %num)
-    ret i8* %buffer
-}
+; ; Override malloc with GC_malloc
+; define  i8* @malloc(i64 %num) {
+;     %buffer = call i8* @GC_malloc(i64 %num)
+;     ret i8* %buffer
+; }
 
 
-; Override free with GC_free
-define  void @free(i8* %ptr) {
-  ret void
-} 
+; ; Override free with GC_free
+; define  void @free(i8* %ptr) {
+;   ret void
+; } 
 
-; Override realloc with GC_realloc
-define  i8* @realloc(i8* %ptr, i64 %num) {
-    %buffer = call i8* @GC_realloc(i8* %ptr, i64 %num)
-    ret i8* %buffer
-}
+; ; Override realloc with GC_realloc
+; define  i8* @realloc(i8* %ptr, i64 %num) {
+;     %buffer = call i8* @GC_realloc(i8* %ptr, i64 %num)
+;     ret i8* %buffer
+; }
 
-; Override calloc with GC_calloc
-define  i8* @calloc(i64 %num, i64 %num2) {
-    %totalSize = mul i64 %num, %num2
-    %buffer = call i8* @GC_malloc(i64 %totalSize)
-    ret i8* %buffer
-}
+; ; Override calloc with GC_calloc
+; define  i8* @calloc(i64 %num, i64 %num2) {
+;     %totalSize = mul i64 %num, %num2
+;     %buffer = call i8* @GC_malloc(i64 %totalSize)
+;     ret i8* %buffer
+; }
 
 
 

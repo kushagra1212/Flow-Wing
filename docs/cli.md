@@ -34,7 +34,7 @@ export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DY
 ### For Linux
 
 export LD_LIBRARY_PATH=/home/kushagra/code/Flow-Wing/lib/linux-x86_64/lib:$LD_LIBRARY_PATH
-
+export  LDFLAGS="-L/usr/lib/:/home/kushagra/code/Flow-Wing/lib/linux-x86_64/lib"
 ### Symbolic link
 
 ln -s /Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib /opt/homebrew/lib/FlowWing/lib

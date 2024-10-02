@@ -5,6 +5,8 @@ FROM kushagra711/common-base-llvm:latest
 # Copy your source code to the container
 
 COPY . /aot-compiler-test
+
+COPY /aot-compiler-test/lib/linux-x86_64/lib/ /usr/local/lib
 # Set the working directory
 WORKDIR /aot-compiler-test/targets/aot-compiler
 
@@ -15,11 +17,10 @@ RUN mkdir -p aot-compiler-test-build-in-linux
 
 WORKDIR /aot-compiler-test/targets/aot-compiler/aot-compiler-test-build-in-linux
 
-# Set the environment variable
-ENV LD_LIBRARY_PATH=/aot-compiler-test/lib/linux-x86_64/lib
 
 
 RUN cmake -G Ninja -DTESTS_ENABLED=ON -DCMAKE_BUILD_TYPE=Release ..
 RUN ninja
+
 # Run Tests
 RUN ./FlowWing
