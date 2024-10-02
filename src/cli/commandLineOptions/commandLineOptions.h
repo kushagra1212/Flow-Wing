@@ -51,6 +51,8 @@ int8_t ShortFormatPrint();
 int8_t server();
 int8_t shortServer();
 
+int8_t linkerWarnings();
+
 } // namespace isFlag
 
 namespace isParam {
@@ -126,6 +128,9 @@ public:
 
   //? Entry Point
   static Option<std::string> EntryPoint;
+
+  // LinkerWarnings Options
+  static Option<bool> LinkerWarnings;
 
   //? Help
 

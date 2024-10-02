@@ -97,6 +97,8 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareRaiseExceptionFn();
   functionDeclarationManager->declareMallocFunctionFn();
   functionDeclarationManager->declarePutChar();
+
+  functionDeclarationManager->declareGC_Malloc();
 }
 
 void IRGenerator::initializeGlobalVariables() {

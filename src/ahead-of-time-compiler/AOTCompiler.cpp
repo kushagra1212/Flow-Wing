@@ -31,6 +31,8 @@ void AOTCompiler::link() {
     if (status != 0) {
       FlowWing::AOT::LINKING_FAIL_ERROR(status, fileNameWithOutExtension,
                                         VERSION_INFO);
+
+      FlowWing::AOT::deleteObjectFiles();
       return;
     }
 

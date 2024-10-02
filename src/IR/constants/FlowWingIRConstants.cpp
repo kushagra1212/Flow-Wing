@@ -58,6 +58,8 @@ const std::string RAISE_EXCEPTION = "raise_exception";
 const std::string MALLOC = "malloc";
 const std::string PUT_CHAR = "putchar";
 
+const std::string GC_MALLOC = "GC_malloc";
+
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 

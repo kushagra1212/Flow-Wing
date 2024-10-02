@@ -42,6 +42,10 @@ public:
       cmd += this->getDefaultEntryPoint();
     }
 
+    if (!FlowWing::Cli::isFlag::linkerWarnings()) {
+      cmd += "  -Wl,-w ";
+    }
+
     // Linking with BuiltIn Module
     cmd += this->getBuiltInModuleLinked();
 
@@ -121,18 +125,20 @@ private:
 
   auto inline getBuiltInModuleLinked() -> std::string {
 
-    // #if defined(AOT_TEST_MODE) || defined(AOT_MODE)
-    //     return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-    //            getDynamicLibraryPath("built_in_module") + " " +
-    //            getDynamicLibraryPath("flowwing_string") + " ";
-    // #else
+#if defined(AOT_TEST_MODE) || defined(AOT_MODE)
+    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
+           getDynamicLibraryPath("built_in_module") + " " +
+           getDynamicLibraryPath("flowwing_string") + " " +
+           getDynamicLibraryPath("gc") + " ";
+#else
     return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
            getDynamicLibraryPath("built_in_module") + " " +
            getDynamicLibraryPath("flowwing_string") + " " +
            getDynamicLibraryPath("flowwing_vector") + " " +
-           getDynamicLibraryPath("flowwing_map") + " ";
+           getDynamicLibraryPath("flowwing_map") + " " +
+           getDynamicLibraryPath("gc") + " ";
 
-    // #endif
+#endif
   }
 
   auto inline getDynamicLibraryPath(const std::string &libName) -> std::string {

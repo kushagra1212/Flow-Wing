@@ -11,11 +11,6 @@ flowing --F=code.fg -O3 -L=path-of-raylib-library-directory -l=raylib  -framewor
 
 # Web Server
 
-```
- /Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing --F=crow.fg -O3 -L=/Users/apple/code/per/Flow-Wing/docs/local/modules -l=crow  && build/bin/crow
-
-```
-
 /Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing --F=server.fg -O3 -L=/Users/apple/code/per/Flow-Wing/docs/local/modules -l=server -e=main && build/bin/server
 
 ## Creating dynamic lib c
@@ -28,9 +23,7 @@ clang++ -std=c++20 -fPIC -shared -o libcrow.so crowex.cpp -I/opt/homebrew/includ
 
 ## Link
 
-/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing --F=crow.fg -O3 -L=/Users/apple/code/per/Flow-Wing/docs/local/modules -l=crow&& build/bin/crow
-
-/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing --F=flow-wing-server/server.fg -O3 -L=/Users/apple/code/per/Flow-Wing/docs/local/modules/flow-wing-server -l=wing && build/bin/server
+'/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing --F=flow-wing-server/server.fg -O3 -L=/Users/apple/code/per/Flow-Wing/docs/local/modules/flow-wing-server -l=wing && build/bin/server
 
 ## Local Development
 
