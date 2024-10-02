@@ -48,6 +48,9 @@ int8_t shortFormat();
 int8_t formatPrint();
 int8_t ShortFormatPrint();
 
+int8_t server();
+int8_t shortServer();
+
 } // namespace isFlag
 
 namespace isParam {
@@ -100,6 +103,11 @@ public:
   //? OutPut FIle
   static Option<std::string> OutputFile;
   static Option<std::string> ShortOutputFile;
+
+  //? FlowWing Server
+  // Format Options
+  static Option<bool> Server;
+  static Option<bool> ShortServer;
 
   //? Optimization
   static Option<int> OptimizationLevel0;

@@ -63,6 +63,11 @@ Option<std::string> OPTIONS::EntryPoint{"-e",
 Option<bool> OPTIONS::Help{"--help", "Displays this help page"};
 Option<bool> OPTIONS::ShortHelp{"-h", "Short hand flag for --help"};
 
+// Format Options
+Option<bool> OPTIONS::Server{
+    "--server", "Use --server to include FlowWing Vortex Server library"};
+Option<bool> OPTIONS::ShortServer{"-S", "Short hand flag for --server"};
+
 namespace isFlag {
 int8_t versionName() {
   return ((*cmdl)[{FlowWing::Cli::OPTIONS::Version.name.c_str(),
@@ -120,6 +125,18 @@ int8_t help() {
 int8_t shortHelp() {
   return ((*cmdl)[{
       FlowWing::Cli::OPTIONS::ShortHelp.name.c_str(),
+  }]);
+}
+
+int8_t server() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::Server.name.c_str(),
+  }]);
+}
+
+int8_t shortServer() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::ShortServer.name.c_str(),
   }]);
 }
 
@@ -272,6 +289,7 @@ void printHelp() {
       {OPTIONS::EntryPoint.name, OPTIONS::EntryPoint.description},
       {OPTIONS::Help.name + ", " + OPTIONS::ShortHelp.name,
        OPTIONS::Help.description},
+      {OPTIONS::Server.name, OPTIONS::Server.description},
   };
 
   size_t maxFlagLength = 0;

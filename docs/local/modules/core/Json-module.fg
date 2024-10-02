@@ -1,8 +1,8 @@
 bring Map
 bring Str
 bring Vec
-
-expose fun parseObject(inout json_str: str) -> Map::String {
+module [Json]
+fun parseObject(inout json_str: str) -> Map::String {
   var i = 0
   var len: int = Str::length(json_str)
   var mp: Map::String = new Map::String()
@@ -94,7 +94,7 @@ expose fun parseObject(inout json_str: str) -> Map::String {
 }
 
 
-expose fun parseArray(inout json_str: str) -> Vec::String {
+fun parseArray(inout json_str: str) -> Vec::String {
   var i = 0
   var vector: Vec::String = new Vec::String()
   var len: int = Str::length(json_str)
@@ -177,6 +177,7 @@ expose fun parseArray(inout json_str: str) -> Vec::String {
   return vector
 }
 
+
 const json_str = `{
   "key1": "value1",
   "key2": 123,
@@ -210,3 +211,4 @@ const json_str = `{
   "specialChars": "Symbols like @, #, $, %, ^, & are included!"
 }
 `
+

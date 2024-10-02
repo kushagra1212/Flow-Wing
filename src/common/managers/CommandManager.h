@@ -33,6 +33,8 @@ public:
         cmd += this->getFramework(key, value);
         cmd += this->getEntryPoint(key, value);
       }
+
+      checkForRestOfFlags(cmd);
     }
 
     if (!hasEntryPoint) {
@@ -159,5 +161,13 @@ private:
       return " -framework " + value + " ";
 
     return "";
+  }
+
+  auto inline checkForRestOfFlags(std::string &cmd) -> void {
+    if (FlowWing::Cli::isFlag::server() ||
+        FlowWing::Cli::isFlag::shortServer()) {
+      cmd += " -L" + std::string(FLOWWING_LIB_PATH) + " " +
+             getDynamicLibraryPath("flowwing_vortex") + " ";
+    }
   }
 };
