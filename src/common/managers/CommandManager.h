@@ -131,15 +131,15 @@ private:
 
     linkLibs += " -L" + std::string(FLOWWING_LIB_PATH) + " ";
 
-    for (const auto lib : STATIC_LINKING_LIBRARIES) {
-
-      linkLibs += getPrefixedLibName(lib) + " ";
-    }
-
     // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
 
     //   linkLibs += getPrefixedLibName(lib) + " ";
     // }
+
+    for (const auto lib : STATIC_LINKING_LIBRARIES) {
+
+      linkLibs += getPrefixedLibName(lib) + " ";
+    }
 
     return linkLibs;
   }
