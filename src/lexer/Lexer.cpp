@@ -591,6 +591,13 @@ std::unique_ptr<SyntaxToken<std::any>> Lexer::readSymbol() {
         nullptr);
   }
 
+  case '?': {
+    return std::make_unique<SyntaxToken<std::any>>(
+        this->_diagnosticHandler->getAbsoluteFilePath(), this->lineNumber,
+        SyntaxKindUtils::SyntaxKind::QuestionToken, this->position++, "?",
+        nullptr);
+  }
+
   case '"': {
     return std::move(this->readString(start));
   }

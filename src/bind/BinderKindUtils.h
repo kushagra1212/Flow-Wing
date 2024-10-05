@@ -23,6 +23,7 @@ enum BoundNodeKind {
   BoundFunctionTypeExpression,
   BoundObjectExpression,
   BoundNirastExpression,
+  BoundTernaryExpression,
   BoundMultipleAssignmentExpression,
 
   // Statements

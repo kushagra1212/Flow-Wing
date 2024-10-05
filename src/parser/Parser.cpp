@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include <cstddef>
 #include <string>
 
 Parser::Parser(const std::vector<std::string> &sourceCode,
@@ -1471,6 +1472,10 @@ Parser::parseExpression(int parentPrecedence) {
         std::move(left), std::move(operatorToken), std::move(right));
   }
 
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::QuestionToken) {
+    left = std::move(this->parseTernaryExpression((left)));
+  }
+
   return std::move(left);
 }
 
@@ -1514,6 +1519,7 @@ Parser::makeLiteralExpression(const SyntaxKindUtils::SyntaxKind kind) {
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
+
   switch (this->getKind()) {
   case SyntaxKindUtils::SyntaxKind::OpenParenthesisToken: {
     std::unique_ptr<SyntaxToken<std::any>> left = std::move(
@@ -1529,6 +1535,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
         std::move(left), std::move(expression), std::move(right));
   }
   case SyntaxKindUtils::SyntaxKind::NumberToken: {
+
     std::unique_ptr<SyntaxToken<std::any>> numberToken =
         std::move(this->match(SyntaxKindUtils::SyntaxKind::NumberToken));
 
@@ -1596,6 +1603,7 @@ std::unique_ptr<ExpressionSyntax> Parser::parsePrimaryExpression() {
   case SyntaxKindUtils::SyntaxKind::OpenBraceToken: {
     return std::move(this->parseObjectExpression());
   }
+
   default:
     break;
   }
@@ -2069,6 +2077,34 @@ std::unique_ptr<ExpressionSyntax> Parser::parseNameorCallExpression(
   } else {
     return std::move(parseVariableExpression(std::move(selfKeyword)));
   }
+}
+
+std::unique_ptr<ExpressionSyntax>
+Parser::parseTernaryExpression(std::unique_ptr<ExpressionSyntax> &condition) {
+  std::unique_ptr<TernaryExpressionSyntax> ternaryExpression =
+      std::make_unique<TernaryExpressionSyntax>();
+
+  ternaryExpression->addConditionExpression(std::move(condition));
+
+  appendWithSpace();
+
+  ternaryExpression->addQuestionToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::QuestionToken)));
+
+  appendWithSpace();
+
+  ternaryExpression->addTrueExpression(std::move(this->parseExpression()));
+
+  appendWithSpace();
+
+  ternaryExpression->addColonToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::ColonToken)));
+
+  appendWithSpace();
+
+  ternaryExpression->addFalseExpression(std::move(this->parseExpression()));
+
+  return std::move(ternaryExpression);
 }
 
 std::unique_ptr<ExpressionSyntax> Parser::parseCallExpression() {

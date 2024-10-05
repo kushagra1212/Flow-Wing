@@ -1490,10 +1490,29 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
         (MultipleAssignmentExpressionSyntax *)syntax));
   }
 
+  case SyntaxKindUtils::SyntaxKind::TernaryExpression: {
+    return std::move(bindTernaryExpression((TernaryExpressionSyntax *)syntax));
+  }
+
   default:
     throw "Unexpected syntax";
   }
   return nullptr;
+}
+
+std::unique_ptr<BoundExpression>
+Binder::bindTernaryExpression(ExpressionSyntax *syntax) {
+  TernaryExpressionSyntax *ternaryExpressionSyntax =
+      static_cast<TernaryExpressionSyntax *>(syntax);
+
+  return std::make_unique<BoundTernaryExpression>(
+      ternaryExpressionSyntax->getSourceLocation(),
+      std::move(bindExpression(
+          ternaryExpressionSyntax->getConditionExpressionRef().get())),
+      std::move(bindExpression(
+          ternaryExpressionSyntax->getTrueExpressionRef().get())),
+      std::move(bindExpression(
+          ternaryExpressionSyntax->getFalseExpressionRef().get())));
 }
 
 std::unique_ptr<BoundMultipleAssignmentExpression>

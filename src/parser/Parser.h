@@ -18,6 +18,7 @@
 #include "../syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
@@ -123,6 +124,7 @@ private:
   std::unique_ptr<StatementSyntax> parseCommentStatement();
   std::unique_ptr<ReturnStatementSyntax> parseReturnStatement();
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
+
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
   std::unique_ptr<StatementSyntax>
   parseVariableDeclaration(bool isFuncDec = false);
@@ -154,6 +156,8 @@ private:
       std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
+  std::unique_ptr<ExpressionSyntax>
+  parseTernaryExpression(std::unique_ptr<ExpressionSyntax> &condition);
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
   std::unique_ptr<ExpressionSyntax>
   parseVariableExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
