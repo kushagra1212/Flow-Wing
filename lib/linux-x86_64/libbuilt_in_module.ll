@@ -1,4 +1,5 @@
 ; ModuleID = 'built_in_module'
+
 source_filename = "built_in_module"
 
 @formatStrprintfnewline =   global [4 x i8] c"%s\0A\00"
@@ -7,7 +8,11 @@ source_filename = "built_in_module"
 @intFormat =   global [3 x i8] c"%d\00"
 @doubleFormat =   global [6 x i8] c"%.14f\00"
 
-declare i8* @malloc(i32)
+declare i8* @GC_malloc(i64)
+declare i8* @GC_realloc(i8*, i64)
+declare void @GC_free(i8*)
+declare i8* @malloc(i64)
+
 declare i32 @strlen(i8*)
 declare i32 @memcpy(i8*, i8*, i32)
 declare i32 @strcmp(i8*, i8*)
@@ -44,7 +49,8 @@ define   i8* @concat_strings(i8* %str1, i8* %str2) {
     ; Allocate memory for the concatenated string (including space for null terminator)
     %totalLen = add i32 %len1, %len2
     %totalLenPlusOne = add i32 %totalLen, 1
-    %concatStr = call i8* @malloc(i32 %totalLenPlusOne)
+    %totalLenPlusOne_i64 = zext i32 %totalLenPlusOne to i64
+    %concatStr = call i8* @malloc(i64 %totalLenPlusOne_i64)
     
     ; Copy characters from the first string to the concatenated string
     %ptr1 = bitcast i8* %concatStr to i8*
@@ -70,7 +76,9 @@ entry:
 
 define  i8* @itos(i32 %num) {
     ; Allocate memory for the string buffer
-    %buffer = call i8* @malloc(i32 12)
+     
+    %int_64_num = zext i32 %num to i64
+    %buffer = call i8* @malloc(i64 %int_64_num)
     
     ; Convert the integer to a string
     %formatStr = getelementptr [3 x i8], [3 x i8]* @intFormat, i32 0, i32 0
@@ -80,14 +88,41 @@ define  i8* @itos(i32 %num) {
     ret i8* %buffer
 }
 
+; ; Override malloc with malloc
+; define  i8* @malloc(i64 %num) {
+;     %buffer = call i8* @malloc(i64 %num)
+;     ret i8* %buffer
+; }
+
+
+; ; Override free with GC_free
+; define  void @free(i8* %ptr) {
+;   ret void
+; } 
+
+; ; Override realloc with GC_realloc
+; define  i8* @realloc(i8* %ptr, i64 %num) {
+;     %buffer = call i8* @GC_realloc(i8* %ptr, i64 %num)
+;     ret i8* %buffer
+; }
+
+; ; Override calloc with GC_calloc
+; define  i8* @calloc(i64 %num, i64 %num2) {
+;     %totalSize = mul i64 %num, %num2
+;     %buffer = call i8* @malloc(i64 %totalSize)
+;     ret i8* %buffer
+; }
+
+
+
 
 define  i8* @dtos(double %f) {
   ; Allocate memory for the string buffer
-  %buffer = call i8* @malloc(i32 32)
+  %buffer = call i8* @malloc(i64 64)
 
   ; Convert the double to a string
   %formatStr = getelementptr [6 x i8], [6 x i8]* @doubleFormat, i32 0, i32 0
-  call i32 (i8*, i32, i8*, ...)@snprintf(i8* %buffer, i32 32, i8* %formatStr, double %f)
+  call i32 (i8*, i32, i8*, ...)@snprintf(i8* %buffer, i32 64, i8* %formatStr, double %f)
   ; Return the result as a pointer to the string
   ret i8* %buffer
 }
@@ -97,9 +132,11 @@ define  i8* @get_malloc_ptr_of_string_constant(i8* %str) {
     %len = call i32 @strlen(i8* %str)
 
     %lenIncreasedByOne = add i32 %len, 1
+
+    %lenIncreasedByOne_64 = zext i32 %lenIncreasedByOne to i64
     
     ; Allocate memory for the string
-    %strPtr = call i8* @malloc(i32 %lenIncreasedByOne)
+    %strPtr = call i8* @malloc(i64 %lenIncreasedByOne_64)
     
     ; Copy the string to the allocated memory
     call i32 @memcpy(i8* %strPtr, i8* %str, i32 %lenIncreasedByOne)
@@ -110,7 +147,7 @@ define  i8* @get_malloc_ptr_of_string_constant(i8* %str) {
 
 define  i8* @get_malloc_ptr_of_int_constant(i32 %num) {
     ; Allocate memory for the string buffer
-    %buffer = call i8* @malloc(i32 12)
+    %buffer = call i8* @malloc(i64 12)
     
     ; Convert the integer to a string
     %formatStr = getelementptr [3 x i8], [3 x i8]* @intFormat, i32 0, i32 0
@@ -161,7 +198,7 @@ define  i1 @equal_strings(i8* %str1, i8* %str2) {
 define  i8* @get_input() {
 entry:
   ; Allocate space for the string 
-  %inputValue = call i8* @malloc(i32 1000001)
+  %inputValue = call i8* @malloc(i64 1000001)
 
   %0 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @formatStrscanf, i32 0, i32 0), i8* %inputValue, i32 0, i32 0)
 

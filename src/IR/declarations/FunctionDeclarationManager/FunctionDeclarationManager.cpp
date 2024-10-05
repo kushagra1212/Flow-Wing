@@ -235,9 +235,11 @@ llvm::Function *FunctionDeclarationManager::declarePutChar() {
 
 llvm::Function *FunctionDeclarationManager::declareGC_Malloc() {
 
-  llvm::FunctionType *gcMallocFnType =
-      llvm::FunctionType::get(llvm::Type::getInt8PtrTy(*TheContext),
-                              {llvm::Type::getInt64Ty(*TheContext)}, false);
+  llvm::ArrayRef<llvm::Type *> gcMallocArgs = {
+      llvm::Type::getInt64Ty(*TheContext)};
+
+  llvm::FunctionType *gcMallocFnType = llvm::FunctionType::get(
+      llvm::Type::getInt8PtrTy(*TheContext), gcMallocArgs, false);
 
   return declareFunction(INNERS::FUNCTIONS::GC_MALLOC, gcMallocFnType);
 }

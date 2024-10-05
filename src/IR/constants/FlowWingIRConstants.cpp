@@ -57,9 +57,11 @@ const std::string STRING_TO_DOUBLE = "string_to_double";
 const std::string RAISE_EXCEPTION = "raise_exception";
 const std::string MALLOC = "malloc";
 const std::string PUT_CHAR = "putchar";
-
+#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
 const std::string GC_MALLOC = "GC_malloc";
-
+#else
+const std::string GC_MALLOC = "malloc";
+#endif
 }; // namespace FUNCTIONS
 }; // namespace INNERS
 

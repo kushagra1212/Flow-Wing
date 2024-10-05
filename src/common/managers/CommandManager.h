@@ -42,8 +42,10 @@ public:
 
       cmd += this->getDefaultEntryPoint();
     }
-#if defined(__apple__)
-    if (!FlowWing::Cli::isFlag::linkerWarnings()) {
+#if defined(__APPLE__)
+    if (FlowWing::Cli::cmdl && !FlowWing::Cli::isFlag::linkerWarnings()) {
+      cmd += "  -Wl,-w ";
+    } else {
       cmd += "  -Wl,-w ";
     }
 #endif
