@@ -68,6 +68,9 @@ Option<bool> OPTIONS::Server{
     "--server", "Use --server to include FlowWing Vortex Server library"};
 Option<bool> OPTIONS::ShortServer{"-S", "Short hand flag for --server"};
 
+Option<bool> OPTIONS::LinkerWarnings{"--linker-warnings",
+                                     "Enable linker warnings"};
+
 namespace isFlag {
 int8_t versionName() {
   return ((*cmdl)[{FlowWing::Cli::OPTIONS::Version.name.c_str(),
@@ -137,6 +140,12 @@ int8_t server() {
 int8_t shortServer() {
   return ((*cmdl)[{
       FlowWing::Cli::OPTIONS::ShortServer.name.c_str(),
+  }]);
+}
+
+int8_t linkerWarnings() {
+  return ((*cmdl)[{
+      FlowWing::Cli::OPTIONS::LinkerWarnings.name.c_str(),
   }]);
 }
 
@@ -290,6 +299,7 @@ void printHelp() {
       {OPTIONS::Help.name + ", " + OPTIONS::ShortHelp.name,
        OPTIONS::Help.description},
       {OPTIONS::Server.name, OPTIONS::Server.description},
+      {OPTIONS::LinkerWarnings.name, OPTIONS::LinkerWarnings.description},
   };
 
   size_t maxFlagLength = 0;
@@ -297,10 +307,18 @@ void printHelp() {
     maxFlagLength = std::max(maxFlagLength, option.first.length());
   }
 
+  // Print options with formatted alignment
+  std::cout << std::left << std::setw(maxFlagLength + 2) << "Options"
+            << "Description\n";
+  std::cout << std::string(maxFlagLength + 2 + 20, '-') << "\n";
+
   for (const auto &option : options) {
     std::cout << std::left << std::setw(maxFlagLength + 2) << option.first
               << option.second << "\n";
   }
+
+  std::cout << "\nUse " << OPTIONS::Help.name << " or "
+            << OPTIONS::ShortHelp.name << " for more details.\n";
 }
 
 } // namespace Cli

@@ -1,6 +1,7 @@
 #include "JITCompiler.h"
 #include "../cli/argh.h"
 #include "../common/version.h"
+#include <string>
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
 
@@ -14,8 +15,6 @@ void JITCompiler::execute() {
       std::move(FlowWing::Compiler::getLinkedModule(
           TheContext, _currentDiagnosticHandler.get()));
 
-  //  Get the main function
-
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
 
@@ -26,6 +25,14 @@ void JITCompiler::execute() {
                         .setOptLevel(llvm::CodeGenOpt::Less)
                         .create();
 
+  //! TODO: add support for linking libraries
+  // const auto allArchivesFiles = Utils::getAllFilesInDirectoryWithExtension(
+  //     (FLOWWING_LIB_PATH), ".a", false);
+
+  // for (const auto &archivePath : allArchivesFiles) {
+  //   FlowWing::Compiler::loadArchiveIntoExecutionEngine(
+  //       executionEngine, archivePath, _currentDiagnosticHandler.get());
+  // }
   if (!executionEngine) {
     _currentDiagnosticHandler->printDiagnostic(
         std::cout,

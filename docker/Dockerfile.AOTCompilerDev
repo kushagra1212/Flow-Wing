@@ -4,6 +4,7 @@ FROM kushagra711/common-base-llvm:latest
 # Copy your source code to the container
 COPY . /aot-compiler-dev
 
+
 # Set the working directory
 WORKDIR /aot-compiler-dev/targets/aot-compiler
 
@@ -14,8 +15,6 @@ RUN mkdir -p aot-compiler-build
 # Configure and build your project using Ninja
 WORKDIR /aot-compiler-dev/targets/aot-compiler/aot-compiler-build
 
-# Set the environment variable
-ENV LD_LIBRARY_PATH=/aot-compiler-dev/lib/linux-x86_64/lib:$LD_LIBRARY_PATH
 
 #RUN cmake -G Ninja -DTESTS_ENABLED=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fuse-ld=lld" ..
 #RUN ninja

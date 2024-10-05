@@ -639,7 +639,7 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     BinderKindUtils::MemoryKind memoryKind, llvm::Constant *initialValue) {
   switch (memoryKind) {
   case BinderKindUtils::MemoryKind::Heap: {
-    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::MALLOC);
+    auto fun = this->_module->getFunction(INNERS::FUNCTIONS::GC_MALLOC);
 
     llvm::CallInst *malloc_call = this->_builder->CreateCall(
         fun, llvm::ConstantInt::get(llvm::Type::getInt64Ty(*this->_context),

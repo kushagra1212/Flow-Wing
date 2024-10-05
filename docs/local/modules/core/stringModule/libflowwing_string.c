@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 // Copy a string from src to dest
 void strCopy(char *dest, char *src) {
   strcpy(dest, src);
@@ -104,7 +105,7 @@ char *strReplace(char *str, const char *oldSub, const char *newSub) {
 
 // Split a string into tokens based on a delimiter
 char *strSplit(char *str, const char *delim) {
-  static char *nextToken = NULL;
+  char *nextToken = NULL;
 
   if (str != NULL) {
     nextToken = str;

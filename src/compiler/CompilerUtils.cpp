@@ -1,5 +1,6 @@
 #include "CompilerUtils.h"
 #include <cstdlib>
+#include <memory>
 #include <stdexcept>
 
 namespace FlowWing {
@@ -55,16 +56,19 @@ createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
 
   const std::string &filePath = LIB_BUILT_IN_MODULE_PATH;
 
-#if defined(RELEASE)
+  LINKING_DEBUG_LOG(" [INFO]: LIB_BUILT_IN_MODULE_PATH " + filePath);
 
+#if defined(RELEASE)
   std::unique_ptr<llvm::Module> TheModule =
       std::move(createModuleFromBitcode(filePath, TheContext, diagHandler));
+
 #else
   std::unique_ptr<llvm::Module> TheModule =
       isValidLLFile(filePath) == EXIT_SUCCESS
           ? std::move(createModuleFromIR(filePath, TheContext, diagHandler))
           : std::move(
                 createModuleFromBitcode(filePath, TheContext, diagHandler));
+
 #endif
 
   llvm::InitializeNativeTarget();
@@ -118,7 +122,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
   for (const std::string &path : filesPath) {
     llvm::SMDiagnostic err;
 
-    CODEGEN_DEBUG_LOG(" [INFO]: Linking " + path);
+    LINKING_DEBUG_LOG(" [INFO]: Linking " + path);
 
     bool LinkResult = llvm::Linker::linkModules(
         *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
@@ -134,9 +138,51 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
     }
   }
 
-  CODEGEN_DEBUG_LOG(" [INFO]: Finished linking modules Done. ");
+  LINKING_DEBUG_LOG(" [INFO]: Finished linking modules Done. ");
 
   return TheModule;
+}
+
+void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
+                                    const std::string &archivePath,
+                                    FlowWing::DiagnosticHandler *diagHandler) {
+  // Read the archive file into a MemoryBuffer
+  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer =
+      llvm::MemoryBuffer::getFile(archivePath);
+
+  LINKING_DEBUG_LOG(" [INFO]: Loading Archive: " + archivePath);
+
+  if (!buffer) {
+    diagHandler->printDiagnostic(
+        std::cerr, Diagnostic("Failed to read archive: " + archivePath,
+                              DiagnosticUtils::DiagnosticLevel::Error,
+                              DiagnosticUtils::DiagnosticType::Linker,
+                              DiagnosticUtils::SourceLocation()));
+
+    return;
+  }
+  // Parse the archive
+  llvm::Expected<std::unique_ptr<llvm::object::Archive>> archive =
+      llvm::object::Archive::create(buffer->get()->getMemBufferRef());
+
+  if (!archive) {
+    diagHandler->printDiagnostic(
+        std::cerr, Diagnostic("Failed to parse archive: " + archivePath,
+                              DiagnosticUtils::DiagnosticLevel::Error,
+                              DiagnosticUtils::DiagnosticType::Linker,
+                              DiagnosticUtils::SourceLocation()));
+    return;
+  }
+
+  std::unique_ptr<llvm::object::Archive> archivePtr = std::move(archive.get());
+  std::unique_ptr<llvm::MemoryBuffer> bufferPtr = std::move(buffer.get());
+  // Iterate over the archive members (object files) and add them to the
+  // execution engine
+
+  executionEngine->addArchive(llvm::object::OwningBinary<llvm::object::Archive>(
+      std::move(archivePtr), std::move(bufferPtr)));
+
+  LEXER_DEBUG_LOG(" [INFO]: Finished loading archive: " + archivePath);
 }
 
 std::unique_ptr<llvm::Module>

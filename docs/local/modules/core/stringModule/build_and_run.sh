@@ -9,8 +9,7 @@ export OUTPUT_EXECUTABLE="build/bin/test"
 
 # Compile the C code into a shared library
 echo "Compiling C code into shared library..."
-clang  -fPIC -c flowwingstring.c  -o $SHARED_LIB_PATH -I/opt/homebrew/include
-
+clang  -fPIC -shared  libflowwing_string.c -o $SHARED_LIB_PATH 
 # Check for errors in the C compilation step
 if [ $? -ne 0 ]; then
     echo "Error: Failed to compile C code into shared library."

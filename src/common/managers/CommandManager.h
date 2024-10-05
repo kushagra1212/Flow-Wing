@@ -5,6 +5,7 @@
 #include "../../cli/argh.h"
 #include "../../cli/commandLineOptions/commandLineOptions.h"
 #include "../../utils/Utils.h"
+#include "../LibUtils/LibUtils.h"
 #include <string>
 
 class CommandManager {
@@ -41,6 +42,13 @@ public:
 
       cmd += this->getDefaultEntryPoint();
     }
+#if defined(__APPLE__)
+    if (FlowWing::Cli::cmdl && !FlowWing::Cli::isFlag::linkerWarnings()) {
+      cmd += "  -Wl,-w ";
+    } else {
+      cmd += "  -Wl,-w ";
+    }
+#endif
 
     // Linking with BuiltIn Module
     cmd += this->getBuiltInModuleLinked();
@@ -121,21 +129,24 @@ private:
 
   auto inline getBuiltInModuleLinked() -> std::string {
 
-    // #if defined(AOT_TEST_MODE) || defined(AOT_MODE)
-    //     return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-    //            getDynamicLibraryPath("built_in_module") + " " +
-    //            getDynamicLibraryPath("flowwing_string") + " ";
-    // #else
-    return " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-           getDynamicLibraryPath("built_in_module") + " " +
-           getDynamicLibraryPath("flowwing_string") + " " +
-           getDynamicLibraryPath("flowwing_vector") + " " +
-           getDynamicLibraryPath("flowwing_map") + " ";
+    std::string linkLibs = "";
 
-    // #endif
+    linkLibs += " -L" + std::string(FLOWWING_LIB_PATH) + " ";
+
+    // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
+
+    //   linkLibs += getPrefixedLibName(lib) + " ";
+    // }
+
+    for (const auto lib : STATIC_LINKING_LIBRARIES) {
+
+      linkLibs += getPrefixedLibName(lib) + " ";
+    }
+
+    return linkLibs;
   }
 
-  auto inline getDynamicLibraryPath(const std::string &libName) -> std::string {
+  auto inline getPrefixedLibName(const std::string &libName) -> std::string {
     return " -l" + libName;
   }
 
@@ -167,7 +178,7 @@ private:
     if (FlowWing::Cli::isFlag::server() ||
         FlowWing::Cli::isFlag::shortServer()) {
       cmd += " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-             getDynamicLibraryPath("flowwing_vortex") + " ";
+             getPrefixedLibName("flowwing_vortex") + " ";
     }
   }
 };

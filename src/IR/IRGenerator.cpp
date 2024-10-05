@@ -97,6 +97,10 @@ void IRGenerator::declareDependencyFunctions() {
   functionDeclarationManager->declareRaiseExceptionFn();
   functionDeclarationManager->declareMallocFunctionFn();
   functionDeclarationManager->declarePutChar();
+
+#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
+  functionDeclarationManager->declareGC_Malloc();
+#endif
 }
 
 void IRGenerator::initializeGlobalVariables() {

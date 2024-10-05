@@ -34,6 +34,9 @@ public:
   llvm::Function *declarePrintfFn();
   llvm::Function *declarePutChar();
 
+  // GC
+  llvm::Function *declareGC_Malloc();
+
   llvm::Function *declareRaiseExceptionFn();
   llvm::Function *declareMallocFunctionFn();
 

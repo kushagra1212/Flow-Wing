@@ -56,6 +56,7 @@ extern const std::string STRING_TO_DOUBLE;
 extern const std::string RAISE_EXCEPTION;
 extern const std::string MALLOC;
 extern const std::string PUT_CHAR;
+extern const std::string GC_MALLOC;
 
 }; // namespace FUNCTIONS
 }; // namespace INNERS
