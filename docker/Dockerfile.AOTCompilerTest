@@ -6,7 +6,6 @@ FROM kushagra711/common-base-llvm:latest
 
 COPY . /aot-compiler-test
 
-COPY /aot-compiler-test/lib/linux-x86_64/lib/ /usr/local/lib
 # Set the working directory
 WORKDIR /aot-compiler-test/targets/aot-compiler
 

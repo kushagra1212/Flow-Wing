@@ -4,7 +4,6 @@ FROM kushagra711/common-base-llvm:latest
 # Copy your source code to the container
 COPY . /aot-compiler-dev
 
-COPY /aot-compiler-test/lib/linux-x86_64/lib /usr/local/lib
 
 # Set the working directory
 WORKDIR /aot-compiler-dev/targets/aot-compiler
