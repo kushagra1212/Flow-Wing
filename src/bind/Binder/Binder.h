@@ -69,6 +69,7 @@
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundTernaryExpression/BoundTernaryExpression.h"
 #include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
 #include "../BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
@@ -165,6 +166,9 @@ public:
 
   std::unique_ptr<BoundLiteralExpression<std::any>>
   bindLiteralExpression(ExpressionSyntax *syntax);
+
+  std::unique_ptr<BoundExpression>
+  bindTernaryExpression(ExpressionSyntax *syntax);
 
   std::unique_ptr<BoundExpression>
   bindunaryExpression(UnaryExpressionSyntax *unaryExpression);

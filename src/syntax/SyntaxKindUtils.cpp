@@ -96,6 +96,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "CommaToken";
   case SyntaxKind::OpenBraceToken:
     return "OpenBraceToken";
+  case SyntaxKind::QuestionToken:
+    return "QuestionToken";
   case SyntaxKind::CloseBraceToken:
     return "CloseBraceToken";
   case SyntaxKind::StringToken:
@@ -332,6 +334,8 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "ClassStatement";
   case SyntaxKind::ExtendsKeyword:
     return "ExtendsKeyword";
+  case SyntaxKindUtils::TernaryExpression:
+    return "TernaryExpression";
   default:
     return "NotDefined";
   }

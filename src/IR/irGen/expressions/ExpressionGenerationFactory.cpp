@@ -4,12 +4,12 @@
 #include "BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
 #include "BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
 #include "CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
 #include "LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
 #include "NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
 #include "ParenthesizedExpressionGenerationStrategy/ParenthesizedExpressionGenerationStrategy.h"
+#include "TernaryExpressionGenerationStrategy/TernaryExpressionGenerationStrategy.h"
 #include "UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
 #include "VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 
@@ -53,6 +53,9 @@ ExpressionGenerationFactory::createStrategy(
         _codeGenerationContext);
   case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression:
     return std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::BoundTernaryExpression:
+    return std::make_unique<TernaryExpressionGenerationStrategy>(
         _codeGenerationContext);
   default: {
 
