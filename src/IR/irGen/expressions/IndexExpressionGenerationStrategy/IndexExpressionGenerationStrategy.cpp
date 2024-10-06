@@ -22,7 +22,7 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
   }
 
   if (var.second && var.first &&
-      var.second == llvm::Type::getInt8PtrTy(*TheContext)) {
+      var.second == _codeGenerationContext->getorCreateStringType()) {
     _arrayType = nullptr;
     _variable = var.first;
     return true;

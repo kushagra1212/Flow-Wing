@@ -194,6 +194,9 @@ public:
     _currentClassName = className;
   }
 
+  llvm::StructType *getorCreateStringType();
+  llvm::Value *getStringPtr(llvm::Value *stringStructPtr);
+
   inline auto getCurrentClassName() -> std::string { return _currentClassName; }
 
   inline auto resetCurrentClassName() -> void { _currentClassName = ""; }
@@ -231,6 +234,7 @@ public:
     const bool isClassType =
         this->_classTypes.find(pureType) != this->_classTypes.end();
     if (!isCustomTypeExists(typeName) && !isClassType) {
+
       this->getLogger()->LogError("Type " + pureType +
                                   " is not defined in this scope");
 
@@ -301,6 +305,7 @@ private:
 
   llvm::TargetMachine *_targetMachine = nullptr;
   std::string _currentClassName = "";
+  llvm::StructType *_stringType = nullptr;
 };
 
 #endif // CODEGENERATIONCONTEXT_H

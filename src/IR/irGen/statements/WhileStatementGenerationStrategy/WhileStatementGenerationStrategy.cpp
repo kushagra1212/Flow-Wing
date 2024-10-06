@@ -42,6 +42,9 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    conditionValue = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
   // Load the condition
 
@@ -66,6 +69,9 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    result = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
   Builder->CreateCondBr(
       _codeGenerationContext->isCountZero(

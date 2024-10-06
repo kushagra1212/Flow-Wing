@@ -27,7 +27,8 @@ llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
     return _builder->CreateUIToFP(
         value, llvm::Type::getFloatTy(_builder->getContext()));
   }
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
     llvm::Value *val = _builder->CreateCall(
         _module->getFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE), {value});
     return this->convertExplicit(val);

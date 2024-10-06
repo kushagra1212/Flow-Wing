@@ -20,7 +20,7 @@ TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
        SyntaxKindUtils::SyntaxKind::DeciKeyword},
       {(llvm::Type *)llvm::Type::getFloatTy(*context),
        SyntaxKindUtils::SyntaxKind::Deci32Keyword},
-      {(llvm::Type *)llvm::Type::getInt8PtrTy(*context),
+      {_codeGenerationContext->getorCreateStringType(),
        SyntaxKindUtils::SyntaxKind::StrKeyword},
       {(llvm::Type *)llvm::Type::getVoidTy(*context),
        SyntaxKindUtils::SyntaxKind::NthgKeyword},
@@ -40,7 +40,7 @@ TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
       {SyntaxKindUtils::SyntaxKind::Deci32Keyword,
        (llvm::Type *)llvm::Type::getFloatTy(*context)},
       {SyntaxKindUtils::SyntaxKind::StrKeyword,
-       (llvm::Type *)llvm::Type::getInt8PtrTy(*context)},
+       _codeGenerationContext->getorCreateStringType()},
       {SyntaxKindUtils::SyntaxKind::NthgKeyword,
        (llvm::Type *)llvm::Type::getVoidTy(*context)},
   };
@@ -75,7 +75,9 @@ const bool TypeMapper::isStringType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
          SyntaxKindUtils::SyntaxKind::StrKeyword;
 }
-
+const bool TypeMapper::isStringConstantType(llvm::Type *type) const {
+  return type == llvm::Type::getInt8PtrTy(*_context);
+}
 const bool TypeMapper::isNirastValue(llvm::Value *value) const {
   return value ==
          llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
@@ -134,7 +136,8 @@ std::string TypeMapper::getLLVMTypeName(llvm::Type *type,
 
   SyntaxKindUtils::SyntaxKind customType = mapLLVMTypeToCustomType(type);
   if (customType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-    if (llvm::isa<llvm::StructType>(type)) {
+    if (llvm::isa<llvm::StructType>(type) &&
+        _codeGenerationContext->getorCreateStringType() != type) {
       llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
       if (_codeGenerationContext->_classTypes.find(
               Utils::getActualTypeName(structType->getName().str())) !=

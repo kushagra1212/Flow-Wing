@@ -244,6 +244,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       }
 
     } else {
+
       parmType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType());
 

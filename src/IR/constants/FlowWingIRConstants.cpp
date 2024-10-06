@@ -30,6 +30,12 @@ const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";
 const std::string TEMP_BC_FILES_DIR = +"temp/bc/";
+
+// TypeName
+namespace TYPE_NAME {
+const std::string STRING_TYPE_NAME = "flow_wing::_str";
+}
+
 namespace INNERS {
 namespace FUNCTIONS {
 

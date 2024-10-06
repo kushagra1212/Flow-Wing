@@ -26,7 +26,8 @@ llvm::Value *Int8TypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     return _builder->CreateZExt(value, llvm::Type::getInt8Ty(*TheContext));
   }
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
     // TODO: Implement explicit conversion from string to int
 
     return _builder->CreateCall(

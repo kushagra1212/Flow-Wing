@@ -634,9 +634,30 @@ void CodeGenerationContext::getReturnedPrimitiveType(llvm::Function *F,
   }
 }
 
+llvm::StructType *CodeGenerationContext::getorCreateStringType() {
+
+  if (_stringType != nullptr) {
+    return _stringType;
+  }
+
+  _stringType = llvm::StructType::create(
+      *_context, {llvm::Type::getInt8PtrTy(*_context)},
+      FLOWWING::IR::CONSTANTS::TYPE_NAME::STRING_TYPE_NAME);
+
+  return _stringType;
+}
+
+llvm::Value *CodeGenerationContext::getStringPtr(llvm::Value *stringStructPtr) {
+  llvm::Value *elementPtr = _builder->CreateInBoundsGEP(
+      this->getorCreateStringType(), stringStructPtr,
+      {_builder->getInt32(0), _builder->getInt32(0)});
+  return _builder->CreateLoad(llvm::Type::getInt8PtrTy(*_context), elementPtr);
+}
+
 llvm::Value *CodeGenerationContext::createMemoryGetPtr(
     llvm::Type *type, std::string variableName,
     BinderKindUtils::MemoryKind memoryKind, llvm::Constant *initialValue) {
+
   switch (memoryKind) {
   case BinderKindUtils::MemoryKind::Heap: {
     auto fun = this->_module->getFunction(INNERS::FUNCTIONS::GC_MALLOC);

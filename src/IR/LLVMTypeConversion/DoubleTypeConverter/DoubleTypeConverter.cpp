@@ -27,7 +27,8 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
     return _builder->CreateUIToFP(
         value, llvm::Type::getDoubleTy(_builder->getContext()));
   }
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
     return _builder->CreateCall(
         _module->getFunction(INNERS::FUNCTIONS::STRING_TO_DOUBLE), {value});
   }

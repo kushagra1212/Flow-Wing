@@ -75,6 +75,8 @@ public:
 
   auto inline isLLVMConstant() -> bool { return isType("constant"); }
 
+  auto inline isStringType() -> bool { return isType("string"); }
+
   auto inline isEmpty() -> bool { return vs.empty(); }
 
   auto inline getDynamicValue() -> llvm::Value * {

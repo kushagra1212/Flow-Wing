@@ -44,6 +44,12 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
     return v;
   }
 
+  if (variableType == _codeGenerationContext->getorCreateStringType()) {
+
+    _codeGenerationContext->getValueStackHandler()->push(
+        variableName, v, "string", variableType);
+    return v;
+  }
   if (_codeGenerationContext->getDynamicType()->isDyn(variableType)) {
     return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
         v, variableName);
@@ -59,8 +65,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
 
     //   _codeGenerationContext->getLogger()->LogError(
     //       "Access member of Class " +
-    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType) +
-    //       " using dot operator in variable " + variableName);
+    //       _codeGenerationContext->getMapper()->getLLVMTypeName(structType)
+    //       + " using dot operator in variable " + variableName);
     //   return nullptr;
     // }
     _codeGenerationContext->getValueStackHandler()->push(variableName, v,
@@ -163,7 +169,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
 
     std::pair<llvm::Value *, llvm::Type *> cl =
         _codeGenerationContext->getAllocaChain()->getPtr("self");
-    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
+    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second) &&
+        _codeGenerationContext->getorCreateStringType() != cl.second) {
       llvm::StructType *classType = llvm::cast<llvm::StructType>(cl.second);
       cl.first =
           Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), cl.first);

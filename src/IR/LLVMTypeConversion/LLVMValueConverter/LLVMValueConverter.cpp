@@ -87,15 +87,15 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
 
     if (value.length() == 1) {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), value[0]);
-    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'n') {
+    } else if (value == "\\n") {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\n');
-    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 't') {
+    } else if (value == "\\t") {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\t');
-    } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'r') {
+    } else if (value == "\\r") {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\r');
-    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '0') {
+    } else if (value == "\\0") {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\0');
-    } else if (value.length() == 2 && value[0] == '\\' && value[1] == '\\') {
+    } else if (value == "\\\\") {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\\');
     } else if (value.length() == 2 && value[0] == '\\' && value[1] == '\'') {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\'');
@@ -118,9 +118,21 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
   llvm::Constant *strConstant =
       llvm::ConstantDataArray::getString(*_llvmContext, value);
 
-  return _codeGenerationContext->createMemoryGetPtr(
+  llvm::Value *strPtr = _codeGenerationContext->createMemoryGetPtr(
       strConstant->getType(), "", BinderKindUtils::MemoryKind::Global,
       strConstant);
+
+  // llvm::Value *stringStructPtr = _codeGenerationContext->createMemoryGetPtr(
+  //     _codeGenerationContext->getorCreateStringType(), "",
+  //     BinderKindUtils::MemoryKind::Global);
+
+  // llvm::Value *elementPtr = _builder->CreateInBoundsGEP(
+  //     _codeGenerationContext->getorCreateStringType(), stringStructPtr,
+  //     {_builder->getInt32(0), _builder->getInt32(0)});
+
+  // _builder->CreateStore(strPtr, elementPtr);
+
+  return strPtr;
 
   // llvm::GlobalVariable *strVar = new llvm::GlobalVariable(
   //     *_module, strConstant->getType(),

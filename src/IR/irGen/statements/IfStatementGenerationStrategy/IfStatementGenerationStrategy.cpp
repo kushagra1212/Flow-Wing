@@ -35,6 +35,9 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    conditionValue = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -144,6 +147,9 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    thenValue = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   Builder->CreateBr(afterIfElse);
@@ -177,6 +183,9 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           _codeGenerationContext->getValueStackHandler()->getLLVMType(),
           _codeGenerationContext->getValueStackHandler()->getValue());
       _codeGenerationContext->getValueStackHandler()->popAll();
+    } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+      elseValue = _codeGenerationContext->getStringPtr(
+          _codeGenerationContext->getValueStackHandler()->getValue());
     }
   }
 

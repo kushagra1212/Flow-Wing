@@ -38,6 +38,9 @@ llvm::Value *TernaryExpressionGenerationStrategy::generateExpression(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    conditionValue = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
 
   if (conditionValue == nullptr) {

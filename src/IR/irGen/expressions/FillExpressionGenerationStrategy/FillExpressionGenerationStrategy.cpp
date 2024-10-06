@@ -175,7 +175,8 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
           BinderKindUtils::VariableExpression &&
       _fillExpression->getElementToFillRef()->getKind() !=
           BinderKindUtils::BoundObjectExpression &&
-      llvm::isa<llvm::StructType>(_elementType)) {
+      llvm::isa<llvm::StructType>(_elementType) &&
+      _elementType != _codeGenerationContext->getorCreateStringType()) {
     _codeGenerationContext->getLogger()->LogError(
         "Attempting to fill an array " + _containerName +
         " of object type with a non object type Expression.");
@@ -214,7 +215,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (_elementType && _elementType != _elementToFill->getType()) {
+  auto logContainerItemTypeMismatch = [&]() {
     std::string elementTypeName =
         _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
 
@@ -225,7 +226,16 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     _codeGenerationContext->getLogger()->LogError(
         _containerName + " Container item type mismatch. Expected " +
         elementTypeName + " but got " + itemValueTypeName);
+  };
 
+  if (_elementType == _codeGenerationContext->getorCreateStringType() &&
+      _elementToFill->getType() != llvm::Type::getInt8PtrTy(*TheContext)) {
+    logContainerItemTypeMismatch();
+    return false;
+  } else if (_elementType && _elementType != _elementToFill->getType() &&
+             _elementType != _codeGenerationContext->getorCreateStringType()) {
+
+    logContainerItemTypeMismatch();
     return false;
   }
 

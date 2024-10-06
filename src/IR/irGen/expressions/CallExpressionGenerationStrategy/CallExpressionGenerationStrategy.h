@@ -25,7 +25,7 @@ public:
   llvm::Value *handlePrintFunction(llvm::Value *&value);
   llvm::Value *userDefinedFunctionCall(BoundCallExpression *callExpression);
   void declare(BoundExpression *expression);
-
+  void printString();
   llvm::Value *generateCommonCallExpression(
       BoundCallExpression *callExpression, llvm::Function *calleeFunction,
       std::vector<llvm::Value *> &classArg, llvm::Type *_classType,

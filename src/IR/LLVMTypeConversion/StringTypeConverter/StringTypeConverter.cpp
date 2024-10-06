@@ -60,7 +60,8 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
 
     return this->convertExplicit(str);
   }
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
     return value;
   }
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {

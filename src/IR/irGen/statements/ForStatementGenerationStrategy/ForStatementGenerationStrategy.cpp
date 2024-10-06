@@ -36,6 +36,9 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           _codeGenerationContext->getValueStackHandler()->getLLVMType(),
           _codeGenerationContext->getValueStackHandler()->getValue());
       _codeGenerationContext->getValueStackHandler()->popAll();
+    } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+      r = _codeGenerationContext->getStringPtr(
+          _codeGenerationContext->getValueStackHandler()->getValue());
     }
     stepValue = _int32TypeConverter->convertImplicit(r);
   }
@@ -51,6 +54,9 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
     _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    upperBound = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
   // Declare Loop Variable
 

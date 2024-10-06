@@ -30,6 +30,9 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
     val = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    val = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
   }
   if (val == nullptr) {
     _codeGenerationContext->getLogger()->LogError(

@@ -23,7 +23,17 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 
   _codeGenerationContext->getAllocaChain()->setPtr(variableName, {v, llvmType});
 
-  Builder->CreateStore(rhsValue, v);
+  if (llvmType == _codeGenerationContext->getorCreateStringType() &&
+      rhsValue->getType() == llvm::Type::getInt8PtrTy(*TheContext)) {
+
+    Builder->CreateStore(
+        rhsValue,
+        Builder->CreateInBoundsGEP(
+            llvmType, v, {Builder->getInt32(0), Builder->getInt32(0)}));
+  } else {
+
+    Builder->CreateStore(rhsValue, v);
+  }
 
   return rhsValue;
 }
@@ -160,6 +170,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
     ptrType = _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
         _variableType);
+
     CODEGEN_DEBUG_LOG(
         "_variableType " + SyntaxKindUtils::to_string(_variableType),
         _variableName,

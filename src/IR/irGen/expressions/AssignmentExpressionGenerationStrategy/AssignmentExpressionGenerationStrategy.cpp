@@ -217,7 +217,14 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
 
-  if (_lhsType != rhsType) {
+  if (_lhsType == _codeGenerationContext->getorCreateStringType() &&
+      rhsType != llvm::Type::getInt8PtrTy(*TheContext)) {
+
+    _codeGenerationContext->getLogger()->LogError(
+        "String type mismatch in variable Assignment " + _lhsVariableName);
+    return nullptr;
+  } else if (_lhsType != rhsType &&
+             _lhsType != _codeGenerationContext->getorCreateStringType()) {
 
     _codeGenerationContext->getLogger()->LogError(
         "Type mismatch in variable Assignment " + _lhsVariableName +
@@ -326,11 +333,32 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
   if (_codeGenerationContext->getValueStackHandler()->isLLVMConstant()) {
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
 
+    if (_codeGenerationContext->getorCreateStringType() == _lhsType) {
+
+      llvm::Value *elementPtr = Builder->CreateInBoundsGEP(
+          _codeGenerationContext->getorCreateStringType(), _lhsPtr,
+          {Builder->getInt32(0), Builder->getInt32(0)});
+
+      Builder->CreateStore(rhsValue, elementPtr);
+
+      _codeGenerationContext->getValueStackHandler()->popAll();
+
+      return EXIT_SUCCESS;
+    }
+
     if (_lhsDynamicPtr) {
       handleDynamicPrimitiveVariableAssignment(_lhsDynamicPtr, _lhsVariableName,
                                                rhsValue);
     } else {
-      if (_lhsType != rhsType) {
+
+      if (_lhsType == _codeGenerationContext->getorCreateStringType() &&
+          rhsType != llvm::Type::getInt8PtrTy(*TheContext)) {
+
+        _codeGenerationContext->getLogger()->LogError(
+            "String type mismatch in variable Assignment " + _lhsVariableName);
+        return EXIT_FAILURE;
+      } else if (_lhsType != rhsType &&
+                 _lhsType != _codeGenerationContext->getorCreateStringType()) {
 
         _codeGenerationContext->getLogger()->LogError(
             "Type mismatch in variable Assignment " + _lhsVariableName +
@@ -344,6 +372,8 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsConstant(
 
       Builder->CreateStore(rhsValue, _lhsPtr);
     }
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
 
     return EXIT_SUCCESS;
   }
@@ -415,7 +445,8 @@ llvm::Value *AssignmentExpressionGenerationStrategy ::handleAssignExpression(
 void AssignmentExpressionGenerationStrategy::initDefaultValue(
     llvm::Type *type, llvm::Value *alloca, llvm::IRBuilder<> &builder) {
 
-  if (llvm::isa<llvm::StructType>(type)) {
+  if (llvm::isa<llvm::StructType>(type) &&
+      type != _codeGenerationContext->getorCreateStringType()) {
     initObjectWithDefaultValue(llvm::cast<llvm::StructType>(type), alloca,
                                builder);
   } else if (llvm::isa<llvm::ArrayType>(type)) {

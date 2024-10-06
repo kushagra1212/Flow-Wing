@@ -27,7 +27,8 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     return value;
   }
-  case SyntaxKindUtils::SyntaxKind::StrKeyword: {
+  case SyntaxKindUtils::SyntaxKind::StrKeyword:
+  case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
 
     llvm::BasicBlock *currentBlock = _builder->GetInsertBlock();
     llvm::BasicBlock *nullBlock =

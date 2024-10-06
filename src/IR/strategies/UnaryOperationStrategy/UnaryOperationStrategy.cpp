@@ -33,7 +33,7 @@ llvm::Value *UnaryOperationStrategy::performOperation(
       // Convert non-boolean values to boolean (true if zero, false if non-zero)
       return Builder->CreateICmpEQ(
           val, llvm::Constant::getNullValue(val->getType()));
-    } else if (typeMapper->isStringType(type)) {
+    } else if (typeMapper->isStringConstantType(type)) {
       llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
       llvm::BasicBlock *nullBlock =
           llvm::BasicBlock::Create(val->getContext(), "UnaryOP::NullBlock",

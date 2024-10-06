@@ -11,7 +11,9 @@ llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+      _codeGenerationContext->getValueStackHandler()->getLLVMType() !=
+          _codeGenerationContext->getorCreateStringType()) {
     if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
             _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
       _codeGenerationContext->getLogger()->LogError(
@@ -23,12 +25,15 @@ llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
         llvm::Type::getInt8PtrTy(*TheContext),
         _codeGenerationContext->getValueStackHandler()->getValue()));
     isClassType = true;
-  }
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+  } else if (_codeGenerationContext->getValueStackHandler()->isStringType()) {
+    value = _codeGenerationContext->getStringPtr(
+        _codeGenerationContext->getValueStackHandler()->getValue());
+  } else if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     value = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
   }
+
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   return value;
@@ -67,6 +72,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     result = _nirastBinaryOperationStrategy->performOperation(
         lhsValue, rhsValue, binaryExpression);
   }
+
   // TODO: NULL CHeck
 
   //! When lhs or rhs is null
@@ -75,8 +81,8 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
   //? output -> true | false
   //? Method -> CreateIsNull
 
-  else if (_typeMapper->isStringType(lhsType) ||
-           _typeMapper->isStringType(rhsType)) {
+  else if (_typeMapper->isStringConstantType(lhsType) ||
+           _typeMapper->isStringConstantType(rhsType)) {
     result = _stringBinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),

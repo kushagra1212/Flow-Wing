@@ -20,8 +20,8 @@ public:
   }
 
 private:
-  llvm::Type *_type;
-  llvm::Type *_primitiveType;
+  llvm::Type *_type = nullptr;
+  llvm::Type *_primitiveType = nullptr;
 };
 
 #endif // __FLOWWING__LLVM_PRIMITIVE_TYPE_H__
