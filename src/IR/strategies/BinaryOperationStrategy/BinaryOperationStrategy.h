@@ -43,6 +43,10 @@ public:
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
                    BoundBinaryExpression *binaryExpression) = 0;
 
+  virtual llvm::Value *
+  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                   BinderKindUtils::BoundBinaryOperatorKind binaryOp) = 0;
+
   virtual ~BinaryOperationStrategy() = default;
 };
 

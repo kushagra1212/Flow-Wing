@@ -22,7 +22,6 @@ private:
   FlowWing::DiagnosticHandler *_diagnosticHandler;
 
   char getCurrent();
-
   void next();
   auto peek(const int64_t &offset) const -> const char;
 

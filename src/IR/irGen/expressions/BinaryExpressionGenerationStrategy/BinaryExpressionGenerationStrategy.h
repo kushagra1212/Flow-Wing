@@ -10,6 +10,10 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
+  llvm::Value *
+  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                   BinderKindUtils::BoundBinaryOperatorKind binaryOp);
+
   llvm::Value *getExpressionValue(BoundExpression *expression,
                                   bool &isClassType);
 };

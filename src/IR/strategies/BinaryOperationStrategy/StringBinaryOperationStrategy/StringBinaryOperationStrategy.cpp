@@ -9,46 +9,7 @@ llvm::Value *StringBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
-  std::string errorMessage = "";
-
-  switch (binaryExpression->getOperator()) {
-
-  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
-    return concatenateStrings(lhsValue, rhsValue);
-
-  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
-    return createStringComparison(lhsValue, rhsValue,
-                                  INNERS::FUNCTIONS::EQUAL_STRINGS);
-
-  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
-    return createStringComparison(lhsValue, rhsValue,
-                                  INNERS::FUNCTIONS::EQUAL_STRINGS, "!=");
-
-  case BinderKindUtils::BoundBinaryOperatorKind::Less:
-    return createStringComparison(lhsValue, rhsValue,
-                                  INNERS::FUNCTIONS::LESS_THAN_STRINGS);
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
-    return createStringComparison(
-        lhsValue, rhsValue, INNERS::FUNCTIONS::LESS_THAN_OR_EQUAL_STRINGS);
-
-  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
-    return createStringComparison(lhsValue, rhsValue,
-                                  INNERS::FUNCTIONS::GREATER_THAN_STRINGS);
-
-  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
-    return createStringComparison(
-        lhsValue, rhsValue, INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS);
-
-  default: {
-    errorMessage = "Unsupported binary operator for string type ";
-    break;
-  }
-  }
-
-  _codeGenerationContext->getLogger()->LogError(errorMessage);
-
-  return nullptr;
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
 }
 
 llvm::Value *StringBinaryOperationStrategy::createStringComparison(
@@ -118,4 +79,49 @@ StringBinaryOperationStrategy::concatenateStrings(llvm::Value *lhs,
     llvm::Value *res = Builder->CreateCall(stringConcatenateFunc, args);
     return res;
   }
+}
+
+llvm::Value *StringBinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
+  std::string errorMessage = "";
+
+  switch (binaryOperator) {
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Addition:
+    return concatenateStrings(lhsValue, rhsValue);
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Equals:
+    return createStringComparison(lhsValue, rhsValue,
+                                  INNERS::FUNCTIONS::EQUAL_STRINGS);
+
+  case BinderKindUtils::BoundBinaryOperatorKind::NotEquals:
+    return createStringComparison(lhsValue, rhsValue,
+                                  INNERS::FUNCTIONS::EQUAL_STRINGS, "!=");
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Less:
+    return createStringComparison(lhsValue, rhsValue,
+                                  INNERS::FUNCTIONS::LESS_THAN_STRINGS);
+
+  case BinderKindUtils::BoundBinaryOperatorKind::LessOrEquals:
+    return createStringComparison(
+        lhsValue, rhsValue, INNERS::FUNCTIONS::LESS_THAN_OR_EQUAL_STRINGS);
+
+  case BinderKindUtils::BoundBinaryOperatorKind::Greater:
+    return createStringComparison(lhsValue, rhsValue,
+                                  INNERS::FUNCTIONS::GREATER_THAN_STRINGS);
+
+  case BinderKindUtils::BoundBinaryOperatorKind::GreaterOrEquals:
+    return createStringComparison(
+        lhsValue, rhsValue, INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS);
+
+  default: {
+    errorMessage = "Unsupported binary operator for string type ";
+    break;
+  }
+  }
+
+  _codeGenerationContext->getLogger()->LogError(errorMessage);
+
+  return nullptr;
 }

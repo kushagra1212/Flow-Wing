@@ -8,9 +8,15 @@ llvm::Value *NirastBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+}
+
+llvm::Value *NirastBinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
   std::string errorMessage = "";
-  switch (binaryExpression->getOperator()) {
+  switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
 

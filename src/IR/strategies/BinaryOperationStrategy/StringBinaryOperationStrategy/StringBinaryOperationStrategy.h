@@ -3,11 +3,15 @@
 #include "../BinaryOperationStrategy.h"
 
 class StringBinaryOperationStrategy : public BinaryOperationStrategy {
- public:
+public:
   StringBinaryOperationStrategy(CodeGenerationContext *context);
+  llvm::Value *
+  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                   BoundBinaryExpression *binaryExpression) override;
+
   llvm::Value *performOperation(
       llvm::Value *lhsValue, llvm::Value *rhsValue,
-      BoundBinaryExpression *binaryExpression) override;
+      BinderKindUtils::BoundBinaryOperatorKind binaryOperator) override;
 
   llvm::Value *createStringComparison(llvm::Value *lhsValue,
                                       llvm::Value *rhsValue,
@@ -17,4 +21,4 @@ class StringBinaryOperationStrategy : public BinaryOperationStrategy {
   llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs);
 };
 
-#endif  // __STRING_BINARY_OPERATION_STRATEGY_H__
+#endif // __STRING_BINARY_OPERATION_STRATEGY_H__

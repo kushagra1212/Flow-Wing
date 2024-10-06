@@ -1,5 +1,6 @@
 #include "Parser.h"
 #include <cstddef>
+#include <memory>
 #include <string>
 
 Parser::Parser(const std::vector<std::string> &sourceCode,
@@ -19,9 +20,6 @@ Parser::Parser(const std::vector<std::string> &sourceCode,
     std::unique_ptr<SyntaxToken<std::any>> token =
         std::move(lexer->nextToken());
     _kind = token->getKind();
-
-    // For debugging
-    // std::cout << SyntaxKindUtils::to_string(_kind) << std::endl;
 
     if (_kind == SyntaxKindUtils::SyntaxKind::BadToken) {
       this->_diagnosticHandler->addDiagnostic(
@@ -652,9 +650,64 @@ std::unique_ptr<StatementSyntax> Parser::parseStatement() {
     return std::move(this->parseClassStatement());
   case SyntaxKindUtils::SyntaxKind::ModuleKeyword:
     return std::move(this->parseModuleStatement());
+  case SyntaxKindUtils::SyntaxKind::SwitchKeyword:
+    return std::move(this->parseSwitchStatement());
   default:
     return std::move(this->parseExpressionStatement());
   }
+}
+
+std::unique_ptr<CaseStatementSyntax> Parser::parseCaseStatement() {
+  std::unique_ptr<CaseStatementSyntax> caseStatement =
+      std::make_unique<CaseStatementSyntax>();
+
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::DefaultKeyword) {
+    caseStatement->setDefaultToken(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::DefaultKeyword)));
+  } else {
+    caseStatement->setCaseToken(
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::CaseKeyword)));
+    appendWithSpace();
+    caseStatement->setCaseExpression(std::move(this->parseExpression()));
+  }
+  appendWithSpace();
+  caseStatement->setColonToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::ColonToken)));
+  appendWithSpace();
+  caseStatement->setBlockStatement(std::move(this->parseBlockStatement()));
+  appendNewLine();
+
+  return std::move(caseStatement);
+}
+
+std::unique_ptr<StatementSyntax> Parser::parseSwitchStatement() {
+  std::unique_ptr<SwitchStatementSyntax> switchStatement =
+      std::make_unique<SwitchStatementSyntax>();
+  switchStatement->setSwitchToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::SwitchKeyword)));
+
+  appendWithSpace();
+
+  switchStatement->setSwitchExpression(std::move(this->parseExpression()));
+
+  appendWithSpace();
+
+  switchStatement->setOpenCurlyToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
+
+  appendNewLine();
+
+  while (this->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
+         this->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
+    switchStatement->addCaseStatement(std::move(this->parseCaseStatement()));
+  }
+
+  switchStatement->setCloseCurlyToken(
+      std::move(this->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
+
+  appendNewLine();
+
+  return std::move(switchStatement);
 }
 
 std::unique_ptr<StatementSyntax> Parser::parseModuleStatement() {

@@ -70,7 +70,10 @@ std::string BinderKindUtils::to_string(BoundNodeKind kind) {
     return "ContainerStatement";
   case CustomTypeStatement:
     return "CustomTypeStatement";
-
+  case BoundCaseStatement:
+    return "BoundCaseStatement";
+  case BoundSwitchStatement:
+    return "BoundSwitchStatement";
   case ArrayVariableExpression:
     return "ArrayVariableExpression";
 

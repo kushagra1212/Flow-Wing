@@ -13,8 +13,10 @@
 #include "ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
 #include "MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
 #include "ReturnStatementGenerationStrategy/ReturnStatementGenerationStrategy.h"
+#include "SwitchStatementGenerationStrategy/SwitchStatementGenerationStrategy.h"
 #include "VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "WhileStatementGenerationStrategy/WhileStatementGenerationStrategy.h"
+
 StatementGenerationFactory::StatementGenerationFactory(
     CodeGenerationContext *context)
     : _codeGenerationContext(context){};
@@ -69,6 +71,9 @@ StatementGenerationFactory::createStrategy(
       BoundMultipleVariableDeclarationStatement:
     return std::make_unique<
         MultipleVariableDeclarationStatementGenerationStrategy>(
+        _codeGenerationContext);
+  case BinderKindUtils::BoundNodeKind::BoundSwitchStatement:
+    return std::make_unique<SwitchStatementGenerationStrategy>(
         _codeGenerationContext);
   default: {
     _codeGenerationContext->getLogger()->LogError(

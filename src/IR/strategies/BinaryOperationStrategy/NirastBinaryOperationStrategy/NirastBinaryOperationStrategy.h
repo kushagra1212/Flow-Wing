@@ -9,6 +9,10 @@ public:
   llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
                    BoundBinaryExpression *binaryExpression) override;
+
+  llvm::Value *performOperation(
+      llvm::Value *lhsValue, llvm::Value *rhsValue,
+      BinderKindUtils::BoundBinaryOperatorKind binaryOperator) override;
 };
 
 #endif

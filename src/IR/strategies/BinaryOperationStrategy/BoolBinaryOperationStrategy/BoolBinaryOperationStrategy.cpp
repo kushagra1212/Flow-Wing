@@ -8,11 +8,16 @@ BoolBinaryOperationStrategy::BoolBinaryOperationStrategy(
 llvm::Value *BoolBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+}
 
+llvm::Value *BoolBinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOp) {
   llvm::Value *result = nullptr;
   std::string errorMessage = "";
 
-  switch (binaryExpression->getOperator()) {
+  switch (binaryOp) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition:
   case BinderKindUtils::BoundBinaryOperatorKind::Subtraction:
@@ -29,7 +34,7 @@ llvm::Value *BoolBinaryOperationStrategy::performOperation(
     result = int32BinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
-        binaryExpression);
+        binaryOp);
 
     return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), result);
   }
@@ -42,7 +47,7 @@ llvm::Value *BoolBinaryOperationStrategy::performOperation(
     result = int32BinaryOperationStrategy->performOperation(
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),
         _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
-        binaryExpression);
+        binaryOp);
 
     return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), result);
   }
