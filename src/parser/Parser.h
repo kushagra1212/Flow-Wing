@@ -44,6 +44,7 @@
 #include "../syntax/statements/ParameterSyntax/ParameterSyntax.h"
 #include "../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "../syntax/statements/StatementSyntax.h"
+#include "../syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../utils/Utils.h"
@@ -135,6 +136,8 @@ private:
       std::unique_ptr<VariableDeclarationSyntax> initialVarDec);
   std::unique_ptr<IfStatementSyntax> parseIfStatement();
   std::unique_ptr<ElseClauseSyntax> parseElseStatement();
+  std::unique_ptr<StatementSyntax> parseSwitchStatement();
+  std::unique_ptr<CaseStatementSyntax> parseCaseStatement();
   std::unique_ptr<WhileStatementSyntax> parseWhileStatement();
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();

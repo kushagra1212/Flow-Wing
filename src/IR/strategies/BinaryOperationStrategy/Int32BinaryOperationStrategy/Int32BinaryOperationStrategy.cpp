@@ -9,10 +9,16 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+}
+
+llvm::Value *Int32BinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   llvm::Value *result = Builder->getInt32(1);
 
   std::string errorMessage = "";
-  switch (binaryExpression->getOperator()) {
+  switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
     return result = Builder->CreateAdd(lhsValue, rhsValue);

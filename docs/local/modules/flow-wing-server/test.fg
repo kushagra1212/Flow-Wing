@@ -49,6 +49,7 @@ fun handleGet(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
 
 fun handlePost(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
   const body: Map::String = Json::parseObject(req.body)
+  var name: str = body.get("name")
   var err: Err::Result = res.send({
     status: 200,
     content_type: "application/json",

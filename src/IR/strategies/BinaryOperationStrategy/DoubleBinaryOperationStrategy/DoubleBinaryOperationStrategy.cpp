@@ -9,8 +9,14 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
 
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+}
+
+llvm::Value *DoubleBinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   std::string errorMessage = "";
-  switch (binaryExpression->getOperator()) {
+  switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
 

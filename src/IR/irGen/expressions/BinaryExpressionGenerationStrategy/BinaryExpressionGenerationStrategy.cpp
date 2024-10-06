@@ -55,71 +55,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     return nullptr;
   }
 
-  llvm::Type *lhsType = lhsValue->getType();
-  llvm::Type *rhsType = rhsValue->getType();
-
-  llvm::Value *result = nullptr;
-
-  TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
-
-  if ((_typeMapper->isNirastValue(lhsValue) ||
-       _typeMapper->isNirastValue(rhsValue))) {
-    result = _nirastBinaryOperationStrategy->performOperation(
-        lhsValue, rhsValue, binaryExpression);
-  }
-  // TODO: NULL CHeck
-
-  //! When lhs or rhs is null
-  // TODO: Implement runtime null checking
-  //? input -> lhs (null | value) | rhs (null | value)
-  //? output -> true | false
-  //? Method -> CreateIsNull
-
-  else if (_typeMapper->isStringType(lhsType) ||
-           _typeMapper->isStringType(rhsType)) {
-    result = _stringBinaryOperationStrategy->performOperation(
-        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
-        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
-        binaryExpression);
-  } else if (_typeMapper->isFloatType(lhsType) ||
-             _typeMapper->isFloatType(rhsType)) {
-    result = _floatBinaryOperationStrategy->performOperation(
-        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), lhsValue),
-        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), rhsValue),
-        binaryExpression);
-  } else if (_typeMapper->isDoubleType(lhsType) ||
-             _typeMapper->isDoubleType(rhsType)) {
-    result = _doubleBinaryOperationStrategy->performOperation(
-        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), lhsValue),
-        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), rhsValue),
-        binaryExpression);
-  } else if (_typeMapper->isBoolType(lhsType) &&
-             _typeMapper->isBoolType(rhsType)) {
-    result = _boolBinaryOperationStrategy->performOperation(lhsValue, rhsValue,
-                                                            binaryExpression);
-  } else if (_typeMapper->isInt8Type(lhsType) &&
-             _typeMapper->isInt8Type(rhsType)) {
-    result = _int32BinaryOperationStrategy->performOperation(
-        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), lhsValue),
-        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), rhsValue),
-        binaryExpression);
-  } else {
-    result = _int32BinaryOperationStrategy->performOperation(
-        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),
-        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
-        binaryExpression);
-  }
-
-  if (!result) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Unsupported Binary Operation !");
-    return nullptr;
-  }
-  _codeGenerationContext->getValueStackHandler()->popAll();
-
-  _codeGenerationContext->getValueStackHandler()->push("", result, "constant",
-                                                       result->getType());
-  return result;
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
 }
 
 llvm::Value *BinaryExpressionGenerationStrategy::generateGlobalExpression(
@@ -134,4 +70,74 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateGlobalExpression(
       "Binary Expression is not allowed in global scope ");
 
   return nullptr;
+}
+
+llvm::Value *BinaryExpressionGenerationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOp) {
+  llvm::Type *lhsType = lhsValue->getType();
+  llvm::Type *rhsType = rhsValue->getType();
+
+  llvm::Value *result = nullptr;
+
+  TypeMapper *_typeMapper = _codeGenerationContext->getMapper().get();
+
+  if ((_typeMapper->isNirastValue(lhsValue) ||
+       _typeMapper->isNirastValue(rhsValue))) {
+    result = _nirastBinaryOperationStrategy->performOperation(
+        lhsValue, rhsValue, binaryOp);
+  }
+  // TODO: NULL CHeck
+
+  //! When lhs or rhs is null
+  // TODO: Implement runtime null checking
+  //? input -> lhs (null | value) | rhs (null | value)
+  //? output -> true | false
+  //? Method -> CreateIsNull
+
+  else if (_typeMapper->isStringType(lhsType) ||
+           _typeMapper->isStringType(rhsType)) {
+    result = _stringBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue),
+        binaryOp);
+  } else if (_typeMapper->isFloatType(lhsType) ||
+             _typeMapper->isFloatType(rhsType)) {
+    result = _floatBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_floatTypeConverter.get(), rhsValue),
+        binaryOp);
+  } else if (_typeMapper->isDoubleType(lhsType) ||
+             _typeMapper->isDoubleType(rhsType)) {
+    result = _doubleBinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_doubleTypeConverter.get(), rhsValue),
+        binaryOp);
+  } else if (_typeMapper->isBoolType(lhsType) &&
+             _typeMapper->isBoolType(rhsType)) {
+    result = _boolBinaryOperationStrategy->performOperation(lhsValue, rhsValue,
+                                                            binaryOp);
+  } else if (_typeMapper->isInt8Type(lhsType) &&
+             _typeMapper->isInt8Type(rhsType)) {
+    result = _int32BinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_int8TypeConverter.get(), rhsValue),
+        binaryOp);
+  } else {
+    result = _int32BinaryOperationStrategy->performOperation(
+        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_int32TypeConverter.get(), rhsValue),
+        binaryOp);
+  }
+
+  if (!result) {
+    _codeGenerationContext->getLogger()->LogError(
+        "Unsupported Binary Operation !");
+    return nullptr;
+  }
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
+  _codeGenerationContext->getValueStackHandler()->push("", result, "constant",
+                                                       result->getType());
+  return result;
 }

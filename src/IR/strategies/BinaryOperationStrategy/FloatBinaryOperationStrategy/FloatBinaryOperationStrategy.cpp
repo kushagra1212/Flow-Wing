@@ -8,9 +8,14 @@ FloatBinaryOperationStrategy::FloatBinaryOperationStrategy(
 llvm::Value *FloatBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BoundBinaryExpression *binaryExpression) {
+  return performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+}
 
+llvm::Value *FloatBinaryOperationStrategy::performOperation(
+    llvm::Value *lhsValue, llvm::Value *rhsValue,
+    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   std::string errorMessage = "";
-  switch (binaryExpression->getOperator()) {
+  switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
 

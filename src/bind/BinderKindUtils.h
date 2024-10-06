@@ -40,6 +40,8 @@ enum BoundNodeKind {
   BringStatement,
   ContainerStatement,
   CustomTypeStatement,
+  BoundCaseStatement,
+  BoundSwitchStatement,
   ClassStatement,
   BoundModuleStatement,
   BoundMultipleVariableDeclarationStatement,

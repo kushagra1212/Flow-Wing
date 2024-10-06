@@ -178,6 +178,12 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
   case SyntaxKind::ReturnStatement:
     return "ReturnStatement";
 
+  case SyntaxKind::CaseStatementSyntax:
+    return "CaseStatementSyntax";
+
+  case SyntaxKindUtils::SwitchStatementSyntax:
+    return "SwitchStatementSyntax";
+
   case SyntaxKind::OrKeyword:
     return "OrKeyword";
 
@@ -216,6 +222,15 @@ const std::string SyntaxKindUtils::to_string(SyntaxKind kind) {
     return "Int32Keyword";
   case SyntaxKind::Int8Keyword:
     return "Int8Keyword";
+  case SyntaxKindUtils::SwitchKeyword:
+    return "SwitchKeyword";
+
+  case SyntaxKind::CaseKeyword:
+    return "CaseKeyword";
+
+  case SyntaxKind::DefaultKeyword:
+    return "DefaultKeyword";
+
   case SyntaxKind::DeciKeyword:
     return "DeciKeyword";
 

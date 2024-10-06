@@ -69,6 +69,7 @@
 #include "../BoundOrIfStatement/BoundOrIfStatement.h"
 #include "../BoundReturnStatement/BoundReturnStatement.h"
 #include "../BoundStatement/BoundStatement.h"
+#include "../BoundSwitchStatement/BoundSwitchStatement.h"
 #include "../BoundTernaryExpression/BoundTernaryExpression.h"
 #include "../BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
@@ -132,6 +133,12 @@ public:
 
   std::unique_ptr<BoundStatement>
   bindWhileStatement(WhileStatementSyntax *whileStatement);
+
+  std::unique_ptr<BoundStatement>
+  bindSwitchStatement(SwitchStatementSyntax *switchStatement);
+
+  std::unique_ptr<BoundCaseStatement>
+  bindCaseStatement(CaseStatementSyntax *caseStatement);
 
   std::unique_ptr<BoundStatement>
   bindForStatement(ForStatementSyntax *forStatement);

@@ -310,6 +310,9 @@ std::unique_ptr<BoundStatement> Binder::bindStatement(StatementSyntax *syntax) {
     return std::move(bindMultipleVariableDeclaration(
         (MultipleVariableDeclarationSyntax *)syntax));
   }
+  case SyntaxKindUtils::SyntaxKind::SwitchStatementSyntax: {
+    return std::move(bindSwitchStatement((SwitchStatementSyntax *)syntax));
+  }
   default:
     throw "Unexpected syntax";
   }
@@ -1494,10 +1497,79 @@ Binder::bindExpression(ExpressionSyntax *syntax) {
     return std::move(bindTernaryExpression((TernaryExpressionSyntax *)syntax));
   }
 
-  default:
-    throw "Unexpected syntax";
+  default: {
+    _diagnosticHandler->addDiagnostic(Diagnostic(
+        "Unknown expression kind " + std::to_string(syntax->getKind()),
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Syntactic,
+        syntax->getSourceLocation()));
   }
+  }
+
   return nullptr;
+}
+
+std::unique_ptr<BoundStatement>
+Binder::bindSwitchStatement(SwitchStatementSyntax *switchStatement) {
+  std::unique_ptr<BoundSwitchStatement> boundSwitchStatement =
+      std::make_unique<BoundSwitchStatement>(
+          switchStatement->getSourceLocation());
+
+  boundSwitchStatement->setSwitchExpression(std::move(
+      bindExpression(switchStatement->getSwitchExpressionRef().get())));
+
+  for (auto &caseStatement : switchStatement->getCaseStatementsRef()) {
+    boundSwitchStatement->addCaseStatement(
+        std::move(bindCaseStatement(caseStatement.get())));
+  }
+
+  if (boundSwitchStatement->getHasNoDefaultCase()) {
+    _diagnosticHandler->addDiagnostic(
+        Diagnostic("No default case found in switch statement",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   switchStatement->getSourceLocation()));
+    return std::move(boundSwitchStatement);
+  }
+
+  if (boundSwitchStatement->getHasMoreThanOneDefaultCase()) {
+    _diagnosticHandler->addDiagnostic(
+        Diagnostic("More than one default case found in switch statement",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   switchStatement->getSourceLocation()));
+    return std::move(boundSwitchStatement);
+  }
+
+  if (!boundSwitchStatement->getHasAtLeastOneCaseStatement()) {
+    _diagnosticHandler->addDiagnostic(
+        Diagnostic("No case statement found in switch statement, add at least "
+                   "one case statement",
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic,
+                   switchStatement->getSourceLocation()));
+    return std::move(boundSwitchStatement);
+  }
+
+  return std::move(boundSwitchStatement);
+}
+
+std::unique_ptr<BoundCaseStatement>
+Binder::bindCaseStatement(CaseStatementSyntax *caseStatement) {
+  std::unique_ptr<BoundCaseStatement> boundCaseStatement =
+      std::make_unique<BoundCaseStatement>(caseStatement->getSourceLocation());
+
+  boundCaseStatement->setIsDefaultCase(caseStatement->isDefaultCase());
+
+  if (!boundCaseStatement->getIsDefaultCase()) {
+    boundCaseStatement->setCaseExpression(
+        std::move(bindExpression(caseStatement->getCaseExpressionRef().get())));
+  }
+
+  boundCaseStatement->setBodyStatement(std::move(
+      bindBlockStatement((caseStatement->getBlockStatementRef().get()))));
+
+  return std::move(boundCaseStatement);
 }
 
 std::unique_ptr<BoundExpression>
