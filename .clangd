@@ -7,4 +7,4 @@ CompileFlags:
 
 # Optionally enable background indexing for faster lookups
 Index:
-  Background: Skip
+  Background: true

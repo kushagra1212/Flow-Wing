@@ -22,7 +22,7 @@ type VarKeyword = Token;
 type ConstKeyword = Token;
 type FunctionKeyword = Token;
 type DeclKeyword = Token;
-type Askeyword = Token;
+type AsKeyword = Token;
 type ClassKeyword = Token;
 // Expression
 interface LiteralExpression {
@@ -138,6 +138,6 @@ export {
   StrKeyword,
   BoolKeyword,
   DeclKeyword,
-  Askeyword,
+  AsKeyword,
   Token,
 };

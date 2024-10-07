@@ -764,7 +764,7 @@ auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {
   case SyntaxKindUtils::SyntaxKind::NewKeyword:
   case SyntaxKindUtils::SyntaxKind::InOutKeyword:
   case SyntaxKindUtils::SyntaxKind::ExtendsKeyword:
-  case SyntaxKindUtils::SyntaxKind::Askeyword:
+  case SyntaxKindUtils::SyntaxKind::AsKeyword:
   case SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE: {
     return true;
   }

@@ -79,9 +79,9 @@ export class FunctionDeclarationCompletionItemGenerationStrategy extends Complet
       if (count) {
         functionDeclarationStr += ", ";
       }
-      if (functionDeclaration[index]["Askeyword"])
+      if (functionDeclaration[index]["AsKeyword"])
         functionDeclarationStr +=
-          functionDeclaration[index]["Askeyword"].value + " ";
+          functionDeclaration[index]["AsKeyword"].value + " ";
 
       if (functionDeclaration[index]["DeclKeyword"])
         functionDeclarationStr +=

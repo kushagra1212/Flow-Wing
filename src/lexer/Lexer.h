@@ -1,42 +1,45 @@
-#ifndef LEXER_H
-#define LEXER_H
-// Include the header for standard algorithms
+#pragma once
 
 #include "../Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../syntax/SyntaxToken.h"
 #include "../utils/Utils.h"
+#include "tokenReaders/TokenReaderFactory.h"
+
+class TokenReader;
+class TokenReaderFactory;
+
 class Lexer {
+  const char _END_OF_FILE = '\r';
+  const char _END_OF_LINE = '\1';
+  size_t _lineNumber;
+  size_t _position;
+  size_t _textSize = 0;
+
+  std::vector<std::string> _sourceCode;
+  FlowWing::DiagnosticHandler *_diagnosticHandler;
+
 public:
   std::unique_ptr<SyntaxToken<std::any>> nextToken();
   Lexer(const std::vector<std::string> &sourceCode,
         FlowWing::DiagnosticHandler *diagnosticHandler);
 
-private:
-  std::vector<std::string> _sourceCode;
-  const char endOfFile = '\r';
-  const char endOfLine = '\1';
-  size_t lineNumber;
-  size_t position;
-  size_t textSize = 0;
-  FlowWing::DiagnosticHandler *_diagnosticHandler;
+  const char currentChar() const;
+  void advancePosition();
+  void advanceLine();
+  const char peek(const int64_t &offset) const;
 
-  char getCurrent();
-  void next();
-  auto peek(const int64_t &offset) const -> const char;
+  inline const bool isEOLorEOF() const { return isEOL() || isEOF(); }
+  inline const bool isEOF() const { return currentChar() == _END_OF_FILE; }
+  inline const bool isEOL() const { return currentChar() == _END_OF_LINE; }
 
-  std::unique_ptr<SyntaxToken<std::any>> readNumber();
-  std::unique_ptr<SyntaxToken<std::any>> readDecimal(const int &start);
-  std::unique_ptr<SyntaxToken<std::any>> readKeyword();
-  std::unique_ptr<SyntaxToken<std::any>> readWhitespace();
-  std::unique_ptr<SyntaxToken<std::any>> readSymbol();
-  std::unique_ptr<SyntaxToken<std::any>> readString(const int &start);
-  std::unique_ptr<SyntaxToken<std::any>> readChar(const int &start);
-  std::unique_ptr<SyntaxToken<std::any>> readTemplateString(const int &start);
-  std::unique_ptr<SyntaxToken<std::any>> readEndOfFile();
-  std::unique_ptr<SyntaxToken<std::any>> readEndOfLine();
-  std::unique_ptr<SyntaxToken<std::any>> readMultiLineComment();
-  std::unique_ptr<SyntaxToken<std::any>> readSingleLineComment();
-  bool isEndOfLineOrFile();
+  inline const std::string getLine(const size_t &lineNumber) const {
+    return _sourceCode[lineNumber];
+  }
+
+  inline const size_t position() const { return _position; }
+  inline const size_t lineNumber() const { return _lineNumber; }
+  inline FlowWing::DiagnosticHandler *diagnosticHandler() {
+    return _diagnosticHandler;
+  }
 };
-#endif // LEXER_H

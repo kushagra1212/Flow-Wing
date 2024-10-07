@@ -20,7 +20,7 @@ public:
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   /*
-      Setters
+     Setters
   */
 
   inline auto
