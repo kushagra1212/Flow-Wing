@@ -95,7 +95,7 @@ enum SyntaxKind {
   ClassKeyword,
   InOutKeyword,
   ExtendsKeyword,
-  Askeyword,
+  AsKeyword,
   SwitchKeyword,
   CaseKeyword,
   DefaultKeyword,

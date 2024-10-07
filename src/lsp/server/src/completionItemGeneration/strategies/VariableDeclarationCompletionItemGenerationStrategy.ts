@@ -108,9 +108,9 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
         variableDeclaration[index++]["IdentifierToken"].value + ": ";
     }
 
-    if (variableDeclaration[index]["Askeyword"])
+    if (variableDeclaration[index]["AsKeyword"])
       variableDeclarationStr +=
-        variableDeclaration[index++]["Askeyword"].value + " ";
+        variableDeclaration[index++]["AsKeyword"].value + " ";
 
     let typeName = "";
     if (variableDeclaration[index]) {

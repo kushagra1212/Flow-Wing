@@ -328,9 +328,9 @@ Parser::parseFunctionDeclaration(bool isMemberFunction) {
   this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
   appendWithSpace();
 
-  if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
     functionDeclaration->setAsKeyword(
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
     appendWithSpace();
   }
 
@@ -487,10 +487,10 @@ Parser::parseFunctionTypeExpression() {
       appendWithSpace();
     }
 
-    if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
       funcTypeExpression->addAsParameterKeyword(
           parameterCount,
-          std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
       appendWithSpace();
     }
 
@@ -511,9 +511,9 @@ Parser::parseFunctionTypeExpression() {
   this->match(SyntaxKindUtils::SyntaxKind::GreaterToken);
   appendWithSpace();
 
-  if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+  if (this->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
     funcTypeExpression->setAsKeyword(
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+        std::move(this->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
     appendWithSpace();
   }
 
@@ -1478,9 +1478,9 @@ void Parser::handleVarDecParseIdentifierAndType(
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     appendWithSpace();
-    if (this->getKind() == SyntaxKindUtils::SyntaxKind::Askeyword) {
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
       varDec->setAsKeyword(
-          std::move(this->match(SyntaxKindUtils::SyntaxKind::Askeyword)));
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
       appendWithSpace();
     }
     typeExpr = std::move(this->parseTypeExpression());
