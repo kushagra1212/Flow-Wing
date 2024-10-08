@@ -84,7 +84,7 @@
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
 
 // other
-#include "../../parser/Parser.h"
+#include "../../ASTBuilder/ASTBuilder.h"
 
 class Binder {
 private:

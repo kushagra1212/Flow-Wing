@@ -23,8 +23,8 @@ void Compiler::compile(std::vector<std::string> &text,
 
   currentDiagnosticHandler->setOutputFilePath(_outputFilePath);
   FlowWing::Compiler::logNoErrorJSONIfAsked(_outputFilePath);
-  std::unique_ptr<Parser> parser =
-      std::make_unique<Parser>(text, currentDiagnosticHandler.get());
+  std::unique_ptr<ASTBuilder> parser =
+      std::make_unique<ASTBuilder>(text, currentDiagnosticHandler.get());
 
   if (Utils::getExtension(_outputFilePath) == ".json") {
     JSON jsonObject = Utils::outJSON(parser->getTokensRef());
@@ -160,8 +160,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   std::unique_ptr<FlowWing::DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>();
 
-  std::unique_ptr<Parser> parser =
-      std::make_unique<Parser>(text, currentDiagnosticHandler.get());
+  std::unique_ptr<ASTBuilder> parser =
+      std::make_unique<ASTBuilder>(text, currentDiagnosticHandler.get());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
