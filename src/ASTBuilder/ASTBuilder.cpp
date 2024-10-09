@@ -1946,6 +1946,8 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseIndexExpression(
     indexExpression->addVariableExpression(std::move(variExp));
   }
 
+  indexExpression->addSelfKeyword(std::move(selfKeyword));
+
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =

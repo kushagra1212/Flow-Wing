@@ -11,6 +11,7 @@ private:
   std::vector<std::unique_ptr<BoundExpression>> _boundIndexExpressions;
   std::unique_ptr<BoundExpression> _variableExpression;
   bool _isObject = false;
+  bool _isSelf = false;
 
 public:
   BoundIndexExpression(const DiagnosticUtils::SourceLocation &location,
@@ -35,6 +36,9 @@ public:
     return _variableExpression;
   }
 
+  inline auto isObject() const -> const bool { return _isObject; }
+  inline auto isSelf() const -> const bool { return _isSelf; }
+
   // Setters
 
   inline void addBoundIndexExpression(
@@ -49,7 +53,7 @@ public:
     _variableExpression = std::move(variableExpression);
   }
 
-  inline auto isObject() const -> const bool { return _isObject; }
+  inline void setIsSelf(bool isSelf) { _isSelf = isSelf; }
 };
 
 #endif // __BIND_INDEX_EXPRESSION_H__

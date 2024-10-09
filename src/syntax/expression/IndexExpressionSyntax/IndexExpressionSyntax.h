@@ -10,6 +10,7 @@ private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _identifierExpression;
   std::vector<std::unique_ptr<ExpressionSyntax>> _indexExpressions;
   std::unique_ptr<ExpressionSyntax> _variableExpression;
+  std::unique_ptr<SyntaxToken<std::any>> _selfKeyword;
   bool _isObject = false;
 
 public:
@@ -28,6 +29,11 @@ public:
     _variableExpression = std::move(variableExpression);
   }
 
+  inline auto addSelfKeyword(std::unique_ptr<SyntaxToken<std::any>> selfKeyword)
+      -> void {
+    _selfKeyword = std::move(selfKeyword);
+  }
+
   inline auto getIndexExpressionsRef() const
       -> const std::vector<std::unique_ptr<ExpressionSyntax>> & {
     return this->_indexExpressions;
@@ -37,6 +43,8 @@ public:
       -> const std::unique_ptr<ExpressionSyntax> & {
     return _variableExpression;
   }
+
+  inline auto getIsSelf() -> bool { return _selfKeyword != nullptr; }
 
   inline auto isObject() const -> bool { return _isObject; }
 

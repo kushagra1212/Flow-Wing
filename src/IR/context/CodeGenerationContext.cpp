@@ -445,10 +445,10 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
 
   for (int i = 0; i < lhsSizes.size(); i++) {
     if (lhsSizes[i] < rhsSizes[i]) {
-      this->getLogger()->LogError("Dimension mismatch Expected Dimension " +
-                                  std::to_string(i) + " to be " +
-                                  std::to_string(lhsSizes[i]) + " but found " +
-                                  std::to_string(rhsSizes[i]));
+      this->getLogger()->LogError(
+          "Container size mismatch Expected " + std::to_string(i + 1) +
+          "D Container to be of size " + std::to_string(lhsSizes[i]) +
+          " but found " + std::to_string(rhsSizes[i]));
       return EXIT_FAILURE;
     }
   }
