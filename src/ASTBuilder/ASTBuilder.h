@@ -127,8 +127,7 @@ private:
   std::unique_ptr<ContinueStatementSyntax> parseContinueStatement();
 
   std::unique_ptr<ExpressionStatementSyntax> parseExpressionStatement();
-  std::unique_ptr<StatementSyntax>
-  parseVariableDeclaration(bool isFuncDec = false);
+  std::unique_ptr<StatementSyntax> parseVariableDeclaration();
   std::unique_ptr<VariableDeclarationSyntax>
   parseSingleVariableDeclaration(bool isFuncDec = false);
   std::unique_ptr<MultipleVariableDeclarationSyntax>
@@ -142,30 +141,21 @@ private:
   std::unique_ptr<ForStatementSyntax> parseForStatement();
   std::unique_ptr<StatementSyntax> parseBringStatement();
   std::unique_ptr<CustomTypeStatementSyntax> parseCustomTypeStatement();
-  std::unique_ptr<GlobalStatementSyntax>
-  parseGlobalStatement(const bool &isExposed);
+  std::unique_ptr<GlobalStatementSyntax> parseGlobalStatement();
   std::unique_ptr<ClassStatementSyntax> parseClassStatement();
   /*
     EXPRESSIONS
   */
-  std::unique_ptr<ExpressionSyntax>
-  parseIndexExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
-  std::unique_ptr<ExpressionSyntax>
-  parseNameorCallExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
+  std::unique_ptr<ExpressionSyntax> parseIndexExpression();
+  std::unique_ptr<ExpressionSyntax> parseNameorCallExpression();
   std::unique_ptr<ExpressionSyntax> parseCallExpression();
-  std::unique_ptr<FunctionDeclarationSyntax>
-  parseFunctionDeclaration(bool isMemberFunction = false);
-  std::unique_ptr<FunctionDeclarationSyntax> handleOptionalType(
-      std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration);
+  std::unique_ptr<FunctionDeclarationSyntax> parseFunctionDeclaration();
   std::unique_ptr<ExpressionSyntax> parseExpression(int parentPrecedence = 0);
   std::unique_ptr<ExpressionSyntax> parsePrimaryExpression();
-  std::unique_ptr<ExpressionSyntax>
-  parseTernaryExpression(std::unique_ptr<ExpressionSyntax> &condition);
+  std::unique_ptr<ExpressionSyntax> parseTernaryExpression();
   std::unique_ptr<ContainerExpressionSyntax> parseContainerExpression();
-  std::unique_ptr<ExpressionSyntax>
-  parseVariableExpression(std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
-  std::unique_ptr<ExpressionSyntax> parseMultipleAssignmentExpression(
-      std::unique_ptr<SyntaxToken<std::any>> selfKeyword);
+  std::unique_ptr<ExpressionSyntax> parseVariableExpression();
+  std::unique_ptr<ExpressionSyntax> parseMultipleAssignmentExpression();
   std::unique_ptr<ExpressionSyntax> parseBracketedExpression();
   std::unique_ptr<FillExpressionSyntax> parseFillExpression();
   std::unique_ptr<TypeExpressionSyntax> parseTypeExpression();

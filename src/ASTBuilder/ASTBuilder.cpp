@@ -168,10 +168,29 @@ std::unique_ptr<MemberSyntax> ASTBuilder::parseMember() {
 
   if (currentKind == SyntaxKindUtils::SyntaxKind::FunctionKeyword) {
     appendNewLine();
-    return std::move(this->parseFunctionDeclaration(false));
+
+    std::unique_ptr<SyntaxToken<std::any>> exposedKeyword = nullptr,
+                                           functionKeyword = nullptr;
+    if (this->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
+      exposedKeyword =
+          std::move(this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword));
+      appendWithSpace();
+    }
+
+    functionKeyword =
+        (std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+    appendWithSpace();
+
+    auto functionDeclaration = std::move(this->parseFunctionDeclaration());
+
+    functionDeclaration->setExposedKeyword(std::move(exposedKeyword));
+    functionDeclaration->setFunctionKeyword(std::move(functionKeyword));
+    functionDeclaration->setIsMemberFunction(false);
+
+    return std::move(functionDeclaration);
   }
 
-  return std::move(this->parseGlobalStatement(false));
+  return std::move(this->parseGlobalStatement());
 }
 
 std::unique_ptr<SyntaxToken<std::any>> ASTBuilder::parsePrimitiveType() {
@@ -245,22 +264,9 @@ std::unique_ptr<SyntaxToken<std::any>> ASTBuilder::parsePrimitiveType() {
 }
 
 std::unique_ptr<FunctionDeclarationSyntax>
-ASTBuilder::parseFunctionDeclaration(bool isMemberFunction) {
+ASTBuilder::parseFunctionDeclaration() {
   std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration =
       std::make_unique<FunctionDeclarationSyntax>();
-
-  if (!isMemberFunction &&
-      this->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
-    functionDeclaration->setExposedKeyword(
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
-    appendWithSpace();
-  }
-  if (!isMemberFunction) {
-    functionDeclaration->setFunctionKeyword(
-        std::move(this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
-    appendWithSpace();
-  }
-  functionDeclaration->setIsMemberFunction(isMemberFunction);
 
   functionDeclaration->setIdentifierToken(
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
@@ -527,26 +533,11 @@ ASTBuilder::parseObjectTypeExpression() {
   return std::move(objectTypeExpression);
 }
 
-std::unique_ptr<FunctionDeclarationSyntax> ASTBuilder::handleOptionalType(
-    std::unique_ptr<FunctionDeclarationSyntax> &functionDeclaration) {
-  this->_diagnosticHandler->addDiagnostic(Diagnostic(
-      "Unexpected Token <" + SyntaxKindUtils::to_string(this->getKind()) +
-          ">, Expected <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::ColonToken) +
-          ">",
-      DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Syntactic,
-      Utils::getSourceLocation(this->getCurrent())));
-  return std::move(functionDeclaration);
-}
-
-std::unique_ptr<GlobalStatementSyntax>
-ASTBuilder::parseGlobalStatement(const bool &isExposed) {
+std::unique_ptr<GlobalStatementSyntax> ASTBuilder::parseGlobalStatement() {
   std::unique_ptr<StatementSyntax> statement =
       std::move(this->parseStatement());
   appendNewLine();
-  return std::make_unique<GlobalStatementSyntax>(isExposed,
-                                                 std::move(statement));
+  return std::make_unique<GlobalStatementSyntax>(std::move(statement));
 }
 
 std::unique_ptr<BlockStatementSyntax> ASTBuilder::parseBlockStatement() {
@@ -731,8 +722,19 @@ std::unique_ptr<StatementSyntax> ASTBuilder::parseModuleStatement() {
       break;
     }
     case SyntaxKindUtils::SyntaxKind::FunctionKeyword: {
-      moduleStatement->addStatement(
-          std::move(this->parseFunctionDeclaration(false)));
+
+      std::unique_ptr<SyntaxToken<std::any>> functionKeyword = nullptr;
+
+      functionKeyword = (std::move(
+          this->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+      appendWithSpace();
+
+      auto functionDeclaration = std::move(this->parseFunctionDeclaration());
+
+      functionDeclaration->setFunctionKeyword(std::move(functionKeyword));
+      functionDeclaration->setIsMemberFunction(false);
+
+      moduleStatement->addStatement(std::move(functionDeclaration));
       break;
     }
     case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
@@ -817,8 +819,12 @@ std::unique_ptr<ClassStatementSyntax> ASTBuilder::parseClassStatement() {
     }
 
     default: {
-      classSyn->addClassMemberFunction(
-          std::move(this->parseFunctionDeclaration(true)));
+
+      auto functionDeclaration = std::move(this->parseFunctionDeclaration());
+
+      functionDeclaration->setIsMemberFunction(true);
+
+      classSyn->addClassMemberFunction(std::move(functionDeclaration));
     }
 
     break;
@@ -1303,7 +1309,6 @@ ASTBuilder::parseMultipleVariableDeclaration(
       std::make_unique<MultipleVariableDeclarationSyntax>();
 
   mulVarDec->addVariableDeclaration(std::move(initialVarDec));
-
   while (this->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
     this->match(SyntaxKindUtils::SyntaxKind::CommaToken);
     appendWithSpace();
@@ -1342,12 +1347,11 @@ ASTBuilder::parseMultipleVariableDeclaration(
   return std::move(mulVarDec);
 }
 
-std::unique_ptr<StatementSyntax>
-ASTBuilder::parseVariableDeclaration(bool isFuncDec) {
+std::unique_ptr<StatementSyntax> ASTBuilder::parseVariableDeclaration() {
   std::unique_ptr<VariableDeclarationSyntax> varDec =
       std::make_unique<VariableDeclarationSyntax>();
 
-  handleVarDecParsePrefixKeywords(varDec, isFuncDec);
+  handleVarDecParsePrefixKeywords(varDec, false);
 
   handleVarDecParseIdentifierAndType(varDec);
 
@@ -1498,7 +1502,12 @@ ASTBuilder::parseExpression(int parentPrecedence) {
   }
 
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::QuestionToken) {
-    left = std::move(this->parseTernaryExpression((left)));
+    auto ternaryExpression = std::move(this->parseTernaryExpression());
+
+    static_cast<TernaryExpressionSyntax *>(ternaryExpression.get())
+        ->addConditionExpression(std::move(left));
+
+    left = std::move(ternaryExpression);
   }
 
   return std::move(left);
@@ -1620,7 +1629,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parsePrimaryExpression() {
         std::move(commaToken), ",");
   }
   case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-    return std::move(this->parseNameorCallExpression(nullptr));
+    return std::move(this->parseNameorCallExpression());
   }
   case SyntaxKindUtils::SyntaxKind::OpenBracketToken: {
     return std::move(this->parseBracketedExpression());
@@ -1699,7 +1708,7 @@ ASTBuilder::parseModuleIdentifierExpression() {
   this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
 
   std::unique_ptr<ExpressionSyntax> member =
-      std::move(this->parseNameorCallExpression(nullptr));
+      std::move(this->parseNameorCallExpression());
   std::unique_ptr<TypeExpressionSyntax> typeExpression =
       std::make_unique<TypeExpressionSyntax>(
           std::make_unique<SyntaxToken<std::any>>(
@@ -1774,8 +1783,7 @@ ASTBuilder::parseModuleIdentifierExpression() {
   return std::move(variExp);
 }
 
-std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
-    std::unique_ptr<SyntaxToken<std::any>> selfKeyword) {
+std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression() {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
@@ -1783,8 +1791,26 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
       std::any_cast<std::string>(identifierToken->getValue()) == "self") {
     if (this->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
       this->match(SyntaxKindUtils::SyntaxKind::DotToken);
-      return std::move(
-          this->parseNameorCallExpression(std::move(identifierToken)));
+      auto expression = std::move(this->parseNameorCallExpression());
+
+      if (auto *variExp =
+              dynamic_cast<VariableExpressionSyntax *>(expression.get())) {
+        variExp->setSelfKeyword(std::move(identifierToken));
+      } else if (auto *indexExp =
+                     dynamic_cast<IndexExpressionSyntax *>(expression.get())) {
+        indexExp->addSelfKeyword(std::move(identifierToken));
+      } else if (auto *assignExp = dynamic_cast<AssignmentExpressionSyntax *>(
+                     expression.get())) {
+        if (auto *memberExp = dynamic_cast<VariableExpressionSyntax *>(
+                assignExp->getLeftPtr().get())) {
+          memberExp->setSelfKeyword(std::move(identifierToken));
+        } else if (auto *memberExp = dynamic_cast<IndexExpressionSyntax *>(
+                       assignExp->getLeftPtr().get())) {
+          memberExp->addSelfKeyword(std::move(identifierToken));
+        }
+      }
+
+      return std::move(expression);
     } else {
       std::any value = identifierToken->getValue();
 
@@ -1800,8 +1826,6 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
               std::make_unique<LiteralExpressionSyntax<std::any>>(
                   std::move(identifierToken), value),
               false, std::move(typeExpression));
-
-      variExp->setSelfKeyword(std::move(selfKeyword));
 
       return std::move(variExp);
     }
@@ -1821,8 +1845,6 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
           std::make_unique<LiteralExpressionSyntax<std::any>>(
               std::move(identifierToken), value),
           false, std::move(typeExpression));
-
-  variExp->setSelfKeyword(std::move(selfKeyword));
 
   while (this->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
     this->match(SyntaxKindUtils::SyntaxKind::DotToken);
@@ -1856,8 +1878,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
       if (this->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken &&
           this->peek(1)->getKind() ==
               SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
-        variExp->addDotExpression(
-            std::move(this->parseNameorCallExpression(nullptr)));
+        variExp->addDotExpression(std::move(this->parseNameorCallExpression()));
       } else {
 
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken = std::move(
@@ -1873,8 +1894,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseVariableExpression(
 
   return std::move(variExp);
 }
-std::unique_ptr<ExpressionSyntax> ASTBuilder::parseIndexExpression(
-    std::unique_ptr<SyntaxToken<std::any>> selfKeyword) {
+std::unique_ptr<ExpressionSyntax> ASTBuilder::parseIndexExpression() {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
       std::move(this->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
   _isInsideIndexExpression = true;
@@ -1946,8 +1966,6 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseIndexExpression(
     indexExpression->addVariableExpression(std::move(variExp));
   }
 
-  indexExpression->addSelfKeyword(std::move(selfKeyword));
-
   if (this->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
@@ -1964,8 +1982,8 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseIndexExpression(
   return std::move(indexExpression);
 }
 
-std::unique_ptr<ExpressionSyntax> ASTBuilder::parseMultipleAssignmentExpression(
-    std::unique_ptr<SyntaxToken<std::any>> selfKeyword) {
+std::unique_ptr<ExpressionSyntax>
+ASTBuilder::parseMultipleAssignmentExpression() {
 
   std::unique_ptr<MultipleAssignmentExpressionSyntax>
       multipleAssignmentExpression =
@@ -1982,7 +2000,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseMultipleAssignmentExpression(
 
     std::unique_ptr<VariableExpressionSyntax> variableExpression(
         static_cast<VariableExpressionSyntax *>(
-            this->parseVariableExpression(nullptr).release()));
+            this->parseVariableExpression().release()));
 
     variableExpressionsList.push_back(std::move(variableExpression));
 
@@ -2040,15 +2058,14 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseMultipleAssignmentExpression(
   return std::move(multipleAssignmentExpression);
 }
 
-std::unique_ptr<ExpressionSyntax> ASTBuilder::parseNameorCallExpression(
-    std::unique_ptr<SyntaxToken<std::any>> selfKeyword) {
+std::unique_ptr<ExpressionSyntax> ASTBuilder::parseNameorCallExpression() {
   if (this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken ||
       this->peek(1)->getKind() ==
           SyntaxKindUtils::SyntaxKind::AssignmentToken ||
       this->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
     std::unique_ptr<VariableExpressionSyntax> variableExpression(
         static_cast<VariableExpressionSyntax *>(
-            this->parseVariableExpression(std::move(selfKeyword)).release()));
+            this->parseVariableExpression().release()));
 
     bool needDefaultInitialize = false;
 
@@ -2087,7 +2104,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseNameorCallExpression(
 
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-    return std::move(this->parseIndexExpression(std::move(selfKeyword)));
+    return std::move(this->parseIndexExpression());
   } else if (this->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
     return std::move(parseCallExpression());
@@ -2100,19 +2117,15 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseNameorCallExpression(
              !_isInsideReturnStatement &&
              this->peek(1)->getKind() ==
                  SyntaxKindUtils::SyntaxKind::CommaToken) {
-    return std::move(
-        this->parseMultipleAssignmentExpression(std::move(selfKeyword)));
+    return std::move(this->parseMultipleAssignmentExpression());
   } else {
-    return std::move(parseVariableExpression(std::move(selfKeyword)));
+    return std::move(parseVariableExpression());
   }
 }
 
-std::unique_ptr<ExpressionSyntax> ASTBuilder::parseTernaryExpression(
-    std::unique_ptr<ExpressionSyntax> &condition) {
+std::unique_ptr<ExpressionSyntax> ASTBuilder::parseTernaryExpression() {
   std::unique_ptr<TernaryExpressionSyntax> ternaryExpression =
       std::make_unique<TernaryExpressionSyntax>();
-
-  ternaryExpression->addConditionExpression(std::move(condition));
 
   appendWithSpace();
 
@@ -2154,7 +2167,7 @@ std::unique_ptr<ExpressionSyntax> ASTBuilder::parseCallExpression() {
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     this->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     std::unique_ptr<ExpressionSyntax> expectedCallExpr =
-        std::move(this->parseNameorCallExpression(nullptr));
+        std::move(this->parseNameorCallExpression());
 
     const std::string PREFIX = std::any_cast<std::string>(val) +
                                FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX;
