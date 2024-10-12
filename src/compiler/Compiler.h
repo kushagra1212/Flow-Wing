@@ -5,10 +5,10 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+#include "../ASTBuilder/ASTBuilder.h"
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../cli/commandLineOptions/commandLineOptions.h"
-#include "../parser/Parser.h"
 #include "../utils/Utils.h"
 #include "CompilerUtils.h"
 

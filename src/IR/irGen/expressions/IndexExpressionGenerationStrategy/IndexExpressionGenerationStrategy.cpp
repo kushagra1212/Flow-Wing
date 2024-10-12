@@ -10,6 +10,37 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
   std::pair<llvm::Value *, llvm::Type *> var =
       _codeGenerationContext->getAllocaChain()->getPtr(variableName);
 
+  if (_indexExpression->isSelf()) {
+
+    std::pair<llvm::Value *, llvm::Type *> cl =
+        _codeGenerationContext->getAllocaChain()->getPtr("self");
+    if (cl.first && cl.second && llvm::isa<llvm::StructType>(cl.second)) {
+      llvm::StructType *classType = llvm::cast<llvm::StructType>(cl.second);
+      cl.first =
+          Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), cl.first);
+      std::string className =
+          Utils::getActualTypeName(classType->getStructName().str());
+      auto [elementType, atIndex, memberName, _classType] =
+          _codeGenerationContext->_classTypes[className]->getElement(
+              variableName);
+      if (atIndex == -1) {
+        _codeGenerationContext->getLogger()->LogError(
+            "Variable " + variableName +
+            " not found in index expression Expected to be a member of "
+            "class " +
+            _codeGenerationContext->getMapper()->getLLVMTypeName(_classType));
+        return false;
+      }
+
+      llvm::Value *elementPtr =
+          Builder->CreateStructGEP(classType, cl.first, atIndex);
+
+      _arrayType = llvm::cast<llvm::ArrayType>(elementType);
+      _variable = elementPtr;
+      return true;
+    }
+  }
+
   // When Local Variable is an array type
   if (var.second && var.first && llvm::isa<llvm::ArrayType>(var.second)) {
 

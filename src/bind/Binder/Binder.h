@@ -15,8 +15,10 @@
 #include "../../syntax/expression/ExpressionSyntax.h"
 #include "../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
 #include "../../syntax/expression/LiteralExpressionSyntax.h"
+#include "../../syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include "../../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
 #include "../../syntax/expression/ParenthesizedExpressionSyntax.h"
+#include "../../syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
 #include "../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
@@ -33,9 +35,11 @@
 #include "../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include "../../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "../../syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include "../../syntax/statements/MultipleVariableDeclarationSyntax/MultipleVariableDeclarationSyntax.h"
 #include "../../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
 #include "../../syntax/statements/StatementSyntax.h"
+#include "../../syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include "../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 #include "../../syntax/statements/WhileStatementSyntax/WhileStatementSyntax.h"
 #include "../../utils/BuiltInFunction/BuiltInFunction.h"
@@ -84,7 +88,7 @@
 #include "BoundScopeGlobal/BoundScopeGlobal.h"
 
 // other
-#include "../../parser/Parser.h"
+#include "../../ASTBuilder/ASTBuilder.h"
 
 class Binder {
 private:

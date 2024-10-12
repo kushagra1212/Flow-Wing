@@ -16,6 +16,9 @@ const std::vector<SyntaxNode *> &IndexExpressionSyntax::getChildren() {
   if (_children.size() > 0)
     return _children;
 
+  if (_selfKeyword)
+    _children.push_back(_selfKeyword.get());
+
   _children.push_back(this->_identifierExpression.get());
 
   for (const auto &item : this->_indexExpressions) {

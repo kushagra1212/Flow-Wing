@@ -204,7 +204,7 @@ TypeMapper::getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const {
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword:
     return "'Decimal32'";
   case SyntaxKindUtils::SyntaxKind::StrKeyword:
-    return "'String'";
+    return "'String or null'";
   case SyntaxKindUtils::SyntaxKind::NthgKeyword:
     return "'Nothing'";
   case SyntaxKindUtils::SyntaxKind::NirastKeyword:

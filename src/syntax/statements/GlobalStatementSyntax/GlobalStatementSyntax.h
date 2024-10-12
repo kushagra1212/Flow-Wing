@@ -5,12 +5,11 @@
 #include "../../MemberSyntax.h"
 #include "../StatementSyntax.h"
 class GlobalStatementSyntax : public MemberSyntax {
- private:
+private:
   std::unique_ptr<StatementSyntax> _statement;
 
- public:
-  GlobalStatementSyntax(const bool &isExposed,
-                        std::unique_ptr<StatementSyntax> statement);
+public:
+  GlobalStatementSyntax(std::unique_ptr<StatementSyntax> statement);
 
   std::unique_ptr<StatementSyntax> getStatement();
 
@@ -21,4 +20,4 @@ class GlobalStatementSyntax : public MemberSyntax {
   std::unique_ptr<StatementSyntax> &getStatementPtr();
 };
 
-#endif  // GlobalStatementSyntax_H
+#endif // GlobalStatementSyntax_H

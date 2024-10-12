@@ -22,7 +22,7 @@ void Repl::runIfNotInTest(std::function<void()> f) {
 
 void Repl::runWithStream(std::istream &inputStream,
                          std::ostream &outputStream) {
-  std::unique_ptr<Parser> parser = nullptr;
+  std::unique_ptr<ASTBuilder> parser = nullptr;
   std::unique_ptr<CompilationUnitSyntax> compilationUnit = nullptr;
 
   while (!exit) {
@@ -69,7 +69,8 @@ void Repl::runWithStream(std::istream &inputStream,
       text.push_back(line);
       _diagnosticHandler->setReplLines(text);
 
-      parser = std::make_unique<Parser>(text, this->_diagnosticHandler.get());
+      parser =
+          std::make_unique<ASTBuilder>(text, this->_diagnosticHandler.get());
 
       if (this->_diagnosticHandler->hasError(
               DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -83,7 +84,7 @@ void Repl::runWithStream(std::istream &inputStream,
         text = previousText;
         break;
       }
-      compilationUnit = std::move(parser->parseCompilationUnit());
+      compilationUnit = std::move(parser->createCompilationUnit());
 
       if (this->_diagnosticHandler->hasError(
               DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -184,8 +185,8 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
   std::unique_ptr<FlowWing::DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>();
 
-  std::unique_ptr<Parser> parser =
-      std::make_unique<Parser>(text, currentDiagnosticHandler.get());
+  std::unique_ptr<ASTBuilder> parser =
+      std::make_unique<ASTBuilder>(text, currentDiagnosticHandler.get());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -198,7 +199,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
+      std::move(parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {

@@ -2,10 +2,10 @@
 #ifndef REPL_H
 #define REPL_H
 
+#include "../ASTBuilder/ASTBuilder.h"
 #include "../Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../interpreter/Interpreter.h"
-#include "../parser/Parser.h"
 
 class Repl {
 public:

@@ -1094,6 +1094,8 @@ Binder::bindIndexExpression(IndexExpressionSyntax *indexExpression) {
     boundIndexExp->addVariableExpression(std::move(boundVariableExpression));
   }
 
+  boundIndexExp->setIsSelf(indexExpression->getIsSelf());
+
   return std::move(boundIndexExp);
 }
 

@@ -6,10 +6,10 @@
 #include <fstream>
 #include <iostream>
 
+#include "../ASTBuilder/ASTBuilder.h"
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../compiler/Compiler.h"
-#include "../parser/Parser.h"
 #include "../utils/Utils.h"
 
 class JITCompiler : public Compiler {
