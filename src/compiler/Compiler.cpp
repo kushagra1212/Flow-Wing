@@ -27,14 +27,14 @@ void Compiler::compile(std::vector<std::string> &text,
       std::make_unique<ASTBuilder>(text, currentDiagnosticHandler.get());
 
   if (Utils::getExtension(_outputFilePath) == ".json") {
-    JSON jsonObject = Utils::outJSON(parser->getTokensRef());
+    JSON jsonObject = Utils::outJSON(parser->getTokenListRef());
     Utils::logJSON(jsonObject, _outputFilePath.substr(
                                    0, _outputFilePath.find_last_of(".")) +
                                    ".tokens.json");
   }
 
-  parser->setIsFormattedCodeRequired(FlowWing::Cli::isFlag::format() ||
-                                     FlowWing::Cli::isFlag::shortFormat());
+  // parser->setIsFormattedCodeRequired(FlowWing::Cli::isFlag::format() ||
+  //                                    FlowWing::Cli::isFlag::shortFormat());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
@@ -48,7 +48,7 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
+      std::move(parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -175,7 +175,7 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
+      std::move(parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {

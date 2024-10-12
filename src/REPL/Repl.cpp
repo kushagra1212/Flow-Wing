@@ -84,7 +84,7 @@ void Repl::runWithStream(std::istream &inputStream,
         text = previousText;
         break;
       }
-      compilationUnit = std::move(parser->parseCompilationUnit());
+      compilationUnit = std::move(parser->createCompilationUnit());
 
       if (this->_diagnosticHandler->hasError(
               DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -199,7 +199,7 @@ void Repl::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->parseCompilationUnit());
+      std::move(parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {

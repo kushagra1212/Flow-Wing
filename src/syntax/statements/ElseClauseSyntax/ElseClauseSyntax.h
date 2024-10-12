@@ -4,12 +4,12 @@
 #include "../../SyntaxToken.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 #include "../StatementSyntax.h"
-class ElseClauseSyntax : public SyntaxNode {
- private:
+class ElseClauseSyntax : public StatementSyntax {
+private:
   std::unique_ptr<SyntaxToken<std::any>> _elseKeyword;
   std::unique_ptr<BlockStatementSyntax> _statement;
 
- public:
+public:
   ElseClauseSyntax(std::unique_ptr<SyntaxToken<std::any>> elseKeyword,
                    std::unique_ptr<BlockStatementSyntax> statement);
 

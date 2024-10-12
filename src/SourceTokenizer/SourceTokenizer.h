@@ -29,17 +29,17 @@ public:
   void advanceLine();
   const char peek(const int64_t &offset) const;
 
-  inline const bool isEOLorEOF() const { return isEOL() || isEOF(); }
-  inline const bool isEOF() const { return currentChar() == _END_OF_FILE; }
-  inline const bool isEOL() const { return currentChar() == _END_OF_LINE; }
+  const bool isEOLorEOF() const { return isEOL() || isEOF(); }
+  const bool isEOF() const { return currentChar() == _END_OF_FILE; }
+  const bool isEOL() const { return currentChar() == _END_OF_LINE; }
 
-  inline const std::string getLine(const size_t &lineNumber) const {
+  const std::string getLine(const size_t &lineNumber) const {
     return _sourceCode[lineNumber];
   }
 
-  inline const size_t position() const { return _position; }
-  inline const size_t lineNumber() const { return _lineNumber; }
-  inline FlowWing::DiagnosticHandler *diagnosticHandler() {
+  const size_t position() const { return _position; }
+  const size_t lineNumber() const { return _lineNumber; }
+  FlowWing::DiagnosticHandler *diagnosticHandler() {
     return _diagnosticHandler;
   }
 };
