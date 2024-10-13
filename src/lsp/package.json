@@ -27,7 +27,11 @@
         "extensions": [
           ".fg"
         ],
-        "configuration": "client/src/configuration/fg-configuration.json"
+        "configuration": "client/src/configuration/fg-configuration.json",
+        "icon": {
+          "dark": "client/src/resources/icon.png",
+          "light": "client/src/resources/icon.png"
+        }
       },
       {
         "id": "flowwing-markdown-injection"
