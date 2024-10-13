@@ -6,10 +6,10 @@
 #include <typeinfo>
 
 #include "../Common.h"
-#include "../bind/BinderKindUtils.h"
-#include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../bind/BoundNode.h"
-#include "../bind/BoundStatement/BoundStatement.h"
+#include "../SemanticAnalyzer/BinderKindUtils.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../SemanticAnalyzer/BoundNode.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../syntax/CompilationUnitSyntax.h"

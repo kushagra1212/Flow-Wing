@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../../bind/BoundTernaryExpression//BoundTernaryExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTernaryExpression//BoundTernaryExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class TernaryExpressionGenerationStrategy

@@ -5,7 +5,7 @@ IndexExpressionSyntax::IndexExpressionSyntax(
     : _identifierExpression(std::move(identifierExpression)) {}
 
 std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-IndexExpressionSyntax::getIndexIdentifierExpressionPtr() {
+IndexExpressionSyntax::getIndexIdentifierExpressionRef() {
   return this->_identifierExpression;
 }
 

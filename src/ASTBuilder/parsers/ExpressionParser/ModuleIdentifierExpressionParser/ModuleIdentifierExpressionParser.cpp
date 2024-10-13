@@ -44,29 +44,29 @@ ModuleIdentifierExpressionParser::parseExpression(ParserContext *ctx) {
     AssignmentExpressionSyntax *assignExpr =
         static_cast<AssignmentExpressionSyntax *>(member.get());
 
-    if (assignExpr->getLeftPtr()->getKind() ==
+    if (assignExpr->getLeftRef()->getKind() ==
         SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax) {
 
       VariableExpressionSyntax *memberExp =
           static_cast<VariableExpressionSyntax *>(
-              assignExpr->getLeftPtr().get());
+              assignExpr->getLeftRef().get());
       memberExp->getIdentifierTokenRef()->setValue(
           PREFIX + (memberExp->getVariableName()));
       memberExp->getIdentifierTokenRef()->setText(std::any_cast<std::string>(
           memberExp->getIdentifierTokenRef()->getValue()));
 
-    } else if (assignExpr->getLeftPtr()->getKind() ==
+    } else if (assignExpr->getLeftRef()->getKind() ==
                SyntaxKindUtils::SyntaxKind::IndexExpression) {
       IndexExpressionSyntax *memberExp =
-          static_cast<IndexExpressionSyntax *>(assignExpr->getLeftPtr().get());
+          static_cast<IndexExpressionSyntax *>(assignExpr->getLeftRef().get());
       //! TODO:
-      memberExp->getIndexIdentifierExpressionPtr()->setValue(
+      memberExp->getIndexIdentifierExpressionRef()->setValue(
           PREFIX +
           std::any_cast<std::string>(
-              memberExp->getIndexIdentifierExpressionPtr()->getValue()));
-      memberExp->getIndexIdentifierExpressionPtr()->setText(
+              memberExp->getIndexIdentifierExpressionRef()->getValue()));
+      memberExp->getIndexIdentifierExpressionRef()->setText(
           std::any_cast<std::string>(
-              memberExp->getIndexIdentifierExpressionPtr()->getValue()));
+              memberExp->getIndexIdentifierExpressionRef()->getValue()));
     }
   } else if (member->getKind() == SyntaxKindUtils::SyntaxKind::CallExpression) {
 

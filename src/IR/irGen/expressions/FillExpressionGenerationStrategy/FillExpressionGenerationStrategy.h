@@ -1,9 +1,9 @@
 #ifndef __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../../../../bind/BoundFillExpression/BoundFillExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+
 class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   FillExpressionGenerationStrategy(CodeGenerationContext *context,

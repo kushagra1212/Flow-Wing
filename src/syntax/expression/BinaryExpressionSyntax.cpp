@@ -43,15 +43,15 @@ BinaryExpressionSyntax::getSourceLocation() const {
   return this->_operatorToken->getSourceLocation();
 }
 
-std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getLeftPtr() {
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getLeftRef() {
   return this->_left;
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &
-BinaryExpressionSyntax::getOperatorTokenPtr() {
+BinaryExpressionSyntax::getOperatorTokenRef() {
   return this->_operatorToken;
 }
 
-std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getRightPtr() {
+std::unique_ptr<ExpressionSyntax> &BinaryExpressionSyntax::getRightRef() {
   return this->_right;
 }

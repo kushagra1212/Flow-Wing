@@ -7,7 +7,7 @@
 #include "../OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "../StatementSyntax.h"
 class IfStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
   std::unique_ptr<ExpressionSyntax> condition;
   std::unique_ptr<BlockStatementSyntax> statement;
@@ -15,7 +15,7 @@ class IfStatementSyntax : public StatementSyntax {
 
   std::vector<std::unique_ptr<OrIfStatementSyntax>> orIfStatements;
 
- public:
+public:
   IfStatementSyntax();
 
   std::unique_ptr<SyntaxToken<std::any>> getIfKeyword();
@@ -33,9 +33,9 @@ class IfStatementSyntax : public StatementSyntax {
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordPtr();
-  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
-  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
-  std::unique_ptr<ElseClauseSyntax> &getElseClausePtr();
-  std::vector<std::unique_ptr<OrIfStatementSyntax>> &getOrIfStatementsPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getIfKeywordRef();
+  std::unique_ptr<ExpressionSyntax> &getConditionRef();
+  std::unique_ptr<BlockStatementSyntax> &getStatementRef();
+  std::unique_ptr<ElseClauseSyntax> &getElseClauseRef();
+  std::vector<std::unique_ptr<OrIfStatementSyntax>> &getOrIfStatementsRef();
 };

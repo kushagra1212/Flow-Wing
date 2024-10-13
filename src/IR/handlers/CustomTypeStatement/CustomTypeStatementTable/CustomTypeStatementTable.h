@@ -2,18 +2,18 @@
 #define FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
 
 #include "../../../../Common.h"
-#include "../../../../bind/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 
 class CustomTypeStatementTable {
- private:
+private:
   std::unordered_map<std::string, BoundCustomTypeStatement *> _type_exp_map;
 
- public:
+public:
   inline BoundCustomTypeStatement *getExp(const std::string &name) {
     if (_type_exp_map.find(name) != _type_exp_map.end()) {
       return _type_exp_map[name];
     }
-    return nullptr;  // Not found
+    return nullptr; // Not found
   }
 
   inline void setExp(const std::string &name, BoundCustomTypeStatement *value) {
@@ -21,4 +21,4 @@ class CustomTypeStatementTable {
   }
 };
 
-#endif  // FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
+#endif // FLOWWING_CUSTOM_TYPE_EXP_TABLE_H

@@ -75,9 +75,10 @@ void Compiler::compile(std::vector<std::string> &text,
     JSON jsonObject = Utils::outJSON(compilationUnit.get());
     Utils::logJSON(jsonObject, _outputFilePath);
   }
-  std::unique_ptr<BoundScopeGlobal> globalScope =
-      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
-                                        currentDiagnosticHandler.get()));
+  std::unique_ptr<BoundGlobalScope> globalScope =
+      std::move(SemanticAnalyzer::analyzeGlobalScope(
+          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
+
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
 
@@ -191,9 +192,9 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
     return;
   }
 
-  std::unique_ptr<BoundScopeGlobal> globalScope =
-      std::move(Binder::bindGlobalScope(nullptr, compilationUnit.get(),
-                                        currentDiagnosticHandler.get()));
+  std::unique_ptr<BoundGlobalScope> globalScope =
+      std::move(SemanticAnalyzer::analyzeGlobalScope(
+          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);

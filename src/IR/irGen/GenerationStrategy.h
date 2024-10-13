@@ -1,8 +1,8 @@
 #ifndef __FLOWWING_GENERATION_STRATEGY_H__
 #define __FLOWWING_GENERATION_STRATEGY_H__
 
-#include "../../bind/BinderKindUtils.h"
-#include "../../bind/BoundExpression.h"
+#include "../../SemanticAnalyzer/BinderKindUtils.h"
+#include "../../SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "../../syntax/SyntaxKindUtils.h"
 #include "../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
@@ -22,11 +22,11 @@
 #include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
 #include "expressions/ExpressionGenerationFactory.h"
 #include "statements/StatementGenerationFactory.h"
+
 class GenerationStrategy {
- public:
+public:
   GenerationStrategy(CodeGenerationContext *context)
-      : _codeGenerationContext(context),
-        TheModule(context->getModule().get()),
+      : _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()),
         _llvmValueConverter(std::make_unique<LLVMValueConverter>(context)),
@@ -105,4 +105,4 @@ class GenerationStrategy {
   std::unique_ptr<LLVMTypeGenerationFactory> _typeGenerationFactory;
 };
 
-#endif  // __FLOWWING_GENERATION_STRATEGY_H__
+#endif // __FLOWWING_GENERATION_STRATEGY_H__

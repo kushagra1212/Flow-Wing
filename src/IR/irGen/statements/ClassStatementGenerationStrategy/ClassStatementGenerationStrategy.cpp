@@ -26,8 +26,8 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
-      std::make_unique<Class>(boundClassStatement->getClassName(),
-                              boundClassStatement));
+      std::make_unique<FlowWingClass>(boundClassStatement->getClassName(),
+                                      boundClassStatement));
 
   auto classObject =
       _codeGenerationContext->_classTypes[boundClassStatement->getClassName()]
@@ -182,8 +182,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
-      std::make_unique<Class>(boundClassStatement->getClassName(),
-                              boundClassStatement));
+      std::make_unique<FlowWingClass>(boundClassStatement->getClassName(),
+                                      boundClassStatement));
 
   auto classObject = _codeGenerationContext->_classTypes
                          .at(boundClassStatement->getClassName())

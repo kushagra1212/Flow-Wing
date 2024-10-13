@@ -1,8 +1,8 @@
 #ifndef __FLOWWING_BRING_STATEMENT_STRATEGY_H__
 #define __FLOWWING_BRING_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundBringStatement/BoundBringStatement.h"
-#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
 #include "../../../../utils/Utils.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"

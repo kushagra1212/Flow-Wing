@@ -21,16 +21,16 @@ const std::vector<SyntaxNode *> &UnaryExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation UnaryExpressionSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+UnaryExpressionSyntax::getSourceLocation() const {
   return this->_operatorToken->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &
-UnaryExpressionSyntax::getOperatorTokenPtr() {
+UnaryExpressionSyntax::getOperatorTokenRef() {
   return this->_operatorToken;
 }
 
-std::unique_ptr<ExpressionSyntax> &UnaryExpressionSyntax::getOperandPtr() {
+std::unique_ptr<ExpressionSyntax> &UnaryExpressionSyntax::getOperandRef() {
   return this->_operand;
 }

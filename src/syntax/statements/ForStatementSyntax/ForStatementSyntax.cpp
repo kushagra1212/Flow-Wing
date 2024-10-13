@@ -36,30 +36,31 @@ const std::vector<SyntaxNode *> &ForStatementSyntax::getChildren() {
     // Add children
     _children.push_back(_initialization.get());
     _children.push_back(_upperBound.get());
-    if (_stepExpression) _children.push_back(_stepExpression.get());
+    if (_stepExpression)
+      _children.push_back(_stepExpression.get());
     _children.push_back(_statement.get());
   }
 
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation ForStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+ForStatementSyntax::getSourceLocation() const {
   return this->_initialization->getSourceLocation();
 }
 
-std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementPtr() {
+std::unique_ptr<BlockStatementSyntax> &ForStatementSyntax::getStatementRef() {
   return this->_statement;
 }
 
-std::unique_ptr<StatementSyntax> &ForStatementSyntax::getInitializationPtr() {
+std::unique_ptr<StatementSyntax> &ForStatementSyntax::getInitializationRef() {
   return this->_initialization;
 }
 
-std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getUpperBoundPtr() {
+std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getUpperBoundRef() {
   return this->_upperBound;
 }
 
-std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getStepExpressionPtr() {
+std::unique_ptr<ExpressionSyntax> &ForStatementSyntax::getStepExpressionRef() {
   return this->_stepExpression;
 }

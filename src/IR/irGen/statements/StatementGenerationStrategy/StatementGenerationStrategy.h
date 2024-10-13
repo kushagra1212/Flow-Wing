@@ -4,7 +4,7 @@
 
 class LLVMTypeGenerationFactory;
 class StatementGenerationStrategy : public GenerationStrategy {
- public:
+public:
   StatementGenerationStrategy(CodeGenerationContext *context)
       : GenerationStrategy(context) {}
 
@@ -13,4 +13,4 @@ class StatementGenerationStrategy : public GenerationStrategy {
   virtual ~StatementGenerationStrategy() = default;
 };
 
-#endif  // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
+#endif // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__

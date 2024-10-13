@@ -1,7 +1,7 @@
 #ifndef __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
 #define __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
 #include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"

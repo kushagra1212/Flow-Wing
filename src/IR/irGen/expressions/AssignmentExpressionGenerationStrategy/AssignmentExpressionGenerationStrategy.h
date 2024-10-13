@@ -1,19 +1,17 @@
 #ifndef __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 
-#include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
-#include "../../../../bind/BoundNirastExpression/BoundNirastExpression.h"
-#include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
-#include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
 #include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
 #include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

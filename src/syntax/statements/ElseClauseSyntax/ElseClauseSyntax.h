@@ -20,6 +20,6 @@ public:
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getElseKeywordPtr();
-  std::unique_ptr<BlockStatementSyntax> &getStatementPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getElseKeywordRef();
+  std::unique_ptr<BlockStatementSyntax> &getStatementRef();
 };

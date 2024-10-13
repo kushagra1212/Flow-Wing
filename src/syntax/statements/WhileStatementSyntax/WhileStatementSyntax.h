@@ -4,12 +4,12 @@
 #include "../../SyntaxToken.h"
 #include "../BlockStatementSyntax/BlockStatementSyntax.h"
 class WhileStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;
   std::unique_ptr<ExpressionSyntax> _condition;
   std::unique_ptr<BlockStatementSyntax> _body;
 
- public:
+public:
   WhileStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> whileKeyword,
                        std::unique_ptr<ExpressionSyntax> condition,
                        std::unique_ptr<BlockStatementSyntax> body);
@@ -22,7 +22,7 @@ class WhileStatementSyntax : public StatementSyntax {
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordPtr();
-  std::unique_ptr<ExpressionSyntax> &getConditionPtr();
-  std::unique_ptr<BlockStatementSyntax> &getBodyPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getWhileKeywordRef();
+  std::unique_ptr<ExpressionSyntax> &getConditionRef();
+  std::unique_ptr<BlockStatementSyntax> &getBodyRef();
 };

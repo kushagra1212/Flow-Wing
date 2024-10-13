@@ -43,10 +43,10 @@ std::unique_ptr<ExpressionSyntax> AssignmentExpressionSyntax::getLeft() {
   return std::move(this->_left);
 }
 
-std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightPtr() {
+std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getRightRef() {
   return this->_right;
 }
 
-std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getLeftPtr() {
+std::unique_ptr<ExpressionSyntax> &AssignmentExpressionSyntax::getLeftRef() {
   return this->_left;
 }

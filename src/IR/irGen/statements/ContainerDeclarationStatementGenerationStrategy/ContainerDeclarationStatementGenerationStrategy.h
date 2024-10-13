@@ -1,11 +1,10 @@
 #ifndef __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
 #define __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../bind/BoundContainerStatement/BoundContainerStatement.h"
-#include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
-#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundContainerStatement/BoundContainerStatement.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ContainerDeclarationStatementGenerationStrategy

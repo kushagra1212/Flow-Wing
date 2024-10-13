@@ -30,14 +30,14 @@ const std::vector<SyntaxNode *> &ElseClauseSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation ElseClauseSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+ElseClauseSyntax::getSourceLocation() const {
   return this->_elseKeyword->getSourceLocation();
 }
 
-std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordPtr() {
+std::unique_ptr<SyntaxToken<std::any>> &ElseClauseSyntax::getElseKeywordRef() {
   return this->_elseKeyword;
 }
-std::unique_ptr<BlockStatementSyntax> &ElseClauseSyntax::getStatementPtr() {
+std::unique_ptr<BlockStatementSyntax> &ElseClauseSyntax::getStatementRef() {
   return this->_statement;
 }

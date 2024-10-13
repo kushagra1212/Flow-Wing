@@ -1,10 +1,9 @@
 #ifndef __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 
-#include "../../../../bind/BoundIndexExpression/BoundIndexExpression.h"
-#include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 
 class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

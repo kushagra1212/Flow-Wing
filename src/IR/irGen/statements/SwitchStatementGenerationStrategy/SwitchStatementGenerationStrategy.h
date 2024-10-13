@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../../bind/BoundSwitchStatement/BoundSwitchStatement.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.h"
 #include "../../expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 

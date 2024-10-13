@@ -1,9 +1,8 @@
 #include "ContainerDeclarationStatementGenerationStrategy.h"
 
-#include "../../expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
-#include "../../expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../../expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
+
 ContainerDeclarationStatementGenerationStrategy::
     ContainerDeclarationStatementGenerationStrategy(
         CodeGenerationContext *context)

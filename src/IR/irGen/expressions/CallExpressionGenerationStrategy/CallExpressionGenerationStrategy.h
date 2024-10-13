@@ -1,14 +1,14 @@
 #ifndef __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
 
-#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../bind/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
-#include "../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
-#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 #include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   CallExpressionGenerationStrategy(CodeGenerationContext *context);

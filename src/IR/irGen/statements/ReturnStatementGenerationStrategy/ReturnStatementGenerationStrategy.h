@@ -1,7 +1,7 @@
 #ifndef __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
 #define __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundReturnStatement/BoundReturnStatement.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"

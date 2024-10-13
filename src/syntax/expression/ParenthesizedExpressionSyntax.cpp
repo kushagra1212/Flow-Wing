@@ -24,8 +24,8 @@ ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
   return std::move(this->_closeParenthesisToken);
 }
 
-const SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind()
-    const {
+const SyntaxKindUtils::SyntaxKind
+ParenthesizedExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
 const std::vector<SyntaxNode *> &ParenthesizedExpressionSyntax::getChildren() {
@@ -45,16 +45,16 @@ ParenthesizedExpressionSyntax::getSourceLocation() const {
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &
-ParenthesizedExpressionSyntax::getOpenParenthesisTokenPtr() {
+ParenthesizedExpressionSyntax::getOpenParenthesisTokenRef() {
   return this->_openParenthesisToken;
 }
 
 std::unique_ptr<ExpressionSyntax> &
-ParenthesizedExpressionSyntax::getExpressionPtr() {
+ParenthesizedExpressionSyntax::getExpressionRef() {
   return this->_expression;
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &
-ParenthesizedExpressionSyntax::getCloseParenthesisTokenPtr() {
+ParenthesizedExpressionSyntax::getCloseParenthesisTokenRef() {
   return this->_closeParenthesisToken;
 }

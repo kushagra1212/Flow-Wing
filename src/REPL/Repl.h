@@ -4,6 +4,7 @@
 
 #include "../ASTBuilder/ASTBuilder.h"
 #include "../Common.h"
+#include "../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../interpreter/Interpreter.h"
 
@@ -38,7 +39,7 @@ private: // Data members
   std::vector<std::string> text = std::vector<std::string>();
 
   std::unique_ptr<FlowWing::DiagnosticHandler> _diagnosticHandler;
-  std::unique_ptr<BoundScopeGlobal> _previousGlobalScope;
+  std::unique_ptr<BoundGlobalScope> _previousGlobalScope;
   std::vector<std::string> previousText;
 
   // For testing

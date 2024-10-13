@@ -5,14 +5,22 @@
 #include <map>
 #include <string>
 
-#include "../bind/Binder/Binder.h"
-#include "../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../bind/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../bind/BoundExpression.h"
-#include "../bind/BoundIndexExpression/BoundIndexExpression.h"
-#include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
-#include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+
+#include "../SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
+#include "../SemanticAnalyzer/SemanticAnalyzer.h"
 #include "../diagnostics/Diagnostic/Diagnostic.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
@@ -29,7 +37,7 @@
 class Interpreter {
 private:
 public:
-  Interpreter(BoundScopeGlobal *globalScope,
+  Interpreter(BoundGlobalScope *globalScope,
               FlowWing::DiagnosticHandler *diagnosticHandler);
 
   void execute(BoundBlockStatement *node);
@@ -46,7 +54,7 @@ private:
   std::stack<std::unordered_map<std::string, BoundFunctionDeclaration *>>
       function_stack;
   std::stack<std::pair<SyntaxKindUtils::SyntaxKind, int>> return_type_stack;
-  BoundScopeGlobal *_globalScope = nullptr;
+  BoundGlobalScope *_globalScope = nullptr;
   std::unique_ptr<InterpreterUtils> _interpreterUtils;
   int break_count = 0, continue_count = 0, showResult = 1;
 

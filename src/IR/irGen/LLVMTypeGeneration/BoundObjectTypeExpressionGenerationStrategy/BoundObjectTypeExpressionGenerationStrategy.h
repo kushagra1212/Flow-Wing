@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../LLVMTypeGenerationStrategy.h"
 
 class BoundObjectTypeExpressionGenerationStrategy
     : public LLVMTypeGenerationStrategy {
- public:
+public:
   BoundObjectTypeExpressionGenerationStrategy(CodeGenerationContext *context)
       : LLVMTypeGenerationStrategy(context) {}
 

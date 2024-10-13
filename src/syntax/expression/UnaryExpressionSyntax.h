@@ -4,11 +4,11 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class UnaryExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
   std::unique_ptr<ExpressionSyntax> _operand;
 
- public:
+public:
   UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
                         std::unique_ptr<ExpressionSyntax> operand);
 
@@ -16,8 +16,8 @@ class UnaryExpressionSyntax : public ExpressionSyntax {
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenPtr();
-  std::unique_ptr<ExpressionSyntax> &getOperandPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
+  std::unique_ptr<ExpressionSyntax> &getOperandRef();
 };
 
-#endif  // UnaryExpressionSyntax_h__
+#endif // UnaryExpressionSyntax_h__
