@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../../bind/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
 #include "../../Types/LLVMType//LLVMFunctionType/LLVMFunctionType.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"

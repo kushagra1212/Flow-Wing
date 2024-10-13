@@ -1,13 +1,13 @@
 #ifndef __FLOWWING_FOR_STATEMENT_STRATEGY_H__
 #define __FLOWWING_FOR_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundForStatement/BoundForStatement.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
 #include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 #include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 class ForStatementGenerationStrategy : public StatementGenerationStrategy {
- public:
+public:
   ForStatementGenerationStrategy(CodeGenerationContext *context);
 
   llvm::Value *generateStatement(BoundStatement *statement) override;
@@ -18,4 +18,4 @@ class ForStatementGenerationStrategy : public StatementGenerationStrategy {
                                        llvm::Value *upperBound);
 };
 
-#endif  // __FLOWWING_FOR_STATEMENT_STRATEGY_H__
+#endif // __FLOWWING_FOR_STATEMENT_STRATEGY_H__

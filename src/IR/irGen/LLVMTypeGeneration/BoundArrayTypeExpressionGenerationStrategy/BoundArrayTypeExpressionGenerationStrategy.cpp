@@ -1,6 +1,6 @@
 #include "BoundArrayTypeExpressionGenerationStrategy.h"
 
-#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 
 llvm::Type *BoundArrayTypeExpressionGenerationStrategy::getType(

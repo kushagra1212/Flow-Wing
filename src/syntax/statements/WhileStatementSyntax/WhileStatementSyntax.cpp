@@ -35,20 +35,20 @@ const std::vector<SyntaxNode *> &WhileStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation WhileStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+WhileStatementSyntax::getSourceLocation() const {
   return this->_whileKeyword->getSourceLocation();
 }
 
 std::unique_ptr<SyntaxToken<std::any>> &
-WhileStatementSyntax::getWhileKeywordPtr() {
+WhileStatementSyntax::getWhileKeywordRef() {
   return this->_whileKeyword;
 }
 
-std::unique_ptr<ExpressionSyntax> &WhileStatementSyntax::getConditionPtr() {
+std::unique_ptr<ExpressionSyntax> &WhileStatementSyntax::getConditionRef() {
   return this->_condition;
 }
 
-std::unique_ptr<BlockStatementSyntax> &WhileStatementSyntax::getBodyPtr() {
+std::unique_ptr<BlockStatementSyntax> &WhileStatementSyntax::getBodyRef() {
   return this->_body;
 }

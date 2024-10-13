@@ -49,7 +49,7 @@ public:
   inline auto isObject() const -> bool { return _isObject; }
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &
-  getIndexIdentifierExpressionPtr();
+  getIndexIdentifierExpressionRef();
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;

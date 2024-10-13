@@ -19,21 +19,21 @@
 #include "../IR/irGen/statements/StatementGenerationFactory.h"
 #include "../IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 #include "../IR/logger/LLVMLogger.h"
+#include "../SemanticAnalyzer/BinderKindUtils.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "../SemanticAnalyzer/SemanticAnalyzer.h"
+#include "../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
 #include "../ahead-of-time-compiler/ObjectFile/ObjectFile.h"
-#include "../bind/Binder/Binder.h"
-#include "../bind/Binder/BoundScopeGlobal/BoundScopeGlobal.h"
-#include "../bind/BinderKindUtils.h"
-#include "../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../bind/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../bind/BoundBlockStatement/BoundBlockStatement.h"
-#include "../bind/BoundBringStatement/BoundBringStatement.h"
-#include "../bind/BoundExpression.h"
-#include "../bind/BoundExpressionStatement/BoundExpressionStatement.h"
-#include "../bind/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../bind/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
-#include "../bind/BoundStatement/BoundStatement.h"
-#include "../bind/BoundUnaryExpression/BoundUnaryExpression.h"
-#include "../bind/BoundVariableExpression/BoundVariableExpression.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../utils/Utils.h"
 #include "IRParser/IRParser.h"
@@ -114,7 +114,7 @@ public:
 
   int executeGeneratedCode();
 
-  std::shared_ptr<BoundScopeGlobal> _previousGlobalScope = nullptr;
+  std::shared_ptr<BoundGlobalScope> _previousGlobalScope = nullptr;
 
   void generateEvaluateGlobalStatement(
       BoundBlockStatement *blockStatement,

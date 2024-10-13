@@ -3,12 +3,12 @@
 #include "../SyntaxToken.h"
 #include "ExpressionSyntax.h"
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
   std::unique_ptr<ExpressionSyntax> _expression;
   std::unique_ptr<SyntaxToken<std::any>> _closeParenthesisToken;
 
- public:
+public:
   ParenthesizedExpressionSyntax(
       std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
       std::unique_ptr<ExpressionSyntax> expression,
@@ -22,8 +22,8 @@ class ParenthesizedExpressionSyntax : public ExpressionSyntax {
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
-  std::unique_ptr<ExpressionSyntax> &getExpressionPtr();
-  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
+  std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenRef();
+  std::unique_ptr<ExpressionSyntax> &getExpressionRef();
+  std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenRef();
 };
 #endif

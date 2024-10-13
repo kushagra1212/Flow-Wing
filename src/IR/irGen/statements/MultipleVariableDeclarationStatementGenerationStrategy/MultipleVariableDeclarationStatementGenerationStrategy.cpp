@@ -1,5 +1,7 @@
 #include "MultipleVariableDeclarationStatementGenerationStrategy.h"
 
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+
 MultipleVariableDeclarationStatementGenerationStrategy::
     MultipleVariableDeclarationStatementGenerationStrategy(
         CodeGenerationContext *context)

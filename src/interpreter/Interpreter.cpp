@@ -1,6 +1,6 @@
 #include "Interpreter.h"
 
-Interpreter::Interpreter(BoundScopeGlobal *globalScope,
+Interpreter::Interpreter(BoundGlobalScope *globalScope,
                          FlowWing::DiagnosticHandler *diagnosticHandler) {
   this->_globalScope = globalScope;
   this->_interpreterUtils =

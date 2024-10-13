@@ -3,8 +3,8 @@
 #include <any>
 
 #include "../../Common.h"
-#include "../../bind/BinderKindUtils.h"
-#include "../../bind/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../../SemanticAnalyzer/BinderKindUtils.h"
+#include "../../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "InterpreterConversions/InterpreterConversion.h"

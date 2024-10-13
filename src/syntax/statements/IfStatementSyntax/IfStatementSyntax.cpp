@@ -22,8 +22,8 @@ const SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 
-const DiagnosticUtils::SourceLocation IfStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+IfStatementSyntax::getSourceLocation() const {
   return this->ifKeyword->getSourceLocation();
 }
 
@@ -45,16 +45,16 @@ const std::vector<SyntaxNode *> &IfStatementSyntax::getChildren() {
   return this->_children;
 }
 
-std::unique_ptr<SyntaxToken<std::any>> &IfStatementSyntax::getIfKeywordPtr() {
+std::unique_ptr<SyntaxToken<std::any>> &IfStatementSyntax::getIfKeywordRef() {
   return this->ifKeyword;
 }
-std::unique_ptr<ExpressionSyntax> &IfStatementSyntax::getConditionPtr() {
+std::unique_ptr<ExpressionSyntax> &IfStatementSyntax::getConditionRef() {
   return this->condition;
 }
-std::unique_ptr<BlockStatementSyntax> &IfStatementSyntax::getStatementPtr() {
+std::unique_ptr<BlockStatementSyntax> &IfStatementSyntax::getStatementRef() {
   return this->statement;
 }
-std::unique_ptr<ElseClauseSyntax> &IfStatementSyntax::getElseClausePtr() {
+std::unique_ptr<ElseClauseSyntax> &IfStatementSyntax::getElseClauseRef() {
   return this->elseClause;
 }
 
@@ -82,6 +82,6 @@ void IfStatementSyntax::addElseClause(
   this->elseClause = std::move(elseClause);
 }
 std::vector<std::unique_ptr<OrIfStatementSyntax>> &
-IfStatementSyntax::getOrIfStatementsPtr() {
+IfStatementSyntax::getOrIfStatementsRef() {
   return this->orIfStatements;
 }

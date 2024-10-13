@@ -1,5 +1,7 @@
 #include "ObjectAssignmentExpressionGenerationStrategy.h"
 
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+
 ObjectAssignmentExpressionGenerationStrategy::
     ObjectAssignmentExpressionGenerationStrategy(CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}

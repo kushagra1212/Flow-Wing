@@ -1,9 +1,9 @@
 #ifndef __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../../../../bind/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../bind/BoundContainerExpression/BoundContainerExpression.h"
-#include "../../../../bind/BoundFillExpression/BoundFillExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"

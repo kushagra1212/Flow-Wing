@@ -1,5 +1,7 @@
 #include "StringTypeConverter.h"
 
+#include "../GlobalTypeConverter/GStringTypeConverter.h"
+
 StringTypeConverter::StringTypeConverter(CodeGenerationContext *context)
     : TypeConverterBase(context){};
 

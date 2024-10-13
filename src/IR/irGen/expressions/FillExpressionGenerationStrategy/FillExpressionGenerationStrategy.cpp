@@ -1,5 +1,8 @@
 #include "FillExpressionGenerationStrategy.h"
 
+#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+
 FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,
     llvm::Type *elementType, const std::string &containerName)

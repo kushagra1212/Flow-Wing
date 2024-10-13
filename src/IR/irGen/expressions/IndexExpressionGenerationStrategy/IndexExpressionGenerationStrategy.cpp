@@ -1,5 +1,7 @@
 #include "IndexExpressionGenerationStrategy.h"
 
+#include "../VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+
 IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}

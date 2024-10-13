@@ -1,11 +1,11 @@
 #ifndef __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 
-#include "../../../../bind/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../../../bind/BoundVariableExpression/BoundVariableExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 #include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 class ObjectAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

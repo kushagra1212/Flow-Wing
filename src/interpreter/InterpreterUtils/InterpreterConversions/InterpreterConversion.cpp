@@ -1,9 +1,10 @@
 #include "InterpreterConversion.h"
 
+#include "../../../utils/Utils.h"
 #include <sstream>
 
-std::string InterpreterConversion::explicitConvertAnyToString(
-    const std::any value) {
+std::string
+InterpreterConversion::explicitConvertAnyToString(const std::any value) {
   if (value.type() == typeid(int)) {
     return explicitConvertIntToString(std::any_cast<int>(value));
   } else if (value.type() == typeid(double)) {
@@ -20,20 +21,20 @@ std::string InterpreterConversion::explicitConvertAnyToString(
 std::string InterpreterConversion::explicitConvertIntToString(const int value) {
   return std::to_string(value);
 }
-std::string InterpreterConversion::explicitConvertBoolToString(
-    const bool value) {
+std::string
+InterpreterConversion::explicitConvertBoolToString(const bool value) {
   return value ? "true" : "false";
 }
-std::string InterpreterConversion::explicitConvertDoubleToString(
-    const double value) {
+std::string
+InterpreterConversion::explicitConvertDoubleToString(const double value) {
   std::stringstream stream;
   stream << std::fixed << std::setprecision(14) << value;
   std::string formattedResult = stream.str();
   return formattedResult;
 }
 
-double InterpreterConversion::explicitConvertToAnyToDouble(
-    const std::any value) {
+double
+InterpreterConversion::explicitConvertToAnyToDouble(const std::any value) {
   if (value.type() == typeid(int)) {
     return implicitConvertIntToDouble(std::any_cast<int>(value));
   } else if (value.type() == typeid(double)) {
@@ -55,8 +56,8 @@ double InterpreterConversion::implicitConvertBoolToDouble(const bool value) {
   return value ? 1.0 : 0.0;
 }
 
-double InterpreterConversion::explicitConvertStringToDouble(
-    const std::string value) {
+double
+InterpreterConversion::explicitConvertStringToDouble(const std::string value) {
   if (Utils::isDouble(value)) {
     double res = std::stod(value);
     // set precision to 14 digits

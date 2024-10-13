@@ -1,7 +1,7 @@
 #include "CallExpressionGenerationStrategy.h"
 
 #include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
-#include "../../statements/FunctionStatementGenerationStrategy/FunctionStatementGenerationStrategy.h"
+#include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 #include <memory>
 
 CallExpressionGenerationStrategy::CallExpressionGenerationStrategy(

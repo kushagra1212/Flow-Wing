@@ -362,7 +362,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       _codeGenerationContext->getFlowWingType(parObjType->getStructName().str())
           .getCustomType();
 
-  Class *classObj = nullptr;
+  FlowWingClass *classObj = nullptr;
 
   if (itsClass) {
     classObj = _codeGenerationContext

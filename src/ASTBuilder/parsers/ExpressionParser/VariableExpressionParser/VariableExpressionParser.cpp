@@ -22,10 +22,10 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
       } else if (auto *assignExp = dynamic_cast<AssignmentExpressionSyntax *>(
                      expression.get())) {
         if (auto *memberExp = dynamic_cast<VariableExpressionSyntax *>(
-                assignExp->getLeftPtr().get())) {
+                assignExp->getLeftRef().get())) {
           memberExp->setSelfKeyword(std::move(identifierToken));
         } else if (auto *memberExp = dynamic_cast<IndexExpressionSyntax *>(
-                       assignExp->getLeftPtr().get())) {
+                       assignExp->getLeftRef().get())) {
           memberExp->addSelfKeyword(std::move(identifierToken));
         }
       }

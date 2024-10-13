@@ -1,5 +1,8 @@
 #include "AssignmentExpressionGenerationStrategy.h"
 
+#include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+
 AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}

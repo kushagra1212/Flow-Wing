@@ -1,7 +1,7 @@
 #ifndef __FLOWWING__LLVM_ARRAY_TYPE_H__
 #define __FLOWWING__LLVM_ARRAY_TYPE_H__
 
-#include "../../../../../bind/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "../../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../LLVMType.h"
 
 class LLVMArrayType : public LLVMType {

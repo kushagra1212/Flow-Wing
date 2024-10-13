@@ -1,14 +1,16 @@
 #ifndef __FLOWWING_OBJECT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_OBJECT_EXPRESSION_STRATEGY_H__
 
-#include "../../../../bind/BoundObjectExpression/BoundObjectExpression.h"
-#include "../../../../bind/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 #include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+
 class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   ObjectExpressionGenerationStrategy(CodeGenerationContext *context);

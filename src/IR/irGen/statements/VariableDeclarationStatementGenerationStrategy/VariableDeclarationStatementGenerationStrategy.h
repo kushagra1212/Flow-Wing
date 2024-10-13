@@ -1,8 +1,8 @@
 #ifndef __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 #define __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 
-#include "../../../../bind/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../bind/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"

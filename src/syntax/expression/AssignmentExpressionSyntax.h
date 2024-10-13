@@ -23,8 +23,8 @@ public:
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<ExpressionSyntax> &getRightPtr();
-  std::unique_ptr<ExpressionSyntax> &getLeftPtr();
+  std::unique_ptr<ExpressionSyntax> &getRightRef();
+  std::unique_ptr<ExpressionSyntax> &getLeftRef();
 
   auto inline getNeedDefaulInitilization() -> bool {
     return _needDefaultInitialize;

@@ -14,7 +14,7 @@
 #include "../handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
-#include "../irGen/Types/Class.h"
+#include "../irGen/Types/FlowWingClass.h"
 #include "../irGen/Types/Function.h"
 #include "../irGen/Types/ReturnTypeHandler.h"
 #include "../irGen/Types/Type.h"
@@ -244,7 +244,7 @@ public:
   }
 
   inline auto addClass(const std::string &name,
-                       std::unique_ptr<Class> classType) -> void {
+                       std::unique_ptr<FlowWingClass> classType) -> void {
     this->_classTypes.insert({name, std::move(classType)});
   }
   inline auto getTargetMachine() -> llvm::TargetMachine * {
@@ -253,7 +253,7 @@ public:
 
   auto getArrayTypeAsString(llvm::ArrayType *arrayType) -> std::string;
 
-  std::unordered_map<std::string, std::unique_ptr<Class>> _classTypes;
+  std::unordered_map<std::string, std::unique_ptr<FlowWingClass>> _classTypes;
   std::unordered_map<std::string, llvm::StructType *> _classLLVMTypes;
 
   // custom struct types

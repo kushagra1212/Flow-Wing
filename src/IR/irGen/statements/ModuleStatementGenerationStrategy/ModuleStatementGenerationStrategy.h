@@ -1,7 +1,7 @@
 #ifndef __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
 #define __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
 
-#include "../../../../bind/BoundModuleStatement/BoundModuleStatement.h"
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
