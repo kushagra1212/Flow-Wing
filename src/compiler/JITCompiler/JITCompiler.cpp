@@ -1,6 +1,5 @@
 #include "JITCompiler.h"
-#include "../cli/argh.h"
-#include "../common/version.h"
+#include "../../common/version.h"
 #include <string>
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}

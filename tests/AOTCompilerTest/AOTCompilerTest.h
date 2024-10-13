@@ -1,7 +1,7 @@
 #ifndef AOT_COMPILER_TEST_H
 #define AOT_COMPILER_TEST_H
 
-#include "../../src/ahead-of-time-compiler/AOTCompiler.h"
+#include "../../src/Compiler/AOTCompiler/AOTCompiler.h"
 #include "../BaseTest/BaseTest.h"
 
 class AOTCompilerTest : public BaseTest {

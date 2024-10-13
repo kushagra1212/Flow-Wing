@@ -2,8 +2,8 @@
 
 #include "../../Common.h"
 #include "../../IR/constants/FlowWingIRConstants.h"
-#include "../../cli/argh.h"
-#include "../../cli/commandLineOptions/commandLineOptions.h"
+#include "../../common/commandLineOptions/commandLineOptions.h"
+#include "../../external/include/argh.h"
 #include "../../utils/Utils.h"
 #include "../LibUtils/LibUtils.h"
 #include <string>

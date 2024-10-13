@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../utils/Utils.h"
+#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "../../utils/Utils.h"
 
 namespace FlowWing {
 

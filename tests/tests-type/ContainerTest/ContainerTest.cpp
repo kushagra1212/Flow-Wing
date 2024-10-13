@@ -2514,7 +2514,7 @@ TEST_F(
 }
 TEST_F(ContainerTest, ContainerTestComplexWithFunctionCall) {
   std::string input = R"(
-fun main(arr:int[10]) -> nthg {
+fun main2(arr:int[10]) -> nthg {
     var x:int[10] = [5 fill 100]
     x = arr
     x[3] = 10
@@ -2522,9 +2522,9 @@ fun main(arr:int[10]) -> nthg {
 
 }
 var x:int[10] = [10 fill 2]
-main(x)
+main2(x)
 x[4]  = 7
-main(x)
+main2(x)
     )";
 
   std::string expected_output =

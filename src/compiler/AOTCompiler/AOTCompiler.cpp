@@ -1,6 +1,5 @@
 #include "AOTCompiler.h"
-#include "../cli/argh.h"
-#include "../common/version.h"
+#include "../../common/version.h"
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)

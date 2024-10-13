@@ -8,7 +8,8 @@
 #include "../ASTBuilder/ASTBuilder.h"
 #include "../IR/IRGenerator.h"
 #include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
-#include "../cli/commandLineOptions/commandLineOptions.h"
+#include "../SemanticAnalyzer/SemanticAnalyzer.h"
+#include "../common/commandLineOptions/commandLineOptions.h"
 #include "../utils/Utils.h"
 #include "CompilerUtils.h"
 

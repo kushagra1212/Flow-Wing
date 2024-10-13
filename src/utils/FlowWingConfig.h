@@ -54,7 +54,8 @@
 // Define the module path based on the library path
 #ifdef FLOWWING_LIB_PATH
 #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
-#elif not defined(FLOWWING_MODULE_PATH)
+#elif not defined(FLOWWING_LIB_PATH)
+#define FLOWWING_LIB_PATH
 #define FLOWWING_MODULE_PATH ""
 #endif
 
