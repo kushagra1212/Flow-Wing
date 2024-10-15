@@ -993,7 +993,7 @@ TEST_F(MiscellaneousTest, Int8TestScoped) {
 
 TEST_F(MiscellaneousTest, StringEscapeTest) {
   I(R"(
-  {
+
 var s: str = "hello world"
 
 if(s[0] !='\\t'){
