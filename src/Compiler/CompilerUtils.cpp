@@ -226,7 +226,7 @@ createModuleFromBitcode(const std::string &filePath,
   }
 }
 
-auto logNoErrorJSONIfAsked(const std::string &outputFilePath) -> void {
+void logNoErrorJSONIfAsked(const std::string &outputFilePath) {
   if (Utils::getExtension(outputFilePath) == ".json") {
     JSON jsonObj = {{"error", false}};
     Utils::logJSON(jsonObj,

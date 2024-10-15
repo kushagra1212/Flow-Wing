@@ -56,7 +56,7 @@ void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
 //? INLINE FUNCTIONS
 
 // JSON LOG FILE for (AST/ERR)
-auto logNoErrorJSONIfAsked(const std::string &outputFilePath) -> void;
+void logNoErrorJSONIfAsked(const std::string &outputFilePath);
 
 } // namespace Compiler
 } // namespace FlowWing
