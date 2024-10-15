@@ -9,10 +9,10 @@
 #include <string>
 
 #include "../../ASTBuilder/ASTBuilder.h"
-#include "../../Compiler/Compiler.h"
 #include "../../IR/IRGenerator.h"
 #include "../../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "../../common/managers/CommandManager.h"
+#include "../../compiler/Compiler.h"
 #include "../../utils/Utils.h"
 #include "AotCompilerUtils.h"
 #include "ObjectFile/ObjectFile.h"

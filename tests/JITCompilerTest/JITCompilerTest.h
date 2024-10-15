@@ -1,7 +1,7 @@
 #ifndef JIT_COMPILER_TEST_H
 #define JIT_COMPILER_TEST_H
 
-#include "../../src/Compiler/JITCompiler/JITCompiler.h"
+#include "../../src/compiler/JITCompiler/JITCompiler.h"
 #include "../BaseTest/BaseTest.h"
 
 class JITCompilerTest : public BaseTest {

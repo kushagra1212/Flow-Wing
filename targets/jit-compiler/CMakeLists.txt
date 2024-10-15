@@ -65,7 +65,7 @@ else()
 endif()
 
 # Link the executable with the adjusted name
-add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/Compiler/JITCompiler/JITCompiler.cpp" ${SOURCES})
+add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/compiler/JITCompiler/JITCompiler.cpp" ${SOURCES})
 
 # Link LLVM libraries statically
 llvm_map_components_to_libnames(LLVM_STATIC_LIBRARIES core executionengine orcjit native)

@@ -2,7 +2,6 @@
 #define IRGENERATOR_H
 
 #include "../Common.h"
-#include "../Compiler/AOTCompiler/ObjectFile/ObjectFile.h"
 #include "../IR/constants/FlowWingIRConstants.h"
 #include "../IR/context/CodeGenerationContext.h"
 #include "../IR/declarations/FunctionDeclarationManager/FunctionDeclarationManager.h"
@@ -34,6 +33,7 @@
 #include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "../SemanticAnalyzer/SemanticAnalyzer.h"
 #include "../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "../compiler/AOTCompiler/ObjectFile/ObjectFile.h"
 #include "../syntax/CompilationUnitSyntax.h"
 #include "../utils/Utils.h"
 #include "IRParser/IRParser.h"
