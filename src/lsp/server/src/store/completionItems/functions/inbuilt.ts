@@ -71,7 +71,7 @@ The \`Int32\` function is used to convert a value to a 32-bit integer.
 
 ### Example:
 \`\`\`flowwing
-var number = Int32("123")
+var number: int = Int32("123")
 \`\`\`
     `,
   },
@@ -84,7 +84,7 @@ The \`Decimal\` function is used to convert a value to a decimal.
 
 ### Example:
 \`\`\`flowwing
-var number = Decimal("123.45")
+var number: deci = Decimal("123.45")
 \`\`\`
     `,
   },
@@ -123,7 +123,7 @@ The \`Bool\` function is used to convert a value to a boolean.
 
 ### Example:
 \`\`\`flowwing
-var flag = Bool(1)
+var flag: bool = Bool(1)
 \`\`\`
     `,
   },

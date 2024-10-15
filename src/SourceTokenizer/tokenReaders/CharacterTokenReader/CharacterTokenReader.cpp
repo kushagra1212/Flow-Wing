@@ -5,41 +5,41 @@ CharacterTokenReader::readToken(SourceTokenizer &lexer) {
   const size_t &start = lexer.position();
   lexer.advancePosition();
   std::string text = "", valueText = "";
+  while (!lexer.isEOLorEOF() && lexer.currentChar() != '\'') {
+    if (lexer.currentChar() == '\0') {
+      return unTerminatedCharacterToken(lexer, start);
+    }
 
-  if (lexer.currentChar() == '\0') {
-    return unTerminatedCharacterToken(lexer, start);
-  }
-
-  if (lexer.currentChar() == '\\') {
-    text += lexer.currentChar();
+    if (lexer.currentChar() == '\\') {
+      text += lexer.currentChar();
+      lexer.advancePosition();
+      text += lexer.currentChar();
+      switch (lexer.currentChar()) {
+      case '"':
+        valueText += '"';
+        break;
+      case '\\':
+        valueText += '\\';
+        break;
+      case 'n':
+        valueText += '\n';
+        break;
+      case 'r':
+        valueText += '\r';
+        break;
+      case 't':
+        valueText += '\t';
+        break;
+      default: {
+        return badEscapeSequenceToken(lexer, start);
+      }
+      }
+    } else {
+      text += lexer.currentChar();
+      valueText += lexer.currentChar();
+    }
     lexer.advancePosition();
-    text += lexer.currentChar();
-    switch (lexer.currentChar()) {
-    case '"':
-      valueText += '"';
-      break;
-    case '\\':
-      valueText += '\\';
-      break;
-    case 'n':
-      valueText += '\n';
-      break;
-    case 'r':
-      valueText += '\r';
-      break;
-    case 't':
-      valueText += '\t';
-      break;
-    default: {
-      return badEscapeSequenceToken(lexer, start);
-    }
-    }
-  } else {
-    text += lexer.currentChar();
-    valueText += lexer.currentChar();
   }
-  lexer.advancePosition();
-
   if (lexer.currentChar() != '\'') {
     return unTerminatedCharacterToken(lexer, start);
   }

@@ -143,7 +143,7 @@
         },
         {
           "name": "keyword.other.fg",
-          "match": "\\b(inout|as|decl|const|var|type|init|class|if|else|for|while|return|new)\\b"
+          "match": "\\b(inout|as|decl|const|var|type|extends|init|class|if|else|for|fill|while|switch|case|default|return|new)\\b"
         }
       ]
     },

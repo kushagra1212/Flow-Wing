@@ -387,4 +387,34 @@ fun sum(a:int, b:int) -> int {
       `,
     },
   },
+  {
+    label: "fill",
+    kind: CompletionItemKind.Keyword,
+    data: "fill",
+    detail: "Fill Keyword",
+    documentation: {
+      kind: "markdown",
+      value: `
+**Fill Keyword**
+
+The \`fill\` keyword is used to fill a container with a value.
+
+### Example:
+\`\`\`flowwing
+var x:int[2]
+
+x = [2 fill 0]
+\`\`\`
+
+### Example 2:
+\`\`\`flowwing
+var x:Point[2]
+
+x = [2 fill {x:0, y:0}]
+\`\`\`
+
+
+      `,
+    },
+  },
 ];

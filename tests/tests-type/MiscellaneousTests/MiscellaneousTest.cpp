@@ -990,3 +990,16 @@ TEST_F(MiscellaneousTest, Int8TestScoped) {
 )");
   EXPECT_EQ(getOutput(), R"(c)");
 }
+
+TEST_F(MiscellaneousTest, StringEscapeTest) {
+  I(R"(
+  {
+var s: str = "hello world"
+
+if(s[0] !='\\t'){
+    print(s[0])
+  }
+
+)");
+  EXPECT_EQ(getOutput(), R"(h)");
+}

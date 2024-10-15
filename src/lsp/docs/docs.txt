@@ -1,0 +1,760 @@
+
+Binary Operations
+
+print(true-true) /; Output: false
+print(1.0 * 1.0) /; Output: 1.00000000000000
+print("Hello"+2.0) /; Output: Hello2.00000000000000
+print(2/2) /; 1.00000000000000
+print("Hello"+"FlowWing") /; HelloFlowWing
+
+Inheritance 
+
+class Car extends Vehicle {
+  var doors: int
+  init(make: str, model: str, year: int, doors: int) -> nthg {
+    super(make, model, year)
+    self.doors = doors
+  }
+
+  getDetails() -> str {
+    return self.year + " " + self.make + " " + self.model + " with " + self.doors + " doors"
+  }
+
+  printDetails() -> nthg {
+    print("Car: ", self.getDetails())
+  }
+
+}
+
+fun printVehicleDetails(v: Vehicle) -> nthg {
+  v.printDetails()
+}
+
+fun main() -> nthg {
+  var vehicle:Vehicle = new Vehicle("Toyota", "Camry", 2020)
+  var car:Car = new Car("Honda", "Civic", 2022, 4)
+
+  printVehicleDetails(vehicle)
+  printVehicleDetails(car)
+}
+
+main()
+
+
+Classes
+
+class A {
+  var a: int
+  var b: str
+  var d: deci
+  var e: bool
+  type X = {
+    x1: str,
+    x2: int
+  }
+  var obj: X 
+  type Complex = {
+    a:int[3],
+    j:X[2]
+  }
+  var arr:X[2] 
+  init() -> nthg {
+    var obj:X
+    print("Pinting u: ")
+    print(obj)
+  }
+  printDefaults()-> nthg {
+    print(a)
+    print(b)
+    print(d)
+    print(e)
+    print(obj)
+    print(arr)
+    print(arr)
+  }
+}
+var a: A  = new A() 
+a.printDefaults()
+
+
+CommentTest
+
+/; for Single Line
+
+
+/#
+
+Multiline Comment
+
+#/
+
+
+Containers/Array
+
+Ex - 1
+
+        type k = {
+   o:int
+}
+
+type par ={
+    u:str,
+    g:k[5]
+  }
+type t = {
+    x:int,
+    y:str,
+    a:deci,
+    b:bool,
+    arr:par[1]
+}
+ {
+var arr:t[2] = [1 fill {x:1}]
+print(arr)
+
+Ex - 2
+
+type T = {
+  a:int 
+}
+
+type K = {
+  j:T[2][2]
+}
+var j:K ={j:[[{a:2}]]}
+
+print(j)
+
+
+Ex - 3
+
+fun printdec(a:deci32[2]) -> nthg {
+    print(a)
+ 
+ }
+
+ printdec([3.2d])
+
+
+ MultiDimContainer
+Ex - 1
+         var x : int[2][2] = [ [ 1, 2 ], [ 3, 4 ] ] x[0][1] =
+        5 print(x) 
+        
+Ex - 2
+                var x : int[5][3] = [ 4, 6 ]
+        var y : int = 1
+        var z : int[2][3] = [ [ 4, y, 1 ], [ 5, 6, 2 ] ]
+        print(x)
+        for var i = 0 to 1 {
+            for var j = 0 to 2 {
+                x[i][j] = z[i][j]
+            }
+        }
+            
+        
+        print(x)
+        print(z)     
+
+Container
+Ex - 1
+
+var a:deci[5] = [1.1, 2.2, 3.3, 4.4, 5.5]
+print(a)
+
+
+Ex - 2
+
+
+var a:str[5] = ["a", "yay", "c", "d", "e"]
+print(a[1])
+
+With Function
+
+            fun foo(a:str[3]) -> nthg {
+                print(a)
+            }
+    
+            var a:str[3] = ["a","b","c"]
+    
+            foo(a)
+
+Loop
+
+ForLoop
+Ex - 1
+
+for var i = 0 to 5 { for var j = 0 to 5 { if j == 3 { break } or if
+      j == 2 { print(j) } else { print(j) } } }
+
+Ex - 2
+      for var i = 0 to 5 { var j = 0 while j <= 5 { if j == 3 { break } or
+      if j == 2 { print(j) } else { print(j) } j = j + 1 } }
+
+Functions 
+Ex - 1
+
+fun mainTest()-> bool {
+return false
+}
+print(mainTest())
+
+
+Ex - 2
+
+fun gcd(a:int, b:int) -> int {
+  while (b != 0) {
+    var temp = b
+    b = a % b
+    a = temp
+  }
+  return a
+}
+
+fun lcm(a:int, b:int) -> int {
+  return ((a * b) // gcd(a, b))
+}
+
+print(lcm(10, 15))
+
+Ex - 3
+
+fun sumOfDigits(n) -> int {
+  var sum = 0
+  while (n != 0) {
+    sum = sum + (n % 10)
+    n = n // 10
+  }
+  return sum
+}
+
+print(sumOfDigits(123))
+
+Function As parameters
+Ex - 1
+
+
+fun printX(x: int) -> nthg {
+    print("Printing X",x)
+  }
+
+
+fun main2(f:[(int)-> nthg]) -> nthg {
+f(2)
+}
+
+
+  main2(printX)
+
+
+  Ex - 2
+
+  fun printX(x: int,y:deci,p:str,u:bool,ano:[(str)->nthg]) -> nthg {
+    print("Printing X",x)
+    print(y,p,u)
+    ano("Hehe")
+  }
+fun printS(x: str) -> nthg {
+  print("\n from printS",x)
+}
+
+fun main2(f:[(int,deci,str,bool,[(str)->nthg])-> nthg]) -> nthg {
+f(2,2.2,"Sss",false,printS)
+}
+
+
+  main2(printX)
+
+
+or if else Statements
+
+Ex - 1
+
+if(false) { print(10) } or if(true) { if(false) { print(20) } else {
+      if(8 > 5) { print(35) } else { print(45) } } } else { print(50) }
+
+Indexing
+
+
+class A{
+    var x:int[2]
+  
+
+    init(x:int[2]) -> nthg {
+      self.x[1] = x[1]
+    }
+
+
+  }
+
+
+  var a: A = new A([2,3])
+
+
+  print(a.x)
+
+
+  Inout - For pass by Ref 
+
+Ex - 1
+
+  type K = {
+  e:deci,
+  s:str 
+}
+
+type T ={
+a:int,
+b:deci,
+c:str,
+d:K[2]
+}
+
+fun pa(inout a:T[2]) -> nthg {
+  a[0].d[0].e = 10.1 
+  print(a)
+  print("\n")
+}
+
+var a:T[2] = [2 fill {c:"hi",a:2}]
+print(a)
+print("\n")
+pa(a)
+print(a)
+
+Ex - 2
+
+
+type T = {
+  a:int 
+}
+
+class A{
+  var obj:T 
+
+  init(obj:T) -> nthg {
+    self.obj = obj 
+  }
+}
+
+
+fun main2(inout a:A) -> nthg {
+  print(a.obj)
+  a.obj.a = 21
+}
+
+var a:A = new A({a:100})
+
+main2(a)
+
+print("After Pass\n")
+print(a.obj)
+
+
+Using new Keyword ( for runtime memory allocation)
+
+var x:int = new 5 
+print(x)
+print("\n")
+x = 100
+print(x+"\n")
+var d:deci = new 2.2
+print(d)
+print("\n")
+var s:str = new "Home"
+print(s)
+var b:bool = new true
+print("\n"+b)
+
+Assignment 
+ type obj = {
+    i:int,
+    s:str
+  }
+type k = {
+  o: int,
+  s: str,
+  d: deci,
+  i: int,
+  ob:obj
+}
+type par = {
+  u: str,
+  g: k[2]
+}
+type t = {
+  x: int,
+  y: str,
+  a: deci,
+  b: bool,
+  ar: par[1]
+}
+  var arr:t[2]
+
+arr = new [{x:2}] /; will update arr[0].x = 2 but rest will remain same
+
+
+arr <- new [{x:2}] /; will update arr[0].x = 2 and rest of element will have default value
+
+
+Function With Default parameters
+
+
+fun test(a:int,b:int = 3 ,c:int = 2,d:deci = 3.3) -> deci  {
+  
+  print("a: ",a,b,c,d)
+  return 2.3 
+}
+
+var e:deci = test(2,100)
+print("\nE:",e)
+
+
+Multiple Assignment
+
+
+Ex - 1
+
+
+var x:int, y:str = 2,"hello"
+
+print(x,y)
+
+y,x = "Hi",5
+
+print(x,y)
+
+
+type J ={
+  a:str 
+}
+
+type T = {
+
+  a:int,
+  b:deci,
+  c:J
+}
+
+var a:int,b:str,c:deci,e:bool,g:T  = 2,"e"
+
+
+c,g = 2.3,{b:3.3}
+print(a,b,c,e,g)
+
+Ex  -2
+
+class A {
+  var x:int 
+
+  init(x:int) -> nthg {
+      self.x =x 
+  }
+
+  printX() -> nthg {
+      print(x)
+    }
+
+}
+
+fun getFAndA() -> int, A  {
+  return 2,new A(32)
+}
+
+fun getP() -> A {
+    return new A(21)
+  }
+
+{
+    var a:A = getP()
+
+    
+
+a.printX()
+
+
+var u:int ,b:A
+
+u,b= getFAndA()
+b.printX()
+print(u)
+print(b.x)
+
+
+Objects 
+
+Ex - 1
+
+     type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool
+     }
+
+     var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+     print(x)
+
+
+     Ex - 2
+
+         type t1 = {
+      a:str,
+      b:int,
+      c:deci,
+      d:bool
+     }
+     fun mainTest() -> t1{
+           var x:t1 = { 
+       a:"hello",
+       b:10,
+       c:10.10,
+       d:true
+     }
+
+     return x
+     }
+
+     var u:t1 = mainTest()
+     print(u)
+
+     Ex - 3
+
+            type t1 = {
+       x:int[10]
+     }
+     {
+    var y:t1 = {
+      x:[1,2,3,4,5,6,7,8,9]
+    }
+
+    print(y)    }
+
+
+    Switch Statement 
+
+
+E -1
+    var a:int = 5
+
+switch true {
+    case a > 0 && a < 10:{
+    print("a is between 0 and 10")
+    }
+    case a > 10 && a < 20:{
+    print("a is between 10 and 20")
+    }
+    default: { 
+    print("default")
+    }
+}
+
+Ex - 2
+
+var a:deci = 5.2
+
+switch a {
+    case 5:{
+    print("a matches int 5")
+    }
+    case 5.2:{
+    print("a matches deci 5.2")
+    }
+    default: { 
+    print("default")
+    }
+}
+
+
+Ternary 
+
+
+print(true ? "Hello" : "Bye")
+print(false ? "Hello" : "Bye")
+print("Hello" ? "Hello" : "Bye")
+print("Bye" ? "Hello" : "Bye")
+print(1 ? "Hello" : "Bye")
+print(0 ? "Hello" : "Bye")
+print(1.5 ? "Hello" : "Bye")
+print(0.5 ? "Hello" : "Bye")
+print(0.0 ? "Hello" : "Bye")
+print(1.0 ? "Hello" : "Bye")
+
+
+Variable Declaration 
+
+
+var a = 2 + 3
+
+
+Constant Declaration
+const a = 2 const a = 3
+
+
+While Loop 
+Ex - 1
+
+var x = 0 while(x < 5) { if(x == 3) { x = x + 1 } else { x = x + 2 }
+      } print(x)
+
+
+      Ex - 2
+
+
+      var x = 0 while x<3 { x=x+1 while(x<3) { print(x) break x=x+1
+      print(x) } }
+
+
+Imports/Bring Statement 
+
+var x:int = 2
+
+type TB = {
+    s:str 
+  }
+
+type T  ={
+    a:int,
+    b:TB[2]
+}
+
+var k:T = {}
+
+var j:T[2] 
+
+class  A {
+  var x:int 
+  var y:T  
+  
+  init(y:T ) -> nthg {
+    self.y = y 
+  }
+
+  printY() -> nthg {
+      print(self.y)
+  }
+
+}
+
+
+
+
+fun callS(x:int ) -> nthg {
+  var aF:A = new A({b:[{s:"Hello"}]})
+  print("Printing af ",aF.y)
+
+  print("Printing k ",k)
+
+  print("Print local x",x)
+}
+
+Ex -1
+bring "file1.fg"
+
+
+print(x)
+
+print(k)
+
+print(j)
+
+
+
+callS(88)
+
+var p:T  
+
+p = {a:2 }
+print("print p ",p )
+
+
+Ex -2
+
+bring {x,k,j,callS,A} from "file1.fg"
+
+
+print(x)
+
+print(k)
+
+print(j)
+
+
+
+callS(88)
+
+var p:T  
+
+p = {a:2 }
+print("print p ",p )
+
+var g:A = new A({})
+
+g.printY()
+
+
+
+Create Modules 
+
+
+module [test2]
+  
+    var x:int = 2
+ 
+ fun main2(x:int,s:str) -> nthg {
+    print("Printing from Module Test "+x+s)
+}
+
+Bring Module
+
+bring test2
+
+test2::main2(2,"s")
+
+
+Ex - 2
+
+module [local]
+
+
+type P ={
+    a:int 
+  }
+
+type T = {
+    a:int,
+    b:str,
+    c:deci,
+    d:deci32,
+    e:bool,
+    f:local::P
+  }
+
+  var x:local::T
+
+fun main() -> nthg {
+  local::x = {a:2}
+  var k:local::T
+  print(k)
+print(local::x)
+}
+fun callMe(y:local::T) -> local::T {
+  var p:local::T = y
+
+  p.e = true
+local::main()
+  return p
+
+  
+}
+
+
+bring local
+
+
+print(local::callMe({a:10}))

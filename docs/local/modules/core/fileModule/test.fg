@@ -1,0 +1,37 @@
+bring File
+bring Err
+var err1: Err::Result = new Err::Result("File not found", Err::CODE.NOT_FOUND)
+print(err1.getMessage())  /; Error: File not found
+
+var err2: Err::Result = err1.withMessage("Please check the path")
+print(err2.toString())  /; Error: File not found -> Please check the path
+
+var err3: Err::Result = err2.withDetails("The file might have been deleted")
+print(err3.toString())  /; Error: File not found -> Please check the path (Details: The file might have been deleted)
+
+var err4: Err::Result = new Err::Result("Invalid argument", Err::CODE.INVALID_ARGUMENT)
+print(err4.toString())  /; Error: Invalid argument
+  /#
+
+var err: Err::Result = File::createFile("test.txt")
+if (err != Nir) {
+  print(err.toString())
+} else {
+  print("File Created")
+}
+var errorWritingToFile: Err::Result = File::write("test.txt", "Hello", "a")
+if (errorWritingToFile != Nir) {
+  print(errorWritingToFile.toString())
+} else {
+  print("\nFile Written")
+}
+var content: str, errorReadingFromFile: Err::Result = File::read("test.txt", "rb")
+if (errorReadingFromFile != Nir) {
+  print(errorReadingFromFile.toString())
+} else {
+  print("\nFile Read: ", content)
+}
+
+
+
+

@@ -156,7 +156,6 @@ class GreenMountain extends GameUnit {
 
   }
 
-
 }
 class BlackMountain extends GameUnit {
   init(texture: Texture) -> nthg {
