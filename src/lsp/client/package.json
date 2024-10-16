@@ -1,10 +1,11 @@
 {
-  "name": "lsp-sample-multi-server-client-part",
-  "description": "VSCode part of a language server",
-  "author": "Microsoft Corporation",
+  "name": "Flow-Wing",
+  "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
+  "author": "kushagra Rathore",
   "license": "FlowWing Compiler Contribution License",
   "version": "0.0.1",
   "publisher": "vscode",
+  "icon": "src/resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/kushagra1212/Flow-Wing"

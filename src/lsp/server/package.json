@@ -1,19 +1,19 @@
 {
-	"name": "lsp-sample-server",
-	"description": "Example implementation of a language server in node.",
-	"version": "1.0.0",
-	"author": "Microsoft Corporation",
-	"license": "MIT",
-	"engines": {
-		"node": "*"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-extension-samples"
-	},
-	"dependencies": {
-		"vscode-languageserver": "^7.0.0",
-		"vscode-languageserver-textdocument": "^1.0.1"
-	},
-	"scripts": {}
+  "name": "Flow-Wing",
+  "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
+  "author": "kushagra Rathore",
+  "license": "FlowWing Compiler Contribution License",
+  "version": "0.0.1",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kushagra1212/Flow-Wing"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1"
+  },
+  "scripts": {}
 }

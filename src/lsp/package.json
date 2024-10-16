@@ -1,6 +1,6 @@
 {
-  "name": "multi-server-lsp-of-flow-wing",
-  "description": "A Flow-Wing language server that supports multiple roots for VSCode",
+  "name": "Flow-Wing",
+  "description": "Flow-Wing IntelliSense, diagnostics, and code browsing for VSCode",
   "author": "kushagra Rathore",
   "license": "FlowWing Compiler Contribution License",
   "version": "1.0.0",
@@ -8,7 +8,8 @@
     "type": "git",
     "url": "https://github.com/kushagra1212/Flow-Wing"
   },
-  "publisher": "vscode-samples",
+  "icon": "client/src/resources/icon.png",
+  "publisher": "kushagra",
   "categories": [],
   "keywords": [
     "multi-root ready"

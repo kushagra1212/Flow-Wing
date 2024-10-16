@@ -2,7 +2,6 @@ import {
   createConnection,
   TextDocuments,
   ProposedFeatures,
-  ShowDocumentResult,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { onChangeContent } from "./handlers/onChangeContent";
@@ -13,7 +12,6 @@ import { onSignatureHelp } from "./handlers/onSignatureHelp";
 import { onDidChangeConfiguration } from "./handlers/onDidChangeConfiguration";
 import { onDidClose } from "./handlers/onDidClose";
 import { InitializationHandler } from "./handlers/InitializationHandler";
-import { validateTextDocument } from "./services/documentService";
 import { onDefinition } from "./handlers/onDefinition";
 import { onDocumentFormatting } from "./handlers/onDocumentFormatting";
 

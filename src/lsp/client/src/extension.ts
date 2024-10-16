@@ -63,9 +63,7 @@ export function activate(context: ExtensionContext) {
   const module = context.asAbsolutePath(
     path.join("server", "out", "server.js")
   );
-  const outputChannel: OutputChannel = Window.createOutputChannel(
-    "multi-server-lsp-of-flow-wing"
-  );
+  const outputChannel: OutputChannel = Window.createOutputChannel("flow-wing");
 
   function didOpenTextDocument(document: TextDocument): void {
     // We are only interested in language mode text
@@ -119,12 +117,12 @@ export function activate(context: ExtensionContext) {
             pattern: `${folder.uri.fsPath}/**/*`,
           },
         ],
-        diagnosticCollectionName: "multi-server-lsp-of-flow-wing",
+        diagnosticCollectionName: "flow-wing",
         workspaceFolder: folder,
         outputChannel: outputChannel,
       };
       const client = new LanguageClient(
-        "multi-server-lsp-of-flow-wing",
+        "flow-wing",
         "A Flow-Wing language server that supports multiple roots for VSCode",
         serverOptions,
         clientOptions
