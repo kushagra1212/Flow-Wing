@@ -5,7 +5,8 @@ bring Json
 bring Map
 
 fun handleHomePage(req: Vortex::HttpRequest, res: Vortex::HttpResponse) -> nthg {
-  var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")    /; Handle GET request for the home page
+  var homePage: str, homePageLoadErr: Err::Result = File::read("homePage.html", "r")    
+  /; Handle GET request for the home page
 
   if (homePageLoadErr != Nir) {
     print(homePageLoadErr.getMessage(), "\n")
