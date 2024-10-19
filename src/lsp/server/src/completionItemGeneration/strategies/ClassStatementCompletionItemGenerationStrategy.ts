@@ -75,25 +75,42 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       if (this.programCtx.rootProgram.classes.has(parentClassName)) {
         const parentClass =
           this.programCtx.rootProgram.classes.get(parentClassName);
+
         parentClass.functions.forEach((value, key) => {
           this.programCtx.rootProgram.classes
             .get(this.programCtx.getCurrentParsingClassName())
             ?.functions?.set(key, value);
         });
-        parentClass.variableDeclarations.forEach((value, key) => {
-          this.programCtx.rootProgram.classes
-            .get(this.programCtx.getCurrentParsingClassName())
-            ?.variableDeclarations?.set(key, value);
-        });
+
         parentClass.variableExpressions.forEach((value, key) => {
           this.programCtx.rootProgram.classes
             .get(this.programCtx.getCurrentParsingClassName())
             ?.variableExpressions?.set(key, value);
         });
+
+        parentClass.variableDeclarations.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.variableDeclarations?.set(key, value);
+
+          this.programCtx.stack.peek().variableDeclarations.set(key, value);
+        });
+
+        parentClass.customTypes.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.customTypes?.set(key, value);
+        });
+
+        parentClass.functions.forEach((value, key) => {
+          this.programCtx.rootProgram.classes
+            .get(this.programCtx.getCurrentParsingClassName())
+            ?.functions?.set(key, value);
+        });
       }
     }
     this.programCtx.rootProgram.classes.forEach((completionItem: any, key) => {
-      this.setMoudleMembersIfNeeded("classes", { name: key, completionItem });
+      this.setModuleMembersIfNeeded("classes", { name: key, completionItem });
     });
 
     this.programCtx.rootProgram.classes.get(
@@ -107,7 +124,7 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       ).classCompletionItem.data,
     };
 
-    this.setMoudleMembersIfNeeded("classes", this.result);
+    this.setModuleMembersIfNeeded("classes", this.result);
     return [];
   }
 
@@ -117,7 +134,7 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
     let classDeclarationStr = "";
     let index = 0;
     let classIdefToken = null;
-
+    let parentClassIdefToken = null;
     if (classDeclaration[index]["ExposeKeyword"])
       classDeclarationStr +=
         classDeclaration[index++]["ExposeKeyword"].value + " ";
@@ -131,6 +148,15 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       classDeclarationStr += classDeclaration[index++]["IdentifierToken"].value;
     }
 
+    if (classDeclaration[index]["ExtendsKeyword"])
+      classDeclarationStr +=
+        classDeclaration[index++]["ExtendsKeyword"].value + " ";
+
+    if (classDeclaration[index]["IdentifierToken"]) {
+      parentClassIdefToken = classDeclaration[index]["IdentifierToken"];
+      classDeclarationStr += classDeclaration[index++]["IdentifierToken"].value;
+    }
+
     const className = new ClassExpressionStrategy().getExpressionAsString(
       classDeclaration
     );
@@ -140,6 +166,7 @@ export class ClassStatementCompletionItemGenerationStrategy extends CompletionIt
       kind: CompletionItemKind.Class,
       data: {
         ...createRange(classIdefToken),
+        parentClassToken: parentClassIdefToken,
       },
       detail: classDeclarationStr,
       documentation: {

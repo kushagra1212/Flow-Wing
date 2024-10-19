@@ -13,7 +13,8 @@ type FlowWingConfig = {
 
 export const flowWingConfig: FlowWingConfig = {
   compiler: {
-    flowWingPath: "FlowWing",
+    flowWingPath:
+      "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing",
   },
   temp: {
     syntaxFileExt: ".json",

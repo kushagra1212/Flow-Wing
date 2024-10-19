@@ -13,6 +13,7 @@ type Texture = {
   format: int
 }
 const fgAnim: FlowWingAnim = new FlowWingAnim(screenWidth, screenHeight, "snake-game-in-flowwing", FPS)
+
 const GAME_SPEED = 100
 type GameScreenType = {
   MENU: int,
@@ -116,6 +117,7 @@ class HeightedMountain extends GameUnit {
       x: Decimal32(-1 * screenWidth),
       y: 0.0d
     } 
+
   }
 
 
@@ -584,6 +586,7 @@ class GameScreen extends Screen {
 
 
 }
+
 class PauseScreen extends Screen {
   init(inout gameCtx: GameContext) -> nthg {
     super(gameCtx)

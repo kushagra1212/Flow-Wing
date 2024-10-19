@@ -11,6 +11,7 @@ export class ProgramContext {
   currentClassName: string | null = null;
   currentModuleName: string | null = null;
   private isInsideBring: boolean = false;
+  currentBringFilePath: string | null = null;
   bringStatementMap: Map<string, boolean> = new Map();
   private _syntaxTree: RootObject;
 
@@ -89,7 +90,7 @@ export class ProgramContext {
     return this.rootProgram.modules.has(moduleName);
   }
 
-  public isInsideAClassButNotInsideCassMemberFunction(): boolean {
+  public isInsideAClassButNotInsideClassMemberFunction(): boolean {
     return this.isInsideClass() && !this.isInsideFunction();
   }
   public isInsideAModuleButNotInsideFunction(): boolean {
@@ -103,6 +104,7 @@ export class ProgramContext {
   public onExitBring(): void {
     this.isInsideBring = false;
     this.bringStatementMap = new Map();
+    this.currentBringFilePath = null;
   }
 
   public getIsInsideBring(): boolean {

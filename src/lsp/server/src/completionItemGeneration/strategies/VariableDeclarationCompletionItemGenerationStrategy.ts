@@ -20,7 +20,7 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
       this.syntaxObj["VariableDeclaration"]
     );
 
-    if (this.programCtx.isInsideAClassButNotInsideCassMemberFunction()) {
+    if (this.programCtx.isInsideAClassButNotInsideClassMemberFunction()) {
       (this.result.completionItem.documentation as MarkupContent).value += (
         this.programCtx.rootProgram.classes.get(
           this.programCtx.getCurrentParsingClassName()
@@ -68,7 +68,7 @@ export class VariableDeclarationCompletionItemGenerationStrategy extends Complet
       ?.variableDeclarations?.set(this.result.name, this.result.completionItem);
 
     this.setClassMembersIfNeeded("variableDeclarations", this.result);
-    this.setMoudleMembersIfNeeded("variableDeclarations", this.result);
+    this.setModuleMembersIfNeeded("variableDeclarations", this.result);
     return [];
   }
 

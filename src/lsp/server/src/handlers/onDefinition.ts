@@ -59,11 +59,16 @@ export const onDefinition = async (
       suggestion,
       _textDocsParams.textDocument.uri
     );
-    let range =
-      result?.find((item) => item.label === suggestion.word)?.data?.range ??
-      (result?.length === 1 && result?.[0]?.data?.range
-        ? result?.[0]?.data?.range
-        : null);
+
+    let completionItem = result?.find((item) => item.label === suggestion.word);
+
+    let range = null;
+    if (completionItem?.data?.range) {
+      range = completionItem?.data?.range;
+    } else if (result?.length === 1 && result?.[0]?.data?.range) {
+      completionItem = result?.[0];
+      range = result?.[0]?.data?.range;
+    }
 
     if (!uri) {
       uri = _textDocsParams.textDocument.uri;
