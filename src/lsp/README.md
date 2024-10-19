@@ -1,3 +1,4 @@
+
 # Flow-Wing
 
 Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and code browsing features for the Flow-Wing programming language in Visual Studio Code. This extension enhances your development experience by offering real-time feedback and suggestions as you write your code.
@@ -12,8 +13,8 @@ Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and co
 
 ### DEMO
 
+![](https://github.com/user-attachments/assets/28e28e11-f324-4510-aad2-191aad3ce6e1)
 
-https://github.com/user-attachments/assets/d27c0c66-d081-4527-b8e2-38f7b8d8263d
 
 ## Installation
 
