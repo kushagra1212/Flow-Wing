@@ -49,7 +49,7 @@ export class CustomTypeCompletionItemGenerationStrategy extends CompletionItemGe
     }
 
     this.setClassMembersIfNeeded("customTypes", this.result);
-    this.setMoudleMembersIfNeeded("customTypes", this.result);
+    this.setModuleMembersIfNeeded("customTypes", this.result);
 
     return [];
   }

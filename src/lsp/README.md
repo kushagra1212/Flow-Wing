@@ -9,17 +9,18 @@ Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and co
 - **Error Reporting (Diagnostics)**: Receive instant feedback on code errors and issues directly within the editor.
 - **Code Browsing**: Navigate through your codebase effortlessly with enhanced code browsing capabilities.
 
-
 ### DEMO
+
+## IntelliSense
 
 <img src="https://github.com/user-attachments/assets/7137dcc5-c3bc-47d9-a460-77ec5bf9ff8d" />
 
-
 <img src="https://github.com/user-attachments/assets/a15514ac-2c0a-4cd6-9c39-4d188f351a6b" />
-
 
 <img src="https://github.com/user-attachments/assets/e90050e5-7bc0-4736-b4c8-0fea238b5491" />
 
+
+## Error Reporting
 
 ## Installation
 

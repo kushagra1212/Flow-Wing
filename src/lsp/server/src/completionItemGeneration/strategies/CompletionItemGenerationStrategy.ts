@@ -20,14 +20,14 @@ export abstract class CompletionItemGenerationStrategy {
     expressionName: keyof ProgramStructure,
     value: { name: string; completionItem: CompletionItem }
   ) {
-    if (this.programCtx.isInsideAClassButNotInsideCassMemberFunction()) {
+    if (this.programCtx.isInsideAClassButNotInsideClassMemberFunction()) {
       this.programCtx.rootProgram?.classes
         .get(this.programCtx.getCurrentParsingClassName())
         ?.[expressionName]?.set(value.name, value.completionItem);
     }
   }
 
-  public setMoudleMembersIfNeeded(
+  public setModuleMembersIfNeeded(
     expressionName: keyof ProgramStructure,
     value: { name: string; completionItem: CompletionItem }
   ) {

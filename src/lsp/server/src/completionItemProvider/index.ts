@@ -92,7 +92,7 @@ const traverseJson = async ({
         programCtx: programCtx,
         suggestion: suggestion,
       });
-      if (res?.length) return res;
+      if (res?.length) return wrap(res, programCtx, currentTextDocUri);
     }
   } else if (typeof obj === "object" && obj !== null) {
     if (obj["BringStatementSyntax"]) {
@@ -103,7 +103,7 @@ const traverseJson = async ({
         suggestion,
       });
 
-      if (result.length) return result;
+      if (result.length) return wrap(result, programCtx, currentTextDocUri);
     }
     if (obj["ClassKeyword"]) {
       if (
@@ -114,39 +114,12 @@ const traverseJson = async ({
             obj["ClassKeyword"]["lineNumber"] === suggestion.token.lineNumber))
       ) {
         programCtx.setCurrentParsingClassName(null);
-
-        // if (!suggestion.data.isDot)
-        //   return new CompletionItemService(
-        //     new AllCompletionItemsStrategy()
-        //   ).getCompletionItems({ programCtx: programCtx });
-
-        // return [];
       }
     }
 
     if (obj["ModuleStatement"]) {
       programCtx.setCurrentParsingModuleName(null);
     }
-
-    // if (obj["columnNumber"] && obj["lineNumber"]) {
-    //   if (
-    //     suggestion.token.columnNumber === obj["columnNumber"] &&
-    //     suggestion.token.lineNumber === obj["lineNumber"]
-    //   ) {
-    //     if (suggestion.data.isDot) {
-    //       return getCompletionItemsForDot(suggestion, programCtx);
-    //     }
-    //     const identifierResult = [];
-
-    //     const allResult =
-    //       new CompletionItemService(
-    //         new AllCompletionItemsStrategy()
-    //       ).getCompletionItems({ programCtx: programCtx }) ?? [];
-
-    //     const result = getUnique(identifierResult, allResult);
-    //     if (result?.length) return result;
-    //   }
-    // }
 
     if (obj["IdentifierToken"]) {
       const identifierToken: IdentifierToken = obj["IdentifierToken"];
@@ -174,7 +147,7 @@ const traverseJson = async ({
           ).getCompletionItems({ programCtx: programCtx }) ?? [];
 
         const result = getUnique(identifierResult, allResult);
-        if (result?.length) return result;
+        if (result?.length) return wrap(result, programCtx, currentTextDocUri);
       }
     }
 
@@ -199,7 +172,7 @@ const traverseJson = async ({
         suggestion: suggestion,
       });
 
-      if (result?.length) return result;
+      if (result?.length) return wrap(result, programCtx, currentTextDocUri);
     }
 
     if (obj["BringStatementSyntax"]) {
@@ -227,6 +200,22 @@ const traverseJson = async ({
   return [];
 };
 
+const wrap = (
+  result: CompletionItem[],
+  programCtx: ProgramContext,
+  currentTextDocUri: string
+) => {
+  return result.map((item) => {
+    return {
+      ...item,
+      data: {
+        ...item.data,
+        textDocUri: programCtx?.currentBringFilePath ?? currentTextDocUri,
+      },
+    };
+  });
+};
+
 export async function getCompletionItems(
   filePath: string,
   suggestion: SuggestHandler,
@@ -243,11 +232,14 @@ export async function getCompletionItems(
       suggestion: suggestion,
     });
 
-    return result.length === 0 && !suggestion.data.isDot
-      ? new CompletionItemService(
-          new AllCompletionItemsStrategy()
-        ).getCompletionItems({ programCtx: programCtx })
-      : result;
+    const finalResult =
+      result.length === 0 && !suggestion.data.isDot
+        ? new CompletionItemService(
+            new AllCompletionItemsStrategy()
+          ).getCompletionItems({ programCtx: programCtx })
+        : result;
+
+    return wrap(finalResult, programCtx, currentTextDocUri);
   } catch (err) {
     console.error(`Error reading and processing JSON file: ${filePath}`, err);
     return [];
@@ -256,7 +248,7 @@ export async function getCompletionItems(
 
 export async function readTokens(
   filePath: string,
-  postion: Position
+  position: Position
 ): Promise<Token[]> {
   try {
     const tokensAsString = await fileUtils.readFile(filePath);
@@ -265,9 +257,9 @@ export async function readTokens(
 
     for (const token of tokens) {
       if (
-        token.lineNumber < postion.line ||
-        (token.lineNumber <= postion.line &&
-          token.columnNumber < postion.character)
+        token.lineNumber < position.line ||
+        (token.lineNumber <= position.line &&
+          token.columnNumber < position.character)
       ) {
         resTokens.push(token);
       } else {
@@ -472,7 +464,7 @@ const handleBringStatement = async ({
 
   programCtx.setInsideBring(true);
 
-  const possbileModuleIdef: Token | undefined =
+  const possibleModuleIdef: Token | undefined =
     obj["BringStatementSyntax"]?.[1]?.["IdentifierToken"];
   {
     let index = 2;
@@ -506,19 +498,19 @@ const handleBringStatement = async ({
         obj["BringStatementSyntax"]?.[1]?.["StringToken"] as Token
       )?.value?.split(`"`)?.[1];
     } else if (
-      possbileModuleIdef &&
-      possbileModuleIdef.columnNumber === suggestionToken?.columnNumber &&
-      possbileModuleIdef.lineNumber === suggestionToken?.lineNumber
+      possibleModuleIdef &&
+      possibleModuleIdef.columnNumber === suggestionToken?.columnNumber &&
+      possibleModuleIdef.lineNumber === suggestionToken?.lineNumber
     ) {
       relPath = await fileUtils.findFileBreadthFirst(
         getModulePath(),
-        possbileModuleIdef.value + "-module.fg"
+        possibleModuleIdef.value + "-module.fg"
       );
 
       if (!relPath)
         relPath = await fileUtils.findFileBreadthFirst(
           __dirname,
-          possbileModuleIdef.value
+          possibleModuleIdef.value
         );
     }
 
@@ -530,7 +522,7 @@ const handleBringStatement = async ({
       if (importedFileURI && importedFileURI !== "") {
         await validateTextDocument(documents.get(importedFileURI), null);
 
-        const result = (
+        let result = (
           await getCompletionItems(
             fileUtils.getTempFilePath({
               fileName:
@@ -545,6 +537,16 @@ const handleBringStatement = async ({
             importedFileURI
           )
         )?.filter(userDefinedKeywordsFilter);
+        programCtx.currentBringFilePath = importedFileURI;
+        result = result.map((item) => {
+          return {
+            ...item,
+            data: {
+              ...item.data,
+              textDocUri: importedFileURI,
+            },
+          };
+        });
 
         return result ?? [];
       }
