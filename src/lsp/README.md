@@ -12,8 +12,14 @@ Flow-Wing IntelliSense provides intelligent code completion, diagnostics, and co
 
 ### DEMO
 
+<img src="https://github.com/user-attachments/assets/7137dcc5-c3bc-47d9-a460-77ec5bf9ff8d" />
 
-https://github.com/user-attachments/assets/d27c0c66-d081-4527-b8e2-38f7b8d8263d
+
+<img src="https://github.com/user-attachments/assets/a15514ac-2c0a-4cd6-9c39-4d188f351a6b" />
+
+
+<img src="https://github.com/user-attachments/assets/e90050e5-7bc0-4736-b4c8-0fea238b5491" />
+
 
 ## Installation
 
