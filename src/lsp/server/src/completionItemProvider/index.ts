@@ -205,15 +205,16 @@ const wrap = (
   programCtx: ProgramContext,
   currentTextDocUri: string
 ) => {
-  return result.map((item) => {
-    return {
-      ...item,
-      data: {
-        ...item.data,
-        textDocUri: programCtx?.currentBringFilePath ?? currentTextDocUri,
-      },
-    };
-  });
+  return result;
+  // return result.map((item) => {
+  //   return {
+  //     ...item,
+  //     data: {
+  //       ...item.data,
+  //       textDocUri: programCtx?.currentBringFilePath ?? currentTextDocUri,
+  //     },
+  //   };
+  // });
 };
 
 export async function getCompletionItems(
