@@ -205,11 +205,28 @@ std::string outputFile() {
 std::string shortOutputFile() {
   return (*cmdl)(FlowWing::Cli::OPTIONS::ShortOutputFile.name.c_str()).str();
 }
-} // namespace Get
 
+std::string filePath() {
+  for (auto &path : (*cmdl).pos_args()) {
+    if (path.length() > 3 && path[path.length() - 3] == '.' &&
+        path[path.length() - 2] == 'f' && path[path.length() - 1] == 'g') {
+      return path;
+    }
+  }
+
+  return "";
+}
+} // namespace Get
 enum FlowWing::Cli::STATUS handleBasicArgs() {
   if (FlowWing::Cli::isFlag::versionName()) {
+#if defined(AOT_MODE)
     std::cout << "Flowwing Compiler" << std::endl;
+#elif defined(JIT_MODE)
+    std::cout << "Flowwing Just-In-Time Compiler" << std::endl;
+#else
+    std::cout << "Flowwing REPL" << std::endl;
+#endif
+
     std::cout << "Version: " << VERSION_INFO << std::endl;
     return FlowWing::Cli::STATUS::DONE;
   }
@@ -220,8 +237,15 @@ enum FlowWing::Cli::STATUS handleBasicArgs() {
     return FlowWing::Cli::STATUS::DONE;
   }
 
+  if (FlowWing::Cli::Get::filePath() != "") {
+    return FlowWing::Cli::STATUS::PROCEED;
+  }
+
   if (!FlowWing::Cli::isParam::file() && !FlowWing::Cli::isParam::shortFile()) {
-    Utils::printErrors({"Usage: FlowWing  <file_path> "}, std::cerr, true);
+    Utils::printErrors(
+        {"Usage: FlowWing  -F=<filename.fg/filePath.fg> or "
+         "--file=<filename.fg/filePath.fg> or FlowWing filePath.fg"},
+        std::cerr, true);
     return FlowWing::Cli::STATUS::FAILURE;
   }
 
@@ -230,8 +254,13 @@ enum FlowWing::Cli::STATUS handleBasicArgs() {
 
 enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
                                           std::string &filePath, char *argv[]) {
-  filePath = FlowWing::Cli::isParam::file() ? FlowWing::Cli::Get::file()
-                                            : FlowWing::Cli::Get::shortFile();
+
+  if (FlowWing::Cli::Get::filePath() != "") {
+    filePath = FlowWing::Cli::Get::filePath();
+  } else {
+    filePath = FlowWing::Cli::isParam::file() ? FlowWing::Cli::Get::file()
+                                              : FlowWing::Cli::Get::shortFile();
+  }
   // Opens the file using the provided file path
 
   std::ifstream file;
@@ -244,9 +273,9 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
                        std::cerr);
 
     if (access(filePath.c_str(), R_OK) != 0) {
-      Utils::printErrors(
-          {"Please check if the file exists and you have read permissions."},
-          std::cerr);
+      Utils::printErrors({"Please check if the file exists and you have "
+                          "read permissions."},
+                         std::cerr);
     }
 
     return FlowWing::Cli::STATUS::FAILURE;

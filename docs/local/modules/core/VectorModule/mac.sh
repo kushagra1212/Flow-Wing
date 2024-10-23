@@ -2,14 +2,15 @@
 
 # Define paths and variables
 export FLOW_WING_COMPILER_PATH="/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
-export FLOW_WING_LIB_PATH="/Users/apple/code/per/Flow-Wing-Website"
-export FLOW_WING_FILE="server.fg"
-export SHARED_LIB_PATH="libflowwing_vortex.a"
-export OUTPUT_EXECUTABLE="build/bin/server"
+export FLOW_WING_LIB_PATH="/Users/apple/code/per/Flow-Wing/docs/local/modules/core/VectorModule"
+export FLOW_WING_FILE="test.fg"
+export SHARED_LIB_PATH="libflowwing_vector.so"
+export SHARED_LIB_PATH_O="libflowwing_vector.o"
+export OUTPUT_EXECUTABLE="build/bin/test"
 
-# Compile the C code into a shared library
-echo "Compiling C code into shared library..."
-clang -fPIC -o $SHARED_LIB_PATH -c server.c -I/opt/homebrew/include
+# Compile the C++ code into a shared library
+echo "Compiling C++ code into shared library..."
+clang++ -std=c++20  -fPIC -shared  vector.cpp -o $SHARED_LIB_PATH -I/opt/homebrew/include
 
 # Check for errors in the C compilation step
 if [ $? -ne 0 ]; then
@@ -25,11 +26,10 @@ if [ ! -f "$SHARED_LIB_PATH" ]; then
     exit 1
 fi
 
-export DYLD_LIBRARY_PATH=/Users/apple/code/per/Flow-Wing/lib/mac-silicon/lib:$DYLD_LIBRARY_PATH
 
 # Compile the Flow-Wing code
 echo "Compiling Flow-Wing code..."
-$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O=-O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_vortex
+$FLOW_WING_COMPILER_PATH --F=$FLOW_WING_FILE -O3 -L=$FLOW_WING_LIB_PATH -l=flowwing_vector
 
 # Check if the executable was created successfully
 if [ ! -f "$OUTPUT_EXECUTABLE" ]; then
@@ -38,5 +38,5 @@ if [ ! -f "$OUTPUT_EXECUTABLE" ]; then
 fi
 
 # Run the executable
-echo "Running the server..."
+echo "Executing the executable..."
 $OUTPUT_EXECUTABLE

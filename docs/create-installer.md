@@ -41,3 +41,5 @@ a FlowWing-0.0.1/lib/modules/Err-module.fg
 a FlowWing-0.0.1/lib/modules/Vec-module.fg
 a FlowWing-0.0.1/lib/modules/File-module.fg
 a FlowWing-0.0.1/bin/FlowWing
+
+shasum -a 256 FlowWing-0.0.1.tar.gz

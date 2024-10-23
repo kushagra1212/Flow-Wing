@@ -1,7 +1,5 @@
 bring Err
 module [File]
-
-
 type IO_FILE = {
   flags: int,
   IO_read_ptr: str,
@@ -14,14 +12,14 @@ type IO_FILE = {
   IO_buf_end: str,
   IO_save_base: str,
   IO_backup_base: str,
-  IO_save_end: str,/; struct ptr 
+  IO_save_end: str,    /; struct ptr 
 
   IO_marker: str,
-  IO_FILE: str,/; 
+  IO_FILE: str,    /; 
 
   fileno: int,
   blksize: int,
-  flags2: int64,/;
+  flags2: int64,    /;
 
   t8_1: int8,
   t8_2: int8,
@@ -31,7 +29,7 @@ type IO_FILE = {
   c: int64,
   IO_codecvt: str,
   IO_wide_data: str,
-  IO_FILE2: str,/; 
+  IO_FILE2: str,    /; 
 
   j: str,
   k: int64,
@@ -89,31 +87,43 @@ fun read(filePath: as str, mode: as str) -> str, Err::Result {
 }
 
 
-fun write(filePath: as str, data: as str, mode: as str) -> str, Err::Result {
+fun write(filePath: as str, data: as str, mode: as str) -> Err::Result {
+/; Validate the mode for writing or appending
+
   if (mode != "w" && mode != "wb" && mode != "a" && mode != "ab") {
-    return "", new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
+    return new Err::Result("Invalid file mode: " + mode, Err::CODE.INVALID_ARGUMENT)
   }
+  /; Open the file in the specified mode
+
   var file: str = fopen(filePath, mode)
   if file == Nir {
-    return "", new Err::Result("Failed to open file: " + filePath, Err::CODE.NOT_FOUND)
+    return new Err::Result("Failed to open file: " + filePath, Err::CODE.NOT_FOUND)
   }
+  /; Get the length of the data to write
+
   const len: int = strlen(data)
+  /; Write the data to the file
+
   const bytesWritten: int = fwrite(data, 1, len, file)
   if (bytesWritten != len) {
+    fclose(file)      /; Ensure the file is closed before returning
+
     return new Err::Result("Failed to write the entire data to file: " + filePath, Err::CODE.FAILED)
   }
+  /; Close the file after writing
+
   fclose(file)
-  return "", Nir
+  return Nir
 }
 
 
-fun createFile(filePath: as str) -> str, Err::Result {
+fun createFile(filePath: as str) -> Err::Result {
   var file: str = fopen(filePath, "w")
   if (file == Nir) {
-    return "" ,new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
+    return new Err::Result("Failed to create file: " + filePath, Err::CODE.FAILED)
   }
   fclose(file)
-  return "", Nir
+  return Nir
 }
 
 

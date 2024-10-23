@@ -83,7 +83,7 @@
   "../../../lib/linux-x86_64/libbuilt_in_module.bc"
 #elif defined(RELEASE) && defined(__APPLE__)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
-  "../../../lib/mac-silicon/libbuilt_in_module.bc"
+  "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"
 #else
 #define LIB_BUILT_IN_MODULE_PATH ""
 #endif

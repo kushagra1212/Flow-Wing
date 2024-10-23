@@ -38,14 +38,17 @@ void set_route(const char *method, const char *path, RequestHandler handler, Cus
 
 void set_middleware(RequestHandler mw, CustomRequestHandler mwCustom) { middleware = mw; middlewareCustom = mwCustom; }
 
-char* send_response(int client_socket, const char *status, const char *content_type, const char *body, int keep_alive) {
+
+
+
+char* send_response(int client_socket, const char *status, const char *content_type, const char *body, int keep_alive, size_t _content_length ) {
     if (!status || !content_type) {
         perror("Invalid status or content_type provided");
         return "Error: Invalid status or content_type provided";
     }
 
     // Determine body length, handle null or empty body
-    size_t body_length = (body != NULL) ? strlen(body) : 0;
+    size_t body_length =_content_length ? _content_length: ((body != NULL) ? strlen(body) : 0);
 
     // Estimate size for the full response, including headers
     size_t response_size = 512 + body_length; // A rough estimate for the headers + body
@@ -134,6 +137,44 @@ void parse_http_request(const char *request, char *method, char *endpoint) {
   sscanf(request, "%s %s", method, endpoint);
 }
 
+char *read_file(const char *path, size_t *out_length) {
+    // Check if the file exists before trying to open it
+    if (access(path, F_OK) == -1) {
+        perror("File does not exist");
+        return NULL;
+    }
+
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        perror("File open failed");
+        return NULL;
+    }
+
+    fseek(file, 0, SEEK_END);
+    *out_length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char *buffer = malloc(*out_length);
+    if (!buffer) {
+        fclose(file);
+        perror("Memory allocation failed");
+        return NULL;
+    }
+
+    size_t bytesRead = fread(buffer, 1, *out_length, file);
+    if (bytesRead != *out_length) {
+        free(buffer);
+        fclose(file);
+        fprintf(stderr, "Error reading file: Expected %zu bytes, but got %zu\n", *out_length, bytesRead);
+        return NULL;
+    }
+
+    fclose(file);
+    return buffer;
+}
+
+
+
 void handle_request(int client_socket, const char *request) {
   char method[16];
   char endpoint[256];
@@ -154,8 +195,65 @@ void handle_request(int client_socket, const char *request) {
     current = current->next;
   }
 
-  // No route matched
-  send_response(client_socket, "404 Not Found", "text/plain", "Not Found",1);
+      // Get the current working directory
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        send_response(client_socket, "500 Internal Server Error", "text/plain", "Failed to get current working directory", 1,0);
+        return;
+    }
+
+    // Combine the current working directory with the endpoint
+    char *file_path = malloc(strlen(cwd) + strlen(endpoint) + 2); // +2 for '/' and null terminator
+    if (!file_path) {
+        send_response(client_socket, "500 Internal Server Error", "text/plain", "Memory allocation failed", 1,0);
+        return;
+    }
+
+        // Only serve files from the "static" folder
+    const char *static_folder = "/static";
+    
+    // Check if the requested endpoint starts with "/static"
+    if (strncmp(endpoint, static_folder, strlen(static_folder)) != 0) {
+        send_response(client_socket, "403 Forbidden", "text/plain", "Access to requested resource is forbidden", 1,0);
+        return;
+    }
+
+    // Construct the full file path
+    sprintf(file_path, "%s%s", cwd, endpoint);
+
+
+    // Read the file content
+    size_t file_length;
+    char *file_content = read_file(file_path, &file_length);
+    free(file_path);
+
+    if (file_content) {
+        // Determine the MIME type based on the file extension
+        const char *mime_type = "text/plain"; // Default MIME type
+        if (strstr(endpoint, ".html")) {
+            mime_type = "text/html";
+        } else if (strstr(endpoint, ".css")) {
+            mime_type = "text/css";
+        } else if (strstr(endpoint, ".js")) {
+            mime_type = "application/javascript";
+        } else if (strstr(endpoint, ".jpg") || strstr(endpoint, ".jpeg")) {
+            mime_type = "image/jpeg";
+        } else if (strstr(endpoint, ".png")) {
+            mime_type = "image/png";
+        } else if (strstr(endpoint, ".gif")) {
+            mime_type = "image/gif";
+        } else if (strstr(endpoint, ".svg")) {
+            mime_type = "image/svg+xml";
+        }
+
+        // Send the response with the correct MIME type
+        send_response(client_socket, "200 OK", mime_type, file_content, 1, file_length);
+        free(file_content);
+        return;
+    }
+
+    // No route matched and no static file found
+    send_response(client_socket, "404 Not Found", "text/plain", "Page Not Found", 1,0);
 }
 
 void start_server(int port) {

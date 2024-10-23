@@ -14,7 +14,7 @@ fun set_route(method: as str, path: as str, handler: unknown, handler2: unknown)
 fun set_middleware(middleware: unknown, handler: unknown) -> as nthg decl
 
 
-fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int) -> as str decl
+fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int, contentLength: as int) -> as str decl
 
 
 fun send(socket: as int, data: as str, len: as int, flags: as int) -> as nthg decl
@@ -148,7 +148,7 @@ class HttpResponse {
     if (res.body == "") {
       return new Err::Result("Could not send response", Err::CODE.FAILED, "In send")
     }
-    var error: str = send_response(clientSocket, Vortex::statusString(res.status), res.content_type, res.body, res.keepAlive)
+    var error: str = send_response(clientSocket, Vortex::statusString(res.status), res.content_type, res.body, res.keepAlive,0)
     if (error) {
       return new Err::Result(error, Err::CODE.FAILED, "In send")
     }

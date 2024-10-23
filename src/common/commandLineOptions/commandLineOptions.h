@@ -69,6 +69,7 @@ int8_t shortOutputFile();
 namespace Get {
 std::string file();
 std::string shortFile();
+std::string filePath();
 
 std::string code();
 std::string shortCode();
