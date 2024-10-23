@@ -1,7 +1,7 @@
 #ifndef FLOWWING_OBJECT_TYPE_CHAIN_H
 #define FLOWWING_OBJECT_TYPE_CHAIN_H
 
-#include "../../../../Common.h"
+#include "../../../../common/Common.h"
 #include "../CustomTypeStatementTable/CustomTypeStatementTable.h"
 
 class CustomTypeStatementChain {

@@ -1,8 +1,8 @@
 #ifndef FLOWWING_UNARYOPERATIONSTRATEGY_H
 #define FLOWWING_UNARYOPERATIONSTRATEGY_H
 
-#include "../../../Common.h"
 #include "../../../SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "../../../common/Common.h"
 #include "../../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "../../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "../../LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"

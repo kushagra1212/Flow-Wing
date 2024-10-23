@@ -7,7 +7,8 @@ BCFileSaveStrategy::BCFileSaveStrategy(LLVMLogger *llvmLogger) {
 bool BCFileSaveStrategy::saveToFile(const std::string &path,
                                     llvm::Module *module) const {
 
-  llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
+  llvm::sys::fs::create_directories(Utils::getTempDir() +
+                                    FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
 
   // Create an output stream for the .bc file
   std::error_code EC;

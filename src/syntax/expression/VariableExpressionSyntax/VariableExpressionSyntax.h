@@ -1,7 +1,7 @@
 #ifndef __FLOW__WING__VARIABLE_H__
 #define __FLOW__WING__VARIABLE_H__
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"

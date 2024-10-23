@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "../../BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"

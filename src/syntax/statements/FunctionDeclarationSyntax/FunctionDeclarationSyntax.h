@@ -1,7 +1,7 @@
 #ifndef FUNCTIONDECLARATIONSYNTAX_H
 #define FUNCTIONDECLARATIONSYNTAX_H
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../MemberSyntax.h"
 #include "../../SyntaxToken.h"

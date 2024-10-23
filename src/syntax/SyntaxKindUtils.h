@@ -1,7 +1,7 @@
 
 #ifndef SYNTAXKINDUTILS_H
 #define SYNTAXKINDUTILS_H
-#include "../Common.h"
+#include "../common/Common.h"
 namespace SyntaxKindUtils {
 enum SyntaxKind {
 

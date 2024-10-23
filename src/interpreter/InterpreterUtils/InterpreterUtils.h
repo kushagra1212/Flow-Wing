@@ -2,9 +2,9 @@
 #define INTERPRETERUTILS_H
 #include <any>
 
-#include "../../Common.h"
 #include "../../SemanticAnalyzer/BinderKindUtils.h"
 #include "../../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "../../common/Common.h"
 #include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "InterpreterConversions/InterpreterConversion.h"

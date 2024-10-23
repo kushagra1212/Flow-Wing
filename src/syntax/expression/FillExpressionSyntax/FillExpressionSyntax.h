@@ -1,16 +1,16 @@
 #ifndef __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
 #define __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
 
 class FillExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::unique_ptr<ExpressionSyntax> _sizeToFillExpression;
   std::unique_ptr<ExpressionSyntax> _elementExpression;
 
- public:
+public:
   // Overrides
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
@@ -21,8 +21,8 @@ class FillExpressionSyntax : public ExpressionSyntax {
   void setSizeToFillExpression(
       std::unique_ptr<ExpressionSyntax> sizeToFillExpression);
 
-  void setElementExpression(
-      std::unique_ptr<ExpressionSyntax> elementExpression);
+  void
+  setElementExpression(std::unique_ptr<ExpressionSyntax> elementExpression);
 
   // Getters
   auto getSizeToFillExpressionRef() const
@@ -32,4 +32,4 @@ class FillExpressionSyntax : public ExpressionSyntax {
       -> const std::unique_ptr<ExpressionSyntax> &;
 };
 
-#endif  //  __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
+#endif //  __FLOWWING_FILL_EXPRESSION_SYNTAX_H__

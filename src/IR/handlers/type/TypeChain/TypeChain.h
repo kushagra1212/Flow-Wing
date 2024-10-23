@@ -1,7 +1,7 @@
 #ifndef FLOWWING_TYPE_CHAIN_H
 #define FLOWWING_TYPE_CHAIN_H
 
-#include "../../../../Common.h"
+#include "../../../../common/Common.h"
 #include "../TypeTable/TypeTable.h"
 
 class TypeChain {

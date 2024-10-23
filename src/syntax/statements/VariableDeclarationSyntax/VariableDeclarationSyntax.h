@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../SyntaxKindUtils.h"
 #include "../../SyntaxToken.h"

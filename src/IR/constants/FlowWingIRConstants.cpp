@@ -29,7 +29,7 @@ const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
 
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";
-const std::string TEMP_BC_FILES_DIR = +"temp/bc/";
+const std::string TEMP_BC_FILES_DIR = "temp/bc/";
 namespace INNERS {
 namespace FUNCTIONS {
 

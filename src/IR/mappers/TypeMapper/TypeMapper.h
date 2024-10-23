@@ -6,7 +6,7 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../constants/FlowWingIRConstants.h"
 using namespace FLOWWING::IR::CONSTANTS;

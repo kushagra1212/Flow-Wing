@@ -1,6 +1,6 @@
 #ifndef INDEXEXPRESSIONSYNTAX_H
 #define INDEXEXPRESSIONSYNTAX_H
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
 #include "../LiteralExpressionSyntax.h"

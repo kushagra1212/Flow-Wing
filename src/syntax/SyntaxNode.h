@@ -1,7 +1,7 @@
 
 #ifndef __SYNTAXNODE_H__
 #define __SYNTAXNODE_H__
-#include "../Common.h"
+#include "../common/Common.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "SyntaxKindUtils.h"
 class SyntaxNode {

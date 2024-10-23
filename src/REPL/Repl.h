@@ -3,8 +3,8 @@
 #define REPL_H
 
 #include "../ASTBuilder/ASTBuilder.h"
-#include "../Common.h"
 #include "../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "../common/Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../interpreter/Interpreter.h"
 

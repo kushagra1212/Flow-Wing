@@ -277,19 +277,20 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   if (!this->hasErrors()) {
 #if defined(DEBUG)
-    const std::string Filename =
-        (std::string(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR + blockName +
-                     std::string(".ll")));
+    const std::string Filename = (std::string(
+        Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
+        blockName + std::string(".ll")));
     llvm::sys::fs::create_directories(
-        FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
+        Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
     LLVMPrintModuleToFile(wrap(TheModule), Filename.c_str(), OutMessage);
     objectFile->writeModuleToFile(TheModule, blockName);
 #elif defined(AOT_MODE) || defined(AOT_TEST_MODE)
     objectFile->writeModuleToFile(TheModule, blockName);
 #elif (defined(JIT_MODE) || defined(JIT_TEST_MODE))
-    bcFileSaveStrategy->saveToFile(FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
-                                       blockName + ".bc",
-                                   TheModule);
+    bcFileSaveStrategy->saveToFile(
+        Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
+            blockName + ".bc",
+        TheModule);
 #endif
   }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Common.h"
+#include "../common/Common.h"
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../syntax/SyntaxToken.h"
 #include "../utils/Utils.h"

@@ -1,5 +1,33 @@
 #include "Utils.h"
 
+#ifdef _WIN32
+#include <windows.h>
+std::string Utils::getTempDir() {
+#if defined(DEBUG)
+  return "";
+#endif
+  char tempPath[MAX_PATH];
+  DWORD pathLen = GetTempPath(MAX_PATH, tempPath);
+  if (pathLen > 0 && pathLen < MAX_PATH) {
+    return std::string(tempPath);
+  }
+  return "";
+}
+#else
+#include <cstdlib>
+std::string Utils::getTempDir() {
+#if defined(DEBUG)
+  return "";
+#endif
+
+  const char *tempDir = std::getenv("TMPDIR");
+  if (!tempDir) {
+    tempDir = "/tmp";
+  }
+  return std::string(tempDir);
+}
+#endif
+
 void Utils::split(const std::string &str, const std::string &delim,
                   std::vector<std::string> &tokens) {
   size_t prev = 0, pos = 0;

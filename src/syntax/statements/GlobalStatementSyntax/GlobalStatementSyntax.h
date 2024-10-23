@@ -1,7 +1,7 @@
 #ifndef GlobalStatementSyntax_H
 #define GlobalStatementSyntax_H
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../MemberSyntax.h"
 #include "../StatementSyntax.h"
 class GlobalStatementSyntax : public MemberSyntax {

@@ -3,13 +3,13 @@
 
 #include <llvm/IR/Value.h>
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 
 class ValueHandler {
- public:
+public:
   virtual llvm::Value *getValue(const std::string &name) = 0;
   virtual bool updateValue(const std::string &name, llvm::Value *value) = 0;
   virtual void setValue(const std::string &name, llvm::Value *value) = 0;
 };
 
-#endif  // FLOWWING_VALUEHANDLER_H
+#endif // FLOWWING_VALUEHANDLER_H

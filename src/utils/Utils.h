@@ -5,11 +5,11 @@
 #include <regex>
 #include <typeinfo>
 
-#include "../Common.h"
 #include "../SemanticAnalyzer/BinderKindUtils.h"
 #include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "../SemanticAnalyzer/BoundNode.h"
 #include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "../common/Common.h"
 #include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "../syntax/CompilationUnitSyntax.h"
@@ -103,6 +103,7 @@ bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
+std::string getTempDir();
 auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 std::filesystem::path findFile(const std::filesystem::path &directory,
                                const std::string &filename);

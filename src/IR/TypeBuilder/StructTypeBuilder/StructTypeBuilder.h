@@ -2,12 +2,12 @@
 #ifndef __FLOWWING_STRUCT_TYPE_BUILDER_H__
 #define __FLOWWING_STRUCT_TYPE_BUILDER_H__
 
-#include "../../../IR/constants/FlowWingUtilsConstants.h"
+#include "../../../common/constants/FlowWingUtilsConstants.h"
 #include "../ReferenceTypeBuilder/ReferenceTypeBuilder.h"
 #include "../TypeBuilderInterface.h"
 
 class StructTypeBuilder : public TypeBuilderInterface {
- public:
+public:
   StructTypeBuilder(CodeGenerationContext *context);
   void buildType() override;
   llvm::StructType *get() const override;
@@ -26,10 +26,10 @@ class StructTypeBuilder : public TypeBuilderInterface {
                                       llvm::Type *variableType,
                                       const std::string &variableName) const;
 
- private:
+private:
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;
   llvm::LLVMContext *_context;
 };
 
-#endif  // __FLOWWING_STRUCT_TYPE_BUILDER_H__
+#endif // __FLOWWING_STRUCT_TYPE_BUILDER_H__

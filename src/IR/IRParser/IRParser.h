@@ -3,11 +3,11 @@
 
 #include <llvm/IR/Module.h>
 
-#include "../../Common.h"
+#include "../../common/Common.h"
 #include "llvm/IR/AssemblyAnnotationWriter.h"
 
 class IRParser {
- public:
+public:
   IRParser();
   void mergeIR(const std::string &ir);
   void mergeIR(llvm::Module *module);
@@ -20,8 +20,8 @@ class IRParser {
 
   void printIR();
 
- private:
+private:
   std::string _ir;
 };
 
-#endif  // IR_PARSER_H
+#endif // IR_PARSER_H

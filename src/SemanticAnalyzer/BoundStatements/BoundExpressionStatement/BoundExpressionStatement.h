@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../BinderKindUtils.h"
 #include "../../BoundExpressions/BoundExpression/BoundExpression.h"
 #include "../../BoundSourceLocation/BoundSourceLocation.h"

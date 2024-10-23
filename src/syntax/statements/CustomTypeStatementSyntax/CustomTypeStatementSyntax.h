@@ -1,6 +1,6 @@
 #ifndef __FLOW__WING__CUSTOM_TYPE_STATEMENT_SYNTAX_H__
 #define __FLOW__WING__CUSTOM_TYPE_STATEMENT_SYNTAX_H__
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../utils/Utils.h"
 #include "../../SyntaxToken.h"
 #include "../../expression/AttributeExpressionSyntax/AttributeExpressionSyntax.h"

@@ -1,25 +1,25 @@
 #ifndef __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__
 #define __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../SyntaxToken.h"
 #include "../ExpressionSyntax.h"
 #include "../LiteralExpressionSyntax.h"
 
 class AttributeExpressionSyntax : public ExpressionSyntax {
- private:
+private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _key;
   std::unique_ptr<ExpressionSyntax> _value;
 
- public:
+public:
   // Overrides
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  inline auto setAttribute(
-      std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
-      std::unique_ptr<ExpressionSyntax> value) -> void {
+  inline auto
+  setAttribute(std::unique_ptr<LiteralExpressionSyntax<std::any>> key,
+               std::unique_ptr<ExpressionSyntax> value) -> void {
     this->_key = std::move(key);
     this->_value = std::move(value);
   }
@@ -35,4 +35,4 @@ class AttributeExpressionSyntax : public ExpressionSyntax {
   }
 };
 
-#endif  // __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__
+#endif // __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__

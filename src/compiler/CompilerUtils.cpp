@@ -112,7 +112,8 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
                                                                  diagHandler));
 
   std::vector<std::string> filesPath = FlowWing::Compiler::getIRFilePaths(
-      diagHandler, FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
+      diagHandler,
+      Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
 
 //! Need to Include the built in .bc files for both DEBUG and Release
 #if defined(RELEASE) && defined(JIT_MODE)

@@ -1,6 +1,6 @@
 #ifndef BOUNDSCOPEGLOBAL_H
 #define BOUNDSCOPEGLOBAL_H
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../../utils/Utils.h"
 #include "../../BoundExpressions/BoundExpression/BoundExpression.h"

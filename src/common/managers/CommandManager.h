@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Common.h"
 #include "../../IR/constants/FlowWingIRConstants.h"
+#include "../../common/Common.h"
 #include "../../common/commandLineOptions/commandLineOptions.h"
 #include "../../external/include/argh.h"
 #include "../../utils/Utils.h"

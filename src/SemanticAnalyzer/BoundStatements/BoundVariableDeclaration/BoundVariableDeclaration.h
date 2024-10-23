@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../../syntax/expression/ExpressionSyntax.h"
 #include "../../../utils/Utils.h"
 #include "../../BinderKindUtils.h"

@@ -25,11 +25,15 @@ endif(CCACHE_FOUND)
 # Conditionally define REPL_TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
     file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**.cpp)
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
     add_compile_definitions(REPL_TEST_MODE)
 else()
     file(GLOB_RECURSE SOURCES ../../src/**.cpp)   
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
+    
+    # Remove files in the IR directory using list(FILTER)
+    list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/../../src/IR/.*")
+
+    # Remove files in the compiler directory using list(FILTER)
+    list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/../../src/compiler/.*")
     add_compile_definitions(REPL_MODE)
 endif()
 

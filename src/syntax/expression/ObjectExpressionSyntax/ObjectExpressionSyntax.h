@@ -1,7 +1,7 @@
 #ifndef __FLOWWING_OBJECT_EXPRESSION_SYNTAX_H__
 #define __FLOWWING_OBJECT_EXPRESSION_SYNTAX_H__
 
-#include "../../../Common.h"
+#include "../../../common/Common.h"
 #include "../../SyntaxToken.h"
 #include "../AttributeExpressionSyntax/AttributeExpressionSyntax.h"
 #include "../ExpressionSyntax.h"
