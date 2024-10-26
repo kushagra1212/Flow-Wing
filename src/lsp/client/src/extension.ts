@@ -16,6 +16,7 @@ import {
 import {
   LanguageClient,
   LanguageClientOptions,
+  ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
 
@@ -64,6 +65,8 @@ export function activate(context: ExtensionContext) {
     path.join("server", "out", "server.js")
   );
   const outputChannel: OutputChannel = Window.createOutputChannel("flow-wing");
+  const compilerPath =
+    Workspace.getConfiguration("FlowWing").get<string>("compilerPath");
 
   function didOpenTextDocument(document: TextDocument): void {
     // We are only interested in language mode text
@@ -77,18 +80,19 @@ export function activate(context: ExtensionContext) {
     const uri = document.uri;
     // Untitled files go to a default client.
     if (uri.scheme === "flow-wing" && !defaultClient) {
-      const serverOptions = {
+      const serverOptions: ServerOptions = {
         run: { module, transport: TransportKind.ipc },
         debug: { module, transport: TransportKind.ipc },
       };
       const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: "flow-wing", language: "flowwing" }],
-        diagnosticCollectionName: "flowWingLanguageServer",
+        diagnosticCollectionName: "FlowWing",
         outputChannel: outputChannel,
+        initializationOptions: { compilerPath },
       };
       defaultClient = new LanguageClient(
-        "flowWingLanguageServer",
-        "LSP Multi Server Example",
+        "FlowWing",
+        "A Flow-Wing language server for VSCode",
         serverOptions,
         clientOptions
       );
@@ -123,7 +127,7 @@ export function activate(context: ExtensionContext) {
       };
       const client = new LanguageClient(
         "flow-wing",
-        "A Flow-Wing language server that supports multiple roots for VSCode",
+        "A Flow-Wing language server for VSCode",
         serverOptions,
         clientOptions
       );

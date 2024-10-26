@@ -137,12 +137,15 @@
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "workbench.colorTheme": "Snazzy Operator",
-   "editor.codeActionsOnSave": {
-  },
+  "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
   "C_Cpp.dimInactiveRegions": true,
   "editor.wordWrap": "on",
   "C_Cpp.errorSquiggles": "enabled",
-  "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+  "FlowWing": {
+    "maxNumberOfProblems": 100,
+    "compilerPath": "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
+  }
 }

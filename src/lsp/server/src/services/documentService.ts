@@ -39,6 +39,22 @@ export const validateTextDocument = async (
   }
 };
 
+export const doesFlowWingCompilerExist = async (): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    execFile(
+      flowWingConfig.flowWingPath,
+      ["--version"],
+      (error, stdout, stderr) => {
+        if (error || stderr) {
+          console.error(`Compilation error: ${error.message}`);
+          return resolve(false);
+        }
+        resolve(true);
+      }
+    );
+  });
+};
+
 export const validateFile = (
   textDocUri: string,
   filePath: string
@@ -50,8 +66,12 @@ export const validateFile = (
   const commandArgs = [`--file=${filePath}`, `-O=${SYNTAX_FILE_PATH}`];
 
   return new Promise((resolve, reject) => {
+    if (!flowWingConfig.doesFlowWingExist) {
+      resolve({ hasError: false });
+    }
+
     const childProcess = execFile(
-      flowWingConfig.compiler.flowWingPath,
+      flowWingConfig.flowWingPath,
       commandArgs,
       async (error, stdout, stderr) => {
         if (error) {
@@ -109,9 +129,13 @@ export const validateFile = (
 const formatFile = (filePath: string): Promise<string> => {
   const commandArgs = [`--file=${filePath}`, `--format`];
 
+  if (!flowWingConfig.doesFlowWingExist) {
+    return Promise.resolve("");
+  }
+
   return new Promise((resolve, reject) => {
     const childProcess = execFile(
-      flowWingConfig.compiler.flowWingPath,
+      flowWingConfig.flowWingPath,
       commandArgs,
       (error, stdout, stderr) => {
         if (error) {

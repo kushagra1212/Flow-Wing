@@ -165,13 +165,13 @@ var x:int8 = Int8(42)
   },
   {
     label: "Nir",
-    kind: CompletionItemKind.TypeParameter,
+    kind: CompletionItemKind.Keyword,
     data: "Nir",
-    detail: "Nir Data Type",
+    detail: "Nir Keyword",
     documentation: {
       kind: "markdown",
       value: `
-**Nir Data Type** 
+**Nir Keyword** 
 
 The \`Nir\` datatype represents the null or Nirast value, often used as a return type for functions that can return null values.
 

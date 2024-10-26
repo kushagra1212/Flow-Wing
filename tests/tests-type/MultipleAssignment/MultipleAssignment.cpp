@@ -752,4 +752,31 @@ print(b.x)
 
   EXPECT_EQ(getOutput(), R"(23[{ a : 10 }, { a : 0 }]23)");
 }
+
+TEST_F(MultipleAssignment, TestInsideIfStatement) {
+  I(R"(
+  class A {
+  var s:str 
+    init(s:str) -> nthg {
+    self.s = s 
+
+      }
+
+
+
+  }
+
+fun p(x: int) -> int, A {
+return 2, new A("Hello World")
+}
+
+if (true) {
+        var x: int, err:A = p(2)
+      print(err.s)
+}
+
+    )");
+
+  EXPECT_EQ(getOutput(), R"(Hello World)");
+}
 #endif

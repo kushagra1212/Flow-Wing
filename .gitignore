@@ -1,3 +1,5 @@
+
+.DS_Store
 build/
 test-build/
 debug/
@@ -16,4 +18,3 @@ jit-compiler-build-for-test/
 aot-compiler-test-build-in-linux/
 jit-compiler-test-build-in-linux/
 .cache/
-.DS_Store/

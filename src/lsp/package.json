@@ -49,19 +49,19 @@
       "type": "object",
       "title": "Multi Server LSP of Flow Wing for VSCode",
       "properties": {
-        "flowWingLanguageServer.enable": {
+        "FlowWing.enable": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "description": "Controls the enablement."
         },
-        "flowWingLanguageServer": {
+        "FlowWing": {
           "scope": "resource",
           "type": "object",
           "default": {},
           "description": "Additional options."
         },
-        "flowWingLanguageServer.trace.server": {
+        "FlowWing.trace.server": {
           "scope": "window",
           "type": "string",
           "enum": [
@@ -72,11 +72,17 @@
           "default": "off",
           "description": "Traces the communication between VSCode and the language server."
         },
-        "flowWingLanguageServer.maxNumberOfProblems": {
+        "FlowWing.maxNumberOfProblems": {
           "scope": "resource",
           "type": "number",
           "default": 100,
           "description": "Controls the maximum number of problems produced by the server."
+        },
+        "FlowWing.compilerPath": {
+          "scope": "resource",
+          "type": "string",
+          "default": "flowwing",
+          "description": "Path to the Flow-Wing compiler executable."
         }
       }
     }

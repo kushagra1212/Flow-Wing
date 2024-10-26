@@ -84,7 +84,6 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
           _codeGenerationContext);
 
   if (callExpression) {
-
     assignmentEGS->handleAssignExpression(
         callExpression->getArgumentAlloca(0).first,
         callExpression->getArgumentAlloca(0).second, "_retrunArg",
@@ -200,12 +199,17 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
     llvm::Value *_stPtr = _codeGenerationContext->createMemoryGetPtr(
         _structType, "rtStructPtr", firstVariableDeclaration->getMemoryKind());
     uint64_t offset = 0;
+
+    bool hasAlreadyReturnedTypeList =
+        callExpression->getReturnTypeList().size() != 0;
+
     for (const auto &var :
          multipleVariableDeclaration->getVariableDeclarationListRef()) {
       auto [ptr, ptrType] = var->getLLVMVariable();
       Builder->CreateStore(
           ptr, Builder->CreateStructGEP(_structType, _stPtr, offset++));
-      callExpression->addReturnTypeToList(ptrType);
+      if (!hasAlreadyReturnedTypeList)
+        callExpression->addReturnTypeToList(ptrType);
     }
 
     callExpression->setArgumentAlloca(0, {_stPtr, _structType});

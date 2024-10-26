@@ -8,14 +8,13 @@ import {
   WorkspaceFolder,
 } from "vscode-languageserver";
 import {
+  doesFlowWingCompilerExist,
   validateFile,
-  validateTextDocument,
 } from "../services/documentService";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileUtils } from "../utils/fileUtils";
 import { getFileFullPath, getModulePath } from "../utils";
-
-export const onInitialize = () => {};
+import { flowWingConfig } from "../config";
 
 export class InitializationHandler {
   private hasConfigurationCapability: boolean = false;
@@ -75,6 +74,28 @@ export class InitializationHandler {
 
   private onInitialize() {
     this.connection.onInitialized((handler) => {
+      this.connection.workspace
+        .getConfiguration("FlowWing")
+        .then((config) => {
+          if (config?.compilerPath) {
+            flowWingConfig.flowWingPath = config?.compilerPath;
+            console.info(
+              `FlowWing compiler path: ${flowWingConfig.flowWingPath}`
+            );
+          }
+          doesFlowWingCompilerExist().then((exists) => {
+            flowWingConfig.doesFlowWingExist = exists;
+            if (!flowWingConfig.doesFlowWingExist) {
+              this.connection.window.showErrorMessage(
+                "FlowWing not found. Please install FlowWing and try again reloading the window."
+              );
+            }
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+
       if (this.hasConfigurationCapability) {
         // Register for all configuration changes.
         this.connection.client.register(
