@@ -14,10 +14,13 @@ fun set_route(method: as str, path: as str, handler: unknown, handler2: unknown)
 fun set_middleware(middleware: unknown, handler: unknown) -> as nthg decl
 
 
-fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int) -> as str decl
+fun send_response(client_socket: as int, status: as str, content_type: as str, body: as str, keepAlive: as int, contentLength: as int) -> as str decl
 
 
 fun send(socket: as int, data: as str, len: as int, flags: as int) -> as nthg decl
+
+
+fun regex_replace(source: as str, pattern: as str, replacement: as str) -> as str decl
 
 
 fun split(s: str, delimiter: str) -> Vec::String {
@@ -29,7 +32,7 @@ fun split(s: str, delimiter: str) -> Vec::String {
         result.add(part)
       }
       part = "" 
-    } or if (i + 1 < Str::length(s) && String(Str::int8ToString(Int8(s[i])) + Str::int8ToString(Int8(s[i + 1]))) == delimiter) {
+    } or if (i + 1 < Str::length(s) && (String(Str::int8ToString(Int8(s[i])) + Str::int8ToString(Int8(s[i + 1])))) == delimiter) {
       if (Str::length(part)) {
         result.add(part)
       }
@@ -46,6 +49,18 @@ fun split(s: str, delimiter: str) -> Vec::String {
 }
 
 module [Vortex]
+var DELIMITER: str = "~"
+fun renderTemplate(inout template: str, inout variables: Vec::String) -> str {
+  for var i = 0 to variables.size() - 1 {
+    const values: Vec::String = split(variables.get(i), Vortex::DELIMITER)
+    const key: str = "{{" + values.get(0) + "}}"
+    const value: str = values.get(1)
+    template = Vortex::replaceRegex(template, key, value) 
+  }
+  return template
+}
+
+
 type Header = {
   Host: str,
   Connection: str,
@@ -132,6 +147,11 @@ fun statusString(status: int) -> str {
 }
 
 
+fun replaceRegex(source: as str, pattern: as str, replacement: as str) -> as str {
+  return regex_replace(source, pattern, replacement)
+}
+
+
 class HttpResponse {
   var res: Vortex::HttpResponseType
   var clientSocket: int
@@ -148,7 +168,7 @@ class HttpResponse {
     if (res.body == "") {
       return new Err::Result("Could not send response", Err::CODE.FAILED, "In send")
     }
-    var error: str = send_response(clientSocket, Vortex::statusString(res.status), res.content_type, res.body, res.keepAlive)
+    var error: str = send_response(clientSocket, Vortex::statusString(res.status), res.content_type, res.body, res.keepAlive, 0)
     if (error) {
       return new Err::Result(error, Err::CODE.FAILED, "In send")
     }

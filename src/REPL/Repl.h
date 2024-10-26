@@ -35,15 +35,15 @@ public:
   void addTextString(const std::string &textString);
 
 private: // Data members
-  bool showSyntaxTree, showBoundTree, exit;
+  bool showSyntaxTree = false, showBoundTree = false, exit = false;
   std::vector<std::string> text = std::vector<std::string>();
 
-  std::unique_ptr<FlowWing::DiagnosticHandler> _diagnosticHandler;
-  std::unique_ptr<BoundGlobalScope> _previousGlobalScope;
+  std::unique_ptr<FlowWing::DiagnosticHandler> _diagnosticHandler = nullptr;
+  std::unique_ptr<BoundGlobalScope> _previousGlobalScope = nullptr;
   std::vector<std::string> previousText;
 
   // For testing
-  bool isTest;
+  bool isTest = false;
 };
 
 #endif // REPL_H

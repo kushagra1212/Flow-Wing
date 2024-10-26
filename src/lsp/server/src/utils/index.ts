@@ -14,7 +14,7 @@ import { Stack } from "../ds/stack";
 import path = require("path");
 import { keywordsCompletionItems } from "../store";
 import { inBuiltFunctionsCompletionItems } from "../store/completionItems/functions/inbuilt";
-
+import os = require("os");
 // eslint-disable-next-line no-control-regex
 const COLOR_REGEX = /\x1b\[[0-9;]*m/g;
 
@@ -820,7 +820,22 @@ export const getUnique = (
 
   return Array.from(mp.values());
 };
-
 export const getModulePath = () => {
-  return "/opt/homebrew/lib/FlowWing/lib/modules";
+  let modulePath;
+
+  switch (os.platform()) {
+    case "darwin": // macOS
+      modulePath = "/opt/homebrew/lib/FlowWing/lib/modules";
+      break;
+    case "win32": // Windows
+      modulePath = "C:\\Program Files\\FlowWing\\lib\\modules";
+      break;
+    case "linux": // Linux
+      modulePath = "/usr/local/flowwing/lib/modules";
+      break;
+    default:
+      throw new Error("Unsupported OS platform");
+  }
+
+  return path.normalize(modulePath); // Ensure the path is correctly formatted
 };

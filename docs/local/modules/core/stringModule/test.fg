@@ -128,22 +128,24 @@ fun int8ToStringTest() -> nthg {
 }
 
 
-fun main() -> nthg {/;  makeCopyTest()
-/; trimInPlaceTest()
-/; makeCopyTest()
-/; concatTest()
-/; lengthTest()
-/; toLowerTest()
-/; toUpperTest()
-/; compareTest()
-/; reverseTest()
-/; reverseInPlaceTest()
-/; findSubStrIndexTest()
-/; replaceInPlaceTest()
-/; indexOfCharTest()
-/; characterAtTest()
-/; int8ToStringTest()
+fun main2() -> nthg {
+  
+  makeCopyTest()
+ trimInPlaceTest()
+makeCopyTest()
+ concatTest()
+ lengthTest()
+toLowerTest()
+ toUpperTest()
+ compareTest()
+ reverseTest()
+ reverseInPlaceTest()
+ findSubStrIndexTest()
+ replaceInPlaceTest()
+ indexOfCharTest()
+ characterAtTest()
+ int8ToStringTest()
 
 }
 
-main()
+main2()

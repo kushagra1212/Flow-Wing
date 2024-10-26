@@ -34,6 +34,6 @@ class FlowWingConfig {
   }
 }
 
-const flowWingConfig = new FlowWingConfig("flowwing");
+const flowWingConfig = new FlowWingConfig("FlowWing");
 
 export { flowWingConfig };

@@ -22,7 +22,7 @@ std::string Utils::getTempDir() {
 
   const char *tempDir = std::getenv("TMPDIR");
   if (!tempDir) {
-    tempDir = "/tmp";
+    tempDir = "/tmp/";
   }
   return std::string(tempDir);
 }

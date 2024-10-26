@@ -29,7 +29,6 @@ export const onDefinition = async (
       checkForHover
     );
     let uri = _textDocsParams.textDocument.uri;
-    console.log("suggestionDEf", suggestion);
     if (suggestion.word && suggestion.word.endsWith(".fg")) {
       uri = await getImportedFileUri(
         suggestion.word,

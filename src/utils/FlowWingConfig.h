@@ -49,6 +49,7 @@
 #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
 #elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64
 #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
+//!"/usr/local/flowwing/lib"
 #endif
 
 // Define the module path based on the library path
@@ -81,6 +82,7 @@
 #elif defined(RELEASE) && defined(__linux__)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
   "../../../lib/linux-x86_64/libbuilt_in_module.bc"
+//!"/usr/local/flowwing/lib/libbuilt_in_module.bc"
 #elif defined(RELEASE) && defined(__APPLE__)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
   "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"

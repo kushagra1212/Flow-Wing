@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
 #define MAX_REQUEST_SIZE 10240
 
 typedef void (*CustomRequestHandler)(const char *request,
@@ -174,7 +175,6 @@ char *read_file(const char *path, size_t *out_length) {
 }
 
 
-
 void handle_request(int client_socket, const char *request) {
   char method[16];
   char endpoint[256];
@@ -187,11 +187,27 @@ void handle_request(int client_socket, const char *request) {
 
   Route *current = routes;
   while (current) {
-    if (strcmp(current->method, method) == 0 &&
-        strcmp(current->path, endpoint) == 0) {
+    int8_t isValidMethod =  strcmp(current->method, method) == 0;
+    if (isValidMethod &&
+    strcmp(current->path, endpoint) == 0) {
       current->handler(client_socket, request, endpoint, current->custom_handler);
       return;
     }
+
+   // Check for wildcard match, like "/downloads/*"
+    const char *wildcard_pos = strstr(current->path, "/*");
+    if (wildcard_pos != NULL) {
+        // Calculate the prefix length up to the "/*"
+        size_t prefix_length = wildcard_pos - current->path;
+        
+        // Check if the endpoint matches the prefix and has a valid sub-path
+        if (isValidMethod &&  strncmp(endpoint, current->path, prefix_length) == 0 &&
+            (endpoint[prefix_length] == '/' || endpoint[prefix_length] == '\0')) {
+            current->handler(client_socket, request, endpoint, current->custom_handler);
+            return;
+        }
+    }
+
     current = current->next;
   }
 
@@ -314,3 +330,53 @@ void start_server(int port) {
   close(server_fd);
 }
 void flush() { fflush(stdout); }
+
+
+
+
+char *replace_all(const char *source, const char *search, const char *replacement) {
+    size_t search_len = strlen(search);
+    size_t replacement_len = strlen(replacement);
+    
+    // Calculate the initial buffer size for the result
+    size_t result_capacity = strlen(source) + 1; // Start with enough space
+    char *result = malloc(result_capacity);
+    if (result == NULL) {
+        perror("Failed to allocate memory for result");
+        return NULL;
+    }
+    
+    const char *pos = source; // Pointer to current position in the source string
+    char *current_pos = result; // Pointer to the current position in the result string
+
+    while ((pos = strstr(pos, search)) != NULL) {
+        // Copy the part before the match
+        size_t bytes_to_copy = pos - source;
+        while (result_capacity <= (current_pos - result) + bytes_to_copy + replacement_len + 1) {
+            // Resize result if needed
+            result_capacity *= 2; // Double the size
+            result = realloc(result, result_capacity);
+            if (result == NULL) {
+                perror("Failed to reallocate memory for result");
+                return NULL;
+            }
+            current_pos = result + (current_pos - result); // Adjust current_pos to the new memory location
+        }
+        strncpy(current_pos, source, bytes_to_copy);
+        current_pos += bytes_to_copy;
+
+        // Copy the replacement string
+        strcpy(current_pos, replacement);
+        current_pos += replacement_len;
+
+        // Move past the match in the source string
+        pos += search_len; // Move past the current match
+        source = pos; // Update source to continue searching
+    }
+
+    // Copy any remaining part of the source string
+    strcpy(current_pos, source);
+
+    return result;
+}
+

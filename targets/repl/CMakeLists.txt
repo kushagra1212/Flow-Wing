@@ -14,6 +14,8 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
+# Enable warnings globally
+# add_compile_options(-Wall -Wextra -Wpedantic)
 
 # use ccache if available
 find_program(CCACHE_FOUND ccache)
