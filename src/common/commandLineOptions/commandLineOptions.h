@@ -4,6 +4,7 @@
 #include "../../common/version.h"
 #include "../../external/include/argh.h"
 #include "../../utils/Utils.h"
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>

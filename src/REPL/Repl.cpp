@@ -1,9 +1,14 @@
 #include "Repl.h"
 
+Repl *globalReplInstance = nullptr;
+
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   _diagnosticHandler = std::make_unique<FlowWing::DiagnosticHandler>();
   previousText = std::vector<std::string>();
   _previousGlobalScope = nullptr;
+  if (!globalReplInstance) {
+    globalReplInstance = this; // Set the global instance for signal handling
+  }
 }
 Repl::Repl(const bool &test) { this->isTest = test; }
 Repl::~Repl() {}
@@ -289,9 +294,41 @@ bool Repl::isSyntaxTreeVisible() const { return showSyntaxTree; }
 
 bool Repl::isBoundTreeVisible() const { return showBoundTree; }
 
+#ifdef _WIN32
+// Windows-specific control handler
+BOOL WINAPI consoleCtrlHandler(DWORD signal) {
+  if (signal == CTRL_C_EVENT) { // Handle Ctrl+C
+    if (globalReplInstance) {
+      globalReplInstance->toggleExit();
+    }
+    return TRUE; // Signal handled
+  }
+
+  return FALSE; // Signal not handled
+}
+#else
+// POSIX signal handler for Ctrl+C
+void signalHandler(int signal) {
+  if (signal == SIGINT) { // Handle Ctrl+C
+    if (globalReplInstance) {
+      globalReplInstance->toggleExit();
+    }
+  }
+}
+#endif
+
 #ifdef REPL_MODE
 
 int main() {
+
+#ifdef _WIN32
+  // Register the Windows control handler
+  SetConsoleCtrlHandler(consoleCtrlHandler, TRUE);
+#else
+  // Register the POSIX signal handler for Ctrl+C
+  std::signal(SIGINT, signalHandler);
+#endif
+
   std::unique_ptr<Repl> repl = std::make_unique<Repl>();
   repl->run();
   return 0;

@@ -8,6 +8,9 @@
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../interpreter/Interpreter.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 class Repl {
 public:
   Repl();

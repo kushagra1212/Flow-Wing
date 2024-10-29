@@ -1,4 +1,5 @@
 
+#define NOMINMAX
 #include "SyntaxKindUtils.h"
 
 bool SyntaxKindUtils::isInt32(const std::string &str) {

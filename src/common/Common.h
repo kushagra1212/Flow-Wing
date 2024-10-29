@@ -32,8 +32,11 @@
 #include "../utils/Colors.h"
 #include "../utils/Macros.h"
 #include <stdint.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
-
+#endif
 using JSON = nlohmann::json;
 
 namespace COLORED_STRING {

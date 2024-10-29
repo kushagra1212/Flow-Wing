@@ -85,12 +85,15 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
               .string();
 
       bringStatement->setModuleName(relativeFilePath);
-      std::string moduleFilePath = Utils::findFile(
-          std::string(FLOWWING_MODULE_PATH), relativeFilePath + "-module.fg");
+      std::string moduleFilePath =
+          Utils::findFile(std::string(FLOWWING_MODULE_PATH),
+                          relativeFilePath + "-module.fg")
+              .string();
 
       if (moduleFilePath.empty()) {
         moduleFilePath =
-            Utils::findFile(currentDirPath, relativeFilePath + "-module.fg");
+            Utils::findFile(currentDirPath, relativeFilePath + "-module.fg")
+                .string();
       }
 
       if (moduleFilePath.empty()) {
@@ -104,8 +107,9 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       }
 
       DEBUG_LOG("Module File Path: " + moduleFilePath);
+
       relativeFilePath =
-          std::filesystem::relative(moduleFilePath, currentDirPath);
+          std::filesystem::relative(moduleFilePath, currentDirPath).string();
       stringToken->setValue((relativeFilePath));
     }
     // appendNewLine();

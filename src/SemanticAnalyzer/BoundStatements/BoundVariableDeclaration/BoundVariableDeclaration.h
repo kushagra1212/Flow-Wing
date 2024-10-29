@@ -8,7 +8,9 @@
 #include "../../BoundSourceLocation/BoundSourceLocation.h"
 #include "../../BoundStatements/BoundStatement/BoundStatement.h"
 #include "../../MemoryNode.h"
+#if not defined(REPL_MODE)
 #include "llvm/IR/DerivedTypes.h"
+#endif
 
 class BoundVariableDeclaration : public BoundStatement,
                                  public BoundSourceLocation,
@@ -24,8 +26,9 @@ private:
   bool _hasAsKeyword = false;
   std::string _classItBelongsTo;
   BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
+#if not defined(REPL_MODE)
   std::pair<llvm::Value *, llvm::Type *> _llvmVariable;
-
+#endif
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
                            const std::string &variableName, bool isConst,
@@ -74,11 +77,6 @@ public:
   }
 
   inline auto
-  setLLVMVariable(std::pair<llvm::Value *, llvm::Type *> llvmVariable) {
-    _llvmVariable = (llvmVariable);
-  }
-
-  inline auto
   setIdentifier(std::unique_ptr<BoundLiteralExpression<std::any>> identifier) {
     _identifier = std::move(identifier);
   }
@@ -99,10 +97,15 @@ public:
 
   inline auto getHasAsKeyword() -> bool { return _hasAsKeyword; }
 
+#if not defined(REPL_MODE)
+  inline auto
+  setLLVMVariable(std::pair<llvm::Value *, llvm::Type *> llvmVariable) {
+    _llvmVariable = (llvmVariable);
+  }
   inline auto getLLVMVariable() -> std::pair<llvm::Value *, llvm::Type *> {
     return _llvmVariable;
   }
-
+#endif
   inline auto setIsConst(bool isConst) { _isConst = isConst; }
 
   inline auto setIsExposed(bool isExposed) { _isExposed = isExposed; }

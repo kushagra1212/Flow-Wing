@@ -1,5 +1,19 @@
 #include "commandLineOptions.h"
 #include <cstdint>
+#ifdef _WIN32
+#include <io.h> // For _access on Windows
+#define R_OK 4  // Define R_OK on Windows
+#else
+#include <unistd.h> // For access on POSIX
+#endif
+
+bool is_file_readable(const char *filename) {
+#ifdef _WIN32
+  return _access(filename, R_OK) == 0;
+#else
+  return access(filename, R_OK) == 0;
+#endif
+}
 
 namespace FlowWing {
 namespace Cli {
@@ -272,7 +286,7 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
 
-    if (access(filePath.c_str(), R_OK) != 0) {
+    if (is_file_readable(filePath.c_str())) {
       Utils::printErrors({"Please check if the file exists and you have "
                           "read permissions."},
                          std::cerr);
@@ -333,7 +347,7 @@ void printHelp() {
 
   size_t maxFlagLength = 0;
   for (const auto &option : options) {
-    maxFlagLength = std::max(maxFlagLength, option.first.length());
+    maxFlagLength = (std::max)(maxFlagLength, (option.first.length()));
   }
 
   // Print options with formatted alignment
