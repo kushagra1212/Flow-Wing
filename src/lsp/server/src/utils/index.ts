@@ -825,10 +825,10 @@ export const getModulePath = () => {
 
   switch (os.platform()) {
     case "darwin": // macOS
-      modulePath = "/opt/homebrew/lib/FlowWing/lib/modules";
+      modulePath = "/opt/homebrew/opt/flowwing/lib/modules";
       break;
     case "win32": // Windows
-      modulePath = "C:\\Program Files\\FlowWing\\lib\\modules";
+      modulePath = "C:\\Program Files(x86)\\FlowWing\\lib\\modules";
       break;
     case "linux": // Linux
       modulePath = "/usr/local/flowwing/lib/modules";
