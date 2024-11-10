@@ -1,11 +1,13 @@
 
 #include <ctype.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // Copy a string from src to dest
+
 void strCopy(char *dest, char *src) {
   strcpy(dest, src);
   return;

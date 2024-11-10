@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../../../../../common/CrossPlatformMacros.h"
 #include <llvm/IR/DerivedTypes.h>
-
 #include "../LLVMType.h"
 
 class LLVMFunctionType : public LLVMType {

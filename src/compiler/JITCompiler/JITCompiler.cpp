@@ -1,5 +1,11 @@
 #include "JITCompiler.h"
 #include "../../common/version.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/IR/AssemblyAnnotationWriter.h"
+#include "llvm/IR/Verifier.h"
+#include <cstdint>
+#include <iostream>
 #include <string>
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
@@ -14,16 +20,41 @@ void JITCompiler::execute() {
       std::move(FlowWing::Compiler::getLinkedModule(
           TheContext, _currentDiagnosticHandler.get()));
 
+  DEBUG_LOG("Finished getting linked module");
+
+  DEBUG_LOG("Getting main function: ", FLOWWING_GLOBAL_ENTRY_POINT);
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
+  DEBUG_LOG("Finished getting main function");
 
+  TheModule->print(llvm::outs(), nullptr);
   std::string errorMessage;
+#if defined(DEBUG)
+  char **_out_message = nullptr;
+  LLVMVerifyModule(wrap(TheModule.get()),
+                   LLVMVerifierFailureAction::LLVMPrintMessageAction,
+                   _out_message);
+
+  if (_out_message) {
+    _currentDiagnosticHandler->printDiagnostic(
+        std::cout,
+        Diagnostic("[FATAL]: Corrupted Module: " + std::string(*_out_message),
+                   DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Linker,
+                   DiagnosticUtils::SourceLocation(0, 0, 0, "")));
+    return;
+  }
+#endif
+
+  DEBUG_LOG("Creating Execution Engine");
+
   executionEngine = llvm::EngineBuilder(std::move(TheModule))
                         .setErrorStr(&errorMessage)
                         .setEngineKind(llvm::EngineKind::Kind::JIT)
                         .setOptLevel(llvm::CodeGenOpt::Less)
                         .create();
 
+  DEBUG_LOG("Finished creating Execution Engine");
   //! TODO: add support for linking libraries
   // const auto allArchivesFiles = Utils::getAllFilesInDirectoryWithExtension(
   //     (FLOWWING_LIB_PATH), ".a", false);
@@ -50,13 +81,16 @@ void JITCompiler::execute() {
                               DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return;
   }
-  int hasError = 1;
+
+  DEBUG_LOG("Getting return type");
   llvm::Type *returnType = mainFunction->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
 
+  DEBUG_LOG("Running function");
+  int8_t hasError = 1;
   try {
     resultValue = executionEngine->runFunction(mainFunction, {});
-
+    DEBUG_LOG("Finished running function");
     if (returnType->isIntegerTy()) {
       hasError = (resultValue.IntVal != 0) ? 1 : 0;
     }
@@ -69,7 +103,6 @@ void JITCompiler::execute() {
                               DiagnosticUtils::SourceLocation(
                                   0, 0, 0, FLOWWING_GLOBAL_ENTRY_POINT)));
   }
-  // return hasError;
 }
 
 #if defined(JIT_MODE) || defined(JIT_TEST_MODE)
@@ -96,6 +129,7 @@ int main(int argc, char **argv) {
 #elif JIT_MODE
 
 int main(int argc, char *argv[]) {
+  Utils::enableAnsiCodes();
   signal(SIGSEGV, signalHandler);
 
   argh::parser _cmdl(argv);

@@ -1,4 +1,6 @@
 #include "CodeGenerationContext.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/TargetParser/Host.h"
 
 CodeGenerationContext ::CodeGenerationContext(
     FlowWing::DiagnosticHandler *diagnosticHandler,
@@ -13,6 +15,9 @@ CodeGenerationContext ::CodeGenerationContext(
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
+  llvm::InitializeNativeTargetDisassembler();
+
+  DEBUG_LOG("Getting linked module");
 
   _module->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 

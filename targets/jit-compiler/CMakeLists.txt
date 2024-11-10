@@ -4,10 +4,7 @@ project(FlowWing VERSION 0.0.1)
 set(VERSION "0.0.1")
 set(CMAKE_CXX_STANDARD 17)
 
-# Locate GTest
-find_package(GTest REQUIRED)
 
-include_directories(${GTEST_INCLUDE_DIRS})
 
 # Add a custom target for version information
 add_custom_target(version
@@ -15,11 +12,41 @@ add_custom_target(version
     COMMENT "Generating version information"
 )
 
+# Find packages
+find_package(ZLIB REQUIRED)
+find_package(zstd CONFIG REQUIRED)
+
+# Check for ZLIB
+if (NOT ZLIB_FOUND)
+    message(FATAL_ERROR "ZLIB not found. Please install ZLIB to proceed.")
+endif()
+
+# Check for zstd
+if (NOT zstd_FOUND)
+    message(FATAL_ERROR "Zstandard (zstd) not found. Please install zstd to proceed.")
+endif()
+
 
 # Find the LLVM libraries statically
 find_package(LLVM REQUIRED CONFIG)
-include_directories(${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
+# Check if LLVM variables are populated
+message(STATUS "LLVM_FOUND: ${LLVM_FOUND}")
+message(STATUS "LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
+message(STATUS "LLVM_DEFINITIONS: ${LLVM_DEFINITIONS}")
+message(STATUS "LLVM_VERSION: ${LLVM_VERSION}")
+# Check if LLVM was found and set variables
+if(LLVM_FOUND)
+  message(STATUS "LLVM found successfully.")
+  # Ensure these values are not empty
+if(NOT LLVM_INCLUDE_DIRS OR NOT LLVM_DEFINITIONS)
+message(FATAL_ERROR "LLVM include directories or definitions are missing.")
+endif() 
+  # Set include directories and definitions
+  include_directories(${LLVM_INCLUDE_DIRS})
+  add_definitions(${LLVM_DEFINITIONS})
+else()
+  message(FATAL_ERROR "LLVM not found!")
+endif()
 
 # Check if the system is Linux
 if(UNIX AND NOT APPLE)
@@ -33,12 +60,12 @@ if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 endif(CCACHE_FOUND)
 
-# Add find_package calls for ZLIB and Zstandard (zstd)
-find_package(ZLIB REQUIRED)
-find_package(zstd REQUIRED)
 
 # Conditionally define TEST_MODE macro based on the build type (`cmake -DTESTS_ENABLED=ON ..`)
 if(TESTS_ENABLED)
+    # Locate GTest
+    find_package(GTest REQUIRED)
+    include_directories(${GTEST_INCLUDE_DIRS})
     file(GLOB_RECURSE SOURCES ../../src/**.cpp ../../tests/**.cpp)
     list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/builtins/main.cpp")
     add_compile_definitions(JIT_TEST_MODE)
@@ -48,11 +75,15 @@ else()
     add_compile_definitions(JIT_MODE)
 endif()
 
+# Compiler flags for optimization and debugging
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_definitions(DEBUG)
+    add_compile_definitions(DEBUG)
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-  add_compile_definitions(RELEASE)
+    add_compile_definitions(RELEASE)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")  # Apply -O3 optimization for release builds
 endif()
+
 
 # Set the default executable name
 set(DEFAULT_EXECUTABLE_NAME "FlowWing")
@@ -70,8 +101,15 @@ add_executable(${EXECUTABLE_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../../src/compile
 # Link LLVM libraries statically
 llvm_map_components_to_libnames(LLVM_STATIC_LIBRARIES core executionengine orcjit native)
 
+if(WIN32)
+    set(PLATFORM_LIBS LLVMInterpreter LLVMMCJIT ZLIB::ZLIB zstd::libzstd_shared LLVMTarget LLVMAnalysis)
+else()
+    set(PLATFORM_LIBS pthread LLVMInterpreter LLVMMCJIT ZLIB::ZLIB zstd::libzstd_shared LLVMTarget LLVMAnalysis LLVMAArch64Info)
+endif()
+
+
 # Link the executable with LLVM libraries and other dependencies
-target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES} pthread ${LLVM_STATIC_LIBRARIES} LLVMInterpreter LLVMMCJIT ZLIB::ZLIB zstd::libzstd_shared LLVMTarget LLVMAnalysis LLVMAArch64Info)
+target_link_libraries(${EXECUTABLE_NAME} ${GTEST_LIBRARIES}  ${LLVM_STATIC_LIBRARIES} ${PLATFORM_LIBS})
 
 # Set the output name of the executable
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${DEFAULT_EXECUTABLE_NAME})

@@ -10,7 +10,7 @@ namespace AOT {
 void LINKING_FAIL_ERROR(int status, std::string &fileNameWithOutExtension,
                         std::string version);
 
-void RUN_ON_DEBUG_GENERATE_BC_FROM_LL();
+void RUN_ON_DEBUG_GENERATE_BC_FROM_LL_deprecated();
 
 auto getFileNameWithoutExtension(FlowWing::DiagnosticHandler *diagHandler)
     -> std::string;

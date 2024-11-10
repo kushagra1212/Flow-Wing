@@ -46,9 +46,16 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       Utils::removeExtensionFromString(
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
+#if defined(_WIN32)
+
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+               absoluteFilePathWithoutExtension.end(), '\\', '-');
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+               absoluteFilePathWithoutExtension.end(), ':', '-');
+#else
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), '/', '-');
-
+#endif
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),
       bringStatement->getGlobalScopePtr()->functions,
@@ -309,7 +316,6 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       bringStatement->getLocation());
   for (const auto &stat :
        bringStatement->getGlobalScopePtr()->globalStatement->getStatements()) {
-
     switch (stat->getKind()) {
     case BinderKindUtils::BoundNodeKind::FunctionDeclaration: {
 

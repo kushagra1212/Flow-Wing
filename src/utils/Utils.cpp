@@ -1,17 +1,19 @@
 #include "Utils.h"
+#include <filesystem>
 
 #ifdef _WIN32
-#include <windows.h>
 std::string Utils::getTempDir() {
 #if defined(DEBUG)
   return "";
 #endif
-  char tempPath[MAX_PATH];
-  DWORD pathLen = GetTempPath(MAX_PATH, tempPath);
-  if (pathLen > 0 && pathLen < MAX_PATH) {
-    return std::string(tempPath);
-  }
-  return "";
+  return std::string(std::getenv("TEMP"));
+}
+void Utils::enableAnsiCodes() {
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  DWORD dwMode = 0;
+  GetConsoleMode(hOut, &dwMode);
+  dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  SetConsoleMode(hOut, dwMode);
 }
 #else
 #include <cstdlib>
@@ -26,6 +28,7 @@ std::string Utils::getTempDir() {
   }
   return std::string(tempDir);
 }
+void Utils::enableAnsiCodes() {}
 #endif
 
 void Utils::split(const std::string &str, const std::string &delim,
@@ -674,8 +677,10 @@ std::string Utils::generateUniqueString() {
 std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
     std::string directoryPath, std::string extension, bool recursive) {
   std::vector<std::string> files = std::vector<std::string>();
-
-  for (const auto &entry : std::filesystem::directory_iterator(directoryPath)) {
+  std::filesystem::path absoluteDirectoryPath =
+      std::filesystem::absolute(directoryPath);
+  for (const auto &entry :
+       std::filesystem::directory_iterator(absoluteDirectoryPath)) {
     if (entry.path().extension() == extension) {
       files.push_back(entry.path().string());
     }
@@ -807,17 +812,21 @@ std::filesystem::path Utils::findFile(const std::filesystem::path &directory,
                                       const std::string &filename) {
   std::queue<std::filesystem::path> directories;
   directories.push(directory);
-
   while (!directories.empty()) {
     std::filesystem::path currentDir = directories.front();
     directories.pop();
 
-    for (const auto &entry : std::filesystem::directory_iterator(currentDir)) {
-      if (entry.is_directory()) {
-        directories.push(entry.path());
-      } else if (entry.path().filename() == filename) {
-        return entry.path();
+    try {
+      for (const auto &entry : std::filesystem::directory_iterator(
+               std::filesystem::absolute(currentDir))) {
+
+        if (entry.is_directory()) {
+          directories.push(entry.path());
+        } else if (entry.path().filename() == filename) {
+          return entry.path();
+        }
       }
+    } catch (std::exception &ex) {
     }
   }
 

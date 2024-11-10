@@ -41,6 +41,7 @@
 #include "llvm/Pass.h"
 #include <llvm/IR/LegacyPassManager.h>
 
+#include "../../../../compiler/AOTCompiler/ObjectFile/ObjectFile.h"
 #include "../../../logger/LLVMLogger.h"
 #include "../FileSaveStrategy.h"
 

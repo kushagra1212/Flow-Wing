@@ -1,6 +1,7 @@
 #ifndef CODEGENERATIONCONTEXT_H
 #define CODEGENERATIONCONTEXT_H
 
+#include "../../common/CrossPlatformMacros.h"
 #include <cstdint>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>

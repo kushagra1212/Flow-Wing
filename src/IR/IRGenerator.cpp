@@ -287,10 +287,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
 #elif defined(AOT_MODE) || defined(AOT_TEST_MODE)
     objectFile->writeModuleToFile(TheModule, blockName);
 #elif (defined(JIT_MODE) || defined(JIT_TEST_MODE))
-    bcFileSaveStrategy->saveToFile(
-        Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
-            blockName + ".bc",
-        TheModule);
+    bcFileSaveStrategy->saveToFile(blockName + ".bc", TheModule);
+
 #endif
   }
 

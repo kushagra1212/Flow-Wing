@@ -1,10 +1,8 @@
 CompileFlags:
   Add:
-    - "-I/opt/homebrew/Cellar/googletest/1.14.0/include"
-    - "-I/opt/homebrew/opt/llvm@17/include"
-    - "-I/opt/homebrew/opt/llvm@17/Toolchains/LLVM17.0.6.xctoolchain/usr/include"
-  Compiler: clang
-
+      - "-IC:\\llvm\\include"
+      - "-std=c++17"
+  Compiler: "C:\\llvm\\bin\\clang++.exe"
 # Optionally enable background indexing for faster lookups
 Index:
   Background: true

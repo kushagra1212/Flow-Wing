@@ -134,9 +134,9 @@
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold",
   "[cpp]": {
-    "editor.defaultFormatter": "xaver.clang-format"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
-  "workbench.colorTheme": "Snazzy Operator",
+  "workbench.colorTheme": "Default Dark Modern",
   "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
@@ -147,5 +147,7 @@
   "FlowWing": {
     "maxNumberOfProblems": 100,
     "compilerPath": "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
-  }
+  },
+  "clangd.path": "C:\\Program Files\\LLVM\\bin\\clangd.exe",
+  "editor.formatOnSave": true
 }

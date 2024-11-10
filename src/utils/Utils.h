@@ -1,9 +1,5 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include <cstdint>
-#include <filesystem>
-#include <regex>
-#include <typeinfo>
 
 #include "../SemanticAnalyzer/BinderKindUtils.h"
 #include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
@@ -18,6 +14,10 @@
 #include "../syntax/expression/LiteralExpressionSyntax.h"
 #include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
 #include "Macros.h"
+#include <cstdint>
+#include <filesystem>
+#include <regex>
+#include <typeinfo>
 
 namespace Utils {
 enum type {
@@ -103,6 +103,7 @@ bool isInteger(const std::string &str);
 
 bool isDouble(const std::string &str);
 auto isSyntaxToken(SyntaxNode *node) -> bool;
+void enableAnsiCodes();
 std::string getTempDir();
 auto typeToString(SyntaxKindUtils::SyntaxKind type) -> std::string;
 std::filesystem::path findFile(const std::filesystem::path &directory,

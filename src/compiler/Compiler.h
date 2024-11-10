@@ -1,8 +1,12 @@
 #ifndef __FLOW__WING__COMPILER__H__
 #define __FLOW__WING__COMPILER__H__
 
-#include <fstream>
+
+#if defined (JIT_TEST_MODE) || defined (AOT_TEST_MODE)
 #include <gtest/gtest.h>
+#endif
+
+#include <fstream>
 #include <iostream>
 
 #include "../ASTBuilder/ASTBuilder.h"
@@ -13,6 +17,10 @@
 #include "../utils/Utils.h"
 #include "CompilerUtils.h"
 
+#ifdef _WIN32
+#include <csignal>
+const char* strsignal(int signum);
+#endif
 class Compiler {
 public:
   Compiler(std::string filePath = "");

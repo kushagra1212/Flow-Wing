@@ -1,8 +1,8 @@
 #ifndef __TYPE_CONVERTER_BASE_H__
 #define __TYPE_CONVERTER_BASE_H__
 
+#include "../../common/CrossPlatformMacros.h"
 #include <llvm/IR/LLVMContext.h>
-
 #include "../constants/FlowWingIRConstants.h"
 #include "../context/CodeGenerationContext.h"
 #include "../logger/LLVMLogger.h"

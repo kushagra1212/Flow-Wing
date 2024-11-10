@@ -1,5 +1,5 @@
 #ifndef BOUND_SCOPE_GLOBAL_H
-#define BOUNDSCOPEGLOBAL_H
+#define BOUND_SCOPE_GLOBAL_H
 #include "../../../common/Common.h"
 #include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../../../utils/Utils.h"

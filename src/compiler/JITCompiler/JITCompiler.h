@@ -1,7 +1,6 @@
 #ifndef JITCOMPILER_H
 #define JITCOMPILER_H
 
-#include <gtest/gtest.h>
 
 #include <fstream>
 #include <iostream>

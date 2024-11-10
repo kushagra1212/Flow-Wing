@@ -17,18 +17,17 @@ void LINKING_FAIL_ERROR(int status, std::string &fileNameWithOutExtension,
                      false);
 }
 
-void RUN_ON_DEBUG_GENERATE_BC_FROM_LL() {
+void RUN_ON_DEBUG_GENERATE_BC_FROM_LL_deprecated() {
 #if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
   std::vector<std::string> llFiles = Utils::getAllFilesInDirectoryWithExtension(
-      std::filesystem::current_path(), ".ll", false);
+      std::filesystem::current_path().string(), ".ll", false);
 
   for (auto llFile : llFiles) {
 
     const std::string space = " ";
 
-    std::string cmd = (FLOWWING_CLANG_PATH) + space + llFile +
-                      " -emit-llvm -c " + " -o " +
+    std::string cmd = ("clang") + space + llFile + " -emit-llvm -c " + " -o " +
                       llFile.substr(0, llFile.length() - 3) + ".bc";
     std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
               << std::endl;
@@ -61,7 +60,8 @@ auto getFileNameWithoutExtension(FlowWing::DiagnosticHandler *diagHandler)
 auto deleteObjectFiles() -> void {
   std::vector<std::string> objectFiles =
       Utils::getAllFilesInDirectoryWithExtension(
-          FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
+          FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR,
+          FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION, false);
   for (const auto &objectFile : objectFiles) {
     std::filesystem::remove(objectFile);
   }

@@ -44,7 +44,6 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
     ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
-
   if (bringStatement->getIsChoosyImportPtr()) {
     ctx->match(SyntaxKindUtils::SyntaxKind::FromKeyword);
     ctx->getCodeFormatterRef()->appendWithSpace();
@@ -123,9 +122,13 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
   std::string absoluteFilePath =
       std::filesystem::path(ctx->getDiagnosticHandler()->getAbsoluteFilePath())
           .parent_path()
-          .string() +
-      "/" + relativeFilePath;
+          .string();
 
+#if defined(_WIN32)
+  absoluteFilePath += "\\" + relativeFilePath;
+#else
+  absoluteFilePath += "/" + relativeFilePath;
+#endif
   std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>(absoluteFilePath);
 

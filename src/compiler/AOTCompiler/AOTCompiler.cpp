@@ -1,5 +1,6 @@
 #include "AOTCompiler.h"
 #include "../../common/version.h"
+#include <cstdio>
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)
@@ -14,8 +15,6 @@ void AOTCompiler::link() {
   std::unique_ptr<LLVMLogger> _llvmLogger =
       std::make_unique<LLVMLogger>(_currentDiagnosticHandler.get());
 
-  FlowWing::AOT::RUN_ON_DEBUG_GENERATE_BC_FROM_LL();
-
   std::unique_ptr<CommandManager> _commandManager =
       std::make_unique<CommandManager>(fileNameWithOutExtension);
 
@@ -24,18 +23,14 @@ void AOTCompiler::link() {
     std::string cmd = _commandManager->create();
 
     LINKING_DEBUG_LOG(cmd);
-
     int status = std::system(cmd.c_str());
 
+    FlowWing::AOT::deleteObjectFiles();
     if (status != 0) {
       FlowWing::AOT::LINKING_FAIL_ERROR(status, fileNameWithOutExtension,
                                         VERSION_INFO);
-
-      FlowWing::AOT::deleteObjectFiles();
       return;
     }
-
-    FlowWing::AOT::deleteObjectFiles();
 
   } catch (const std::exception &e) {
     std::cerr << "Exception occurred: " << e.what() << std::endl;
@@ -69,6 +64,7 @@ int main(int argc, char **argv) {
 
 #elif AOT_MODE
 int main(int argc, char *argv[]) {
+  Utils::enableAnsiCodes();
   signal(SIGSEGV, signalHandler);
   argh::parser _cmdl(argv);
 

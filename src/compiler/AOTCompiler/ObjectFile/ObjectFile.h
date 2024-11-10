@@ -95,7 +95,8 @@ public:
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
     const std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName +
+        FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
     DEBUG_LOG("Writing object file to: " + destPath);
 
@@ -129,17 +130,10 @@ public:
 
     char *errors = 0;
     LLVMTargetRef target;
-    LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
-    // printf("error: %s\n", errors);
-    // LLVMPrintModuleToFile(module, "module.txt", &errors);
-    // printf("error: %s\n", errors);
-    LLVMDisposeMessage(errors);
+    LLVMGetTargetFromTriple(_module->getTargetTriple().c_str(), &target,
+                            &errors);
 
-    //  LLVMInitializeAllTargetInfos();
-    //   LLVMInitializeAllTargets();
-    //   LLVMInitializeAllTargetMCs();
-    //   LLVMInitializeAllAsmParsers();
-    //   LLVMInitializeAllAsmPrinters();
+    LLVMDisposeMessage(errors);
 
     LLVMGetTargetFromTriple(LLVMGetDefaultTargetTriple(), &target, &errors);
 
@@ -183,8 +177,9 @@ public:
 
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
-    std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+    std::string destPath = FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR +
+                           fileName +
+                           FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
     CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
 

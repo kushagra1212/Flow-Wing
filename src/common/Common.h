@@ -1,8 +1,11 @@
 #pragma once
 #include "../IR/constants/FlowWingIRConstants.h"
+#include "../common/CrossPlatformMacros.h"
 #include "../common/constants/FlowWingUtilsConstants.h"
 #include "../external/include/json.hpp"
+#include "../utils/Colors.h"
 #include "../utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
+#include "../utils/Macros.h"
 #include <algorithm>
 #include <any>
 #include <chrono>
@@ -22,21 +25,13 @@
 #include <random>
 #include <sstream>
 #include <stack>
+#include <stdint.h>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-// TODO: Add support for Windows
-// #include <windows.h>
-#include "../utils/Colors.h"
-#include "../utils/Macros.h"
-#include <stdint.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
+
 using JSON = nlohmann::json;
 
 namespace COLORED_STRING {

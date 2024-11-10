@@ -320,7 +320,7 @@ void signalHandler(int signal) {
 #ifdef REPL_MODE
 
 int main() {
-
+  Utils::enableAnsiCodes();
 #ifdef _WIN32
   // Register the Windows control handler
   SetConsoleCtrlHandler(consoleCtrlHandler, TRUE);

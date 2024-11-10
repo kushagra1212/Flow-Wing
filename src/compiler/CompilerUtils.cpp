@@ -1,5 +1,6 @@
 #include "CompilerUtils.h"
 #include <cstdlib>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 
@@ -54,8 +55,8 @@ std::unique_ptr<llvm::Module>
 createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
                              FlowWing::DiagnosticHandler *diagHandler) {
 
-  const std::string &filePath = LIB_BUILT_IN_MODULE_PATH;
-
+  const std::string &filePath =
+      std::filesystem::absolute(LIB_BUILT_IN_MODULE_PATH).string();
   LINKING_DEBUG_LOG(" [INFO]: LIB_BUILT_IN_MODULE_PATH " + filePath);
 
 #if defined(RELEASE)
@@ -75,7 +76,7 @@ createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #elif defined(__linux__)
   TheModule->setTargetTriple(
@@ -122,7 +123,6 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
 
   for (const std::string &path : filesPath) {
     llvm::SMDiagnostic err;
-
     LINKING_DEBUG_LOG(" [INFO]: Linking " + path);
 
     bool LinkResult = llvm::Linker::linkModules(

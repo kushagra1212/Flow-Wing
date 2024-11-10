@@ -225,3 +225,17 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
     outputStream << RED << e.what() << RESET << "\n";
   }
 }
+
+#ifdef _WIN32
+const char *strsignal(int signum) {
+  switch (signum) {
+  case SIGINT:
+    return "Interrupt";
+  case SIGTERM:
+    return "Termination";
+  // Add other signals as necessary
+  default:
+    return "Unknown signal";
+  }
+}
+#endif

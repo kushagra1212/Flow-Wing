@@ -1,18 +1,24 @@
 #include "BCFileSaveStrategy.h"
+#include "llvm-c/TargetMachine.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/Support/FileSystem.h"
+#include <algorithm>
+#include <filesystem>
+#include <system_error>
 
 BCFileSaveStrategy::BCFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;
 }
 
-bool BCFileSaveStrategy::saveToFile(const std::string &path,
+bool BCFileSaveStrategy::saveToFile(const std::string &fileName,
                                     llvm::Module *module) const {
-
-  llvm::sys::fs::create_directories(Utils::getTempDir() +
-                                    FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
+  std::string path =
+      Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR;
+  llvm::sys::fs::create_directories(path);
 
   // Create an output stream for the .bc file
   std::error_code EC;
-  llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
+  llvm::raw_fd_ostream OS(path + fileName, EC, llvm::sys::fs::OF_None);
 
   // llvm::legacy::PassManager pass = llvm::legacy::PassManager();
   // pass.add(llvm::createVerifierPass());
