@@ -152,15 +152,13 @@ private:
   auto getBuiltInModuleLinked() -> std::string {
 
     std::string linkLibs = "";
-    auto absPath =
-        std::filesystem::absolute(std::filesystem::path(FLOWWING_LIB_PATH));
 
-    linkLibs += createLibPathArg(absPath.string());
+    linkLibs += createLibPathArg(std::string(FLOWWING_LIB_PATH));
 
-    for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
+    // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
 
-      linkLibs += createLibArgs(lib);
-    }
+    //   linkLibs += createLibArgs(lib);
+    // }
 
     for (const auto lib : STATIC_LINKING_LIBRARIES) {
 

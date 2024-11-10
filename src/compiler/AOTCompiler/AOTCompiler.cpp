@@ -22,6 +22,10 @@ void AOTCompiler::link() {
 
     std::string cmd = _commandManager->create();
 
+#if defined(_WIN32)
+    cmd = std::string("\"" + cmd + "\"");
+#endif
+
     LINKING_DEBUG_LOG(cmd);
     int status = std::system(cmd.c_str());
 

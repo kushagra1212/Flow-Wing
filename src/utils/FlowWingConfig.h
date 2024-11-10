@@ -52,7 +52,7 @@
 #define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
 #elif (PLATFORM_ARCH == PLATFORM_WINDOWS_X86_64) && defined(RELEASE) &&        \
     defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "C:\\Program Files\\FlowWing\\lib"
+#define FLOWWING_LIB_PATH "\"C:\\Program Files (x86)\\FlowWing\\lib\""
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64
 #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
 #elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64
@@ -63,7 +63,7 @@
 // Define the module path based on the library path
 #if defined(FLOWWING_LIB_PATH)
 #if defined(_WIN32)
-#define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "\\modules"
+#define FLOWWING_MODULE_PATH "C:\\Program Files (x86)\\FlowWing\\lib\\modules"
 #else
 #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
 #endif
@@ -78,7 +78,8 @@
 #elif defined(__APPLE__)
 #define FLOWWING_LINKER_PATH "/usr/bin/clang++"
 #elif defined(_WIN32)
-#define FLOWWING_LINKER_PATH "C:\\Program Files\\FlowWing\\bin\\lld-link"
+#define FLOWWING_LINKER_PATH                                                   \
+  "\"C:\\Program Files (x86)\\FlowWing\\bin\\lld-link\""
 #endif
 
 // #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
@@ -102,7 +103,7 @@
   "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"
 #elif defined(RELEASE) && defined(_WIN32)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
-  "C:\\Program Files\\FlowWing\\lib\\libbuilt_in_module.bc"
+  "C:\\Program Files (x86)\\FlowWing\\lib\\libbuilt_in_module.bc"
 #else
 #define LIB_BUILT_IN_MODULE_PATH ""
 #endif

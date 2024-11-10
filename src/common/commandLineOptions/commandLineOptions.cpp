@@ -277,12 +277,21 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
   }
   // Opens the file using the provided file path
 
-  std::ifstream file;
+  std::filesystem::path fileAbsolutePath =
+      std::filesystem::absolute(filePath).string();
+  filePath = fileAbsolutePath.string();
 
-  file.open(filePath);
+  std::ifstream file(filePath);
+
+  if (file.fail()) {
+    Utils::printErrors({"Error: Failed to open file due to IO error. check "
+                        "permissions or change directory and try again."},
+                       std::cerr);
+    return FlowWing::Cli::STATUS::FAILURE;
+  }
 
   if (!file.is_open()) {
-    Utils::printErrors({"Unable to open file: " + std::string(filePath),
+    Utils::printErrors({"Unable to open file: " + filePath,
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
 

@@ -52,6 +52,8 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
                absoluteFilePathWithoutExtension.end(), '\\', '-');
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), ':', '-');
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+               absoluteFilePathWithoutExtension.end(), ' ', '-');
 #else
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), '/', '-');
