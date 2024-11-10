@@ -6,20 +6,26 @@
 #include "../../external/include/argh.h"
 #include "../../utils/Utils.h"
 #include "../LibUtils/LibUtils.h"
+#include "llvm/Support/FileSystem.h"
+#include <filesystem>
 #include <string>
 
 class CommandManager {
-  std::string _outputFileNameWithoutExtension = "output";
+  std::string _outputFileName = "output";
   bool hasEntryPoint = false;
 
 public:
   CommandManager(const std::string &outputFileNameWithoutExtension)
-      : _outputFileNameWithoutExtension(outputFileNameWithoutExtension) {}
+      : _outputFileName(outputFileNameWithoutExtension) {
+#if defined(_WIN32)
+    _outputFileName += ".exe";
+#endif
+  }
 
-  auto inline create() -> std::string {
+  auto create() -> std::string {
     std::string cmd = "";
 
-    cmd += std::string(FLOWWING_CLANG_PATH) + " ";
+    cmd += std::string(FLOWWING_LINKER_PATH) + " ";
 
     cmd += this->getOptimizationLevel();
 
@@ -54,22 +60,27 @@ public:
     cmd += this->getBuiltInModuleLinked();
 
 #if defined(AOT_TEST_MODE)
-    cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
-           _outputFileNameWithoutExtension;
+    cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName;
 #endif
 
 #if defined(__linux__)
     cmd += " -lstdc++ ";
 #endif
 
+#if defined(_WIN32)
+    cmd += " ucrt.lib legacy_stdio_definitions.lib vcruntime.lib msvcrt.lib ";
+    cmd += " /SUBSYSTEM:CONSOLE /IGNORE:4210 ";
+#endif
     return cmd;
   }
 
 private:
-  auto inline getObjectFilesJoinedAsString() -> std::string {
+  auto getObjectFilesJoinedAsString() -> std::string {
     std::vector<std::string> objectFiles =
         Utils::getAllFilesInDirectoryWithExtension(
-            FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
+            FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR,
+            FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION, false);
+
     std::string joined = "";
     for (const auto &objectFile : objectFiles) {
       joined += objectFile + " ";
@@ -77,7 +88,7 @@ private:
     return joined;
   }
 
-  auto inline getOptimizationLevel() -> std::string {
+  auto getOptimizationLevel() -> std::string {
     if (!FlowWing::Cli::cmdl) {
       return " -O3 ";
     }
@@ -97,7 +108,12 @@ private:
     return " -O3 ";
   }
 
-  auto inline getDefaultEntryPoint() -> std::string {
+  auto getDefaultEntryPoint() -> std::string {
+
+#if defined(_WIN32)
+    return " /ENTRY:" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT +
+           " ";
+#endif
 
 #if defined(__linux__)
     return "";
@@ -106,10 +122,12 @@ private:
     return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
   }
 
-  auto inline getEntryPoint(const std::string &key, const std::string &value)
+  auto getEntryPoint(const std::string &key, const std::string &value)
       -> std::string {
 
-#if defined(__linux__)
+#if defined(_WIN32)
+    return "";
+#elif defined(__linux__)
     return "";
 #endif
 
@@ -122,51 +140,72 @@ private:
     return "";
   }
 
-  auto inline getOutputArgument() -> std::string {
-    return " -o " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR +
-           _outputFileNameWithoutExtension + " ";
+  auto getOutputArgument() -> std::string {
+
+#if defined(_WIN32)
+    return " /OUT:" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName +
+           " ";
+#endif
+
+    return " -o " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName +
+           " ";
   }
 
-  auto inline getBuiltInModuleLinked() -> std::string {
+  auto getBuiltInModuleLinked() -> std::string {
 
     std::string linkLibs = "";
 
-    linkLibs += " -L" + std::string(FLOWWING_LIB_PATH) + " ";
+    linkLibs += createLibPathArg(std::string(FLOWWING_LIB_PATH));
 
-    // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
+    for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
 
-    //   linkLibs += getPrefixedLibName(lib) + " ";
-    // }
+      linkLibs += createLibArgs(lib);
+    }
 
     for (const auto lib : STATIC_LINKING_LIBRARIES) {
 
-      linkLibs += getPrefixedLibName(lib) + " ";
+      linkLibs += createLibArgs(lib);
     }
 
     return linkLibs;
   }
 
-  auto inline getPrefixedLibName(const std::string &libName) -> std::string {
-    return " -l" + libName;
+  auto createLibArgs(const std::string &libName) -> std::string {
+
+#if defined(_WIN32)
+    return " " + libName + ".lib ";
+#endif
+
+    return " -l" + libName + " ";
   }
 
-  auto inline getOtherLibrariesPath(const std::string &key,
-                                    const std::string &value) -> std::string {
-    if (FlowWing::Cli::OPTIONS::LibraryPath.name == "-" + key)
-      return " -L " + value + " ";
-
-    return "";
-  }
-
-  auto inline getLinkLibrary(const std::string &key, const std::string &value)
+  auto getOtherLibrariesPath(const std::string &key, const std::string &value)
       -> std::string {
-    if (FlowWing::Cli::OPTIONS::LinkLibrary.name == "-" + key)
-      return " -l " + value + " ";
+    if (FlowWing::Cli::OPTIONS::LibraryPath.name == "-" + key) {
+      return createLibPathArg(value);
+    }
 
     return "";
   }
 
-  auto inline getFramework(const std::string &key, const std::string &value)
+  auto createLibPathArg(const std::string &value) -> std::string {
+#if defined(_WIN32)
+    return " /LIBPATH:" + value + " ";
+#else
+    return " -L " + value + " ";
+#endif
+  }
+
+  auto getLinkLibrary(const std::string &key, const std::string &value)
+      -> std::string {
+    if (FlowWing::Cli::OPTIONS::LinkLibrary.name == "-" + key) {
+      return createLibArgs(value);
+    }
+
+    return "";
+  }
+
+  auto getFramework(const std::string &key, const std::string &value)
       -> std::string {
     if (FlowWing::Cli::OPTIONS::Framework.name == "-" + key)
       return " -framework " + value + " ";
@@ -174,11 +213,11 @@ private:
     return "";
   }
 
-  auto inline checkForRestOfFlags(std::string &cmd) -> void {
+  auto checkForRestOfFlags(std::string &cmd) -> void {
     if (FlowWing::Cli::isFlag::server() ||
         FlowWing::Cli::isFlag::shortServer()) {
-      cmd += " -L" + std::string(FLOWWING_LIB_PATH) + " " +
-             getPrefixedLibName("flowwing_vortex") + " ";
+      cmd += " " + createLibPathArg(std::string(FLOWWING_LIB_PATH)) +
+             createLibArgs("flowwing_vortex") + " ";
     }
   }
 };

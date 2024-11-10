@@ -30,6 +30,7 @@ extern const std::string FLOWWING_GLOBAL_ENTRY_POINT;
 extern const std::string TEMP_OBJECT_FILES_DIR;
 extern const std::string TEMP_BC_FILES_DIR;
 extern const std::string TEMP_BIN_DIR;
+extern const std::string OBJECT_FILE_EXTENSION;
 enum ENVIRONMENT { REPL, SOURCE_FILE };
 
 namespace INNERS {

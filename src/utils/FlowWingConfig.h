@@ -41,10 +41,10 @@
 #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) &&             \
     defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
+#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_X86_64 && defined(RELEASE) &&            \
     defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib/FlowWing/lib"
+#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64
 #define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
 #elif PLATFORM_ARCH == PLATFORM_LINUX_X86_64
@@ -67,6 +67,13 @@
 #define FLOWWING_CLANG_PATH "/usr/bin/clang++"
 #endif
 
+// Define the Clang path based on the platform
+#if defined(__linux__)
+#define FLOWWING_LINKER_PATH "/usr/bin/clang-17"
+#elif defined(__APPLE__)
+#define FLOWWING_LINKER_PATH " /usr/bin/clang++"
+#endif
+
 // #define FLOWWING_LIB_PATH "../../../lib/linux-x86_64/lib"
 // #define FLOWWING_MODULE_PATH FLOWWING_LIB_PATH "/modules"
 // #define FLOWWING_CLANG_PATH "/usr/bin/clang-17"
@@ -85,7 +92,7 @@
 //!"/usr/local/flowwing/lib/libbuilt_in_module.bc"
 #elif defined(RELEASE) && defined(__APPLE__)
 #define LIB_BUILT_IN_MODULE_PATH                                               \
-  "/opt/homebrew/opt/flowwing/lib/FlowWing/lib/libbuilt_in_module.bc"
+  "/opt/homebrew/opt/flowwing/lib/libbuilt_in_module.bc"
 #else
 #define LIB_BUILT_IN_MODULE_PATH ""
 #endif

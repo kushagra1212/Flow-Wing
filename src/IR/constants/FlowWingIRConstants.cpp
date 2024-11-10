@@ -27,9 +27,17 @@ const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
 #endif
 
+#if defined(_WIN32)
+const std::string TEMP_BIN_DIR = "build\\bin\\";
+const std::string TEMP_OBJECT_FILES_DIR = "build\\objects\\";
+const std::string OBJECT_FILE_EXTENSION = ".obj";
+const std::string TEMP_BC_FILES_DIR = "\\flowwing\\bc\\";
+#else
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";
+const std::string OBJECT_FILE_EXTENSION = ".o";
 const std::string TEMP_BC_FILES_DIR = "temp/bc/";
+#endif
 namespace INNERS {
 namespace FUNCTIONS {
 
