@@ -67,6 +67,8 @@ export function activate(context: ExtensionContext) {
   const outputChannel: OutputChannel = Window.createOutputChannel("flow-wing");
   const compilerPath =
     Workspace.getConfiguration("FlowWing").get<string>("compilerPath");
+  const modulePath =
+    Workspace.getConfiguration("FlowWing").get<string>("modulePath");
 
   function didOpenTextDocument(document: TextDocument): void {
     // We are only interested in language mode text
@@ -88,7 +90,7 @@ export function activate(context: ExtensionContext) {
         documentSelector: [{ scheme: "flow-wing", language: "flowwing" }],
         diagnosticCollectionName: "FlowWing",
         outputChannel: outputChannel,
-        initializationOptions: { compilerPath },
+        initializationOptions: { compilerPath, modulePath },
       };
       defaultClient = new LanguageClient(
         "FlowWing",

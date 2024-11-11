@@ -77,6 +77,11 @@ export class InitializationHandler {
       this.connection.workspace
         .getConfiguration("FlowWing")
         .then((config) => {
+          if (config?.modulePath) {
+            flowWingConfig.modulePath = config.modulePath;
+          } else {
+            flowWingConfig.modulePath = getModulePath();
+          }
           if (config?.compilerPath) {
             flowWingConfig.flowWingPath = config?.compilerPath;
             console.info(
@@ -128,13 +133,17 @@ export class InitializationHandler {
 
         if (rootPath) {
           fileUtils.bfsTraverseVisit(rootPath, async (uri) => {
-            const data = await fileUtils.readFile(uri);
-            const path = await fileUtils.createTempFile({
-              fileName: uri,
-              data,
-            });
+            try {
+              const data = await fileUtils.readFile(uri);
+              const path = await fileUtils.createTempFile({
+                fileName: uri,
+                data,
+              });
 
-            await validateFile("file:/" + uri, path);
+              await validateFile("file:/" + uri, path);
+            } catch (err) {
+              console.log("Error in validateAll", err);
+            }
           });
         }
       });

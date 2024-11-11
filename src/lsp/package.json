@@ -83,6 +83,12 @@
           "type": "string",
           "default": "flowwing",
           "description": "Path to the Flow-Wing compiler executable."
+        },
+        "FlowWing.modulePath": {
+          "scope": "resource",
+          "type": "string",
+          "default": "flowwing",
+          "description": "Path to the Flow-Wing modules"
         }
       }
     }

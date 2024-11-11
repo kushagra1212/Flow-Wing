@@ -1,5 +1,8 @@
+import { getModulePath } from "../utils";
+
 class FlowWingConfig {
   private _flowWingPath: string;
+  private _modulePath: string = getModulePath();
   private readonly _syntaxFileExt = ".json";
   private readonly _tokenFileExt = ".tokens.json";
   private readonly _errorFileExt = ".err.json";
@@ -15,6 +18,14 @@ class FlowWingConfig {
 
   set flowWingPath(newPath: string) {
     this._flowWingPath = newPath;
+  }
+
+  get modulePath(): string {
+    return this._modulePath;
+  }
+
+  set modulePath(newPath: string) {
+    this._modulePath = newPath;
   }
 
   get doesFlowWingExist(): boolean {

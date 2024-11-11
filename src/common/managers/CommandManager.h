@@ -157,10 +157,10 @@ private:
 
     linkLibs += createLibPathArg(std::string(FLOWWING_LIB_PATH));
 
-    for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
+    // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
 
-      linkLibs += createLibArgs(lib);
-    }
+    //   linkLibs += createLibArgs(lib);
+    // }
 
     for (const auto lib : STATIC_LINKING_LIBRARIES) {
 

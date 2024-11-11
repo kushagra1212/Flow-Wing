@@ -504,7 +504,7 @@ const handleBringStatement = async ({
       possibleModuleIdef.lineNumber === suggestionToken?.lineNumber
     ) {
       relPath = await fileUtils.findFileBreadthFirst(
-        getModulePath(),
+        flowWingConfig.modulePath,
         possibleModuleIdef.value + "-module.fg"
       );
 

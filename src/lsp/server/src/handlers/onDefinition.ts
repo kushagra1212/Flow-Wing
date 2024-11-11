@@ -38,7 +38,7 @@ export const onDefinition = async (
       const moduleName = suggestion.word.split("::")[0];
 
       uri = await fileUtils.findFileBreadthFirst(
-        getModulePath(),
+        flowWingConfig.modulePath,
         moduleName + "-module.fg"
       );
 
