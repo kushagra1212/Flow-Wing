@@ -2,7 +2,20 @@
 
 Flow-Wing: Sculpting logic with the elegance of flow.
 
-A language designed for seamless, intuitive programming, where code flows like natural thought.
+Flow-Wing is a modern programming language that combines the best of both worlds: static and dynamic typing. Designed for both novice and experienced developers, it emphasizes readability and expressiveness, enabling users to sculpt logic with the elegance of flow. Flow-Wing supports object-oriented programming and provides robust features such as dynamic and static memory allocation, automatic garbage collection, and module support. With compile-time checks, Flow-Wing helps catch errors early, facilitating a smooth development experience.
+
+
+## Download Flow-Wing
+
+Get started with Flow-Wing by downloading the latest version:
+
+[Download Flow-Wing](https://flowwing.frii.site/)
+
+## Documentation
+
+Learn more about Flow-Wing's features, syntax, and usage in the official documentation:
+
+[Flow-Wing Documentation](https://flow-wing-docs.vercel.app/)
 
 ## Language Syntax
 
