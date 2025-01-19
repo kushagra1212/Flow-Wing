@@ -2,7 +2,7 @@
 
 Flow-Wing: 
 
-Flow-Wing is a programming language experiment that combines static and dynamic typing, along with other features. It is still a work in progress and supports object-oriented programming, memory management, garbage collection, and modularity. Flow-Wing includes support for AOT (Ahead-of-Time) and JIT (Just-In-Time) compilers, a REPL, LSP integration for VS Code, build basic servers and basic games
+Flow-Wing is a programming language experiment that combines static and dynamic typing, along with other features. It is still a work in progress and supports object-oriented programming, memory management, garbage collection, and modularity. Flow-Wing includes support for AOT (Ahead-of-Time) and JIT (Just-In-Time) compilers, a REPL, LSP integration for VS Code, build basic servers and games
 
 
 ## Download Flow-Wing
