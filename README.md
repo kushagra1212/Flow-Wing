@@ -9,7 +9,7 @@ Flow-Wing is a programming language experiment that combines static and dynamic 
 
 Get started with Flow-Wing by downloading the latest version:
 
-[Download Flow-Wing](https://flowwing.frii.site/)
+[Download Flow-Wing](https://flowwing.is-a.dev/)
 
 ## Documentation
 
