@@ -30,12 +30,46 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       callExpression->getLocation());
+
   if (BuiltInFunction::isBuiltInFunction(callExpression->getCallerNameRef())) {
+    uint64_t argIndex = 0;
+
+    llvm::Type *builtinReturnType = nullptr;
+
+    if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
+      builtinReturnType = llvm::Type::getInt32Ty(*TheContext);
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
+      builtinReturnType = llvm::Type::getInt1Ty(*TheContext);
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal32) {
+      builtinReturnType = llvm::Type::getFloatTy(*TheContext);
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal) {
+      builtinReturnType = llvm::Type::getDoubleTy(*TheContext);
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int8) {
+      builtinReturnType = llvm::Type::getInt8Ty(*TheContext);
+    } else {
+      //? Default Return Type (String, Print, Input)
+      builtinReturnType = llvm::Type::getInt8PtrTy(*TheContext);
+    }
+
+    DEBUG_LOG("Builtin Return Type",
+              "builtinReturnType:" + callExpression->getCallerNameRef());
+    DEBUG_LOG("Call Expresssion arg size",
+              std::to_string(callExpression->getArgumentPtrList().size()));
+
     for (auto &arg : callExpression->getArgumentPtrList()) {
+      callExpression->setArgumentAlloca(
+          argIndex,
+          {_codeGenerationContext->createMemoryGetPtr(
+               builtinReturnType,
+               "builtinReturnType:" + callExpression->getCallerNameRef(),
+               BinderKindUtils::MemoryKind::Stack),
+           builtinReturnType});
+
       if (arg->getKind() == BinderKindUtils::CallExpression) {
         BoundCallExpression *boundCallExpression =
             static_cast<BoundCallExpression *>(arg);
-
         auto funTypePtr =
             _codeGenerationContext->funcPtr(callExpression->getCallerNameRef());
 
@@ -60,6 +94,8 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
       }
       IRCodeGenerator irCodeGen(_codeGenerationContext);
       irCodeGen.declareVariables(arg, false);
+
+      argIndex++;
     }
     return;
   }

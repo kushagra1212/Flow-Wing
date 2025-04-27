@@ -47,9 +47,12 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
                                 {value});
   }
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
+    std::unique_ptr<DoubleTypeConverter> doubleConverter =
+        std::make_unique<DoubleTypeConverter>(this->_codeGenerationContext);
+    llvm::Value *val = doubleConverter->convertExplicit(value);
     // Create an APFloat object with the double value
     return _builder->CreateCall(_module->getFunction(INNERS::FUNCTIONS::DTOS),
-                                {value});
+                                {val});
   }
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
     llvm::Value *str = _builder->CreateSelect(
