@@ -50,6 +50,8 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
       builtinReturnType = llvm::Type::getInt8Ty(*TheContext);
     } else {
       //? Default Return Type (String, Print, Input)
+      DEBUG_LOG("Builtin Return Type Default",
+                "builtinReturnType:" + callExpression->getCallerNameRef());
       builtinReturnType = llvm::Type::getInt8PtrTy(*TheContext);
     }
 
@@ -59,33 +61,17 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
               std::to_string(callExpression->getArgumentPtrList().size()));
 
     for (auto &arg : callExpression->getArgumentPtrList()) {
-      callExpression->setArgumentAlloca(
-          argIndex,
-          {_codeGenerationContext->createMemoryGetPtr(
-               builtinReturnType,
-               "builtinReturnType:" + callExpression->getCallerNameRef(),
-               BinderKindUtils::MemoryKind::Stack),
-           builtinReturnType});
+      if (!callExpression->doesArgumentAllocaExist(argIndex)) {
+        callExpression->setArgumentAlloca(
+            argIndex,
+            {_codeGenerationContext->createMemoryGetPtr(
+                 builtinReturnType,
+                 "builtinReturnType:" + callExpression->getCallerNameRef(),
+                 BinderKindUtils::MemoryKind::Stack),
+             builtinReturnType});
+      }
 
       if (arg->getKind() == BinderKindUtils::CallExpression) {
-        BoundCallExpression *boundCallExpression =
-            static_cast<BoundCallExpression *>(arg);
-        auto funTypePtr =
-            _codeGenerationContext->funcPtr(callExpression->getCallerNameRef());
-
-        if ((funTypePtr) && (funTypePtr)->isHavingReturnTypeAsParamater() &&
-            !boundCallExpression->doesArgumentAllocaExist(0)) {
-
-          CODEGEN_DEBUG_LOG("Function has return type as parameter",
-                            boundCallExpression->getCallerNameRef());
-
-          boundCallExpression->setArgumentAlloca(
-              0, {_codeGenerationContext->createMemoryGetPtr(
-                      (funTypePtr)->getReturnType(), "rtPtr",
-                      BinderKindUtils::MemoryKind::Stack),
-                  (funTypePtr)->getReturnType()});
-        }
-
         std::unique_ptr<CallExpressionGenerationStrategy>
             callExpressionGenerationStrategy =
                 std::make_unique<CallExpressionGenerationStrategy>(
