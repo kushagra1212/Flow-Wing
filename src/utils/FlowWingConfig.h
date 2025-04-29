@@ -35,10 +35,10 @@
 #define FLOWWING_LIB_PATH "../../../lib/linux/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(DEBUG) &&               \
     defined(AOT_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
+#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) &&             \
     defined(AOT_TEST_MODE)
-#define FLOWWING_LIB_PATH "../../../lib/mac-silicon/lib"
+#define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib"
 #elif PLATFORM_ARCH == PLATFORM_MACOS_ARM64 && defined(RELEASE) &&             \
     defined(AOT_MODE)
 #define FLOWWING_LIB_PATH "/opt/homebrew/opt/flowwing/lib"

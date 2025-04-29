@@ -329,6 +329,46 @@ TEST_F(InBuiltFunction, BasicStringToDoubleUndefinedBehaviour) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
+TEST_F(InBuiltFunction, BasicStringToInt32WithInt) {
+  std::string input = R"(print(Int32(String(2))))";
+
+  std::string expected_output = "2";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithIntUndefinedBehaviour) {
+  std::string input = R"(print(Int32(String("wwws"))))";
+
+  std::string expected_output = "0";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithDouble) {
+  std::string input = R"(print(Int32(String("2.3"))))";
+
+  std::string expected_output = "2";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
+TEST_F(InBuiltFunction, BasicStringToInt32WithDoubleUndefinedBehaviour) {
+  std::string input = R"(print(Int32(String("2.3"))))";
+
+  std::string expected_output = "2";
+
+  setInput(input);
+  runEvaluator();
+  EXPECT_EQ(getOutput(), expected_output);
+}
+
 // input function
 #ifdef REPL_TEST_MODE
 

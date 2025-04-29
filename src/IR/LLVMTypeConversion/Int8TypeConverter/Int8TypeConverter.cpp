@@ -28,9 +28,9 @@ llvm::Value *Int8TypeConverter::convertExplicit(llvm::Value *&value) {
   }
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
     // TODO: Implement explicit conversion from string to int
-
-    return _builder->CreateCall(
+    llvm::Value *int32Val = _builder->CreateCall(
         _module->getFunction(INNERS::FUNCTIONS::STRING_TO_INT), {value});
+    return this->convertExplicit(int32Val);
   }
   default:
     break;

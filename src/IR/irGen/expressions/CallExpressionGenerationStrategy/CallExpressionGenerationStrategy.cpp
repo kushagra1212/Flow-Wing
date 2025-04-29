@@ -30,28 +30,48 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       callExpression->getLocation());
+
   if (BuiltInFunction::isBuiltInFunction(callExpression->getCallerNameRef())) {
+    uint64_t argIndex = 0;
+
+    llvm::Type *builtinReturnType = nullptr;
+
+    if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
+      builtinReturnType = llvm::Type::getInt32Ty(*TheContext);
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
+      builtinReturnType = llvm::Type::getInt1Ty(*TheContext);
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal32) {
+      builtinReturnType = llvm::Type::getFloatTy(*TheContext);
+    } else if (callExpression->getCallerNameRef() ==
+               FW::BI::FUNCTION::Decimal) {
+      builtinReturnType = llvm::Type::getDoubleTy(*TheContext);
+    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int8) {
+      builtinReturnType = llvm::Type::getInt8Ty(*TheContext);
+    } else {
+      //? Default Return Type (String, Print, Input)
+      DEBUG_LOG("Builtin Return Type Default",
+                "builtinReturnType:" + callExpression->getCallerNameRef());
+      builtinReturnType = llvm::Type::getInt8PtrTy(*TheContext);
+    }
+
+    DEBUG_LOG("Builtin Return Type",
+              "builtinReturnType:" + callExpression->getCallerNameRef());
+    DEBUG_LOG("Call Expresssion arg size",
+              std::to_string(callExpression->getArgumentPtrList().size()));
+
     for (auto &arg : callExpression->getArgumentPtrList()) {
+      if (!callExpression->doesArgumentAllocaExist(argIndex)) {
+        callExpression->setArgumentAlloca(
+            argIndex,
+            {_codeGenerationContext->createMemoryGetPtr(
+                 builtinReturnType,
+                 "builtinReturnType:" + callExpression->getCallerNameRef(),
+                 BinderKindUtils::MemoryKind::Stack),
+             builtinReturnType});
+      }
+
       if (arg->getKind() == BinderKindUtils::CallExpression) {
-        BoundCallExpression *boundCallExpression =
-            static_cast<BoundCallExpression *>(arg);
-
-        auto funTypePtr =
-            _codeGenerationContext->funcPtr(callExpression->getCallerNameRef());
-
-        if ((funTypePtr) && (funTypePtr)->isHavingReturnTypeAsParamater() &&
-            !boundCallExpression->doesArgumentAllocaExist(0)) {
-
-          CODEGEN_DEBUG_LOG("Function has return type as parameter",
-                            boundCallExpression->getCallerNameRef());
-
-          boundCallExpression->setArgumentAlloca(
-              0, {_codeGenerationContext->createMemoryGetPtr(
-                      (funTypePtr)->getReturnType(), "rtPtr",
-                      BinderKindUtils::MemoryKind::Stack),
-                  (funTypePtr)->getReturnType()});
-        }
-
         std::unique_ptr<CallExpressionGenerationStrategy>
             callExpressionGenerationStrategy =
                 std::make_unique<CallExpressionGenerationStrategy>(
@@ -60,6 +80,8 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
       }
       IRCodeGenerator irCodeGen(_codeGenerationContext);
       irCodeGen.declareVariables(arg, false);
+
+      argIndex++;
     }
     return;
   }
