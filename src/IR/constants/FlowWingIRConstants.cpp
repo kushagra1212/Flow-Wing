@@ -38,6 +38,20 @@ const std::string TEMP_BIN_DIR = "build/bin/";
 const std::string OBJECT_FILE_EXTENSION = ".o";
 const std::string TEMP_BC_FILES_DIR = "temp/bc/";
 #endif
+
+namespace DYNAMIC_VALUE {
+namespace TYPE {
+const std::string TYPE_INT32 = "F_TYPE_INT32";
+const std::string TYPE_INT64 = "F_TYPE_INT64";
+const std::string TYPE_FLOAT32 = "F_TYPE_FLOAT32";
+const std::string TYPE_FLOAT64 = "F_TYPE_FLOAT64";
+const std::string TYPE_STRING = "F_TYPE_STRING";
+const std::string TYPE_BOOLEAN = "F_TYPE_BOOLEAN";
+
+const std::string DYNAMIC_VALUE_TYPE = "F_DYNAMIC_VALUE_TYPE";
+
+} // namespace TYPE
+} // namespace DYNAMIC_VALUE
 namespace INNERS {
 namespace FUNCTIONS {
 

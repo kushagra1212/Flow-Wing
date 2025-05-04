@@ -29,8 +29,16 @@ IRGenerator::IRGenerator(
   // LLVM - 16 bit
   // TheContext->setOpaquePointers(false);
 
-  this->declareDependencyFunctions();
-  this->initializeGlobalVariables();
+  FunctionDeclarationManager functionDeclarationManager(
+      _codeGenerationContext.get());
+  functionDeclarationManager.initialize();
+
+  GlobalVariableInitializer globalVariableInitializer(
+      _codeGenerationContext.get());
+  globalVariableInitializer.initialize();
+
+  GlobalTypeInitializer globalTypeInitializer(_codeGenerationContext.get());
+  globalTypeInitializer.initialize();
 
   // Initialize IRCodeGenerator (Statement Generation Strategy)
 
@@ -74,73 +82,10 @@ IRGenerator::IRGenerator(
       FLOWWING::IR::UTILS::createTempDirectories(_llvmLogger);
 }
 
-void IRGenerator::declareDependencyFunctions() {
-  std::unique_ptr<FunctionDeclarationManager> functionDeclarationManager =
-      std::make_unique<FunctionDeclarationManager>(
-          _codeGenerationContext.get());
-
-  functionDeclarationManager->declareCompareStringsFn();
-  functionDeclarationManager->declareConcatStringsFn();
-  functionDeclarationManager->declareDtosFn();
-  functionDeclarationManager->declareEqualStringsFn();
-  functionDeclarationManager->declareGetInputFn();
-  functionDeclarationManager->declareGetMallocPtrofIntConstantFn();
-  functionDeclarationManager->declareGetMallocPtrOfStringConstantFn();
-  functionDeclarationManager->declareGreaterThanOrEqualStringsFn();
-  functionDeclarationManager->declareGreaterThanStringsFn();
-  functionDeclarationManager->declareItosFn();
-  functionDeclarationManager->declareLessThanOrEqualStringsFn();
-  functionDeclarationManager->declareLessThanStringsFn();
-  functionDeclarationManager->declarePrintFn();
-  functionDeclarationManager->declarePrintfFn();
-  functionDeclarationManager->declareStringLengthFn();
-  functionDeclarationManager->declareStringToDoubleFn();
-  functionDeclarationManager->declareStringToIntFn();
-  functionDeclarationManager->declareStringToLongFn();
-  functionDeclarationManager->declareRaiseExceptionFn();
-  functionDeclarationManager->declareMallocFunctionFn();
-  functionDeclarationManager->declarePutChar();
-
-#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
-  functionDeclarationManager->declareGC_Malloc();
-#endif
-}
-
-void IRGenerator::initializeGlobalVariables() {
-  std::unique_ptr<GlobalVariableInitializer> globalVariableInitializer =
-      std::make_unique<GlobalVariableInitializer>(_codeGenerationContext.get());
-
-  globalVariableInitializer->initializeTrue();
-  globalVariableInitializer->initializeFalse();
-  globalVariableInitializer->initializeI8Null();
-  globalVariableInitializer->initializeBreakCount();
-  globalVariableInitializer->initializeContinueCount();
-  globalVariableInitializer->initializeErrorCount();
-}
-
 void IRGenerator::setModuleCount(int count) { this->_moduleCount = count; }
 
 std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
   return this->_irParser;
-}
-
-void IRGenerator::printIR() {
-  // Print LLVM IR to console
-  TheModule->print(llvm::outs(), nullptr);
-}
-
-void IRGenerator::mergeModules(llvm::Module *sourceModule,
-                               llvm::Module *destinationModule) {
-  llvm::LLVMContext &context = destinationModule->getContext();
-  llvm::ValueToValueMapTy vmap;
-
-  // Iterate through functions in the source module and clone them to the
-  // destination module
-  for (llvm::Function &sourceFunction : *sourceModule) {
-    llvm::Function *clonedFunction = llvm::CloneFunction(&sourceFunction, vmap);
-    clonedFunction->setName(sourceFunction.getName() + ".clone");
-    destinationModule->getFunctionList().push_back(clonedFunction);
-  }
 }
 
 const int32_t IRGenerator::hasErrors() const {
@@ -267,7 +212,8 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 #if DEBUG
 
-  this->printIR();
+  // Print LLVM IR to console
+  TheModule->print(llvm::outs(), nullptr);
   LLVMVerifyModule(wrap(TheModule),
                    LLVMVerifierFailureAction::LLVMAbortProcessAction,
                    OutMessage);
@@ -381,23 +327,4 @@ int IRGenerator::executeGeneratedCode() {
   }
   delete executionEngine;
   return hasError;
-}
-
-bool IRGenerator::saveLLVMModuleToFile(llvm::Module *module,
-                                       const std::string &path) {
-  // Create an output stream for the .ll file
-  std::error_code EC;
-  llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);
-
-  if (!EC) {
-    // Write the LLVM module to the .ll file
-    module->print(OS, nullptr);
-    OS.flush();
-    return true;
-  } else {
-    _llvmLogger->LogError("Error opening " + Utils::getFileName(path) +
-                          " for writing: " + EC.message());
-
-    return false;
-  }
 }

@@ -2,6 +2,7 @@
 
 #include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include <cstddef>
 #include <memory>
 
 CallExpressionGenerationStrategy::CallExpressionGenerationStrategy(
@@ -448,9 +449,20 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
     return nullptr;
   }
 
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+
+    DYNAMIC_VALUE_HANDLER::generateDynamicDispatch(
+        _codeGenerationContext->getValueStackHandler()->getValue(),
+        _codeGenerationContext, Builder, [&](llvm::Value *unPackedValue) {
+          printPremitives(unPackedValue, *Builder);
+        });
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    return nullptr;
+  }
+
   if (!_codeGenerationContext->getValueStackHandler()->isEmpty() &&
-      (_codeGenerationContext->getValueStackHandler()->isDynamicType() ||
-       _codeGenerationContext->getValueStackHandler()->isPrimaryType())) {
+      (_codeGenerationContext->getValueStackHandler()->isPrimaryType())) {
     llvm::Value *loaded = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());

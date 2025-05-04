@@ -1,8 +1,8 @@
 #ifndef __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__
 
+#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-
 class BinaryExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   BinaryExpressionGenerationStrategy(CodeGenerationContext *context);
@@ -15,7 +15,7 @@ public:
                    BinderKindUtils::BoundBinaryOperatorKind binaryOp);
 
   llvm::Value *getExpressionValue(BoundExpression *expression,
-                                  bool &isClassType);
+                                  bool &isClassType, int8_t &isDynamicValue);
 };
 
 #endif // __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__

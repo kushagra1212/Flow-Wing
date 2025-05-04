@@ -14,6 +14,15 @@ class FunctionDeclarationManager {
 public:
   FunctionDeclarationManager(CodeGenerationContext *codeGenerationContext);
 
+  void initialize();
+
+private:
+  llvm::Module *TheModule;
+  llvm::LLVMContext *TheContext;
+
+  llvm::Function *declareFunction(const std::string &functionName,
+                                  llvm::FunctionType *functionType);
+
   llvm::Function *declarePrintFn();
   llvm::Function *declareConcatStringsFn();
   llvm::Function *declareStringLengthFn();
@@ -39,13 +48,6 @@ public:
 
   llvm::Function *declareRaiseExceptionFn();
   llvm::Function *declareMallocFunctionFn();
-
-private:
-  llvm::Module *TheModule;
-  llvm::LLVMContext *TheContext;
-
-  llvm::Function *declareFunction(const std::string &functionName,
-                                  llvm::FunctionType *functionType);
 };
 
 #endif // __FUNCTION_DECLARATION_MANAGER_H__

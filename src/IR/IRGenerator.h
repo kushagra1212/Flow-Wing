@@ -10,6 +10,7 @@
 #include "../IR/handlers/value/NamedValueTable/NamedValueTable.h"
 #include "../IR/handlers/value/ValueChain/ValueChain.h"
 #include "../IR/handlers/value/ValueHandler.h"
+#include "../IR/initializers/GlobalTypeInitializer/GlobalTypeInitializer.h"
 #include "../IR/initializers/GlobalVariableInitializer/GlobalVariableInitializer.h"
 #include "../IR/irGen/statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
@@ -93,6 +94,7 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/SourceMgr.h>
+#
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
@@ -106,12 +108,6 @@ public:
                   boundedUserFunctions,
               std::string outputFilePath,
               const std::string sourceFileName = FLOWWING_GLOBAL_ENTRY_POINT);
-  void printIR();
-
-  void mergeModules(llvm::Module *sourceFunction,
-                    llvm::Module *destinationModule);
-  void declareDependencyFunctions();
-  void initializeGlobalVariables();
 
   int executeGeneratedCode();
   std::shared_ptr<BoundGlobalScope> _previousGlobalScope = nullptr;
@@ -125,7 +121,6 @@ public:
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
   const int32_t hasErrors() const;
-  bool saveLLVMModuleToFile(llvm::Module *module, const std::string &path);
 
 private:
   llvm::LLVMContext *TheContext;

@@ -33,6 +33,24 @@ extern const std::string TEMP_BIN_DIR;
 extern const std::string OBJECT_FILE_EXTENSION;
 enum ENVIRONMENT { REPL, SOURCE_FILE };
 
+namespace DYNAMIC_VALUE {
+namespace TYPE {
+extern const std::string TYPE_INT32;
+extern const std::string TYPE_INT64;
+extern const std::string TYPE_FLOAT32;
+extern const std::string TYPE_FLOAT64;
+extern const std::string TYPE_STRING;
+extern const std::string TYPE_BOOLEAN;
+
+// Dynamic Value Initial Values
+
+enum VALUE_TYPE { INT32, INT64, FLOAT32, FLOAT64, STRING, BOOLEAN };
+
+// Dynamic Value Type Name
+extern const std::string DYNAMIC_VALUE_TYPE;
+} // namespace TYPE
+} // namespace DYNAMIC_VALUE
+
 namespace INNERS {
 namespace FUNCTIONS {
 

@@ -46,6 +46,27 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 }
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
+    handleDynamicValuePrimitiveLocalVariableDeclare(
+        const std::string &variableName, llvm::Value *rhsValue) {
+
+  llvm::StructType *dynamicValueStructType =
+      llvm::StructType::getTypeByName(*_codeGenerationContext->getContext(),
+                                      DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+
+  llvm::AllocaInst *dynamicValueVariableAddress = Builder->CreateAlloca(
+      dynamicValueStructType, nullptr, variableName.c_str());
+
+  dynamicValueVariableAddress->setAlignment(llvm::Align(8));
+
+  _codeGenerationContext->getAllocaChain()->setPtr(
+      variableName, {dynamicValueVariableAddress, dynamicValueStructType});
+
+  return DYNAMIC_VALUE_HANDLER::handleAssignmentToDynamicValueVariable(
+      dynamicValueVariableAddress, variableName, rhsValue,
+      _codeGenerationContext, Builder);
+}
+
+llvm::Value *VariableDeclarationStatementGenerationStrategy::
     handlePrimitiveLocalVariableDeclr(
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
@@ -58,7 +79,8 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   }
 
   // Handle Local Dynamic Typed Variable
-  return handleUnTypedPrimitiveLocalVariableDeclr(variableName, rhsValue);
+  return handleDynamicValuePrimitiveLocalVariableDeclare(variableName,
+                                                         rhsValue);
 }
 
 llvm::Value *
@@ -121,11 +143,16 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     return nullptr;
   }
 
+  assert(type == llvm::StructType::getTypeByName(
+                     *_codeGenerationContext->getContext(),
+                     DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE) &&
+         "Type is not a dynamic value type");
+
   _codeGenerationContext->getAllocaChain()->setPtr(_variableName, {ptr, type});
 
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      ptr, _rhsValue, _rhsValue->getType(), _variableName);
-
+  // _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
+  //     ptr, _rhsValue, _rhsValue->getType(), _variableName);
+  handleDynamicValuePrimitiveLocalVariableDeclare(_variableName, _rhsValue);
   return _rhsValue;
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
@@ -177,7 +204,9 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
         _codeGenerationContext->getDynamicType()->get(), _variableName,
         _variableDeclaration->getMemoryKind());
 
-    ptrType = _codeGenerationContext->getDynamicType()->get();
+    ptrType = llvm::StructType::getTypeByName(
+        *_codeGenerationContext->getContext(),
+        DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
   }
 
   if (_variableDeclaration->getInitializerPtr().get() &&

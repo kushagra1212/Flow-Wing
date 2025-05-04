@@ -8,8 +8,18 @@
 #include "../../context/CodeGenerationContext.h"
 
 class GlobalVariableInitializer {
- public:
+public:
   GlobalVariableInitializer(CodeGenerationContext *codeGenerationContext);
+
+  void initialize();
+
+private:
+  llvm::Module *TheModule;
+  llvm::LLVMContext *TheContext;
+  CodeGenerationContext *_codeGenerationContext;
+
+  llvm::Type *i8Type;
+  llvm::Type *i32Type;
 
   void initializeTrue();
   void initializeFalse();
@@ -17,14 +27,7 @@ class GlobalVariableInitializer {
   void initializeBreakCount();
   void initializeContinueCount();
   void initializeErrorCount();
-
- private:
-  llvm::Module *TheModule;
-  llvm::LLVMContext *TheContext;
-  CodeGenerationContext *_codeGenerationContext;
-
-  llvm::Type *i8Type;
-  llvm::Type *i32Type;
+  void initializeDynamicValueTypes();
 };
 
-#endif  // __GLOBAL_VARIABLE_INITIALIZER_H__
+#endif // __GLOBAL_VARIABLE_INITIALIZER_H__

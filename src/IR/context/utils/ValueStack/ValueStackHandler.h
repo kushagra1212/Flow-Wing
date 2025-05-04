@@ -1,8 +1,8 @@
 #ifndef __FLOW_WING_VALUE_STACK_HANDLE
 #define __FLOW_WING_VALUE_STACK_HANDLE
 
+#include "../../../constants/FlowWingIRConstants.h"
 #include "ValueStack.h"
-
 class ValueStackHandler {
   auto inline isType(const std::string type) -> bool {
     if (vs.empty()) {
@@ -70,6 +70,11 @@ public:
   auto inline isFunctionType() -> bool { return isType("function"); }
 
   auto inline isArrayType() -> bool { return isType("array"); }
+
+  auto inline isDynamicValueType() -> bool {
+    return isType(
+        FLOWWING::IR::CONSTANTS::DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+  }
 
   auto inline isDynamicType() -> bool { return isType("dynamic"); }
 

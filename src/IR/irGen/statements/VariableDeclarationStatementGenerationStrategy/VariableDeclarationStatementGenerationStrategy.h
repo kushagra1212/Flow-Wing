@@ -3,6 +3,7 @@
 
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
@@ -36,6 +37,9 @@ public:
   llvm::Value *
   handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
                                            llvm::Value *rhsValue);
+
+  llvm::Value *handleDynamicValuePrimitiveLocalVariableDeclare(
+      const std::string &variableName, llvm::Value *rhsValue);
 
   llvm::Value *handlePrimitiveLocalVariableDeclr(
       const std::string &variableName,

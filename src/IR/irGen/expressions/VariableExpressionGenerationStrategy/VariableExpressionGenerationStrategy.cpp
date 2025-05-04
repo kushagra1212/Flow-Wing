@@ -43,10 +43,15 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
         "", v, "array", llvm::cast<llvm::ArrayType>(variableType));
     return v;
   }
+  llvm::StructType *dynamicValueType =
+      llvm::StructType::getTypeByName(*_codeGenerationContext->getContext(),
+                                      DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+  if (variableType == dynamicValueType) {
+    _codeGenerationContext->getValueStackHandler()->push(
+        variableName, v, DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE,
+        dynamicValueType);
 
-  if (_codeGenerationContext->getDynamicType()->isDyn(variableType)) {
-    return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
-        v, variableName);
+    return v;
   }
 
   if (llvm::isa<llvm::StructType>(variableType)) {
@@ -250,7 +255,7 @@ llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
           ->getValue());
   _variableName = variableName;
 
-  DEBUG_LOG("Variable Name ", variableName);
+  DEBUG_LOG("Local Variable Name ", variableName);
 
   return this->getVariableValue(variableName);
 }

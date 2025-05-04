@@ -5,6 +5,34 @@ FunctionDeclarationManager::FunctionDeclarationManager(
     : TheModule(codeGenerationContext->getModule().get()),
       TheContext(codeGenerationContext->getContext().get()) {}
 
+void FunctionDeclarationManager::initialize() {
+  this->declareCompareStringsFn();
+  this->declareConcatStringsFn();
+  this->declareDtosFn();
+  this->declareEqualStringsFn();
+  this->declareGetInputFn();
+  this->declareGetMallocPtrofIntConstantFn();
+  this->declareGetMallocPtrOfStringConstantFn();
+  this->declareGreaterThanOrEqualStringsFn();
+  this->declareGreaterThanStringsFn();
+  this->declareItosFn();
+  this->declareLessThanOrEqualStringsFn();
+  this->declareLessThanStringsFn();
+  this->declarePrintFn();
+  this->declarePrintfFn();
+  this->declareStringLengthFn();
+  this->declareStringToDoubleFn();
+  this->declareStringToIntFn();
+  this->declareStringToLongFn();
+  this->declareRaiseExceptionFn();
+  this->declareMallocFunctionFn();
+  this->declarePutChar();
+
+#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
+  this->declareGC_Malloc();
+#endif
+}
+
 llvm::Function *
 FunctionDeclarationManager::declareFunction(const std::string &functionName,
                                             llvm::FunctionType *functionType) {

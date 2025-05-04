@@ -7,6 +7,7 @@
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
+#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
@@ -27,6 +28,11 @@ public:
   handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
                                            const std::string &variableName,
                                            llvm::Value *rhsValue);
+
+  llvm::Value *
+  handleAssignmentToDynamicValueVariable(llvm::Value *lhsPtr,
+                                         const std::string &variableName,
+                                         llvm::Value *rhsValue);
 
   llvm::Value *
   handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);
@@ -59,7 +65,6 @@ private:
   llvm::Value *_allocaInst = nullptr;
   llvm::GlobalVariable *_previousGlobalVariable = nullptr;
   SyntaxKindUtils::SyntaxKind _variableType;
-  bool _isGlobal;
   std::vector<llvm::Value *> _indices;
   BoundVariableExpression *_variableExpression = nullptr;
   BoundExpression *_rhsExpression = nullptr;
