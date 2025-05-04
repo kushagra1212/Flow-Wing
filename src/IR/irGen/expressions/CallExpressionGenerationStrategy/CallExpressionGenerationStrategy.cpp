@@ -35,20 +35,19 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
     uint64_t argIndex = 0;
 
     llvm::Type *builtinReturnType = nullptr;
-
-    if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int32) {
+    const std::string &callerName = callExpression->getCallerNameRef();
+    if (callerName == FW::BI::FUNCTION::Int32) {
       builtinReturnType = llvm::Type::getInt32Ty(*TheContext);
-    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Bool) {
+    } else if (callerName == FW::BI::FUNCTION::Bool) {
       builtinReturnType = llvm::Type::getInt1Ty(*TheContext);
-    } else if (callExpression->getCallerNameRef() ==
-               FW::BI::FUNCTION::Decimal32) {
+    } else if (callerName == FW::BI::FUNCTION::Decimal32) {
       builtinReturnType = llvm::Type::getFloatTy(*TheContext);
-    } else if (callExpression->getCallerNameRef() ==
-               FW::BI::FUNCTION::Decimal) {
+    } else if (callerName == FW::BI::FUNCTION::Decimal) {
       builtinReturnType = llvm::Type::getDoubleTy(*TheContext);
-    } else if (callExpression->getCallerNameRef() == FW::BI::FUNCTION::Int8) {
+    } else if (callerName == FW::BI::FUNCTION::Int8) {
       builtinReturnType = llvm::Type::getInt8Ty(*TheContext);
-    } else {
+    } else if (callerName == FW::BI::FUNCTION::String ||
+               callerName == FW::BI::FUNCTION::Input) {
       //? Default Return Type (String, Print, Input)
       DEBUG_LOG("Builtin Return Type Default",
                 "builtinReturnType:" + callExpression->getCallerNameRef());
@@ -61,7 +60,8 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
               std::to_string(callExpression->getArgumentPtrList().size()));
 
     for (auto &arg : callExpression->getArgumentPtrList()) {
-      if (!callExpression->doesArgumentAllocaExist(argIndex)) {
+      if (!callExpression->doesArgumentAllocaExist(argIndex) &&
+          builtinReturnType != nullptr) {
         callExpression->setArgumentAlloca(
             argIndex,
             {_codeGenerationContext->createMemoryGetPtr(

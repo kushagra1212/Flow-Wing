@@ -7,6 +7,7 @@
 #include <any>
 #include <chrono>
 #include <csignal>
+#include <cstdint>
 #include <cstdlib> // For malloc
 #include <cstring> // For strlen and memcpy
 #include <exception>

@@ -178,11 +178,6 @@ public:
     LLVMSetDataLayout(module, datalayout_str);
     LLVMDisposeMessage(datalayout_str);
 
-    llvm::sys::fs::create_directories(
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR);
-
-    llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
-
     std::string destPath =
         FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
 

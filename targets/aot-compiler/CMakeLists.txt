@@ -80,6 +80,8 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(DEBUG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_compile_definitions(RELEASE)
 endif()

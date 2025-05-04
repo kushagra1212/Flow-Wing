@@ -7,9 +7,6 @@ LLFileSaveStrategy::LLFileSaveStrategy(LLVMLogger *llvmLogger) {
 bool LLFileSaveStrategy::saveToFile(const std::string &path,
                                     llvm::Module *module) const {
 
-  llvm::sys::fs::create_directories(Utils::getTempDir() +
-                                    FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR);
-
   // Create an output stream for the .ll file
   std::error_code EC;
   llvm::raw_fd_ostream OS(path, EC, llvm::sys::fs::OF_None);

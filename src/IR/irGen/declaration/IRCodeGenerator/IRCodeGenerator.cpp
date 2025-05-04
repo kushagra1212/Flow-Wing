@@ -16,6 +16,8 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
       _multipleAssignmentExpressionGenerationStrategy(
           std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
               context)),
+      _assignmentExpressionGenerationStrategy(
+          std::make_unique<AssignmentExpressionGenerationStrategy>(context)),
       _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,

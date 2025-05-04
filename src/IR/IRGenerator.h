@@ -70,6 +70,7 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 // ExecutionEngine
+#include "utils/DirectoryUtils.h"
 #include "llvm//IR/Value.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
@@ -113,7 +114,6 @@ public:
   void initializeGlobalVariables();
 
   int executeGeneratedCode();
-
   std::shared_ptr<BoundGlobalScope> _previousGlobalScope = nullptr;
 
   void generateEvaluateGlobalStatement(
@@ -131,6 +131,8 @@ private:
   llvm::LLVMContext *TheContext;
   llvm::Module *TheModule;
   llvm::IRBuilder<> *Builder;
+
+  int8_t m_hasTempDirectories = EXIT_SUCCESS;
 
   LLVMLogger *_llvmLogger;
 

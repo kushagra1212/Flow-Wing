@@ -1,7 +1,6 @@
 #include "TypeMapper.h"
 #include "../../context/CodeGenerationContext.h"
-#include <cstdint>
-#include <string>
+
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
                        llvm::Module *module,
                        CodeGenerationContext *codeGenerationContext)

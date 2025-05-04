@@ -69,6 +69,9 @@ IRGenerator::IRGenerator(
 
   //.o
   objectFile = std::make_unique<ObjectFile>();
+
+  m_hasTempDirectories =
+      FLOWWING::IR::UTILS::createTempDirectories(_llvmLogger);
 }
 
 void IRGenerator::declareDependencyFunctions() {
@@ -275,7 +278,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 #endif
 
-  if (!this->hasErrors()) {
+  if (!this->hasErrors() && m_hasTempDirectories == EXIT_SUCCESS) {
 #if defined(DEBUG)
     const std::string Filename = (std::string(
         Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +

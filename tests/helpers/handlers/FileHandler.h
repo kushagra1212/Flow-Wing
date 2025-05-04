@@ -78,16 +78,21 @@ public:
 
   void writeFile(const std::string &filename, const std::string &code) {
     std::string moduleFilePath = currentPath.string() + "/" + filename;
-
     std::ofstream exportFile(moduleFilePath);
     exportFile << code;
     exportFile.close();
   }
 
   std::string createBuildAndRunCmd(const std::string &fileName) {
-    return (currentPath.string() + "/../" + buildFolder +
-            "/FlowWing -O0 --F=" + currentPath.string() + "/" + fileName +
-            " && build/bin/" + fileName.substr(0, fileName.find_last_of('.')));
+    std::string runCMD =
+        (currentPath.string() + "/../" + buildFolder +
+         "/FlowWing -O0 --F=" + currentPath.string() + "/" + fileName);
+
+#if defined(AOT_MODE) || defined(AOT_TEST_MODE)
+    runCMD += " && build/bin/" + fileName.substr(0, fileName.find_last_of('.'));
+#endif
+
+    return runCMD;
   }
 
 private:
