@@ -64,6 +64,7 @@ private:
   bool _isGlobal = false;
   llvm::Type *_elementToFillType;
   BoundFillExpression *_fillExpression = nullptr;
+  int8_t _isElementToFillDynamicValue = 0;
 };
 
 #endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

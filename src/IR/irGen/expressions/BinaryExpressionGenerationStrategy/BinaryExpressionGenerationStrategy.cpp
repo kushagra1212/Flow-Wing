@@ -11,6 +11,10 @@ llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
       _expressionGenerationFactory->createStrategy(expression->getKind())
           ->generateExpression(expression);
 
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+    isDynamicValue = 1;
+  }
+
   if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
             _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
@@ -24,17 +28,31 @@ llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
         _codeGenerationContext->getValueStackHandler()->getValue()));
     isClassType = true;
   }
+
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     value = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
   }
-  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
-    isDynamicValue = 1;
-  }
+
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   return value;
+}
+
+void BinaryExpressionGenerationStrategy::declare(BoundExpression *expression) {
+  BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)expression;
+
+  llvm::StructType *dynamicValueStructType =
+      llvm::StructType::getTypeByName(*_codeGenerationContext->getContext(),
+                                      DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+
+  llvm::AllocaInst *dynamicValueVariableAddress = Builder->CreateAlloca(
+      dynamicValueStructType, nullptr, "m_binarydynamicValueVariableAddress");
+
+  dynamicValueVariableAddress->setAlignment(llvm::Align(8));
+
+  binaryExpression->setDynamicValueVariableAddress(dynamicValueVariableAddress);
 }
 
 llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
@@ -60,35 +78,52 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     return nullptr;
   }
 
-  llvm::Value *result = nullptr;
+  if (isLHSDynamicValue || isRHSDynamicValue) {
+    llvm::AllocaInst *dynamicValueVariableAddress =
+        binaryExpression->getDynamicValueVariableAddress();
 
-  if (isLHSDynamicValue) {
+    if (!isLHSDynamicValue) {
+      DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+          dynamicValueVariableAddress, "lhsDynamicValue", lhsValue,
+          _codeGenerationContext, Builder);
+      lhsValue = dynamicValueVariableAddress;
+    } else if (!isRHSDynamicValue) {
+      DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+          dynamicValueVariableAddress, "rhsDynamicValue", rhsValue,
+          _codeGenerationContext, Builder);
+      rhsValue = dynamicValueVariableAddress;
+    }
+
     DYNAMIC_VALUE_HANDLER::generateDynamicDispatch(
         lhsValue, _codeGenerationContext, Builder,
-        [&](llvm::Value *unPackedLHSValue) {
-          if (isRHSDynamicValue) {
-            DYNAMIC_VALUE_HANDLER::generateDynamicDispatch(
-                rhsValue, _codeGenerationContext, Builder,
-                [&](llvm::Value *unPackedRHSValue) {
-                  result = performOperation(unPackedLHSValue, unPackedRHSValue,
-                                            binaryExpression->getOperator());
-                });
-          } else {
-            result = performOperation(unPackedLHSValue, rhsValue,
-                                      binaryExpression->getOperator());
-          }
+        [&](llvm::Value *resolvedLhsValue) {
+          DYNAMIC_VALUE_HANDLER::generateDynamicDispatch(
+              rhsValue, _codeGenerationContext, Builder,
+              [&](llvm::Value *resolvedRhsValue) {
+                llvm::Value *result =
+                    performOperation(resolvedLhsValue, resolvedRhsValue,
+                                     binaryExpression->getOperator());
+                DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+                    dynamicValueVariableAddress, "dynamicValueVariableAddress",
+                    result, _codeGenerationContext, Builder);
+              });
         });
-  } else if (isRHSDynamicValue) {
-    DYNAMIC_VALUE_HANDLER::generateDynamicDispatch(
-        rhsValue, _codeGenerationContext, Builder,
-        [&](llvm::Value *unPackedRHSValue) {
-          result = performOperation(lhsValue, unPackedRHSValue,
-                                    binaryExpression->getOperator());
-        });
-  } else {
-    result =
-        performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
+
+    llvm::StructType *dynamicValueType = llvm::StructType::getTypeByName(
+        *_codeGenerationContext->getContext(),
+        DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
+
+    _codeGenerationContext->getValueStackHandler()->push(
+        "", dynamicValueVariableAddress,
+        DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE, dynamicValueType);
+
+    return dynamicValueVariableAddress;
   }
+
+  llvm::Value *result = nullptr;
+
+  result =
+      performOperation(lhsValue, rhsValue, binaryExpression->getOperator());
 
   return result;
 }

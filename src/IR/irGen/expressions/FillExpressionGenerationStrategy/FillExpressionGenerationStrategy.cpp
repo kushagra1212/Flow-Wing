@@ -199,8 +199,11 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
           ->createStrategy(_fillExpression->getElementToFillRef()->getKind())
           ->generateExpression(_fillExpression->getElementToFillRef().get());
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
-      llvm::isa<llvm::StructType>(_elementType)) {
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+    _isElementToFillDynamicValue = 1;
+    _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
+  } else if (_codeGenerationContext->getValueStackHandler()->isStructType() &&
+             llvm::isa<llvm::StructType>(_elementType)) {
     _elementToFill = _codeGenerationContext->getValueStackHandler()->getValue();
     _elementToFillType =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
@@ -217,7 +220,8 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
     return false;
   }
 
-  if (_elementType && _elementType != _elementToFill->getType()) {
+  if (_elementType && _elementType != _elementToFill->getType() &&
+      !_isElementToFillDynamicValue) {
     std::string elementTypeName =
         _codeGenerationContext->getMapper()->getLLVMTypeName(_elementType);
 
@@ -349,8 +353,16 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
         objExpGenStrategy->generateVariable(elementPtr,
                                             _elementType->getStructName().str(),
                                             _elementToFill, _isGlobal);
-      } else
-        Builder->CreateStore(elementToFill, elementPtr);
+      } else {
+
+        if (_isElementToFillDynamicValue) {
+          DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSVariable(
+              elementPtr, _elementType, elementToFill, _codeGenerationContext,
+              Builder);
+        } else {
+          Builder->CreateStore(elementToFill, elementPtr);
+        }
+      }
 
       llvm::Value *_currentIndex =
           Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);

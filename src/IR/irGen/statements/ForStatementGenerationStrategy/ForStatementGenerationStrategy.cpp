@@ -13,9 +13,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       forStatement->getLocation());
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
-
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -85,7 +82,7 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
             ->generateStatement(initializationStat);
 
     variableDeclarationStatementGenerationStrategy
-        ->handlePrimitiveLocalVariableDeclr(
+        ->handlePrimitiveLocalVariableDeclaration(
             variableName,
             _codeGenerationContext->getMapper()->mapLLVMTypeToCustomType(
                 initializationStatResult->getType()),
@@ -136,6 +133,17 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   llvm::Value *value =
       variableExpressionGenerationStrategy->getVariableValue(variableName);
 
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    auto [valueStorage, typeTag] =
+        DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+            value, _codeGenerationContext, Builder);
+
+    value = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toInt32(
+        valueStorage, _codeGenerationContext, Builder);
+  }
+
   llvm::PHINode *conditionPHI =
       generateLoopCondition(stepValue, value, upperBound);
 
@@ -170,17 +178,18 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   llvm::Value *incrementedValue = Builder->CreateAdd(value, stepValue);
 
-  //   assignmentExpressionGenerationStrategy
-  //       ->handlePrimitiveLocalVariableAssignment(
-  //           variableName, SyntaxKindUtils::SyntaxKind::Int32Keyword,
-  //           incrementedValue);
-
   {
-    llvm::Value *v =
-        _codeGenerationContext->getAllocaChain()->getPtr(variableName).first;
-    _codeGenerationContext->getNamedValueChain()->updateNamedValue(
-        variableName, incrementedValue);
-    Builder->CreateStore(incrementedValue, v);
+    auto [v, type] =
+        _codeGenerationContext->getAllocaChain()->getPtr(variableName);
+
+    if (type == llvm::StructType::getTypeByName(
+                    *_codeGenerationContext->getContext(),
+                    DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE)) {
+      DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+          v, variableName, incrementedValue, _codeGenerationContext, Builder);
+    } else {
+      Builder->CreateStore(incrementedValue, v);
+    }
   }
 
   Builder->CreateBr(loopCondition);
@@ -193,7 +202,6 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   // Exit
 
   _codeGenerationContext->getAllocaChain()->removeHandler();
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
 
   return exitValue;
 }

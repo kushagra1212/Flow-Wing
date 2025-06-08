@@ -11,8 +11,6 @@
 #include "../TypeBuilder/StructTypeBuilder/StructTypeBuilder.h"
 #include "../handlers/alloca/AllocaChain/AllocaChain.h"
 #include "../handlers/alloca/AllocaTable/AllocaTable.h"
-#include "../handlers/value/NamedValueTable/NamedValueTable.h"
-#include "../handlers/value/ValueChain/ValueChain.h"
 #include "../irGen/Types/ArgsTypeHandler.h"
 #include "../irGen/Types/FlowWingClass.h"
 #include "../irGen/Types/Function.h"
@@ -101,7 +99,6 @@ public:
   std::unique_ptr<TypeMapper> &getMapper();
   std::unique_ptr<LLVMLogger> &getLogger();
 
-  std::unique_ptr<ValueChain> &getNamedValueChain();
   std::unique_ptr<AllocaChain> &getAllocaChain();
 
   std::unique_ptr<ArgsTypeHandler> &getArgsTypeHandler();
@@ -283,7 +280,6 @@ private:
   std::unique_ptr<TypeMapper> _typeMapper;
   std::unique_ptr<LLVMLogger> _llvmLogger;
 
-  std::unique_ptr<ValueChain> _namedValueChain;
   std::unique_ptr<AllocaChain> _allocaChain;
   std::unique_ptr<ValueStackHandler> _valueStackHandler;
 

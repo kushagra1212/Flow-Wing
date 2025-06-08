@@ -18,6 +18,8 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
               context)),
       _assignmentExpressionGenerationStrategy(
           std::make_unique<AssignmentExpressionGenerationStrategy>(context)),
+      _binaryExpressionGenerationStrategy(
+          std::make_unique<BinaryExpressionGenerationStrategy>(context)),
       _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
@@ -73,6 +75,7 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
 
     _callExpressionGenerationStrategy->declare(
         static_cast<BoundCallExpression *>(child));
+    declareVariables(child, isGlobal);
     break;
   }
   case BinderKindUtils::BoundNodeKind::BoundModuleStatement: {
@@ -98,6 +101,13 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     declareVariables(child, isGlobal);
     break;
   }
+  case BinderKindUtils::BoundNodeKind::BinaryExpression: {
+    _binaryExpressionGenerationStrategy->declare(
+        static_cast<BoundBinaryExpression *>(child));
+    declareVariables(child, isGlobal);
+    break;
+  }
+
   case BinderKindUtils::BoundNodeKind::BoundMultipleAssignmentExpression: {
 
     declareVariables(child, isGlobal);

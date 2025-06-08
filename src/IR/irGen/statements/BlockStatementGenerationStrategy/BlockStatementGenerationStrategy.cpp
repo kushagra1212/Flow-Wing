@@ -12,8 +12,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       blockStatement->getLocation());
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -83,8 +81,6 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(afterNestedBlock);
 
-  // this->_NamedValuesStack.pop();
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
   return nullptr;
 }

@@ -24,15 +24,9 @@ public:
 
   void declare(BoundExpression *expression);
 
-  llvm::Value *
-  handleDynamicPrimitiveVariableAssignment(llvm::Value *variable,
-                                           const std::string &variableName,
-                                           llvm::Value *rhsValue);
-
-  llvm::Value *
-  handleAssignmentToDynamicValueVariable(llvm::Value *lhsPtr,
-                                         const std::string &variableName,
-                                         llvm::Value *rhsValue);
+  llvm::Value *handleDynamicPrimitiveVariableAssignment(
+      llvm::Value *variable, const std::string &variableName,
+      llvm::Value *rhsValue, const bool IS_RHS_VALUE_A_DYNAMIC_VALUE);
 
   llvm::Value *
   handleAssignmentExpression(BoundAssignmentExpression *assignmentExpression);
@@ -44,7 +38,7 @@ public:
 
   int8_t populateLHS(BoundAssignmentExpression *&assignmentExpression);
 
-  int8_t handleWhenRHSIsConstant(BoundExpression *expression);
+  int8_t handleWhenRHSIsPrimitive(BoundExpression *expression);
 
   llvm::Value *handleAssignmentByBracketedExpression(
       BoundBracketedExpression *bracketedExpression);
@@ -75,7 +69,7 @@ private:
   llvm::Value *_lhsPtr = nullptr, *_rhsPtr = nullptr;
   SyntaxKindUtils::SyntaxKind _lhsTypeKind;
 
-  llvm::Value *_lhsDynamicPtr = nullptr;
+  int8_t m_isLHSDynamicValue = 0;
 };
 
 #endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

@@ -54,7 +54,8 @@ void VariableParserUtils::handleVarDecParseInitializer(
 }
 
 void VariableParserUtils::handleVarDecParseIdentifierAndType(
-    ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec) {
+    ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec,
+    bool isForStatement) {
   std::unique_ptr<SyntaxToken<std::any>> identifier =
       std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
@@ -77,7 +78,8 @@ void VariableParserUtils::handleVarDecParseIdentifierAndType(
               SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
               "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
 
-  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
+  if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken ||
+      isForStatement) {
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {

@@ -2,6 +2,7 @@
 #define __FLOWWING_IR__CODE_GENERATOR_H__
 
 #include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "../../expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../../expressions/MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
 #include "../../statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
@@ -24,6 +25,8 @@ class IRCodeGenerator {
       _callExpressionGenerationStrategy;
   std::unique_ptr<AssignmentExpressionGenerationStrategy>
       _assignmentExpressionGenerationStrategy;
+  std::unique_ptr<BinaryExpressionGenerationStrategy>
+      _binaryExpressionGenerationStrategy;
 
   std::unique_ptr<MultipleAssignmentExpressionGenerationStrategy>
       _multipleAssignmentExpressionGenerationStrategy;

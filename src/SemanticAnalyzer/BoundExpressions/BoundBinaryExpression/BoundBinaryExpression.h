@@ -1,12 +1,14 @@
 #pragma once
 
 #include "../BoundExpression/BoundExpression.h"
+#include <llvm/IR/IRBuilder.h>
 
 class BoundBinaryExpression : public BoundExpression {
 private:
   BinderKindUtils::BoundBinaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
+  llvm::AllocaInst *_dynamicValueVariableAddress = nullptr;
 
 public:
   BoundBinaryExpression(const DiagnosticUtils::SourceLocation &location,
@@ -31,4 +33,9 @@ public:
   std::unique_ptr<BoundExpression> &getLeftPtr();
 
   std::unique_ptr<BoundExpression> &getRightPtr();
+
+  llvm::AllocaInst *getDynamicValueVariableAddress();
+
+  void
+  setDynamicValueVariableAddress(llvm::AllocaInst *dynamicValueVariableAddress);
 };

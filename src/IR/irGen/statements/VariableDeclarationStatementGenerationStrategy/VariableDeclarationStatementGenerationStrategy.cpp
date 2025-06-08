@@ -7,12 +7,12 @@ VariableDeclarationStatementGenerationStrategy::
     : StatementGenerationStrategy(context) {}
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handleTypedPrimitiveLocalVariableDeclr(
+    handleTypedPrimitiveLocalVariableDeclaration(
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
 
-  CODEGEN_DEBUG_LOG("Var Type" + Utils::typeToString(variableType));
+  CODEGEN_DEBUG_LOG("Var Type " + Utils::typeToString(variableType));
 
   llvm::Type *llvmType =
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
@@ -24,23 +24,6 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   _codeGenerationContext->getAllocaChain()->setPtr(variableName, {v, llvmType});
 
   Builder->CreateStore(rhsValue, v);
-
-  return rhsValue;
-}
-
-llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                             llvm::Value *rhsValue) {
-  llvm::AllocaInst *variable =
-      Builder->CreateAlloca(_codeGenerationContext->getDynamicType()->get(),
-                            nullptr, variableName.c_str());
-
-  _codeGenerationContext->getAllocaChain()->setPtr(
-      variableName,
-      {variable, _codeGenerationContext->getDynamicType()->get()});
-
-  _codeGenerationContext->getDynamicType()->setMemberValueOfDynVar(
-      variable, rhsValue, rhsValue->getType(), variableName);
 
   return rhsValue;
 }
@@ -61,21 +44,28 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
   _codeGenerationContext->getAllocaChain()->setPtr(
       variableName, {dynamicValueVariableAddress, dynamicValueStructType});
 
-  return DYNAMIC_VALUE_HANDLER::handleAssignmentToDynamicValueVariable(
-      dynamicValueVariableAddress, variableName, rhsValue,
-      _codeGenerationContext, Builder);
+  if (m_isLHSDynamicValue) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSDynamicValue(
+        dynamicValueVariableAddress, rhsValue, _codeGenerationContext, Builder);
+
+  } else {
+    DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+        dynamicValueVariableAddress, variableName, rhsValue,
+        _codeGenerationContext, Builder);
+  }
+  return rhsValue;
 }
 
 llvm::Value *VariableDeclarationStatementGenerationStrategy::
-    handlePrimitiveLocalVariableDeclr(
+    handlePrimitiveLocalVariableDeclaration(
         const std::string &variableName,
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
 
   // Handle Local Static Typed Variable
   if (_codeGenerationContext->getMapper()->isPrimitiveType(variableType)) {
-    return handleTypedPrimitiveLocalVariableDeclr(variableName, variableType,
-                                                  rhsValue);
+    return handleTypedPrimitiveLocalVariableDeclaration(variableName,
+                                                        variableType, rhsValue);
   }
 
   // Handle Local Dynamic Typed Variable
@@ -291,6 +281,8 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
         _expressionGenerationFactory->createStrategy(initializerExp->getKind())
             ->generateExpression(initializerExp);
   }
+  m_isLHSDynamicValue =
+      _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
 
   if (!_rhsValue) {
     _codeGenerationContext->getLogger()->LogError(

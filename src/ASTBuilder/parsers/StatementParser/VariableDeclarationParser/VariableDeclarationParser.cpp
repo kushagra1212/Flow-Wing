@@ -7,7 +7,8 @@ VariableDeclarationParser::parseStatement(ParserContext *ctx) {
 
   VariableParserUtils::handleVarDecParsePrefixKeywords(ctx, varDec, false);
 
-  VariableParserUtils::handleVarDecParseIdentifierAndType(ctx, varDec);
+  VariableParserUtils::handleVarDecParseIdentifierAndType(ctx, varDec,
+                                                          m_isForStatement);
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
 
@@ -20,4 +21,8 @@ VariableDeclarationParser::parseStatement(ParserContext *ctx) {
   VariableParserUtils::handleVarDecParseInitializer(ctx, varDec);
 
   return std::move(varDec);
+}
+
+void VariableDeclarationParser::setIsForStatement(bool isForStatement) {
+  m_isForStatement = isForStatement;
 }

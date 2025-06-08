@@ -11,7 +11,8 @@ public:
       bool isFuncDec);
 
   static void handleVarDecParseIdentifierAndType(
-      ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec);
+      ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec,
+      bool isForStatement = false);
 
   static void handleVarDecParseInitializer(
       ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec);

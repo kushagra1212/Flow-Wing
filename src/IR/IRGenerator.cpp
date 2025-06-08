@@ -253,8 +253,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
 void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
   // Add handlers
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
+
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -289,7 +288,6 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
   // Rest
   _codeGenerationContext->resetCurrentClassName();
   // Remove handlers
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 }
 

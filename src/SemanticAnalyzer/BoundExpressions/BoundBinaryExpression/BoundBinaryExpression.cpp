@@ -51,3 +51,12 @@ std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeftPtr() {
 std::unique_ptr<BoundExpression> &BoundBinaryExpression::getRightPtr() {
   return _right;
 }
+
+llvm::AllocaInst *BoundBinaryExpression::getDynamicValueVariableAddress() {
+  return _dynamicValueVariableAddress;
+}
+
+void BoundBinaryExpression::setDynamicValueVariableAddress(
+    llvm::AllocaInst *dynamicValueVariableAddress) {
+  _dynamicValueVariableAddress = dynamicValueVariableAddress;
+}

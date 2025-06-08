@@ -52,8 +52,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   Builder->SetInsertPoint(entryBlock);
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -259,8 +257,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             parameterNames[i],
             {variable, llvmPrimitiveType->getPrimitiveType()});
 
-        // _codeGenerationContext->getNamedValueChain()->setNamedValue(
-        //     parameterNames[i], loaded);
       } else if (i < llvmArgsTypes.size()) {
 
         llvm::Value *alloca = Builder->CreateAlloca(
@@ -301,13 +297,9 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getMapper()->getDefaultValue(returnType));
   }
 
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
   _codeGenerationContext->getReturnAllocaStack().pop();
-
-  //   _codeGenerationContext->getNamedValueChain()->setNamedValue(FUNCTION_NAME,
-  //   F);
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,
                                                           nullptr);
@@ -338,9 +330,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   Builder->SetInsertPoint(entryBlock);
 
-  _codeGenerationContext->getNamedValueChain()->addHandler(
-      new NamedValueTable());
-
   _codeGenerationContext->getAllocaChain()->addHandler(
       std::make_unique<AllocaTable>());
 
@@ -369,7 +358,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
   _statementGenerationFactory->createStrategy(fd->getBodyRef().get()->getKind())
       ->generateStatement(fd->getBodyRef().get());
 
-  _codeGenerationContext->getNamedValueChain()->removeHandler();
   _codeGenerationContext->getAllocaChain()->removeHandler();
 
   _codeGenerationContext->getAllocaChain()->setAllocaInst(FUNCTION_NAME,

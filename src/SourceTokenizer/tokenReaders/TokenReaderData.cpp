@@ -17,7 +17,7 @@ const TokenReaderState __gl_FLOW_WING_KEYWORDS[] = {
     {"const", SyntaxKindUtils::SyntaxKind::ConstKeyword},
     {"nthg", SyntaxKindUtils::SyntaxKind::NthgKeyword},
     {"int", SyntaxKindUtils::SyntaxKind::Int32Keyword},
-    {"int8", SyntaxKindUtils::SyntaxKind::Int8Keyword},
+    {"char", SyntaxKindUtils::SyntaxKind::Int8Keyword},
     {"int64", SyntaxKindUtils::SyntaxKind::Int64Keyword},
     {"bool", SyntaxKindUtils::SyntaxKind::BoolKeyword},
     {"unknown", SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE},

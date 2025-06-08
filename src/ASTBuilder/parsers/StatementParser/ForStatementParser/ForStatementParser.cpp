@@ -15,8 +15,10 @@ ForStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<StatementSyntax> statementSyntax = nullptr;
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::VarKeyword) {
-    statementSyntax = std::move(
-        std::make_unique<VariableDeclarationParser>()->parseStatement(ctx));
+    std::unique_ptr<VariableDeclarationParser> varDecParser =
+        std::make_unique<VariableDeclarationParser>();
+    // varDecParser->setIsForStatement(true);
+    statementSyntax = std::move(varDecParser->parseStatement(ctx));
   } else {
     statementSyntax = std::move(
         std::make_unique<ExpressionStatementParser>()->parseStatement(ctx));

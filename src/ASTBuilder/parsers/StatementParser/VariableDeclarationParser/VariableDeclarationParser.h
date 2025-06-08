@@ -11,4 +11,9 @@ class VariableDeclarationParser : public StatementParser {
 
 public:
   std::unique_ptr<StatementSyntax> parseStatement(ParserContext *ctx) override;
+
+  void setIsForStatement(bool isForStatement);
+
+private:
+  bool m_isForStatement = false;
 };

@@ -30,18 +30,14 @@ public:
 
   // Local Primitive Variable Declaration
 
-  llvm::Value *handleTypedPrimitiveLocalVariableDeclr(
+  llvm::Value *handleTypedPrimitiveLocalVariableDeclaration(
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
-
-  llvm::Value *
-  handleUnTypedPrimitiveLocalVariableDeclr(const std::string &variableName,
-                                           llvm::Value *rhsValue);
 
   llvm::Value *handleDynamicValuePrimitiveLocalVariableDeclare(
       const std::string &variableName, llvm::Value *rhsValue);
 
-  llvm::Value *handlePrimitiveLocalVariableDeclr(
+  llvm::Value *handlePrimitiveLocalVariableDeclaration(
       const std::string &variableName,
       const SyntaxKindUtils::SyntaxKind &variableType, llvm::Value *rhsValue);
 
@@ -51,6 +47,7 @@ public:
 private:
   std::string _variableName;
   llvm::Value *_rhsValue = nullptr;
+  int8_t m_isLHSDynamicValue = 0;
   SyntaxKindUtils::SyntaxKind _variableType;
   BoundVariableDeclaration *_variableDeclaration = nullptr;
   bool _isGlobal = false;

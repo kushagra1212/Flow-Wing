@@ -41,14 +41,16 @@ const std::string TEMP_BC_FILES_DIR = "temp/bc/";
 
 namespace DYNAMIC_VALUE {
 namespace TYPE {
-const std::string TYPE_INT32 = "F_TYPE_INT32";
-const std::string TYPE_INT64 = "F_TYPE_INT64";
-const std::string TYPE_FLOAT32 = "F_TYPE_FLOAT32";
-const std::string TYPE_FLOAT64 = "F_TYPE_FLOAT64";
-const std::string TYPE_STRING = "F_TYPE_STRING";
-const std::string TYPE_BOOLEAN = "F_TYPE_BOOLEAN";
 
-const std::string DYNAMIC_VALUE_TYPE = "F_DYNAMIC_VALUE_TYPE";
+const std::string TYPE_INT8 = "FG_TYPE_INT8";
+const std::string TYPE_INT32 = "FG_TYPE_INT32";
+const std::string TYPE_INT64 = "FG_TYPE_INT64";
+const std::string TYPE_FLOAT32 = "FG_TYPE_FLOAT32";
+const std::string TYPE_FLOAT64 = "FG_TYPE_FLOAT64";
+const std::string TYPE_STRING = "FG_TYPE_STRING";
+const std::string TYPE_BOOLEAN = "FG_TYPE_BOOLEAN";
+
+const std::string DYNAMIC_VALUE_TYPE = "FG_DYNAMIC_VALUE_TYPE";
 
 } // namespace TYPE
 } // namespace DYNAMIC_VALUE

@@ -1,4 +1,5 @@
 #include "CodeGenerationContext.h"
+#include <memory>
 
 CodeGenerationContext ::CodeGenerationContext(
     FlowWing::DiagnosticHandler *diagnosticHandler,
@@ -47,10 +48,6 @@ CodeGenerationContext ::CodeGenerationContext(
 
   // Initialize  LLVM_Logger
   _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
-
-  // Initialize the named value chain
-  _namedValueChain = std::make_unique<ValueChain>();
-  _namedValueChain->addHandler(new NamedValueTable());
 
   // Initialize the alloca chain
   _allocaChain = std::make_unique<AllocaChain>();
@@ -123,10 +120,6 @@ std::unique_ptr<ArgsTypeHandler> &CodeGenerationContext::getArgsTypeHandler() {
 std::unique_ptr<ReturnTypeHandler> &
 CodeGenerationContext::getReturnTypeHandler() {
   return _returnTypeHandler;
-}
-
-std::unique_ptr<ValueChain> &CodeGenerationContext::getNamedValueChain() {
-  return _namedValueChain;
 }
 
 std::unique_ptr<AllocaChain> &CodeGenerationContext::getAllocaChain() {
