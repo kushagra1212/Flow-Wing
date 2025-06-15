@@ -6,6 +6,8 @@
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
+#include "../../../../SemanticAnalyzer/BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
+
 class ObjectDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
 

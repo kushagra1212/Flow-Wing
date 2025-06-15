@@ -555,7 +555,7 @@ switch p.age {
 
 TEST_F(SwitchTest, SwitchOnCharTest) {
   I(R"(
-var ch:int8 = 'a'
+var ch:char = 'a'
 
 switch ch {
     case 'a':{

@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../../../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "../../../LLVMTypeConversion/ExplicitConverter.h"
 #include "../../../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
 #include "../../CodeGenerationContext.h"
@@ -34,4 +35,5 @@ void assignRHSDynamicValueToLHSVariable(llvm::Value *lhsVariable,
                                         llvm::Value *rhsDynamicValue,
                                         CodeGenerationContext *context,
                                         llvm::IRBuilder<> *&Builder);
+
 } // namespace DYNAMIC_VALUE_HANDLER

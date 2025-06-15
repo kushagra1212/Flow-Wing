@@ -17,7 +17,14 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   llvm::Value *result = Builder->getInt32(1);
 
-  std::string errorMessage = "";
+  if (!OperationSupport::isSupported(OperationSupport::Int32StrategyTag{},
+                                     binaryOperator)) {
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for int32 type ");
+    return nullptr;
+  }
+
   switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
@@ -165,12 +172,12 @@ llvm::Value *Int32BinaryOperationStrategy::performOperation(
     break;
   }
   default: {
-
-    errorMessage = "Unsupported binary operator for int type ";
     break;
   }
   }
 
-  _codeGenerationContext->getLogger()->LogError(errorMessage);
+  _codeGenerationContext->getLogger()->LogError(
+      "Unsupported binary operator " +
+      BinderKindUtils::to_string(binaryOperator) + " for int32 type ");
   return nullptr;
 }

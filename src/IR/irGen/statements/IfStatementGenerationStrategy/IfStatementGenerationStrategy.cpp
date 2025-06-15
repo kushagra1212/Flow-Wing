@@ -19,7 +19,16 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           ->createStrategy(ifStatement->getConditionPtr().get()->getKind())
           ->generateExpression(ifStatement->getConditionPtr().get());
 
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+
+    auto [valueStorage, typeTag] =
+        DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+            conditionValue, _codeGenerationContext, Builder);
+
+    conditionValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toBoolean(
+        valueStorage, _codeGenerationContext, Builder);
+
+  } else if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
     if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
             _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
       _codeGenerationContext->getLogger()->LogError(
@@ -29,13 +38,12 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
         llvm::Type::getInt8PtrTy(*TheContext), conditionValue));
-  }
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
+  } else if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     conditionValue = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
   }
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       ifStatement->getLocation());
@@ -97,8 +105,15 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
     llvm::Value *orIfConditionValue =
         _expressionGenerationFactory->createStrategy(conditionExp->getKind())
             ->generateExpression(conditionExp);
+    if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
 
-    if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
+      auto [valueStorage, typeTag] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              orIfConditionValue, _codeGenerationContext, Builder);
+
+      orIfConditionValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toBoolean(
+          valueStorage, _codeGenerationContext, Builder);
+    } else if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
       if (!_codeGenerationContext->isValidClassType(
               llvm::cast<llvm::StructType>(
                   _codeGenerationContext->getValueStackHandler()
@@ -109,8 +124,14 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
       }
       conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
           llvm::Type::getInt8PtrTy(*TheContext), orIfConditionValue));
+    } else if (_codeGenerationContext->getValueStackHandler()
+                   ->isPrimaryType()) {
+      conditionValue = Builder->CreateLoad(
+          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
+          _codeGenerationContext->getValueStackHandler()->getValue());
     }
 
+    _codeGenerationContext->getValueStackHandler()->popAll();
     if (orIfConditionValue == nullptr) {
 
       _codeGenerationContext->getLogger()->LogError(

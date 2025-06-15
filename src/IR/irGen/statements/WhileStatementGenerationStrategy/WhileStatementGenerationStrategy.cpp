@@ -41,8 +41,18 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
     conditionValue = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
+  } else if (_codeGenerationContext->getValueStackHandler()
+                 ->isDynamicValueType()) {
+    auto [valueStorage, typeTag] =
+        DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+            conditionValue, _codeGenerationContext, Builder);
+
+    conditionValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::castToType(
+        valueStorage, DYNAMIC_VALUE::TYPE::VALUE_TYPE::BOOLEAN,
+        _codeGenerationContext, Builder);
   }
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
   // Load the condition
 
   if (conditionValue == nullptr) {

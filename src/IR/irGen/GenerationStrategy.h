@@ -13,6 +13,7 @@
 #include "../LLVMTypeConversion/TypeSpecificValueVisitor.h"
 #include "../context/CodeGenerationContext.h"
 #include "../strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
+#include "../strategies/BinaryOperationStrategy/ClassBinaryOperationStrategy/ClassBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/FloatBinaryOperationStrategy/FloatBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
@@ -58,6 +59,8 @@ public:
         _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
+        _classBinaryOperationStrategy(
+            std::make_unique<ClassBinaryOperationStrategy>(context)),
 
         // Initialize the value visitor
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
@@ -85,6 +88,7 @@ public:
   std::unique_ptr<FloatBinaryOperationStrategy> _floatBinaryOperationStrategy;
   std::unique_ptr<StringBinaryOperationStrategy> _stringBinaryOperationStrategy;
   std::unique_ptr<NirastBinaryOperationStrategy> _nirastBinaryOperationStrategy;
+  std::unique_ptr<ClassBinaryOperationStrategy> _classBinaryOperationStrategy;
 
   // Unary Operation Strategy
   std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;

@@ -10,6 +10,8 @@
 #include "../../MemoryNode.h"
 #include "llvm/IR/DerivedTypes.h"
 
+class BoundMultipleVariableDeclaration;
+
 class BoundVariableDeclaration : public BoundStatement,
                                  public BoundSourceLocation,
                                  public MemoryNode {
@@ -25,6 +27,8 @@ private:
   std::string _classItBelongsTo;
   BinderKindUtils::MemoryKind _memoryKind = BinderKindUtils::MemoryKind::None;
   std::pair<llvm::Value *, llvm::Type *> _llvmVariable;
+  BoundMultipleVariableDeclaration *_parentMultipleVariableDeclaration =
+      nullptr;
 
 public:
   BoundVariableDeclaration(const DiagnosticUtils::SourceLocation &location,
@@ -106,4 +110,14 @@ public:
   inline auto setIsConst(bool isConst) { _isConst = isConst; }
 
   inline auto setIsExposed(bool isExposed) { _isExposed = isExposed; }
+
+  inline auto setParentMultipleVariableDeclaration(
+      BoundMultipleVariableDeclaration *parentMultipleVariableDeclaration) {
+    _parentMultipleVariableDeclaration = parentMultipleVariableDeclaration;
+  }
+
+  inline auto getParentMultipleVariableDeclaration()
+      -> BoundMultipleVariableDeclaration * {
+    return _parentMultipleVariableDeclaration;
+  }
 };

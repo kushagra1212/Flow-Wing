@@ -38,7 +38,31 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
   DEBUG_LOG("Declaring Object: " + structType->getStructName().str());
 
   if (_codeGenerationContext->isValidClassType(structType)) {
-    DEBUG_LOG("Declaring Class Object: ", _variableName);
+
+    bool isParentMultipleVariableDeclarationHasInitializer = false;
+
+    if (_variableDeclExpr->getParentMultipleVariableDeclaration() != nullptr) {
+      BoundMultipleVariableDeclaration *parentMultipleVariableDeclaration =
+          _variableDeclExpr->getParentMultipleVariableDeclaration();
+
+      if (parentMultipleVariableDeclaration->getVariableDeclarationListRef()
+                  .size() > 0 &&
+          parentMultipleVariableDeclaration->getVariableDeclarationListRef()[0]
+                  .get()
+                  ->getInitializerPtr() != nullptr) {
+        isParentMultipleVariableDeclarationHasInitializer = true;
+      }
+    }
+    TypeMapper *typeMapper = _codeGenerationContext->getMapper().get();
+
+    if (_variableDeclExpr->getInitializerPtr() == nullptr &&
+        !isParentMultipleVariableDeclarationHasInitializer) {
+      _codeGenerationContext->getLogger()->LogError(
+          "Class " + typeMapper->getLLVMTypeName(structType) +
+          " is not initialized");
+      return nullptr;
+    }
+
     ptr = _codeGenerationContext->createMemoryGetPtr(
         llvm::PointerType::getUnqual(structType), _variableName,
         _isGlobal ? BinderKindUtils::MemoryKind::Global

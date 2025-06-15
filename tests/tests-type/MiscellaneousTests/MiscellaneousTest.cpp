@@ -653,7 +653,7 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
 if(!a){
   print("A")
@@ -661,7 +661,7 @@ if(!a){
     print("or A")
   }
 )");
-  EXPECT_EQ(getOutput(), R"(A)");
+  EXPECT_EQ(getOutput(), R"(or A)");
 }
 TEST_F(MiscellaneousTest,
        IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical) {
@@ -673,13 +673,13 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
 if(a && 2){
   print("A")
 }
 )");
-  EXPECT_EQ(getOutput(), R"()");
+  EXPECT_EQ(getOutput(), R"(A)");
 }
 TEST_F(MiscellaneousTest,
        IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical2) {
@@ -691,7 +691,7 @@ class A {
     }
 }
 
-var a:A 
+var a:A  = new A(2)
 
 if(a || 2){
   print("A")
@@ -777,7 +777,7 @@ class a {
     }
 }
 
-var a:a 
+var a:a = Nir
 if(a != Nir){
   print("a")
 }
@@ -970,7 +970,7 @@ if(x ){
 }
 TEST_F(MiscellaneousTest, Int8Test) {
   I(R"(
- var x:int8 = Int8(98)
+ var x:char = Int8(98)
 
    x= x+ Int8(1)
 
@@ -982,7 +982,7 @@ TEST_F(MiscellaneousTest, Int8TestScoped) {
   I(R"(
   {
   
- var x:int8 = Int8(98)
+ var x:char = Int8(98)
 
    x= x+ Int8(1)
 

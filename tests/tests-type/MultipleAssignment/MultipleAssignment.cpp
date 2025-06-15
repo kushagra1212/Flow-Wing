@@ -346,6 +346,11 @@ fun getFAndA() -> int, A  {
   return 2,new A(32)
 }
 
+
+fun getFAndA2() -> int, A  {
+  return 4,new A(34)
+}
+
 fun getP() -> A {
     return new A(21)
   }
@@ -357,7 +362,7 @@ fun getP() -> A {
 a.printX()
 
 
-var u:int ,b:A
+var u:int ,b:A = getFAndA2()
 
 u,b= getFAndA()
 b.printX()
@@ -389,6 +394,11 @@ fun getFAndA() -> int, A  {
   return 2,new A(32)
 }
 
+
+fun getFAndA2() -> int, A  {
+  return 23,new A(22)
+}
+
 fun getP() -> A {
     return new A(21)
   }
@@ -401,7 +411,7 @@ fun getP() -> A {
 a.printX()
 
 
-var u:int ,b:A
+var u:int ,b:A = getFAndA2()
 
 u,b= getFAndA()
 b.printX()
@@ -452,8 +462,12 @@ fun getFAndA() -> T[2], A  {
   return [],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
 
-var u:T[2] ,b:A
+
+var u:T[2] ,b:A = getFAndA2()
 
 u,b =  getFAndA()
 b.printX()
@@ -503,9 +517,13 @@ fun getFAndA() -> T[2], A  {
   return [],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [{a:10}],new A(32)
+}
+
 
 {
-var u:T[2] ,b:A
+var u:T[2] ,b:A = getFAndA2()
 
 u,b =  getFAndA()
 b.printX()
@@ -557,8 +575,11 @@ fun getFAndA() -> T[2], A  {
   return [{a:10}],new A(32)
 }
 
+fun getFAndA2() -> T[2], A  {
+  return [],new A(22)
+}
 
-var u:T[2] ,b:A
+var u:T[2] ,b:A = getFAndA2()
 print(u)
 u,b =  getFAndA()
 b.printX()

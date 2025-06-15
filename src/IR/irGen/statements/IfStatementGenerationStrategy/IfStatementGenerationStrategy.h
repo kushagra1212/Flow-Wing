@@ -2,6 +2,7 @@
 #define __FLOWWING_IF_STATEMENT_STRATEGY_H__
 
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
+#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class IfStatementGenerationStrategy : public StatementGenerationStrategy {

@@ -9,6 +9,7 @@
 #include "../../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
 #include "../../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "../../LLVMTypeConversion/TypeSpecificValueVisitor.h"
+#include "utility.h"
 #include "llvm/IR/Value.h"
 
 class BinaryOperationStrategy {

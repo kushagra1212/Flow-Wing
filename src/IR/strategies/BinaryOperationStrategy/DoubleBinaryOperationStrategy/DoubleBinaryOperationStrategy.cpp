@@ -15,7 +15,15 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
 llvm::Value *DoubleBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
-  std::string errorMessage = "";
+
+  if (!OperationSupport::isSupported(OperationSupport::DoubleStrategyTag{},
+                                     binaryOperator)) {
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for decimal type ");
+    return nullptr;
+  }
+
   switch (binaryOperator) {
 
   case BinderKindUtils::BoundBinaryOperatorKind::Addition: {
@@ -59,40 +67,6 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
 
     return Builder->CreateFDiv(lhsValue, rhsValue);
   }
-  case BinderKindUtils::BoundBinaryOperatorKind::Modulus: {
-
-    errorMessage = "Modulus is not supported for double type ";
-    break;
-  }
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseAnd: {
-
-    errorMessage = "Bitwise And is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseOr: {
-
-    errorMessage = "Bitwise Or is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::BitwiseXor: {
-
-    errorMessage = "Bitwise Xor is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd: {
-
-    errorMessage = "Logical And is not supported for double type ";
-    break;
-  }
-
-  case BinderKindUtils::BoundBinaryOperatorKind::LogicalOr: {
-
-    errorMessage = "Logical Or is not supported for double type ";
-    break;
-  }
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
 
@@ -125,11 +99,12 @@ llvm::Value *DoubleBinaryOperationStrategy::performOperation(
   }
 
   default: {
-    errorMessage = "Unsupported binary operator for double type";
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for decimal type ");
     break;
   }
   }
 
-  this->_codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

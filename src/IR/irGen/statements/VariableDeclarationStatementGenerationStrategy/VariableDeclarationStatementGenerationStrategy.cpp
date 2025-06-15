@@ -167,6 +167,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
     return _isGlobal ? objDecGenStrat->declareGlobal(_variableDeclaration)
                      : objDecGenStrat->declareLocal(_variableDeclaration);
   }
+
   std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
       std::make_unique<AssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);

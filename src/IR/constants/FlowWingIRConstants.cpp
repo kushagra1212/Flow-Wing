@@ -49,6 +49,7 @@ const std::string TYPE_FLOAT32 = "FG_TYPE_FLOAT32";
 const std::string TYPE_FLOAT64 = "FG_TYPE_FLOAT64";
 const std::string TYPE_STRING = "FG_TYPE_STRING";
 const std::string TYPE_BOOLEAN = "FG_TYPE_BOOLEAN";
+const std::string TYPE_NIRAST = "FG_TYPE_NIRAST";
 
 const std::string DYNAMIC_VALUE_TYPE = "FG_DYNAMIC_VALUE_TYPE";
 

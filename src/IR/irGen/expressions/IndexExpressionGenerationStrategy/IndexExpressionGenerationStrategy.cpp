@@ -103,6 +103,20 @@ int8_t IndexExpressionGenerationStrategy::populateIndices() {
         _expressionGenerationFactory->createStrategy(index.get()->getKind())
             ->generateExpression(index.get());
 
+    if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+      llvm::Value *dynamicValue =
+          _codeGenerationContext->getValueStackHandler()->getValue();
+      auto [dynamicValuePtr, dynamicValueType] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              dynamicValue, _codeGenerationContext, Builder);
+
+      indexValue = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toInt32(
+          dynamicValuePtr, _codeGenerationContext, Builder);
+
+      indexValue = _int32TypeConverter->convertExplicit(indexValue);
+    }
+    _codeGenerationContext->getValueStackHandler()->pop();
+
     if (!_codeGenerationContext->getMapper()->isInt32Type(
             indexValue->getType())) {
       _codeGenerationContext->getLogger()->LogError(

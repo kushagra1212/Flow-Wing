@@ -156,6 +156,7 @@ MultipleVariableDeclarationStatementGenerationStrategy::declareLocal(
   BoundMultipleVariableDeclaration *multipleVariableDeclaration =
       static_cast<BoundMultipleVariableDeclaration *>(statement);
 
+  DEBUG_LOG("Setting Parent Multiple Variable Declaration: ");
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       multipleVariableDeclaration->getLocation());
 

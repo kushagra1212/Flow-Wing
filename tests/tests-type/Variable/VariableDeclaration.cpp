@@ -182,7 +182,7 @@ TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
       print(x+"Hello")
       return (0)
       }
-      var y = main2()
+      var y:int = main2()
       )";
 
   std::string expected_output =

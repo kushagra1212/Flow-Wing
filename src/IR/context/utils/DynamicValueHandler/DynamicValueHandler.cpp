@@ -12,7 +12,26 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
       *context->getContext(), DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
   llvm::Value *insertedDataValue = nullptr;
 
-  if (rhsValue->getType() == llvm::Type::getInt8PtrTy(*context->getContext())) {
+  TypeMapper *_typeMapper = context->getMapper().get();
+
+  if (_typeMapper->isNirastValue(rhsValue)) {
+    llvm::ConstantInt *typeTag =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
+                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::NIRAST);
+
+    llvm::Value *UndefDynamicVal =
+        llvm::UndefValue::get(dynamicValueStructType);
+
+    llvm::Value *insertedTagValue = Builder->CreateInsertValue(
+        UndefDynamicVal, typeTag, {0}, "insertedTagValue");
+
+    // For Nirast, the value doesn't matter, so we store 0.
+    llvm::Value *nilValue = llvm::ConstantInt::get(
+        llvm::Type::getInt64Ty(*context->getContext()), 0);
+
+    insertedDataValue = Builder->CreateInsertValue(insertedTagValue, nilValue,
+                                                   {1}, "insertedDataValue");
+  } else if (_typeMapper->isStringType(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -31,8 +50,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, pointerToStoreAsInt64, {1}, "insertedDataValue");
 
-  } else if (rhsValue->getType() ==
-             llvm::Type::getInt32Ty(*context->getContext())) {
+  } else if (_typeMapper->isInt32Type(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -49,8 +67,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, int32AsInt64, {1}, "insertedDataValue");
-  } else if (rhsValue->getType() ==
-             llvm::Type::getInt64Ty(*context->getContext())) {
+  } else if (_typeMapper->isInt64Type(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -65,8 +82,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(insertedTagValue, rhsValue,
                                                    {1}, "insertedDataValue");
-  } else if (rhsValue->getType() ==
-             llvm::Type::getInt1Ty(*context->getContext())) {
+  } else if (_typeMapper->isBoolType(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -84,8 +100,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, int1AsInt64, {1}, "insertedDataValue");
-  } else if (rhsValue->getType() ==
-             llvm::Type::getInt8Ty(*context->getContext())) {
+  } else if (_typeMapper->isInt8Type(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -103,8 +118,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, int8AsInt64, {1}, "insertedDataValue");
-  } else if (rhsValue->getType() ==
-             llvm::Type::getFloatTy(*context->getContext())) {
+  } else if (_typeMapper->isFloatType(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -123,8 +137,7 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, float32BitsAsInt64, {1}, "insertedDataValue");
-  } else if (rhsValue->getType() ==
-             llvm::Type::getDoubleTy(*context->getContext())) {
+  } else if (_typeMapper->isDoubleType(rhsValue->getType())) {
 
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
@@ -143,10 +156,16 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
     insertedDataValue = Builder->CreateInsertValue(
         insertedTagValue, float64AsInt64, {1}, "insertedDataValue");
+  } else {
+    context->getLogger()->LogError(
+        "Unsupported type for assignment: " +
+        _typeMapper->getLLVMTypeName(
+            _typeMapper->mapLLVMTypeToCustomType(rhsValue->getType())));
+    return nullptr;
   }
 
   llvm::StoreInst *Store = Builder->CreateStore(insertedDataValue, lhsPtr);
-  Store->setAlignment(llvm::Align(8)); // Set alignment for the store
+  Store->setAlignment(llvm::Align(8));
 
   return rhsValue;
 }
@@ -201,35 +220,63 @@ generateDynamicDispatch(llvm::Value *dynamicValue,
                         CodeGenerationContext *context,
                         llvm::IRBuilder<> *&Builder,
                         const std::function<void(llvm::Value *)> &handler) {
+  context->getValueStackHandler()->popAll();
+
   llvm::Function *parentFunc = Builder->GetInsertBlock()->getParent();
-  llvm::BasicBlock *checkStringBB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.string", parentFunc);
-  llvm::BasicBlock *handleStringBB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.string", parentFunc);
-  llvm::BasicBlock *checkInt32BB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.int32", parentFunc);
-  llvm::BasicBlock *handleInt32BB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.int32", parentFunc);
-  llvm::BasicBlock *checkInt64BB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.int64", parentFunc);
-  llvm::BasicBlock *handleInt64BB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.int64", parentFunc);
-  llvm::BasicBlock *checkFloat32BB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.float32", parentFunc);
-  llvm::BasicBlock *handleFloat32BB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.float32", parentFunc);
-  llvm::BasicBlock *checkFloat64BB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.float64", parentFunc);
-  llvm::BasicBlock *handleFloat64BB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.float64", parentFunc);
-  llvm::BasicBlock *checkBooleanBB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.boolean", parentFunc);
-  llvm::BasicBlock *handleBooleanBB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.boolean", parentFunc);
-  llvm::BasicBlock *checkInt8BB = llvm::BasicBlock::Create(
-      *context->getContext(), "check.int8", parentFunc);
-  llvm::BasicBlock *handleInt8BB = llvm::BasicBlock::Create(
-      *context->getContext(), "handle.int8", parentFunc);
+
+  struct {
+    llvm::BasicBlock *checkBB;
+    llvm::BasicBlock *handleBB;
+    DYNAMIC_VALUE::TYPE::VALUE_TYPE type;
+  } checkAndHandleBlocks[] = {
+      {llvm::BasicBlock::Create(*context->getContext(), "check.string",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.string",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::STRING},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.int32",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.int32",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.int64",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.int64",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT64},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.float32",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.float32",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT32},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.float64",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.float64",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT64},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.boolean",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.boolean",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::BOOLEAN},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.int8",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.int8",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT8},
+
+      {llvm::BasicBlock::Create(*context->getContext(), "check.nirast",
+                                parentFunc),
+       llvm::BasicBlock::Create(*context->getContext(), "handle.nirast",
+                                parentFunc),
+       DYNAMIC_VALUE::TYPE::VALUE_TYPE::NIRAST},
+  };
 
   llvm::BasicBlock *mergeBB =
       llvm::BasicBlock::Create(*context->getContext(), "merge", parentFunc);
@@ -237,130 +284,36 @@ generateDynamicDispatch(llvm::Value *dynamicValue,
   auto [valueStorage, typeTag] =
       getDynamicStoredValueAndType(dynamicValue, context, Builder);
 
-  context->getValueStackHandler()->popAll();
+  Builder->CreateBr(checkAndHandleBlocks[0].checkBB);
 
-  Builder->CreateBr(checkStringBB);
+  const int numTypes =
+      sizeof(checkAndHandleBlocks) / sizeof(checkAndHandleBlocks[0]);
 
-  {
-    Builder->SetInsertPoint(checkStringBB);
-    llvm::Value *isString = Builder->CreateICmpEQ(
+  for (int i = 0; i < numTypes; i++) {
+
+    //? Check the type
+    Builder->SetInsertPoint(checkAndHandleBlocks[i].checkBB);
+    llvm::Value *isType = Builder->CreateICmpEQ(
         typeTag,
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::STRING));
-    Builder->CreateCondBr(isString, handleStringBB, checkInt32BB);
-  }
+                               checkAndHandleBlocks[i].type));
+    Builder->CreateCondBr(
+        isType, checkAndHandleBlocks[i].handleBB,
+        i == numTypes - 1 ? mergeBB : checkAndHandleBlocks[i + 1].checkBB);
 
-  {
-    Builder->SetInsertPoint(handleStringBB);
-    llvm::Value *loadedStringPtr =
-        VALUE_CASTER::toString(valueStorage, context, Builder);
-    handler(loadedStringPtr);
+    //? Handle the type
+    Builder->SetInsertPoint(checkAndHandleBlocks[i].handleBB);
+    llvm::Value *castedValue = VALUE_CASTER::castToType(
+        valueStorage, checkAndHandleBlocks[i].type, context, Builder);
+    DEBUG_LOG("casted value type",
+              context->getMapper()->getLLVMTypeName(castedValue->getType()));
+    handler(castedValue);
     Builder->CreateBr(mergeBB);
   }
 
-  {
-    Builder->SetInsertPoint(checkInt32BB);
-    llvm::Value *isInt32 = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32));
-    Builder->CreateCondBr(isInt32, handleInt32BB, checkInt64BB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleInt32BB);
-    llvm::Value *int32Value =
-        VALUE_CASTER::toInt32(valueStorage, context, Builder);
-    handler(int32Value);
-    Builder->CreateBr(mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(checkInt64BB);
-    llvm::Value *isInt64 = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT64));
-    Builder->CreateCondBr(isInt64, handleInt64BB, checkFloat32BB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleInt64BB);
-    llvm::Value *int64Value =
-        VALUE_CASTER::toInt64(valueStorage, context, Builder);
-    handler(int64Value);
-    Builder->CreateBr(mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(checkFloat32BB);
-    llvm::Value *isFloat32 = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT32));
-    Builder->CreateCondBr(isFloat32, handleFloat32BB, checkFloat64BB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleFloat32BB);
-    llvm::Value *float32Value =
-        VALUE_CASTER::toFloat(valueStorage, context, Builder);
-    handler(float32Value);
-    Builder->CreateBr(mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(checkFloat64BB);
-    llvm::Value *isFloat64 = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT64));
-    Builder->CreateCondBr(isFloat64, handleFloat64BB, checkBooleanBB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleFloat64BB);
-    llvm::Value *doubleValue =
-        VALUE_CASTER::toDouble(valueStorage, context, Builder);
-    handler(doubleValue);
-    Builder->CreateBr(mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(checkBooleanBB);
-    llvm::Value *isBoolean = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::BOOLEAN));
-    Builder->CreateCondBr(isBoolean, handleBooleanBB, checkInt8BB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleBooleanBB);
-    llvm::Value *booleanValue =
-        VALUE_CASTER::toBoolean(valueStorage, context, Builder);
-    handler(booleanValue);
-    Builder->CreateBr(mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(checkInt8BB);
-    llvm::Value *isInt8 = Builder->CreateICmpEQ(
-        typeTag,
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
-                               DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT8));
-    Builder->CreateCondBr(isInt8, handleInt8BB, mergeBB);
-  }
-
-  {
-    Builder->SetInsertPoint(handleInt8BB);
-    llvm::Value *int8Value =
-        VALUE_CASTER::toInt8(valueStorage, context, Builder);
-    handler(int8Value);
-    Builder->CreateBr(mergeBB);
-  }
   Builder->SetInsertPoint(mergeBB);
 
   return nullptr;
 }
+
 } // namespace DYNAMIC_VALUE_HANDLER

@@ -1,0 +1,579 @@
+
+/#
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = Nir
+if(a == Nir){
+  print("a is not Nir")
+}
+---
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = Nir
+if(a != Nir){
+  print("a is not Nir")
+}
+----
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+if(a != Nir){
+  print("a is not Nir")
+}
+
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+if(a == Nir){
+  print("a is Nir")
+}
+
+----
+var x = 2
+var y: int = 3
+y = y + x 
+print(y)
+---
+var a: int[5] = [1, 2, 3, 4, 5]
+var b = 0
+print(a[b])
+----
+bring Err
+class A {
+  var x: int = 22
+  init() -> nthg {
+    x = 22 
+  }
+}
+
+var decimal = 2.2
+if (decimal == Nir) {
+  print( "decimal is Nir")
+}
+
+var decimal32 = 2.2d
+if (decimal32 == Nir) {
+  print("decimal32 is Nir")
+}
+
+var integer = 5
+if (integer == Nir) {
+  print("integer is Nir")
+}
+
+var string = "Hello"
+if (string == Nir) {
+  print("string is Nir")
+}
+
+var boolean = false
+if (boolean == Nir) {
+  print("boolean is Nir")
+}
+
+var boolean2 = true
+if (boolean2 == Nir) {
+  print("boolean2 is Nir")
+}
+
+var nir = Nir
+if (nir == Nir) {
+  print("nir is Nir")
+}
+
+
+var classObject = new A()
+if (classObject == Nir) {
+  print("classObject is Nir")
+}
+
+
+
+/; NOT EQUALS
+
+var decimalA = 2.2
+
+if(decimalA != Nir) {
+  print("\ndecimalA is not Nir")
+}
+
+var decimalB = 2.2d
+if(decimalB != Nir) {
+  print("\ndecimalB is not Nir")
+}
+
+var integerA = 5
+if(integerA != Nir) {
+  print("\nintegerA is not Nir")
+}
+
+var stringA = "Hello"
+if(stringA != Nir) {
+  print("\nstringA is not Nir")
+}
+
+var booleanA = false
+if(booleanA != Nir) {
+  print("\nbooleanA is not Nir")
+}
+
+var classObjectA = new A()
+if(classObjectA != Nir) {
+  print("\nclassObjectA is not Nir")
+}
+
+
+-----
+fun f() -> int,Err::Result {
+  return 22,Err::Result("Error")
+}
+
+var a:int, err:Err::Result = f()
+if (err != Nir) {
+  print("Error")
+}
+
+---
+class A {
+  var x: int = 22
+  init() -> nthg {
+    x = 22 
+  }
+
+
+}
+var a = A()
+if (a != Nir) {
+  print("Not Nir")
+}
+
+----
+
+class A {
+  var x: int = 22
+  init() -> nthg {
+    x = 22 
+  }
+}
+var a = A()
+if (a) {
+  print("Not Nir")
+}
+
+----
+
+var x: int = 22
+if (x) {
+  print("Not Nir")
+}
+
+var x: str = "Hello"
+if (x) {
+  print("Not Nir")
+}
+
+var x = "Hello"
+if (x) {
+  print("Not Nir")
+}
+
+var x = 22
+if (x) {
+  print("Not Nir")
+}
+
+
+var x = 0
+if (x) {
+  print("Not Nir")
+}
+
+
+var x = 22
+if (x != Nir) {
+  print("Not Nir")
+}
+
+
+var x = Nir
+if (x == Nir) {
+  print("Nir")
+}
+
+var x: str = "Hello"
+if (x == Nir) {
+  print("Nir")
+}
+
+var x = 2
+if (x == Nir) {
+  print("Nir")
+}
+
+var x = 2
+if (x == Nir) {
+  print("Nir")
+}
+
+var x = 0
+if (x == Nir) {
+  print("Nir")
+}
+
+var x = 'a'
+while x < 'c' {
+  print(x, " ")
+  x = 'c' 
+}
+
+var x: int = 0
+while x < 10 {
+  print(x, " ")
+  x = x + 1 
+}
+
+var x = 0
+while x < 10 {
+  print(x, " ")
+  x = x + 1 
+}
+
+var i = 0
+var step = 2
+var limit = 10
+for i to limit : step {
+  print(i, " ")
+}
+
+var i: int = 0
+var step = 2
+var limit = 10
+for i to limit : step {
+  print(i, " ")
+}
+
+
+
+var i: int = 0
+var step = 2
+for i to 10 : step {
+  print(i, " ")
+}
+
+
+var i: int = 0
+var step: int = 2
+for i to 10 : step {
+  print(i, " ")
+}
+
+var i: int = 0
+for i to 10 : 2 {
+  print(i, " ")
+}
+
+var i: int = 0
+for i to 10 {
+  print(i, " ")
+}
+
+var c = 10
+var step: int = 2
+for var i: int = 0 to c : step {
+  print(i, " ")
+}
+
+var c = 10
+var step = 2
+for var i: int = 0 to c : step {
+  print(i, " ")
+}
+
+
+var c = 10
+for var i: int = 0 to c : 2 {
+  print(i, " ")
+}
+
+for var i: int = 0 to 10 : 2 {
+  print(i, " ")
+}
+
+for var i = 0 to 10 : 2 {
+  print(i, " ")
+}
+
+for var i = 0 to 10 {
+  print(i, " ")
+}
+
+for var i: int = 0 to 10 {
+  print(i, " ")
+}
+
+
+var c = 10
+for var i: int = 0 to c {
+  print(i, " ")
+}
+
+ar c: int = 10
+for var i: int = 0 to c {
+  print(i, " ")
+}
+
+var c = 10
+for var i = 0 to c {
+  print(i, " ")
+}
+
+
+
+
+
+
+// Multiple Variable Declaration Test Cases
+var i, j = 2,"Hello"
+var k, l = 3,4
+print(i, j, k, l, "\n")
+l, k = "Hello", 2.5d 
+print(l, k, "\n")
+
+// Int8 Test Cases
+var z: char = 'a'
+var x = 'a'
+var y = 'b'
+print(x, "\n")
+x = z + "ac" 
+print(x, "\n")
+
+var z: char = 'a'
+var x = 'a'
+var y = 'b'
+print(x, "\n")
+x = y 
+print(x, "\n")
+
+var z: int8 = 'a'
+var x = z
+var y = 2.2
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+
+// Boolean Test Cases
+var x = true
+var y = 2.2
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+var x = true
+var y = false
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+
+var x = true
+var y: int = 2
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+var x = true
+var y = 2
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+
+var x = true
+var y = "Hello"
+print(x, "\n")
+x = x + y 
+print(x, "\n")
+
+
+var x = true
+print(x, "\n")
+x = x + x + 1 
+print(x, "\n")
+
+
+
+var x = true
+print(x, "\n")
+x = x + x 
+print(x, "\n")
+
+// Double Test Cases
+
+var x = 1.232
+var y = "Hello"
+var z: int = 5
+print(x, "\n")
+x = x + x + y + y + z 
+print(x, "\n")
+
+
+//Float Test Cases
+
+var x = 1.232d
+var y: str = "Hello"
+print(x, "\n")
+x = x + x + y + y 
+print(x, "\n")
+
+
+var x = 1.2332322d
+var y = 2.2d
+print(x, "\n")
+x = x + 10 + y 
+print(x, "\n")
+
+
+var x = 1.2d
+var y: int = 2
+print(x, "\n")
+x = x + 10 + y 
+print(x, "\n")
+
+var x = 1.2d
+var y = "Hello"
+print(x, "\n")
+x = x + 10 + y 
+print(x, "\n")
+
+var x = 1.2d
+print(x, "\n")
+x = x + 10 
+print(x, "\n")
+
+
+var x = 1.2d
+x = x + x 
+print(x, "\n")
+
+
+Dynamic Type Test Cases
+
+var x = 2
+print(x, "\n")
+
+var x = 2
+x = 5
+print(x, "\n")
+
+var x = 2
+x = "Hello"
+print(x, "\n")
+
+var x = 2
+x = x + 2
+print(x, "\n")
+
+var x = 2
+x = 5
+x = x + 2
+print(x, "\n")
+
+var x = 2
+var y = 10
+x = 5
+x = y
+print(x, "\n")
+
+var x = 2
+var y = 10
+x = 5
+x = y + 2
+print(x, "\n")
+
+
+var x = 2
+var y = 10
+x = 5
+x = y + 2 + x + y
+print(x, "\n")
+
+
+var x = 2
+var y: int = 10
+x = 5
+x = y + 2 + x + y
+print(x, "\n")
+
+var x = 2
+var y: str = "Hello"
+x = 5
+x = y + 2 + x + y
+print(x, "\n")
+
+
+var x = 2
+print(x, "\n")
+x = "Hello"
+print(x, "\n")
+
+var x = 2
+x = "Hello" + 2
+print(x, "\n")
+
+var x = 2
+x = x + "Hello" + 2
+print(x, "\n")
+
+var y = 10
+    var a:int[5] = [1, 2, 3, 4, y]
+    print(a)
+
+var x = "Hello"
+var k: int = 5
+var y = 2 + (20 + 22 + k)
+print(k, "\n")
+k = x 
+print(k, "\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -14,10 +14,16 @@ public:
 
   llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
-                   BinderKindUtils::BoundBinaryOperatorKind binaryOp);
+                   BinderKindUtils::BoundBinaryOperatorKind binaryOp,
+                   bool isClassType = false,
+                   bool skipUnsupportedOperation = false);
 
   llvm::Value *getExpressionValue(BoundExpression *expression,
                                   bool &isClassType, int8_t &isDynamicValue);
+
+  SyntaxKindUtils::SyntaxKind selectOperationStrategy(llvm::Value *lhsValue,
+                                                      llvm::Value *rhsValue,
+                                                      bool isClassType);
 };
 
 #endif // __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__

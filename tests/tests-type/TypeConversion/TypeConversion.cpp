@@ -278,7 +278,7 @@ TEST_F(TypeConversion, BoolFromHelloString) {
 // Int8 Conversion Test (existing example)
 TEST_F(TypeConversion, Int8Conversion) {
   I(R"(
-    var x:int8 = Int8(65)
+    var x:char = Int8(65)
     print(x)
   )");
   EXPECT_EQ(getOutput(), "A");

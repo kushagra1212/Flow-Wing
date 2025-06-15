@@ -15,7 +15,14 @@ llvm::Value *BoolBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BinderKindUtils::BoundBinaryOperatorKind binaryOp) {
   llvm::Value *result = nullptr;
-  std::string errorMessage = "";
+
+  if (!OperationSupport::isSupported(OperationSupport::BoolStrategyTag{},
+                                     binaryOp)) {
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " + BinderKindUtils::to_string(binaryOp) +
+        " for bool type ");
+    return nullptr;
+  }
 
   switch (binaryOp) {
 
@@ -88,11 +95,11 @@ llvm::Value *BoolBinaryOperationStrategy::performOperation(
   // Add more cases for other binary operators
   default:
 
-    errorMessage = "Unsupported binary operator for bool type ";
-
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " + BinderKindUtils::to_string(binaryOp) +
+        " for bool type ");
     break;
   }
 
-  this->_codeGenerationContext->getLogger()->LogError(errorMessage);
   return nullptr;
 }

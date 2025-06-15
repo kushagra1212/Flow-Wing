@@ -5,6 +5,32 @@
 namespace DYNAMIC_VALUE_HANDLER {
 namespace VALUE_CASTER {
 
+llvm::Value *castToType(llvm::Value *value,
+                        DYNAMIC_VALUE::TYPE::VALUE_TYPE type,
+                        CodeGenerationContext *context,
+                        llvm::IRBuilder<> *&Builder) {
+  switch (type) {
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT8:
+    return toInt8(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32:
+    return toInt32(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT64:
+    return toInt64(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT32:
+    return toFloat(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT64:
+    return toDouble(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::BOOLEAN:
+    return toBoolean(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::STRING:
+    return toString(value, context, Builder);
+  case DYNAMIC_VALUE::TYPE::VALUE_TYPE::NIRAST:
+    return toNirast(value, context, Builder);
+  }
+
+  return nullptr;
+}
+
 llvm::Value *toString(llvm::Value *value, CodeGenerationContext *context,
                       llvm::IRBuilder<> *&Builder) {
   return Builder->CreateIntToPtr(
@@ -54,6 +80,12 @@ llvm::Value *toInt8(llvm::Value *value, CodeGenerationContext *context,
                     llvm::IRBuilder<> *&Builder) {
   return Builder->CreateIntCast(
       value, llvm::Type::getInt8Ty(*context->getContext()), true, "int8Value");
+}
+
+llvm::Value *toNirast(llvm::Value *value, CodeGenerationContext *context,
+                      llvm::IRBuilder<> *&Builder) {
+  return llvm::ConstantPointerNull::get(
+      llvm::Type::getInt8PtrTy(*context->getContext()));
 }
 
 } // namespace VALUE_CASTER

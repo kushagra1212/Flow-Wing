@@ -1,5 +1,6 @@
 #include "TypeMapper.h"
 #include "../../context/CodeGenerationContext.h"
+#include <string>
 
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,
                        llvm::Module *module,
@@ -76,8 +77,8 @@ const bool TypeMapper::isStringType(llvm::Type *type) const {
 }
 
 const bool TypeMapper::isNirastValue(llvm::Value *value) const {
-  return value ==
-         llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
+
+  return llvm::isa<llvm::ConstantPointerNull>(value);
 }
 const bool TypeMapper::isBoolType(llvm::Type *type) const {
   return mapLLVMTypeToCustomType(type) ==
@@ -246,7 +247,8 @@ llvm::Value *TypeMapper::getDefaultValue(SyntaxKindUtils::SyntaxKind type) {
   case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE:
     break;
   case SyntaxKindUtils::SyntaxKind::NirastKeyword:
-    _retVal = llvm::Constant::getNullValue(llvm::Type::getInt8PtrTy(*_context));
+    _retVal =
+        llvm::ConstantPointerNull::get(llvm::Type::getInt8PtrTy(*_context));
     break;
   default:
     break;

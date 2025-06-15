@@ -336,21 +336,28 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsPrimitive(
   llvm::Value *rhsValue =
       _codeGenerationContext->getValueStackHandler()->getValue();
 
-  const bool IS_RHS_VALUE_A_CONSTANT =
+  const bool RHS_VALUE_IS_A_CONSTANT =
       _codeGenerationContext->getValueStackHandler()->isLLVMConstant();
 
-  const bool IS_RHS_VALUE_A_DYNAMIC_VALUE =
+  const bool RHS_VALUE_IS_OF_PRIMARY_TYPE =
+      _codeGenerationContext->getValueStackHandler()->isPrimaryType();
+
+  const bool RHS_VALUE_IS_OF_DYNAMIC_TYPE =
       _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
 
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   if (m_isLHSDynamicValue) {
+    //? It is handling both the cases when rhs is dynamic, primitive or
+    //? constant
     handleDynamicPrimitiveVariableAssignment(
-        _lhsPtr, _lhsVariableName, rhsValue, IS_RHS_VALUE_A_DYNAMIC_VALUE);
+        _lhsPtr, _lhsVariableName, rhsValue, RHS_VALUE_IS_OF_DYNAMIC_TYPE);
     return EXIT_SUCCESS;
   }
 
-  if (IS_RHS_VALUE_A_CONSTANT) {
+  //? Case: When LHS is not a dynamic value
+
+  if (RHS_VALUE_IS_A_CONSTANT) {
     if (_lhsType == llvm::StructType::getTypeByName(
                         *_codeGenerationContext->getContext(),
                         DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE)) {
@@ -375,6 +382,10 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsPrimitive(
       Builder->CreateStore(rhsValue, _lhsPtr);
     }
 
+    return EXIT_SUCCESS;
+  } else if (RHS_VALUE_IS_OF_DYNAMIC_TYPE) {
+    DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSVariable(
+        _lhsPtr, _lhsType, rhsValue, _codeGenerationContext, Builder);
     return EXIT_SUCCESS;
   }
 

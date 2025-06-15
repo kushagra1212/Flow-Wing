@@ -60,6 +60,13 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
     BoundMultipleVariableDeclaration *boundMultipleVariableDeclaration =
         static_cast<BoundMultipleVariableDeclaration *>(child);
 
+    {
+      for (auto &variable :
+           boundMultipleVariableDeclaration->getVariableDeclarationListRef()) {
+        variable->setParentMultipleVariableDeclaration(
+            boundMultipleVariableDeclaration);
+      }
+    }
     declareVariables(child, isGlobal);
     if (isGlobal) {
       _multipleVariableDeclarationStatementGenerationStrategy->declareGlobal(

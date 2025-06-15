@@ -1,6 +1,7 @@
 #ifndef __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
 #define __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
 
+#include "../../../../IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
 #include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
 

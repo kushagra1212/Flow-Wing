@@ -84,7 +84,14 @@ StringBinaryOperationStrategy::concatenateStrings(llvm::Value *lhs,
 llvm::Value *StringBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
     BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
-  std::string errorMessage = "";
+
+  if (!OperationSupport::isSupported(OperationSupport::StringStrategyTag{},
+                                     binaryOperator)) {
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for string type");
+    return nullptr;
+  }
 
   switch (binaryOperator) {
 
@@ -116,12 +123,12 @@ llvm::Value *StringBinaryOperationStrategy::performOperation(
         lhsValue, rhsValue, INNERS::FUNCTIONS::GREATER_THAN_OR_EQUAL_STRINGS);
 
   default: {
-    errorMessage = "Unsupported binary operator for string type ";
+    this->_codeGenerationContext->getLogger()->LogError(
+        "Unsupported binary operator " +
+        BinderKindUtils::to_string(binaryOperator) + " for string type");
     break;
   }
   }
-
-  _codeGenerationContext->getLogger()->LogError(errorMessage);
 
   return nullptr;
 }

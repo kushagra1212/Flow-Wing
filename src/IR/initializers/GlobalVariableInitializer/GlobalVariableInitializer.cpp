@@ -66,32 +66,32 @@ void GlobalVariableInitializer::initializeErrorCount() {
 void GlobalVariableInitializer::initializeDynamicValueTypes() {
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32),
       (DYNAMIC_VALUE::TYPE::TYPE_INT32));
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT64),
       (DYNAMIC_VALUE::TYPE::TYPE_INT64));
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT32),
       (DYNAMIC_VALUE::TYPE::TYPE_FLOAT32));
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::FLOAT64),
       (DYNAMIC_VALUE::TYPE::TYPE_FLOAT64));
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::STRING),
       (DYNAMIC_VALUE::TYPE::TYPE_STRING));
 
   new llvm::GlobalVariable(
-      *TheModule, i32Type, false, llvm::GlobalValue::ExternalLinkage,
+      *TheModule, i32Type, false, llvm::GlobalValue::InternalLinkage,
       llvm::ConstantInt::get(i32Type, DYNAMIC_VALUE::TYPE::VALUE_TYPE::BOOLEAN),
       (DYNAMIC_VALUE::TYPE::TYPE_BOOLEAN));
 }

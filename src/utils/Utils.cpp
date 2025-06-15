@@ -480,6 +480,8 @@ Utils::type Utils::toContainerElementType(Utils::type containerType) {
     return Utils::type::INT64;
   case Utils::type::DECIMAL_CONTAINER:
     return Utils::type::DECIMAL;
+  case Utils::type::DECIMAL32_CONTAINER:
+    return Utils::type::DECIMAL32;
   case Utils::type::BOOL_CONTAINER:
     return Utils::type::BOOL;
   case Utils::type::STRING_CONTAINER:
@@ -499,6 +501,7 @@ auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> const bool {
   case Utils::type::INT32:
   case Utils::type::INT64:
   case Utils::type::DECIMAL:
+  case Utils::type::DECIMAL32:
   case Utils::type::BOOL:
   case Utils::type::STRING:
     return true;

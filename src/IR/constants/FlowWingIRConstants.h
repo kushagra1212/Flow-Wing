@@ -44,7 +44,16 @@ extern const std::string TYPE_BOOLEAN;
 
 // Dynamic Value Initial Values
 
-enum VALUE_TYPE { INT8, INT32, INT64, FLOAT32, FLOAT64, STRING, BOOLEAN };
+enum VALUE_TYPE {
+  INT8,
+  INT32,
+  INT64,
+  FLOAT32,
+  FLOAT64,
+  STRING,
+  BOOLEAN,
+  NIRAST
+};
 
 // Dynamic Value Type Name
 extern const std::string DYNAMIC_VALUE_TYPE;

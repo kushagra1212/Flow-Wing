@@ -4,6 +4,12 @@
 
 namespace DYNAMIC_VALUE_HANDLER {
 namespace VALUE_CASTER {
+
+llvm::Value *castToType(llvm::Value *value,
+                        DYNAMIC_VALUE::TYPE::VALUE_TYPE type,
+                        CodeGenerationContext *context,
+                        llvm::IRBuilder<> *&Builder);
+
 llvm::Value *toString(llvm::Value *value, CodeGenerationContext *context,
                       llvm::IRBuilder<> *&Builder);
 
@@ -24,5 +30,8 @@ llvm::Value *toBoolean(llvm::Value *value, CodeGenerationContext *context,
 
 llvm::Value *toInt8(llvm::Value *value, CodeGenerationContext *context,
                     llvm::IRBuilder<> *&Builder);
+
+llvm::Value *toNirast(llvm::Value *value, CodeGenerationContext *context,
+                      llvm::IRBuilder<> *&Builder);
 } // namespace VALUE_CASTER
 } // namespace DYNAMIC_VALUE_HANDLER

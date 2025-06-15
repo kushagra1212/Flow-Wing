@@ -33,6 +33,20 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
           _codeGenerationContext->getValueStackHandler()->getLLVMType(),
           _codeGenerationContext->getValueStackHandler()->getValue());
       _codeGenerationContext->getValueStackHandler()->popAll();
+    } else if (_codeGenerationContext->getValueStackHandler()
+                   ->isDynamicValueType()) {
+      auto [valueStorage, typeTag] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              r, _codeGenerationContext, Builder);
+
+      r = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::castToType(
+          valueStorage, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32,
+          _codeGenerationContext, Builder);
+    } else if (_codeGenerationContext->getValueStackHandler()
+                   ->isLLVMConstant()) {
+      llvm::Value *constantValue =
+          _codeGenerationContext->getValueStackHandler()->getValue();
+      r = _int32TypeConverter->convertImplicit(constantValue);
     }
     stepValue = _int32TypeConverter->convertImplicit(r);
   }
@@ -43,12 +57,26 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   llvm::Value *upperBound =
       _expressionGenerationFactory->createStrategy(upperBoundExp->getKind())
           ->generateExpression(upperBoundExp);
+
   if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
     upperBound = Builder->CreateLoad(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
+
+    upperBound = _int32TypeConverter->convertImplicit(upperBound);
+  } else if (_codeGenerationContext->getValueStackHandler()
+                 ->isDynamicValueType()) {
+    auto [valueStorage, typeTag] =
+        DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+            upperBound, _codeGenerationContext, Builder);
+
+    upperBound = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::castToType(
+        valueStorage, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32,
+        _codeGenerationContext, Builder);
   }
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
   // Declare Loop Variable
 
   if (forStatement->getInitializationPtr()->getKind() ==
@@ -75,12 +103,25 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
     BoundStatement *initializationStat =
         forStatement->getInitializationPtr().get();
+    _codeGenerationContext->getValueStackHandler()->popAll();
 
     llvm::Value *initializationStatResult =
         _statementGenerationFactory
             ->createStrategy(initializationStat->getKind())
             ->generateStatement(initializationStat);
 
+    if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
+      auto [valueStorage, typeTag] =
+          DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
+              initializationStatResult, _codeGenerationContext, Builder);
+
+      initializationStatResult =
+          DYNAMIC_VALUE_HANDLER::VALUE_CASTER::castToType(
+              valueStorage, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32,
+              _codeGenerationContext, Builder);
+    }
+
+    _codeGenerationContext->getValueStackHandler()->popAll();
     variableDeclarationStatementGenerationStrategy
         ->handlePrimitiveLocalVariableDeclaration(
             variableName,
@@ -140,8 +181,9 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
         DYNAMIC_VALUE_HANDLER::getDynamicStoredValueAndType(
             value, _codeGenerationContext, Builder);
 
-    value = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::toInt32(
-        valueStorage, _codeGenerationContext, Builder);
+    value = DYNAMIC_VALUE_HANDLER::VALUE_CASTER::castToType(
+        valueStorage, DYNAMIC_VALUE::TYPE::VALUE_TYPE::INT32,
+        _codeGenerationContext, Builder);
   }
 
   llvm::PHINode *conditionPHI =

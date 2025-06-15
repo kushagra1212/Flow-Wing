@@ -1,6 +1,7 @@
 #ifndef __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 
+#include "../../../../IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
