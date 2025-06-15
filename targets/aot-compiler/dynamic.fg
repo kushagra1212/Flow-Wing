@@ -3,19 +3,34 @@ class A {
   init(x:int) -> nthg {
       self.x = x 
     }
-}
 
+}
+{
 var a:A = Nir
-
-if(a == Nir) {
-  print("A")
+if(a == Nir){
+  print("a is Nir")
+}}
+print("\n")
+{
+var a:A = Nir
+if(a != Nir){
+  print("a is not Nir")
+}}
+print("\n")
+{
+var a:A = new A(2)
+if(a != Nir){
+  print("a is not Nir")
+}}
+print("\n")
+{
+var a:A = new A(2)
+if(a == Nir){
+  print("a is Nir")
 }
-/; fun sum(n: int) -> int {
-  /;   var sum: int = 0
-  /;   for (var i = 0 to n : 1) {
-  /;     sum = sum + i 
-  /;   }
-  /;   return sum
-  /; }
-
-/; print(sum(10))
+}
+print("\n")
+var x = 2
+var y: int = 3
+y = y + x 
+print(y)

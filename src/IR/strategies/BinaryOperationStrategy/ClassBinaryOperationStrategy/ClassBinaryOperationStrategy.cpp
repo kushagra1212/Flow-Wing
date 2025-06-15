@@ -40,13 +40,19 @@ llvm::Value *ClassBinaryOperationStrategy::performOperation(
     break;
 
   case BinderKindUtils::BoundBinaryOperatorKind::Equals: {
-    llvm::Value *_val = Builder->CreateICmpEQ(lhsValue, rhsValue);
+
+    llvm::Value *_val = Builder->CreateICmpEQ(
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue));
     return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
   }
   case BinderKindUtils::BoundBinaryOperatorKind::NotEquals: {
 
-    llvm::Value *_val = Builder->CreateICmpNE(lhsValue, rhsValue);
+    llvm::Value *_val = Builder->CreateICmpNE(
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), lhsValue),
+        _typeSpecificValueVisitor->visit(_stringTypeConverter.get(), rhsValue));
+
     return _typeSpecificValueVisitor->visit(_boolTypeConverter.get(), _val);
     break;
   }

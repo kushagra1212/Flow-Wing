@@ -48,11 +48,12 @@ if(a == Nir){
   print("a is Nir")
 }
 
-----
 var x = 2
 var y: int = 3
 y = y + x 
 print(y)
+----
+
 ---
 var a: int[5] = [1, 2, 3, 4, 5]
 var b = 0
@@ -555,6 +556,8 @@ var y = 2 + (20 + 22 + k)
 print(k, "\n")
 k = x 
 print(k, "\n")
+
+
 
 
 

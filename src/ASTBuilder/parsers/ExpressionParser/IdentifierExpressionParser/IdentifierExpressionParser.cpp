@@ -7,11 +7,11 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
       ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::AssignmentToken ||
       ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
 
+    std::unique_ptr<ExpressionSyntax> expression =
+        std::make_unique<VariableExpressionParser>()->parseExpression(ctx);
+
     std::unique_ptr<VariableExpressionSyntax> variableExpression(
-        static_cast<VariableExpressionSyntax *>(
-            std::make_unique<VariableExpressionParser>()
-                ->parseExpression(ctx)
-                .release()));
+        static_cast<VariableExpressionSyntax *>(expression.release()));
 
     bool needDefaultInitialize = false;
 
