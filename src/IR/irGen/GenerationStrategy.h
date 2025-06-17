@@ -19,6 +19,13 @@
 #include "../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/NirastBinaryOperationStrategy/NirastBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/StringBinaryOperationStrategy/StringBinaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/BoolUnaryOperationStrategy/BoolUnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/ClassUnaryOperationStrategy/ClassUnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/DoubleUnaryOperationStrategy/DoubleUnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/FloatUnaryOperationStrategy/FloatUnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/Int32UnaryOperationStrategy/Int32UnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/NirastUnaryOperationStrategy/NirastUnaryOperationStrategy.h"
+#include "../strategies/UnaryOperationStrategy/StringUnaryOperationStrategy/StringUnaryOperationStrategy.h"
 #include "../strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 #include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
 #include "expressions/ExpressionGenerationFactory.h"
@@ -35,8 +42,20 @@ public:
         // Initialize the expression generation factory
 
         // Initialize the unary operation strategies
-        _unaryOperationStrategy(
-            std::make_unique<UnaryOperationStrategy>(context)),
+        _int32UnaryOperationStrategy(
+            std::make_unique<Int32UnaryOperationStrategy>(context)),
+        _boolUnaryOperationStrategy(
+            std::make_unique<BoolUnaryOperationStrategy>(context)),
+        _doubleUnaryOperationStrategy(
+            std::make_unique<DoubleUnaryOperationStrategy>(context)),
+        _floatUnaryOperationStrategy(
+            std::make_unique<FloatUnaryOperationStrategy>(context)),
+        _stringUnaryOperationStrategy(
+            std::make_unique<StringUnaryOperationStrategy>(context)),
+        _nirastUnaryOperationStrategy(
+            std::make_unique<NirastUnaryOperationStrategy>(context)),
+        _classUnaryOperationStrategy(
+            std::make_unique<ClassUnaryOperationStrategy>(context)),
 
         // Initialize the binary operation strategies
         _int32BinaryOperationStrategy(
@@ -91,7 +110,13 @@ public:
   std::unique_ptr<ClassBinaryOperationStrategy> _classBinaryOperationStrategy;
 
   // Unary Operation Strategy
-  std::unique_ptr<UnaryOperationStrategy> _unaryOperationStrategy;
+  std::unique_ptr<Int32UnaryOperationStrategy> _int32UnaryOperationStrategy;
+  std::unique_ptr<BoolUnaryOperationStrategy> _boolUnaryOperationStrategy;
+  std::unique_ptr<DoubleUnaryOperationStrategy> _doubleUnaryOperationStrategy;
+  std::unique_ptr<FloatUnaryOperationStrategy> _floatUnaryOperationStrategy;
+  std::unique_ptr<StringUnaryOperationStrategy> _stringUnaryOperationStrategy;
+  std::unique_ptr<NirastUnaryOperationStrategy> _nirastUnaryOperationStrategy;
+  std::unique_ptr<ClassUnaryOperationStrategy> _classUnaryOperationStrategy;
 
   // Convertors
 

@@ -33,11 +33,6 @@ std::vector<BoundNode *> BoundAssignmentExpression::getChildren() {
   return _children;
 }
 
-BinderKindUtils::BoundBinaryOperatorKind &
-BoundAssignmentExpression::getOperatorPtr() {
-  return this->_op;
-}
-
 std::unique_ptr<BoundExpression> &BoundAssignmentExpression::getLeftPtr() {
   return this->_left;
 }

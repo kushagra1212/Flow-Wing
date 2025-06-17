@@ -28,8 +28,6 @@ public:
 
   std::vector<BoundNode *> getChildren() override;
 
-  BinderKindUtils::BoundBinaryOperatorKind &getOperatorPtr();
-
   std::unique_ptr<BoundExpression> &getLeftPtr();
 
   std::unique_ptr<BoundExpression> &getRightPtr();

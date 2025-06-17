@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../BoundExpression/BoundExpression.h"
+#include <llvm/IR/IRBuilder.h>
 
 class BoundUnaryExpression : public BoundExpression {
 private:
   BinderKindUtils::BoundUnaryOperatorKind _op;
   std::unique_ptr<BoundExpression> _operand;
+  llvm::AllocaInst *_dynamicValueVariableAddress = nullptr;
 
 public:
   BoundUnaryExpression(const DiagnosticUtils::SourceLocation &location,
@@ -20,5 +22,10 @@ public:
 
   std::unique_ptr<BoundExpression> &getOperandPtr();
 
-  BinderKindUtils::BoundUnaryOperatorKind &getOperatorPtr();
+  BinderKindUtils::BoundUnaryOperatorKind &getOperator();
+
+  llvm::AllocaInst *getDynamicValueVariableAddress();
+
+  void
+  setDynamicValueVariableAddress(llvm::AllocaInst *dynamicValueVariableAddress);
 };

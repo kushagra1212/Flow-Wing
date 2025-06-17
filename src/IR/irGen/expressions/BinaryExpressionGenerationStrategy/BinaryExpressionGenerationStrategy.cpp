@@ -4,42 +4,6 @@ BinaryExpressionGenerationStrategy::BinaryExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-llvm::Value *BinaryExpressionGenerationStrategy::getExpressionValue(
-    BoundExpression *expression, bool &isClassType, int8_t &isDynamicValue) {
-  _codeGenerationContext->getValueStackHandler()->popAll();
-  llvm::Value *value =
-      _expressionGenerationFactory->createStrategy(expression->getKind())
-          ->generateExpression(expression);
-
-  if (_codeGenerationContext->getValueStackHandler()->isDynamicValueType()) {
-    isDynamicValue = 1;
-  }
-
-  if (_codeGenerationContext->getValueStackHandler()->isStructType()) {
-    if (!_codeGenerationContext->isValidClassType(llvm::cast<llvm::StructType>(
-            _codeGenerationContext->getValueStackHandler()->getLLVMType()))) {
-      _codeGenerationContext->getLogger()->LogError(
-          "This Binary Expression is not supported for objects");
-      return nullptr;
-    }
-
-    value = Builder->CreateLoad(
-        llvm::Type::getInt8PtrTy(*TheContext),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-    isClassType = true;
-  }
-
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    value = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-  }
-
-  _codeGenerationContext->getValueStackHandler()->popAll();
-
-  return value;
-}
-
 void BinaryExpressionGenerationStrategy::declare(BoundExpression *expression) {
   BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)expression;
 
@@ -66,11 +30,13 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
 
   int8_t isLHSDynamicValue = 0, isRHSDynamicValue = 0;
 
-  llvm::Value *lhsValue = this->getExpressionValue(
-      binaryExpression->getLeftPtr().get(), isClassType, isLHSDynamicValue);
+  llvm::Value *lhsValue = ExpressionSupport::getExpressionValue(
+      _codeGenerationContext, binaryExpression->getLeftPtr().get(), isClassType,
+      isLHSDynamicValue);
 
-  llvm::Value *rhsValue = this->getExpressionValue(
-      binaryExpression->getRightPtr().get(), isClassType, isRHSDynamicValue);
+  llvm::Value *rhsValue = ExpressionSupport::getExpressionValue(
+      _codeGenerationContext, binaryExpression->getRightPtr().get(),
+      isClassType, isRHSDynamicValue);
 
   if (!lhsValue || !rhsValue) {
     _codeGenerationContext->getLogger()->LogError(

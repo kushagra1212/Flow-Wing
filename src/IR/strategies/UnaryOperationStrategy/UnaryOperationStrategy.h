@@ -9,6 +9,7 @@
 #include "../../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
 #include "../../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "../../LLVMTypeConversion/TypeSpecificValueVisitor.h"
+#include "utility.h"
 #include "llvm/IR/Value.h"
 
 class UnaryOperationStrategy {
@@ -37,8 +38,12 @@ public:
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()){};
 
-  llvm::Value *performOperation(llvm::Value *val,
-                                BoundUnaryExpression *unaryExpression);
+  virtual llvm::Value *
+  performOperation(llvm::Value *val, BoundUnaryExpression *unaryExpression) = 0;
+
+  virtual llvm::Value *
+  performOperation(llvm::Value *val,
+                   BinderKindUtils::BoundUnaryOperatorKind unaryOperator) = 0;
 };
 
 #endif // FLOWWING_BINARYOPERATIONSTRATEGY_H

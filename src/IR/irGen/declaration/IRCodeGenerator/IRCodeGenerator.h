@@ -5,12 +5,12 @@
 #include "../../expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
 #include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "../../expressions/MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
+#include "../../expressions/UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
 #include "../../statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
 #include "../../statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
 #include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
 #include "../../statements/MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
 #include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
-
 class IRCodeGenerator {
   std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
       _variableDeclarationStatementGenerationStrategy;
@@ -27,6 +27,8 @@ class IRCodeGenerator {
       _assignmentExpressionGenerationStrategy;
   std::unique_ptr<BinaryExpressionGenerationStrategy>
       _binaryExpressionGenerationStrategy;
+  std::unique_ptr<UnaryExpressionGenerationStrategy>
+      _unaryExpressionGenerationStrategy;
 
   std::unique_ptr<MultipleAssignmentExpressionGenerationStrategy>
       _multipleAssignmentExpressionGenerationStrategy;

@@ -3,6 +3,7 @@
 
 #include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "../utility.h"
 class BinaryExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
   BinaryExpressionGenerationStrategy(CodeGenerationContext *context);
@@ -17,9 +18,6 @@ public:
                    BinderKindUtils::BoundBinaryOperatorKind binaryOp,
                    bool isClassType = false,
                    bool skipUnsupportedOperation = false);
-
-  llvm::Value *getExpressionValue(BoundExpression *expression,
-                                  bool &isClassType, int8_t &isDynamicValue);
 
   SyntaxKindUtils::SyntaxKind selectOperationStrategy(llvm::Value *lhsValue,
                                                       llvm::Value *rhsValue,

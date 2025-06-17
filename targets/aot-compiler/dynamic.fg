@@ -1,36 +1,32 @@
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x 
-    }
-
+{
+  var x = 1 + "a"
+  print(x, "\n")
 }
 {
-var a:A = Nir
-if(a == Nir){
-  print("a is Nir")
-}}
-print("\n")
-{
-var a:A = Nir
-if(a != Nir){
-  print("a is not Nir")
-}}
-print("\n")
-{
-var a:A = new A(2)
-if(a != Nir){
-  print("a is not Nir")
-}}
-print("\n")
-{
-var a:A = new A(2)
-if(a == Nir){
-  print("a is Nir")
+  var x = "a" + 1
+  print(x, "\n")
 }
+{
+  var x = 1 + 2.5
+  print(x, "\n")
 }
-print("\n")
-var x = 2
-var y: int = 3
-y = y + x 
-print(y)
+{
+  var x = true + 1
+  print(x, "\n")
+}
+{
+  var x = 1 + true
+  print(x, "\n")
+}
+{
+  var x = "a" + true
+  print(x, "\n")
+}
+{
+  var x = true + "a"
+  print(x, "\n")
+}
+{
+  var x = 1 + 2 + "a" + (3 + 4)
+  print(x, "\n")
+}

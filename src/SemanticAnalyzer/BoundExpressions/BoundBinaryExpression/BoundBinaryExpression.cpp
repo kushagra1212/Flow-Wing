@@ -39,11 +39,6 @@ std::vector<BoundNode *> BoundBinaryExpression::getChildren() {
   return _children;
 }
 
-BinderKindUtils::BoundBinaryOperatorKind &
-BoundBinaryExpression::getOperatorPtr() {
-  return _op;
-}
-
 std::unique_ptr<BoundExpression> &BoundBinaryExpression::getLeftPtr() {
   return _left;
 }

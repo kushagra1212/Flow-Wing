@@ -1222,3 +1222,175 @@ print(k, "\n")
 0
 )");
 }
+
+TEST_F(DynamicTypeReplTest, OperationsOnNir) {
+  I(R"(
+{
+  var x = Nir
+  x = x + 1
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = 1 + x
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = x + "a"
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  x = "a" + x
+  print(x)
+}
+print("\n")
+{
+  var x = Nir
+  if(x) {
+    print("is true")
+  } else {
+    print("is false")
+  }
+}
+print("\n")
+{
+  var x:int = Nir
+  print(x)
+}
+  )");
+
+  EXPECT_EQ(getOutput(), R"(1
+1
+1
+a
+a
+is false
+0)");
+}
+
+TEST_F(DynamicTypeReplTest, DynamicUnaryOps) {
+  I(R"(
+{
+  var x = 10
+  print(-x, "\n")
+}
+{
+  var x = 10.5
+  print(-x, "\n")
+}
+{
+  var x = true
+  print(!x, "\n")
+}
+{
+  var x = false
+  print(!x, "\n")
+}
+{
+  var x = 0
+  print(!x, "\n")
+}
+{
+  var x = 1
+  print(!x, "\n")
+}
+{
+  var x = "hello"
+  print(!x, "\n")
+}
+{
+  var x = ""
+  print(!x, "\n")
+}
+{
+  var x = Nir
+  print(!x, "\n")
+}
+  )");
+
+  EXPECT_EQ(getOutput(), R"(-10
+-10.50000000000000
+false
+true
+true
+false
+false
+true
+true
+)");
+}
+
+TEST_F(DynamicTypeReplTest, DynamicMixedTypeExpressions) {
+  I(R"(
+{
+  var x = 1 + "a"
+  print(x, "\n")
+}
+{
+  var x = "a" + 1
+  print(x, "\n")
+}
+{
+  var x = 1 + 2.5
+  print(x, "\n")
+}
+{
+  var x = true + 1
+  print(x, "\n")
+}
+{
+  var x = 1 + true
+  print(x, "\n")
+}
+{
+  var x = "a" + true
+  print(x, "\n")
+}
+{
+  var x = true + "a"
+  print(x, "\n")
+}
+{
+  var x = 1 + 2 + "a" + (3 + 4)
+  print(x, "\n")
+}
+  )");
+
+  EXPECT_EQ(getOutput(), R"(1a
+a1
+3.50000000000000
+2
+2
+atrue
+truea
+3a7
+)");
+}
+
+// TEST_F(DynamicTypeReplTest, DynamicClassMember) {
+//   I(R"(
+// class A {
+//   var data
+// }
+// var obj = new A()
+// obj.data = 10
+// print(obj.data, "\n")
+// obj.data = "hello"
+// print(obj.data, "\n")
+// obj.data = true
+// print(obj.data, "\n")
+// obj.data = Nir
+// print(obj.data, "\n")
+//   )");
+
+//   EXPECT_EQ(getOutput(), R"(10
+// hello
+// true
+// Nir
+// )");
+// }

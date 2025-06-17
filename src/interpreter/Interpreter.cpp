@@ -790,8 +790,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 std::any
 Interpreter::unaryExpressionEvaluator(BoundUnaryExpression *unaryExpression,
                                       std::any operand) {
-  BinderKindUtils::BoundUnaryOperatorKind op =
-      unaryExpression->getOperatorPtr();
+  BinderKindUtils::BoundUnaryOperatorKind op = unaryExpression->getOperator();
   if (operand.type() == typeid(int)) {
     return this->_interpreterUtils
         ->getResultFromUnaryExpressionEvaluatorHandlerForInt(

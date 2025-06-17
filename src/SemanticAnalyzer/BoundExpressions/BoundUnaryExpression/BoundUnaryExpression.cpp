@@ -28,7 +28,15 @@ std::unique_ptr<BoundExpression> &BoundUnaryExpression::getOperandPtr() {
   return this->_operand;
 }
 
-BinderKindUtils::BoundUnaryOperatorKind &
-BoundUnaryExpression::getOperatorPtr() {
+BinderKindUtils::BoundUnaryOperatorKind &BoundUnaryExpression::getOperator() {
   return this->_op;
+}
+
+llvm::AllocaInst *BoundUnaryExpression::getDynamicValueVariableAddress() {
+  return this->_dynamicValueVariableAddress;
+}
+
+void BoundUnaryExpression::setDynamicValueVariableAddress(
+    llvm::AllocaInst *dynamicValueVariableAddress) {
+  this->_dynamicValueVariableAddress = dynamicValueVariableAddress;
 }

@@ -20,6 +20,8 @@ IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
           std::make_unique<AssignmentExpressionGenerationStrategy>(context)),
       _binaryExpressionGenerationStrategy(
           std::make_unique<BinaryExpressionGenerationStrategy>(context)),
+      _unaryExpressionGenerationStrategy(
+          std::make_unique<UnaryExpressionGenerationStrategy>(context)),
       _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
@@ -111,6 +113,12 @@ void IRCodeGenerator::processChildForDeclaration(BoundNode *child,
   case BinderKindUtils::BoundNodeKind::BinaryExpression: {
     _binaryExpressionGenerationStrategy->declare(
         static_cast<BoundBinaryExpression *>(child));
+    declareVariables(child, isGlobal);
+    break;
+  }
+  case BinderKindUtils::BoundNodeKind::UnaryExpression: {
+    _unaryExpressionGenerationStrategy->declare(
+        static_cast<BoundUnaryExpression *>(child));
     declareVariables(child, isGlobal);
     break;
   }
