@@ -1,7 +1,4 @@
 #include "CallExpressionBinder.h"
-#include <memory>
-
-#include "../ExpressionBinderFactory.h"
 
 std::unique_ptr<BoundExpression>
 CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
@@ -23,12 +20,11 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (IS_CALLING_SUPPER_OUT_SIDEOF_INIT_FUNCTION) {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Can not call 'super' function directly inside any member function "
-        "other than init function",
         DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
+        DiagnosticUtils::DiagnosticType::Semantic, {},
         Utils::getSourceLocation(
-            callExpression->getIdentifierPtr()->getTokenPtr().get())));
+            callExpression->getIdentifierPtr()->getTokenPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::SuperCallOutsideConstructor));
 
     return std::move(boundIdentifier);
   }
@@ -38,11 +34,11 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (IS_CALLING_INIT_FUNCTION_OUTSIDE_OR_INSIDE_CLASS) {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Can not call 'init' function directly inside or outside of class",
         DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
+        DiagnosticUtils::DiagnosticType::Semantic, {},
         Utils::getSourceLocation(
-            callExpression->getIdentifierPtr()->getTokenPtr().get())));
+            callExpression->getIdentifierPtr()->getTokenPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::InvalidInitFunctionCall));
 
     return std::move(boundIdentifier);
   }
@@ -54,23 +50,23 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
     const std::unique_ptr<BoundFunctionDeclaration> &boundBuiltinFunction =
         BuiltInFunction::getBuiltInFunction(CALLER_NAME);
 
-    const bool IS_AGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL =
+    const bool IS_ARGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL =
         !boundBuiltinFunction->isVariadicFunction() &&
         callExpression->getArguments().size() !=
             boundBuiltinFunction->getParametersRef().size();
 
-    if (IS_AGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL) {
+    if (IS_ARGUMENT_MISMATCHED_OF_NON_VARIADIC_BUILTIN_FUNCTION_CALL) {
       ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-          "Function " + boundBuiltinFunction->getFunctionNameRef() +
-              " requires " +
-              std::to_string(boundBuiltinFunction->getParametersRef().size()) +
-              " arguments but " +
-              std::to_string(callExpression->getArguments().size()) +
-              " arguments were given",
           DiagnosticUtils::DiagnosticLevel::Error,
           DiagnosticUtils::DiagnosticType::Semantic,
+          {boundBuiltinFunction->getFunctionNameRef(),
+           std::to_string(boundBuiltinFunction->getParametersRef().size()),
+           std::to_string(callExpression->getArguments().size())},
           Utils::getSourceLocation(
-              callExpression->getIdentifierPtr()->getTokenPtr().get())));
+              callExpression->getIdentifierPtr()->getTokenPtr().get()),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::IncorrectArgumentCount));
+
+      return std::move(boundIdentifier);
     }
   }
 
@@ -91,14 +87,11 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
         if (IS_CURRENT_CLASS_HAS_NO_PARENT_CLASS) {
           ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-              "Could not find super class of class " + CLASS_NAME +
-                  ", "
-                  "Add super class to class declaration",
               DiagnosticUtils::DiagnosticLevel::Error,
-              DiagnosticUtils::DiagnosticType::Semantic,
+              DiagnosticUtils::DiagnosticType::Semantic, {CLASS_NAME},
               Utils::getSourceLocation(
-                  callExpression->getIdentifierPtr()->getTokenPtr().get())));
-
+                  callExpression->getIdentifierPtr()->getTokenPtr().get()),
+              FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassMissingSuperclass));
           return std::move(boundIdentifier);
         }
 
@@ -114,12 +107,12 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
         const std::string CLASS_MEMBER_FUNCTION_NAME =
             boundClassStatement->getActualFunctionNameIfExists(CALLER_NAME);
 
-        const auto CURRENT_CLASS_MEMEBER_FUNCTION_CALL =
+        const auto CURRENT_CLASS_MEMBER_FUNCTION_CALL =
             boundClassStatement->getMemberFunction(CLASS_MEMBER_FUNCTION_NAME);
 
-        if (CURRENT_CLASS_MEMEBER_FUNCTION_CALL && !declared_fd) {
+        if (CURRENT_CLASS_MEMBER_FUNCTION_CALL && !declared_fd) {
           updatedCallerName = CLASS_MEMBER_FUNCTION_NAME;
-          declared_fd = CURRENT_CLASS_MEMEBER_FUNCTION_CALL;
+          declared_fd = CURRENT_CLASS_MEMBER_FUNCTION_CALL;
         }
       }
     }
@@ -135,14 +128,13 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
     declared_fd = callStatement->getMemberFunction(updatedCallerName);
 
     if (!declared_fd) {
+
       ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-          "Class " + CALLER_NAME +
-              " does not have an initializer, Add Default or "
-              "Parameterized Initializer in Class Body ",
           DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
+          DiagnosticUtils::DiagnosticType::Semantic, {CALLER_NAME},
           Utils::getSourceLocation(
-              callExpression->getIdentifierPtr()->getTokenPtr().get())));
+              callExpression->getIdentifierPtr()->getTokenPtr().get()),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassMissingInitializer));
       return std::move(boundIdentifier);
     }
   }
@@ -209,14 +201,16 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (!ctx->getRootRef()->tryGetVariable((CALLER_NAME))) {
     if (!declared_fd && !IS_A_BUILTIN_FUNCTION_CALL) {
-      std::string type = "Function";
 
       if (!ctx->getRootRef()->tryGetClass(CALLER_NAME)) {
+
         ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-            type + " " + CALLER_NAME + " does not exist",
             DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Semantic,
-            callExpression->getIdentifierPtr()->getSourceLocation()));
+            DiagnosticUtils::DiagnosticType::Semantic, {CALLER_NAME},
+            callExpression->getIdentifierPtr()->getSourceLocation(),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::FunctionNotFound));
+
+        return std::move(boundIdentifier);
       }
     }
 
@@ -225,12 +219,14 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
             declared_fd->getMinNumberOfParametersNeeded() &&
         !IS_A_BUILTIN_FUNCTION_CALL) {
       ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-          "Function " + CALLER_NAME + " requires minimum " +
-              std::to_string(declared_fd->getMinNumberOfParametersNeeded()) +
-              " arguments",
           DiagnosticUtils::DiagnosticLevel::Error,
           DiagnosticUtils::DiagnosticType::Semantic,
-          callExpression->getOpenParenthesisTokenPtr()->getSourceLocation()));
+          {CALLER_NAME,
+           std::to_string(declared_fd->getMinNumberOfParametersNeeded()),
+           std::to_string(callExpression->getArguments().size())},
+          callExpression->getOpenParenthesisTokenPtr()->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              FunctionArgumentCountMismatch));
       return std::move(boundIdentifier);
     }
   }

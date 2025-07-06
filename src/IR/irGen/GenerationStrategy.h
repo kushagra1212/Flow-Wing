@@ -12,6 +12,7 @@
 #include "../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "../LLVMTypeConversion/TypeSpecificValueVisitor.h"
 #include "../context/CodeGenerationContext.h"
+#include "../context/utils/TypeVerifier/TypeVerifier.h"
 #include "../strategies/BinaryOperationStrategy/BoolBinaryOperationStrategy/BoolBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/ClassBinaryOperationStrategy/ClassBinaryOperationStrategy.h"
 #include "../strategies/BinaryOperationStrategy/DoubleBinaryOperationStrategy/DoubleBinaryOperationStrategy.h"

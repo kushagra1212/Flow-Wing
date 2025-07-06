@@ -69,12 +69,12 @@ ParserContext::match(const SyntaxKindUtils::SyntaxKind &kind) {
   if (getKind() == kind) {
     return std::move(nextToken());
   }
-  _diagnosticHandler->addDiagnostic(
-      Diagnostic("Unexpected Token <" + SyntaxKindUtils::to_string(getKind()) +
-                     ">, Expected <" + SyntaxKindUtils::to_string(kind) + ">",
-                 DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Syntactic,
-                 Utils::getSourceLocation(getCurrent())));
+  _diagnosticHandler->addDiagnostic(Diagnostic(
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Syntactic,
+      {SyntaxKindUtils::to_string(getKind()), SyntaxKindUtils::to_string(kind)},
+      Utils::getSourceLocation(getCurrent()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
   if (getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
     return std::move(nextToken());
   } else {
@@ -157,6 +157,11 @@ void ParserContext::updateDependencyCount(const std::string &path,
   _dependencyPathsMap[path] += count;
 }
 
+const std::unordered_map<std::string, int8_t> &
+ParserContext::getDependencyPathsMap() {
+  return _dependencyPathsMap;
+}
+
 //? Builder Methods
 
 void ParserContext::buildTokenList(SourceTokenizer *lexer) {
@@ -192,10 +197,10 @@ void ParserContext::buildTokenList(SourceTokenizer *lexer) {
 void ParserContext::handleDiagnosticsForBadToken(SyntaxToken<std::any> *token) {
   if (token->getKind() == SyntaxKindUtils::SyntaxKind::BadToken) {
     this->_diagnosticHandler->addDiagnostic(
-        Diagnostic("Unexpected Character <" + token->getText() + ">",
-                   DiagnosticUtils::DiagnosticLevel::Error,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Syntactic,
-                   Utils::getSourceLocation(token)));
+                   {token->getText()}, Utils::getSourceLocation(token),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedCharacter));
   }
 }
 void ParserContext::handleFormatCommentToken(

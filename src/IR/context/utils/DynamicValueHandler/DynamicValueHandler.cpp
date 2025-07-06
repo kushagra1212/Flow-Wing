@@ -14,7 +14,9 @@ llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
 
   TypeMapper *_typeMapper = context->getMapper().get();
 
-  if (_typeMapper->isNirastValue(rhsValue)) {
+  if (_typeMapper->isNirastValue(rhsValue) ||
+      rhsValue->getType() == llvm::Type::getVoidTy(*context->getContext())) {
+
     llvm::ConstantInt *typeTag =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context->getContext()),
                                DYNAMIC_VALUE::TYPE::VALUE_TYPE::NIRAST);

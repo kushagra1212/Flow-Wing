@@ -7,6 +7,7 @@
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundArrayVariableExpression/BoundArrayVariableExpression.h"
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
 #include "../../Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"

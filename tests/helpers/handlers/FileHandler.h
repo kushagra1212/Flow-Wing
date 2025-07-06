@@ -83,6 +83,33 @@ public:
     exportFile.close();
   }
 
+  void redirectOutputToCout(const std::string &cmd) {
+
+    // 2. Append the shell redirection to capture stderr.
+    //    " 2>&1" redirects stream 2 (stderr) to stream 1 (stdout).
+    std::string cmd_with_redirect = cmd + " 2>&1";
+
+    std::cout << "--- Executing command: " << cmd_with_redirect << std::endl;
+    std::cout << "--- Capturing output and piping to std::cout:" << std::endl;
+
+    // 3. Use popen to execute the command and open a pipe for reading.
+    //    The "r" means we are opening the pipe in "read" mode.
+    FILE *pipe = popen(cmd_with_redirect.c_str(), "r");
+    if (!pipe) {
+      std::cout << "popen() failed!" << std::endl;
+    }
+
+    // 4. Read the output from the pipe line by line and write it to std::cerr.
+    std::array<char, 256> buffer;
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+      std::cout << buffer.data();
+    }
+
+    // 5. Close the pipe and get the command's exit status.
+    //    This is a crucial step! It waits for the command to finish.
+    int exit_status = pclose(pipe);
+  }
+
   std::string createBuildAndRunCmd(const std::string &fileName) {
     std::string runCMD =
         (currentPath.string() + "/../" + buildFolder +

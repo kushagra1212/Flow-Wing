@@ -5,6 +5,7 @@
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
 #include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
 #include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"

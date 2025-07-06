@@ -65,8 +65,8 @@ public:
   uint64_t getSizeOf(llvm::Type *type);
 
   std::string getLLVMTypeName(const std::vector<llvm::Type *> &types,
-                              bool withColor = true) const;
-  std::string getLLVMTypeName(llvm::Type *type, bool withColor = true) const;
+                              bool withColor = false) const;
+  std::string getLLVMTypeName(llvm::Type *type, bool withColor = false) const;
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;
 };
 

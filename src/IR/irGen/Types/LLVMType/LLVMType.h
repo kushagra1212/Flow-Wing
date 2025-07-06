@@ -29,6 +29,8 @@ public:
 
   virtual inline const bool isPointerToPrimitive() const { return false; }
 
+  virtual inline const bool isPointerToDynamic() const { return false; }
+
   inline auto getStructTypeListRef() const
       -> const std::vector<llvm::Type *> & {
     return _structTypeList;

@@ -53,9 +53,9 @@ private:
   bool _isGlobal = false;
 
   llvm::Value *declare();
-  void populateLocalVariables(BoundStatement *statement,
-                              BinderKindUtils::MemoryKind memoryKind =
-                                  BinderKindUtils::MemoryKind::None);
+  void populateVariables(BoundStatement *statement,
+                         BinderKindUtils::MemoryKind memoryKind =
+                             BinderKindUtils::MemoryKind::None);
 };
 
 #endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

@@ -10,11 +10,13 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       static_cast<BringStatementSyntax *>(statement);
 
   if (!Utils::Node::isPathExists(bringStatement->getAbsoluteFilePath())) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "File <" + bringStatement->getRelativeFilePathPtr() + "> not found",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
+        {bringStatement->getRelativeFilePathPtr()},
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::FileNotFound));
     return std::make_unique<BoundBringStatement>(
         bringStatement->getSourceLocation(),
         bringStatement->getDiagnosticHandlerPtr().get());
@@ -69,16 +71,15 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     for (auto &expression : bringStatement->getExpressionsPtr()) {
       if (expression->getKind() !=
           SyntaxKindUtils::SyntaxKind::LiteralExpression) {
+
         ctx->getDiagnosticHandler()->addDiagnostic(
-            Diagnostic("Unexpected Token <" +
-                           SyntaxKindUtils::to_string(expression->getKind()) +
-                           ">, Expected <" +
-                           SyntaxKindUtils::to_string(
-                               SyntaxKindUtils::SyntaxKind::IdentifierToken) +
-                           ">",
-                       DiagnosticUtils::DiagnosticLevel::Error,
+            Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                        DiagnosticUtils::DiagnosticType::Semantic,
-                       (expression->getSourceLocation())));
+                       {SyntaxKindUtils::to_string(expression->getKind()),
+                        SyntaxKindUtils::to_string(
+                            SyntaxKindUtils::SyntaxKind::IdentifierToken)},
+                       expression->getSourceLocation(),
+                       FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
         continue;
       }
 
@@ -88,13 +89,15 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           memberMap.end();
 
       if (notFound) {
+
         ctx->getDiagnosticHandler()->addDiagnostic(
-            Diagnostic("Identifier <" + expression->getTokenPtr()->getText() +
-                           "> not found in <" +
-                           bringStatement->getRelativeFilePathPtr() + ">",
-                       DiagnosticUtils::DiagnosticLevel::Error,
+            Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                        DiagnosticUtils::DiagnosticType::Semantic,
-                       (expression->getSourceLocation())));
+                       {expression->getTokenPtr()->getText(),
+                        bringStatement->getRelativeFilePathPtr()},
+                       (expression->getSourceLocation()),
+                       FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                           IdentifierNotFoundInFileOrModule));
         continue;
       }
 
@@ -127,8 +130,13 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (bringStatement->getModuleName().size() &&
       ctx->doesModuleAlreadyExist(bringStatement->getModuleName())) {
-    LOG_ERROR("Module " + bringStatement->getModuleName() +
-              " Already Declared");
+
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {bringStatement->getModuleName()},
+        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleAlreadyDeclared));
   }
 
   if (bringStatement->getModuleName().size()) {
@@ -142,8 +150,14 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       auto func = static_cast<BoundFunctionDeclaration *>(stat.get());
       if (func->isOnlyDeclared() &&
           !ctx->getRootRef()->tryDeclareFunctionGlobal(func)) {
-        LOG_ERROR("Function " + func->getFunctionNameRef() +
-                  " is Already Declared");
+
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            {func->getFunctionNameRef()},
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get()),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::FunctionAlreadyDeclared));
       }
       break;
     }
@@ -153,8 +167,12 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       if (!ctx->getRootRef()->tryDeclareVariableGlobal(var->getVariableName(),
                                                        var)) {
 
-        LOG_ERROR("Variable " + var->getVariableName() +
-                  " is Already Declared");
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic, {var->getVariableName()},
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get()),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableAlreadyDeclared));
       }
       break;
     }
@@ -163,8 +181,13 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
       if (!ctx->getRootRef()->tryDeclareCustomTypeGlobal(cusType)) {
 
-        LOG_ERROR("Type " + cusType->getTypeNameAsString() +
-                  " is Already Declared");
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            {cusType->getTypeNameAsString()},
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get()),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::TypeAlreadyDeclared));
       }
       break;
     }
@@ -175,16 +198,37 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
       if (!ctx->getRootRef()->tryDeclareClassGlobal(classType)) {
 
-        LOG_ERROR("Type " + classType->getClassName() + " is Already Declared");
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            {classType->getClassName()},
+            Utils::getSourceLocation(
+                bringStatement->getBringKeywordPtr().get()),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
       }
       break;
     }
     case BinderKindUtils::BoundNodeKind::BoundModuleStatement: {
       auto moduleStatement = static_cast<BoundModuleStatement *>(stat.get());
+
+      const auto logWarningImportModuleWithErrors = [&]() {
+        ctx->getDiagnosticHandler()->addDiagnostic(
+            Diagnostic(DiagnosticUtils::DiagnosticLevel::Warning,
+                       DiagnosticUtils::DiagnosticType::Semantic,
+                       {moduleStatement->getModuleName()},
+                       bringStatement->getSourceLocation(),
+                       FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                           ImportModuleWithErrorsWarning));
+      };
+
       if (!ctx->getRootRef()->tryDeclareModuleGlobal(moduleStatement)) {
 
-        LOG_ERROR("Module " + moduleStatement->getModuleName() +
-                  " is Already Declared");
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Semantic,
+            {moduleStatement->getModuleName()},
+            bringStatement->getSourceLocation(),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleAlreadyDeclared));
       }
 
       for (auto &stat : moduleStatement->getStatementsRef()) {
@@ -193,9 +237,7 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           auto _mClass = static_cast<BoundClassStatement *>(stat);
           if (!ctx->getRootRef()->tryDeclareClass(_mClass)) {
 
-            LOG_ERROR("Class " + _mClass->getClassName() +
-                      " is Already Declared: [" +
-                      moduleStatement->getModuleName() + "]");
+            logWarningImportModuleWithErrors();
           }
           break;
         }
@@ -204,9 +246,7 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           if (!ctx->getRootRef()->tryDeclareVariableGlobal(
                   _mVarDec->getVariableName(), _mVarDec)) {
 
-            LOG_ERROR("Variable " + _mVarDec->getVariableName() +
-                      " is Already Declared : [" +
-                      moduleStatement->getModuleName() + "]");
+            logWarningImportModuleWithErrors();
           }
           break;
         }
@@ -216,9 +256,7 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           if (_mFuncDec->isOnlyDeclared() &&
               !ctx->getRootRef()->tryDeclareFunctionGlobal(_mFuncDec)) {
 
-            LOG_ERROR("Function " + _mFuncDec->getFunctionNameRef() +
-                      " is Already Declared : [" +
-                      moduleStatement->getModuleName() + "]");
+            logWarningImportModuleWithErrors();
           }
           break;
         }
@@ -227,9 +265,7 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           auto _mCusType = static_cast<BoundCustomTypeStatement *>(stat);
           if (!ctx->getRootRef()->tryDeclareCustomTypeGlobal(_mCusType)) {
 
-            LOG_ERROR("Type " + _mCusType->getTypeNameAsString() +
-                      " is Already Declared : [" +
-                      moduleStatement->getModuleName() + "]");
+            logWarningImportModuleWithErrors();
           }
           break;
         }

@@ -22,11 +22,11 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
     if (!module) {
       ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Module " + variableExpressionSyntax->getVariableName() +
-                         " Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
+          Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Semantic,
-                     variableExpressionSyntax->getSourceLocation()));
+                     {variableExpressionSyntax->getVariableName()},
+                     variableExpressionSyntax->getSourceLocation(),
+                     FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleNotFound));
       return nullptr;
     }
     return ExpressionBinderFactory::create(
@@ -63,12 +63,13 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   if (!variable && variableExpressionSyntax->getVariableName() != "self" &&
       !func) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableExpressionSyntax->getVariableName() +
-                       " Not Found",
-                   DiagnosticUtils::DiagnosticLevel::Error,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                    DiagnosticUtils::DiagnosticType::Semantic,
-                   variableExpressionSyntax->getSourceLocation()));
+                   {variableExpressionSyntax->getVariableName()},
+                   variableExpressionSyntax->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableNotFound));
     return nullptr;
   }
 

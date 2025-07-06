@@ -3,7 +3,7 @@
 
 #include "../../helpers/handlers/IOHandler.h"
 
-class DynamicTypeReplTest : public ::testing::Test, public IOHandler {
+class DynamicTypeTest : public ::testing::Test, public IOHandler {
 protected:
   void SetUp() override;
   void TearDown() override;

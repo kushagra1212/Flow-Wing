@@ -38,12 +38,13 @@ ObjectTypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   BINDER_DEBUG_LOG("CURRENT_MODULE_NAME: " + name);
 
   if (!bCT && !ctx->getRootRef()->tryGetClass(name)) {
-    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Type " + name + " Not Found", DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
-            ->getTokenPtr()
-            ->getSourceLocation()));
+    ctx->getDiagnosticHandler()->addDiagnostic(
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {name},
+                   objectTypeExpressionSyntax->getObjectTypeIdentifierRef()
+                       ->getTokenPtr()
+                       ->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::TypeOrClassNotFound));
 
     return std::move(boundObjectTypeExpression);
   }

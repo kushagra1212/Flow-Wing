@@ -21,11 +21,11 @@ TypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   }
 
   ctx->getDiagnosticHandler()->addDiagnostic(
-      Diagnostic("Invalid Type Expression kind " +
-                     std::to_string(typeExpressionSyntax->getKind()),
-                 DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Semantic,
-                 typeExpressionSyntax->getSourceLocation()));
+                 {std::to_string(typeExpressionSyntax->getKind())},
+                 typeExpressionSyntax->getSourceLocation(),
+                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::InValidTypeExpression));
 
   return nullptr;
 }

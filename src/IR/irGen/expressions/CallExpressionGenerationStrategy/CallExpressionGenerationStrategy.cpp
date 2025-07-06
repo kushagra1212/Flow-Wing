@@ -1021,6 +1021,8 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
           static_cast<BoundVariableExpression *>(
               callExpression->getArgumentPtrList()[callArgIndex]);
 
+      auto funTypePtr =
+          _codeGenerationContext->funcPtr(callExpression->getCallerNameRef());
       if (variableExpression->getDotExpressionList().size() > 0 &&
           variableExpression->getDotExpressionList()[0]->getKind() ==
               BinderKindUtils::BoundNodeKind::CallExpression) {
@@ -1035,6 +1037,15 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         cE->setArgumentAlloca(0,
                               callExpression->getArgumentAlloca(llvmArgsIndex));
         callExpressionGenerationStrategy->declare(cE);
+      } else if ((funTypePtr) &&
+                 !(funTypePtr)->hasAsParamsRef()[callArgIndex] &&
+                 llvmArrayArgs[llvmArgsIndex]->isPointerToDynamic()) {
+        llvm::Type *type = llvmArrayArgs[llvmArgsIndex]->getLLVMType();
+
+        callExpression->setArgumentAlloca(
+            llvmArgsIndex, {_codeGenerationContext->createMemoryGetPtr(
+                                type, "", BinderKindUtils::MemoryKind::Stack),
+                            type});
       }
       retFlag = false;
     }
@@ -1200,6 +1211,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
   if (_isDeclarationNeeded) {
     if ((funTypePtr) && !(funTypePtr)->hasAsParamsRef()[callArgIndex]) {
       llvm::Type *type = llvmArrayArgs[llvmArgsIndex]->getLLVMType();
+
       callExpression->setArgumentAlloca(
           llvmArgsIndex, {_codeGenerationContext->createMemoryGetPtr(
                               type, "", BinderKindUtils::MemoryKind::Stack),
@@ -1209,21 +1221,48 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
     return nullptr;
   }
 
+  DEBUG_LOG("Generating Expression for callArgIndex: " +
+            std::to_string(callArgIndex));
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
   _expressionGenerationFactory
       ->createStrategy(
           callExpression->getArgumentPtrList()[callArgIndex]->getKind())
       ->generateExpression(callExpression->getArgumentPtrList()[callArgIndex]);
 
-  llvm::Type *rhsType =
-      _codeGenerationContext->getValueStackHandler()->getLLVMType();
-
   if ((funTypePtr) && (funTypePtr)->hasAsParamsRef()[callArgIndex]) {
     rhsValue = _codeGenerationContext->getValueStackHandler()->getValue();
   } else {
     rhsValue = callExpression->getArgumentAlloca(llvmArgsIndex).first;
-    Builder->CreateStore(
-        _codeGenerationContext->getValueStackHandler()->getValue(), rhsValue);
+
+    if (llvmArrayArgs[llvmArgsIndex]->isPointerToDynamic()) {
+      if (_codeGenerationContext->getValueStackHandler()
+              ->isDynamicValueType()) {
+        DYNAMIC_VALUE_HANDLER::assignRHSDynamicValueToLHSDynamicValue(
+            rhsValue,
+            _codeGenerationContext->getValueStackHandler()->getValue(),
+            _codeGenerationContext, Builder);
+      } else {
+
+        llvm::Value *rValue =
+            _codeGenerationContext->getValueStackHandler()->getValue();
+
+        if (!rValue) {
+          rValue = llvm::ConstantPointerNull::get(
+              llvm::Type::getInt8PtrTy(*TheContext));
+        }
+
+        DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+            rhsValue, "dynamicValue", rValue, _codeGenerationContext, Builder);
+      }
+    } else {
+      Builder->CreateStore(
+          _codeGenerationContext->getValueStackHandler()->getValue(), rhsValue);
+    }
   }
+
+  llvm::Type *rhsType =
+      _codeGenerationContext->getValueStackHandler()->getLLVMType();
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   // TODO
@@ -1239,9 +1278,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
   //    return nullptr;
   //  }
 
-  if (llvmArrayArgs.size() &&
-      !_codeGenerationContext->getDynamicType()->isDyn(
-          llvmArrayArgs[llvmArgsIndex]->getType()) &&
+  if (rhsType && llvmArrayArgs.size() &&
       llvmArrayArgs[llvmArgsIndex]->getLLVMType() != rhsType &&
       !rhsType->isFunctionTy()) {
 
@@ -1253,15 +1290,6 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
 
       return rhsValue;
     }
-
-  } else if (llvmArrayArgs.size() &&
-             _codeGenerationContext->getDynamicType()->isDyn(
-                 llvmArrayArgs[llvmArgsIndex]->getLLVMType()) &&
-             !rhsType->isFunctionTy()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Dynamic type not supported in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter ");
-    return rhsValue;
   }
   retFlag = false;
   return nullptr;
@@ -1278,10 +1306,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleBracketExpression(
   if (!llvmArrayArgs[llvmArgsIndex]->isPointerToArray() &&
       !llvm::isa<llvm::ArrayType>(
           llvmArrayArgs[llvmArgsIndex]->getLLVMType())) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type mismatch in function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + "  parameter " +
-        " is not an Array");
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::PassingArrayToNonArrayParam,
+        {callExpression->getCallerNameRef(),
+         _codeGenerationContext->getMapper()->getLLVMTypeName(
+             llvmArrayArgs[llvmArgsIndex]->getLLVMType())});
 
     return nullptr;
   }
@@ -1346,10 +1375,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleObjectExpression(
     bool &retFlag) {
   retFlag = true;
   if (!llvmArrayArgs[llvmArgsIndex]->isPointerToObject()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "You are passing Object to function call expression " +
-        Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-        ", but it is not an Object");
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::PassingObjectToNonObjectParam,
+        {callExpression->getCallerNameRef(),
+         _codeGenerationContext->getMapper()->getLLVMTypeName(
+             llvmArrayArgs[llvmArgsIndex]->getLLVMType())});
 
     return nullptr;
   }
@@ -1459,11 +1489,11 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
   retFlag = true;
 
   if (!callExpression->getArgumentPtrList()[callArgIndex]) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Function call argument mismatch in " +
-        callExpression->getCallerNameRef() + " function Expected " +
-        std::to_string(functionType->getNumParams()) + " arguments but got " +
-        std::to_string(llvmArrayArgs.size()));
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::FunctionArgumentCountMismatch,
+        {callExpression->getCallerNameRef(),
+         std::to_string(functionType->getNumParams()),
+         std::to_string(llvmArrayArgs.size())});
     return nullptr;
   }
 
@@ -1519,22 +1549,31 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     _res = _res ? _res : isLocalArray(rhsValue);
 
     if (!_res) {
-      _codeGenerationContext->getLogger()->LogError(
-          "Expected Array of " +
-          Utils::CE(_codeGenerationContext->getMapper()->getLLVMTypeName(
-              llvmArrayType->getArrayElementType())) +
-          " in function call expression " +
-          Utils::CE(callExpression->getCallerNameRef()) + " as parameter " +
-          ", but found " +
-          _codeGenerationContext->getMapper()->getLLVMTypeName(
-              rhsValue->getType()));
+      _codeGenerationContext->getLogger()->logError(
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              VariablePassedAsAnArgumentToFunctionIsNotAnArray,
+          {callExpression->getCallerNameRef(),
+           _codeGenerationContext->getMapper()->getLLVMTypeName(
+               llvmArrayType->getArrayElementType()),
+           _codeGenerationContext->getMapper()->getLLVMTypeName(varType)});
+
       return nullptr;
     }
 
-    if (_codeGenerationContext->verifyArrayType(
+    if (TYPE_VERIFIER::verifyArrayType(
             FArrayType, arrayType,
-            " in function call expression " +
-                callExpression->getCallerNameRef()) == EXIT_FAILURE) {
+            {
+                FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                    ArrayPassedInFunctionArgumentMismatch,
+                FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                    ArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeButArrayDimensionMismatch,
+                FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                    ArrayPassedInFunctionArgumentTypeMatchesWithExpectedTypeAndHavingSameDimensionButSizeMismatch,
+            },
+            {
+                callExpression->getCallerNameRef(),
+            },
+            _codeGenerationContext) == EXIT_FAILURE) {
       return nullptr;
     }
   } else if (llvmArrayArgs[llvmArgsIndex]->isPointerToObject() &&
@@ -1612,6 +1651,32 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
           Utils::CE(
               _codeGenerationContext->getMapper()->getLLVMTypeName(varType)));
       return nullptr;
+    }
+  } else if (llvmArrayArgs[llvmArgsIndex]->isPointerToDynamic()) {
+
+    LLVMDynamicType *llvmDynamicType =
+        static_cast<LLVMDynamicType *>(llvmArrayArgs[llvmArgsIndex].get());
+
+    if (llvmDynamicType->getLLVMType() != varType) {
+
+      if (_codeGenerationContext->getMapper()->isPrimitiveType(varType)) {
+        DYNAMIC_VALUE_HANDLER::assignRHSValueToLHSDynamicValue(
+            callExpression->getArgumentAlloca(llvmArgsIndex).first, "rhsValue",
+            Builder->CreateLoad(varType, rhsValue), _codeGenerationContext,
+            Builder);
+        rhsValue = callExpression->getArgumentAlloca(llvmArgsIndex).first;
+      } else {
+
+        _codeGenerationContext->getLogger()->logError(
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                PassingMismatchedTypeToFunction,
+            {callExpression->getCallerNameRef(),
+             _codeGenerationContext->getMapper()->getLLVMTypeName(
+                 llvmDynamicType->getLLVMType()),
+             _codeGenerationContext->getMapper()->getLLVMTypeName(varType)});
+
+        return nullptr;
+      }
     }
   } else {
     if (llvmArrayArgs[llvmArgsIndex]->getLLVMType() != varType &&

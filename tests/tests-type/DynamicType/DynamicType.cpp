@@ -1,10 +1,11 @@
 #include "DynamicType.h"
+#include "gtest/gtest.h"
 
-void DynamicTypeReplTest::SetUp() { _test->SetUp(); }
+void DynamicTypeTest::SetUp() { _test->SetUp(); }
 
-void DynamicTypeReplTest::TearDown() { _test->TearDown(); }
+void DynamicTypeTest::TearDown() { _test->TearDown(); }
 
-TEST_F(DynamicTypeReplTest, Class) {
+TEST_F(DynamicTypeTest, Class) {
   I(R"(
 
 class A {
@@ -22,7 +23,7 @@ var a:A = new A(2)
   EXPECT_EQ(getOutput(), R"()");
 }
 
-TEST_F(DynamicTypeReplTest, Class2) {
+TEST_F(DynamicTypeTest, Class2) {
   I(R"(
 class A {
   var x:int 
@@ -40,7 +41,7 @@ var a:A = Nir
   EXPECT_EQ(getOutput(), R"(Is Nir)");
 }
 
-TEST_F(DynamicTypeReplTest, Class3) {
+TEST_F(DynamicTypeTest, Class3) {
   I(R"(
 class A {
   var x:int 
@@ -59,7 +60,7 @@ var a:A = Nir
   EXPECT_EQ(getOutput(), R"()");
 }
 
-TEST_F(DynamicTypeReplTest, Class4) {
+TEST_F(DynamicTypeTest, Class4) {
   I(R"(
 
 class A {
@@ -84,7 +85,7 @@ if(a != a) {
   EXPECT_EQ(getOutput(), R"(Is equal)");
 }
 
-TEST_F(DynamicTypeReplTest, Class5) {
+TEST_F(DynamicTypeTest, Class5) {
   I(R"(
 
 class A {
@@ -111,7 +112,7 @@ if(a != b) {
   EXPECT_EQ(getOutput(), R"(Is not equal)");
 }
 
-TEST_F(DynamicTypeReplTest, Class6) {
+TEST_F(DynamicTypeTest, Class6) {
   I(R"(
 
 class A {
@@ -155,7 +156,7 @@ if(a) {
   EXPECT_EQ(getOutput(), R"(Is not equalIs trueIs NirIs true)");
 }
 
-TEST_F(DynamicTypeReplTest, Class7) {
+TEST_F(DynamicTypeTest, Class7) {
   I(R"(
 
 class A {
@@ -276,7 +277,7 @@ Is not equal2.20000000000000
 Is trueIs trueIs not equalIs not NirS is NirIs equalIs not equalIs not equal)");
 }
 
-TEST_F(DynamicTypeReplTest, DynamicType) {
+TEST_F(DynamicTypeTest, DynamicType) {
   I(R"(
  var x: int = 2
 print(x, "\n")
@@ -322,7 +323,7 @@ Hello252Hello
 )");
 }
 
-TEST_F(DynamicTypeReplTest, Reassign) {
+TEST_F(DynamicTypeTest, Reassign) {
   I(R"(
  {
  var x = 2
@@ -411,7 +412,7 @@ Hello
 )");
 }
 
-TEST_F(DynamicTypeReplTest, AssignmentToStatic) {
+TEST_F(DynamicTypeTest, AssignmentToStatic) {
   I(R"(
  {
  var x: int = 5
@@ -457,7 +458,7 @@ print(x, "\n")
 )");
 }
 
-TEST_F(DynamicTypeReplTest, FloatTest) {
+TEST_F(DynamicTypeTest, FloatTest) {
   I(R"(
  {
   var x = 1.232d
@@ -516,7 +517,7 @@ TEST_F(DynamicTypeReplTest, FloatTest) {
 )");
 }
 
-TEST_F(DynamicTypeReplTest, DoubleTest) {
+TEST_F(DynamicTypeTest, DoubleTest) {
   I(R"(
  var x = 1.232
 var y = "Hello"
@@ -533,7 +534,7 @@ print(x, "\n")
 )");
 }
 
-TEST_F(DynamicTypeReplTest, BooleanTest) {
+TEST_F(DynamicTypeTest, BooleanTest) {
   I(R"(
 {
   var x = true
@@ -603,7 +604,7 @@ true
 )");
 }
 
-TEST_F(DynamicTypeReplTest, CharorInt8Test) {
+TEST_F(DynamicTypeTest, CharorInt8Test) {
   I(R"(
 {
   var z: char = 'a'
@@ -671,7 +672,7 @@ a
 )");
 }
 
-TEST_F(DynamicTypeReplTest, MultipleVariableDeclaration) {
+TEST_F(DynamicTypeTest, MultipleVariableDeclaration) {
   I(R"(
  var i, j = 2,"Hello"
 var k, l = 3,4
@@ -687,7 +688,7 @@ Hello2.5000000
 )");
 }
 
-TEST_F(DynamicTypeReplTest, ForLoop) {
+TEST_F(DynamicTypeTest, ForLoop) {
   I(R"(
  {
   var i = 0
@@ -821,7 +822,7 @@ for var i = 0 to c {
 0 1 2 3 4 5 6 7 8 9 10 )");
 }
 
-TEST_F(DynamicTypeReplTest, WhileLoopTest) {
+TEST_F(DynamicTypeTest, WhileLoopTest) {
   I(R"(
  var x = 'a'
 while x < 'c' {
@@ -861,7 +862,7 @@ print("\n")
 0.00000000000000 1.00000000000000 2.00000000000000 3.00000000000000 4.00000000000000 5.00000000000000 6.00000000000000 7.00000000000000 8.00000000000000 9.00000000000000 )");
 }
 
-TEST_F(DynamicTypeReplTest, NirTest) {
+TEST_F(DynamicTypeTest, NirTest) {
   I(R"(
   {
   var x: int = 22
@@ -956,7 +957,7 @@ x is Nir
 )");
 }
 
-TEST_F(DynamicTypeReplTest, ClassTest1) {
+TEST_F(DynamicTypeTest, ClassTest1) {
   I(R"(
 class A {
   var x: int = 22
@@ -992,7 +993,7 @@ print("\n")
 Not Nir)");
 }
 
-// TEST_F(DynamicTypeReplTest, ErrModuleWithNir) {
+// TEST_F(DynamicTypeTest, ErrModuleWithNir) {
 //   I(R"(
 //  bring Err
 // fun f() -> int,Err::Result {
@@ -1048,7 +1049,7 @@ Not Nir)");
 //   EXPECT_EQ(getOutput(), R"(ErrorNo ErrorNo ErrorError)");
 // }
 
-TEST_F(DynamicTypeReplTest, NotEqualTest) {
+TEST_F(DynamicTypeTest, NotEqualTest) {
   I(R"(
  class A {
   var x: int = 22
@@ -1094,7 +1095,7 @@ booleanA is not Nir
 classObjectA is not Nir)");
 }
 
-TEST_F(DynamicTypeReplTest, NirIsNir) {
+TEST_F(DynamicTypeTest, NirIsNir) {
   I(R"(
 class A {
   var x: int = 22
@@ -1148,7 +1149,7 @@ if (classObject == Nir) {
   EXPECT_EQ(getOutput(), R"(nir is Nir)");
 }
 
-TEST_F(DynamicTypeReplTest, ContainerTest) {
+TEST_F(DynamicTypeTest, ContainerTest) {
   I(R"(
 var a: int[5] = [1, 2, 3, 4, 5]
 var b = 0
@@ -1160,7 +1161,7 @@ print(a[b])
   EXPECT_EQ(getOutput(), R"(1)");
 }
 
-TEST_F(DynamicTypeReplTest, NirTest2) {
+TEST_F(DynamicTypeTest, NirTest2) {
   I(R"(
   class A {
   var x:int 
@@ -1207,7 +1208,7 @@ a is not Nir
 5)");
 }
 
-TEST_F(DynamicTypeReplTest, Assign) {
+TEST_F(DynamicTypeTest, Assign) {
   I(R"(
   var x = "Hello"
 var k: int = 5
@@ -1223,7 +1224,7 @@ print(k, "\n")
 )");
 }
 
-TEST_F(DynamicTypeReplTest, OperationsOnNir) {
+TEST_F(DynamicTypeTest, OperationsOnNir) {
   I(R"(
 {
   var x = Nir
@@ -1266,14 +1267,13 @@ print("\n")
 
   EXPECT_EQ(getOutput(), R"(1
 1
-1
 a
 a
 is false
 0)");
 }
 
-TEST_F(DynamicTypeReplTest, DynamicUnaryOps) {
+TEST_F(DynamicTypeTest, DynamicUnaryOps) {
   I(R"(
 {
   var x = 10
@@ -1325,7 +1325,7 @@ true
 )");
 }
 
-TEST_F(DynamicTypeReplTest, DynamicMixedTypeExpressions) {
+TEST_F(DynamicTypeTest, DynamicMixedTypeExpressions) {
   I(R"(
 {
   var x = 1 + "a"
@@ -1372,7 +1372,7 @@ truea
 )");
 }
 
-// TEST_F(DynamicTypeReplTest, DynamicClassMember) {
+// TEST_F(DynamicTypeTest, DynamicClassMember) {
 //   I(R"(
 // class A {
 //   var data
@@ -1394,3 +1394,361 @@ truea
 // Nir
 // )");
 // }
+
+TEST_F(DynamicTypeTest, FunctionCallWithConstant) {
+  I(R"(
+
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+testFun(10)
+testFun("Hello")
+testFun(10.2)
+testFun(10.2d)
+testFun(true)
+testFun(false)
+testFun(Nir)
+  )");
+
+  EXPECT_EQ(getOutput(), R"(10
+Hello
+10.20000000000000
+10.1999998
+true
+false
+(null)
+)");
+}
+
+TEST_F(DynamicTypeTest, FunctionCallWithDynamicType) {
+  I(R"(
+
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+var x = 10
+testFun(x)
+var y = "Hello"
+testFun(y)
+var z = 10.2
+testFun(z)
+var w = 10.2d
+testFun(w)
+var a = true
+testFun(a)
+var b = false
+testFun(b)
+var c = Nir
+testFun(c)
+  )");
+
+  EXPECT_EQ(getOutput(), R"(10
+Hello
+10.20000000000000
+10.1999998
+true
+false
+(null)
+)");
+}
+
+TEST_F(DynamicTypeTest, PassingDynamicToFunction) {
+  I(R"(
+
+fun testFun(a) -> nthg {
+  print(a, "\n")
+}
+
+var i: int = 10
+testFun(i)
+var j: str = "Hello"
+testFun(j)
+var k: deci = 10.2
+testFun(k)
+var e: deci32 = 10.2d
+testFun(e)
+var l: bool = true
+testFun(l)
+var m: bool = false
+testFun(m)
+  )");
+
+  EXPECT_EQ(getOutput(), R"(10
+Hello
+10.20000000000000
+10.1999998
+true
+false
+)");
+}
+
+TEST_F(DynamicTypeTest, PassingByValue) {
+  I(R"(
+
+fun testFun(a) -> nthg {
+  print(a, "\n")
+  a = 30 
+  print(a, "\n")
+}
+
+var x = 20
+testFun(x)
+print(x, "\n")
+var y = "Hello"
+testFun(y)
+print(y, "\n")
+var z = 30.2
+testFun(z)
+print(z, "\n")
+var w = 30.2d
+testFun(w)
+print(w, "\n")
+var v = true
+testFun(v)
+print(v, "\n")
+var u = false
+testFun(u)
+print(u, "\n")
+var j = Nir
+testFun(j)
+print(j, "\n")
+  )");
+
+  EXPECT_EQ(getOutput(), R"(20
+30
+20
+Hello
+30
+Hello
+30.20000000000000
+30
+30.20000000000000
+30.2000008
+30
+30.2000008
+true
+30
+true
+false
+30
+false
+(null)
+30
+(null)
+)");
+}
+
+TEST_F(DynamicTypeTest, PassingByReference) {
+  I(R"(
+fun testFun(inout a) -> nthg {
+  print(a, "\n")
+  a = 30 
+  print(a, "\n")
+}
+
+var x = 20
+testFun(x)
+print(x, "\n")
+var y = "Hello"
+testFun(y)
+print(y, "\n")
+var z = 30.2
+testFun(z)
+print(z, "\n")
+var w = 30.2d
+testFun(w)
+print(w, "\n")
+var v = true
+testFun(v)
+print(v, "\n")
+var u = false
+testFun(u)
+print(u, "\n")
+var j = Nir
+testFun(j)
+print(j, "\n")
+  )");
+
+  EXPECT_EQ(getOutput(), R"(20
+30
+30
+Hello
+30
+30
+30.20000000000000
+30
+30
+30.2000008
+30
+30
+true
+30
+30
+false
+30
+30
+(null)
+30
+30
+)");
+}
+
+TEST_F(DynamicTypeTest, PassingByValueNonDynamic) {
+  I(R"(
+fun testFun(a) -> nthg {
+  print(a, "\n")
+  a = 30 
+  print(a, "\n")
+}
+
+var x: int = 20
+testFun(x)
+print(x, "\n")
+var y: str = "Hello"
+testFun(y)
+print(y, "\n")
+var z: deci = 30.2
+testFun(z)
+print(z, "\n")
+var w: deci32 = 30.2d
+testFun(w)
+print(w, "\n")
+var v: bool = true
+testFun(v)
+print(v, "\n")
+var u: bool = false
+testFun(u)
+print(u, "\n")
+  )");
+
+  EXPECT_EQ(getOutput(), R"(20
+30
+20
+Hello
+30
+Hello
+30.20000000000000
+30
+30.20000000000000
+30.2000008
+30
+30.2000008
+true
+30
+true
+false
+30
+false
+)");
+}
+
+TEST_F(DynamicTypeTest, PassingByReferenceNonDynamicNoEffect) {
+  I(R"(
+fun testFun(inout a) -> nthg {
+  print(a, "\n")
+  a = 30 
+  print(a, "\n")
+}
+
+var x: int = 20
+testFun(x)
+print(x, "\n")
+var y: str = "Hello"
+testFun(y)
+print(y, "\n")
+var z: deci = 30.2
+testFun(z)
+print(z, "\n")
+var w: deci32 = 30.2d
+testFun(w)
+print(w, "\n")
+var v: bool = true
+testFun(v)
+print(v, "\n")
+var u: bool = false
+testFun(u)
+print(u, "\n")
+  )");
+
+  EXPECT_EQ(getOutput(), R"(20
+30
+20
+Hello
+30
+Hello
+30.20000000000000
+30
+30.20000000000000
+30.2000008
+30
+30.2000008
+true
+30
+true
+false
+30
+false
+)");
+}
+
+TEST_F(DynamicTypeTest, WithOptionalParam) {
+  I(R"(
+
+fun test2(a: int, b: str, c = 2.2) -> nthg {
+  print("A ", a, "\n")
+  print("B ", b, "\n")
+  print("C ", c, "\n")
+}
+
+test2(2, "3")
+  )");
+
+  EXPECT_EQ(getOutput(), R"(A 2
+B 3
+C 2.20000000000000
+)");
+}
+
+TEST_F(DynamicTypeTest, WithOptionalParam2) {
+  I(R"(
+
+fun test2(a: int, b: str, c = 2.2) -> nthg {
+  print("A ", a, "\n")
+  print("B ", b, "\n")
+  print("C ", c, "\n")
+}
+
+test2(2, "3", "Hello")
+test2(2, "3", 2)
+test2(2, "3", 3.5d)
+test2(2, "3", 3.5)
+test2(2, "3", true)
+test2(2, "3", false)
+test2(2, "3", Nir)
+  )");
+
+  EXPECT_EQ(getOutput(), R"(A 2
+B 3
+C Hello
+A 2
+B 3
+C 2
+A 2
+B 3
+C 3.5000000
+A 2
+B 3
+C 3.50000000000000
+A 2
+B 3
+C true
+A 2
+B 3
+C false
+A 2
+B 3
+C (null)
+)");
+}

@@ -76,7 +76,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundVariableDeclaration *variableDeclaration) {
-
+  DEBUG_LOG("Generating Common Statement for Variable: " + _variableName);
   if (!canGenerateStatement(variableDeclaration)) {
     return nullptr;
   }
@@ -210,19 +210,20 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
   }
 
   _variableDeclaration->setLLVMVariable({ptr, ptrType});
+
   return ptr;
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declareLocal(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement, BinderKindUtils::MemoryKind::Stack);
+  populateVariables(statement, BinderKindUtils::MemoryKind::Stack);
   _isGlobal = false;
   return this->declare();
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declareGlobal(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement, BinderKindUtils::MemoryKind::Global);
+  populateVariables(statement, BinderKindUtils::MemoryKind::Global);
   _isGlobal = true;
   return this->declare();
 }
@@ -251,7 +252,7 @@ VariableDeclarationStatementGenerationStrategy::generateGlobalStatement(
 bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
     BoundStatement *statement) {
 
-  populateLocalVariables(statement);
+  populateVariables(statement);
 
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE ||
       _variableType == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE ||
@@ -276,12 +277,29 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
 
     _rhsValue = literalExpressionGenerationStrategy->generateTypedExpression(
         initializerExp, _variableType);
+  } else if (initializerExp->getKind() ==
+                 BinderKindUtils::BoundNodeKind::BoundBracketedExpression &&
+             _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            ArrayInitializerNotAllowedForDynamicType,
+        {_variableName});
+    return false;
+  } else if (initializerExp->getKind() ==
+                 BinderKindUtils::BoundNodeKind::BoundObjectExpression &&
+             _variableType == SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            ObjectInitializerNotAllowedForDynamicType,
+        {_variableName});
+    return false;
   } else {
 
     _rhsValue =
         _expressionGenerationFactory->createStrategy(initializerExp->getKind())
             ->generateExpression(initializerExp);
   }
+
   m_isLHSDynamicValue =
       _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
 
@@ -307,9 +325,10 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
   return true;
 }
 
-void VariableDeclarationStatementGenerationStrategy::populateLocalVariables(
+void VariableDeclarationStatementGenerationStrategy::populateVariables(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
 
+  DEBUG_LOG("Populating Variable: " + _variableName);
   _variableDeclaration = static_cast<BoundVariableDeclaration *>(statement);
 
   if (_variableDeclaration->getMemoryKind() ==
@@ -324,4 +343,5 @@ void VariableDeclarationStatementGenerationStrategy::populateLocalVariables(
 
   _variableType =
       _variableDeclaration->getTypeExpression().get()->getSyntaxType();
+  DEBUG_LOG("Populated Variable: " + _variableName);
 }

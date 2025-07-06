@@ -5,6 +5,7 @@
 #include "../../../../syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 #include "../../../BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "../ExpressionBinder.h"
+#include "../ExpressionBinderFactory.h"
 class AssignmentExpressionBinder : public ExpressionBinder {
 public:
   std::unique_ptr<BoundExpression> bindExpression(SyntaxBinderContext *ctx,

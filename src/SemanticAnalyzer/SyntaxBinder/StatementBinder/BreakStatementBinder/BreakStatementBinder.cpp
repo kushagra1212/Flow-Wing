@@ -9,10 +9,10 @@ BreakStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (!ctx->getRootRef()->isBreakable()) {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Break Statement not within Loop or Switch",
         DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(breakStatement->getBreakKeywordPtr().get())));
+        DiagnosticUtils::DiagnosticType::Semantic, {},
+        Utils::getSourceLocation(breakStatement->getBreakKeywordPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::InvalidBreakStatementUsage));
   }
   return std::make_unique<BoundBreakStatement>(
       breakStatement->getSourceLocation());

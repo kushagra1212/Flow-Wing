@@ -1,4 +1,5 @@
 #include "CodeGenerationContext.h"
+#include "utils/DynamicValueHandler/ValueChecker/ValueChecker.h"
 #include <memory>
 
 CodeGenerationContext ::CodeGenerationContext(
@@ -513,12 +514,34 @@ CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
 int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
                                          llvm::Type *rhsType,
                                          std::string inExp) {
-  if (llvm::isa<llvm::ArrayType>(lhsType) &&
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(rhsType, this) &&
+      DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(lhsType, this)) {
+    return EXIT_SUCCESS;
+  }
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(lhsType, this)) {
+    return verifyType(rhsType, lhsType, inExp);
+  }
+
+  if (DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicType(rhsType, this)) {
+    if (!DYNAMIC_VALUE_HANDLER::VALUE_CHECKER::isDynamicCompatibleType(lhsType,
+                                                                       this)) {
+      this->getLogger()->LogError(
+          "Type mismatch Expected " +
+          this->getMapper()->getLLVMTypeName(lhsType) + " but found " +
+          this->getMapper()->getLLVMTypeName(rhsType) + inExp);
+      return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+  }
+
+  if (lhsType && rhsType && llvm::isa<llvm::ArrayType>(lhsType) &&
       llvm::isa<llvm::ArrayType>(rhsType))
     return verifyArrayType(llvm::cast<llvm::ArrayType>(lhsType),
                            llvm::cast<llvm::ArrayType>(rhsType), inExp);
 
-  if (llvm::isa<llvm::StructType>(lhsType) &&
+  if (lhsType && rhsType && llvm::isa<llvm::StructType>(lhsType) &&
       llvm::isa<llvm::StructType>(rhsType))
     return verifyStructType(llvm::cast<llvm::StructType>(lhsType),
                             llvm::cast<llvm::StructType>(rhsType), inExp);

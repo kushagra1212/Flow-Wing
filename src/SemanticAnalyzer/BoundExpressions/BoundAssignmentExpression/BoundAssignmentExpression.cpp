@@ -4,10 +4,10 @@ BoundAssignmentExpression::BoundAssignmentExpression(
     const DiagnosticUtils::SourceLocation &location,
     BoundVariableDeclaration *variable, std::unique_ptr<BoundExpression> left,
     BinderKindUtils::BoundBinaryOperatorKind op,
-    std::unique_ptr<BoundExpression> right, bool needDefaulInitilization)
+    std::unique_ptr<BoundExpression> right, bool needDefaultInitialization)
     : BoundExpression(location), _op(op), _left(std::move(left)),
       _right(std::move(right)), _variable(std::move(variable)),
-      _needDefaulInitilization(needDefaulInitilization) {}
+      _needDefaultInitialization(needDefaultInitialization) {}
 
 const std::type_info &BoundAssignmentExpression::getType() {
   return typeid(BoundAssignmentExpression);

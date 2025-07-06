@@ -11,14 +11,15 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
       indexExpression->getIndexIdentifierExpressionRef()->getValue());
 
   if (!ctx->getRootRef()->tryLookupVariable(variableName)) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableName + " does not exist",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {variableName},
                    Utils::getSourceLocation(
                        indexExpression->getIndexIdentifierExpressionRef()
                            ->getTokenPtr()
-                           .get())));
+                           .get()),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableNotFound));
 
     return std::move(
         ExpressionBinderFactory::create(
@@ -34,15 +35,23 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE &&
       variable->getTypeExpression().get()->getSyntaxType() !=
           SyntaxKindUtils::SyntaxKind::StrKeyword) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variableName + " is not a array",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       indexExpression->getIndexIdentifierExpressionRef()
-                           ->getTokenPtr()
-                           .get())));
+
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {variableName},
+        Utils::getSourceLocation(
+            indexExpression->getIndexIdentifierExpressionRef()
+                ->getTokenPtr()
+                .get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::IndexingNonArrayVariable));
+
+    return std::move(
+        ExpressionBinderFactory::create(
+            indexExpression->getIndexIdentifierExpressionRef()->getKind())
+            ->bindExpression(
+                ctx, indexExpression->getIndexIdentifierExpressionRef().get()));
   }
+
   std::unique_ptr<BoundLiteralExpression<std::any>> boundIdentifierExpression(
       (BoundLiteralExpression<std::any> *)ExpressionBinderFactory::create(
           indexExpression->getIndexIdentifierExpressionRef()->getKind())

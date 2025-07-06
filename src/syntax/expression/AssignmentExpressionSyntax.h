@@ -26,7 +26,7 @@ public:
   std::unique_ptr<ExpressionSyntax> &getRightRef();
   std::unique_ptr<ExpressionSyntax> &getLeftRef();
 
-  auto inline getNeedDefaulInitilization() -> bool {
+  auto inline getNeedDefaultInitialization() -> bool {
     return _needDefaultInitialize;
   }
 

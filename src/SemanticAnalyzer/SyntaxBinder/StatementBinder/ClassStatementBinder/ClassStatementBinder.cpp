@@ -107,7 +107,13 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->insertScope();
 
-  ctx->getRootRef()->tryDeclareClass(boundClassStat.get());
+  if (!ctx->getRootRef()->tryDeclareClass(boundClassStat.get())) {
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+  }
 
   auto funBinder = std::make_unique<FunctionDeclarationBinder>();
 
@@ -138,10 +144,23 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->removeScope();
 
-  if (CURRENT_MODULE_NAME != "")
-    ctx->getRootRef()->tryDeclareClassGlobal(boundClassStat.get());
-  else
-    ctx->getRootRef()->tryDeclareClass(boundClassStat.get());
+  if (CURRENT_MODULE_NAME != "") {
+    if (!ctx->getRootRef()->tryDeclareClassGlobal(boundClassStat.get())) {
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+    }
+  } else {
+    if (!ctx->getRootRef()->tryDeclareClass(boundClassStat.get())) {
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {boundClassStat->getClassName()}, boundClassStat->getLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared));
+    }
+  }
 
   return std::move(boundClassStat);
 }

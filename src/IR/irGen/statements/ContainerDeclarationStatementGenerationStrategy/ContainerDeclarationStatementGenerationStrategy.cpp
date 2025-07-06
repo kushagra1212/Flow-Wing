@@ -94,6 +94,7 @@ ContainerDeclarationStatementGenerationStrategy::assignExpression() {
 
 void ContainerDeclarationStatementGenerationStrategy::initialize(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
+  DEBUG_LOG("Initializing Container Declaration Statement");
   _variableDeclExpr = static_cast<BoundVariableDeclaration *>(statement);
 
   // set memory kind
@@ -106,6 +107,7 @@ void ContainerDeclarationStatementGenerationStrategy::initialize(
   _arrayTypeExpression = static_cast<BoundArrayTypeExpression *>(
       _variableDeclExpr->getTypeExpression().get());
   _memoryKind = _variableDeclExpr->getMemoryKind();
+  DEBUG_LOG("Initialized Container Declaration Statement");
 }
 
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(

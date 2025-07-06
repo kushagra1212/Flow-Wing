@@ -53,6 +53,7 @@ public:
   void setIsInsideContainerExpression(const bool value);
   void setIsInsideReturnStatement(const bool value);
   void updateDependencyCount(const std::string &path, const int8_t count);
+  const std::unordered_map<std::string, int8_t> &getDependencyPathsMap();
 
 private:
   void handleDiagnosticsForBadToken(SyntaxToken<std::any> *token);

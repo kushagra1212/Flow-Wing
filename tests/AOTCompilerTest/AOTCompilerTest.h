@@ -7,11 +7,13 @@
 class AOTCompilerTest : public BaseTest {
 public:
   AOTCompilerTest();
-  void SetUp();
+  void SetUp(bool captureStderr = false);
   void TearDown();
   void setInput(const std::string &input);
-  void runEvaluator();
+  void runEvaluator(std::istream &inputStream = std::cin,
+                    std::ostream &outputStream = std::cout);
   std::string getOutput() const;
+  std::string getErrorOutput() const;
 
   std::unique_ptr<AOTCompiler> compiler;
 };

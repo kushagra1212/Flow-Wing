@@ -1,10 +1,15 @@
 #include "AOTCompilerTest.h"
 
-AOTCompilerTest::AOTCompilerTest() {}
-
-void AOTCompilerTest::SetUp() {
+AOTCompilerTest::AOTCompilerTest() {
   compiler = std::make_unique<AOTCompiler>();
-  testing::internal::CaptureStdout();
+}
+
+void AOTCompilerTest::SetUp(bool captureStderr) {
+  if (captureStderr) {
+    testing::internal::CaptureStderr();
+  } else {
+    testing::internal::CaptureStdout();
+  }
 }
 void AOTCompilerTest::TearDown() {}
 
@@ -16,6 +21,10 @@ void AOTCompilerTest::setInput(const std::string &input) {
 std::string AOTCompilerTest::getOutput() const {
   return testing::internal::GetCapturedStdout();
 }
-void AOTCompilerTest::runEvaluator() {
-  compiler->runTests(std::cin, std::cout);
+std::string AOTCompilerTest::getErrorOutput() const {
+  return testing::internal::GetCapturedStderr();
+}
+void AOTCompilerTest::runEvaluator(std::istream &inputStream,
+                                   std::ostream &outputStream) {
+  compiler->runTests(inputStream, outputStream);
 }

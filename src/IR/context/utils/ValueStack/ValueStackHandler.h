@@ -3,6 +3,8 @@
 
 #include "../../../constants/FlowWingIRConstants.h"
 #include "ValueStack.h"
+#include <stack>
+
 class ValueStackHandler {
   auto inline isType(const std::string type) -> bool {
     if (vs.empty()) {

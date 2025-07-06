@@ -135,6 +135,21 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     }
 
     if (functionDeclaration->getParametersRef()[callIndex]
+            ->getHasInOutKeyword() &&
+        functionDeclaration->getParametersRef()[callIndex]->getHasAsKeyword()) {
+      _codeGenerationContext->getLogger()->logError(
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              PassingByReferenceWithAsKeywordIsNotAllowed,
+          {
+              parameterNames[i],
+              _codeGenerationContext->getMapper()->getLLVMTypeName(
+                  llvmArgsTypes[i]->getLLVMType()),
+              functionDeclaration->getFunctionNameRef(),
+          });
+      return nullptr;
+    }
+
+    if (functionDeclaration->getParametersRef()[callIndex]
             ->getHasInOutKeyword()) {
 
       if (llvm::isa<llvm::PointerType>(argValue->getType()) &&
@@ -156,6 +171,10 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
       } else if (llvmArgsTypes[i]->isPointerToFunction()) {
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
+      } else if (llvmArgsTypes[i]->isPointerToDynamic()) {
 
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
@@ -257,8 +276,23 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             parameterNames[i],
             {variable, llvmPrimitiveType->getPrimitiveType()});
 
-      } else if (i < llvmArgsTypes.size()) {
+      } else if (i < llvmArgsTypes.size() &&
+                 llvmArgsTypes[i]->isPointerToDynamic()) {
 
+        LLVMDynamicType *llvmDynamicType =
+            static_cast<LLVMDynamicType *>(llvmArgsTypes[i].get());
+
+        llvm::Value *alloca = Builder->CreateAlloca(
+            llvmDynamicType->getDynamicType(), nullptr, parameterNames[i]);
+
+        llvm::Value *loaded =
+            Builder->CreateLoad(llvmDynamicType->getDynamicType(), argValue);
+
+        Builder->CreateStore(loaded, alloca);
+
+        _codeGenerationContext->getAllocaChain()->setPtr(
+            parameterNames[i], {alloca, llvmDynamicType->getDynamicType()});
+      } else if (i < llvmArgsTypes.size()) {
         llvm::Value *alloca = Builder->CreateAlloca(
             llvmArgsTypes[i]->getLLVMType(), nullptr, parameterNames[i]);
         Builder->CreateStore(argValue, alloca);

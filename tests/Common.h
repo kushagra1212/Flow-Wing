@@ -1,6 +1,7 @@
 #ifndef _TESTS_COMMON_H
 #define _TESTS_COMMON_H
 
+#include "../src/diagnostics/Diagnostic/DiagnosticCode.h"
 #include "AOTCompilerTest/AOTCompilerTest.h"
 #include "JITCompilerTest/JITCompilerTest.h"
 #include "ReplTest/ReplTest.h"

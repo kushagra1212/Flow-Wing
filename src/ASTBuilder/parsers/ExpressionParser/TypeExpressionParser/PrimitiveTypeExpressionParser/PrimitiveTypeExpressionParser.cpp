@@ -42,30 +42,19 @@ PrimitiveTypeExpressionParser::parseExpression(ParserContext *ctx) {
   }
 
   ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-      "Unexpected Token <" + SyntaxKindUtils::to_string(ctx->getKind()) +
-          ">, Expected <" +
-          SyntaxKindUtils::to_string(
-              SyntaxKindUtils::SyntaxKind::Int32Keyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::DeciKeyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(
-              SyntaxKindUtils::SyntaxKind::Deci32Keyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(
-              SyntaxKindUtils::SyntaxKind::Int64Keyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StrKeyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::BoolKeyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::NthgKeyword) +
-          "> or <" +
-          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int8Keyword) +
-          ">",
       DiagnosticUtils::DiagnosticLevel::Error,
       DiagnosticUtils::DiagnosticType::Syntactic,
-      Utils::getSourceLocation(ctx->getCurrent())));
+      {SyntaxKindUtils::to_string(ctx->getKind()),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int32Keyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::DeciKeyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Deci32Keyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int64Keyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StrKeyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::BoolKeyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::NthgKeyword),
+       SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::Int8Keyword)},
+      Utils::getSourceLocation(ctx->getCurrent()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedTypeExpression));
 
   return nullptr;
 }

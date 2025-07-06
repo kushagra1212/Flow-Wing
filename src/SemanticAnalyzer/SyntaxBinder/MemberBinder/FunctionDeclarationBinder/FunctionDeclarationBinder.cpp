@@ -18,18 +18,20 @@ FunctionDeclarationBinder::bindMember(SyntaxBinderContext *ctx,
         syntax->getIdentifierTokenPtr()->getText();
     if (syntax->isMemberFunction() &&
         !ctx->getRootRef()->tryDeclareFunctionGlobal(fd.get())) {
-      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-          "Function " + function_name + " Already Declared",
-          DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
-          Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
+      ctx->getDiagnosticHandler()->addDiagnostic(
+          Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                     DiagnosticUtils::DiagnosticType::Semantic, {function_name},
+                     syntax->getSourceLocation(),
+                     FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                         MemberFunctionOfClassAlreadyDeclared));
+
     } else if (!syntax->isMemberFunction() &&
                !ctx->getRootRef()->tryDeclareMemberFunction(fd.get())) {
       ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-          "Function " + function_name + " Already Declared",
           DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Semantic,
-          Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get())));
+          DiagnosticUtils::DiagnosticType::Semantic, {function_name},
+          Utils::getSourceLocation(syntax->getFunctionKeywordPtr().get()),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::FunctionAlreadyDeclared));
     }
   }
 
@@ -49,11 +51,13 @@ void FunctionDeclarationBinder::handleFunctionDefAndDec(
   DEBUG_LOG("Binder:: Declaring function: " + function_name);
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
+
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Function " + function_name + " Already Exists",
         DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get())));
+        DiagnosticUtils::DiagnosticType::Semantic, {function_name},
+        Utils::getSourceLocation(syntax->getIdentifierTokenPtr().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            FunctionNameConflictsWithBuiltin));
   }
 
   fd->setIsMemberFunction(syntax->isMemberFunction());
@@ -93,12 +97,14 @@ void FunctionDeclarationBinder::handleFunctionDefAndDec(
       fd->setOptionalParameterStartIndex(i);
     } else if (!varDeclaration->getInitializerPtr() &&
                fd->hasOptionalParameters()) {
+
       ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Missing value for optional parameter: " + variable_str +
-                         " in " + function_name,
-                     DiagnosticUtils::DiagnosticLevel::Error,
+          Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Semantic,
-                     syntax->getParametersPtr()[i]->getSourceLocation()));
+                     {variable_str, function_name},
+                     syntax->getParametersPtr()[i]->getSourceLocation(),
+                     FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                         MissingDefaultValueForOptionalParameter));
     }
 
     fd->addParameter(std::move(varDeclaration));

@@ -59,6 +59,15 @@ const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
 }
 const DiagnosticUtils::SourceLocation
 BringStatementSyntax::getSourceLocation() const {
+
+  if (_pathToken) {
+    return _pathToken->getSourceLocation();
+  }
+
+  if (_openBraceToken) {
+    return _openBraceToken->getSourceLocation();
+  }
+
   return _bringKeyword->getSourceLocation();
 }
 

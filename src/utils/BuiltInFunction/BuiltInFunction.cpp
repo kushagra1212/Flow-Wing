@@ -28,7 +28,8 @@ void BuiltInFunction::setupBuiltInFunctions() {
 
   // Int32
 
-  auto create = [](std::string funName, SyntaxKindUtils::SyntaxKind rt) {
+  auto create = [](std::string funName, SyntaxKindUtils::SyntaxKind rt,
+                   bool isVariadic = true) {
     std::unique_ptr<BoundFunctionDeclaration> func =
         std::make_unique<BoundFunctionDeclaration>(
             DiagnosticUtils::SourceLocation(), false);
@@ -36,42 +37,53 @@ void BuiltInFunction::setupBuiltInFunctions() {
     func->addReturnExpr(std::move(std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(), rt)));
 
-    std::unique_ptr<BoundVariableDeclaration> varDec =
-        std::make_unique<BoundVariableDeclaration>(
-            DiagnosticUtils::SourceLocation(), "par", false, false);
+    if (!isVariadic) {
+      std::unique_ptr<BoundVariableDeclaration> varDec =
+          std::make_unique<BoundVariableDeclaration>(
+              DiagnosticUtils::SourceLocation(), "par", false, false);
 
-    varDec->setTypeExpression(std::make_unique<BoundTypeExpression>(
-        DiagnosticUtils::SourceLocation(),
-        SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
-    func->setIsVariadicFunction(true);
+      varDec->setTypeExpression(std::make_unique<BoundTypeExpression>(
+          DiagnosticUtils::SourceLocation(),
+          SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
+
+      func->addParameter(std::move(varDec));
+    }
+
+    func->setIsVariadicFunction(isVariadic);
     _functions.push_back(std::move(func));
   };
 
-  create(FW::BI::FUNCTION::Int32, SyntaxKindUtils::SyntaxKind::Int32Keyword);
+  create(FW::BI::FUNCTION::Int32, SyntaxKindUtils::SyntaxKind::Int32Keyword,
+         false);
 
   // Int8
-  create(FW::BI::FUNCTION::Int8, SyntaxKindUtils::SyntaxKind::Int8Keyword);
+  create(FW::BI::FUNCTION::Int8, SyntaxKindUtils::SyntaxKind::Int8Keyword,
+         false);
 
   // Decimal
 
-  create(FW::BI::FUNCTION::Decimal, SyntaxKindUtils::SyntaxKind::DeciKeyword);
+  create(FW::BI::FUNCTION::Decimal, SyntaxKindUtils::SyntaxKind::DeciKeyword,
+         false);
 
   // Decimal32
 
   create(FW::BI::FUNCTION::Decimal32,
-         SyntaxKindUtils::SyntaxKind::Deci32Keyword);
+         SyntaxKindUtils::SyntaxKind::Deci32Keyword, false);
 
   // String
 
-  create(FW::BI::FUNCTION::String, SyntaxKindUtils::SyntaxKind::StrKeyword);
+  create(FW::BI::FUNCTION::String, SyntaxKindUtils::SyntaxKind::StrKeyword,
+         false);
 
   // Bool
 
-  create(FW::BI::FUNCTION::Bool, SyntaxKindUtils::SyntaxKind::BoolKeyword);
+  create(FW::BI::FUNCTION::Bool, SyntaxKindUtils::SyntaxKind::BoolKeyword,
+         false);
 
   // Input
 
-  create(FW::BI::FUNCTION::Input, SyntaxKindUtils::SyntaxKind::StrKeyword);
+  create(FW::BI::FUNCTION::Input, SyntaxKindUtils::SyntaxKind::StrKeyword,
+         false);
 
   // Print
 

@@ -12,11 +12,13 @@ class BaseTest {
 public:
   virtual ~BaseTest() {}
 
-  virtual void SetUp() = 0;
+  virtual void SetUp(bool captureStderr = false) = 0;
   virtual void TearDown() = 0;
   virtual void setInput(const std::string &input) = 0;
-  virtual void runEvaluator() = 0;
+  virtual void runEvaluator(std::istream &inputStream = std::cin,
+                            std::ostream &outputStream = std::cout) = 0;
   virtual std::string getOutput() const = 0;
+  virtual std::string getErrorOutput() const = 0;
 
   std::stringstream input_stream;
   std::stringstream output_stream;

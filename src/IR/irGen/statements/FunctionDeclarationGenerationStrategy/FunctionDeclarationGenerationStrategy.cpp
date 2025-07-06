@@ -117,10 +117,12 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
     if (fd->getParametersRef()[i]->getTypeExpression()->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      parmType = (_codeGenerationContext->getDynamicType()->get());
+      parmType = llvm::StructType::getTypeByName(
+          *_codeGenerationContext->getContext(),
+          DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
 
       _argType = llvm::PointerType::get(parmType, 0);
-      argLLVMType = std::make_unique<LLVMType>(parmType);
+      argLLVMType = std::make_unique<LLVMDynamicType>(_argType, parmType);
       attributeTypes.push_back({argTypes.size(), parmType});
     } else if (fd->getParametersRef()[i]
                    ->getTypeExpression()

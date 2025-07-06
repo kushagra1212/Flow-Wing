@@ -23,7 +23,7 @@ void AssignmentExpressionGenerationStrategy::declare(
   BoundAssignmentExpression *assignmentExpression =
       static_cast<BoundAssignmentExpression *>(expression);
 
-  if (assignmentExpression->getNeedDefaulInitilization() &&
+  if (assignmentExpression->getNeedDefaultInitialization() &&
       assignmentExpression->getRightPtr() &&
       assignmentExpression->getRightPtr()->getKind() ==
           BinderKindUtils::CallExpression &&
@@ -299,7 +299,7 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentExpression(
   if (populateLHS(assignmentExpression) == EXIT_FAILURE)
     return nullptr;
 
-  if (assignmentExpression->getNeedDefaulInitilization()) {
+  if (assignmentExpression->getNeedDefaultInitialization()) {
     initDefaultValue(_lhsType, _lhsPtr, *Builder);
   }
 

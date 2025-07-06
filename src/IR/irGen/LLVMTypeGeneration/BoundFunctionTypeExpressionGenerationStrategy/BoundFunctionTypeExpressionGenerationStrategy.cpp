@@ -80,7 +80,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
 
     if (bfT->getParameterTypes()[i]->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE) {
-      parmType = (_codeGenerationContext->getDynamicType()->get());
+      parmType = llvm::StructType::getTypeByName(
+          *_codeGenerationContext->getContext(),
+          DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
 
       _argType = llvm::PointerType::get(parmType, 0);
       argLLVMType = std::make_unique<LLVMType>(parmType);

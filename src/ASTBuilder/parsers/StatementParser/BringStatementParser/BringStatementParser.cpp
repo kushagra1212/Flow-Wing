@@ -29,15 +29,14 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       }
 
       if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-            "Unexpected Token <" + SyntaxKindUtils::to_string(ctx->getKind()) +
-                ">, Expected <" +
-                SyntaxKindUtils::to_string(
-                    SyntaxKindUtils::SyntaxKind::CloseBraceToken) +
-                ">",
-            DiagnosticUtils::DiagnosticLevel::Error,
-            DiagnosticUtils::DiagnosticType::Syntactic,
-            Utils::getSourceLocation(ctx->getCurrent())));
+        ctx->getDiagnosticHandler()->addDiagnostic(
+            Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                       DiagnosticUtils::DiagnosticType::Syntactic,
+                       {SyntaxKindUtils::to_string(ctx->getKind()),
+                        SyntaxKindUtils::to_string(
+                            SyntaxKindUtils::SyntaxKind::CloseBraceToken)},
+                       Utils::getSourceLocation(ctx->getCurrent()),
+                       FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
         return std::move(bringStatement);
       }
     }
@@ -59,14 +58,12 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
         std::move(ctx->match(SyntaxKindUtils::SyntaxKind::StringToken));
   } else if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::StringToken) {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Unexpected Token <" + SyntaxKindUtils::to_string(ctx->getKind()) +
-            ">, Expected <" +
-            SyntaxKindUtils::to_string(
-                SyntaxKindUtils::SyntaxKind::StringToken) +
-            ">",
         DiagnosticUtils::DiagnosticLevel::Error,
         DiagnosticUtils::DiagnosticType::Syntactic,
-        Utils::getSourceLocation(ctx->getCurrent())));
+        {SyntaxKindUtils::to_string(ctx->getKind()),
+         SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StringToken)},
+        Utils::getSourceLocation(ctx->getCurrent()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
     return std::move(bringStatement);
   }
 
@@ -94,11 +91,11 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       }
 
       if (moduleFilePath.empty()) {
-        ctx->getDiagnosticHandler()->addDiagnostic(
-            Diagnostic("Module <" + relativeFilePath + "> not found",
-                       DiagnosticUtils::DiagnosticLevel::Error,
-                       DiagnosticUtils::DiagnosticType::Syntactic,
-                       Utils::getSourceLocation(stringToken.get())));
+        ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+            DiagnosticUtils::DiagnosticLevel::Error,
+            DiagnosticUtils::DiagnosticType::Syntactic, {relativeFilePath},
+            Utils::getSourceLocation(stringToken.get()),
+            FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleNotFound));
 
         return std::move(bringStatement);
       }
@@ -125,12 +122,14 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>(absoluteFilePath);
 
+  PARSER_DEBUG_LOG(
+      "%d", std::to_string(ctx->getDependencyFileCount(absoluteFilePath)));
   if (ctx->getDependencyFileCount(absoluteFilePath) == 1) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Found Circular Reference <" + absoluteFilePath + ">",
-                   DiagnosticUtils::DiagnosticLevel::Warning,
-                   DiagnosticUtils::DiagnosticType::Syntactic,
-                   Utils::getSourceLocation(ctx->getCurrent())));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Syntactic, {absoluteFilePath},
+        Utils::getSourceLocation(ctx->getCurrent()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::CircularReference));
 
     SyntaxKindUtils::SyntaxKind currentKind = ctx->getKind();
 
@@ -151,7 +150,8 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
 
   std::unique_ptr<ASTBuilder> parser = std::make_unique<ASTBuilder>(
       Utils::readLines(absoluteFilePath),
-      bringStatement->getDiagnosticHandlerPtr().get());
+      bringStatement->getDiagnosticHandlerPtr().get(),
+      ctx->getDependencyPathsMap());
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
       std::move(parser->createCompilationUnit());

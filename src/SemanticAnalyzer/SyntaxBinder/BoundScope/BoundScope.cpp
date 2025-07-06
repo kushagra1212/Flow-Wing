@@ -250,7 +250,7 @@ bool BoundScope::tryDeclareMemberFunction(BoundFunctionDeclaration *function) {
     return true;
   }
 
-  return true;
+  return false;
 }
 
 bool BoundScope::tryDeclareFunctionGlobal(BoundFunctionDeclaration *function) {

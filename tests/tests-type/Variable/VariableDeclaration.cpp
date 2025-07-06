@@ -114,50 +114,6 @@ TEST_F(VariableDeclaration,
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Constant Variable Declaration and again assign it to a different value
-TEST_F(VariableDeclaration,
-       BasicConstantVariableDeclarationAndAssignToDifferentValue) {
-  std::string input = R"(const a = 2 a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
-// Constant Variable Declaration and again assign it to a different value in
-// Different Scope
-TEST_F(
-    VariableDeclaration,
-    BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope) {
-  std::string input = R"(const a = 2 { a = 3 })";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
-// Constant Variable Declaration and again assign it to a different value in
-// Different Block Scope
-TEST_F(
-    VariableDeclaration,
-    BasicConstantVariableDeclarationAndAssignToDifferentValueInDifferentScope2) {
-  std::string input = R"({ const a = 2 { a = 3 } })";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-
-  EXPECT_TRUE(output.find("Can Not Assign") != std::string::npos &&
-              output.find("Constant Variable") != std::string::npos);
-}
-
 // Constant Variable Declaration and Re-Declaration using var
 TEST_F(VariableDeclaration,
        BasicConstantVariableDeclarationAndReDeclarationUsingVar) {

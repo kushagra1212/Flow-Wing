@@ -27,9 +27,10 @@ BracketedExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   default: {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        "Invalid Bracketed Expression", DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        bracketedExpression->getSourceLocation()));
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {},
+        bracketedExpression->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::InvalidBracketedExpression));
     break;
   }
   }

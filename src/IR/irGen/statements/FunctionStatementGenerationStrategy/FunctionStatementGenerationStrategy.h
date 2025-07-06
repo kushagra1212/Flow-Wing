@@ -2,6 +2,7 @@
 #define __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
 
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "../../Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
 #include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
 #include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
 #include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"

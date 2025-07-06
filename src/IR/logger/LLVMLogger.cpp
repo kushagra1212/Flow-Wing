@@ -1,4 +1,10 @@
 #include "LLVMLogger.h"
+#include <string>
+
+LLVMLogger::LLVMLogger(FlowWing::DiagnosticHandler *diagnosticHandler)
+    : _sourceMgr(), _errs(llvm::errs()), _llvmErrorMsg("FlowWing::Error: "),
+      _llvmWarningMsg("FlowWing::Warning: "), _llvmInfoMsg("FlowWing::Info"),
+      _diagnosticHandler(diagnosticHandler), errorCount(0) {}
 
 void LLVMLogger::logLLVMError(llvm::Error E) {
   increaseErrorCount();
@@ -35,7 +41,7 @@ void LLVMLogger::logLLVMInfo(llvm::Error E) {
 void LLVMLogger::LogInfo(const std::string &infoMessage) {
 
   const std::string &message = _diagnosticHandler->getLogString(
-      Diagnostic(infoMessage, DiagnosticUtils::DiagnosticLevel::Info,
+      Diagnostic({infoMessage}, DiagnosticUtils::DiagnosticLevel::Info,
                  DiagnosticUtils::DiagnosticType::CodeGen, _location));
 
   this->logLLVMInfo(llvm::make_error<llvm::StringError>(
@@ -48,7 +54,7 @@ void LLVMLogger::LogError(const std::string &errorMessage,
                           const DiagnosticUtils::SourceLocation &location) {
 
   const std::string &message = _diagnosticHandler->getLogString(
-      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic({errorMessage}, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Runtime, location));
 
   this->logLLVMError(llvm::make_error<llvm::StringError>(
@@ -60,7 +66,7 @@ void LLVMLogger::LogError(const std::string &errorMessage,
 void LLVMLogger::LogError(const std::string &errorMessage) {
   increaseErrorCount();
   const Diagnostic diagnostic =
-      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic({errorMessage}, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Semantic, _location);
 
   _diagnosticHandler->logJSONifAsked(_outputFilePath, diagnostic);
@@ -71,12 +77,28 @@ void LLVMLogger::LogError(const std::string &errorMessage) {
       message, llvm::inconvertibleErrorCode()));
 }
 
+void LLVMLogger::logError(
+    const FLOW_WING::DIAGNOSTIC::DiagnosticCode code,
+    const std::vector<FLOW_WING::DIAGNOSTIC::DiagnosticArg> &args) {
+  increaseErrorCount();
+
+  const Diagnostic diagnostic = Diagnostic(
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Semantic, args, _location, code);
+
+  _diagnosticHandler->logJSONifAsked(_outputFilePath, diagnostic);
+
+  this->logLLVMError(llvm::make_error<llvm::StringError>(
+      _diagnosticHandler->getLogString(diagnostic),
+      llvm::inconvertibleErrorCode()));
+}
+
 const std::string
 LLVMLogger::getLLVMErrorMsg(const std::string &errorMessage,
                             const DiagnosticUtils::SourceLocation &location) {
 
   return _diagnosticHandler->getLogString(
-      Diagnostic(errorMessage, DiagnosticUtils::DiagnosticLevel::Error,
+      Diagnostic({errorMessage}, DiagnosticUtils::DiagnosticLevel::Error,
                  DiagnosticUtils::DiagnosticType::Runtime, location));
 }
 

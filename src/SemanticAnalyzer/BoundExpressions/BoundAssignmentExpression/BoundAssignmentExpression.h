@@ -10,7 +10,7 @@ private:
   std::unique_ptr<BoundExpression> _left;
   std::unique_ptr<BoundExpression> _right;
   BoundVariableDeclaration *_variable;
-  bool _needDefaulInitilization;
+  bool _needDefaultInitialization;
 
 public:
   BoundAssignmentExpression(const DiagnosticUtils::SourceLocation &location,
@@ -18,7 +18,7 @@ public:
                             std::unique_ptr<BoundExpression> left,
                             BinderKindUtils::BoundBinaryOperatorKind op,
                             std::unique_ptr<BoundExpression> right,
-                            bool needDefaulInitilization = false);
+                            bool needDefaultInitialization = false);
 
   BinderKindUtils::BoundBinaryOperatorKind getOperator();
 
@@ -34,7 +34,9 @@ public:
 
   BoundVariableDeclaration *getVariable();
 
-  inline bool getNeedDefaulInitilization() { return _needDefaulInitilization; }
+  inline bool getNeedDefaultInitialization() {
+    return _needDefaultInitialization;
+  }
 };
 
 #endif // ASSIGNMENT_EXPRESSION_H

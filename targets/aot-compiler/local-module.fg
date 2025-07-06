@@ -1,29 +1,27 @@
 module [local]
-
-
-var x:int
-
-
-class A {
-
-type T ={
-    a:int 
-  }
-  var x:T 
-  var u:int
-
-
-  init() -> nthg {
-
-  }
-
-  printX() -> nthg {
-      print(self.x)
-    }
+type T = {
+  a: int,
+  b: deci
+}
+type T = {
+  a: int,
+  b: deci
 }
 
+class A {
+  type T = {
+    a: int
+  }
+  var x: T
+  var u: int
+  init() -> nthg {
+  }
 
 
+  printX() -> nthg {
+    print(self.x)
+  }
 
 
+}
 
