@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile # Be explicit
-      target: test # Specifies to build up to the 'test' stage in the Dockerfile.
+      target: test-aot # Specifies to build up to the 'test-aot' stage in the Dockerfile.
     command: make test-aot
 
   # Service for running Just-in-Time (JIT) tests.
@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile # Be explicit
-      target: test
+      target: test-jit
     command: make test-jit
 
   # Base REPL service for development.

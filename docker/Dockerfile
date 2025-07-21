@@ -15,10 +15,16 @@ RUN make clean
 
 # ---- Test Stage ----
 # This stage runs the tests.
-FROM builder AS test
-# Run the just-in-time (JIT) and ahead-of-time (AOT) tests.
+FROM builder AS test-jit
+# Run the just-in-time (JIT) tests.
 RUN make build-test-jit
+
+
+FROM builder AS test-aot
+# Run the ahead-of-time (AOT) tests.
 RUN make build-test-aot
+
+
 # ---- Final Stage ----
 # This is the final, lean image for production.
 # It only contains the compiled application, not the build tools or source code.

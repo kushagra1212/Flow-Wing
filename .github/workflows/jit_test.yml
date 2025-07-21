@@ -1,4 +1,4 @@
-name: AOT Tests
+name: JIT Tests
 
 on: [pull_request]
 
@@ -17,7 +17,7 @@ jobs:
         # than using docker/build-push-action for this use case.
         run: docker compose build test-jit
 
-      - name: Run AOT tests
+      - name: Run JIT tests
         # This command starts the container from the image we just built.
         # It runs `command: make test-jit`. If tests fail, this step fails.
         # --no-build ensures it uses the image from the previous step.
