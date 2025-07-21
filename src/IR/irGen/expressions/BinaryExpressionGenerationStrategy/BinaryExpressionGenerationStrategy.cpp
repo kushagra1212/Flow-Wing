@@ -23,7 +23,8 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
   BoundBinaryExpression *binaryExpression = (BoundBinaryExpression *)expression;
 
-  bool isClassType = false;
+  bool isLHSClassType = false;
+  bool isRHSClassType = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       binaryExpression->getLocation());
   _codeGenerationContext->getValueStackHandler()->popAll();
@@ -31,12 +32,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
   int8_t isLHSDynamicValue = 0, isRHSDynamicValue = 0;
 
   llvm::Value *lhsValue = ExpressionSupport::getExpressionValue(
-      _codeGenerationContext, binaryExpression->getLeftPtr().get(), isClassType,
-      isLHSDynamicValue);
+      _codeGenerationContext, binaryExpression->getLeftPtr().get(),
+      isLHSClassType, isLHSDynamicValue);
 
   llvm::Value *rhsValue = ExpressionSupport::getExpressionValue(
       _codeGenerationContext, binaryExpression->getRightPtr().get(),
-      isClassType, isRHSDynamicValue);
+      isRHSClassType, isRHSDynamicValue);
 
   if (!lhsValue || !rhsValue) {
     _codeGenerationContext->getLogger()->LogError(
@@ -74,9 +75,10 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
                           _codeGenerationContext->getMapper()->getLLVMTypeName(
                               resolvedRhsValue->getType()));
 
-                llvm::Value *result = performOperation(
-                    resolvedLhsValue, resolvedRhsValue,
-                    binaryExpression->getOperator(), isClassType, true);
+                llvm::Value *result =
+                    performOperation(resolvedLhsValue, resolvedRhsValue,
+                                     binaryExpression->getOperator(),
+                                     isLHSClassType, isRHSClassType, true);
 
                 if (result) {
 
@@ -102,7 +104,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateExpression(
   llvm::Value *result = nullptr;
 
   result = performOperation(lhsValue, rhsValue, binaryExpression->getOperator(),
-                            isClassType);
+                            isLHSClassType, isRHSClassType);
 
   return result;
 }
@@ -123,12 +125,12 @@ llvm::Value *BinaryExpressionGenerationStrategy::generateGlobalExpression(
 
 llvm::Value *BinaryExpressionGenerationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
-    BinderKindUtils::BoundBinaryOperatorKind binaryOp, bool isClassType,
-    bool skipUnsupportedOperation) {
+    BinderKindUtils::BoundBinaryOperatorKind binaryOp, bool isLHSClassType,
+    bool isRHSClassType, bool skipUnsupportedOperation) {
   llvm::Value *result = nullptr;
 
-  SyntaxKindUtils::SyntaxKind operationStrategy =
-      selectOperationStrategy(lhsValue, rhsValue, isClassType);
+  SyntaxKindUtils::SyntaxKind operationStrategy = selectOperationStrategy(
+      lhsValue, rhsValue, isLHSClassType || isRHSClassType);
 
   auto needToPerformOperation = [&](bool isSupported) {
     return !(skipUnsupportedOperation && !isSupported);
@@ -224,7 +226,7 @@ llvm::Value *BinaryExpressionGenerationStrategy::performOperation(
         OperationSupport::ClassStrategyTag{}, binaryOp);
     if (needToPerformOperation(isBinaryOperationSupported)) {
       result = _classBinaryOperationStrategy->performOperation(
-          lhsValue, rhsValue, binaryOp);
+          lhsValue, rhsValue, binaryOp, isLHSClassType, isRHSClassType);
     }
     break;
   }
@@ -269,13 +271,14 @@ BinaryExpressionGenerationStrategy::selectOperationStrategy(
 
   DEBUG_LOG("Class type detected", _typeMapper->getLLVMTypeName(lhsType),
             _typeMapper->getLLVMTypeName(rhsType));
-  if (isClassType) {
-    return SyntaxKindUtils::SyntaxKind::ClassKeyword;
-  }
 
   if ((_typeMapper->isNirastValue(lhsValue) ||
        _typeMapper->isNirastValue(rhsValue))) {
     return SyntaxKindUtils::SyntaxKind::NirastKeyword;
+  }
+
+  if (isClassType) {
+    return SyntaxKindUtils::SyntaxKind::ClassKeyword;
   }
 
   if (_typeMapper->isStringType(lhsType) ||

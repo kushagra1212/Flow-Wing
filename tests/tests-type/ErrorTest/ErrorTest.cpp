@@ -478,7 +478,6 @@ bring "ssssswwwwxdwd.fg"
 
   EXPECT_ERROR_CODE(DiagnosticCode::FileNotFound);
 }
-
 TEST_F(ErrorTest, IdentifierNotFoundInFileOrModule) {
   writeFile("test1.fg", R"(
 

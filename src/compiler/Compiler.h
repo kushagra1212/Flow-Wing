@@ -1,8 +1,11 @@
 #ifndef __FLOW__WING__COMPILER__H__
 #define __FLOW__WING__COMPILER__H__
 
-#include <fstream>
+#if defined(AOT_TEST_MODE) || defined(JIT_TEST_MODE)
 #include <gtest/gtest.h>
+#endif
+
+#include <fstream>
 #include <iostream>
 
 #include "../ASTBuilder/ASTBuilder.h"

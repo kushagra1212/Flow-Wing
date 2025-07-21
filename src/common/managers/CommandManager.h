@@ -4,6 +4,7 @@
 #include "../../common/Common.h"
 #include "../../common/commandLineOptions/commandLineOptions.h"
 #include "../../external/include/argh.h"
+#include "../../utils/PathUtils.h"
 #include "../../utils/Utils.h"
 #include "../LibUtils/LibUtils.h"
 #include "llvm/Support/FileSystem.h"
@@ -25,7 +26,7 @@ public:
   auto create() -> std::string {
     std::string cmd = "";
 
-    cmd += std::string(FLOWWING_LINKER_PATH) + " ";
+    cmd += FlowWing::PathUtils::getAOTLinkerPath() + " ";
 
     cmd += this->getOptimizationLevel();
 
@@ -57,7 +58,7 @@ public:
 #endif
 
     // Linking with BuiltIn Module
-    cmd += this->getBuiltInModuleLinked();
+    cmd += this->getRuntimeLibrariesLinked();
 
 #if defined(AOT_TEST_MODE)
     cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName;
@@ -151,23 +152,26 @@ private:
            " ";
   }
 
-  auto getBuiltInModuleLinked() -> std::string {
+  auto getRuntimeLibrariesLinked() -> std::string {
+    // A. Discover the location of our installed libraries at runtime.
+    //    getAppResourcesPath() points to '.../share/FlowWing'
+    //    So we navigate to '../lib/FlowWing' from there.
+    std::filesystem::path runtimeLibPath =
+        FlowWing::PathUtils::getLibrariesPath();
 
-    std::string linkLibs = "";
+    std::string linkCmd = "";
 
-    linkLibs += createLibPathArg(std::string(FLOWWING_LIB_PATH));
+    CODEGEN_DEBUG_LOG("runtimeLibPath", runtimeLibPath.string());
 
-    // for (const auto lib : DYNAMIC_LINKING_LIBRARIES) {
+    // B. Add the "-L" flag to tell the linker where to search.
+    linkCmd += createLibPathArg(runtimeLibPath.string());
 
-    //   linkLibs += createLibArgs(lib);
-    // }
-
-    for (const auto lib : STATIC_LINKING_LIBRARIES) {
-
-      linkLibs += createLibArgs(lib);
+    // C. Add the "-l" flags for each of your static libraries.
+    for (const auto &lib :
+         STATIC_LINKING_LIBRARIES) { // Assuming you have this list
+      linkCmd += createLibArgs(lib);
     }
-
-    return linkLibs;
+    return linkCmd;
   }
 
   auto createLibArgs(const std::string &libName) -> std::string {
@@ -190,9 +194,9 @@ private:
 
   auto createLibPathArg(const std::string &value) -> std::string {
 #if defined(_WIN32)
-    return " /LIBPATH:" + value + " ";
+    return " /LIBPATH:\"" + value + "\" ";
 #else
-    return " -L " + value + " ";
+    return " -L\"" + value + "\" ";
 #endif
   }
 
@@ -216,7 +220,7 @@ private:
   auto checkForRestOfFlags(std::string &cmd) -> void {
     if (FlowWing::Cli::isFlag::server() ||
         FlowWing::Cli::isFlag::shortServer()) {
-      cmd += " " + createLibPathArg(std::string(FLOWWING_LIB_PATH)) +
+      cmd += " " + createLibPathArg(FlowWing::PathUtils::getLibrariesPath()) +
              createLibArgs("flowwing_vortex") + " ";
     }
   }

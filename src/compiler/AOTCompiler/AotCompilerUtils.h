@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "../../utils/PathUtils.h"
 #include "../../utils/Utils.h"
 
 namespace FlowWing {

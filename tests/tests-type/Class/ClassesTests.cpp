@@ -3800,3 +3800,92 @@ print(b.x)
 )");
   EXPECT_EQ(getOutput(), R"(11321212)");
 }
+
+TEST_F(ClassesTests, ClassEqualityOperator) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+var b:A = new A(2)
+var aRef:A = a
+if(a) {
+  print("Class A","\n")
+}
+
+if(a && true) {
+  print("Class A and true","\n")
+}
+
+if(a && false) {
+  print("Class A and false","\n")
+}
+
+if(a || true) {
+  print("Class A or true","\n")
+}
+
+if(a || false) {
+  print("Class A or false","\n")
+}
+
+if(a == a){
+  print("Class A == A","\n")
+}
+
+if(a != a){
+  print("Class A != A","\n")
+}
+
+
+if(a == b){
+  print("Class A == B","\n")
+}
+
+if(a != b){
+  print("Class A != B","\n")
+}
+
+if(a == aRef){
+  print("Class A == ARef","\n")
+}
+
+if(a != aRef){
+  print("Class A != ARef","\n")
+}
+
+)");
+  EXPECT_EQ(getOutput(), R"(Class A
+Class A and true
+Class A or true
+Class A or false
+Class A == A
+Class A != B
+Class A == ARef
+)");
+}
+
+TEST_F(ClassesTests, LogicalNotForClass) {
+  I(R"(
+class A {
+  var x:int 
+  init(x:int) -> nthg {
+      self.x = x 
+    }
+}
+
+var a:A = new A(2)
+
+if(!a){
+  print("A")
+}or if(a){
+    print("or A")
+  }
+)");
+
+  EXPECT_EQ(getOutput(), R"(or A)");
+}

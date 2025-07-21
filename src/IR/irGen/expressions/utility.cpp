@@ -25,7 +25,6 @@ llvm::Value *getExpressionValue(CodeGenerationContext *context,
       context->getLogger()->LogError("Operation is not supported for objects");
       return nullptr;
     }
-
     value = context->getBuilder()->CreateLoad(
         llvm::Type::getInt8PtrTy(*context->getContext()),
         context->getValueStackHandler()->getValue());
@@ -36,6 +35,10 @@ llvm::Value *getExpressionValue(CodeGenerationContext *context,
     value = context->getBuilder()->CreateLoad(
         context->getValueStackHandler()->getLLVMType(),
         context->getValueStackHandler()->getValue());
+  }
+
+  if (context->getValueStackHandler()->isLLVMConstant()) {
+    value = context->getValueStackHandler()->getValue();
   }
 
   context->getValueStackHandler()->popAll();

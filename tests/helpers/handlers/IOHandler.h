@@ -34,6 +34,7 @@ public:
 
   virtual inline auto EXPECT_ERROR_CODE(const DiagnosticCode &errorCode)
       -> void {
+
     EXPECT_TRUE(getErrorOutput().find(getErrorCode(errorCode)) !=
                 std::string::npos);
   }

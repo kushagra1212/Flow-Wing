@@ -112,48 +112,365 @@ if(a != b) {
   EXPECT_EQ(getOutput(), R"(Is not equal)");
 }
 
-TEST_F(DynamicTypeTest, Class6) {
+TEST_F(DynamicTypeTest, UltimateClassBinaryAndUnaryTest) {
   I(R"(
 
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x 
+    class A {
+      var x:int 
+      init(x:int) -> nthg {
+          self.x = x 
+        }
     }
-}
-
-var a:A = new A(2)
-
-var b:A = new A(3)
-
-if(true && a == b) {
-  print("Is equal")
-}
-
-if(true && a != b) {
-  print("Is not equal")
-}
-
-if(true && a) {
-  print("Is true")
-}
-b = Nir
-if(true && b) {
-  print("Is true")
-}
-
-if(true && b == Nir) {
-  print("Is Nir")
-} else {
-  print("Is not Nir")
-}
-
-if(a) {
-  print("Is true")
-}
+    
+    var a:A = new A(2)
+    
+    var b:A = new A(3)
+    print("Both a and b are not null and are different","\n")
+    if(true && a == b) {
+      print("true && a == b","\n")
+    }
+    
+    if(false && a == b) {
+      print("false && a == b","\n")
+    }
+    
+    if(true || a == b) {
+      print("true || a == b","\n")
+    }
+    
+    if(false || a == b) {
+      print("false || a == b","\n")
+    }
+    
+    
+    if(true && a != b) {
+      print("true && a != b","\n")
+    }
+    
+    if(false && a != b) {
+      print("false && a != b","\n")
+    }
+    
+    
+    if(true || a != b) {
+      print("true || a != b","\n")
+    }
+    
+    if(false || a != b) {
+      print("false || a != b","\n")
+    }
+    
+    
+    if(true && a) {
+      print("true && a","\n")
+    }
+    
+    if(false && a) {
+      print("false && a","\n")
+    }
+    
+    
+    if(true && !a) {
+      print("true && !a","\n")
+    }
+    
+    if(false && !a) {
+      print("false && !a","\n")
+    }
+    
+    
+    
+    
+    
+    if(true || a) {
+      print("true || a","\n")
+    }
+    
+    if(false || a) {
+      print("false || a","\n")
+    }
+    
+    
+    if(true || !a) {
+      print("true || !a","\n")
+    }
+    
+    if(false || !a) {
+      print("false || !a","\n")
+    }
+    
+    if(a) {
+      print("a","\n")
+    }
+    
+    if(!a) {
+      print("!a","\n")
+    }
+    
+    
+    
+    
+    
+    if(a && b) {
+      print("a && b","\n")
+    }
+    
+    
+    if(a && !b) {
+      print("a && !b","\n")
+    }
+    
+    
+    if(!a && b) {
+      print("!a && b","\n")
+    }
+    
+    
+    if(!a && !b) {
+      print("!a && !b","\n")
+    }
+    
+    
+    
+    
+    if(a || b) {
+      print("a || b","\n")
+    }
+    
+    
+    if(a || !b) {
+      print("a || !b","\n")
+    }
+    
+    
+    if(!a || b) {
+      print("!a || b","\n")
+    }
+    
+    
+    if(!a || !b) {
+      print("!a || !b","\n")
+    }
+    
+    
+    
+    
+    b = Nir
+    print("b set to Nir","\n")
+    
+    if(b) {
+      print("b","\n")
+    }
+    
+    
+    if(!b) {
+      print("!b","\n")
+    }
+    
+    
+    if(true && b) {
+      print("true && b","\n")
+    }
+    
+    
+    if(false && b) {
+      print("false && b","\n")
+    }
+    
+    
+    
+    if(true && !b) {
+      print("true && !b","\n")
+    }
+    
+    
+    if(false && !b) {
+      print("false && !b","\n")
+    }
+    
+    
+    
+    
+    
+    if(true || b) {
+      print("true || b","\n")
+    }
+    
+    
+    if(false || b) {
+      print("false || b","\n")
+    }
+    
+    
+    
+    if(true || !b) {
+      print("true || !b","\n")
+    }
+    
+    
+    if(false || !b) {
+      print("false || !b","\n")
+    }
+    
+    
+    
+    
+    if(a && b) {
+      print("a && b","\n")
+    }
+    
+    
+    if(a && !b) {
+      print("a && !b","\n")
+    }
+    
+    
+    if(!a && b) {
+      print("!a && b","\n")
+    }
+    
+    
+    if(!a && !b) {
+      print("!a && !b","\n")
+    }
+    
+    
+    
+    
+    if(a || b) {
+      print("a || b","\n")
+    }
+    
+    
+    if(a || !b) {
+      print("a || !b","\n")
+    }
+    
+    
+    if(!a || b) {
+      print("!a || b","\n")
+    }
+    
+    
+    if(!a || !b) {
+      print("!a || !b","\n")
+    }
+    
+    
+    
+    if(true && b == Nir) {
+      print("true && b == Nir","\n")
+    }
+    
+    if(false && b == Nir) {
+      print("false && b == Nir","\n")
+    }
+    
+    
+    if(true || b == Nir) {
+      print("true || b == Nir","\n")
+    }
+    
+    if(false || b == Nir) {
+      print("false || b == Nir","\n")
+    }
+    
+    
+    
+    if(true && b != Nir) {
+      print("true && b != Nir","\n")
+    }
+    
+    if(false && b != Nir) {
+      print("false && b != Nir","\n")
+    }
+    
+    
+    if(true || b != Nir) {
+      print("true || b != Nir","\n")
+    }
+    
+    if(false || b != Nir) {
+      print("false || b != Nir","\n")
+    }
+    
+    
+    
+    print("Setting a to a","\n")
+    
+    b = a
+     
+    
+    if(true && a == b) {
+      print("true && a == b","\n")
+    }
+    
+    if(false && a == b) {
+      print("false && a == b","\n")
+    }
+    
+    if(true || a == b) {
+      print("true || a == b","\n")
+    }
+    
+    if(false || a == b) {
+      print("false || a == b","\n")
+    }
+    
+    
+    if(true && a != b) {
+      print("true && a != b","\n")
+    }
+    
+    if(false && a != b) {
+      print("false && a != b","\n")
+    }
+    
+    
+    if(true || a != b) {
+      print("true || a != b","\n")
+    }
+    
+    if(false || a != b) {
+      print("false || a != b","\n")
+    }
+    
   )");
 
-  EXPECT_EQ(getOutput(), R"(Is not equalIs trueIs NirIs true)");
+  EXPECT_EQ(getOutput(), R"(Both a and b are not null and are different
+true || a == b
+true && a != b
+true || a != b
+false || a != b
+true && a
+true || a
+false || a
+true || !a
+a
+a && b
+a || b
+a || !b
+!a || b
+b set to Nir
+!b
+true && !b
+true || b
+true || !b
+false || !b
+a && !b
+a || b
+a || !b
+!a || !b
+true && b == Nir
+true || b == Nir
+false || b == Nir
+true || b != Nir
+Setting a to a
+true && a == b
+true || a == b
+false || a == b
+true || a != b
+)");
 }
 
 TEST_F(DynamicTypeTest, Class7) {
@@ -218,13 +535,13 @@ var p:bool, q:A = true, new A(2)
 
 if(p && q) {
   print("Is true")
-}or if(p && !q) {
+}or if(p && q) {
   print("Is false")
 }
 
 if(p && q) {
   print("Is true")
-}or if(p && !q) {
+}or if(p && q) {
   print("Is false")
 }
 

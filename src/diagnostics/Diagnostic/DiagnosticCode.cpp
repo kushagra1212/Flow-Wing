@@ -28,6 +28,7 @@ std::string formatMessage(std::string templateStr,
 }
 
 std::string getErrorCode(const DiagnosticCode &code) {
+
   return "FG_ERROR_CODE_" + std::to_string(static_cast<int16_t>(code));
 }
 } // namespace DIAGNOSTIC

@@ -1,0 +1,46 @@
+# Define a reusable extension field for common service configurations.
+x-compiler-base: &compiler-base
+  build:
+    context: .
+    dockerfile: ./docker/Dockerfile
+  volumes:
+    - .:/compiler-dev
+  tty: true
+
+services:
+  # Base compiler service for development.
+  compiler-dev:
+    <<: *compiler-base
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile # Be explicit
+  # Service for running Ahead-of-Time (AOT) tests.
+  test-aot:
+    <<: *compiler-base
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile # Be explicit
+      target: test # Specifies to build up to the 'test' stage in the Dockerfile.
+    command: make test-aot
+
+  # Service for running Just-in-Time (JIT) tests.
+  test-jit:
+    <<: *compiler-base
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile # Be explicit
+      target: test
+    command: make test-jit
+
+  # Base REPL service for development.
+  repl-dev:
+    <<: *compiler-base
+    build:
+      dockerfile: ./docker/Dockerfile.ReplDev # Specify a different Dockerfile if needed.
+
+  # Service for running REPL tests.
+  test-repl:
+    <<: *compiler-base
+    build:
+      dockerfile: ./docker/Dockerfile.ReplTest
+    command: make test-repl

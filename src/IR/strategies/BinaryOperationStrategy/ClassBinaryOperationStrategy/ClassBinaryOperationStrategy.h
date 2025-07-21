@@ -11,4 +11,9 @@ public:
   llvm::Value *performOperation(
       llvm::Value *lhsValue, llvm::Value *rhsValue,
       BinderKindUtils::BoundBinaryOperatorKind binaryOperator) override;
+
+  llvm::Value *
+  performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
+                   BinderKindUtils::BoundBinaryOperatorKind binaryOperator,
+                   bool isLHSClassType, bool isRHSClassType);
 };

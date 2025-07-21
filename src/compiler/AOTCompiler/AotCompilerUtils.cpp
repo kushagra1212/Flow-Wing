@@ -27,8 +27,8 @@ void RUN_ON_DEBUG_GENERATE_BC_FROM_LL() {
 
     const std::string space = " ";
 
-    std::string cmd = (FLOWWING_CLANG_PATH) + space + llFile +
-                      " -emit-llvm -c " + " -o " +
+    std::string cmd = (FlowWing::PathUtils::getAOTLinkerPath()) + space +
+                      llFile + " -emit-llvm -c " + " -o " +
                       llFile.substr(0, llFile.length() - 3) + ".bc";
     std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
               << std::endl;

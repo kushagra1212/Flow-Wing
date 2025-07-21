@@ -73,6 +73,6 @@ inline bool isSupported(StringStrategyTag,
 inline bool isSupported(ClassStrategyTag,
                         BinderKindUtils::BoundUnaryOperatorKind op) {
 
-  return false;
+  return op == BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation;
 }
 } // namespace UnaryOperationSupport

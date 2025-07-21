@@ -56,7 +56,8 @@ enum class DiagnosticCode : int16_t {
   VariableAlreadyDeclared = 39,
   TypeAlreadyDeclared = 40,
   ClassAlreadyDeclared = 41,
-  ImportModuleWithErrorsWarning = 42
+  ImportModuleWithErrorsWarning = 42,
+  UnSupportedUnaryOperatorForClassType = 43
 };
 struct MessageTemplate {
   std::string message;

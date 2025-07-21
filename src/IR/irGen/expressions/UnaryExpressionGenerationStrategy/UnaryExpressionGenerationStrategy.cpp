@@ -75,11 +75,14 @@ llvm::Value *UnaryExpressionGenerationStrategy::generateExpression(
     return dynamicValueVariableAddress;
   }
 
-  llvm::Value *res = performOperation(value, unaryExpression->getOperator());
-
+  llvm::Value *res =
+      performOperation(value, unaryExpression->getOperator(), isClassType);
   _codeGenerationContext->getValueStackHandler()->popAll();
-  _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
-                                                       res->getType());
+  if (res != nullptr) {
+    _codeGenerationContext->getValueStackHandler()->push("", res, "constant",
+                                                         res->getType());
+  }
+
   return res;
 }
 

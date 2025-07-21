@@ -3,6 +3,7 @@
 #include "../../../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
 
 #include "../../../../utils/Macros.h"
+#include "../../../../utils/PathUtils.h"
 #include "../StatementParser.h"
 #include "../StatementParserFactory.h"
 

@@ -12,23 +12,51 @@ llvm::Value *ClassUnaryOperationStrategy::performOperation(
 
 llvm::Value *ClassUnaryOperationStrategy::performOperation(
     llvm::Value *val, BinderKindUtils::BoundUnaryOperatorKind unaryOperator) {
-  llvm::Value *result = Builder->getInt32(1);
 
   if (!UnaryOperationSupport::isSupported(
           UnaryOperationSupport::ClassStrategyTag{}, unaryOperator)) {
-    this->_codeGenerationContext->getLogger()->LogError(
-        "Unsupported unary operator " +
-        BinderKindUtils::to_string(unaryOperator) + " for class type ");
+
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            UnSupportedUnaryOperatorForClassType,
+        {BinderKindUtils::to_string(unaryOperator)});
     return nullptr;
   }
 
   switch (unaryOperator) {
+  case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation: {
+    llvm::Function *function = Builder->GetInsertBlock()->getParent();
+
+    // Basic blocks for the conditional logic
+    llvm::BasicBlock *initialCheck = Builder->GetInsertBlock();
+    llvm::BasicBlock *endBlock =
+        llvm::BasicBlock::Create(*TheContext, "land.end", function);
+    llvm::BasicBlock *nullCheck =
+        llvm::BasicBlock::Create(*TheContext, "land.null", function);
+
+    // LHS Check Block
+    llvm::Value *isNotNull = Builder->CreateIsNotNull(val);
+    Builder->CreateCondBr(isNotNull, endBlock, nullCheck);
+
+    Builder->SetInsertPoint(nullCheck);
+    Builder->CreateBr(endBlock);
+
+    Builder->SetInsertPoint(endBlock);
+    llvm::PHINode *phi = Builder->CreatePHI(llvm::Type::getInt1Ty(*TheContext),
+                                            3, "land.result");
+
+    phi->addIncoming(Builder->getFalse(), initialCheck);
+    phi->addIncoming(Builder->getTrue(), nullCheck);
+
+    return phi;
+  }
 
   default: {
 
-    this->_codeGenerationContext->getLogger()->LogError(
-        "Unsupported unary operator " +
-        BinderKindUtils::to_string(unaryOperator) + " for class type ");
+    _codeGenerationContext->getLogger()->logError(
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+            UnSupportedUnaryOperatorForClassType,
+        {BinderKindUtils::to_string(unaryOperator)});
     break;
   }
   }

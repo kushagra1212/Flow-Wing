@@ -16,7 +16,7 @@ public:
   llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,
                    BinderKindUtils::BoundBinaryOperatorKind binaryOp,
-                   bool isClassType = false,
+                   bool isLHSClassType = false, bool isRHSClassType = false,
                    bool skipUnsupportedOperation = false);
 
   SyntaxKindUtils::SyntaxKind selectOperationStrategy(llvm::Value *lhsValue,

@@ -54,9 +54,10 @@ std::unique_ptr<llvm::Module>
 createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
                              FlowWing::DiagnosticHandler *diagHandler) {
 
-  const std::string &filePath = LIB_BUILT_IN_MODULE_PATH;
+  const std::string &filePath =
+      FlowWing::PathUtils::getBuiltInBCPath().string();
 
-  LINKING_DEBUG_LOG(" [INFO]: LIB_BUILT_IN_MODULE_PATH " + filePath);
+  LINKING_DEBUG_LOG(" [INFO]: Built In Module Path " + filePath);
 
 #if defined(RELEASE)
   std::unique_ptr<llvm::Module> TheModule =

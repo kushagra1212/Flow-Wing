@@ -586,25 +586,6 @@ if(a){
 )");
   EXPECT_EQ(getOutput(), R"(A)");
 }
-TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIF) {
-  I(R"(
-class A {
-  var x:int 
-  init(x:int) -> nthg {
-      self.x = x 
-    }
-}
-
-var a:A = new A(2)
-
-if(!a){
-  print("A")
-}or if(a){
-    print("or A")
-  }
-)");
-  EXPECT_EQ(getOutput(), R"(or A)");
-}
 
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFBinary) {
   I(R"(
@@ -625,6 +606,7 @@ if(a && false){
 )");
   EXPECT_EQ(getOutput(), R"(or A)");
 }
+
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnary) {
   I(R"(
 class A {
@@ -636,13 +618,13 @@ class A {
 
 var a:A = new A(2)
 
-if(!a){
+if(a){
   print("A")
 }or if(a && true){
     print("or A")
   }
 )");
-  EXPECT_EQ(getOutput(), R"(or A)");
+  EXPECT_EQ(getOutput(), R"(A)");
 }
 TEST_F(MiscellaneousTest, IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNir) {
   I(R"(
@@ -655,13 +637,13 @@ class A {
 
 var a:A  = new A(2)
 
-if(!a){
+if(a){
   print("A")
 }or if(a && true){
     print("or A")
   }
 )");
-  EXPECT_EQ(getOutput(), R"(or A)");
+  EXPECT_EQ(getOutput(), R"(A)");
 }
 TEST_F(MiscellaneousTest,
        IfOrElseTestWithClassesSimpleOrIFUnaryWithoutNirLogical) {

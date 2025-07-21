@@ -1,8 +1,6 @@
 #ifndef __FLOW__WING__AOT__COMPILER__H__
 #define __FLOW__WING__AOT__COMPILER__H__
 
-#include <gtest/gtest.h>
-
 #include <cstdlib>
 #include <fstream>
 #include <iostream>

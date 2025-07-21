@@ -1,5 +1,27 @@
-bring local
+bring Err
 
+fun getError() -> int, Err::Result {
+  return 2, new Err::Result("Error")
+}
+
+const num: int, err: Err::Result = getError()
+
+print(num)
+print(err.message)
+
+class A {
+  init() -> nthg {
+  }
+
+
+  print() -> nthg {
+    print("A")
+  }
+
+
+}
+const a: A = new A()
+a.print()
 /; fun test2(a: int, b: str, c = 2.2) -> nthg {
   /;   print("A ", a, "\n")
   /;   print("B ", b, "\n")
@@ -12,3 +34,4 @@ bring local
   /; test2(2, "3", 3.5)
   /; test2(2, "3", true)
   /; test2(2, "3", false)
+

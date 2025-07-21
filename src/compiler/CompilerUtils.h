@@ -1,5 +1,6 @@
 #include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "../utils/FlowWingConfig.h"
+#include "../utils/PathUtils.h"
 #include <cstdint>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/Module.h>

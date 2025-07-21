@@ -82,8 +82,13 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
               .string();
 
       bringStatement->setModuleName(relativeFilePath);
+
+      std::filesystem::path modulesPath = FlowWing::PathUtils::getModulesPath();
+
+      CODEGEN_DEBUG_LOG("modulesPath", modulesPath);
+
       std::string moduleFilePath = Utils::findFile(
-          std::string(FLOWWING_MODULE_PATH), relativeFilePath + "-module.fg");
+          std::string(modulesPath), relativeFilePath + "-module.fg");
 
       if (moduleFilePath.empty()) {
         moduleFilePath =

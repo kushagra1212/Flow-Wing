@@ -326,4 +326,9 @@ std::unordered_map<FLOW_WING::DIAGNOSTIC::DiagnosticCode,
           "Please fix the errors in module '{0}' before importing it.",
           "Unresolved errors in the imported module may cause runtime or "
           "compilation issues. Ensure that all dependencies and syntax within "
-          "module '{0}' are valid."}}};
+          "module '{0}' are valid."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              UnSupportedUnaryOperatorForClassType),
+         {"Unsupported unary operator '{0}' for class type. Please use a "
+          "valid unary operator for class type.",
+          "", ""}}};
