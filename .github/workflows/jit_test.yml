@@ -15,10 +15,10 @@ jobs:
         # We use docker-compose build, which respects the 'target: test'
         # in your docker-compose.yml file. This is simpler and more consistent
         # than using docker/build-push-action for this use case.
-        run: docker-compose build test-jit
+        run: docker compose build test-jit
 
       - name: Run AOT tests
         # This command starts the container from the image we just built.
         # It runs `command: make test-jit`. If tests fail, this step fails.
         # --no-build ensures it uses the image from the previous step.
-        run: docker-compose up --no-build --exit-code-from test-jit test-jit
+        run: docker compose up --no-build --exit-code-from test-jit test-jit
