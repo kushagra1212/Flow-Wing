@@ -3,7 +3,7 @@ name: AOT Tests
 on: [pull_request]
 
 jobs:
-  test: # The job is for testing, not just building
+  jit_test: # The job is for testing, not just building
     runs-on: ubuntu-latest
 
     steps:
