@@ -1,4 +1,5 @@
 #include "Diagnostic.h"
+#include "DiagnosticCodeData.h"
 
 Diagnostic::Diagnostic(const std::string &message,
                        DiagnosticUtils::DiagnosticLevel level,
@@ -331,4 +332,97 @@ std::unordered_map<FLOW_WING::DIAGNOSTIC::DiagnosticCode,
               UnSupportedUnaryOperatorForClassType),
          {"Unsupported unary operator '{0}' for class type. Please use a "
           "valid unary operator for class type.",
-          "", ""}}};
+          "", ""}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::ParentClassNotFound),
+         {"Parent class '{0}' not found for class '{1}'.",
+          "Ensure that the class '{0}' is defined and accessible before "
+          "extending it.",
+          "This error may occur if the parent class '{0}' is missing, "
+          "misspelled, or not yet declared. "
+          "Make sure the definition of '{0}' exists and is in scope when "
+          "defining class '{1}'."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              ContinueStatementOutsideOfLoop),
+         {"'continue' statement not within a loop.",
+          "Move the 'continue' statement inside a valid loop (e.g., for or"
+          "while loop).",
+          "'continue' is only valid inside loops and causes the next iteration "
+          "to begin. "
+          "Using it outside of a loop results in a syntax error."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              DuplicateAttributeKeyInCustomType),
+         {"Duplicate attribute key '{0}' found in custom type '{1}'.",
+          "Remove or rename one of the duplicate keys ('{0}') in your custom "
+          "type '{1}'.",
+          "Having multiple attributes with the same key in a custom type can "
+          "lead to ambiguity and unexpected behavior. Make sure each attribute "
+          "key is unique."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              DuplicateCustomTypeDeclaration),
+         {"Custom type '{0}' is declared multiple times.",
+          "Remove the duplicate declaration of custom type '{0}'.",
+          "Declaring the same custom type more than once can lead to confusion "
+          "or conflicts. Ensure that '{0}' is only defined once"}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              UnsupportedExpressionOrStatementInModule),
+         {"Unsupported expression or statement used in module '{0}'.",
+          "Please use valid expressions and statements in module '{0}'.",
+          "Ensure that the expression or statement is valid and supported in "
+          "the module '{0}'."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateModuleDeclaration),
+         {"Module '{0}' is declared more than once.",
+          "Ensure that module '{0}' is only declared once in your code.",
+          "Multiple declarations of the same module can lead to conflicts or "
+          "unexpected behavior. "
+          "Consolidate or remove redundant declarations of module '{0}'."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              ReturnStatementOutsideOfFunction),
+         {"'return' statement cannot appear outside of a function body.",
+          "Ensure that the 'return' statement is placed inside a function.",
+          "'return' is only valid within the context of a function. If used "
+          "outside, it will result in a compilation error."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              NoDefaultCaseInSwitchStatement),
+         {"Switch statement does not have a default case.",
+          "Add a default case to the switch statement to handle unexpected or "
+          "unhandled values.",
+          "Including a default case ensures that all possible values are "
+          "handled, improving code robustness and preventing potential runtime "
+          "issues."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              MoreThanOneDefaultCaseInSwitchStatement),
+         {"Multiple 'default' cases found in the switch statement. "
+          "Only one 'default' case is allowed.",
+          "Remove all but one 'default' case from the switch statement.",
+          "Having more than one 'default' case leads to ambiguity. A switch "
+          "statement must have at most one 'default' case to ensure clear and "
+          "predictable control flow."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              NoCaseStatementInSwitchStatement),
+         {"The 'switch' statement does not contain any 'case' labels.",
+          "Add at least one 'case' label inside the 'switch' statement to "
+          "handle specific conditions.",
+          "A 'switch' statement without 'case' labels is usually unintended. "
+          "Consider whether an 'if' statement might be more appropriate or if "
+          "cases were mistakenly omitted."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedSingleQuote),
+         {"Unterminated single quote detected.",
+          "Ensure that the single-quoted character or string is properly "
+          "closed with a matching single quote.",
+          "A missing closing single quote can lead to parsing errors. Example: "
+          "replace 'a with 'a'."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterEscapeSequence),
+         {"Invalid escape sequence '\\{0}' encountered.",
+          "Use a valid escape character such as \\n, \\t, \\', \\\\, etc.",
+          "Escape sequences must follow valid syntax. Check for typos or "
+          "unsupported escape characters like '\\{0}' in the string literal."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::NumberTooLargeForInt),
+         {"The integer literal '{0}' is too large to be represented as a "
+          "64-bit signed integer.",
+          "Use a smaller integer value that fits within the 64-bit signed "
+          "integer range (−9,223,372,036,854,775,808 to "
+          "9,223,372,036,854,775,807).",
+          "Literals that exceed the range of a 64-bit signed integer may lead "
+          "to overflow or unexpected behavior at runtime."}},
+
+};

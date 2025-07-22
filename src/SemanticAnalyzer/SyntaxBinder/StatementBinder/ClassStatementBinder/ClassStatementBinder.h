@@ -5,7 +5,7 @@
 #include "../../MemberBinder/FunctionDeclarationBinder/FunctionDeclarationBinder.h"
 #include "../StatementBinder.h"
 #include "../VariableDeclarationBinder/VariableDeclarationBinder.h"
-
+#include <memory>
 class ClassStatementBinder : public StatementBinder {
 public:
   std::unique_ptr<BoundStatement> bindStatement(SyntaxBinderContext *ctx,

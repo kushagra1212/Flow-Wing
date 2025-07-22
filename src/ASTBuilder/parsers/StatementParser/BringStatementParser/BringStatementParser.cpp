@@ -1,5 +1,5 @@
 #include "BringStatementParser.h"
-
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include "../../../ASTBuilder.h"
 
 std::unique_ptr<StatementSyntax>

@@ -1,5 +1,6 @@
 
 #include "CustomTypeStatementBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -31,15 +32,17 @@ CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
                                  ->getText();
 
     if (attributes.find(key) != attributes.end()) {
-      ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Duplicate Attribute key " + key + " in Custom Type" +
-                         Utils::getActualTypeName(
-                             boundCustomTypeStatement->getTypeNameAsString()),
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     customTypeStatement->getKeyTypePairsRef()[i]
-                         ->getKey()
-                         ->getSourceLocation()));
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {key, Utils::getActualTypeName(
+                    boundCustomTypeStatement->getTypeNameAsString())},
+          customTypeStatement->getKeyTypePairsRef()[i]
+              ->getKey()
+              ->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              DuplicateAttributeKeyInCustomType));
+
       return std::move(boundCustomTypeStatement);
     }
     attributes[key] = 1;
@@ -75,24 +78,24 @@ CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
   if (ctx->getCurrentModuleName() != "" &&
       !ctx->getRootRef()->tryDeclareCustomTypeGlobal(
           boundCustomTypeStatement.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Duplicate Custom Type " +
-                       Utils::getActualTypeName(
-                           boundCustomTypeStatement->getTypeNameAsString()),
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {Utils::getActualTypeName(
+            boundCustomTypeStatement->getTypeNameAsString())},
+        customTypeStatement->getTypeNameRef()->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateCustomTypeDeclaration));
   }
   if (ctx->getCurrentModuleName() == "" &&
       !ctx->getRootRef()->tryDeclareCustomType(
           boundCustomTypeStatement.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Duplicate Custom Type " +
-                       Utils::getActualTypeName(
-                           boundCustomTypeStatement->getTypeNameAsString()),
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   customTypeStatement->getTypeNameRef()->getSourceLocation()));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic,
+        {Utils::getActualTypeName(
+            boundCustomTypeStatement->getTypeNameAsString())},
+        customTypeStatement->getTypeNameRef()->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateCustomTypeDeclaration));
   }
 
   return std::move(boundCustomTypeStatement);

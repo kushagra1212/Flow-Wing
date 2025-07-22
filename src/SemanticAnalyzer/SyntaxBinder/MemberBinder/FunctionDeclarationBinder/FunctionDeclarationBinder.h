@@ -5,7 +5,7 @@
 #include "../../../BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
 #include "../../StatementBinder/StatementBinder.h"
 #include "../MemberBinder.h"
-
+#include <memory>
 class FunctionDeclarationBinder : public MemberBinder {
   std::string _prefix = "";
 

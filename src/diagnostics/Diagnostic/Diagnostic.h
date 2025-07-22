@@ -22,13 +22,14 @@ public:
              DiagnosticUtils::DiagnosticType type,
              const DiagnosticUtils::SourceLocation &location = {},
              const FLOW_WING::DIAGNOSTIC::DiagnosticCode &code =
-                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::None);
+                 (FLOW_WING::DIAGNOSTIC::DiagnosticCode)0 // NONE
+  );
   Diagnostic(DiagnosticUtils::DiagnosticLevel level,
              DiagnosticUtils::DiagnosticType type,
              const std::vector<FLOW_WING::DIAGNOSTIC::DiagnosticArg> &args = {},
              const DiagnosticUtils::SourceLocation &location = {},
              const FLOW_WING::DIAGNOSTIC::DiagnosticCode &code =
-                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::None);
+                 (FLOW_WING::DIAGNOSTIC::DiagnosticCode)0);
 
   const std::string &getMessage() const;
   const std::string &getHelp() const;

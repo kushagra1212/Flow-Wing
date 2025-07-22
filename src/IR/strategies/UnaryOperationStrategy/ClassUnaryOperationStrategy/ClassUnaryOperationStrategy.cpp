@@ -1,4 +1,5 @@
 #include "ClassUnaryOperationStrategy.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 ClassUnaryOperationStrategy::ClassUnaryOperationStrategy(
     CodeGenerationContext *context)

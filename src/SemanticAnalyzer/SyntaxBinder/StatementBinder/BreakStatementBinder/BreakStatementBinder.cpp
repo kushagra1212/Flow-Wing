@@ -1,5 +1,6 @@
 
 #include "BreakStatementBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 BreakStatementBinder::bindStatement(SyntaxBinderContext *ctx,

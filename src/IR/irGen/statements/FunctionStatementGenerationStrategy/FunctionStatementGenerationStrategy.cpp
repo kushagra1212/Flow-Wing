@@ -1,4 +1,5 @@
 #include "FunctionStatementGenerationStrategy.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
     CodeGenerationContext *context)

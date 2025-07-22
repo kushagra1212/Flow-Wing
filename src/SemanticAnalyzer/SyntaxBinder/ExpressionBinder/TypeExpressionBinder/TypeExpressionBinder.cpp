@@ -1,4 +1,5 @@
 #include "TypeExpressionBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundExpression>
 TypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

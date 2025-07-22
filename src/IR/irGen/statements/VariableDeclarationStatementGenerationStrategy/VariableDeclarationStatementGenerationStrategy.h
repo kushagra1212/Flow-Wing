@@ -4,6 +4,7 @@
 #include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "../../../../SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 #include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"

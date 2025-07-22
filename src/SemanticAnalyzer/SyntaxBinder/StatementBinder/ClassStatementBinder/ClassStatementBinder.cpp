@@ -1,6 +1,6 @@
 
 #include "ClassStatementBinder.h"
-#include <memory>
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -38,12 +38,13 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
         ctx->getRootRef()->tryGetClass(parentClassName);
 
     if (!parentClassStat) {
-      ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Parent Class '" + parentClassName + "' Not Found",
-                     DiagnosticUtils::DiagnosticLevel::Error,
-                     DiagnosticUtils::DiagnosticType::Semantic,
-                     classStatement->getParentClassNameIdentifierRef()
-                         ->getSourceLocation()));
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {parentClassName, boundClassStat->getClassName()},
+          classStatement->getParentClassNameIdentifierRef()
+              ->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::ParentClassNotFound));
 
       return std::move(boundClassStat);
     }

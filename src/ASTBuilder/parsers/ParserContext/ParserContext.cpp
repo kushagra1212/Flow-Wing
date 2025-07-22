@@ -1,4 +1,5 @@
 #include "ParserContext.h"
+#include "../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 ParserContext::ParserContext(
     FlowWing::DiagnosticHandler *diagnosticHandler,

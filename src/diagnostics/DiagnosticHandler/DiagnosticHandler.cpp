@@ -1,4 +1,5 @@
 #include "DiagnosticHandler.h"
+#include "../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 using namespace FlowWing;
 

@@ -1,4 +1,5 @@
 #include "ErrorTest.h"
+#include "../../../src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 void ErrorTest::SetUp() { _test->SetUp(true); }
 
@@ -680,4 +681,279 @@ class A {
 
   EXPECT_ERROR_CODE(
       FLOW_WING::DIAGNOSTIC::DiagnosticCode::ClassAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, ParentClassNotFound) {
+  IE(R"(
+class A extends B {
+  init() -> nthg  {
+
+
+  }
+}
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::ParentClassNotFound);
+}
+
+TEST_F(ErrorTest, ContinueStatementOutsideOfLoop) {
+  IE(R"(
+{continue}
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::ContinueStatementOutsideOfLoop);
+}
+
+TEST_F(ErrorTest, DuplicateAttributeKeyInCustomType) {
+  IE(R"(
+type CustomType1 = {
+  a: int,
+  b: int,
+  a:int
+}
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::DuplicateAttributeKeyInCustomType);
+}
+
+TEST_F(ErrorTest, DuplicateCustomTypeDeclaration) {
+  IE(R"(
+type CustomType1 = {
+  a: int,
+  b: int,
+}
+type CustomType1 = {
+  a: int,
+  b: int,
+}
+
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::DuplicateCustomTypeDeclaration);
+}
+
+TEST_F(ErrorTest, DuplicateModuleDeclaration) {
+  IE(R"(
+var x = 2 + 2
+module [My_Module_3]
+
+
+module [My_Module_3]
+
+
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::DuplicateModuleDeclaration);
+}
+
+TEST_F(ErrorTest, ReturnStatementOutsideOfFunction) {
+  IE(R"(
+return :
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::ReturnStatementOutsideOfFunction);
+}
+
+TEST_F(ErrorTest, ReturnStatementOutsideOfFunctionInsideBlock) {
+  IE(R"(
+{
+    return :
+}
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::ReturnStatementOutsideOfFunction);
+}
+
+TEST_F(ErrorTest, NoDefaultCaseInSwitchStatement) {
+  IE(R"(
+
+    switch 2 {
+      case 0 : {
+        print("a is 0")
+      }
+      case 1 : {
+        print("a is 1")
+      }
+      case 2 : {
+        print("a is 2")
+      }
+      case 3 : {
+        print("a is 3")
+      }
+      case "Hello" : {
+        print("a is Hello")
+      }
+    }
+    
+    
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::NoDefaultCaseInSwitchStatement);
+}
+
+TEST_F(ErrorTest, MoreThanOneDefaultCaseInSwitchStatement) {
+  IE(R"(
+
+ 
+switch 2 {
+  case 0 : {
+    print("a is 0")
+  }
+  case 1 : {
+    print("a is 1")
+  }
+  case 2 : {
+    print("a is 2")
+  }
+  case 3 : {
+    print("a is 3")
+  }
+  case "Hello" : {
+    print("a is Hello")
+  }
+  default : {
+    print("default 1")
+  }
+  default : {
+    print("default 2")
+  }
+}
+
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::MoreThanOneDefaultCaseInSwitchStatement);
+}
+
+TEST_F(ErrorTest, NoCaseStatementInSwitchStatement) {
+  IE(R"(
+ 
+switch 2 {
+  default:{}
+}
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::NoCaseStatementInSwitchStatement);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalTest) {
+  IE(R"(
+ 
+var x = 2
+
+var x =2
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalConstTest) {
+  IE(R"(
+ 
+var x = 2
+
+const x =2
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalConstTest2) {
+  IE(R"(
+ 
+const x =3
+
+const x =2
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalTestDifferentType) {
+  IE(R"(
+ 
+var x = 2
+
+var x = "D"
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalTestDifferentType2) {
+  IE(R"(
+ 
+var x:int = 2
+
+var x = "D"
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredGlobalTestDifferentType3) {
+  IE(R"(
+ 
+var x:int = 2
+
+var x:deci = 2.0
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, VariableAlreadyDeclaredLocalTest) {
+  IE(R"(
+{
+
+var x = 2
+
+var x =2    
+}
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::VariableAlreadyDeclared);
+}
+
+TEST_F(ErrorTest, UnTerminatedSingleQuote) {
+  IE(R"(
+    '
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedSingleQuote);
+}
+
+TEST_F(ErrorTest, UnTerminatedSingleQuoteVariableDeclaration) {
+  IE(R"(
+var x='
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedSingleQuote);
+}
+
+TEST_F(ErrorTest, BadCharacterEscapeSequence) {
+  IE(R"(
+var x = '\j'
+print(x)
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::BadCharacterEscapeSequence);
+}
+
+TEST_F(ErrorTest, NumberTooLargeForInt) {
+  IE(R"(
+var x: int = 100000000000000000000
+print(x)
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::NumberTooLargeForInt);
 }

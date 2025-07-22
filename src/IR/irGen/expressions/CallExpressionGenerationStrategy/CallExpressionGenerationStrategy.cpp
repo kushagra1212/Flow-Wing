@@ -1,5 +1,5 @@
 #include "CallExpressionGenerationStrategy.h"
-
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 #include <cstddef>

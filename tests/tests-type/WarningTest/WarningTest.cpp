@@ -1,4 +1,5 @@
 #include "WarningTest.h"
+#include "../../../src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 void WarningTest::SetUp() { _test->SetUp(true); }
 

@@ -1,4 +1,5 @@
 #include "PrimitiveTypeExpressionParser.h"
+#include "../../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 PrimitiveTypeExpressionParser::parseExpression(ParserContext *ctx) {

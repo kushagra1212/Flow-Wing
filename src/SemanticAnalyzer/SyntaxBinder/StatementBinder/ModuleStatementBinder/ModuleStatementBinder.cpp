@@ -1,5 +1,6 @@
 
 #include "ModuleStatementBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include <memory>
 
 std::unique_ptr<BoundStatement>
@@ -102,13 +103,24 @@ ModuleStatementBinder::bindStatement(SyntaxBinderContext *ctx,
                         ->bindExpression(ctx, call)));
       break;
     }
+    case SyntaxKindUtils::SyntaxKind::ModuleStatement: {
+
+      ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+          DiagnosticUtils::DiagnosticLevel::Error,
+          DiagnosticUtils::DiagnosticType::Semantic,
+          {ctx->getCurrentModuleName()}, stat->getSourceLocation(),
+          FLOW_WING::DIAGNOSTIC::DiagnosticCode::DuplicateModuleDeclaration));
+
+      break;
+    }
     default: {
+      //? This error will never be thrown because the parser will not allow
       ctx->getDiagnosticHandler()->addDiagnostic(
-          Diagnostic("Unsupported Expression or Statement used in Module [" +
-                         ctx->getCurrentModuleName() + "]",
-                     DiagnosticUtils::DiagnosticLevel::Error,
+          Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
                      DiagnosticUtils::DiagnosticType::Semantic,
-                     stat->getSourceLocation()));
+                     {ctx->getCurrentModuleName()}, stat->getSourceLocation(),
+                     FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                         UnsupportedExpressionOrStatementInModule));
 
       break;
     }

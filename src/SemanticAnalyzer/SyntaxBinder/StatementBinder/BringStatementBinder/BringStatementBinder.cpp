@@ -1,6 +1,6 @@
 
 #include "BringStatementBinder.h"
-#include <memory>
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,

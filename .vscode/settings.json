@@ -134,7 +134,7 @@
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.fontFamily": "'JetBrains Mono', Consolas, 'Courier New', monospace, bold",
   "[cpp]": {
-    "editor.defaultFormatter": "xaver.clang-format"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "workbench.colorTheme": "Snazzy Operator",
   "editor.codeActionsOnSave": {},
@@ -146,6 +146,6 @@
   "cmake.ignoreCMakeListsMissing": true,
   "FlowWing": {
     "maxNumberOfProblems": 100,
-    "compilerPath": "/Users/apple/code/per/Flow-Wing/targets/aot-compiler/aot-compiler-build/FlowWing"
+    "compilerPath": "/Users/apple/code/per/Flow-Wing/build/aot-debug-dev/FlowWing"
   }
 }

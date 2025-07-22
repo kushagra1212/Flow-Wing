@@ -22,9 +22,12 @@ SwitchStatementParser::parseStatement(ParserContext *ctx) {
 
   ctx->getCodeFormatterRef()->appendNewLine();
 
+  ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
+
   while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken &&
          ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-
+    ctx->getCodeFormatterRef()->append(
+        ctx->getCodeFormatterRef()->getIndentAmount());
     std::unique_ptr<CaseStatementSyntax> caseStatement(
         static_cast<CaseStatementSyntax *>(
             std::make_unique<CaseStatementParser>()
@@ -34,6 +37,10 @@ SwitchStatementParser::parseStatement(ParserContext *ctx) {
     switchStatement->addCaseStatement(std::move(caseStatement));
   }
 
+  ctx->getCodeFormatterRef()->setIndentAmount(
+      ctx->getCodeFormatterRef()->getIndentAmount().substr(
+          0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
+                 (sizeof(TAB_SPACE) - 1)));
   switchStatement->setCloseCurlyToken(
       std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
 

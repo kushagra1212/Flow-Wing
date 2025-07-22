@@ -1,4 +1,5 @@
 #include "VariableExpressionBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include <memory>
 
 #include "../ExpressionBinderFactory.h"

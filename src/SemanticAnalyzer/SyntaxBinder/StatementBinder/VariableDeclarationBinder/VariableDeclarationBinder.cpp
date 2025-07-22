@@ -1,5 +1,6 @@
 
 #include "VariableDeclarationBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -95,12 +96,11 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
   }
 
   if (!ctx->getRootRef()->tryDeclareVariable(variable_str, variable.get())) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Variable " + variable_str + " Already Exists",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   Utils::getSourceLocation(
-                       variableDeclaration->getIdentifierRef().get())));
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {variable_str},
+        Utils::getSourceLocation(variableDeclaration->getIdentifierRef().get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableAlreadyDeclared));
   }
 
   return std::move(variable);

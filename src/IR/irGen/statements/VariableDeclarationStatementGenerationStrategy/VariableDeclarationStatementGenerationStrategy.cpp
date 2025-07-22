@@ -1,5 +1,5 @@
 #include "VariableDeclarationStatementGenerationStrategy.h"
-#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 VariableDeclarationStatementGenerationStrategy::
     VariableDeclarationStatementGenerationStrategy(

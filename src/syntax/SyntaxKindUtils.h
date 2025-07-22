@@ -167,6 +167,10 @@ bool isInt64(const std::string &str);
 
 bool isDouble(const std::string &str);
 
+bool isValidInteger(const std::string &str);
+
+bool isNumberTooLarge(const std::string &str);
+
 const std::string to_string(SyntaxKind kind);
 
 bool isType(SyntaxKind kind);

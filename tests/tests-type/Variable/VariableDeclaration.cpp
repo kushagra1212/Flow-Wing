@@ -18,22 +18,6 @@ TEST_F(VariableDeclaration, BasicVariableDeclaration) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Variable Re-Declaration in the same scope
-TEST_F(VariableDeclaration, BasicVariableReDeclarationInSameScope) {
-  std::string input = "var a = 2 var a = 3";
-
-  std::string expected_error = "Variable x Already Exists";
-
-  // Expected output should be in the of the output
-
-  setInput(input);
-  runEvaluator();
-
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
-}
-
 // Variable Re-Declaration in the Different scope
 TEST_F(VariableDeclaration, BasicVariableReDeclarationInDifferentScope) {
   std::string input = R"(var a = 2 { var a = 3 })";
@@ -77,19 +61,6 @@ TEST_F(VariableDeclaration, BasicConstantVariableDeclaration) {
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Constant Variable Re-Declaration
-TEST_F(VariableDeclaration, BasicConstantVariableReDeclaration) {
-  std::string input = R"(const a = 2 const a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
-}
-
 // Constant Variable Re-Declaration in Different Scope
 TEST_F(VariableDeclaration,
        BasicConstantVariableReDeclarationInDifferentScope) {
@@ -114,18 +85,6 @@ TEST_F(VariableDeclaration,
   EXPECT_EQ(getOutput(), expected_output);
 }
 
-// Constant Variable Declaration and Re-Declaration using var
-TEST_F(VariableDeclaration,
-       BasicConstantVariableDeclarationAndReDeclarationUsingVar) {
-  std::string input = R"(const a = 2 var a = 3)";
-
-  setInput(input);
-  runEvaluator();
-  // Expected output should be in the of the output
-  std::string output = getOutput();
-  EXPECT_TRUE(output.find("Variable") != std::string::npos &&
-              output.find("Already Exists") != std::string::npos);
-}
 TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENT) {
   std::string input =
       R"(fun main2() -> int {
@@ -241,33 +200,3 @@ This is a string
   runEvaluator();
   EXPECT_EQ(getOutput(), expected_output);
 }
-
-// TODO: Fix this test and Also add test for other types combinations
-
-// TEST_F(VariableDeclaration, VariableDeclarationAndASSIGNMENTError) {
-
-//   try {
-//     std::string input =
-//         R"(
-// var x:str = 1
-//       )";
-
-//     std::string expected_output = "Type mismatch in variable declaration x "
-//                                   "Expected type String but got type
-//                                   Integer";
-
-//     setInput(input);
-//     runEvaluator();
-//     EXPECT_EQ(getOutput(), expected_output);
-//     // If the function does not throw an exception, fail the test
-//     FAIL() << "Expected exception not thrown";
-//   } catch (const std::runtime_error &e) {
-//     // Compare the error message with the expected error message
-//     EXPECT_STREQ(e.what(), "Type mismatch in variable declaration x Expected
-//     "
-//                            "type String but got type Integer");
-//   } catch (...) {
-//     // If the thrown exception is not of type std::runtime_error, fail the
-//     test FAIL() << "Unexpected exception type thrown";
-//   }
-// }

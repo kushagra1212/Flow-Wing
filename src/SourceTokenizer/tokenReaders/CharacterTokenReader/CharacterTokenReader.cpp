@@ -1,4 +1,5 @@
 #include "CharacterTokenReader.h"
+#include "../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 CharacterTokenReader::readToken(SourceTokenizer &lexer) {
@@ -15,8 +16,8 @@ CharacterTokenReader::readToken(SourceTokenizer &lexer) {
       lexer.advancePosition();
       text += lexer.currentChar();
       switch (lexer.currentChar()) {
-      case '"':
-        valueText += '"';
+      case '\'':
+        valueText += '\'';
         break;
       case '\\':
         valueText += '\\';
@@ -63,9 +64,10 @@ CharacterTokenReader::unTerminatedCharacterToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Unterminated Character Literal", DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(unTerminatedSyntaxToken.get())));
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Lexical, {},
+      Utils::getSourceLocation(unTerminatedSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedSingleQuote));
 
   return (unTerminatedSyntaxToken);
 }
@@ -82,11 +84,13 @@ CharacterTokenReader::badEscapeSequenceToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Bad Character Escape Sequence: \\" +
-          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
       DiagnosticUtils::DiagnosticLevel::Error,
       DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(badSyntaxToken.get())));
+      {
+          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
+      },
+      Utils::getSourceLocation(badSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterEscapeSequence));
 
   return (badSyntaxToken);
 }

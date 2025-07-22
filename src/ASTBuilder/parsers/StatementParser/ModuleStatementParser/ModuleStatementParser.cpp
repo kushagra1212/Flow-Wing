@@ -94,6 +94,12 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
           std::make_unique<CallExpressionParser>()->parseExpression(ctx)));
       break;
     }
+
+    case SyntaxKindUtils::SyntaxKind::ModuleKeyword: {
+      moduleStatement->addStatement(std::move(
+          std::make_unique<ModuleStatementParser>()->parseStatement(ctx)));
+      break;
+    }
     default: {
 
       ctx->match(SyntaxKindUtils::SyntaxKind::EndOfFileToken);

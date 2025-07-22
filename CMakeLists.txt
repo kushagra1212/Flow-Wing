@@ -54,6 +54,9 @@ if(APPLE AND NOT TESTS_ENABLED AND CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT D
     set(IS_MACOS_BUNDLE ON)
 endif()
 
+# This command tells CMake to generate the compile_commands.json file
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Find Dependencies & Tools
 if(APPLE)
     if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64")

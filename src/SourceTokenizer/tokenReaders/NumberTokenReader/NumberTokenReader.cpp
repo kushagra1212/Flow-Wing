@@ -1,4 +1,5 @@
 #include "NumberTokenReader.h"
+#include "../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 NumberTokenReader::readToken(SourceTokenizer &lexer) {
@@ -18,18 +19,18 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
   const std::string &text =
       lexer.getLine(lexer.lineNumber()).substr(start, length);
 
-  if (SyntaxKindUtils::isInt64(text) == false) {
+  if (SyntaxKindUtils::isNumberTooLarge(text) == true) {
     std::unique_ptr<SyntaxToken<std::any>> badSyntaxToken =
         std::make_unique<SyntaxToken<std::any>>(
             lexer.diagnosticHandler()->getAbsoluteFilePath(),
             lexer.lineNumber(), SyntaxKindUtils::SyntaxKind::BadToken, start,
             text, 0);
 
-    lexer.diagnosticHandler()->addDiagnostic(
-        Diagnostic("Bad Number Input Not Int64: " + text,
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Lexical,
-                   Utils::getSourceLocation(badSyntaxToken.get())));
+    lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Lexical, {text},
+        Utils::getSourceLocation(badSyntaxToken.get()),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::NumberTooLargeForInt));
 
     return std::move(badSyntaxToken);
   }

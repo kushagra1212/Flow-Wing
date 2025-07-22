@@ -1,4 +1,5 @@
 #include "BracketedExpressionBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include <memory>
 
 std::unique_ptr<BoundExpression>

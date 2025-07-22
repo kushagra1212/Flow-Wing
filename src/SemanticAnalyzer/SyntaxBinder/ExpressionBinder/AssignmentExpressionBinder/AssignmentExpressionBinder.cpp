@@ -1,4 +1,5 @@
 #include "AssignmentExpressionBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundExpression>
 AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

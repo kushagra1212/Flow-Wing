@@ -1,4 +1,5 @@
 #include "CallExpressionBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundExpression>
 CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

@@ -1,5 +1,6 @@
 
 #include "ReturnStatementBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<BoundStatement>
 ReturnStatementBinder::bindStatement(SyntaxBinderContext *ctx,
@@ -14,10 +15,11 @@ ReturnStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (!ctx->getRootRef()->isInFunction()) {
     ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic("Return Statement Outside Of Function",
-                   DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   returnStatement->getSourceLocation()));
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {},
+                   returnStatement->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                       ReturnStatementOutsideOfFunction));
   } else {
     // TODO IMPLEMENT all Expression
 

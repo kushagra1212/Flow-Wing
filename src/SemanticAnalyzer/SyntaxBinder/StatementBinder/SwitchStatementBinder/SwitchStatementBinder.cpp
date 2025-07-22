@@ -1,5 +1,6 @@
 
 #include "SwitchStatementBinder.h"
+#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include <memory>
 
 std::unique_ptr<BoundStatement>
@@ -31,27 +32,33 @@ SwitchStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     boundSwitchStatement->addCaseStatement(std::move(boundCaseStatement));
   }
 
-  const auto LOG_ERROR = [&](const std::string &message) {
-    ctx->getDiagnosticHandler()->addDiagnostic(
-        Diagnostic(message, DiagnosticUtils::DiagnosticLevel::Error,
-                   DiagnosticUtils::DiagnosticType::Semantic,
-                   switchStatement->getSourceLocation()));
-  };
-
   if (boundSwitchStatement->getHasNoDefaultCase()) {
-    LOG_ERROR("No default case found in switch statement");
+    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
+        DiagnosticUtils::DiagnosticLevel::Error,
+        DiagnosticUtils::DiagnosticType::Semantic, {},
+        switchStatement->getSourceLocation(),
+        FLOW_WING::DIAGNOSTIC::DiagnosticCode::NoDefaultCaseInSwitchStatement));
+
     return std::move(boundSwitchStatement);
   }
 
   if (boundSwitchStatement->getHasMoreThanOneDefaultCase()) {
-    LOG_ERROR("More than one default case found in switch statement");
+    ctx->getDiagnosticHandler()->addDiagnostic(
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {},
+                   switchStatement->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                       MoreThanOneDefaultCaseInSwitchStatement));
     return std::move(boundSwitchStatement);
   }
 
   if (!boundSwitchStatement->getHasAtLeastOneCaseStatement()) {
-    LOG_ERROR(
-        "No case statement found in switch statement, add at least one case "
-        "statement");
+    ctx->getDiagnosticHandler()->addDiagnostic(
+        Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                   DiagnosticUtils::DiagnosticType::Semantic, {},
+                   switchStatement->getSourceLocation(),
+                   FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                       NoCaseStatementInSwitchStatement));
 
     return std::move(boundSwitchStatement);
   }
