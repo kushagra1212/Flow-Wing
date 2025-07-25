@@ -9,3 +9,4 @@ new-test.txt
 **/aot-compiler*/**build*/
 **/repl/**build*/
 temp
+compile_commands.json

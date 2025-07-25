@@ -150,6 +150,7 @@ add_dependencies(${EXECUTABLE_NAME} version)
 
 # --- Include Directories ---
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${LLVM_INCLUDE_DIRS}
 )
 

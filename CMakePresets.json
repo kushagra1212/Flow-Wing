@@ -2,22 +2,100 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "jit-release",
-      "displayName": "JIT Release",
-      "description": "Builds the JIT version in Release mode.",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/jit-release",
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "dev-base",
+      "hidden": true,
+      "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_AOT": "OFF",
+        "DEV_MODE": "ON"
+      }
+    },
+    {
+      "name": "dev-build",
+      "hidden": true,
+      "inherits": "dev-base",
+      "cacheVariables": {
         "TESTS_ENABLED": "OFF"
       }
     },
     {
+      "name": "dev-test",
+      "hidden": true,
+      "inherits": "dev-base",
+      "cacheVariables": {
+        "TESTS_ENABLED": "ON",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+
+    {
+      "name": "aot-debug-dev",
+      "displayName": "AOT Debug (Dev)",
+      "inherits": "dev-build",
+      "binaryDir": "${sourceDir}/build/aot-debug-dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_AOT": "ON"
+      }
+    },
+    {
+      "name": "jit-debug-dev",
+      "displayName": "JIT Debug (Dev)",
+      "inherits": "dev-build",
+      "binaryDir": "${sourceDir}/build/jit-debug-dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_AOT": "OFF"
+      }
+    },
+    {
+      "name": "aot-release-dev",
+      "displayName": "AOT Release (Dev)",
+      "inherits": "dev-build",
+      "binaryDir": "${sourceDir}/build/aot-release-dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_AOT": "ON"
+      }
+    },
+    {
+      "name": "jit-release-dev",
+      "displayName": "JIT Release (Dev)",
+      "inherits": "dev-build",
+      "binaryDir": "${sourceDir}/build/jit-release-dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_AOT": "OFF"
+      }
+    },
+
+    {
+      "name": "tests-aot-dev",
+      "displayName": "Tests (AOT Mode) (Dev)",
+      "inherits": "dev-test",
+      "binaryDir": "${sourceDir}/build/tests-aot-dev",
+      "cacheVariables": {
+        "BUILD_AOT": "ON"
+      }
+    },
+    {
+      "name": "tests-jit-dev",
+      "displayName": "Tests (JIT Mode) (Dev)",
+      "inherits": "dev-test",
+      "binaryDir": "${sourceDir}/build/tests-jit-dev",
+      "cacheVariables": {
+        "BUILD_AOT": "OFF"
+      }
+    },
+
+    {
       "name": "aot-release",
       "displayName": "AOT Release",
-      "description": "Builds the AOT version in Release mode.",
-      "generator": "Ninja",
+      "inherits": "base",
       "binaryDir": "${sourceDir}/build/aot-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -25,83 +103,15 @@
         "TESTS_ENABLED": "OFF"
       }
     },
-
     {
-      "name": "jit-release-dev",
-      "displayName": "JIT Release (Dev)",
-      "description": "Builds the JIT version in Release mode (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/jit-release-dev",
+      "name": "jit-release",
+      "displayName": "JIT Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/jit-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_AOT": "OFF",
-        "TESTS_ENABLED": "OFF",
-        "DEV_MODE": "ON"
-      }
-    },
-    {
-      "name": "jit-debug-dev",
-      "displayName": "JIT Debug (Dev)",
-      "description": "Builds the JIT version in Debug mode (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/jit-debug-dev",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_AOT": "OFF",
-        "TESTS_ENABLED": "OFF",
-        "DEV_MODE": "ON"
-      }
-    },
-    {
-      "name": "aot-debug-dev",
-      "displayName": "AOT Debug (Dev)",
-      "description": "Builds the AOT version in Debug mode (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/aot-debug-dev",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_AOT": "ON",
-        "TESTS_ENABLED": "OFF",
-        "DEV_MODE": "ON"
-      }
-    },
-    {
-      "name": "aot-release-dev",
-      "displayName": "AOT Release (Dev)",
-      "description": "Builds the AOT version in Release mode (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/aot-release-dev",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_AOT": "ON",
-        "TESTS_ENABLED": "OFF",
-        "DEV_MODE": "ON"
-      }
-    },
-    {
-      "name": "tests-jit-dev",
-      "displayName": "Tests (JIT Mode) (Dev)",
-      "description": "Builds tests in JIT mode (Release) (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/tests-jit-dev",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_AOT": "OFF",
-        "TESTS_ENABLED": "ON",
-        "DEV_MODE": "ON"
-      }
-    },
-    {
-      "name": "tests-aot-dev",
-      "displayName": "Tests (AOT Mode) (Dev)",
-      "description": "Builds tests in AOT mode (Release) (Dev).",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/tests-aot-dev",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_AOT": "ON",
-        "TESTS_ENABLED": "ON",
-        "DEV_MODE": "ON"
+        "TESTS_ENABLED": "OFF"
       }
     }
   ],
