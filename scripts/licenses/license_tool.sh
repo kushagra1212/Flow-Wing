@@ -2,8 +2,8 @@
 
 # ==============================================================================
 # CORE SCRIPT for managing copyright headers in the FlowWing project.
-# This script is not meant to be run directly. It should be sourced by other
-# scripts like `update_licenses.sh` or the `pre-commit` hook.
+# VERSION 2.3: FINAL, SAFE VERSION. Fixes catastrophic bug in header addition
+# by using `cat` instead of `echo` to avoid interpreting file contents.
 # ==============================================================================
 
 # --- Configuration ---
@@ -58,50 +58,49 @@ LICENSE_HEADER_HASH="#
 
 
 # --- Core Function ---
-# Processes a single file to add or update its license header.
-#
-# Arguments:
-#   $1: The path to the file to process.
-#   $2: (Optional) A mode flag. If set to "commit_mode", the file will be re-staged with `git add`.
-#
 process_file() {
     local file_path="$1"
     local commit_mode="$2"
 
-    # Determine which style to use based on filename
+    if [[ $(file -b --mime-type "$file_path") != text/* && $(file -b --mime-type "$file_path") != inode/x-empty ]]; then
+        echo "Skipping non-text file: $file_path"
+        return
+    fi
+
     case "$file_path" in
         *.h|*.cpp)
             HEADER_TO_USE="$LICENSE_HEADER_CPP"
             COPYRIGHT_LINE_FORMATTED=" * $COPYRIGHT_LINE_RAW"
+            SEARCH_PATTERN="^\s*\*\s*Copyright \(C\)"
             ;;
-        CMakeLists.txt|*.cmake)
-            HEADER_TO_USE="$LICENSE_HEADER_HASH\n\n"
+        CMakeLists.txt|*.cmake|*.sh)
+            HEADER_TO_USE="$LICENSE_HEADER_HASH\n"
             COPYRIGHT_LINE_FORMATTED="# $COPYRIGHT_LINE_RAW"
+            SEARCH_PATTERN="^\s*#\s*Copyright \(C\)"
             ;;
         *)
-            # Skip files we don't recognize
             return
             ;;
     esac
 
-    # Check if the file is newly added (for commit hook) or just doesn't have a header
     is_new=false
     if [ "$commit_mode" == "commit_mode" ] && git diff --cached --name-only --diff-filter=A | grep -q "^${file_path}$"; then
         is_new=true
     fi
 
-    # If the file has a copyright line, update it. Otherwise, add a new header.
-    if grep -q "Copyright (C)" "$file_path"; then
-        # Only update if it's a modified file (not a new one with a copied header)
+    if grep -qE "$SEARCH_PATTERN" "$file_path"; then
         if ! $is_new; then
-            sed -i.bak "s/^.*Copyright (C).*$/$COPYRIGHT_LINE_FORMATTED/" "$file_path"
+            sed -i.bak "s,^.*Copyright (C).*,$COPYRIGHT_LINE_FORMATTED," "$file_path"
             rm "${file_path}.bak"
             echo "Updated license in: $file_path"
             [ "$commit_mode" == "commit_mode" ] && git add "$file_path"
         fi
     else
         echo "Adding license to: $file_path"
-        echo -e "$HEADER_TO_USE$(cat "$file_path")" > "$file_path.tmp" && mv "$file_path.tmp" "$file_path"
+        # --- THE CRITICAL FIX IS HERE ---
+        # This safe method uses `cat` to combine the header and file,
+        # preventing the shell from interpreting the file's contents.
+        { echo -e -n "$HEADER_TO_USE"; cat "$file_path"; } > "$file_path.tmp" && mv "$file_path.tmp" "$file_path"
         [ "$commit_mode" == "commit_mode" ] && git add "$file_path"
     fi
 }
