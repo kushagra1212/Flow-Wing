@@ -952,8 +952,93 @@ TEST_F(ErrorTest, NumberTooLargeForInt) {
   IE(R"(
 var x: int = 100000000000000000000
 print(x)
-
+       
   )");
 
   EXPECT_ERROR_CODE(DiagnosticCode::NumberTooLargeForInt);
+}
+
+TEST_F(ErrorTest, UnTerminatedStringLiteral) {
+  IE(R"(
+"
+
+       
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedStringLiteral);
+}
+
+TEST_F(ErrorTest, UnTerminatedStringLiteralWithPrint) {
+  IE(R"(
+print("
+
+       
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedStringLiteral);
+}
+
+TEST_F(ErrorTest, BadCharacterEscapeSequenceInStringLiteral) {
+  IE(R"(
+"\e"
+       
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::BadCharacterEscapeSequenceInStringLiteral);
+}
+
+TEST_F(ErrorTest, BadCharacterInput) {
+  IE(R"(
+sss@
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::BadCharacterInput);
+}
+
+TEST_F(ErrorTest, UnTerminatedTemplateStringLiteral) {
+  IE(R"(
+var s = `
+
+This is the template string
+
+
+Very long string
+
+
+                funny string
+
+weird string
+{char}
+
+
+
+print(s)
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedTemplateStringLiteral);
+}
+
+TEST_F(ErrorTest, UnTerminatedTemplateStringLiteral2) {
+  IE(R"(
+var s = `
+
+This is the template string
+
+
+Very long string
+
+
+                funny string
+
+weird string
+{char}
+
+``
+
+print(s)
+
+  )");
+
+  EXPECT_ERROR_CODE(DiagnosticCode::UnTerminatedTemplateStringLiteral);
 }

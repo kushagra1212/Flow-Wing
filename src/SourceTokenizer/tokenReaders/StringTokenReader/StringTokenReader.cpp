@@ -1,4 +1,5 @@
 #include "StringTokenReader.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 StringTokenReader::readToken(SourceTokenizer &lexer) {
@@ -65,9 +66,10 @@ StringTokenReader::unTerminatedStringToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Unterminated String Literal", DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(unterminatedSyntaxToken.get())));
+      DiagnosticUtils::DiagnosticLevel::Error,
+      DiagnosticUtils::DiagnosticType::Lexical, {},
+      Utils::getSourceLocation(unterminatedSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedStringLiteral));
 
   return (unterminatedSyntaxToken);
 }
@@ -84,11 +86,12 @@ StringTokenReader::badEscapeSequenceToken(SourceTokenizer &lexer,
           0);
 
   lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Bad Character Escape Sequence: \\" +
-          lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1),
       DiagnosticUtils::DiagnosticLevel::Error,
       DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(badSyntaxToken.get())));
+      {lexer.getLine(lexer.lineNumber()).substr(lexer.position(), 1)},
+      Utils::getSourceLocation(badSyntaxToken.get()),
+      FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+          BadCharacterEscapeSequenceInStringLiteral));
 
   return (badSyntaxToken);
 }

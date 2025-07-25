@@ -6,7 +6,6 @@
 #include "BracketedExpressionBinder/BracketedExpressionBinder.h"
 #include "CallExpressionBinder/CallExpressionBinder.h"
 #include "ContainerExpressionBinder/ContainerExpressionBinder.h"
-#include "DefaultExpressionBinder/DefaultExpressionBinder.h"
 #include "FillExpressionBinder/FillExpressionBinder.h"
 #include "IndexExpressionBinder/IndexExpressionBinder.h"
 #include "LiteralExpressionBinder/LiteralExpressionBinder.h"
@@ -85,6 +84,8 @@ ExpressionBinderFactory::create(const SyntaxKindUtils::SyntaxKind &kind) {
   }
 
   default:
-    return std::make_unique<DefaultExpressionBinder>();
+    assert(false &&
+           "Unhandled ExpressionSyntax Kind in ExpressionBinderFactory");
+    return nullptr;
   }
 }

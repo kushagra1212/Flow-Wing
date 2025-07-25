@@ -12,25 +12,10 @@ SingleLineCommentTokenReader::readToken(SourceTokenizer &lexer) {
   lexer.advancePosition(); // skip ;
 
   while (!lexer.isEOLorEOF()) {
-    if (lexer.isEOL()) {
-      std::unique_ptr<SyntaxToken<std::any>> newSyntaxToken =
-          std::move(std::make_unique<EndOfFileTokenReader>()->readToken(lexer));
-
-      lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-          "Unterminated Comment Block", DiagnosticUtils::DiagnosticLevel::Error,
-          DiagnosticUtils::DiagnosticType::Lexical,
-          Utils::getSourceLocation(newSyntaxToken.get())));
-
-      return std::move(newSyntaxToken);
-    } else {
-      text += lexer.currentChar();
-      lexer.advancePosition();
-    }
+    text += lexer.currentChar();
+    lexer.advancePosition();
   }
-  if (lexer.isEOL()) {
-    text += "\n";
-    lexer.advanceLine();
-  }
+
   return std::make_unique<SyntaxToken<std::any>>(
       lexer.diagnosticHandler()->getAbsoluteFilePath(), lineN,
       SyntaxKindUtils::SyntaxKind::CommentStatement, pos, text, nullptr);

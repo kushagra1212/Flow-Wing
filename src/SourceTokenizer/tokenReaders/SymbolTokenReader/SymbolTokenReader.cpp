@@ -1,4 +1,5 @@
 #include "SymbolTokenReader.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include <string>
 
 std::unique_ptr<SyntaxToken<std::any>>
@@ -48,10 +49,10 @@ SymbolTokenReader::badCharacterToken(SourceTokenizer &lexer,
           SyntaxKindUtils::SyntaxKind::BadToken, start, str, nullptr);
 
   lexer.diagnosticHandler()->addDiagnostic(
-      Diagnostic("Bad Character Input <" + str + ">",
-                 DiagnosticUtils::DiagnosticLevel::Error,
-                 DiagnosticUtils::DiagnosticType::Lexical,
-                 Utils::getSourceLocation(badSyntaxToken.get())));
+      Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Lexical, {str},
+                 Utils::getSourceLocation(badSyntaxToken.get()),
+                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterInput));
 
   return badSyntaxToken;
 }

@@ -413,9 +413,9 @@ std::unordered_map<FLOW_WING::DIAGNOSTIC::DiagnosticCode,
           "replace 'a with 'a'."}},
         {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterEscapeSequence),
          {"Invalid escape sequence '\\{0}' encountered.",
-          "Use a valid escape character such as \\n, \\t, \\', \\\\, etc.",
+          "Use a valid escape character such as \\n, \\t, \\r, \\', \\\\, etc.",
           "Escape sequences must follow valid syntax. Check for typos or "
-          "unsupported escape characters like '\\{0}' in the string literal."}},
+          "unsupported escape characters like '\\{0}'."}},
         {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::NumberTooLargeForInt),
          {"The integer literal '{0}' is too large to be represented as a "
           "64-bit signed integer.",
@@ -424,5 +424,35 @@ std::unordered_map<FLOW_WING::DIAGNOSTIC::DiagnosticCode,
           "9,223,372,036,854,775,807).",
           "Literals that exceed the range of a 64-bit signed integer may lead "
           "to overflow or unexpected behavior at runtime."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnTerminatedStringLiteral),
+         {"Unterminated string literal detected.",
+          "Ensure that all string literals are properly closed with a matching "
+          "quotation mark.",
+          "Unterminated strings can lead to syntax errors and may cause the "
+          "compiler to misinterpret subsequent code. Check for missing or "
+          "unmatched quotes in your string."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              BadCharacterEscapeSequenceInStringLiteral),
+         {"Invalid escape sequence '\\{0}' encountered.",
+          "Use a valid escape character such as \\n, \\t, \\\", \\r, \\\\, "
+          "etc.",
+          "Escape sequences must follow valid syntax. Check for typos or "
+          "unsupported escape characters like '\\{0}' in the string literal."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::BadCharacterInput),
+         {"Invalid character '{0}' encountered.",
+          "Remove or replace the invalid character '{0}' to continue.",
+          "Certain characters may not be allowed in identifiers, paths, or "
+          "source code. "
+          "Make sure the input does not contain any unsupported or special "
+          "characters."}},
+        {(FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+              UnTerminatedTemplateStringLiteral),
+         {"Unterminated template string literal detected. The string starting "
+          "with a backtick (`) is not properly closed.",
+          "Ensure that the template string literal is properly terminated with "
+          "a matching backtick (`).",
+          "Unterminated template literals can lead to syntax errors or "
+          "unexpected behavior. Verify that multiline strings are correctly "
+          "enclosed."}},
 
 };

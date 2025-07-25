@@ -65,6 +65,10 @@ enum class DiagnosticCode : int16_t {
   UnTerminatedSingleQuote = 54,
   BadCharacterEscapeSequence = 55,
   NumberTooLargeForInt = 56,
+  UnTerminatedStringLiteral = 57,
+  BadCharacterEscapeSequenceInStringLiteral = 58,
+  BadCharacterInput = 59,
+  UnTerminatedTemplateStringLiteral = 60,
 };
 
 }

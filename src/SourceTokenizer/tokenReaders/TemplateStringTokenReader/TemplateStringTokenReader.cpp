@@ -1,4 +1,6 @@
 #include "TemplateStringTokenReader.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 TemplateStringTokenReader::readToken(SourceTokenizer &lexer) {
@@ -40,15 +42,14 @@ TemplateStringTokenReader::unTerminatedTemplateStringToken(
   std::unique_ptr<SyntaxToken<std::any>> unTerminatedToken =
       std::make_unique<SyntaxToken<std::any>>(
           lexer.diagnosticHandler()->getAbsoluteFilePath(), lexer.lineNumber(),
-          SyntaxKindUtils::SyntaxKind::BadToken, start,
-          lexer.getLine(lexer.lineNumber())
-              .substr(start, lexer.position() - start),
-          0);
+          SyntaxKindUtils::SyntaxKind::BadToken, start, "", 0);
 
-  lexer.diagnosticHandler()->addDiagnostic(Diagnostic(
-      "Unterminated backtick string", DiagnosticUtils::DiagnosticLevel::Error,
-      DiagnosticUtils::DiagnosticType::Lexical,
-      Utils::getSourceLocation(unTerminatedToken.get())));
+  lexer.diagnosticHandler()->addDiagnostic(
+      Diagnostic(DiagnosticUtils::DiagnosticLevel::Error,
+                 DiagnosticUtils::DiagnosticType::Lexical, {},
+                 Utils::getSourceLocation(unTerminatedToken.get()),
+                 FLOW_WING::DIAGNOSTIC::DiagnosticCode::
+                     UnTerminatedTemplateStringLiteral));
 
   return (unTerminatedToken);
 }
