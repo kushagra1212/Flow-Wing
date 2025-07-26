@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../common/Common.h"
-#include "../syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 namespace BinderKindUtils {
-enum BoundNodeKind {
+enum BoundNodeKind : int {
   UnaryExpression,
   BinaryExpression,
   LiteralExpression,
@@ -75,14 +73,14 @@ enum BoundNodeKind {
   BoundFunctionSymbol,
 };
 
-enum BoundUnaryOperatorKind {
+enum BoundUnaryOperatorKind : int {
   Identity,
   Negation,
   LogicalNegation,
   BitwiseNegation,
 };
 
-enum BoundBinaryOperatorKind {
+enum BoundBinaryOperatorKind : int {
   Addition,
   Subtraction,
   Multiplication,
@@ -104,7 +102,7 @@ enum BoundBinaryOperatorKind {
   AssignmentToken
 };
 
-enum MemoryKind { Stack, Heap, Global, None };
+enum MemoryKind : int { Stack, Heap, Global, None };
 
 std::string to_string(MemoryKind kind);
 

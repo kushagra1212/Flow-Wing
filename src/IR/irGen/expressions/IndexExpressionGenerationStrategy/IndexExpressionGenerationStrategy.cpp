@@ -20,7 +20,7 @@
 
 #include "IndexExpressionGenerationStrategy.h"
 
-#include "../VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
 
 IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
     CodeGenerationContext *context)

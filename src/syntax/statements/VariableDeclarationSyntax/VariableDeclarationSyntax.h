@@ -17,15 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxKindUtils.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../../expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/utils/Utils.h"
 
 class VariableDeclarationSyntax : public StatementSyntax {
 private:

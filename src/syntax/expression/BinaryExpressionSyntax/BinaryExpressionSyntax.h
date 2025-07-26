@@ -17,11 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef BINARYEXPRESSIONSYNTAX_H
-#define BINARYEXPRESSIONSYNTAX_H
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
+
 class BinaryExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<ExpressionSyntax> _left;
@@ -45,4 +46,3 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
   std::unique_ptr<ExpressionSyntax> &getRightRef();
 };
-#endif

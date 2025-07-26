@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
-#include "../ContainerExpressionParser/ContainerExpressionParser.h"
-#include "../ExpressionParser.h"
-#include "../FillExpressionParser/FillExpressionParser.h"
-#include "../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 
 class BracketedExpressionParser : public ExpressionParser {
 public:

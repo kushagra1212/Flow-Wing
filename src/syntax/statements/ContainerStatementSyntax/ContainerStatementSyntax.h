@@ -17,20 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __CONTAINER_STATEMENT_SYNTAX_H__
-#define __CONTAINER_STATEMENT_SYNTAX_H__
-
-#include "../../../utils/Utils.h"
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/utils/Utils.h"
 
 class ContainerStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _keyword;
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
   std::unique_ptr<ExpressionSyntax> _containerExpression;
@@ -38,7 +35,7 @@ class ContainerStatementSyntax : public StatementSyntax {
 
   Utils::type _type;
 
- public:
+public:
   ContainerStatementSyntax() = default;
 
   // Overrides
@@ -47,10 +44,12 @@ class ContainerStatementSyntax : public StatementSyntax {
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters
-  auto setContainerExpression(
-      std::unique_ptr<ExpressionSyntax> containerExpression) -> void;
-  auto setIdentifierToken(
-      std::unique_ptr<SyntaxToken<std::any>> identifierToken) -> void;
+  auto
+  setContainerExpression(std::unique_ptr<ExpressionSyntax> containerExpression)
+      -> void;
+  auto
+  setIdentifierToken(std::unique_ptr<SyntaxToken<std::any>> identifierToken)
+      -> void;
   auto setType(Utils::type type) -> void;
   auto addContainerSizeExpression(std::unique_ptr<ExpressionSyntax> item)
       -> void;
@@ -67,5 +66,3 @@ class ContainerStatementSyntax : public StatementSyntax {
 
   const Utils::type &getType() const;
 };
-
-#endif  // __CONTAINER_STATEMENT_SYNTAX_H__

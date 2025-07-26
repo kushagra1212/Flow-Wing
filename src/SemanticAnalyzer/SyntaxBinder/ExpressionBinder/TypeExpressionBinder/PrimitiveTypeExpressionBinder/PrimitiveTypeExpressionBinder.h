@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../../../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include "../../../../BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "../../ExpressionBinder.h"
-#include "../TypeExpressionBinder.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/TypeExpressionBinder/TypeExpressionBinder.h"
 
 class PrimitiveTypeExpressionBinder : public ExpressionBinder {
 public:

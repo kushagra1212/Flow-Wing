@@ -17,13 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
+#include <string>
+#include <vector>
 
-#ifndef __SYNTAXNODE_H__
-#define __SYNTAXNODE_H__
-#include "../common/Common.h"
-#include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "SyntaxKindUtils.h"
+namespace DiagnosticUtils {
+struct SourceLocation;
+}
+
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
+
 class SyntaxNode {
 public:
   int lineNumber;
@@ -39,4 +45,3 @@ public:
 
   virtual const DiagnosticUtils::SourceLocation getSourceLocation() const = 0;
 };
-#endif

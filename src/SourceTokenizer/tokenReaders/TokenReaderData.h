@@ -17,10 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../syntax/SyntaxKindUtils.h"
+#include <string>
+
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 #define __gl_FLOW_WING_KEYWORDS_SIZE 39
 #define __gl_FLOW_WING_SYMBOLS_SIZE 33

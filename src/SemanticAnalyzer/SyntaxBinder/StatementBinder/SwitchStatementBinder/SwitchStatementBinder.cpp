@@ -17,11 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "SwitchStatementBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include <memory>
+#include "src/SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/CaseStatementBinder/CaseStatementBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 SwitchStatementBinder::bindStatement(SyntaxBinderContext *ctx,

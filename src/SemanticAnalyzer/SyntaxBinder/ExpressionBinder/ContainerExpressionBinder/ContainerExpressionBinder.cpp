@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ContainerExpressionBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/ContainerExpressionSyntax/ContainerExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 ContainerExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

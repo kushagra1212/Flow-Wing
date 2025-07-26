@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
-#include "../../../../utils/BuiltInFunction/BuiltInFunction.h"
-#include "../../../BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../ExpressionBinder.h"
-#include "../ExpressionBinderFactory.h"
-#include <memory>
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinder.h"
 class CallExpressionBinder : public ExpressionBinder {
 public:
   std::unique_ptr<BoundExpression> bindExpression(SyntaxBinderContext *ctx,

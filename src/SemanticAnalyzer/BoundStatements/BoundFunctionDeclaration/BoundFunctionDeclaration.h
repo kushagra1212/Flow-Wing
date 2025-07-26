@@ -21,11 +21,11 @@
 #ifndef BOUND_FUNCTION_DECLARATION_H
 #define BOUND_FUNCTION_DECLARATION_H
 
-#include "../../../utils/Utils.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/utils/Utils.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundFunctionDeclaration : public BoundStatement,
                                  public BoundSourceLocation {

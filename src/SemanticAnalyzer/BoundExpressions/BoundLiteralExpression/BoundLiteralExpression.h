@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include <any>
-#include <iostream>
-#include <typeinfo>
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include <typeinfo>
 
 template <typename T> class BoundLiteralExpression : public BoundExpression {
 private:

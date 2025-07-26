@@ -17,17 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/AssignmentExpressionSyntax.h"
-#include "../../../../syntax/expression/MultipleAssignmentExpressionSyntax/MultipleAssignmentExpressionSyntax.h"
-#include "../../../../syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
-#include "../ExpressionParser.h"
-#include "../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
-#include "../VariableExpressionParser/VariableExpressionParser.h"
-
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 class MultipleAssignmentExpressionParser : public ExpressionParser {
 public:
   std::unique_ptr<ExpressionSyntax>

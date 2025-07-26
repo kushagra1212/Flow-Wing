@@ -19,7 +19,7 @@
 
 
 #pragma once
-#include "../UnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 
 class Int32UnaryOperationStrategy : public UnaryOperationStrategy {
 public:

@@ -21,7 +21,7 @@
 #ifndef FLOWWING_IR_CONSTANTS_H
 #define FLOWWING_IR_CONSTANTS_H
 
-#include "../../utils/FlowWingConfig.h"
+#include "src/utils/FlowWingConfig.h"
 #include <string>
 
 namespace FLOWWING::IR::CONSTANTS {

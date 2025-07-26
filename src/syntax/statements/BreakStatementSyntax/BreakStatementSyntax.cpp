@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BreakStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 BreakStatementSyntax::BreakStatementSyntax(
     std::unique_ptr<SyntaxToken<std::any>> breakKeyword) {
@@ -35,7 +37,7 @@ const SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
 const std::vector<SyntaxNode *> &BreakStatementSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
-    _children.push_back(_breakKeyword.get());
+    _children.emplace_back(_breakKeyword.get());
   }
 
   return this->_children;

@@ -17,17 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #ifndef __BOUND_CONTAINER_STATEMENT_H__
 #define __BOUND_CONTAINER_STATEMENT_H__
 
-#include "../../../utils/Utils.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../BoundNode.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundNode.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/utils/Utils.h"
 
 class BoundContainerStatement : public BoundStatement,
                                 public BoundSourceLocation {

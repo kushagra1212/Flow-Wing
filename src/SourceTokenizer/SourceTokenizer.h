@@ -17,17 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../common/Common.h"
-#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../syntax/SyntaxToken.h"
-#include "../utils/Utils.h"
-#include "tokenReaders/TokenReaderFactory.h"
+#include <any>
 
 class TokenReader;
 class TokenReaderFactory;
+template <typename T> class SyntaxToken;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class SourceTokenizer {
   const char _END_OF_FILE = '\r';

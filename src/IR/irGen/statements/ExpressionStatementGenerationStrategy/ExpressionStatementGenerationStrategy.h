@@ -21,8 +21,8 @@
 #ifndef __FLOWWING_EXPRESSION_STATEMENT_STRATEGY_H__
 #define __FLOWWING_EXPRESSION_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ExpressionStatementGenerationStrategy
     : public StatementGenerationStrategy {

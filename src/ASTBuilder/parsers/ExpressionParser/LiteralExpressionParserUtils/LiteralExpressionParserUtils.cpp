@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "LiteralExpressionParserUtils.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 std::unique_ptr<ExpressionSyntax> LiteralExpressionParserUtils::parseExpression(
     ParserContext *ctx, const SyntaxKindUtils::SyntaxKind &kind) {

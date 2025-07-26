@@ -25,8 +25,8 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
-#include "../../constants/FlowWingIRConstants.h"
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 using namespace FLOWWING::IR::CONSTANTS;
 

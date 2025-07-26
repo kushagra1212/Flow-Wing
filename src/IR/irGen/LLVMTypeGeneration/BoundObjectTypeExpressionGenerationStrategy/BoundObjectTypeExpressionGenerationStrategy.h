@@ -17,12 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../LLVMTypeGenerationStrategy.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 
+class CodeGenerationContext;
 class BoundObjectTypeExpressionGenerationStrategy
     : public LLVMTypeGenerationStrategy {
 public:

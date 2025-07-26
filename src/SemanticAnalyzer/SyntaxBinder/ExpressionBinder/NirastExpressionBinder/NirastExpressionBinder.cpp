@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "NirastExpressionBinder.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
 #include <memory>
 
 std::unique_ptr<BoundExpression>

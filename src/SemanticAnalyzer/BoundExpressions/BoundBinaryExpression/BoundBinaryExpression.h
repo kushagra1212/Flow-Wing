@@ -17,11 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include <llvm/IR/IRBuilder.h>
+
+namespace BinderKindUtils {
+enum BoundBinaryOperatorKind : int;
+}
 
 class BoundBinaryExpression : public BoundExpression {
 private:

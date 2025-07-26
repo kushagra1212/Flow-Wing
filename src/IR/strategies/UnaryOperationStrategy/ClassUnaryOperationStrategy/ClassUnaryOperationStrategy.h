@@ -19,7 +19,7 @@
 
 
 #pragma once
-#include "../UnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 
 class ClassUnaryOperationStrategy : public UnaryOperationStrategy {
 public:

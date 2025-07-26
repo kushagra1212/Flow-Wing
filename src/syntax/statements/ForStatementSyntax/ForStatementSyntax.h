@@ -17,15 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef FOR_STATEMENT_SYNTAX_H
-#define FOR_STATEMENT_SYNTAX_H
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+
+class BlockStatementSyntax;
+class ExpressionSyntax;
 
 class ForStatementSyntax : public StatementSyntax {
 private:
@@ -54,5 +51,3 @@ public:
   std::unique_ptr<ExpressionSyntax> &getUpperBoundRef();
   std::unique_ptr<ExpressionSyntax> &getStepExpressionRef();
 };
-
-#endif // FOR_STATEMENT_SYNTAX_H

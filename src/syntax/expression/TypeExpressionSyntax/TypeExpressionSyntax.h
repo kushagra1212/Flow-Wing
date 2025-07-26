@@ -17,15 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__TYPEEXPRESSIONSYNTAX_H__
-#define __FLOW__WING__TYPEEXPRESSIONSYNTAX_H__
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
 
+template <typename T> class SyntaxToken;
 class TypeExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _type;
@@ -37,10 +34,5 @@ public:
   const virtual DiagnosticUtils::SourceLocation
   getSourceLocation() const override;
 
-  inline auto getTypeRef() const
-      -> const std::unique_ptr<SyntaxToken<std::any>> & {
-    return _type;
-  }
+  const std::unique_ptr<SyntaxToken<std::any>> &getTypeRef() const;
 };
-
-#endif // __FLOW__WING__TYPEEXPRESSIONSYNTAX_H__

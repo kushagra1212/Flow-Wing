@@ -21,14 +21,14 @@
 #ifndef FLOWWING_BINARYOPERATIONSTRATEGY_H
 #define FLOWWING_BINARYOPERATIONSTRATEGY_H
 
-#include "../../../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../../../common/Common.h"
-#include "../../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
-#include "../../LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
-#include "../../LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
-#include "../../LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
-#include "../../LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
-#include "../../LLVMTypeConversion/TypeSpecificValueVisitor.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/common/Common.h"
+#include "src/IR/LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
+#include "src/IR/LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
+#include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/TypeSpecificValueVisitor.h"
 #include "utility.h"
 #include "llvm/IR/Value.h"
 

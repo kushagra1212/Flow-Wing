@@ -17,16 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_OBJECT_STATEMENT_STRATEGY_H__
-#define __FLOWWING_OBJECT_STATEMENT_STRATEGY_H__
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
+class CodeGenerationContext;
+class BoundStatement;
+class BoundObjectTypeExpression;
+class BoundVariableDeclaration;
+class BoundExpression;
 
 class ObjectDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {
@@ -58,5 +57,3 @@ private:
   llvm::Value *declare();
   llvm::Value *assignExpression();
 };
-
-#endif //__FLOWWING_OBJECT_STATEMENT_STRATEGY_H__

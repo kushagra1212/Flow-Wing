@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../utils/FlowWingConfig.h"
-#include "../utils/PathUtils.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include <cstdint>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/Module.h>

@@ -21,7 +21,7 @@
 #ifndef __FLOAT_TYPE_CONVERTER_H__
 #define __FLOAT_TYPE_CONVERTER_H__
 
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class FloatTypeConverter : public TypeConverterBase {
 public:

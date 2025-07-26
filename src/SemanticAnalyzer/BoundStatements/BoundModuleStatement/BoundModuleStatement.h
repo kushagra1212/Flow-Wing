@@ -21,9 +21,9 @@
 #ifndef __BoundModuleStatement_H__
 #define __BoundModuleStatement_H__
 
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include <vector>
 
 class BoundModuleStatement : public BoundStatement, public BoundSourceLocation {

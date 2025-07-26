@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionTypeExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 FunctionTypeExpressionSyntax::FunctionTypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
@@ -34,30 +35,30 @@ const std::vector<SyntaxNode *> &FunctionTypeExpressionSyntax::getChildren() {
     return _children;
 
   if (this->_openBracketToken)
-    _children.push_back(_openBracketToken.get());
+    _children.emplace_back(_openBracketToken.get());
 
   if (this->_openParenthesisToken)
-    _children.push_back(_openParenthesisToken.get());
+    _children.emplace_back(_openParenthesisToken.get());
 
   for (auto &parameterType : _parameterTypes)
-    _children.push_back(parameterType.get());
+    _children.emplace_back(parameterType.get());
 
   for (auto &asType : _asParametersKeywords) {
-    _children.push_back(asType.second.get());
+    _children.emplace_back(asType.second.get());
   }
 
   if (this->_closeParenthesisToken)
-    _children.push_back(_closeParenthesisToken.get());
+    _children.emplace_back(_closeParenthesisToken.get());
 
   if (this->_asKeyword)
-    _children.push_back(_asKeyword.get());
+    _children.emplace_back(_asKeyword.get());
 
   for (auto &returnType : _returnTypes) {
     _children.push_back(returnType.get());
   }
 
   if (this->_closeBracketToken)
-    _children.push_back(_closeBracketToken.get());
+    _children.emplace_back(_closeBracketToken.get());
 
   return _children;
 }

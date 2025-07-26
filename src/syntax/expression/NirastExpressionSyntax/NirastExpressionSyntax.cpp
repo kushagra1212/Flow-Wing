@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "NirastExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 NirastExpressionSyntax::NirastExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> nirastExpression)
@@ -32,7 +35,7 @@ const std::vector<SyntaxNode *> &NirastExpressionSyntax::getChildren() {
     return _children;
 
   if (_nirastExpression)
-    _children.push_back(_nirastExpression.get());
+    _children.emplace_back(_nirastExpression.get());
 
   return _children;
 }

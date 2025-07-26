@@ -20,8 +20,8 @@
 
 #ifndef __BOOL_TYPE_CONVERTER_H__
 #define __BOOL_TYPE_CONVERTER_H__
-#include "../StringTypeConverter/StringTypeConverter.h"
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class BoolTypeConverter : public TypeConverterBase {
 public:

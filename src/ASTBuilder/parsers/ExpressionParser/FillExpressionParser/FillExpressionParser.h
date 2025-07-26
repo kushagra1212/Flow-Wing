@@ -17,12 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/FillExpressionSyntax/FillExpressionSyntax.h"
-#include "../ExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 
 class FillExpressionParser : public ExpressionParser {
 public:

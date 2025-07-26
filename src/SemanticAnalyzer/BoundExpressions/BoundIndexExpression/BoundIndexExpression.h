@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __BIND_INDEX_EXPRESSION_H__
-#define __BIND_INDEX_EXPRESSION_H__
-
-#include "../BoundExpression/BoundExpression.h"
-#include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include <any>
 
 class BoundIndexExpression : public BoundExpression {
 private:
@@ -74,5 +73,3 @@ public:
 
   inline void setIsSelf(bool isSelf) { _isSelf = isSelf; }
 };
-
-#endif // __BIND_INDEX_EXPRESSION_H__

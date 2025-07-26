@@ -21,7 +21,7 @@
 #ifndef __DOUBLE_TYPE_CONVERTER_H__
 #define __DOUBLE_TYPE_CONVERTER_H__
 
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class DoubleTypeConverter : public TypeConverterBase {
 public:

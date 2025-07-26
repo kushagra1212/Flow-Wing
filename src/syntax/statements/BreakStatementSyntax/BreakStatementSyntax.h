@@ -17,19 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef BREAKSTATEMENTSYNTAX_H
-#define BREAKSTATEMENTSYNTAX_H
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
 
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../StatementSyntax.h"
-
+template <typename T> class SyntaxToken;
 class BreakStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _breakKeyword;
 
- public:
+public:
   BreakStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> breakKeyword);
 
   std::unique_ptr<SyntaxToken<std::any>> getBreakKeyword();
@@ -40,5 +38,3 @@ class BreakStatementSyntax : public StatementSyntax {
 
   std::unique_ptr<SyntaxToken<std::any>> &getBreakKeywordPtr();
 };
-
-#endif  // BREAKSTATEMENTSYNTAX_H

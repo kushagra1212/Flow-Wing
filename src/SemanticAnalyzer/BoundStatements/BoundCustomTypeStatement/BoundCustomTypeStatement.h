@@ -21,10 +21,10 @@
 #ifndef __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
 #define __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
 
-#include "../../BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundCustomTypeStatement : public BoundStatement,
                                  public BoundSourceLocation {

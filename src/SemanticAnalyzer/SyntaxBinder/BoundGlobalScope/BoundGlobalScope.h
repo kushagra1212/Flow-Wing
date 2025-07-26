@@ -20,17 +20,17 @@
 
 #ifndef BOUNDSCOPEGLOBAL_H
 #define BOUNDSCOPEGLOBAL_H
-#include "../../../common/Common.h"
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../../utils/Utils.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundStatements/BoundClassStatement/BoundClassStatement.h"
-#include "../../BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
-#include "../../BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
-#include "../../BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
-#include "../BoundScope/BoundScope.h"
+#include "src/common/Common.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/Utils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundScope/BoundScope.h"
 
 class BoundGlobalScope {
 public:

@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ReturnStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 ReturnStatementSyntax::ReturnStatementSyntax(
     std::unique_ptr<SyntaxToken<std::any>> returnKeyword)

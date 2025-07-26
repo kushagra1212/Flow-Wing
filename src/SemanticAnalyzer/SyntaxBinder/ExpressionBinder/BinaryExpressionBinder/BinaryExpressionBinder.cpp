@@ -17,10 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BinaryExpressionBinder.h"
-
-#include "../ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/BinaryExpressionSyntax/BinaryExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 BinaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

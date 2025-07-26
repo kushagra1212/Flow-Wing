@@ -21,8 +21,8 @@
 #ifndef __FLOWWING_BLOCK_STATEMENT_STRATEGY_H__
 #define __FLOWWING_BLOCK_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class BlockStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "EmptyStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 EmptyStatementSyntax::EmptyStatementSyntax() {}
 
@@ -30,7 +31,7 @@ const std::vector<SyntaxNode *> &EmptyStatementSyntax::getChildren() {
   return _children;
 }
 
-const DiagnosticUtils::SourceLocation EmptyStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+EmptyStatementSyntax::getSourceLocation() const {
   return DiagnosticUtils::SourceLocation();
 }

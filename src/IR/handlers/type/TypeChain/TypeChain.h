@@ -21,8 +21,8 @@
 #ifndef FLOWWING_TYPE_CHAIN_H
 #define FLOWWING_TYPE_CHAIN_H
 
-#include "../../../../common/Common.h"
-#include "../TypeTable/TypeTable.h"
+#include "src/common/Common.h"
+#include "src/IR/handlers/type/TypeTable/TypeTable.h"
 
 class TypeChain {
 private:

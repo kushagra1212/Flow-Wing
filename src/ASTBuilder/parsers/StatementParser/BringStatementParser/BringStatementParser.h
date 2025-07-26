@@ -17,16 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
-
-#include "../../../../utils/Macros.h"
-#include "../../../../utils/PathUtils.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
-
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 class BringStatementParser : public StatementParser {
 
 public:

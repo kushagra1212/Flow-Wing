@@ -17,9 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CallExpressionBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundExpression>
 CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

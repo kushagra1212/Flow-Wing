@@ -17,9 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionStatementGenerationStrategy.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "src/IR/irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
+#include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/utils/LogConfig.h"
 
 FunctionStatementGenerationStrategy::FunctionStatementGenerationStrategy(
     CodeGenerationContext *context)

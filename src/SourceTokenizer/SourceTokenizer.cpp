@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SourceTokenizer.h"
 
+#include "src/SourceTokenizer/tokenReaders/TokenReaderFactory.h"
+#include "src/syntax/SyntaxToken.h"
 #include "tokenReaders/TokenReader.h"
 
 SourceTokenizer::SourceTokenizer(const std::vector<std::string> &sourceCode,

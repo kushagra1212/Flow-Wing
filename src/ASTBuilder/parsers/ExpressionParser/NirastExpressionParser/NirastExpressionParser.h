@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/NirastExpressionSyntax/NirastExpressionSyntax.h"
-#include "../ExpressionParser.h"
-#include "../LiteralExpressionParserUtils/LiteralExpressionParserUtils.h"
-#include "../PrecedenceAwareExpressionParser.h"
-
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 class NirastExpressionParser : public ExpressionParser {
 public:
   std::unique_ptr<ExpressionSyntax>

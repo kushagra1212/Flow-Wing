@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
-#include "../../../BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../MemberBinder/FunctionDeclarationBinder/FunctionDeclarationBinder.h"
-#include "../StatementBinder.h"
-#include "../VariableDeclarationBinder/VariableDeclarationBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class ClassStatementBinder : public StatementBinder {
 public:
   std::unique_ptr<BoundStatement> bindStatement(SyntaxBinderContext *ctx,

@@ -21,7 +21,7 @@
 #ifndef __BOUND_MULTIPLE_VARIABLE_DECLARATION_H__
 #define __BOUND_MULTIPLE_VARIABLE_DECLARATION_H__
 
-#include "../BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundMultipleVariableDeclaration : public BoundStatement,
                                          public BoundSourceLocation {

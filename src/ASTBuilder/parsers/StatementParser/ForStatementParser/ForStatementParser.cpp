@@ -17,8 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ForStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ExpressionStatementParser/ExpressionStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/VariableDeclarationParser/VariableDeclarationParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<StatementSyntax>

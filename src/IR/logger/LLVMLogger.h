@@ -17,18 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef LLVMLOGGER_H
-#define LLVMLOGGER_H
-
-#include "../../diagnostics/Diagnostic/DiagnosticCode.h"
-#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "llvm/ADT/STLExtras.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCode.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "llvm/Support/Error.h"
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
-#include "llvm/Support/raw_ostream.h"
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class LLVMLogger {
   FlowWing::DiagnosticHandler *_diagnosticHandler;
@@ -81,5 +79,3 @@ private:
 
   std::string _outputFilePath = "";
 };
-
-#endif // LLVMLOGGER_H

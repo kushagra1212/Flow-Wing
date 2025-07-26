@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "MultipleAssignmentExpressionBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/BoundExpressions/BoundMultipleAssignmentExpression/BoundMultipleAssignmentExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/MultipleAssignmentExpressionSyntax/MultipleAssignmentExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 MultipleAssignmentExpressionBinder::bindExpression(

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "../../../../diagnostics/Diagnostic/DiagnosticCode.h"
-#include "../../../context/CodeGenerationContext.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCode.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 namespace TYPE_VERIFIER {
 

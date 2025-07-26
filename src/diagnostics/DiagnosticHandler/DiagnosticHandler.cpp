@@ -17,9 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DiagnosticHandler.h"
-#include "../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/utils/Colors.h"
+#include "src/utils/Utils.h"
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace FlowWing;
 

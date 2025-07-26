@@ -23,7 +23,7 @@
 
 #include <llvm/IR/DerivedTypes.h>
 
-#include "../LLVMType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMType.h"
 
 class LLVMObjectType : public LLVMType {
 public:

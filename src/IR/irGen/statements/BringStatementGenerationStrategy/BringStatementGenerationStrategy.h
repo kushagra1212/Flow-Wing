@@ -21,15 +21,15 @@
 #ifndef __FLOWWING_BRING_STATEMENT_STRATEGY_H__
 #define __FLOWWING_BRING_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
-#include "../../../../utils/Utils.h"
-#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
-#include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
-#include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
+#include "src/utils/Utils.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/ModuleStatementGenerationStrategy/ModuleStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 
 class BringStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

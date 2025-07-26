@@ -17,17 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__CUSTOM_TYPE_STATEMENT_SYNTAX_H__
-#define __FLOW__WING__CUSTOM_TYPE_STATEMENT_SYNTAX_H__
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/AttributeExpressionSyntax/AttributeExpressionSyntax.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../../expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include "../StatementSyntax.h"
-
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/AttributeExpressionSyntax/AttributeExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
 class CustomTypeStatementSyntax : public StatementSyntax {
 private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _typeName;
@@ -84,5 +81,3 @@ public:
     return this->_exposeKeyword != nullptr;
   }
 };
-
-#endif // __FLOW__WING__CUSTOM_TYPE_STATEMENT_SYNTAX_H__

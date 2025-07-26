@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundFillExpression.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 BoundFillExpression::BoundFillExpression(
     const DiagnosticUtils::SourceLocation &location)

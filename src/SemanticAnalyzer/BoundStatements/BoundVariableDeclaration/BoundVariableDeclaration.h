@@ -17,18 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../common/Common.h"
-#include "../../../syntax/expression/ExpressionSyntax.h"
-#include "../../../utils/Utils.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../MemoryNode.h"
-#include "llvm/IR/DerivedTypes.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/MemoryNode.h"
+#include <any>
+#include <llvm/IR/DerivedTypes.h>
 
 class BoundMultipleVariableDeclaration;
 

@@ -19,10 +19,10 @@
 
 
 #pragma once
-#include "../../../utils/Utils.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../BoundExpression/BoundExpression.h"
+#include "src/utils/Utils.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundTypeExpression : public BoundExpression {
 private:

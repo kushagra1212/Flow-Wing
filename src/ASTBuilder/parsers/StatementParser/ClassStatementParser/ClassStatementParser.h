@@ -17,16 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
-#include "../../ParserUtils/VariableParserUtils.h"
-#include "../CustomTypeStatementParser/CustomTypeStatementParser.h"
-#include "../FunctionDeclarationParser/FunctionDeclarationParser.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
-
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 class ClassStatementParser : public StatementParser {
 
 public:

@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
-#include "../../../BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../../BoundStatements/BoundIfStatement/BoundIfStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class IfStatementBinder : public StatementBinder {
 
 public:

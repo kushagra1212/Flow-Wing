@@ -21,9 +21,9 @@
 #ifndef __STRING_TYPE_CONVERTER_H__
 #define __STRING_TYPE_CONVERTER_H__
 
-#include "../DoubleTypeConverter/DoubleTypeConverter.h"
-#include "../Int32TypeConverter/Int32TypeConverter.h"
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class StringTypeConverter : public TypeConverterBase {
 public:

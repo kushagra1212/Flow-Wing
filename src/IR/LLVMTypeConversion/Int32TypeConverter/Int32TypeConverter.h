@@ -21,7 +21,7 @@
 #ifndef __INT_TYPE_CONVERTER_H__
 #define __INT_TYPE_CONVERTER_H__
 
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class Int32TypeConverter : public TypeConverterBase {
 public:

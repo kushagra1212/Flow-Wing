@@ -17,14 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
-#include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include "SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
-#include "SyntaxBinder/StatementBinder/StatementBinderFactory.h"
-#include "SyntaxBinder/SyntaxBinder.h"
+#include <memory>
+
+class BoundGlobalScope;
+class CompilationUnitSyntax;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class SemanticAnalyzer {
 public:

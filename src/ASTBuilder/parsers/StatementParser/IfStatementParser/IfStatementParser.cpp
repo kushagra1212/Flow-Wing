@@ -17,8 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IfStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/ElseStatementParser/ElseStatementParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/ElseClauseSyntax/ElseClauseSyntax.h"
+#include "src/syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
+#include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<StatementSyntax>

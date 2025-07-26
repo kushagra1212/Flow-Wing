@@ -17,11 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/ParenthesizedExpressionSyntax.h"
-#include "../ExpressionBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinder.h"
 
 class ParenthesizedExpressionBinder : public ExpressionBinder {
 public:

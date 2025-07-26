@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #pragma once
 
-#include "../../../syntax/statements/StatementSyntax.h"
-#include "MemberBinder.h"
+#include <memory>
 
 class MemberBinder;
+
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 class MemberBinderFactory {
 public:

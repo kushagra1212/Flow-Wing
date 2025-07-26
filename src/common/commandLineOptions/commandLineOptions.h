@@ -17,16 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef COMMANDLINEOPTIONS_H
-#define COMMANDLINEOPTIONS_H
-
-#include "../../common/version.h"
-#include "../../external/include/argh.h"
-#include "../../utils/Utils.h"
+#include "src/common/version.h"
+#include "src/external/include/argh.h"
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <optional>
 #include <string>
 
@@ -168,5 +164,3 @@ void printHelp();
 } // namespace Cli
 
 } // namespace FlowWing
-
-#endif

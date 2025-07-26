@@ -21,7 +21,7 @@
 #ifndef __BOUND_MULTIPLE_ASSIGNMENT_EXPRESSION_H__
 #define __BOUND_MULTIPLE_ASSIGNMENT_EXPRESSION_H__
 
-#include "../BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 
 class BoundMultipleAssignmentExpression : public BoundExpression {
   std::vector<std::unique_ptr<BoundAssignmentExpression>> _assignmentList;

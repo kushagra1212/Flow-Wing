@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__
-#define __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__
-
-#include "../BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
 
 class BoundObjectTypeExpression : public BoundTypeExpression {
 private:
@@ -55,5 +54,3 @@ public:
     return this->_objectTypeIdentifier;
   }
 };
-
-#endif // __FLOW__WING__BOUND_OBJECT_TYPEEXPRESSIONSYNTAX_H__

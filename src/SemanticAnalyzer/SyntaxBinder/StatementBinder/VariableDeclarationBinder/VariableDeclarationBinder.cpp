@@ -17,10 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "VariableDeclarationBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundStatement>
 VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,

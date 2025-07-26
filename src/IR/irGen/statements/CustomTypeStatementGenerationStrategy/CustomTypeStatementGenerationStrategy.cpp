@@ -20,8 +20,8 @@
 
 #include "CustomTypeStatementGenerationStrategy.h"
 
-#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 CustomTypeStatementGenerationStrategy::CustomTypeStatementGenerationStrategy(
     CodeGenerationContext *context)

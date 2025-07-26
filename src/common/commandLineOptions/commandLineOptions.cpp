@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "commandLineOptions.h"
+#include "src/utils/Utils.h"
 #include <cstdint>
+#include <fstream>
+#include <iostream>
+#include <sys/unistd.h>
+#include <unistd.h>
 
 namespace FlowWing {
 namespace Cli {

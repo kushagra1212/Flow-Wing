@@ -21,9 +21,9 @@
 #ifndef __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../utility.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/utility.h"
 
 class UnaryExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

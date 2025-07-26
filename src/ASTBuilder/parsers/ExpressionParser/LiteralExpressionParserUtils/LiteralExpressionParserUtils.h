@@ -17,11 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/expression/ParenthesizedExpressionSyntax.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include <memory>
+
+class ParserContext;
+class ExpressionSyntax;
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 class LiteralExpressionParserUtils {
 public:

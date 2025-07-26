@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ContinueStatementParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/ContinueStatementSyntax/ContinueStatementSyntax.h"
 
 std::unique_ptr<StatementSyntax>
 ContinueStatementParser::parseStatement(ParserContext *ctx) {

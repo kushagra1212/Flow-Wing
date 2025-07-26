@@ -19,9 +19,9 @@
 
 
 #pragma once
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.h"
-#include "../../expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundSwitchStatement/BoundSwitchStatement.h"
+#include "src/IR/irGen/expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class SwitchStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

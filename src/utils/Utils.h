@@ -17,27 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef UTILS_H
-#define UTILS_H
+#include "src/external/include/json.hpp"
+#include "src/utils/Colors.h"
+#include <any>
 #include <cstdint>
 #include <filesystem>
-#include <regex>
-#include <typeinfo>
+#include <string>
 
-#include "../SemanticAnalyzer/BinderKindUtils.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../SemanticAnalyzer/BoundNode.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
-#include "../common/Common.h"
-#include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "../interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
-#include "../syntax/CompilationUnitSyntax.h"
-#include "../syntax/MemberSyntax.h"
-#include "../syntax/SyntaxNode.h"
-#include "../syntax/expression/LiteralExpressionSyntax.h"
-#include "../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include "Macros.h"
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
+
+namespace DiagnosticUtils {
+struct SourceLocation;
+}
+
+using JSON = nlohmann::json;
+
+class SyntaxNode;
+class CompilationUnitSyntax;
+class BoundStatement;
+class BoundNode;
+template <typename T> class SyntaxToken;
 
 namespace Utils {
 enum type {
@@ -258,5 +261,3 @@ public:
 };
 
 } // namespace Utils
-
-#endif // UTILS_H

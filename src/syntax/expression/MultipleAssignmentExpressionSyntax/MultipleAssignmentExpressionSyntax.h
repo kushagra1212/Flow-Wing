@@ -17,13 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __MULTIPLE_ASSIGNMENT_EXPRESSION_SYNTAX_H__
-#define __MULTIPLE_ASSIGNMENT_EXPRESSION_SYNTAX_H__
-
-#include "../AssignmentExpressionSyntax.h"
-#include "../ExpressionSyntax.h"
-
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 class MultipleAssignmentExpressionSyntax : public ExpressionSyntax {
   std::vector<std::unique_ptr<AssignmentExpressionSyntax>> _assignmentExprList;
 
@@ -54,5 +51,3 @@ public:
     return _assignmentExprList;
   }
 };
-
-#endif

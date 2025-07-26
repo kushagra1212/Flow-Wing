@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableDeclarationSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 const SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableDeclaration;

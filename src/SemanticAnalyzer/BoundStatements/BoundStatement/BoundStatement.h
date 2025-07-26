@@ -19,8 +19,8 @@
 
 
 #pragma once
-#include "../../BinderKindUtils.h"
-#include "../../BoundNode.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundNode.h"
 class BoundStatement : public BoundNode {
 public:
   virtual ~BoundStatement() = default;

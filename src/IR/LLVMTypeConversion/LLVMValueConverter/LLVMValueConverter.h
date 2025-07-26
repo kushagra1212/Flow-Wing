@@ -21,10 +21,10 @@
 #ifndef __FLOWWING_LLVM_VALUE_CONVERTER_H__
 #define __FLOWWING_LLVM_VALUE_CONVERTER_H__
 
-#include "../../../syntax/SyntaxKindUtils.h"
-#include "../../context/CodeGenerationContext.h"
-#include "../../logger/LLVMLogger.h"
-#include "../../mappers/TypeMapper/TypeMapper.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/IR/mappers/TypeMapper/TypeMapper.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"

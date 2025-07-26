@@ -21,8 +21,8 @@
 #ifndef BOUDBREAKSTATEMENT_H
 #define BOUDBREAKSTATEMENT_H
 
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundBreakStatement : public BoundStatement, public BoundSourceLocation {
 public:

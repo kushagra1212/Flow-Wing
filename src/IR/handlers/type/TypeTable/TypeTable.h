@@ -24,7 +24,7 @@
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Type.h>
 
-#include "../../../../common/Common.h"
+#include "src/common/Common.h"
 
 class TypeTable {
 private:

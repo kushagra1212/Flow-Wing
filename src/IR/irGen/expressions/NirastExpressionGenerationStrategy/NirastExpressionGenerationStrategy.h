@@ -21,7 +21,7 @@
 #ifndef __NIRAST_EXPRESSION_GENERATION_STRATEGY_H__
 #define __NIRAST_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class NirastExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundLiteralExpression.h"
+#include <any>
 
 template class BoundLiteralExpression<std::any>;
 template class BoundLiteralExpression<int>;

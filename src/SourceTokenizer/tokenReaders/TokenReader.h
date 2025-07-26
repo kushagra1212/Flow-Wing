@@ -17,11 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../syntax/SyntaxToken.h"
-#include "../SourceTokenizer.h"
+#include <any>
+#include <memory>
+
+class SourceTokenizer;
+template <typename T> class SyntaxToken;
 
 class TokenReader {
 public:

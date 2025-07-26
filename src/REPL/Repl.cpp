@@ -17,8 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Repl.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/interpreter/Interpreter.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include <iostream>
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   _diagnosticHandler = std::make_unique<FlowWing::DiagnosticHandler>();

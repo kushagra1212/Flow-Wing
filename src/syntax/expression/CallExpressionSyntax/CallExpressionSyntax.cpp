@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CallExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 CallExpressionSyntax::CallExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> identifier) {
@@ -77,15 +79,15 @@ const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
   if (this->_children.size() == 0) {
 
     if (this->_newKeyword) {
-      this->_children.push_back(_newKeyword.get());
+      this->_children.emplace_back(_newKeyword.get());
     }
-    this->_children.push_back(_identifier.get());
+    this->_children.emplace_back(_identifier.get());
 
     //? Not used
     // this->_children.push_back(_openParenthesisToken.get());
 
     for (int i = 0; i < _arguments.size(); i++) {
-      this->_children.push_back(_arguments[i].get());
+      this->_children.emplace_back(_arguments[i].get());
       //? Not used
       // if (i < _separators.size()) {
       //   this->_children.push_back(_separators[i].get());

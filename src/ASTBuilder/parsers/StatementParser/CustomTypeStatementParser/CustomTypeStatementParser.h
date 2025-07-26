@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
-#include "../../ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
-
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 class CustomTypeStatementParser : public StatementParser {
 
 public:

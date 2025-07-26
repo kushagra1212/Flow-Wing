@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SwitchStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 const std::vector<SyntaxNode *> &SwitchStatementSyntax::getChildren() {
   if (_children.empty()) {

@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../syntax/CompilationUnitSyntax.h"
-#include "../StatementParser/FunctionDeclarationParser/FunctionDeclarationParser.h"
-#include "../StatementParser/GlobalStatementParser/GlobalStatementParser.h"
-#include "../StatementParser/StatementParserFactory.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+
+class ParserContext;
 
 class CompilationUnitParser {
 

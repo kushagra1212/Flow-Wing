@@ -23,7 +23,7 @@
 
 class StatementGenerationStrategy;
 class CodeGenerationContext;
-#include "../../../SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 class StatementGenerationFactory {
 public:

@@ -21,8 +21,8 @@
 #ifndef __BOUND_RETURN_STATEMENT_H
 #define __BOUND_RETURN_STATEMENT_H
 
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundReturnStatement : public BoundStatement, public BoundSourceLocation {
 private:

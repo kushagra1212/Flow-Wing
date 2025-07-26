@@ -17,17 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __BOUND_CALL_EXPRESSION_H__
-#define __BOUND_CALL_EXPRESSION_H__
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include <any>
+#include <llvm/IR/DerivedTypes.h>
+#include <map>
 
-#include "../../../utils/Utils.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundNode.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../BoundExpression/BoundExpression.h"
-#include "../BoundLiteralExpression/BoundLiteralExpression.h"
-#include "llvm/IR/DerivedTypes.h"
+class BoundExpression;
+template <typename T> class BoundLiteralExpression;
 
 class BoundCallExpression : public BoundExpression {
 private:
@@ -102,5 +100,3 @@ public:
            _argumentsMap[index].second != nullptr;
   }
 };
-
-#endif // __BOUND_CALL_EXPRESSION_H__

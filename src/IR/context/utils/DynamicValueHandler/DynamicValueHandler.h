@@ -20,10 +20,10 @@
 
 
 #pragma once
-#include "../../../LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
-#include "../../../LLVMTypeConversion/ExplicitConverter.h"
-#include "../../../strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
-#include "../../CodeGenerationContext.h"
+#include "src/IR/LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/ExplicitConverter.h"
+#include "src/IR/strategies/BinaryOperationStrategy/Int32BinaryOperationStrategy/Int32BinaryOperationStrategy.h"
+#include "src/IR/context/CodeGenerationContext.h"
 #include "ValueCaster/ValueCaster.h"
 
 namespace DYNAMIC_VALUE_HANDLER {

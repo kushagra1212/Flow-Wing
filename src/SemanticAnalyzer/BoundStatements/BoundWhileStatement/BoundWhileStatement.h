@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundWhileStatement : public BoundStatement, public BoundSourceLocation {
 private:

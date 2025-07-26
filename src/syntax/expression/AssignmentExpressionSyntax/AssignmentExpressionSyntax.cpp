@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "AssignmentExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 AssignmentExpressionSyntax::AssignmentExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> left,

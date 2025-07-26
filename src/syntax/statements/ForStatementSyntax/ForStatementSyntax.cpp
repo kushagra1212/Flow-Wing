@@ -17,8 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ForStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 
 ForStatementSyntax::ForStatementSyntax(
     std::unique_ptr<StatementSyntax> initialization,
@@ -55,10 +59,10 @@ const std::vector<SyntaxNode *> &ForStatementSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
     _children.push_back(_initialization.get());
-    _children.push_back(_upperBound.get());
+    _children.emplace_back(_upperBound.get());
     if (_stepExpression)
-      _children.push_back(_stepExpression.get());
-    _children.push_back(_statement.get());
+      _children.emplace_back(_stepExpression.get());
+    _children.emplace_back(_statement.get());
   }
 
   return this->_children;

@@ -21,12 +21,12 @@
 #ifndef BOUND_FOR_STATEMENT_H
 #define BOUND_FOR_STATEMENT_H
 
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundForStatement : public BoundStatement, public BoundSourceLocation {
 private:

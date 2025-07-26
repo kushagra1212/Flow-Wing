@@ -17,12 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableExpressionBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include <memory>
-
-#include "../ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundExpression>
 VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

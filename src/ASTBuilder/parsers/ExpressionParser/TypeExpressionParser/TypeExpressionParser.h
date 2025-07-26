@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "../../../../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
-#include "../../../../syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
-#include "../ExpressionParser.h"
-#include "../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include "src/syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 #include "ArrayTypeExpressionParser/ArrayTypeExpressionParser.h"
 #include "FunctionTypeExpressionParser/FunctionTypeExpressionParser.h"
 #include "ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"

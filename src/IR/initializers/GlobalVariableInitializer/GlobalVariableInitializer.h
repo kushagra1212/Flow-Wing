@@ -25,7 +25,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 class GlobalVariableInitializer {
 public:

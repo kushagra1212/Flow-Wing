@@ -19,7 +19,7 @@
 
 
 #include "VariableDeclarationStatementGenerationStrategy.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 VariableDeclarationStatementGenerationStrategy::
     VariableDeclarationStatementGenerationStrategy(

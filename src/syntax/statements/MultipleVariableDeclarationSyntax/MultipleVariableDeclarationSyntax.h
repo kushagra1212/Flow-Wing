@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef MULTIPLE_VARIABLE_DECLARATION_SYNTAX_H
-#define MULTIPLE_VARIABLE_DECLARATION_SYNTAX_H
-#include "../StatementSyntax.h"
-#include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 class MultipleVariableDeclarationSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<VariableDeclarationSyntax>>
       _variableDeclarationList;
@@ -54,5 +53,3 @@ public:
     return _variableDeclarationList;
   }
 };
-
-#endif

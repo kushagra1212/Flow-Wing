@@ -20,13 +20,13 @@
 
 #pragma once
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
-#include "../../Types/LLVMType//LLVMFunctionType/LLVMFunctionType.h"
-#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
-#include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
-#include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
-#include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../LLVMTypeGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 
 class BoundFunctionTypeExpressionGenerationStrategy
     : public LLVMTypeGenerationStrategy {

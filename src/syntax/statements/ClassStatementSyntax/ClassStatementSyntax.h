@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW_WING_CLASS_STATEMENT_SYNTAX_H
-#define __FLOW_WING_CLASS_STATEMENT_SYNTAX_H
-#include "../../SyntaxToken.h"
-#include "../CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
-#include "../FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
-#include "../StatementSyntax.h"
-#include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
 
 class ClassStatementSyntax : public StatementSyntax {
 private:
@@ -134,5 +133,3 @@ public:
     return _customTypeStatements;
   }
 };
-
-#endif

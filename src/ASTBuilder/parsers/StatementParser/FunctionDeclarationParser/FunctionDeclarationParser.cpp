@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionDeclarationParser.h"
-#include <memory>
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
+#include "src/ASTBuilder/parsers/StatementParser/BlockStatementParser/BlockStatementParser.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 
 std::unique_ptr<MemberSyntax>
 FunctionDeclarationParser::parseStatement(ParserContext *ctx) {

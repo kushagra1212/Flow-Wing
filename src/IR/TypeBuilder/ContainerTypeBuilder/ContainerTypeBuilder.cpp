@@ -21,7 +21,7 @@
 // ContainerTypeBuilder.cpp
 #include "ContainerTypeBuilder.h"
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 ContainerTypeBuilder::ContainerTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)

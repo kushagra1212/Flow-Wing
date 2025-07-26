@@ -22,7 +22,7 @@
 #ifndef __FLOWWING_REFERENCE_TYPE_BUILDER_H__
 #define __FLOWWING_REFERENCE_TYPE_BUILDER_H__
 
-#include "../TypeBuilderInterface.h"
+#include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
 class TypeBuilderInterface;
 

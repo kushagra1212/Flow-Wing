@@ -18,7 +18,7 @@
  */
 
 
-#include "../../../SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
 
 namespace UnaryOperationSupport {
 

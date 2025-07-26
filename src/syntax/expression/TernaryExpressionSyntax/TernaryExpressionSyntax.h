@@ -17,11 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
 #include <memory>
 class TernaryExpressionSyntax : public ExpressionSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _questionToken;

@@ -21,12 +21,12 @@
 #ifndef BIND_BRING_STATEMENT_H
 #define BIND_BRING_STATEMENT_H
 
-#include "../../../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../../syntax/CompilationUnitSyntax.h"
-#include "../../BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundBringStatement : public BoundStatement, public BoundSourceLocation {
   FlowWing::DiagnosticHandler *_diagnosticHandler;

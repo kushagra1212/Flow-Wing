@@ -21,8 +21,8 @@
 #ifndef FLOWWING_OBJECT_TYPE_CHAIN_H
 #define FLOWWING_OBJECT_TYPE_CHAIN_H
 
-#include "../../../../common/Common.h"
-#include "../CustomTypeStatementTable/CustomTypeStatementTable.h"
+#include "src/common/Common.h"
+#include "src/IR/handlers/CustomTypeStatement/CustomTypeStatementTable/CustomTypeStatementTable.h"
 
 class CustomTypeStatementChain {
 private:

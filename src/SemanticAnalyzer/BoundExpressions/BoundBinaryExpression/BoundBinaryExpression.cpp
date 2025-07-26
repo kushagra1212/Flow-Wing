@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBinaryExpression.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 BoundBinaryExpression::BoundBinaryExpression(
     const DiagnosticUtils::SourceLocation &location,

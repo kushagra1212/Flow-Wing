@@ -17,34 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#pragma once
+#include "LiteralExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 #include <any>
-#include <string>
-
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
-
-template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
-private:
-  std::unique_ptr<SyntaxToken<std::any>> _token;
-  T _value;
-
-public:
-  LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
-                          T value);
-  const std::string getKindText();
-  const SyntaxKindUtils::SyntaxKind getSyntaxKind();
-  const T &getValue();
-  void setValue(T value);
-  void setText(std::string text);
-
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
-  const std::vector<SyntaxNode *> &getChildren() override;
-  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
-
-  std::unique_ptr<SyntaxToken<std::any>> &getTokenPtr();
-};
 
 template <typename T>
 LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
@@ -105,3 +82,11 @@ std::unique_ptr<SyntaxToken<std::any>> &
 LiteralExpressionSyntax<T>::getTokenPtr() {
   return this->_token;
 }
+
+// Explicit template instantiations - must come after all method definitions
+template class LiteralExpressionSyntax<std::any>;
+template class LiteralExpressionSyntax<int>;
+template class LiteralExpressionSyntax<double>;
+template class LiteralExpressionSyntax<bool>;
+template class LiteralExpressionSyntax<std::string>;
+template class LiteralExpressionSyntax<char>;

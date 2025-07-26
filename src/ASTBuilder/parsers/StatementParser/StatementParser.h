@@ -17,12 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../syntax/statements/StatementSyntax.h"
-#include "../ExpressionParser/PrecedenceAwareExpressionParser.h"
-#include "../ParserContext/ParserContext.h"
+#include <memory>
+
+class StatementSyntax;
+class ParserContext;
 
 class StatementParser {
 public:

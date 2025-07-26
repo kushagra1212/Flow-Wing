@@ -17,16 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef _NIRASTEXPRESSIONSYNTAX_H
-#define _NIRASTEXPRESSIONSYNTAX_H
-
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include <any>
 
 class NirastExpressionSyntax : public ExpressionSyntax {
-
+private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _nirastExpression;
 
 public:
@@ -50,5 +48,3 @@ public:
     return _nirastExpression;
   }
 };
-
-#endif

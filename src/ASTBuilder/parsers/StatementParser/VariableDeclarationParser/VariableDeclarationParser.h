@@ -20,12 +20,12 @@
 
 #pragma once
 
-#include "../../../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../../../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "../../ParserUtils/VariableParserUtils.h"
-#include "../MultipleVariableDeclarationParser/MultipleVariableDeclarationParser.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
+#include "src/ASTBuilder/parsers/StatementParser/MultipleVariableDeclarationParser/MultipleVariableDeclarationParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 
 class VariableDeclarationParser : public StatementParser {
 

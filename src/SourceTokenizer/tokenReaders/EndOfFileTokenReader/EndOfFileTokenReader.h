@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../TokenReader.h"
+#include "src/SourceTokenizer/tokenReaders/TokenReader.h"
 
 class EndOfFileTokenReader : public TokenReader {
 

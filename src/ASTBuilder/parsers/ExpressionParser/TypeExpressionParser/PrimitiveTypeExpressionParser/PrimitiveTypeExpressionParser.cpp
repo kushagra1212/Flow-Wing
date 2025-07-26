@@ -17,9 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "PrimitiveTypeExpressionParser.h"
-#include "../../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Utils.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 PrimitiveTypeExpressionParser::parseExpression(ParserContext *ctx) {

@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FunctionDeclarationSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 FunctionDeclarationSyntax::getFunctionKeyword() {

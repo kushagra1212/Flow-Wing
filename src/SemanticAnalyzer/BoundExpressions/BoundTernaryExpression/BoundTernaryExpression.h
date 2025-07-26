@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundTernaryExpression : public BoundExpression {
 public:

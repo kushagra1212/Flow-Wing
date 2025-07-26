@@ -21,7 +21,7 @@
 #ifndef __INT_BINARY_OPERATION_STRATEGY_H__
 #define __INT_BINARY_OPERATION_STRATEGY_H__
 
-#include "../BinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 
 class Int32BinaryOperationStrategy : public BinaryOperationStrategy {
 public:

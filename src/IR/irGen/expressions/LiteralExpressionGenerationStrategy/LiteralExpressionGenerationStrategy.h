@@ -21,7 +21,7 @@
 #ifndef __FLOWWING_LITERAL_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_LITERAL_EXPRESSION_STRATEGY_H__
 
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class LiteralExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

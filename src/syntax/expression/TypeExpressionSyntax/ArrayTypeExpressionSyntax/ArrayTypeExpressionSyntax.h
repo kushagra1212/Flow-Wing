@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__ARRAYTYPEEXPRESSIONSYNTAX_H__
-#define __FLOW__WING__ARRAYTYPEEXPRESSIONSYNTAX_H__
-
-#include "../TypeExpressionSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 
 class ArrayTypeExpressionSyntax : public TypeExpressionSyntax {
 private:
@@ -71,5 +70,3 @@ public:
 
   inline bool isTrivial() const { return _isTrivial; }
 };
-
-#endif // __FLOW__WING__ARRAYTYPEEXPRESSIONSYNTAX_H__

@@ -21,8 +21,8 @@
 #ifndef BOUNDCONTINUESTATEMENT_H
 #define BOUNDCONTINUESTATEMENT_H
 
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundContinueStatement : public BoundStatement,
                                public BoundSourceLocation {

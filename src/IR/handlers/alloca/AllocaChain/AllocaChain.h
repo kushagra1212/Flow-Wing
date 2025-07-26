@@ -21,8 +21,8 @@
 #ifndef FLOWWING_ALLOCACHAIN_H
 #define FLOWWING_ALLOCACHAIN_H
 
-#include "../../../../common/Common.h"
-#include "../AllocaTable/AllocaTable.h"
+#include "src/common/Common.h"
+#include "src/IR/handlers/alloca/AllocaTable/AllocaTable.h"
 
 class AllocaChain {
 private:

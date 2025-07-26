@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include "../../../../utils/BuiltInFunction/BuiltInFunction.h"
-#include "../../../BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
-#include "../../StatementBinder/StatementBinder.h"
-#include "../MemberBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/MemberBinder/MemberBinder.h"
 class GlobalStatementBinder : public MemberBinder {
 
 public:

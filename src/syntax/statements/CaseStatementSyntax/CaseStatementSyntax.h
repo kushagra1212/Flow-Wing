@@ -17,15 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../StatementSyntax.h"
-#include <memory>
-#include <vector>
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
 
 class CaseStatementSyntax : public StatementSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _caseToken;

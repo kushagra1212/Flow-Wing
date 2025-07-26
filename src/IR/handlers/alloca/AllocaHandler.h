@@ -21,7 +21,7 @@
 #ifndef FLOWWING_ALLOCAHANDLER_H
 #define FLOWWING_ALLOCAHANDLER_H
 
-#include "../../../common/Common.h"
+#include "src/common/Common.h"
 #include "llvm/IR/Instructions.h"
 
 class AllocaHandler {

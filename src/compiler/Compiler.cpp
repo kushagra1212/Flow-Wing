@@ -17,8 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Compiler.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/IR/IRGenerator.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/compiler/CompilerUtils.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Colors.h"
+#include "src/utils/Utils.h"
+#include <fstream>
 
 Compiler::Compiler(std::string filePath)
     : _filePath(filePath),

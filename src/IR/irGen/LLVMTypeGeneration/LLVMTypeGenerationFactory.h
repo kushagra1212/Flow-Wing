@@ -24,7 +24,7 @@
 class CodeGenerationContext;
 class LLVMTypeGenerationStrategy;
 
-#include "../../../SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 class LLVMTypeGenerationFactory {
 public:

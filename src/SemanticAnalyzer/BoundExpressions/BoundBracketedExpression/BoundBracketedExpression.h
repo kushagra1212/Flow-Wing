@@ -21,7 +21,7 @@
 #ifndef __FLOWWING_BOUND_BRACKETED_EXPRESSION_H__
 #define __FLOWWING_BOUND_BRACKETED_EXPRESSION_H__
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundBracketedExpression : public BoundExpression {
 private:

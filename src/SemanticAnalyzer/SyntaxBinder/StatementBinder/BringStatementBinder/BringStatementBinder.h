@@ -17,16 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
-#include "../../../../syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
-#include "../../../../syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
-#include "../../../BoundStatements/BoundBringStatement/BoundBringStatement.h"
-#include "../../../SemanticAnalyzer.h"
-#include "../StatementBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+class MemberSyntax;
+class CompilationUnitSyntax;
+
 class BringStatementBinder : public StatementBinder {
 
   std::unordered_map<std::string, int>

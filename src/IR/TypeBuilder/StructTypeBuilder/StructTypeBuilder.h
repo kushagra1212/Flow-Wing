@@ -22,9 +22,9 @@
 #ifndef __FLOWWING_STRUCT_TYPE_BUILDER_H__
 #define __FLOWWING_STRUCT_TYPE_BUILDER_H__
 
-#include "../../../common/constants/FlowWingUtilsConstants.h"
-#include "../ReferenceTypeBuilder/ReferenceTypeBuilder.h"
-#include "../TypeBuilderInterface.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/IR/TypeBuilder/ReferenceTypeBuilder/ReferenceTypeBuilder.h"
+#include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
 class StructTypeBuilder : public TypeBuilderInterface {
 public:

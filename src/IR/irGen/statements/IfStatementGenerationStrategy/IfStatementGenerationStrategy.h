@@ -21,9 +21,9 @@
 #ifndef __FLOWWING_IF_STATEMENT_STRATEGY_H__
 #define __FLOWWING_IF_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
-#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class IfStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

@@ -21,9 +21,9 @@
 #ifndef FLOWWING_ALLOCATABLE_H
 #define FLOWWING_ALLOCATABLE_H
 
-#include "../../../../common/Common.h"
-#include "../AllocaHandler.h"
-#include "../AllocaIndexHandler.h"
+#include "src/common/Common.h"
+#include "src/IR/handlers/alloca/AllocaHandler.h"
+#include "src/IR/handlers/alloca/AllocaIndexHandler.h"
 
 class AllocaTable : public AllocaHandler, public AllocaIndexHandler {
 private:

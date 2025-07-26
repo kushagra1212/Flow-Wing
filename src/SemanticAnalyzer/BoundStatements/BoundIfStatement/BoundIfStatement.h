@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "../../BinderKindUtils.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundOrIfStatement/BoundOrIfStatement.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundOrIfStatement/BoundOrIfStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundIfStatement : public BoundStatement, public BoundSourceLocation {
 private:

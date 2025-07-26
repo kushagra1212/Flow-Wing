@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TokenReaderData.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 const TokenReaderState __gl_FLOW_WING_KEYWORDS[] = {
     {"true", SyntaxKindUtils::SyntaxKind::TrueKeyword},

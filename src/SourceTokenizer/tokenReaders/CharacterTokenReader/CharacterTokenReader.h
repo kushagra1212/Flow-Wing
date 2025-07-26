@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../TokenReader.h"
+#include "src/SourceTokenizer/tokenReaders/TokenReader.h"
 
 class CharacterTokenReader : public TokenReader {
 

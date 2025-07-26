@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 BoundBracketedExpression::BoundBracketedExpression(
     const DiagnosticUtils::SourceLocation &location)

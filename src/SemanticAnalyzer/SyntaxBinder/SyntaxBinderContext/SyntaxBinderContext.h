@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../../utils/BuiltInFunction/BuiltInFunction.h"
-#include "../BoundGlobalScope/BoundGlobalScope.h"
-#include "../BoundScope/BoundScope.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/BuiltInFunction/BuiltInFunction.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundScope/BoundScope.h"
 #include <string>
 
 class SyntaxBinderContext {

@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ModuleStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 const SyntaxKindUtils::SyntaxKind ModuleStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ModuleStatement;

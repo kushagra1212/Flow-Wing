@@ -21,7 +21,7 @@
 #ifndef FLOWWING_ALLOCINDEXAHANDLER_H
 #define FLOWWING_ALLOCINDEXAHANDLER_H
 
-#include "../../../common/Common.h"
+#include "src/common/Common.h"
 
 class AllocaIndexHandler {
 public:

@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../../../syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
-#include "../ExpressionParser.h"
-#include "../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include "src/syntax/expression/ObjectExpressionSyntax/ObjectExpressionSyntax.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
 
 class ObjectExpressionParser : public ExpressionParser {
 public:

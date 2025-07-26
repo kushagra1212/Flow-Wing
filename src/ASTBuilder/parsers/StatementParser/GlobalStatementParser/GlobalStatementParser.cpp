@@ -17,9 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "GlobalStatementParser.h"
-#include <memory>
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 
 std::unique_ptr<MemberSyntax>
 GlobalStatementParser::parseStatement(ParserContext *ctx) {

@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IndexExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 IndexExpressionSyntax::IndexExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression)
@@ -37,15 +40,15 @@ const std::vector<SyntaxNode *> &IndexExpressionSyntax::getChildren() {
     return _children;
 
   if (_selfKeyword)
-    _children.push_back(_selfKeyword.get());
+    _children.emplace_back(_selfKeyword.get());
 
-  _children.push_back(this->_identifierExpression.get());
+  _children.emplace_back(this->_identifierExpression.get());
 
   for (const auto &item : this->_indexExpressions) {
-    _children.push_back(item.get());
+    _children.emplace_back(item.get());
   }
   if (_variableExpression) {
-    _children.push_back(_variableExpression.get());
+    _children.emplace_back(_variableExpression.get());
   }
   return _children;
 }

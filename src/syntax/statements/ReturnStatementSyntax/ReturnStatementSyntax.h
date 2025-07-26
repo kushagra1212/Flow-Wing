@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef RETURNSTATEMENTSYNTAX_H
-#define RETURNSTATEMENTSYNTAX_H
-
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
 
 class ReturnStatementSyntax : public StatementSyntax {
 private:
@@ -64,5 +62,3 @@ public:
     return _returnKeyword;
   }
 };
-
-#endif // RETURNSTATEMENTSYNTAX_H

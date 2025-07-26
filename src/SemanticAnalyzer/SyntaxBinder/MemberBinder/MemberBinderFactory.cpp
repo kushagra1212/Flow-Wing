@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "MemberBinderFactory.h"
-
 #include "FunctionDeclarationBinder/FunctionDeclarationBinder.h"
 #include "GlobalStatementBinder/GlobalStatementBinder.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include <cassert>
 
 std::unique_ptr<MemberBinder>
 MemberBinderFactory::create(const SyntaxKindUtils::SyntaxKind &kind) {

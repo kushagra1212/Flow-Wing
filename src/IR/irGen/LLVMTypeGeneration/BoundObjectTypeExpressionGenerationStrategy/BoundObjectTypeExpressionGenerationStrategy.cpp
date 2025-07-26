@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "BoundObjectTypeExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 
 llvm::Type *BoundObjectTypeExpressionGenerationStrategy::getType(
     BoundTypeExpression *expression) {

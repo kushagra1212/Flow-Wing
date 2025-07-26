@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../GenerationStrategy.h"
+#include "src/IR/irGen/GenerationStrategy.h"
 
 class LLVMTypeGenerationStrategy : public GenerationStrategy {
  public:

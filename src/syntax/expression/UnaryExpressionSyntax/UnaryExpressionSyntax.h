@@ -17,12 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#include "LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
 
-template class LiteralExpressionSyntax<std::any>;
-template class LiteralExpressionSyntax<int>;
-template class LiteralExpressionSyntax<double>;
-template class LiteralExpressionSyntax<bool>;
-template class LiteralExpressionSyntax<std::string>;
-template class LiteralExpressionSyntax<char>;
+template <typename T> class SyntaxToken;
+
+class UnaryExpressionSyntax : public ExpressionSyntax {
+private:
+  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
+  std::unique_ptr<ExpressionSyntax> _operand;
+
+public:
+  UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
+                        std::unique_ptr<ExpressionSyntax> operand);
+
+  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
+
+  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
+  std::unique_ptr<ExpressionSyntax> &getOperandRef();
+};

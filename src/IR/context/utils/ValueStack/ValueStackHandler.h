@@ -21,7 +21,7 @@
 #ifndef __FLOW_WING_VALUE_STACK_HANDLE
 #define __FLOW_WING_VALUE_STACK_HANDLE
 
-#include "../../../constants/FlowWingIRConstants.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
 #include "ValueStack.h"
 #include <stack>
 

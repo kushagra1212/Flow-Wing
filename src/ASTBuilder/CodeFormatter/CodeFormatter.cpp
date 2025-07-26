@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CodeFormatter.h"
-
-#include "../parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 CodeFormatter::CodeFormatter(ParserContext *parserCtx) : parserCtx(parserCtx) {}
 

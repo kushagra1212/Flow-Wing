@@ -16,13 +16,9 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#pragma once
 
-
-#ifndef BOUND_SOURCE_LOCATION_H
-#define BOUND_SOURCE_LOCATION_H
-
-#include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 class BoundSourceLocation {
 public:
   BoundSourceLocation(DiagnosticUtils::SourceLocation location);
@@ -31,5 +27,3 @@ public:
 private:
   DiagnosticUtils::SourceLocation _location;
 };
-
-#endif // BOUND_SOURCE_LOCATION_H

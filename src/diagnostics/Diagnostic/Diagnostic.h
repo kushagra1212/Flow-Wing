@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef DIAGNOSTIC_H
-#define DIAGNOSTIC_H
-
-#include "../../utils/Utils.h"
-#include "../Diagnostic/DiagnosticCode.h"
-#include "../DiagnosticUtils/DiagnosticUtils.h"
-#include "DiagnosticCode.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCode.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include <unordered_map>
 
 class Diagnostic {
 private:
@@ -68,5 +67,3 @@ public:
                             FLOW_WING::DIAGNOSTIC::MessageTemplate>
       messageTemplate;
 };
-
-#endif // DIAGNOSTIC_H

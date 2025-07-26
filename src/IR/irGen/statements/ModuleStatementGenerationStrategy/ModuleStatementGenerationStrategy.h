@@ -21,12 +21,12 @@
 #ifndef __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
 #define __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
-#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
-#include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
-#include "../VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
+#include "src/IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 
 class ModuleStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

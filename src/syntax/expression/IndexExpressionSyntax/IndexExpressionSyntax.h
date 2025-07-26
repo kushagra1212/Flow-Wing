@@ -17,13 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef INDEXEXPRESSIONSYNTAX_H
-#define INDEXEXPRESSIONSYNTAX_H
-#include "../../../common/Common.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
+
+template <typename T> class LiteralExpressionSyntax;
+template <typename T> class SyntaxToken;
 
 class IndexExpressionSyntax : public ExpressionSyntax {
 private:
@@ -75,5 +75,3 @@ public:
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };
-
-#endif // INDEXEXPRESSIONSYNTAX_H

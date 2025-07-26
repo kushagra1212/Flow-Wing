@@ -21,9 +21,9 @@
 #ifndef __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
 #define __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
 
-#include "../../../../IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class WhileStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

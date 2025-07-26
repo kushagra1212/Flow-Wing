@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "MultipleVariableDeclarationSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 MultipleVariableDeclarationSyntax::MultipleVariableDeclarationSyntax() {}
 

@@ -24,11 +24,11 @@
 #include <fstream>
 #include <iostream>
 
-#include "../../ASTBuilder/ASTBuilder.h"
-#include "../../IR/IRGenerator.h"
-#include "../../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
-#include "../../compiler/Compiler.h"
-#include "../../utils/Utils.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/IR/IRGenerator.h"
+#include "src/IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
+#include "src/compiler/Compiler.h"
+#include "src/utils/Utils.h"
 
 class JITCompiler : public Compiler {
 public:

@@ -17,8 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BracketedExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ContainerExpressionParser/ContainerExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/FillExpressionParser/FillExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/BracketedExpressionSyntax/BracketedExpressionSyntax.h"
 #include <memory>
 
 std::unique_ptr<ExpressionSyntax>

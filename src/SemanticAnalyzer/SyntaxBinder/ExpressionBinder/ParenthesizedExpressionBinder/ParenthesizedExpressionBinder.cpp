@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ParenthesizedExpressionBinder.h"
-#include <memory>
-
-#include "../ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/ParenthesizedExpressionSyntax/ParenthesizedExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 ParenthesizedExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

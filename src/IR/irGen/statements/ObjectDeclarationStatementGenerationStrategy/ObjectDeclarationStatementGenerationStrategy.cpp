@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ObjectDeclarationStatementGenerationStrategy.h"
-
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
+#include "src/utils/LogConfig.h"
 
 ObjectDeclarationStatementGenerationStrategy::
     ObjectDeclarationStatementGenerationStrategy(CodeGenerationContext *context)

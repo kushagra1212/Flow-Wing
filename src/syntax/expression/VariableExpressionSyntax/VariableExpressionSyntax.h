@@ -17,15 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__VARIABLE_H__
-#define __FLOW__WING__VARIABLE_H__
-
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include <any>
+#include <string>
 
 class VariableExpressionSyntax : public ExpressionSyntax {
 public:
@@ -103,11 +102,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _selfKeyword;
   std::unique_ptr<TypeExpressionSyntax> _variableTypeExpr;
   std::vector<std::unique_ptr<ExpressionSyntax>> _dotExpressionList;
-
   std::unique_ptr<ExpressionSyntax> _moduleNameorCallExpression;
 
   bool _isConstant;
   bool _hasNewKeyword = false;
 };
-
-#endif // __FLOW__WING__VARIABLE_H__

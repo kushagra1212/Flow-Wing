@@ -17,12 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "BinderKindUtils.h"
+
+#include <vector>
+
+namespace BinderKindUtils {
+enum BoundNodeKind : int;
+}
+
 class BoundNode {
- public:
-    virtual ~BoundNode() = default; 
+public:
+  virtual ~BoundNode() = default;
   std::vector<BoundNode *> _children;
   virtual BinderKindUtils::BoundNodeKind getKind() const = 0;
 

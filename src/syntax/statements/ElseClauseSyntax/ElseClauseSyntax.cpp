@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ElseClauseSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 ElseClauseSyntax::ElseClauseSyntax(
     std::unique_ptr<SyntaxToken<std::any>> elseKeyword,

@@ -17,9 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "OrIfStatementBinder.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundOrIfStatement/BoundOrIfStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 OrIfStatementBinder::bindStatement(SyntaxBinderContext *ctx,

@@ -34,8 +34,8 @@
 
 #include <optional>
 
-#include "../../../logger/LLVMLogger.h"
-#include "../FileSaveStrategy.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/IR/utils/fileSaver/FileSaveStrategy.h"
 
 class OFileSaveStrategy
     : public FileSaveStrategy<llvm::Module *, LLVMLogger *> {

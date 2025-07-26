@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "JITCompiler.h"
-#include "../../common/version.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/common/version.h"
+#include "src/compiler/CompilerUtils.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/external/include/argh.h"
 #include <string>
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}

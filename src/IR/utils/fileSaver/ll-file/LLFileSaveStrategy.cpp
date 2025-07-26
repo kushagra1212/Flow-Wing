@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "LLFileSaveStrategy.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/utils/Utils.h"
+#include <iostream>
+#include <llvm/Support/FileSystem.h>
 
 LLFileSaveStrategy::LLFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;

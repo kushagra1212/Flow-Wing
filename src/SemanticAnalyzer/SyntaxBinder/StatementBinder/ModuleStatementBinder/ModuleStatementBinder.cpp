@@ -17,10 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ModuleStatementBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/MemberBinder/FunctionDeclarationBinder/FunctionDeclarationBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/VariableDeclarationBinder/VariableDeclarationBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
+#include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
+#include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<BoundStatement>

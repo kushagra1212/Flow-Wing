@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TypeExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
 
 TypeExpressionSyntax::TypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
@@ -30,13 +33,18 @@ const SyntaxKindUtils::SyntaxKind TypeExpressionSyntax::getKind() const {
 
 const std::vector<SyntaxNode *> &TypeExpressionSyntax::getChildren() {
   if (_children.empty()) {
-    _children.push_back(_type.get());
+    _children.emplace_back(_type.get());
   }
 
   return _children;
 }
 
-const DiagnosticUtils::SourceLocation TypeExpressionSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+TypeExpressionSyntax::getSourceLocation() const {
   return {};
+}
+
+const std::unique_ptr<SyntaxToken<std::any>> &
+TypeExpressionSyntax::getTypeRef() const {
+  return _type;
 }

@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "LLVMLogger.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/Colors.h"
 #include <string>
 
 LLVMLogger::LLVMLogger(FlowWing::DiagnosticHandler *diagnosticHandler)

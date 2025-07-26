@@ -17,12 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../ExpressionParser.h"
-#include "../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 
 class ModuleIdentifierExpressionParser : public ExpressionParser {
 public:

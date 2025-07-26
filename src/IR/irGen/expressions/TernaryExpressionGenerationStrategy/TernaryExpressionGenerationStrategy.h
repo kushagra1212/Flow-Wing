@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTernaryExpression//BoundTernaryExpression.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class TernaryExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

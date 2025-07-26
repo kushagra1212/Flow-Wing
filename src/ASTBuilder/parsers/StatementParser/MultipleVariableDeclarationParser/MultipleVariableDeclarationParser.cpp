@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "MultipleVariableDeclarationParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserUtils/VariableParserUtils.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/MultipleVariableDeclarationSyntax/MultipleVariableDeclarationSyntax.h"
 
 std::unique_ptr<StatementSyntax>
 MultipleVariableDeclarationParser::parseStatement(ParserContext *ctx) {

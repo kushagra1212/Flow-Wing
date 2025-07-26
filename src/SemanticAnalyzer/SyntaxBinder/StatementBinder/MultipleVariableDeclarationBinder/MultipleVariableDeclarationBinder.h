@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/MultipleVariableDeclarationSyntax/MultipleVariableDeclarationSyntax.h"
-#include "../../../BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class MultipleVariableDeclarationBinder : public StatementBinder {
 public:
   std::unique_ptr<BoundStatement> bindStatement(SyntaxBinderContext *ctx,

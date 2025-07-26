@@ -20,7 +20,7 @@
 
 #ifndef __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
 #define __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
-#include "../../GenerationStrategy.h"
+#include "src/IR/irGen/GenerationStrategy.h"
 
 class LLVMTypeGenerationFactory;
 class StatementGenerationStrategy : public GenerationStrategy {

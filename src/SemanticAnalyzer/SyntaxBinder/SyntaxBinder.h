@@ -17,16 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
-#include "../../syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
-#include "BoundGlobalScope/BoundGlobalScope.h"
-#include "BoundScope/BoundScope.h"
-#include "MemberBinder/MemberBinder.h"
-#include "SyntaxBinderContext/SyntaxBinderContext.h"
 #include <memory>
+
+class SyntaxBinderContext;
+class BoundScope;
+class BoundStatement;
+class CompilationUnitSyntax;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class SyntaxBinder {
   std::unique_ptr<SyntaxBinderContext> _context = nullptr;

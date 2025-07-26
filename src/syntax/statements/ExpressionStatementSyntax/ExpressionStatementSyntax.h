@@ -17,16 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "../../expression/ExpressionSyntax.h"
-#include "../StatementSyntax.h"
+
+#include "src/syntax/statements/StatementSyntax.h"
+
+class ExpressionSyntax;
 
 class ExpressionStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<ExpressionSyntax> _expression;
 
- public:
+public:
   ExpressionStatementSyntax(std::unique_ptr<ExpressionSyntax> expression);
 
   std::unique_ptr<ExpressionSyntax> getExpression();

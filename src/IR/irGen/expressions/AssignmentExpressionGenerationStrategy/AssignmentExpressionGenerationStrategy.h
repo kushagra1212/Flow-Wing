@@ -21,18 +21,18 @@
 #ifndef __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
-#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
-#include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
-#include "../NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
-#include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

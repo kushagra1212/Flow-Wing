@@ -21,7 +21,7 @@
 #ifndef __BOUND_CONTAINER_EXPRESSION_H__
 #define __BOUND_CONTAINER_EXPRESSION_H__
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundContainerExpression : public BoundExpression {
 private:

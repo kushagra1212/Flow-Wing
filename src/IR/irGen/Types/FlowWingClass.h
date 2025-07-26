@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #ifndef __FLOWING_CLASS_H__
 #define __FLOWING_CLASS_H__
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
 
-#include "../../../SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
 #include "llvm/IR/Module.h"
 
 class FlowWingClass {

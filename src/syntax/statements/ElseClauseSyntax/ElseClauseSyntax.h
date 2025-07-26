@@ -19,11 +19,11 @@
 
 
 #pragma once
-#include "../../SyntaxKindUtils.h"
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 class ElseClauseSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _elseKeyword;

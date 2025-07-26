@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
 
 class BoundArrayTypeExpression : public BoundTypeExpression {
   std::vector<std::unique_ptr<BoundExpression>> _dimensions;

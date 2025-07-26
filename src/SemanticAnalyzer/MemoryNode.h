@@ -17,9 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "BinderKindUtils.h"
+
+namespace BinderKindUtils {
+enum MemoryKind : int;
+}
+
 class MemoryNode {
 public:
   virtual ~MemoryNode() = default;

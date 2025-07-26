@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TernaryExpressionBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTernaryExpression/BoundTernaryExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/syntax/expression/TernaryExpressionSyntax/TernaryExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 TernaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

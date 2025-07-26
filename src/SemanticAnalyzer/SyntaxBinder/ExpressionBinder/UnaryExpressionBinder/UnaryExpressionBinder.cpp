@@ -17,10 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "UnaryExpressionBinder.h"
-
-#include "../ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/UnaryExpressionSyntax/UnaryExpressionSyntax.h"
 
 std::unique_ptr<BoundExpression>
 UnaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

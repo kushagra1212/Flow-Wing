@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StatementBinderFactory.h"
 
 #include "BlockStatementBinder/BlockStatementBinder.h"
@@ -36,6 +35,8 @@
 #include "SwitchStatementBinder/SwitchStatementBinder.h"
 #include "VariableDeclarationBinder/VariableDeclarationBinder.h"
 #include "WhileStatementBinder/WhileStatementBinder.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include <cassert>
 
 std::unique_ptr<StatementBinder>
 StatementBinderFactory::create(const SyntaxKindUtils::SyntaxKind &kind) {

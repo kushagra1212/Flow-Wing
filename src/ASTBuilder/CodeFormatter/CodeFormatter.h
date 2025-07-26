@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #define ONE_SPACE " "
@@ -25,7 +24,7 @@
 #define TAB_SPACE "  "
 #define NEW_LINE "\n"
 
-#include "../../syntax/SyntaxKindUtils.h"
+#include <string>
 
 class ParserContext;
 

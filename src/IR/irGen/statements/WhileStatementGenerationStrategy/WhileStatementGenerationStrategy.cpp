@@ -20,7 +20,7 @@
 
 #include "WhileStatementGenerationStrategy.h"
 
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 WhileStatementGenerationStrategy::WhileStatementGenerationStrategy(
     CodeGenerationContext *context)

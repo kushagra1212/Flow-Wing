@@ -20,7 +20,7 @@
 
 #include "MultipleVariableDeclarationStatementGenerationStrategy.h"
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 
 MultipleVariableDeclarationStatementGenerationStrategy::
     MultipleVariableDeclarationStatementGenerationStrategy(

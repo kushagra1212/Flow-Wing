@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "../../../common/Common.h"
-#include "../../BinderKindUtils.h"
-#include "../../BoundNode.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/common/Common.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundNode.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundBlockStatement : public BoundStatement, public BoundSourceLocation {
 private:

@@ -17,16 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../../syntax/expression/TypeExpressionSyntax/ArrayTypeExpressionSyntax/ArrayTypeExpressionSyntax.h"
-#include "../../../../../syntax/expression/TypeExpressionSyntax/ObjectTypeExpressionSyntax/ObjectTypeExpressionSyntax.h"
-#include "../../ExpressionParser.h"
-#include "../../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../../PrecedenceAwareExpressionParser.h"
-#include "../ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"
-#include "../PrimitiveTypeExpressionParser/PrimitiveTypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
 class ArrayTypeExpressionParser : public ExpressionParser {
 public:
   std::unique_ptr<ExpressionSyntax>

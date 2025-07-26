@@ -21,11 +21,11 @@
 #ifndef __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
 #define __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundContainerStatement/BoundContainerStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundContainerStatement/BoundContainerStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ContainerDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {

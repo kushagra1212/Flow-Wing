@@ -17,13 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../SourceTokenizer/SourceTokenizer.h"
-#include "parsers/CompilationUnitParser/CompilationUnitParser.h"
-#include "parsers/ParserContext/ParserContext.h"
+#include <any>
 #include <memory>
+#include <unordered_map>
+#include <vector>
+
+class ParserContext;
+class SourceTokenizer;
+class CompilationUnitSyntax;
+template <typename T> class SyntaxToken;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class ASTBuilder {
   std::unique_ptr<ParserContext> _parserCtx = nullptr;

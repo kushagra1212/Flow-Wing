@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+#include <string>
 
-
-#ifndef SYNTAXKINDUTILS_H
-#define SYNTAXKINDUTILS_H
-#include "../common/Common.h"
 namespace SyntaxKindUtils {
-enum SyntaxKind {
+enum SyntaxKind : int {
 
   // Tokens
 
@@ -195,5 +193,3 @@ const std::string to_string(SyntaxKind kind);
 
 bool isType(SyntaxKind kind);
 } // namespace SyntaxKindUtils
-
-#endif // SYNTAXKINDUTILS_H

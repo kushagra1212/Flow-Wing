@@ -21,12 +21,12 @@
 #ifndef __FLOWWING_CLASS_STATEMENT_STRATEGY_H__
 #define __FLOWWING_CLASS_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
-#include "../../Types/FlowWingClass.h"
-#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
-#include "../CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
+#include "src/IR/irGen/Types/FlowWingClass.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ClassStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IRParser.h"
+#include <iostream>
+#include <unordered_set>
 
 IRParser::IRParser() { this->_ir = ""; }
 

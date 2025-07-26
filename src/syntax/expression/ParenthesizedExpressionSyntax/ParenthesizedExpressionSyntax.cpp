@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ParenthesizedExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 ParenthesizedExpressionSyntax::ParenthesizedExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> openParenthesisToken,
@@ -51,9 +53,9 @@ ParenthesizedExpressionSyntax::getKind() const {
 const std::vector<SyntaxNode *> &ParenthesizedExpressionSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
-    this->_children.push_back(_openParenthesisToken.get());
-    this->_children.push_back(_expression.get());
-    this->_children.push_back(_closeParenthesisToken.get());
+    this->_children.emplace_back(_openParenthesisToken.get());
+    this->_children.emplace_back(_expression.get());
+    this->_children.emplace_back(_closeParenthesisToken.get());
   }
 
   return this->_children;

@@ -17,14 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "../../../BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../../BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
+#include <string>
 class VariableDeclarationBinder : public StatementBinder {
   std::string _className = "";
 

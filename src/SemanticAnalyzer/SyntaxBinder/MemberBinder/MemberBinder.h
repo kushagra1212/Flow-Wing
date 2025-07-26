@@ -17,13 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../syntax/MemberSyntax.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
-#include "../ExpressionBinder/ExpressionBinderFactory.h"
-#include "../SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
+#include <memory>
+
+class BoundStatement;
+class SyntaxBinderContext;
+class MemberSyntax;
 
 class MemberBinder {
 public:

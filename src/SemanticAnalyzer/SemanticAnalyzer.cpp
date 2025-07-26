@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SemanticAnalyzer.h"
 #include "BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
 
 std::unique_ptr<BoundGlobalScope> SemanticAnalyzer::analyzeGlobalScope(
     std::unique_ptr<BoundGlobalScope> previousGlobalScope,

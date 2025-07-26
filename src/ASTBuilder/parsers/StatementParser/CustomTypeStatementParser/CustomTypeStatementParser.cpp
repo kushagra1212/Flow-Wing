@@ -17,8 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CustomTypeStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
+#include "src/utils/CustomTypeIDGenerator/CustomTypeIDGenerator.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<StatementSyntax>
 CustomTypeStatementParser::parseStatement(ParserContext *ctx) {

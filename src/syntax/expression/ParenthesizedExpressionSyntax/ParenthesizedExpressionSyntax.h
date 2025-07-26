@@ -17,11 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef PARENTHESIZEDEXPRESSIONSYNTAX_H
-#define PARENTHESIZEDEXPRESSIONSYNTAX_H
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
+
+template <typename T> class SyntaxToken;
+
 class ParenthesizedExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _openParenthesisToken;
@@ -46,4 +48,3 @@ public:
   std::unique_ptr<ExpressionSyntax> &getExpressionRef();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenRef();
 };
-#endif

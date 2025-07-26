@@ -21,8 +21,8 @@
 #ifndef __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class FillExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "UnaryExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 UnaryExpressionSyntax::UnaryExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> operatorToken,
@@ -34,8 +36,8 @@ const SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() const {
 const std::vector<SyntaxNode *> &UnaryExpressionSyntax::getChildren() {
   if (this->_children.size() == 0) {
     // Add children
-    this->_children.push_back(this->_operatorToken.get());
-    this->_children.push_back(this->_operand.get());
+    this->_children.emplace_back(this->_operatorToken.get());
+    this->_children.emplace_back(this->_operand.get());
   }
 
   return this->_children;

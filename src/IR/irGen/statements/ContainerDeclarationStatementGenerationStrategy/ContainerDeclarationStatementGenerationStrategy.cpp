@@ -20,8 +20,8 @@
 
 #include "ContainerDeclarationStatementGenerationStrategy.h"
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ContainerDeclarationStatementGenerationStrategy::
     ContainerDeclarationStatementGenerationStrategy(

@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/ForStatementSyntax/ForStatementSyntax.h"
-#include "../../../BoundStatements/BoundForStatement/BoundForStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class ForStatementBinder : public StatementBinder {
 
 public:

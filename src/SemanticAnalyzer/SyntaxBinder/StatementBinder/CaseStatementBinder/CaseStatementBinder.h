@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
-#include "../../../BoundStatements/BoundCaseStatement/BoundCaseStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class CaseStatementBinder : public StatementBinder {
 public:
   std::unique_ptr<BoundStatement> bindStatement(SyntaxBinderContext *ctx,

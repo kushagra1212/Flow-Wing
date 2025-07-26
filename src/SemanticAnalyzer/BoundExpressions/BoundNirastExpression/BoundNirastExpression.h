@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __BOUND_NIRAST_EXPRESSION_H__
-#define __BOUND_NIRAST_EXPRESSION_H__
-
-#include "../BoundExpression/BoundExpression.h"
-#include "../BoundLiteralExpression/BoundLiteralExpression.h"
-
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include <any>
 class BoundNirastExpression : public BoundExpression {
   std::unique_ptr<BoundLiteralExpression<std::any>> _nirastExpression;
 
@@ -60,5 +58,3 @@ public:
     return this->_nirastExpression;
   }
 };
-
-#endif

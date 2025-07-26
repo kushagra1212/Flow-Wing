@@ -26,12 +26,12 @@
 #include <iostream>
 #include <string>
 
-#include "../../ASTBuilder/ASTBuilder.h"
-#include "../../IR/IRGenerator.h"
-#include "../../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
-#include "../../common/managers/CommandManager.h"
-#include "../../compiler/Compiler.h"
-#include "../../utils/Utils.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/IR/IRGenerator.h"
+#include "src/IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
+#include "src/common/managers/CommandManager.h"
+#include "src/compiler/Compiler.h"
+#include "src/utils/Utils.h"
 #include "AotCompilerUtils.h"
 #include "ObjectFile/ObjectFile.h"
 

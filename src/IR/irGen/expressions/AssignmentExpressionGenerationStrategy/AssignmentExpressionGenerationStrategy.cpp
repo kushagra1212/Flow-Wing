@@ -20,8 +20,8 @@
 
 #include "AssignmentExpressionGenerationStrategy.h"
 
-#include "../BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 #include <cstddef>
 
 AssignmentExpressionGenerationStrategy::AssignmentExpressionGenerationStrategy(

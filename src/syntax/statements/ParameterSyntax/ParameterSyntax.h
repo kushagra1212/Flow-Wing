@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef PARAMETER_SYNTAX_H
-#define PARAMETER_SYNTAX_H
+#include "src/syntax/SyntaxNode.h"
+#include <any>
 
-#include "../../../common/Common.h"
-#include "../../SyntaxKindUtils.h"
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
+template <typename T> class SyntaxToken;
 
 class ParameterSyntax : public SyntaxNode {
 private:
@@ -41,5 +39,3 @@ public:
 
   virtual std::unique_ptr<SyntaxToken<std::any>> &getIdentifierTokenPtr();
 };
-
-#endif // PARAMETER_SYNTAX_H

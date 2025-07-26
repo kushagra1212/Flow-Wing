@@ -85,7 +85,7 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
 // JIT
-#include "../../../common/Common.h"
+#include "src/common/Common.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
 

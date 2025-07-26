@@ -17,8 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Utils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/interpreter/InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <random>
+#include <regex>
+#include <sstream>
 
 #ifdef _WIN32
 #include <windows.h>

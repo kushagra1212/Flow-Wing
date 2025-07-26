@@ -20,8 +20,8 @@
 
 #include "BringStatementGenerationStrategy.h"
 
-#include "../../../IRGenerator.h"
-#include "../FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
+#include "src/IR/IRGenerator.h"
+#include "src/IR/irGen/statements/FunctionDeclarationGenerationStrategy/FunctionDeclarationGenerationStrategy.h"
 
 BringStatementGenerationStrategy::BringStatementGenerationStrategy(
     CodeGenerationContext *context)

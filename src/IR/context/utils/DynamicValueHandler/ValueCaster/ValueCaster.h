@@ -19,8 +19,8 @@
 
 
 #pragma once
-#include "../../../../LLVMTypeConversion/ExplicitConverter.h"
-#include "../../../CodeGenerationContext.h"
+#include "src/IR/LLVMTypeConversion/ExplicitConverter.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 namespace DYNAMIC_VALUE_HANDLER {
 namespace VALUE_CASTER {

@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "BlockStatementBinder.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 BlockStatementBinder::bindStatement(SyntaxBinderContext *ctx,

@@ -21,12 +21,12 @@
 #ifndef __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "../CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
 
 class VariableExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

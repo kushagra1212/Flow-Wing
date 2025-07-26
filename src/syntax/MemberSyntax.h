@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-#ifndef MEMBER_SYNTAX_H
-#define MEMBER_SYNTAX_H
+#pragma once
 #include "SyntaxNode.h"
 class MemberSyntax : public SyntaxNode {
 public:
   virtual ~MemberSyntax() = default;
 };
-
-#endif // MEMBER_SYNTAX_H

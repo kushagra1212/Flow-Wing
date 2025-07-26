@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "GlobalStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/StatementSyntax.h"
 
 GlobalStatementSyntax::GlobalStatementSyntax(
     std::unique_ptr<StatementSyntax> statement) {

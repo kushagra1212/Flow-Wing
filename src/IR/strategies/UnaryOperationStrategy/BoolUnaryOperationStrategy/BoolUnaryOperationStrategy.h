@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../UnaryOperationStrategy.h"
+#include "src/IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
 
 class BoolUnaryOperationStrategy : public UnaryOperationStrategy {
 public:

@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BlockStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 BlockStatementSyntax::BlockStatementSyntax() {}
 
@@ -59,17 +61,17 @@ const SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
 const std::vector<SyntaxNode *> &BlockStatementSyntax::getChildren() {
   if (this->_children.empty()) {
     // Add children
-    this->_children.push_back(this->_openBraceToken.get());
+    this->_children.emplace_back(this->_openBraceToken.get());
     for (const auto &statement : this->getStatements()) {
-      this->_children.push_back(statement.get());
+      this->_children.emplace_back(statement.get());
     }
-    this->_children.push_back(this->_closeBraceToken.get());
+    this->_children.emplace_back(this->_closeBraceToken.get());
   }
   return this->_children;
 }
 
-const DiagnosticUtils::SourceLocation BlockStatementSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+BlockStatementSyntax::getSourceLocation() const {
   return this->_openBraceToken->getSourceLocation();
 }
 

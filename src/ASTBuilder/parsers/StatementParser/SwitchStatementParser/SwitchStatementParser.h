@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
-#include "../CaseStatementParser/CaseStatementParser.h"
-#include "../ClassStatementParser/ClassStatementParser.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
-
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 class SwitchStatementParser : public StatementParser {
 
 public:

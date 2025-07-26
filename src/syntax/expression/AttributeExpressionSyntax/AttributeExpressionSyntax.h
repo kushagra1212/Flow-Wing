@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__
-#define __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__
-#include "../../../common/Common.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include <any>
 
 class AttributeExpressionSyntax : public ExpressionSyntax {
 private:
@@ -54,5 +52,3 @@ public:
     return this->_value;
   }
 };
-
-#endif // __FLOWWING_ATTRIBUTE_EXPRESSION_SYNTAX_H__

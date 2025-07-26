@@ -22,7 +22,7 @@
 
 #include <llvm/IR/DerivedTypes.h>
 
-#include "../LLVMType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMType.h"
 
 class LLVMDynamicType : public LLVMType {
 public:

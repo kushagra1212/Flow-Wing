@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DiagnosticCode.h"
+#include "src/utils/Colors.h"
+#include <sstream>
 
 namespace FLOW_WING {
 namespace DIAGNOSTIC {

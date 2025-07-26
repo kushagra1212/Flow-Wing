@@ -17,22 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
-#include "../../SyntaxKindUtils.h"
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
+
+template <typename T> class SyntaxToken;
+class ExpressionSyntax;
+class BlockStatementSyntax;
+
 class OrIfStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> orKeyword;
   std::unique_ptr<SyntaxToken<std::any>> ifKeyword;
   std::unique_ptr<ExpressionSyntax> condition;
   std::unique_ptr<BlockStatementSyntax> statement;
 
- public:
+public:
   OrIfStatementSyntax(std::unique_ptr<SyntaxToken<std::any>> orKeyword,
                       std::unique_ptr<SyntaxToken<std::any>> ifKeyword,
                       std::unique_ptr<ExpressionSyntax> condition,

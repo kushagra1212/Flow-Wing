@@ -17,9 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IdentifierExpressionParser.h"
-#include <memory>
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/CallExpressionParser/CallExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IndexExpressionParser/IndexExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ModuleIdentifierExpressionParser/ModuleIdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/MultipleAssignmentExpressionParser/MultipleAssignmentExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/VariableExpressionParser/VariableExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
 
 std::unique_ptr<ExpressionSyntax>
 IdentifierExpressionParser::parseExpression(ParserContext *ctx) {

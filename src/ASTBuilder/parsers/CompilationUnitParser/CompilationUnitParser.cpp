@@ -17,8 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CompilationUnitParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/FunctionDeclarationParser/FunctionDeclarationParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/GlobalStatementParser/GlobalStatementParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 #include <memory>
 
 std::unique_ptr<MemberSyntax>

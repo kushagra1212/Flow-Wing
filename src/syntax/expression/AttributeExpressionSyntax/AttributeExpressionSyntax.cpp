@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "AttributeExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
 /*
     OVERIDES
@@ -30,8 +33,8 @@ const SyntaxKindUtils::SyntaxKind AttributeExpressionSyntax::getKind() const {
 
 const std::vector<SyntaxNode *> &AttributeExpressionSyntax::getChildren() {
   if (_children.empty()) {
-    _children.push_back(_key.get());
-    _children.push_back(_value.get());
+    _children.emplace_back(_key.get());
+    _children.emplace_back(_value.get());
   }
 
   return _children;

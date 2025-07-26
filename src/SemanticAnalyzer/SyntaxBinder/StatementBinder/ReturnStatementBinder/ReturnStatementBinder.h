@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/ReturnStatementSyntax/ReturnStatementSyntax.h"
-#include "../../../BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class ReturnStatementBinder : public StatementBinder {
 
 public:

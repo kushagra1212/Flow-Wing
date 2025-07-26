@@ -17,18 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
-#define __FLOWWING_FUNCTION_STATEMENT_STRATEGY_H__
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include <llvm/IR/Value.h>
+#include <vector>
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
-#include "../../Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
-#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
-#include "../../Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
-#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
-#include "../../expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+class CodeGenerationContext;
+class BoundStatement;
+class BoundFunctionDeclaration;
+class IRCodeGenerator;
 
 class FunctionStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
@@ -50,5 +48,3 @@ public:
 private:
   std::unique_ptr<IRCodeGenerator> _irCodeGenerator = nullptr;
 };
-
-#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

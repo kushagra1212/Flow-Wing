@@ -17,12 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "../../common/Common.h"
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
-#include "LiteralExpressionSyntax.h"
+
+#include "src/syntax/expression/ExpressionSyntax.h"
+
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<ExpressionSyntax> _left;

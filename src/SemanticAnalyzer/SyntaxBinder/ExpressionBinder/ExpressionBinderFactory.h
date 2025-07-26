@@ -17,12 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
-#include "../../../syntax/expression/ExpressionSyntax.h"
-#include "ExpressionBinder.h"
+#include <memory>
+
+class ExpressionBinder;
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 class ExpressionBinderFactory {
 public:

@@ -17,13 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef _FLOW_WING_TYPE_H__
-#define _FLOW_WING_TYPE_H__
-
+#include "src/utils/LogConfig.h"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
+
+class BoundCustomTypeStatement;
 
 namespace FlowWing {
 class Type {
@@ -86,5 +87,3 @@ public:
 };
 
 } // namespace FlowWing
-
-#endif //_FLOW_WING_TYPE_H__

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "../context/CodeGenerationContext.h"
-#include "../irGen/GenerationStrategy.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/irGen/GenerationStrategy.h"
 #include <llvm/IR/Value.h>
 
 namespace FlowWing {

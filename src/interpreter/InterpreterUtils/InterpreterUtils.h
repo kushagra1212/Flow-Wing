@@ -22,11 +22,11 @@
 #define INTERPRETERUTILS_H
 #include <any>
 
-#include "../../SemanticAnalyzer/BinderKindUtils.h"
-#include "../../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../../common/Common.h"
-#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/common/Common.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "InterpreterConversions/InterpreterConversion.h"
 
 class InterpreterUtils {

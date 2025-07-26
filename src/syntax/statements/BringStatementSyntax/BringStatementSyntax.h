@@ -17,14 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef BRING_STATEMENT_SYNTAX_H
-#define BRING_STATEMENT_SYNTAX_H
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
+template <typename T> class SyntaxToken;
+template <typename T> class LiteralExpressionSyntax;
+class CompilationUnitSyntax;
 
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../SyntaxToken.h"
-#include "../../statements/StatementSyntax.h"
-
+namespace FlowWing {
+class DiagnosticHandler;
+}
 class BringStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<LiteralExpressionSyntax<std::any>>> expressions;
   std::unique_ptr<FlowWing::DiagnosticHandler> diagnosticHandler;
@@ -81,5 +84,3 @@ public:
 
   inline auto getModuleName() -> std::string { return _moduleName; }
 };
-
-#endif // BRING_STATEMENT_SYNTAX_H

@@ -20,7 +20,7 @@
 
 #ifndef __STRING_BINARY_OPERATION_STRATEGY_H__
 #define __STRING_BINARY_OPERATION_STRATEGY_H__
-#include "../BinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 
 class StringBinaryOperationStrategy : public BinaryOperationStrategy {
 public:

@@ -17,18 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef FUNCTIONDECLARATIONSYNTAX_H
-#define FUNCTIONDECLARATIONSYNTAX_H
-
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../MemberSyntax.h"
-#include "../../SyntaxToken.h"
-#include "../../statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../ParameterSyntax/ParameterSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/MemberSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/utils/Utils.h"
 class FunctionDeclarationSyntax : public MemberSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _exposedKeyword;
@@ -133,5 +128,3 @@ public:
     return _functionType;
   }
 };
-
-#endif // FUNCTIONDECLARATIONSYNTAX_H

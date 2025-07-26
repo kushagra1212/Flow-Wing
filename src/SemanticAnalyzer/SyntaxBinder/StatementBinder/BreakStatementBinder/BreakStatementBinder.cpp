@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "BreakStatementBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 BreakStatementBinder::bindStatement(SyntaxBinderContext *ctx,

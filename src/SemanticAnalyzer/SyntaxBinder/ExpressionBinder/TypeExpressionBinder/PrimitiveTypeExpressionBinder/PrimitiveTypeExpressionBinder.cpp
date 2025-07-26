@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "PrimitiveTypeExpressionBinder.h"
-#include <memory>
+#include "src/syntax/SyntaxToken.h"
 
 std::unique_ptr<BoundExpression>
 PrimitiveTypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,

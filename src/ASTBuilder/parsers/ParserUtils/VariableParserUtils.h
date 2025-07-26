@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../../syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-#include "../ExpressionParser/PrecedenceAwareExpressionParser.h"
-#include "../ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
-#include "../ParserContext/ParserContext.h"
+#include "src/syntax/statements/VariableDeclarationSyntax/VariableDeclarationSyntax.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
 class VariableParserUtils {
 public:
   static void handleVarDecParsePrefixKeywords(

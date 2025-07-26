@@ -20,8 +20,8 @@
 
 #include "FillExpressionGenerationStrategy.h"
 
-#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
 
 FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     CodeGenerationContext *context, std::vector<uint64_t> actualSizes,

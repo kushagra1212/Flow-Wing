@@ -17,8 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BCFileSaveStrategy.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/utils/Utils.h"
+#include <iostream>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 BCFileSaveStrategy::BCFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;

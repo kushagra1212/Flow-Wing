@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ArrayTypeExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 ArrayTypeExpressionSyntax::ArrayTypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)

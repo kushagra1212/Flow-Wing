@@ -16,51 +16,14 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-
-#ifndef DIAGNOSTIC_UTILS_H
-#define DIAGNOSTIC_UTILS_H
+#pragma once
+#include "DiagnosticLevel.h"
+#include "DiagnosticType.h"
 #include <string>
 namespace DiagnosticUtils {
-
-enum class DiagnosticLevel { Error, Warning, Info, Debug };
-
-enum class DiagnosticType {
-  Lexical,
-  Syntactic,
-  Semantic,
-  CodeGen,
-  Runtime,
-  Linker,
-  Fatal
-};
 
 std::string toString(DiagnosticLevel level);
 
 std::string toString(DiagnosticType type);
 
-struct SourceLocation {
-public:
-  int lineNumber;
-  int columnNumber;
-  int length;
-  std::string absoluteFilePath;
-
-  SourceLocation() {
-    this->lineNumber = 0;
-    this->columnNumber = 0;
-    this->absoluteFilePath = "";
-  }
-
-  SourceLocation(int lineNumber, int columnNumber, int length,
-                 std::string absoluteFilePath) {
-    this->lineNumber = lineNumber;
-    this->columnNumber = columnNumber;
-    this->length = length;
-    this->absoluteFilePath = absoluteFilePath;
-  }
-};
-
 } // namespace DiagnosticUtils
-
-#endif // DIAGNOSTIC_UTILS_H

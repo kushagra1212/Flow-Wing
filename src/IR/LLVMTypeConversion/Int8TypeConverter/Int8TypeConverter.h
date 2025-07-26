@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../TypeConverterBase.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class Int8TypeConverter : public TypeConverterBase {
 public:

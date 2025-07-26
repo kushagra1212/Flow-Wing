@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "DirectoryUtils.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
 
 namespace FLOWWING::IR::UTILS {
 

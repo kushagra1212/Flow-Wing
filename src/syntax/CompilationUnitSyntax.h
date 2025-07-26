@@ -17,20 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+#include "src/syntax/MemberSyntax.h"
+#include <any>
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
-#ifndef COMPILATION_UNIT_SYNTAX_H
-#define COMPILATION_UNIT_SYNTAX_H
-#include "MemberSyntax.h"
-#include "SyntaxToken.h"
-#include "expression/ExpressionSyntax.h"
-#include "statements/StatementSyntax.h"
+template <typename T> class SyntaxToken;
+class SyntaxNode;
+
 class CompilationUnitSyntax {
- private:
+private:
   std::vector<std::unique_ptr<MemberSyntax>> _members;
   std::unique_ptr<SyntaxToken<std::any>> _endOfFileToken = nullptr;
   std::vector<SyntaxNode *> _children;
 
- public:
+public:
   const SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<std::unique_ptr<MemberSyntax>> &getMembers();
@@ -42,4 +45,3 @@ class CompilationUnitSyntax {
 
   const std::unique_ptr<SyntaxToken<std::any>> &getEndOfFileTokenRef();
 };
-#endif

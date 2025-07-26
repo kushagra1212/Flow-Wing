@@ -17,13 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/BreakStatementSyntax/BreakStatementSyntax.h"
-#include "../../../BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
-#include "../StatementBinder.h"
-
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinder.h"
 class BreakStatementBinder : public StatementBinder {
 
 public:

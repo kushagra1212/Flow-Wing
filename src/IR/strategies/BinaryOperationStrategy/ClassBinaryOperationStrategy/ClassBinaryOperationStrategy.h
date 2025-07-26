@@ -19,7 +19,7 @@
 
 
 #pragma once
-#include "../BinaryOperationStrategy.h"
+#include "src/IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 
 class ClassBinaryOperationStrategy : public BinaryOperationStrategy {
 public:

@@ -17,10 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "BringStatementBinder.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/ExpressionBinder/ExpressionBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "src/syntax/statements/ClassStatementSyntax/ClassStatementSyntax.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
+#include "src/syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
+#include "src/syntax/statements/ModuleStatementSyntax/ModuleStatementSyntax.h"
+#include "src/utils/LogConfig.h"
 
 std::unique_ptr<BoundStatement>
 BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,

@@ -21,12 +21,12 @@
 #ifndef __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
-#include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
+#include "src/IR/irGen/expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
 
 class BracketedExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

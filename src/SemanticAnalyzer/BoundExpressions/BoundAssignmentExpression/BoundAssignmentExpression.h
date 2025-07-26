@@ -21,8 +21,8 @@
 #ifndef ASSIGNMENT_EXPRESSION_H
 #define ASSIGNMENT_EXPRESSION_H
 
-#include "../../BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundAssignmentExpression : public BoundExpression {
 private:

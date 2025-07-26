@@ -17,19 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef CONTINUESTATEMENTSYNTAX_H
-#define CONTINUESTATEMENTSYNTAX_H
-
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
+template <typename T> class SyntaxToken;
 
 class ContinueStatementSyntax : public StatementSyntax {
- private:
+private:
   std::unique_ptr<SyntaxToken<std::any>> _continueKeyword;
 
- public:
+public:
   ContinueStatementSyntax(
       std::unique_ptr<SyntaxToken<std::any>> continueKeyword);
 
@@ -41,5 +39,3 @@ class ContinueStatementSyntax : public StatementSyntax {
 
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();
 };
-
-#endif  // CONTINUESTATEMENTSYNTAX_H

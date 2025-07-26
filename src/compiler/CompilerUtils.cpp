@@ -17,8 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CompilerUtils.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/utils/PathUtils.h"
+#include "src/utils/Utils.h"
 #include <cstdlib>
 #include <memory>
 #include <stdexcept>

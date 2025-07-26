@@ -16,16 +16,13 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#pragma once
 
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
 
-#ifndef CALL_EXPRESSION_SYNTAX_H
-#define CALL_EXPRESSION_SYNTAX_H
-
-#include "../../SyntaxKindUtils.h"
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-#include "../LiteralExpressionSyntax.h"
+template <typename T> class LiteralExpressionSyntax;
 
 class CallExpressionSyntax : public ExpressionSyntax {
 private:
@@ -69,5 +66,3 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> &getOpenParenthesisTokenPtr();
   std::unique_ptr<SyntaxToken<std::any>> &getCloseParenthesisTokenPtr();
 };
-
-#endif // CALL_EXPRESSION_SYNTAX_H

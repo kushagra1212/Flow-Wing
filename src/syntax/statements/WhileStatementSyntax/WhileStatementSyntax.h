@@ -17,12 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../SyntaxToken.h"
-#include "../BlockStatementSyntax/BlockStatementSyntax.h"
+
+#include "src/syntax/statements/StatementSyntax.h"
+#include <any>
+class ExpressionSyntax;
+class BlockStatementSyntax;
+
+template <typename T> class SyntaxToken;
+
 class WhileStatementSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _whileKeyword;

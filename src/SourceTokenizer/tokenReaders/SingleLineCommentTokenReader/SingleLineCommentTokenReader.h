@@ -17,12 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../EndOfFileTokenReader/EndOfFileTokenReader.h"
-#include "../TokenReader.h"
-
+#include "src/SourceTokenizer/tokenReaders/TokenReader.h"
 class SingleLineCommentTokenReader : public TokenReader {
 
 public:

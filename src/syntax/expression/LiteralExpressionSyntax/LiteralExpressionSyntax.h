@@ -17,27 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef UnaryExpressionSyntax_h__
-#define UnaryExpressionSyntax_h__
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
+#include <string>
 
-#include "../SyntaxToken.h"
-#include "ExpressionSyntax.h"
-class UnaryExpressionSyntax : public ExpressionSyntax {
+template <typename T> class SyntaxToken;
+
+template <typename T> class LiteralExpressionSyntax : public ExpressionSyntax {
 private:
-  std::unique_ptr<SyntaxToken<std::any>> _operatorToken;
-  std::unique_ptr<ExpressionSyntax> _operand;
+  std::unique_ptr<SyntaxToken<std::any>> _token;
+  T _value;
 
 public:
-  UnaryExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> operatorToken,
-                        std::unique_ptr<ExpressionSyntax> operand);
+  LiteralExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> token,
+                          T value);
+  const std::string getKindText();
+  const SyntaxKindUtils::SyntaxKind getSyntaxKind();
+  const T &getValue();
+  void setValue(T value);
+  void setText(std::string text);
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
-  std::unique_ptr<SyntaxToken<std::any>> &getOperatorTokenRef();
-  std::unique_ptr<ExpressionSyntax> &getOperandRef();
+  std::unique_ptr<SyntaxToken<std::any>> &getTokenPtr();
 };
-
-#endif // UnaryExpressionSyntax_h__

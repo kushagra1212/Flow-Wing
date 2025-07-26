@@ -17,42 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
+#pragma once
 #include <any>
-#include <map>
 #include <string>
 
-#include "../SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
-#include "../SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
-#include "../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
-#include "../SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
-#include "../SemanticAnalyzer/SemanticAnalyzer.h"
-#include "../diagnostics/Diagnostic/Diagnostic.h"
-#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../diagnostics/DiagnosticUtils/DiagnosticUtils.h"
-#include "../syntax/SyntaxKindUtils.h"
-#include "../syntax/expression/BinaryExpressionSyntax.h"
-#include "../syntax/expression/ExpressionSyntax.h"
-#include "../syntax/expression/LiteralExpressionSyntax.h"
-#include "../syntax/expression/ParenthesizedExpressionSyntax.h"
-#include "../syntax/expression/UnaryExpressionSyntax.h"
-#include "../utils/Utils.h"
-#include "InterpreterUtils/InterpreterConversions/InterpreterConversion.h"
 #include "InterpreterUtils/InterpreterUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundExpressionStatement/BoundExpressionStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/utils/Utils.h"
 
 class Interpreter {
 private:
@@ -109,5 +93,3 @@ private:
   T binaryExpressionEvaluator(BoundBinaryExpression *binaryExpression, T left,
                               T right);
 };
-
-#endif // INTERPRETER_H

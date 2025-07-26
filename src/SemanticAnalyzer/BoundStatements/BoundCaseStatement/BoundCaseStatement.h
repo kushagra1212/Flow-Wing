@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../BoundBlockStatement/BoundBlockStatement.h"
-#include "../BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 
 class BoundCaseStatement : public BoundStatement, public BoundSourceLocation {
   bool _isDefaultCase = false;

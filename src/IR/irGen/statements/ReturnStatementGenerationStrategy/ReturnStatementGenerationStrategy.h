@@ -21,10 +21,10 @@
 #ifndef __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
 #define __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
-#include "../../Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 class ReturnStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
   ReturnStatementGenerationStrategy(CodeGenerationContext *context);

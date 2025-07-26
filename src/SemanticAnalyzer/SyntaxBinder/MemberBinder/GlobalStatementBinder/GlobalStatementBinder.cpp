@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "GlobalStatementBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/StatementBinder/StatementBinderFactory.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/syntax/statements/GlobalStatementSyntax/GlobalStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 
 std::unique_ptr<BoundStatement>
 GlobalStatementBinder::bindMember(SyntaxBinderContext *ctx,

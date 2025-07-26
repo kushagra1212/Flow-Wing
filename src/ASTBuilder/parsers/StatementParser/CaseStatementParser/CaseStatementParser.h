@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "../../../../syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
+#include "src/syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 
 class CaseStatementParser : public StatementParser {
 

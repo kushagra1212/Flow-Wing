@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+#include "src/syntax/MemberSyntax.h"
 
-#ifndef GlobalStatementSyntax_H
-#define GlobalStatementSyntax_H
+class StatementSyntax;
 
-#include "../../../common/Common.h"
-#include "../../MemberSyntax.h"
-#include "../StatementSyntax.h"
 class GlobalStatementSyntax : public MemberSyntax {
 private:
   std::unique_ptr<StatementSyntax> _statement;
@@ -39,5 +37,3 @@ public:
 
   std::unique_ptr<StatementSyntax> &getStatementPtr();
 };
-
-#endif // GlobalStatementSyntax_H

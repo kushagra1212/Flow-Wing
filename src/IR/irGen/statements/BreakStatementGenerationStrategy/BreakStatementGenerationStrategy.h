@@ -21,8 +21,8 @@
 #ifndef __FLOWWING_BREAK_STATEMENT_STRATEGY_H__
 #define __FLOWWING_BREAK_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class BreakStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

@@ -21,8 +21,8 @@
 #ifndef __FLOWWING_PARENTHESIZED_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_PARENTHESIZED_EXPRESSION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class ParenthesizedExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {

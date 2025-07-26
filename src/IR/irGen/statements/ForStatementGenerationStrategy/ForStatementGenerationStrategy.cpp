@@ -20,7 +20,7 @@
 
 #include "ForStatementGenerationStrategy.h"
 
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 ForStatementGenerationStrategy::ForStatementGenerationStrategy(
     CodeGenerationContext *context)

@@ -20,13 +20,13 @@
 
 #pragma once
 
-#include "../../../../../syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
-#include "../../ExpressionParser.h"
-#include "../../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../../PrecedenceAwareExpressionParser.h"
-#include "../ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"
-#include "../PrimitiveTypeExpressionParser/PrimitiveTypeExpressionParser.h"
-#include "../TypeExpressionParser.h"
+#include "src/syntax/expression/TypeExpressionSyntax/FunctionTypeExpressionSyntax/FunctionTypeExpressionSyntax.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/ExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/IdentifierExpressionParser/IdentifierExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/ObjectTypeExpressionParser/ObjectTypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/PrimitiveTypeExpressionParser/PrimitiveTypeExpressionParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/TypeExpressionParser/TypeExpressionParser.h"
 
 class FunctionTypeExpressionParser : public ExpressionParser {
 public:

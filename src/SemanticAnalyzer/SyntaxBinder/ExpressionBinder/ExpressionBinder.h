@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../syntax/expression/ExpressionSyntax.h"
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../SyntaxBinderContext/SyntaxBinderContext.h"
+#include <memory>
+
+class BoundExpression;
+class SyntaxBinderContext;
+class ExpressionSyntax;
 
 class ExpressionBinder {
 public:

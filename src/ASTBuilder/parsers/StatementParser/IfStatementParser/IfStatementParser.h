@@ -17,15 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/IfStatementSyntax/IfStatementSyntax.h"
-#include "../BlockStatementParser/BlockStatementParser.h"
-#include "../ElseStatementParser/ElseStatementParser.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
-
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
 class IfStatementParser : public StatementParser {
 
 public:

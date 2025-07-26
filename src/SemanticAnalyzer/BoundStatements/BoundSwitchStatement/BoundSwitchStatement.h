@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "../../BoundExpressions/BoundExpression/BoundExpression.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
-#include "../../BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
-#include "../../BoundStatements/BoundCaseStatement/BoundCaseStatement.h"
-#include "../../BoundStatements/BoundStatement/BoundStatement.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundCaseStatement/BoundCaseStatement.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include <memory>
 #include <vector>
 

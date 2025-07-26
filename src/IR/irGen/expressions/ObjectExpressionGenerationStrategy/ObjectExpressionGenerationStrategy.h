@@ -21,15 +21,15 @@
 #ifndef __FLOWWING_OBJECT_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_OBJECT_EXPRESSION_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
-#include "../ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
-#include "../ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
-#include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
-#include "../ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/IR/irGen/statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/FillExpressionGenerationStrategy/FillExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
 
 class ObjectExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

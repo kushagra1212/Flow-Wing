@@ -17,18 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_CALL_EXPRESSION_STRATEGY_H__
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include <llvm/IR/Value.h>
+#include <vector>
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
-#include "../../Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
-#include "../../statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+class CodeGenerationContext;
+class BoundExpression;
+class BoundCallExpression;
 
 class CallExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
@@ -122,5 +119,3 @@ private:
   bool _isGlobal = false;
   bool _isDeclarationNeeded = false;
 };
-
-#endif // __FLOWWING_CALL_EXPRESSION_STRATEGY_H__

@@ -17,15 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ContainerStatementSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 /*
   OVERRIDES
 */
 
 const std::vector<SyntaxNode *> &ContainerStatementSyntax::getChildren() {
-  if (_children.size() > 0) return _children;
+  if (_children.size() > 0)
+    return _children;
 
   _children.push_back(this->_identifierToken.get());
 

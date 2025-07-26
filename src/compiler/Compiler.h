@@ -17,24 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef __FLOW__WING__COMPILER__H__
-#define __FLOW__WING__COMPILER__H__
+#pragma once
 
 #if defined(AOT_TEST_MODE) || defined(JIT_TEST_MODE)
 #include <gtest/gtest.h>
 #endif
 
-#include <fstream>
-#include <iostream>
+#include <filesystem>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <string>
+#include <vector>
 
-#include "../ASTBuilder/ASTBuilder.h"
-#include "../IR/IRGenerator.h"
-#include "../IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
-#include "../SemanticAnalyzer/SemanticAnalyzer.h"
-#include "../common/commandLineOptions/commandLineOptions.h"
-#include "../utils/Utils.h"
-#include "CompilerUtils.h"
+class LLFileSaveStrategy;
+namespace FlowWing {
+class DiagnosticHandler;
+}
 
 class Compiler {
 public:
@@ -55,5 +52,3 @@ public:
   llvm::ExecutionEngine *executionEngine;
   std::filesystem::path _executable_path = std::filesystem::current_path();
 };
-
-#endif // __FLOW__WING__COMPILER__H__

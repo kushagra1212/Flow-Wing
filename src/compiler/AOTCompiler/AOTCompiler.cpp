@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "AOTCompiler.h"
-#include "../../common/version.h"
+#include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/common/version.h"
+#include "src/external/include/argh.h"
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)

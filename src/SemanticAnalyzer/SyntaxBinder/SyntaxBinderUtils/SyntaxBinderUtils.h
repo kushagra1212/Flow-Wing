@@ -20,6 +20,6 @@
 
 #pragma once
 
-#include "../SyntaxBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinder.h"
 
 class SyntaxBinderUtils {};

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
 #include <cstdint>
 #include <sys/types.h>
 

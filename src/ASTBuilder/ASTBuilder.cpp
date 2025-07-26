@@ -17,8 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ASTBuilder.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/CompilationUnitParser/CompilationUnitParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
+#include "src/syntax/SyntaxToken.h"
 
 ASTBuilder::ASTBuilder(
     const std::vector<std::string> &sourceCode,

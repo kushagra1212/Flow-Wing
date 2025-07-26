@@ -23,10 +23,10 @@
 
 #include <llvm/IR/LLVMContext.h>
 
-#include "../constants/FlowWingIRConstants.h"
-#include "../context/CodeGenerationContext.h"
-#include "../logger/LLVMLogger.h"
-#include "../mappers/TypeMapper/TypeMapper.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/IR/mappers/TypeMapper/TypeMapper.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"

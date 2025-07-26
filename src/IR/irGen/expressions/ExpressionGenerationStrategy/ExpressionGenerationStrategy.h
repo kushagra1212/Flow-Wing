@@ -20,7 +20,7 @@
 
 #ifndef __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__
 #define __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__
-#include "../../GenerationStrategy.h"
+#include "src/IR/irGen/GenerationStrategy.h"
 
 class ExpressionGenerationStrategy : public GenerationStrategy {
 public:

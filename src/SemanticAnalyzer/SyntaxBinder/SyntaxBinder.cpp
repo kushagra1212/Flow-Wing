@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SyntaxBinder.h"
 #include "MemberBinder/MemberBinderFactory.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/MemberBinder/MemberBinder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
 
 SyntaxBinder::SyntaxBinder(std::unique_ptr<BoundScope> scope,
                            FlowWing::DiagnosticHandler *diagnosticHandler)

@@ -21,16 +21,16 @@
 #ifndef __FLOWWING_IR__CODE_GENERATOR_H__
 #define __FLOWWING_IR__CODE_GENERATOR_H__
 
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
-#include "../../expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
-#include "../../expressions/MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
-#include "../../statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
-#include "../../statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
-#include "../../statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
-#include "../../statements/MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
-#include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/MultipleAssignmentExpressionGenerationStrategy/MultipleAssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/UnaryExpressionGenerationStrategy/UnaryExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/BringStatementGenerationStrategy/BringStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/ClassStatementGenerationStrategy/ClassStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/CustomTypeStatementGenerationStrategy/CustomTypeStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/MultipleVariableDeclarationStatementGenerationStrategy/MultipleVariableDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
 class IRCodeGenerator {
   std::unique_ptr<VariableDeclarationStatementGenerationStrategy>
       _variableDeclarationStatementGenerationStrategy;

@@ -18,7 +18,7 @@
  */
 
 
-#include "../../../SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 
 namespace OperationSupport {
 

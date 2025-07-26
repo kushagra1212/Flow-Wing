@@ -20,7 +20,7 @@
 
 #include "ReferenceTypeBuilder.h"
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 ReferenceTypeBuilder::ReferenceTypeBuilder(CodeGenerationContext *context)
     : TypeBuilderInterface(context) {

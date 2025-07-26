@@ -26,9 +26,9 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 
-#include "../../../common/Common.h"
-#include "../../../utils/Utils.h"
-#include "../../constants/FlowWingIRConstants.h"
+#include "src/common/Common.h"
+#include "src/utils/Utils.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
 using namespace FLOWWING::IR::CONSTANTS;
 class CodeGenerationContext;
 class TypeMapper {

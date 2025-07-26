@@ -17,11 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CallExpressionGenerationStrategy.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "../../declaration/IRCodeGenerator/IRCodeGenerator.h"
-#include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMDynamicType/LLVMDynamicType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMFunctionType/LLVMFunctionType.h"
+#include "src/IR/irGen/Types/LLVMType/LLVMPrimitiveType/LLVMPrimitiveType.h"
+#include "src/IR/irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
+#include "src/IR/irGen/expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/utils/LogConfig.h"
 #include <cstddef>
 #include <memory>
 
@@ -1804,7 +1807,9 @@ void CallExpressionGenerationStrategy::handleArrayArgs(
             argArrayType->getElementType()));
     return;
   }
-  { retFlag = 3; };
+  {
+    retFlag = 3;
+  };
 }
 
 llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(

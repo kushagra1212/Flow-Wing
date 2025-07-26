@@ -21,7 +21,7 @@
 #ifndef __FLOW__WING__BOUND__VARIABLE__EXPRESSION__H__
 #define __FLOW__WING__BOUND__VARIABLE__EXPRESSION__H__
 
-#include "../BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 
 class BoundArrayVariableExpression : public BoundVariableExpression {
  public:

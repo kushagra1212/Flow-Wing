@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 VariableExpressionSyntax::VariableExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> identifierExpression,

@@ -17,8 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ObjectExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 const SyntaxKindUtils::SyntaxKind ObjectExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ObjectExpression;

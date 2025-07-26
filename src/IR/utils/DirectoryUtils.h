@@ -21,8 +21,8 @@
 #ifndef DIRECTORY_UTILS_H
 #define DIRECTORY_UTILS_H
 
-#include "../../IR/logger/LLVMLogger.h"
-#include "../../utils/Utils.h"
+#include "src/IR/logger/LLVMLogger.h"
+#include "src/utils/Utils.h"
 #include <llvm/Support/FileSystem.h>
 namespace FLOWWING::IR::UTILS {
 

@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "../../../../syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
-#include "../StatementParser.h"
-#include "../StatementParserFactory.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParser.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
 
 class BlockStatementParser : public StatementParser {
 

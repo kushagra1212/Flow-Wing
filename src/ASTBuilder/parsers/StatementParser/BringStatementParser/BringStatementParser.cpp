@@ -17,10 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BringStatementParser.h"
-#include "../../../../diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include "../../../ASTBuilder.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/StatementParserFactory.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticLevel.h"
+#include "src/diagnostics/DiagnosticUtils/DiagnosticType.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/BringStatementSyntax/BringStatementSyntax.h"
+#include "src/utils/PathUtils.h"
+#include "src/utils/Utils.h"
 
 std::unique_ptr<StatementSyntax>
 BringStatementParser::parseStatement(ParserContext *ctx) {

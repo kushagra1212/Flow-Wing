@@ -17,16 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../BoundNode.h"
-#include "../../BoundSourceLocation/BoundSourceLocation.h"
+#include "src/SemanticAnalyzer/BoundNode.h"
+#include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 class BoundExpression : public BoundNode, public BoundSourceLocation {
 public:
   inline BoundExpression(DiagnosticUtils::SourceLocation location)
-      : BoundSourceLocation(location){};
+      : BoundSourceLocation(location) {};
 
   virtual const std::type_info &getType() = 0;
 

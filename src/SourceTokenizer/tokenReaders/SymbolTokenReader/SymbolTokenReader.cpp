@@ -17,10 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SymbolTokenReader.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
+#include "src/SourceTokenizer/tokenReaders/TokenReaderData.h"
+#include "src/diagnostics/Diagnostic/Diagnostic.h"
 #include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
-#include <string>
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/utils/Utils.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 SymbolTokenReader::readToken(SourceTokenizer &lexer) {

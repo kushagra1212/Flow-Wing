@@ -17,12 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef FILESAVESTRATEGY_H
-#define FILESAVESTRATEGY_H
-
-#include "../../logger/LLVMLogger.h"
-#include <llvm/Support/FileSystem.h>
 #include <string>
 template <typename ContentType, typename LoggerType> class FileSaveStrategy {
 public:
@@ -30,5 +26,3 @@ public:
   virtual bool saveToFile(const std::string &path,
                           ContentType content) const = 0;
 };
-
-#endif // FILESAVESTRATEGY_H

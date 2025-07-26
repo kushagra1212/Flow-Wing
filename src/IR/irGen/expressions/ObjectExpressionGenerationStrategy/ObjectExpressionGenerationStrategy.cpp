@@ -20,7 +20,7 @@
 
 #include "ObjectExpressionGenerationStrategy.h"
 
-#include "../AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 
 ObjectExpressionGenerationStrategy::ObjectExpressionGenerationStrategy(
     CodeGenerationContext *context)

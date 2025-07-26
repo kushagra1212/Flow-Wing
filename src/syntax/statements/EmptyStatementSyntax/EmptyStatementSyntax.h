@@ -17,21 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef EMPTY_STATEMENT_SYNTAX_H
-#define EMPTY_STATEMENT_SYNTAX_H
-
-#include "../../SyntaxNode.h"
-#include "../../SyntaxToken.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 
 class EmptyStatementSyntax : public StatementSyntax {
- public:
+public:
   EmptyStatementSyntax();
 
   const SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };
-
-#endif  // EMPTY_STATEMENT_SYNTAX_H

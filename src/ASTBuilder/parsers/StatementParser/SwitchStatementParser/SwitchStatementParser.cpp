@@ -17,10 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "SwitchStatementParser.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/ASTBuilder/parsers/StatementParser/CaseStatementParser/CaseStatementParser.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/statements/SwitchStatementSyntax/SwitchStatementSyntax.h"
 #include <memory>
 
 std::unique_ptr<StatementSyntax>

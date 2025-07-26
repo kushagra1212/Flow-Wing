@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "../../../../../IR/constants/FlowWingIRConstants.h"
-#include "../../../../context/CodeGenerationContext.h"
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/IR/context/CodeGenerationContext.h"
 #include <llvm/IR/DerivedTypes.h>
 
 namespace DYNAMIC_VALUE_HANDLER {

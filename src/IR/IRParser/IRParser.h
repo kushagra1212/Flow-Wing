@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef IR_PARSER_H
-#define IR_PARSER_H
+#pragma once
 
 #include <llvm/IR/Module.h>
-
-#include "../../common/Common.h"
-#include "llvm/IR/AssemblyAnnotationWriter.h"
 
 class IRParser {
 public:
@@ -43,5 +38,3 @@ public:
 private:
   std::string _ir;
 };
-
-#endif // IR_PARSER_H

@@ -17,8 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ExpressionStatementParser.h"
+#include "src/ASTBuilder/parsers/ExpressionParser/PrecedenceAwareExpressionParser.h"
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/ExpressionStatementSyntax/ExpressionStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 
 std::unique_ptr<StatementSyntax>
 ExpressionStatementParser::parseStatement(ParserContext *ctx) {

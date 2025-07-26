@@ -17,8 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Interpreter.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
+#include "src/SemanticAnalyzer/SemanticAnalyzer.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/utils/BuiltInFunction/BuiltInFunction.h"
+#include <iostream>
 
 Interpreter::Interpreter(BoundGlobalScope *globalScope,
                          FlowWing::DiagnosticHandler *diagnosticHandler) {

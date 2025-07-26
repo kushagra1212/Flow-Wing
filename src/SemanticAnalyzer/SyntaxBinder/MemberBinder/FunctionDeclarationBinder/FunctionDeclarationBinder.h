@@ -17,15 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../../syntax/statements/FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
-#include "../../../../utils/BuiltInFunction/BuiltInFunction.h"
-#include "../../../BoundStatements/BoundBreakStatement/BoundBreakStatement.h"
-#include "../../StatementBinder/StatementBinder.h"
-#include "../MemberBinder.h"
-#include <memory>
+#include "src/SemanticAnalyzer/SyntaxBinder/MemberBinder/MemberBinder.h"
+#include <string>
+
+class FunctionDeclarationSyntax;
+class BoundFunctionDeclaration;
+
 class FunctionDeclarationBinder : public MemberBinder {
   std::string _prefix = "";
 

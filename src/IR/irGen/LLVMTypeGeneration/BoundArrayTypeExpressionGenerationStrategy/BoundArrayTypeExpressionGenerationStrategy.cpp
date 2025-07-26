@@ -20,8 +20,8 @@
 
 #include "BoundArrayTypeExpressionGenerationStrategy.h"
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
 
 llvm::Type *BoundArrayTypeExpressionGenerationStrategy::getType(
     BoundTypeExpression *expression) {

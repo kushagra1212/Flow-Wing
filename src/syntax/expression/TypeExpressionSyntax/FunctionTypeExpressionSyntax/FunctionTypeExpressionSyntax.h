@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../TypeExpressionSyntax.h"
-#include <cstdint>
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 
 class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
 private:

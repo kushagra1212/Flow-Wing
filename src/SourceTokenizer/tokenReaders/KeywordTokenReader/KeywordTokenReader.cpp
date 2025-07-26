@@ -17,8 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "KeywordTokenReader.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
+#include "src/SourceTokenizer/tokenReaders/TokenReaderData.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 std::unique_ptr<SyntaxToken<std::any>>
 KeywordTokenReader::readToken(SourceTokenizer &lexer) {

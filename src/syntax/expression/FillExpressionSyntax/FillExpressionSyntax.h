@@ -17,14 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
-#define __FLOWWING_FILL_EXPRESSION_SYNTAX_H__
-
-#include "../../../common/Common.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-
+#include "src/syntax/expression/ExpressionSyntax.h"
 class FillExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<ExpressionSyntax> _sizeToFillExpression;
@@ -51,5 +46,3 @@ public:
   auto getElementExpressionRef() const
       -> const std::unique_ptr<ExpressionSyntax> &;
 };
-
-#endif //  __FLOWWING_FILL_EXPRESSION_SYNTAX_H__

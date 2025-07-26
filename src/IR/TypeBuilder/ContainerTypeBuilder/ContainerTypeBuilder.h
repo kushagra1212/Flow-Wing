@@ -22,7 +22,7 @@
 #ifndef __FLOWWING_CONTAINER_TYPE_BUILDER_H__
 #define __FLOWWING_CONTAINER_TYPE_BUILDER_H__
 
-#include "../TypeBuilderInterface.h"
+#include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
 class ContainerTypeBuilder : public TypeBuilderInterface {
  public:

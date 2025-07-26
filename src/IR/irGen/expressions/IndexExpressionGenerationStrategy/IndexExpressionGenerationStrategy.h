@@ -21,10 +21,10 @@
 #ifndef __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 #define __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
 
-#include "../../../../IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "../ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:

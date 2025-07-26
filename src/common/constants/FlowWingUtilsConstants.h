@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef __FLOWWING_UTILS_CONSTANTS_H__
-#define __FLOWWING_UTILS_CONSTANTS_H__
+#pragma once
 
 #include <string>
 
@@ -36,5 +34,3 @@ extern const std::string NULL_DEVICE;
 #endif
 
 }; // namespace FLOWWING::UTILS::CONSTANTS
-
-#endif // __FLOWWING_UTILS_CONSTANTS_H__

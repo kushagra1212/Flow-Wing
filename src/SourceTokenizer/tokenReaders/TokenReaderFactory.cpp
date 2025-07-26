@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TokenReaderFactory.h"
 
 #include "CharacterTokenReader/CharacterTokenReader.h"
@@ -32,6 +31,7 @@
 #include "TemplateStringTokenReader/TemplateStringTokenReader.h"
 #include "TokenReader.h"
 #include "WhiteSpaceTokenReader/WhiteSpaceTokenReader.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
 
 std::unique_ptr<TokenReader>
 TokenReaderFactory::createTokenReader(const SourceTokenizer &lexer) {

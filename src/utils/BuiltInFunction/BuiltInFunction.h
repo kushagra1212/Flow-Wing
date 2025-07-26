@@ -21,8 +21,8 @@
 #ifndef __BUILT_IN_FUNCTION_H__
 #define __BUILT_IN_FUNCTION_H__
 
-#include "../../SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
-#include "../../SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
 
 namespace FW::BI::FUNCTION {
 

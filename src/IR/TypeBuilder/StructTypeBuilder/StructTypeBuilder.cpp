@@ -21,7 +21,7 @@
 // StructTypeBuilder.cpp
 #include "StructTypeBuilder.h"
 
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 
 StructTypeBuilder::StructTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)

@@ -17,23 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW__WING__OBJECT_TYPEEXPRESSIONSYNTAX_H__
-#define __FLOW__WING__OBJECT_TYPEEXPRESSIONSYNTAX_H__
-
-#include "../TypeExpressionSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include <any>
 
 class ObjectTypeExpressionSyntax : public TypeExpressionSyntax {
- private:
+private:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> _objectTypeIdentifier;
 
- public:
+public:
   ObjectTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
 
   const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
   const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation getSourceLocation()
-      const override;
+  const virtual DiagnosticUtils::SourceLocation
+  getSourceLocation() const override;
 
   inline auto setObjectTypeIdentifier(
       std::unique_ptr<LiteralExpressionSyntax<std::any>> objectTypeIdentifier)
@@ -46,5 +47,3 @@ class ObjectTypeExpressionSyntax : public TypeExpressionSyntax {
     return this->_objectTypeIdentifier;
   }
 };
-
-#endif  // __FLOW__WING__OBJECT_TYPEEXPRESSIONSYNTAX_H__

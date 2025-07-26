@@ -21,8 +21,8 @@
 #ifndef __FLOWWING_CONTINUE_STATEMENT_STRATEGY_H__
 #define __FLOWWING_CONTINUE_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundContinueStatement/BoundContinueStatement.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundContinueStatement/BoundContinueStatement.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class ContinueStatementGenerationStrategy : public StatementGenerationStrategy {
 public:

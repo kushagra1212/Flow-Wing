@@ -17,18 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef MODULE_STATEMENT_SYNTAX_H
-#define MODULE_STATEMENT_SYNTAX_H
-
-#include "../../SyntaxToken.h"
-#include "../../expression/LiteralExpressionSyntax.h"
-#include "../ClassStatementSyntax/ClassStatementSyntax.h"
-#include "../CustomTypeStatementSyntax/CustomTypeStatementSyntax.h"
-#include "../FunctionDeclarationSyntax/FunctionDeclarationSyntax.h"
-#include "../StatementSyntax.h"
-#include "../VariableDeclarationSyntax/VariableDeclarationSyntax.h"
-
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 class ModuleStatementSyntax : public StatementSyntax {
   std::unique_ptr<SyntaxToken<std::any>> _moduleKeyword;
   std::unique_ptr<SyntaxToken<std::any>> _openBracketToken;
@@ -92,5 +84,3 @@ public:
     return _statements;
   }
 };
-
-#endif

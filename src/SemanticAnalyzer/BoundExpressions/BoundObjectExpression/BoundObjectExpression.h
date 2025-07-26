@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOW_BoundObjectExpression_H
-#define __FLOW_BoundObjectExpression_H
-
-#include "../BoundExpression/BoundExpression.h"
-#include "../BoundLiteralExpression/BoundLiteralExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
+#include <any>
+#include <memory>
+#include <vector>
 
 class BoundObjectExpression : public BoundExpression {
   std::vector<std::pair<std::unique_ptr<BoundLiteralExpression<std::any>>,
@@ -62,5 +63,3 @@ public:
     return this->_key_value_pairs;
   }
 };
-
-#endif // __FLOW_BoundObjectExpression_H

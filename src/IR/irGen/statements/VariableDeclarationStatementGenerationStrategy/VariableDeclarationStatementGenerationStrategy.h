@@ -21,16 +21,16 @@
 #ifndef __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 #define __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
-#include "../../../context/utils/DynamicValueHandler/DynamicValueHandler.h"
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include "../../expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
-#include "../../expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
-#include "../ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
-#include "../ObjectDeclarationStatementGenerationStrategy/ObjectDeclarationStatementGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
+#include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/ObjectExpressionGenerationStrategy/ObjectExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/ContainerDeclarationStatementGenerationStrategy/ContainerDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/ObjectDeclarationStatementGenerationStrategy/ObjectDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 
 class VariableDeclarationStatementGenerationStrategy
     : public StatementGenerationStrategy {

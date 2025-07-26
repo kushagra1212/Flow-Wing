@@ -17,14 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-
-
-#ifndef __EXPRESSIONSYNTAX_H__
-#define __EXPRESSIONSYNTAX_H__
-#include "../SyntaxNode.h"
+#include "src/syntax/SyntaxNode.h"
 class ExpressionSyntax : public SyntaxNode {
- public:
+public:
   virtual ~ExpressionSyntax() = default;
 };
-#endif

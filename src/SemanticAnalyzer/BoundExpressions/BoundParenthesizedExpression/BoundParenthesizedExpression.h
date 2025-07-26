@@ -21,7 +21,7 @@
 #pragma once
 #include <typeinfo>
 
-#include "../BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
 class BoundParenthesizedExpression : public BoundExpression {
 private:

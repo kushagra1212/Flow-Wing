@@ -21,9 +21,9 @@
 #ifndef __GLOBAL_TYPE_CONVERTER_H__
 #define __GLOBAL_TYPE_CONVERTER_H__
 
-#include "../../context/CodeGenerationContext.h"
-#include "../StringTypeConverter/StringTypeConverter.h"
-#include "../TypeConverterBase.h"
+#include "src/IR/context/CodeGenerationContext.h"
+#include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
+#include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
 class GStringTypeConverter : public TypeConverterBase {
 public:

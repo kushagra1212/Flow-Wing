@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "../../SyntaxToken.h"
-#include "../../expression/ExpressionSyntax.h"
-#include "../CaseStatementSyntax/CaseStatementSyntax.h"
-#include "../StatementSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/CaseStatementSyntax/CaseStatementSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include <memory>
 
 class SwitchStatementSyntax : public StatementSyntax {

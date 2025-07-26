@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__
-#define __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__
-
-#include "../../../common/Common.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
-
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include <any>
 class ContainerExpressionSyntax : public ExpressionSyntax {
 private:
   std::vector<std::unique_ptr<ExpressionSyntax>> _elements;
@@ -56,5 +53,3 @@ public:
     _closeBracket = std::move(closeBracket);
   }
 };
-
-#endif // __FLOWWING_CONTAINER_EXPRESSION_SYNTAX_H__

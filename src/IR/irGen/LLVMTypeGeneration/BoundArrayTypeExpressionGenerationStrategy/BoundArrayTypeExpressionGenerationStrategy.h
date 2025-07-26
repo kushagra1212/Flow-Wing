@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "../LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 
 class BoundArrayTypeExpressionGenerationStrategy
     : public LLVMTypeGenerationStrategy {

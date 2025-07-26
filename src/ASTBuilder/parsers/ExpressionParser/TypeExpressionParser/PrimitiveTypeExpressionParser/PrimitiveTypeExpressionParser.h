@@ -17,11 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../IdentifierExpressionParser/IdentifierExpressionParser.h"
-#include "../../PrecedenceAwareExpressionParser.h"
+#include <any>
+template <typename T> class SyntaxToken;
+class ParserContext;
 
 class PrimitiveTypeExpressionParser {
 public:

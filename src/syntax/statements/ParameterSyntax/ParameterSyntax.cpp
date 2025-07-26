@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "ParameterSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 ParameterSyntax::ParameterSyntax(
     std::unique_ptr<SyntaxToken<std::any>> identifierToken) {
@@ -31,8 +31,8 @@ const SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 
-const DiagnosticUtils::SourceLocation ParameterSyntax::getSourceLocation()
-    const {
+const DiagnosticUtils::SourceLocation
+ParameterSyntax::getSourceLocation() const {
   return this->_identifierToken->getSourceLocation();
 }
 

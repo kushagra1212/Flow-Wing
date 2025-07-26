@@ -21,11 +21,11 @@
 #ifndef __FLOWWING_FOR_STATEMENT_STRATEGY_H__
 #define __FLOWWING_FOR_STATEMENT_STRATEGY_H__
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
-#include "../../expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
-#include "../../expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
-#include "../../statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
-#include "../StatementGenerationStrategy/StatementGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
+#include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
+#include "src/IR/irGen/expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
+#include "src/IR/irGen/statements/VariableDeclarationStatementGenerationStrategy/VariableDeclarationStatementGenerationStrategy.h"
+#include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 class ForStatementGenerationStrategy : public StatementGenerationStrategy {
 public:
   ForStatementGenerationStrategy(CodeGenerationContext *context);

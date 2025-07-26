@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BinaryExpressionSyntax.h"
+#include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include "src/syntax/SyntaxKindUtils.h"
+#include "src/syntax/SyntaxToken.h"
 
 BinaryExpressionSyntax::BinaryExpressionSyntax(
     std::unique_ptr<ExpressionSyntax> left,
@@ -50,9 +52,9 @@ const std::vector<SyntaxNode *> &BinaryExpressionSyntax::getChildren() {
   if (_children.empty()) {
     // Add children
 
-    this->_children.push_back(_left.get());
-    this->_children.push_back(_operatorToken.get());
-    this->_children.push_back(_right.get());
+    this->_children.emplace_back(_left.get());
+    this->_children.emplace_back(_operatorToken.get());
+    this->_children.emplace_back(_right.get());
   }
 
   return this->_children;

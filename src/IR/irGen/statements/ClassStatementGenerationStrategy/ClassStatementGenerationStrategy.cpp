@@ -17,11 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ClassStatementGenerationStrategy.h"
-
-#include "../../LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
+#include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
 
 ClassStatementGenerationStrategy::ClassStatementGenerationStrategy(
     CodeGenerationContext *context)

@@ -17,16 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../../SourceTokenizer/SourceTokenizer.h"
-#include "../../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../../syntax/SyntaxToken.h"
-#include "../../CodeFormatter/CodeFormatter.h"
+#include <any>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include <vector>
+
+class SourceTokenizer;
+class CodeFormatter;
+template <typename T> class SyntaxToken;
+
+namespace FlowWing {
+class DiagnosticHandler;
+}
+
+namespace SyntaxKindUtils {
+enum SyntaxKind : int;
+}
 
 class ParserContext {
 

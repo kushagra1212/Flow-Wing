@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "../../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../../utils/PathUtils.h"
-#include "../../utils/Utils.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/PathUtils.h"
+#include "src/utils/Utils.h"
 
 namespace FlowWing {
 

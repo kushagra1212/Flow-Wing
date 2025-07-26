@@ -19,7 +19,7 @@
 
 
 #include "TypeMapper.h"
-#include "../../context/CodeGenerationContext.h"
+#include "src/IR/context/CodeGenerationContext.h"
 #include <string>
 
 TypeMapper::TypeMapper(llvm::LLVMContext *context, llvm::IRBuilder<> *builder,

@@ -17,12 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __FLOWWING_BRACKETED_EXPRESSION_SYNTAX_H__
-#define __FLOWWING_BRACKETED_EXPRESSION_SYNTAX_H__
-#include "../../../common/Common.h"
-#include "../../SyntaxToken.h"
-#include "../ExpressionSyntax.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
 
 class BracketedExpressionSyntax : public ExpressionSyntax {
 private:
@@ -40,5 +37,3 @@ public:
   // Getters
   auto getExpressionRef() const -> const std::unique_ptr<ExpressionSyntax> &;
 };
-
-#endif // __FLOWWING_BRACKETED_EXPRESSION_SYNTAX_H__

@@ -21,8 +21,8 @@
 #ifndef FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
 #define FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
 
-#include "../../../../SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
-#include "../../../../common/Common.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
+#include "src/common/Common.h"
 
 class CustomTypeStatementTable {
 private:

@@ -22,11 +22,11 @@
 #ifndef REPL_H
 #define REPL_H
 
-#include "../ASTBuilder/ASTBuilder.h"
-#include "../SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
-#include "../common/Common.h"
-#include "../diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "../interpreter/Interpreter.h"
+#include "src/ASTBuilder/ASTBuilder.h"
+#include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
+#include "src/common/Common.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/interpreter/Interpreter.h"
 
 class Repl {
 public:

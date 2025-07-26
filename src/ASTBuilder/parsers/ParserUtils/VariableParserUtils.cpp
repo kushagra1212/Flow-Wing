@@ -17,8 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableParserUtils.h"
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include <memory>
 
 void VariableParserUtils::handleVarDecParsePrefixKeywords(
