@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__ARG__TYPE_HANLDER_H__
-#define __FLOWWING__ARG__TYPE_HANLDER_H__
+#pragma once
 
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 
@@ -43,5 +42,3 @@ public:
     return _argsTypeMap[(funcName)];
   }
 };
-
-#endif // __FLOWWING__ARG__TYPE_HANLDER_H__

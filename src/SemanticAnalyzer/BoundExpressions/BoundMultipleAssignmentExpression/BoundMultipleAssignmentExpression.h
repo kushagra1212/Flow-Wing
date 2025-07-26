@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __BOUND_MULTIPLE_ASSIGNMENT_EXPRESSION_H__
-#define __BOUND_MULTIPLE_ASSIGNMENT_EXPRESSION_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 
@@ -58,5 +57,3 @@ public:
     return _assignmentList;
   }
 };
-
-#endif

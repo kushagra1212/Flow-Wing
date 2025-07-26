@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_TYPE_TABLE_H
-#define FLOWWING_TYPE_TABLE_H
+#pragma once
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Type.h>
@@ -59,5 +58,3 @@ public:
     _element_map[name] = value;
   }
 };
-
-#endif // FLOWWING_TYPE_TABLE_H

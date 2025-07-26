@@ -18,8 +18,8 @@
  */
 
 
-#ifndef INTERPRETERCONVERSION_H
-#define INTERPRETERCONVERSION_H
+#pragma once
+
 #include <any>
 #include <string>
 
@@ -45,5 +45,3 @@ public:
   static bool explicitConvertDoubleToBool(const double value);
   static bool explicitConvertStringToBool(const std::string value);
 };
-
-#endif // INTERPRETERCONVERSION_H

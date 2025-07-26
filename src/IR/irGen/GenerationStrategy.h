@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_GENERATION_STRATEGY_H__
-#define __FLOWWING_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -154,5 +153,3 @@ public:
   std::unique_ptr<StatementGenerationFactory> _statementGenerationFactory;
   std::unique_ptr<LLVMTypeGenerationFactory> _typeGenerationFactory;
 };
-
-#endif // __FLOWWING_GENERATION_STRATEGY_H__

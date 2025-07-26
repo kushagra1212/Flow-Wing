@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOW__WING_VALUE_STACK
-#define __FLOW__WING_VALUE_STACK
+#pragma once
 
 #include "string"
 #include "llvm/IR/Value.h"
@@ -44,5 +43,3 @@ public:
   auto inline getLLVMType() -> llvm::Type * { return llvmType; }
   auto inline getDynamicValue() -> llvm::Value * { return dynamicValue; }
 };
-
-#endif

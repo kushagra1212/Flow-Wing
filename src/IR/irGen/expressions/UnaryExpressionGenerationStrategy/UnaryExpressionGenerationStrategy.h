@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -41,5 +40,3 @@ public:
                                 bool isClassType = false,
                                 bool skipUnsupportedOperation = false);
 };
-
-#endif // __FLOWWING__UNARY_EXPRESSION_GENERATION_STRATEGY_H__

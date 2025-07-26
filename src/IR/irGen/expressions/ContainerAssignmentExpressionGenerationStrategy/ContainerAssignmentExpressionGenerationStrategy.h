@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
@@ -76,5 +75,3 @@ private:
   std::vector<uint64_t> _lhsSizes, _rhsSizes;
   llvm::Type *_rhsArrayElementType = nullptr, *_lhsArrayElementType = nullptr;
 };
-
-#endif // __FLOWWING_CONTAINER_ASSIGNMENT_EXPRESSION_STRATEGY_H__

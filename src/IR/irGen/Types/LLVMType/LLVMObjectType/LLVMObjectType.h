@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__LLVM_OBJECT_TYPE_H__
-#define __FLOWWING__LLVM_OBJECT_TYPE_H__
+#pragma once
 
 #include <llvm/IR/DerivedTypes.h>
 
@@ -41,5 +40,3 @@ private:
   llvm::Type *_type;
   llvm::StructType *_structType;
 };
-
-#endif // __FLOWWING__LLVM_OBJECT_TYPE_H__

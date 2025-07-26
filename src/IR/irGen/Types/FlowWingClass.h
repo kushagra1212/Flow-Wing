@@ -17,8 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __FLOWING_CLASS_H__
-#define __FLOWING_CLASS_H__
+#pragma once
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
@@ -244,5 +243,3 @@ public:
     _memberVariablesTypeNameMap.insert({name, 1});
   }
 };
-
-#endif

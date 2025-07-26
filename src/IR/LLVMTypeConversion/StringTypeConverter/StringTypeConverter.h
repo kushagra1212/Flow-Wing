@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __STRING_TYPE_CONVERTER_H__
-#define __STRING_TYPE_CONVERTER_H__
+#pragma once
 
 #include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
@@ -36,5 +35,3 @@ public:
 
   llvm::Value *convertStringToi8Ptr(std::string stringValue);
 };
-
-#endif // __STRING_TYPE_CONVERTER_H__

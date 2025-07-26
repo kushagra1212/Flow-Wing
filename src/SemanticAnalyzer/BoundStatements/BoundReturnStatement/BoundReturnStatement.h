@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __BOUND_RETURN_STATEMENT_H
-#define __BOUND_RETURN_STATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
@@ -53,5 +52,3 @@ public:
     _returnExpressionList.push_back(std::move(expression));
   }
 };
-
-#endif // __BOUND_RETURN_STATEMENT_H

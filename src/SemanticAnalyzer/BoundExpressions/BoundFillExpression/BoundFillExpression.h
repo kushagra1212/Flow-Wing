@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_BOUND_FILL_EXPRESSION_H__
-#define __FLOWWING_BOUND_FILL_EXPRESSION_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
@@ -44,5 +43,3 @@ public:
   auto getElementToFillRef() const -> const std::unique_ptr<BoundExpression> &;
   auto getSizeToFillRef() const -> const std::unique_ptr<BoundExpression> &;
 };
-
-#endif // __FLOWWING_BOUND_FILL_EXPRESSION_H__

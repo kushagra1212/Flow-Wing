@@ -17,12 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef BOUNDSCOPEGLOBAL_H
-#define BOUNDSCOPEGLOBAL_H
-#include "src/common/Common.h"
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/utils/Utils.h"
+#pragma once
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
@@ -31,6 +26,9 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundScope/BoundScope.h"
+#include "src/common/Common.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/Utils.h"
 
 class BoundGlobalScope {
 public:
@@ -61,5 +59,3 @@ public:
   FlowWing::DiagnosticHandler *_diagnosticHandler;
   std::unique_ptr<BoundBlockStatement> globalStatement;
 };
-
-#endif

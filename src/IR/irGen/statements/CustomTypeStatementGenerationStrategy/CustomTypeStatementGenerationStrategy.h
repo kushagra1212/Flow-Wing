@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_CUSTOM_TYPE_STATEMENT_STRATEGY_H__
-#define __FLOWWING_CUSTOM_TYPE_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
@@ -44,5 +43,3 @@ private:
   bool _isGlobal = false;
   std::string _className = "";
 };
-
-#endif // __FLOWWING_CUSTOM_TYPE_STATEMENT_STRATEGY_H__

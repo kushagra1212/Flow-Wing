@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_FOR_STATEMENT_STRATEGY_H__
-#define __FLOWWING_FOR_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundForStatement/BoundForStatement.h"
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -37,5 +36,3 @@ public:
                                        llvm::Value *value,
                                        llvm::Value *upperBound);
 };
-
-#endif // __FLOWWING_FOR_STATEMENT_STRATEGY_H__

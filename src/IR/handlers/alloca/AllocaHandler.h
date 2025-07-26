@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_ALLOCAHANDLER_H
-#define FLOWWING_ALLOCAHANDLER_H
+#pragma once
 
 #include "src/common/Common.h"
 #include "llvm/IR/Instructions.h"
@@ -31,5 +30,3 @@ public:
                             llvm::AllocaInst *alloca) = 0;
   virtual void setAlloca(const std::string &name, llvm::AllocaInst *alloca) = 0;
 };
-
-#endif // FLOWWING_ALLOCAHANDLER_H

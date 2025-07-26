@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __STRING_BINARY_OPERATION_STRATEGY_H__
-#define __STRING_BINARY_OPERATION_STRATEGY_H__
+#pragma once
+
 #include "src/IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 
 class StringBinaryOperationStrategy : public BinaryOperationStrategy {
@@ -40,5 +40,3 @@ public:
 
   llvm::Value *concatenateStrings(llvm::Value *lhs, llvm::Value *rhs);
 };
-
-#endif // __STRING_BINARY_OPERATION_STRATEGY_H__

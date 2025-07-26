@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
@@ -88,5 +87,3 @@ private:
   std::string _variableName;
   bool _isGlobal = false;
 };
-
-#endif // __FLOWWING_VARIABLE_EXPRESSION_STRATEGY_H__

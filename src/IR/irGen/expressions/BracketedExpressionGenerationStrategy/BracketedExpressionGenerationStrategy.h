@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
@@ -52,5 +51,3 @@ private:
   std::string _containerName;
   llvm::AllocaInst *_allocaInst = nullptr;
 };
-
-#endif // __FLOWWING__BRACKETED_EXPRESSION_GENERATION_STRATEGY_H__

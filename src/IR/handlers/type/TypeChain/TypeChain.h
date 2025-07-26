@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_TYPE_CHAIN_H
-#define FLOWWING_TYPE_CHAIN_H
+#pragma once
 
 #include "src/common/Common.h"
 #include "src/IR/handlers/type/TypeTable/TypeTable.h"
@@ -45,5 +44,3 @@ public:
   void setGlobalType(const std::string &name, llvm::StructType *typeValue);
   void setGlobalIndex(const std::string &name, size_t index);
 };
-
-#endif // FLOWWING_TYPE_CHAIN_H

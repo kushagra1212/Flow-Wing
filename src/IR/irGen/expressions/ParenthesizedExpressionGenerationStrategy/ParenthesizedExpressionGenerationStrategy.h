@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_PARENTHESIZED_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_PARENTHESIZED_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundParenthesizedExpression/BoundParenthesizedExpression.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -32,5 +31,3 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 };
-
-#endif // __FLOWWING_PARENTHESIZED_EXPRESSION_STRATEGY_H__

@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __BoundModuleStatement_H__
-#define __BoundModuleStatement_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
@@ -120,5 +119,3 @@ public:
     return _statements;
   }
 };
-
-#endif

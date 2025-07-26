@@ -17,23 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef __FLOW__WING__AOT__COMPILER__H__
-#define __FLOW__WING__AOT__COMPILER__H__
+#pragma once
 
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 
+#include "AotCompilerUtils.h"
+#include "ObjectFile/ObjectFile.h"
 #include "src/ASTBuilder/ASTBuilder.h"
 #include "src/IR/IRGenerator.h"
 #include "src/IR/utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "src/common/managers/CommandManager.h"
 #include "src/compiler/Compiler.h"
 #include "src/utils/Utils.h"
-#include "AotCompilerUtils.h"
-#include "ObjectFile/ObjectFile.h"
 
 class AOTCompiler : public Compiler {
 
@@ -44,5 +42,3 @@ public:
   void link();
   void execute();
 };
-
-#endif // __FLOW__WING__AOT__COMPILER__H__

@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef JITCOMPILER_H
-#define JITCOMPILER_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -36,5 +34,3 @@ public:
 
   void execute() override;
 };
-
-#endif // JITCOMPILER_H

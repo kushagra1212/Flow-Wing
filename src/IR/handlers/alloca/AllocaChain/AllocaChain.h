@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_ALLOCACHAIN_H
-#define FLOWWING_ALLOCACHAIN_H
+#pragma once
 
 #include "src/common/Common.h"
 #include "src/IR/handlers/alloca/AllocaTable/AllocaTable.h"
@@ -56,5 +55,3 @@ public:
   void setPtr(const std::string &name,
               std::pair<llvm::Value *, llvm::Type *> ptr);
 };
-
-#endif // FLOWWING_ALLOCACHAIN_H

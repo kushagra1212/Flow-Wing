@@ -18,8 +18,7 @@
  */
 
 
-#ifndef VALUE_VISITOR_H
-#define VALUE_VISITOR_H
+#pragma once
 
 #include "BoolTypeConverter/BoolTypeConverter.h"
 #include "DoubleTypeConverter/DoubleTypeConverter.h"
@@ -46,5 +45,3 @@ public:
   virtual llvm::Value *visit(Int8TypeConverter *converter,
                              llvm::Value *&value) = 0;
 };
-
-#endif // VALUE_VISITOR_H

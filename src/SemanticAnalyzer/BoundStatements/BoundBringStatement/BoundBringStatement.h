@@ -18,8 +18,7 @@
  */
 
 
-#ifndef BIND_BRING_STATEMENT_H
-#define BIND_BRING_STATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
@@ -99,5 +98,3 @@ public:
 
   inline auto isAlreadyImported() -> bool { return _isAlreadyImported; }
 };
-
-#endif // BIND_BRING_STATEMENT_H

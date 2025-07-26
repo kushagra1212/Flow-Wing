@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_EXPRESSION_GENERATION_FACTORY_STRATEGY_H__
-#define __FLOWWING_EXPRESSION_GENERATION_FACTORY_STRATEGY_H__
+#pragma once
 
 class ExpressionGenerationStrategy;
 class CodeGenerationContext;
@@ -34,5 +33,3 @@ public:
   std::unique_ptr<ExpressionGenerationStrategy>
   createStrategy(BinderKindUtils::BoundNodeKind kind);
 };
-
-#endif // __FLOWWING_EXPRESSION_GENERATION_FACTORY_STRATEGY_H__

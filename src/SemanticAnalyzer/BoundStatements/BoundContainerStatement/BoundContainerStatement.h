@@ -17,8 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __BOUND_CONTAINER_STATEMENT_H__
-#define __BOUND_CONTAINER_STATEMENT_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
@@ -81,5 +80,3 @@ public:
     return this->_containerSizeExpressions;
   }
 };
-
-#endif //  __BOUND_CONTAINER_STATEMENT_H__

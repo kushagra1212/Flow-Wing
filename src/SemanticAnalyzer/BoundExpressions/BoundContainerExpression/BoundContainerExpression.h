@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef __BOUND_CONTAINER_EXPRESSION_H__
-#define __BOUND_CONTAINER_EXPRESSION_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 
@@ -42,5 +40,3 @@ public:
   auto getElementsRef() const
       -> const std::vector<std::unique_ptr<BoundExpression>> &;
 };
-
-#endif // __BOUND_CONTAINER_EXPRESSION_H__

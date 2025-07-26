@@ -19,8 +19,7 @@
 
 
 // StructTypeBuilder.h
-#ifndef __FLOWWING_STRUCT_TYPE_BUILDER_H__
-#define __FLOWWING_STRUCT_TYPE_BUILDER_H__
+#pragma once
 
 #include "src/common/constants/FlowWingUtilsConstants.h"
 #include "src/IR/TypeBuilder/ReferenceTypeBuilder/ReferenceTypeBuilder.h"
@@ -51,5 +50,3 @@ private:
   std::vector<llvm::Type *> _memberTypesForDynamicTypes;
   llvm::LLVMContext *_context;
 };
-
-#endif // __FLOWWING_STRUCT_TYPE_BUILDER_H__

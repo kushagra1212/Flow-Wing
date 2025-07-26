@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_MULTIPLE_ASSIGNMENT_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING_MULTIPLE_ASSIGNMENT_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundMultipleAssignmentExpression/BoundMultipleAssignmentExpression.h"
@@ -42,5 +41,3 @@ public:
   bool hasSingleCallExpr(
       BoundMultipleAssignmentExpression *boundMultipleAssignmentExpression);
 };
-
-#endif

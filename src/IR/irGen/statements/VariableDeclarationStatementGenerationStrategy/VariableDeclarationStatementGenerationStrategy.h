@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
-#define __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
@@ -78,5 +77,3 @@ private:
                          BinderKindUtils::MemoryKind memoryKind =
                              BinderKindUtils::MemoryKind::None);
 };
-
-#endif // __FLOWWING_VARIABLE_DECLARATION_STATEMENT_STRATEGY_H__

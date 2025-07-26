@@ -17,10 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-#ifndef REPL_H
-#define REPL_H
+#pragma once
 
 #include "src/ASTBuilder/ASTBuilder.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
@@ -65,5 +62,3 @@ private: // Data members
   // For testing
   bool isTest = false;
 };
-
-#endif // REPL_H

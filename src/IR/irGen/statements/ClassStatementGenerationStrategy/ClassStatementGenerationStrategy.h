@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_CLASS_STATEMENT_STRATEGY_H__
-#define __FLOWWING_CLASS_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "src/IR/irGen/Types/FlowWingClass.h"
@@ -37,5 +36,3 @@ public:
   llvm::Value *generateClassType(BoundStatement *statement);
   llvm::Value *generateClassTypeForBring(BoundStatement *statement);
 };
-
-#endif //__FLOWWING_CLASS_STATEMENT_STRATEGY_H__

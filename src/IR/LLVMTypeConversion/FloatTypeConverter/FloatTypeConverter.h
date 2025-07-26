@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOAT_TYPE_CONVERTER_H__
-#define __FLOAT_TYPE_CONVERTER_H__
+#pragma once
 
 #include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
@@ -30,5 +29,3 @@ public:
   llvm::Value *convertExplicit(llvm::Value *&value) override;
   llvm::Value *convertImplicit(llvm::Value *&value) override;
 };
-
-#endif // __FLOAT_TYPE_CONVERTER_H__

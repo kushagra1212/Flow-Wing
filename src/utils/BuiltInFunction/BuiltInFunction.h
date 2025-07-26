@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __BUILT_IN_FUNCTION_H__
-#define __BUILT_IN_FUNCTION_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundFunctionDeclaration/BoundFunctionDeclaration.h"
@@ -81,5 +80,3 @@ public:
     return SyntaxKindUtils::SyntaxKind::NthgKeyword;
   }
 };
-
-#endif // __BUILT_IN_FUNCTION_H__

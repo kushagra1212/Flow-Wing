@@ -17,12 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef ASSIGNMENT_EXPRESSION_H
-#define ASSIGNMENT_EXPRESSION_H
-
-#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
 class BoundAssignmentExpression : public BoundExpression {
 private:
@@ -58,5 +56,3 @@ public:
     return _needDefaultInitialization;
   }
 };
-
-#endif // ASSIGNMENT_EXPRESSION_H

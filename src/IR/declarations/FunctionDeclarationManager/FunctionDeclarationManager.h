@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FUNCTION_DECLARATION_MANAGER_H__
-#define __FUNCTION_DECLARATION_MANAGER_H__
+#pragma once
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -69,5 +68,3 @@ private:
   llvm::Function *declareRaiseExceptionFn();
   llvm::Function *declareMallocFunctionFn();
 };
-
-#endif // __FUNCTION_DECLARATION_MANAGER_H__

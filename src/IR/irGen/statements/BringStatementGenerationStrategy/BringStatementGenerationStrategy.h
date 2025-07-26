@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_BRING_STATEMENT_STRATEGY_H__
-#define __FLOWWING_BRING_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundBringStatement/BoundBringStatement.h"
@@ -39,5 +38,3 @@ public:
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
   llvm::Value *declare(BoundStatement *statement);
 };
-
-#endif //__FLOWWING_BRING_STATEMENT_STRATEGY_H__

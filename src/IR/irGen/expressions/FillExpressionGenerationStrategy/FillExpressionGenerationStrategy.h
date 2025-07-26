@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundFillExpression/BoundFillExpression.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -86,5 +85,3 @@ private:
   BoundFillExpression *_fillExpression = nullptr;
   int8_t _isElementToFillDynamicValue = 0;
 };
-
-#endif // __FLOWWING__FILL_EXPRESSION_GENERATION_STRATEGY_H__

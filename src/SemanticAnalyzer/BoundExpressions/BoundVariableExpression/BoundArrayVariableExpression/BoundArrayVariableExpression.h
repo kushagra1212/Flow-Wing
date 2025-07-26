@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOW__WING__BOUND__VARIABLE__EXPRESSION__H__
-#define __FLOW__WING__BOUND__VARIABLE__EXPRESSION__H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 
@@ -42,5 +41,3 @@ class BoundArrayVariableExpression : public BoundVariableExpression {
  private:
   std::vector<std::unique_ptr<BoundExpression>> _sizeExpressions;
 };
-
-#endif  // __FLOW__WING__BOUND__VARIABLE__EXPRESSION__H__

@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -70,5 +69,3 @@ private:
   bool _isGlobal;
   llvm::Value *_allocaInst = nullptr;
 };
-
-#endif // __FLOWWING__CONTAINER_EXPRESSION_GENERATION_STRATEGY_H__

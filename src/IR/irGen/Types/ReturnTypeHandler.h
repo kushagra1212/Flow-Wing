@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__RETURN__TYPE_HANLDER_H__
-#define __FLOWWING__RETURN__TYPE_HANLDER_H__
+#pragma once
 
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 
@@ -77,5 +76,3 @@ public:
     return true;
   }
 };
-
-#endif // __FLOWWING__RETURN__TYPE_HANLDER_H__

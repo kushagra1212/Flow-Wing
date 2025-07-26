@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_BLOCK_STATEMENT_STRATEGY_H__
-#define __FLOWWING_BLOCK_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundBlockStatement/BoundBlockStatement.h"
 #include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
@@ -31,5 +30,3 @@ public:
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
-
-#endif // __FLOWWING_BLOCK_STATEMENT_STRATEGY_H__

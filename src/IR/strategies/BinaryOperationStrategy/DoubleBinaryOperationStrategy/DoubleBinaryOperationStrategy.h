@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef __DOUBLE_BINARY_OPERATION_STRATEGY_H__
-#define __DOUBLE_BINARY_OPERATION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/strategies/BinaryOperationStrategy/BinaryOperationStrategy.h"
 
@@ -34,5 +32,3 @@ public:
       llvm::Value *lhsValue, llvm::Value *rhsValue,
       BinderKindUtils::BoundBinaryOperatorKind binaryOperator) override;
 };
-
-#endif // __INT_BINARY_OPERATION_STRATEGY_H__

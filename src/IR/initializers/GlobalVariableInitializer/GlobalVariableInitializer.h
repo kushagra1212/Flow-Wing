@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __GLOBAL_VARIABLE_INITIALIZER_H__
-#define __GLOBAL_VARIABLE_INITIALIZER_H__
+#pragma once
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -49,5 +48,3 @@ private:
   void initializeErrorCount();
   void initializeDynamicValueTypes();
 };
-
-#endif // __GLOBAL_VARIABLE_INITIALIZER_H__

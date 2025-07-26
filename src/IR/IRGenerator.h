@@ -18,8 +18,7 @@
  */
 
 
-#ifndef IRGENERATOR_H
-#define IRGENERATOR_H
+#pragma once
 
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/IR/context/CodeGenerationContext.h"
@@ -179,5 +178,3 @@ private:
 
   std::unique_ptr<IRCodeGenerator> _irCodeGenerator;
 };
-
-#endif // IRGENERATOR_H

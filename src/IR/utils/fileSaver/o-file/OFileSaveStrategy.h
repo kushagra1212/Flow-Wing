@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOW_WING__O__FILE__SAVE__STRATEGY__H__
-#define __FLOW_WING__O__FILE__SAVE__STRATEGY__H__
+#pragma once
 
 #include <llvm/CodeGen/CommandFlags.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -43,5 +42,3 @@ class OFileSaveStrategy
   OFileSaveStrategy(LLVMLogger *llvmLogger);
   bool saveToFile(const std::string &path, llvm::Module *module) const override;
 };
-
-#endif  // __FLOW_WING__O__FILE__SAVE__STRATEGY__H__

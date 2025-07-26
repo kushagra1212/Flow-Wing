@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __TYPE_CONVERTER_BASE_H__
-#define __TYPE_CONVERTER_BASE_H__
+#pragma once
 
 #include <llvm/IR/LLVMContext.h>
 
@@ -61,5 +60,3 @@ public:
 
   inline auto resetBuilder() { _builder = _preBuilder; }
 };
-
-#endif // __TYPE_CONVERTER_BASE_H__

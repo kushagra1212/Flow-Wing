@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
+
 #include "src/IR/irGen/GenerationStrategy.h"
 
 class ExpressionGenerationStrategy : public GenerationStrategy {
@@ -33,5 +33,3 @@ public:
 
   virtual ~ExpressionGenerationStrategy() = default;
 };
-
-#endif // __FLOWWING_EXPRESSION_GENERATION_STRATEGY_H__

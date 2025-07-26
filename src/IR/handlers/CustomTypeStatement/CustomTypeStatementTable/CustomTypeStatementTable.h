@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
-#define FLOWWING_CUSTOM_TYPE_EXP_TABLE_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundCustomTypeStatement/BoundCustomTypeStatement.h"
 #include "src/common/Common.h"
@@ -40,5 +39,3 @@ public:
     _type_exp_map[name] = value;
   }
 };
-
-#endif // FLOWWING_CUSTOM_TYPE_EXP_TABLE_H

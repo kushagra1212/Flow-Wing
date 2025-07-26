@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __BOUND_MULTIPLE_VARIABLE_DECLARATION_H__
-#define __BOUND_MULTIPLE_VARIABLE_DECLARATION_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundVariableDeclaration/BoundVariableDeclaration.h"
 
@@ -56,5 +55,3 @@ public:
     return _variableDeclarationList;
   }
 };
-
-#endif

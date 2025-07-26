@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
-#define __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundModuleStatement/BoundModuleStatement.h"
 #include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
@@ -38,5 +37,3 @@ public:
 
   llvm::Value *declare(BoundStatement *statement);
 };
-
-#endif // __FLOWWING_MODULE_STATEMENT_GENERATION_STRATEGY_H__

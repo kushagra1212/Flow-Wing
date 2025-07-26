@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
@@ -91,5 +90,3 @@ private:
 
   int8_t m_isLHSDynamicValue = 0;
 };
-
-#endif // __FLOWWING_ASSIGNMENT_EXPRESSION_STRATEGY_H__

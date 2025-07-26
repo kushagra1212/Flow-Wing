@@ -18,8 +18,7 @@
  */
 
 
-#ifndef DIRECTORY_UTILS_H
-#define DIRECTORY_UTILS_H
+#pragma once
 
 #include "src/IR/logger/LLVMLogger.h"
 #include "src/utils/Utils.h"
@@ -31,4 +30,3 @@ int8_t createFreshTempDirectory(const std::string &tempDir, LLVMLogger *logger);
 int8_t createTempDirectories(LLVMLogger *logger);
 
 } // namespace FLOWWING::IR::UTILS
-#endif

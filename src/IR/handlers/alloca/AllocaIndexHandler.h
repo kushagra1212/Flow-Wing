@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_ALLOCINDEXAHANDLER_H
-#define FLOWWING_ALLOCINDEXAHANDLER_H
+#pragma once
 
 #include "src/common/Common.h"
 
@@ -29,5 +28,3 @@ public:
   virtual uint64_t getTypeIndex(const std::string &name) = 0;
   virtual bool hasTypeIndex(const std::string &name) = 0;
 };
-
-#endif // FLOWWING_ALLOCINDEXAHANDLER_H

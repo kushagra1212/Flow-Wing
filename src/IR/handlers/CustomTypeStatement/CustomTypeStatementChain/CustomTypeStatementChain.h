@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_OBJECT_TYPE_CHAIN_H
-#define FLOWWING_OBJECT_TYPE_CHAIN_H
+#pragma once
 
 #include "src/common/Common.h"
 #include "src/IR/handlers/CustomTypeStatement/CustomTypeStatementTable/CustomTypeStatementTable.h"
@@ -43,5 +42,3 @@ public:
 
   void setGlobalExpr(const std::string &name, BoundCustomTypeStatement *value);
 };
-
-#endif // FLOWWING_OBJECT_TYPE_CHAIN_H

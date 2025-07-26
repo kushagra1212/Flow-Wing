@@ -18,8 +18,7 @@
  */
 
 
-#ifndef BOUDBREAKSTATEMENT_H
-#define BOUDBREAKSTATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
@@ -32,5 +31,3 @@ public:
 
   std::vector<BoundNode *> getChildren() override;
 };
-
-#endif // BOUDBREAKSTATEMENT_H

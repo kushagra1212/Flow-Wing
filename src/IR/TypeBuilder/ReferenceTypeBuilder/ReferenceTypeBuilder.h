@@ -19,8 +19,7 @@
 
 
 // ReferenceTypeBuilder.h
-#ifndef __FLOWWING_REFERENCE_TYPE_BUILDER_H__
-#define __FLOWWING_REFERENCE_TYPE_BUILDER_H__
+#pragma once
 
 #include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
@@ -44,5 +43,3 @@ class ReferenceTypeBuilder : public TypeBuilderInterface {
   llvm::StructType *_referenceType;
   std::vector<llvm::Type *> _memberTypes;
 };
-
-#endif  // __FLOWWING_REFERENCE_TYPE_BUILDER_H__

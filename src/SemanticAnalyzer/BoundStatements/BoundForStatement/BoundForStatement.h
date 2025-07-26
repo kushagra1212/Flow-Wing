@@ -18,8 +18,7 @@
  */
 
 
-#ifndef BOUND_FOR_STATEMENT_H
-#define BOUND_FOR_STATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
@@ -65,5 +64,3 @@ public:
 
   std::unique_ptr<BoundExpression> &getStepExpressionPtr();
 };
-
-#endif // BOUND_FOR_STATEMENT_H

@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
-#define __FLOWWING_WHILE_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundWhileStatement/BoundWhileStatement.h"
@@ -32,5 +31,3 @@ public:
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
-
-#endif // __FLOWWING_WHILE_STATEMENT_STRATEGY_H__

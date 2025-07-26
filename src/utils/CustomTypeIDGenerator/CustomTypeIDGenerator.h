@@ -18,8 +18,7 @@
  */
 
 
-#ifndef CUSTOM_TYPE_ID_GENERATOR_H
-#define CUSTOM_TYPE_ID_GENERATOR_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -38,5 +37,3 @@ class CustomTypeIDGenerator {
   unsigned int _id;
 };
 }  // namespace IDGenerator
-
-#endif

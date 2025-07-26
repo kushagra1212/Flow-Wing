@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __NIRAST_EXPRESSION_GENERATION_STRATEGY_H__
-#define __NIRAST_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
@@ -32,5 +31,3 @@ public:
 
   llvm::Value *generate();
 };
-
-#endif

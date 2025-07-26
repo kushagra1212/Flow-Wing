@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
-#define __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__
+#pragma once
+
 #include "src/IR/irGen/GenerationStrategy.h"
 
 class LLVMTypeGenerationFactory;
@@ -32,5 +32,3 @@ public:
   virtual llvm::Value *generateGlobalStatement(BoundStatement *statement) = 0;
   virtual ~StatementGenerationStrategy() = default;
 };
-
-#endif // __FLOWWING_STATEMENT_GENERATION_STRATEGY_H__

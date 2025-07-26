@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_IR__CODE_GENERATOR_H__
-#define __FLOWWING_IR__CODE_GENERATOR_H__
+#pragma once
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/BinaryExpressionGenerationStrategy/BinaryExpressionGenerationStrategy.h"
@@ -62,5 +61,3 @@ public:
   void declareCustomType(BoundNode *node);
   CodeGenerationContext *_codeGenerationContext;
 };
-
-#endif

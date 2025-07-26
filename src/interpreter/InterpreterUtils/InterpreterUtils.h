@@ -18,8 +18,8 @@
  */
 
 
-#ifndef INTERPRETERUTILS_H
-#define INTERPRETERUTILS_H
+#pragma once
+
 #include <any>
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
@@ -77,5 +77,3 @@ public:
   std::any getResultFromUnaryExpressionEvaluatorHandlerForString(
       BinderKindUtils::BoundUnaryOperatorKind op, std::string operand);
 };
-
-#endif // INTERPRETERUTILS_H

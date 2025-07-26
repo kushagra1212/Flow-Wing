@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __BOOL_TYPE_CONVERTER_H__
-#define __BOOL_TYPE_CONVERTER_H__
+#pragma once
+
 #include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/TypeConverterBase.h"
 
@@ -30,5 +30,3 @@ public:
   llvm::Value *convertExplicit(llvm::Value *&value) override;
   llvm::Value *convertImplicit(llvm::Value *&value) override;
 };
-
-#endif // __BOOL_TYPE_CONVERTER_H__

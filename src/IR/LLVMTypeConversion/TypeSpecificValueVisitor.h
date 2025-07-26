@@ -18,8 +18,7 @@
  */
 
 
-#ifndef TYPE_SPECIFIC_VALUE_VISITOR_H
-#define TYPE_SPECIFIC_VALUE_VISITOR_H
+#pragma once
 
 #include "ValueVisitor.h"
 
@@ -43,5 +42,3 @@ public:
   llvm::Value *visit(Int8TypeConverter *converter,
                      llvm::Value *&value) override;
 };
-
-#endif // TYPE_SPECIFIC_VALUE_VISITOR_H

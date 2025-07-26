@@ -19,8 +19,7 @@
 
 
 // ContainerTypeBuilder.h
-#ifndef __FLOWWING_CONTAINER_TYPE_BUILDER_H__
-#define __FLOWWING_CONTAINER_TYPE_BUILDER_H__
+#pragma once
 
 #include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
@@ -37,5 +36,3 @@ class ContainerTypeBuilder : public TypeBuilderInterface {
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _body;
 };
-
-#endif  // __FLOWWING_CONTAINER_TYPE_BUILDER_H__

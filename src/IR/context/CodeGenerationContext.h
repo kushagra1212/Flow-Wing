@@ -18,8 +18,7 @@
  */
 
 
-#ifndef CODEGENERATIONCONTEXT_H
-#define CODEGENERATIONCONTEXT_H
+#pragma once
 
 #include <cstdint>
 #include <llvm/IR/IRBuilder.h>
@@ -318,5 +317,3 @@ private:
   llvm::TargetMachine *_targetMachine = nullptr;
   std::string _currentClassName = "";
 };
-
-#endif // CODEGENERATIONCONTEXT_H

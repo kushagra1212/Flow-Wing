@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __EXECUTABLE_H__
-#define __EXECUTABLE_H__
+#include "src/IR/constants/FlowWingIRConstants.h"
+#include "src/utils/LogConfig.h"
 
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
@@ -209,5 +210,3 @@ public:
     LLVMDisposeMessage(errors);
   }
 };
-
-#endif

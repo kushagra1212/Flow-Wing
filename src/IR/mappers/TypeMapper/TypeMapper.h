@@ -18,8 +18,7 @@
  */
 
 
-#ifndef TYPEMAPPER_H
-#define TYPEMAPPER_H
+#pragma once
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -89,5 +88,3 @@ public:
   std::string getLLVMTypeName(llvm::Type *type, bool withColor = false) const;
   std::string getLLVMTypeName(SyntaxKindUtils::SyntaxKind customType) const;
 };
-
-#endif // TYPEMAPPER_H

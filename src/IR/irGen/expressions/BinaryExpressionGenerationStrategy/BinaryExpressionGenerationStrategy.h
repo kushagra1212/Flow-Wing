@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__
-#define __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -43,5 +42,3 @@ public:
                                                       llvm::Value *rhsValue,
                                                       bool isClassType);
 };
-
-#endif // __FLOWWING__BINARY_EXPRESSION_GENERATION_STRATEGY_H__

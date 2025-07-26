@@ -18,8 +18,7 @@
  */
 
 
-#ifndef BOUND_FUNCTION_DECLARATION_H
-#define BOUND_FUNCTION_DECLARATION_H
+#pragma once
 
 #include "src/utils/Utils.h"
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
@@ -126,5 +125,3 @@ public:
     return _functionType;
   }
 };
-
-#endif

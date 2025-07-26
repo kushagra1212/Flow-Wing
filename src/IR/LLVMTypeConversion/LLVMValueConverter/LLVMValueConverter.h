@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_LLVM_VALUE_CONVERTER_H__
-#define __FLOWWING_LLVM_VALUE_CONVERTER_H__
+#pragma once
 
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/IR/context/CodeGenerationContext.h"
@@ -57,5 +56,3 @@ private:
   llvm::LLVMContext *_llvmContext;
   CodeGenerationContext *_codeGenerationContext;
 };
-
-#endif // __FLOWWING_LLVM_VALUE_CONVERTER_H__

@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
-#define __FLOWWING_RETURN_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundReturnStatement/BoundReturnStatement.h"
 #include "src/IR/irGen/Types/LLVMType/LLVMObjectType/LLVMObjectType.h"
@@ -32,5 +31,3 @@ public:
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
-
-#endif //__FLOWWING_RETURN_STATEMENT_STRATEGY_H__

@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOW_WING_VALUE_STACK_HANDLE
-#define __FLOW_WING_VALUE_STACK_HANDLE
+#pragma once
 
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "ValueStack.h"
@@ -113,5 +112,3 @@ public:
     return valueStack->getDynamicValue();
   }
 };
-
-#endif

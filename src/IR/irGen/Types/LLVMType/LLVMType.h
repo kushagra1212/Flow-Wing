@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__ARG_TYPE_H__
-#define __FLOWWING__ARG_TYPE_H__
+#pragma once
 
 #include <llvm/IR/Type.h>
 
@@ -60,5 +59,3 @@ private:
   llvm::Type *_type;
   std::vector<llvm::Type *> _structTypeList;
 };
-
-#endif // __FLOWWING__ARG_TYPE_H__

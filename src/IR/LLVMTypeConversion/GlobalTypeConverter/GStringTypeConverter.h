@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __GLOBAL_TYPE_CONVERTER_H__
-#define __GLOBAL_TYPE_CONVERTER_H__
+#pragma once
 
 #include "src/IR/context/CodeGenerationContext.h"
 #include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
@@ -32,5 +31,3 @@ public:
   llvm::Value *convertExplicit(llvm::Value *&value) override;
   llvm::Value *convertImplicit(llvm::Value *&value) override;
 };
-
-#endif // __GLOBAL_TYPE_CONVERTER_H__

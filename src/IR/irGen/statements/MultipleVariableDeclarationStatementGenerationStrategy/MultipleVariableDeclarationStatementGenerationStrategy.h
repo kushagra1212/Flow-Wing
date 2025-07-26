@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_IRGEN_STATEMENTS_MULTIPLE_VARIABLE_DECLARATION_STATEMENT_GENERATION_STRATEGY_H__
-#define __FLOWWING_IRGEN_STATEMENTS_MULTIPLE_VARIABLE_DECLARATION_STATEMENT_GENERATION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundMultipleVariableDeclaration/BoundMultipleVariableDeclaration.h"
@@ -47,5 +46,3 @@ public:
   bool hasSingleCallExpr(
       BoundMultipleVariableDeclaration *multipleVariableDeclaration);
 };
-
-#endif

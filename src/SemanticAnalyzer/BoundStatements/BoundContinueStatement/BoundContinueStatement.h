@@ -18,8 +18,7 @@
  */
 
 
-#ifndef BOUNDCONTINUESTATEMENT_H
-#define BOUNDCONTINUESTATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
@@ -34,5 +33,3 @@ public:
 
   std::vector<BoundNode *> getChildren() override;
 };
-
-#endif // BOUNDCONTINUESTATEMENT_H

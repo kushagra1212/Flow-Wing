@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
@@ -57,5 +56,3 @@ private:
   BoundVariableExpression *_lhsVarExpr = nullptr;
   bool _isGlobal = false;
 };
-
-#endif // __FLOWWING_OBJECT_ASSIGNMENT_EXPRESSION_STRATEGY_H__

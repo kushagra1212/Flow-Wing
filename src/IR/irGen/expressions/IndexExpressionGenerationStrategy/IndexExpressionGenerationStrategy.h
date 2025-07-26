@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
@@ -73,5 +72,3 @@ private:
   llvm::ArrayType *_arrayType = nullptr;
   BoundIndexExpression *_indexExpression = nullptr;
 };
-
-#endif // __FLOWWING_INDEX_EXPRESSION_STRATEGY_H__

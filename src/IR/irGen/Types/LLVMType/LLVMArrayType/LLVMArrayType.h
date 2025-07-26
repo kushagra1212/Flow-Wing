@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING__LLVM_ARRAY_TYPE_H__
-#define __FLOWWING__LLVM_ARRAY_TYPE_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "src/IR/irGen/Types/LLVMType/LLVMType.h"
@@ -56,5 +55,3 @@ private:
   llvm::Type *_arrayElementType;
   BoundArrayTypeExpression *_arrayTypeExpression;
 };
-
-#endif // __FLOWWING__LLVM_ARRAY_TYPE_H__

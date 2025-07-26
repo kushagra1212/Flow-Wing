@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_LITERAL_EXPRESSION_STRATEGY_H__
-#define __FLOWWING_LITERAL_EXPRESSION_STRATEGY_H__
+#pragma once
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
@@ -35,5 +34,3 @@ public:
   generateTypedExpression(BoundExpression *expression,
                           SyntaxKindUtils::SyntaxKind variableType);
 };
-
-#endif // __FLOWWING_LITERAL_EXPRESSION_STRATEGY_H__

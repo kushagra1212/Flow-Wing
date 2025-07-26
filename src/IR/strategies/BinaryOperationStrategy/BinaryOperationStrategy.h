@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_BINARYOPERATIONSTRATEGY_H
-#define FLOWWING_BINARYOPERATIONSTRATEGY_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
 #include "src/common/Common.h"
@@ -70,5 +69,3 @@ public:
 
   virtual ~BinaryOperationStrategy() = default;
 };
-
-#endif // FLOWWING_BINARYOPERATIONSTRATEGY_H

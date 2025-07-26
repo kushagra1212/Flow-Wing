@@ -18,8 +18,7 @@
  */
 
 
-#ifndef FLOWWING_IR_CONSTANTS_H
-#define FLOWWING_IR_CONSTANTS_H
+#pragma once
 
 #include "src/utils/FlowWingConfig.h"
 #include <string>
@@ -112,5 +111,3 @@ extern const std::string GC_MALLOC;
 extern const std::string IS_EXISTS;
 
 }; // namespace FLOWWING::IR::CONSTANTS
-
-#endif // FLOWWING_IR_CONSTANTS_H

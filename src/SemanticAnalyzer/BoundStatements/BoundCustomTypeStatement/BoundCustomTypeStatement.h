@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
-#define __FLOW_BOUNDCUSTOMTYPESTATEMENT_H
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
@@ -97,5 +96,3 @@ public:
   BinderKindUtils::BoundNodeKind getKind() const override;
   std::vector<BoundNode *> getChildren() override;
 };
-
-#endif // __FLOW_BOUNDCUSTOMTYPESTATEMENT_H

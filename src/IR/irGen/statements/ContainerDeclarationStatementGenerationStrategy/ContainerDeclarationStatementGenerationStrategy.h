@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
-#define __FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
@@ -60,5 +59,3 @@ private:
   llvm::Value *declare();
   llvm::Value *assignExpression();
 };
-
-#endif //__FLOWWING_CONTAINER_STATEMENT_STRATEGY_H__

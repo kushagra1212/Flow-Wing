@@ -18,8 +18,7 @@
  */
 
 
-#ifndef __FLOWWING_IF_STATEMENT_STRATEGY_H__
-#define __FLOWWING_IF_STATEMENT_STRATEGY_H__
+#pragma once
 
 #include "src/SemanticAnalyzer/BoundStatements/BoundIfStatement/BoundIfStatement.h"
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
@@ -32,5 +31,3 @@ public:
   llvm::Value *generateStatement(BoundStatement *statement) override;
   llvm::Value *generateGlobalStatement(BoundStatement *statement) override;
 };
-
-#endif // __FLOWWING_IF_STATEMENT_STRATEGY_H__
