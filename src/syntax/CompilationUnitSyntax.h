@@ -19,7 +19,9 @@
 
 #pragma once
 #include "src/syntax/MemberSyntax.h"
+#include "src/syntax/SyntaxToken.h"
 #include <any>
+#include <memory>
 namespace SyntaxKindUtils {
 enum SyntaxKind : int;
 }

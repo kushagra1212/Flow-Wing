@@ -22,6 +22,8 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
 #include <any>
+#include <memory>
+
 class BoundNirastExpression : public BoundExpression {
   std::unique_ptr<BoundLiteralExpression<std::any>> _nirastExpression;
 

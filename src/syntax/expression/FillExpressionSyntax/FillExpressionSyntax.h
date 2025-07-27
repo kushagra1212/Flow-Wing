@@ -20,6 +20,8 @@
 #pragma once
 
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include <memory>
+
 class FillExpressionSyntax : public ExpressionSyntax {
 private:
   std::unique_ptr<ExpressionSyntax> _sizeToFillExpression;

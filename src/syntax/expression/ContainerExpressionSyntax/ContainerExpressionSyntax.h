@@ -22,6 +22,9 @@
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <any>
+#include <memory>
+#include <vector>
+
 class ContainerExpressionSyntax : public ExpressionSyntax {
 private:
   std::vector<std::unique_ptr<ExpressionSyntax>> _elements;

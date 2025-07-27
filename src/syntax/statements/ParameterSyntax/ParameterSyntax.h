@@ -19,12 +19,13 @@
 
 #pragma once
 
-#include "src/syntax/SyntaxNode.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
 #include <any>
+#include <memory>
 
-template <typename T> class SyntaxToken;
-
-class ParameterSyntax : public SyntaxNode {
+class ParameterSyntax : public StatementSyntax {
 private:
   std::unique_ptr<SyntaxToken<std::any>> _identifierToken;
 

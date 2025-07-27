@@ -17,11 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/common/Common.h"
 #include "src/IR/handlers/alloca/AllocaTable/AllocaTable.h"
+#include "src/common/Common.h"
+#include <memory>
+#include <stack>
 
 class AllocaChain {
 private:

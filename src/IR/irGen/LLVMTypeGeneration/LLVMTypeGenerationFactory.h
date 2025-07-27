@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 class CodeGenerationContext;
 class LLVMTypeGenerationStrategy;
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include <memory>
 
 class LLVMTypeGenerationFactory {
 public:

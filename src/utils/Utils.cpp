@@ -27,11 +27,16 @@
 #include "src/syntax/SyntaxNode.h"
 #include "src/syntax/SyntaxToken.h"
 #include <algorithm>
+#include <cstdint>
+#include <dirent.h>
 #include <fstream>
 #include <iostream>
+#include <queue>
 #include <random>
 #include <regex>
 #include <sstream>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include <windows.h>

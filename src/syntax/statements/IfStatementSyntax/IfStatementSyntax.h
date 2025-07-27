@@ -18,8 +18,17 @@
  */
 
 #pragma once
+
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
+#include "src/syntax/statements/ElseClauseSyntax/ElseClauseSyntax.h"
+#include "src/syntax/statements/OrIfStatementSyntax/OrIfStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
+
 #include <any>
+#include <memory>
+#include <vector>
 
 template <typename T> class SyntaxToken;
 class ExpressionSyntax;

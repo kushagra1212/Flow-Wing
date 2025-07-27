@@ -20,6 +20,7 @@
 #pragma once
 
 #include <any>
+#include <memory>
 template <typename T> class SyntaxToken;
 class ParserContext;
 

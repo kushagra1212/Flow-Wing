@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/syntax/CompilationUnitSyntax.h"
+#include <memory>
 
 class ParserContext;
 

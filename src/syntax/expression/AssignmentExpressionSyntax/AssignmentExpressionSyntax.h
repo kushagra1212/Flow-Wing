@@ -20,6 +20,9 @@
 #pragma once
 
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include <memory>
+
+class ExpressionSyntax;
 
 class AssignmentExpressionSyntax : public ExpressionSyntax {
 private:

@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <any>
+#include <memory>
 
 template <typename T> class SyntaxToken;
 

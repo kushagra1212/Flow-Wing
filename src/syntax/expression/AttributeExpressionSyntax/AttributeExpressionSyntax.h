@@ -22,6 +22,7 @@
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 #include <any>
+#include <memory>
 
 class AttributeExpressionSyntax : public ExpressionSyntax {
 private:

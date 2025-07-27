@@ -17,12 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
+
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include <memory>
 
 class ExpressionGenerationStrategy;
 class CodeGenerationContext;
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
 
 class ExpressionGenerationFactory {
 public:

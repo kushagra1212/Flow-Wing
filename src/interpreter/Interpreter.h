@@ -37,6 +37,7 @@
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/utils/Utils.h"
+#include <stack>
 
 class Interpreter {
 private:

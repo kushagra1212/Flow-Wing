@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/syntax/expression/ExpressionSyntax.h"
+#include <memory>
 
 class BracketedExpressionSyntax : public ExpressionSyntax {
 private:

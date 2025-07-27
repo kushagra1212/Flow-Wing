@@ -19,8 +19,15 @@
 
 #pragma once
 
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/syntax/CompilationUnitSyntax.h"
+#include "src/syntax/SyntaxToken.h"
+#include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
 #include <any>
+#include <memory>
+#include <vector>
+
 template <typename T> class SyntaxToken;
 template <typename T> class LiteralExpressionSyntax;
 class CompilationUnitSyntax;

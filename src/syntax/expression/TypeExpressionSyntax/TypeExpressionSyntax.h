@@ -21,6 +21,7 @@
 
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include <any>
+#include <memory>
 
 template <typename T> class SyntaxToken;
 class TypeExpressionSyntax : public ExpressionSyntax {

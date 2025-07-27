@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-
-class ExpressionSyntax;
+#include <memory>
 
 class ExpressionStatementSyntax : public StatementSyntax {
 private:

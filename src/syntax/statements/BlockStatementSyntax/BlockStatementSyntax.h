@@ -21,6 +21,7 @@
 
 #include "src/syntax/statements/StatementSyntax.h"
 #include <any>
+#include <memory>
 template <typename T> class SyntaxToken;
 
 class BlockStatementSyntax : public StatementSyntax {

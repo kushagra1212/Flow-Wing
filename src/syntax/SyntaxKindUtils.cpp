@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "SyntaxKindUtils.h"
-#include <cctype>    // Required for isdigit
-#include <stdexcept> // Required for std::exception, std::out_of_range
+#include "src/syntax/SyntaxKindUtils.h"
+
+#include <algorithm>
+#include <climits>
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
 #include <string>
 
 bool SyntaxKindUtils::isInt32(const std::string &str) {

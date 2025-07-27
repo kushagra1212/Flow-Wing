@@ -17,13 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/SemanticAnalyzer/BinderKindUtils.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
+#include <memory>
 
 class BoundWhileStatement : public BoundStatement, public BoundSourceLocation {
 private:

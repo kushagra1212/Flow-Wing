@@ -19,15 +19,16 @@
 
 #pragma once
 
+#include "src/ASTBuilder/CodeFormatter/CodeFormatter.h"
+#include "src/syntax/SyntaxToken.h"
 #include <any>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 class SourceTokenizer;
-class CodeFormatter;
-template <typename T> class SyntaxToken;
 
 namespace FlowWing {
 class DiagnosticHandler;

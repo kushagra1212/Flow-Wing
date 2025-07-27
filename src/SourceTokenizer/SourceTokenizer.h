@@ -19,7 +19,13 @@
 
 #pragma once
 
+#include "src/syntax/SyntaxToken.h"
 #include <any>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
 
 class TokenReader;
 class TokenReaderFactory;

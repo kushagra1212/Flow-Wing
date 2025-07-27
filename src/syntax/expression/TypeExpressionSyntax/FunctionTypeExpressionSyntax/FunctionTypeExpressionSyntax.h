@@ -21,6 +21,7 @@
 
 #include "src/syntax/SyntaxToken.h"
 #include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
+#include <memory>
 
 class FunctionTypeExpressionSyntax : public TypeExpressionSyntax {
 private:

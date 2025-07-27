@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "src/syntax/SyntaxToken.h"
 #include "src/syntax/statements/StatementSyntax.h"
 #include <any>
+#include <memory>
+
 template <typename T> class SyntaxToken;
 
 class ContinueStatementSyntax : public StatementSyntax {

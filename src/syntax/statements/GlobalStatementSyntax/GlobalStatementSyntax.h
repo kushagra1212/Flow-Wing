@@ -18,9 +18,10 @@
  */
 
 #pragma once
-#include "src/syntax/MemberSyntax.h"
 
-class StatementSyntax;
+#include "src/syntax/MemberSyntax.h"
+#include "src/syntax/statements/StatementSyntax.h"
+#include <memory>
 
 class GlobalStatementSyntax : public MemberSyntax {
 private:

@@ -21,8 +21,12 @@
 
 #include <any>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "src/ASTBuilder/parsers/ParserContext/ParserContext.h"
+#include "src/SourceTokenizer/SourceTokenizer.h"
 
 class ParserContext;
 class SourceTokenizer;

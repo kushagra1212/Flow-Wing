@@ -19,10 +19,10 @@
 
 #pragma once
 
+#include "src/syntax/expression/ExpressionSyntax.h"
+#include "src/syntax/statements/BlockStatementSyntax/BlockStatementSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
-
-class BlockStatementSyntax;
-class ExpressionSyntax;
+#include <memory>
 
 class ForStatementSyntax : public StatementSyntax {
 private:

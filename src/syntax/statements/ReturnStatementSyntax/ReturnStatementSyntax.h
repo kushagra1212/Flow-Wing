@@ -23,6 +23,11 @@
 #include "src/syntax/expression/ExpressionSyntax.h"
 #include "src/syntax/statements/StatementSyntax.h"
 #include <any>
+#include <memory>
+#include <vector>
+
+class ExpressionSyntax;
+template <typename T> class SyntaxToken;
 
 class ReturnStatementSyntax : public StatementSyntax {
 private:

@@ -20,6 +20,7 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include <memory>
 
 class BoundContainerExpression : public BoundExpression {
 private:

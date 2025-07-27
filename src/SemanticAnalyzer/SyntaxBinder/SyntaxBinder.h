@@ -21,6 +21,8 @@
 
 #include <memory>
 
+#include "src/SemanticAnalyzer/SyntaxBinder/SyntaxBinderContext/SyntaxBinderContext.h"
+
 class SyntaxBinderContext;
 class BoundScope;
 class BoundStatement;

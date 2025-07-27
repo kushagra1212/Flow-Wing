@@ -26,6 +26,7 @@
 #include "src/syntax/CompilationUnitSyntax.h"
 #include "src/syntax/SyntaxToken.h"
 #include <iostream>
+#include <mutex>
 
 Repl::Repl() : showSyntaxTree(false), showBoundTree(false), exit(false) {
   _diagnosticHandler = std::make_unique<FlowWing::DiagnosticHandler>();
