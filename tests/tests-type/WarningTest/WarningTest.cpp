@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "WarningTest.h"
-#include "../../../src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
 void WarningTest::SetUp() { _test->SetUp(true); }
 

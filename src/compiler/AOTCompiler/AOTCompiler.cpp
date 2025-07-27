@@ -21,6 +21,7 @@
 #include "src/common/commandLineOptions/commandLineOptions.h"
 #include "src/common/version.h"
 #include "src/external/include/argh.h"
+#include <gtest/gtest.h>
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          const bool &isFormattedCodeRequired)

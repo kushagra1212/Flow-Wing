@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
 
-#ifndef __MODULETEST_H__
-#define __MODULETEST_H__
-
-#include "../../helpers/handlers/FileHandler.h"
-#include "../../helpers/handlers/IOHandler.h"
-
+#include "tests/helpers/handlers/FileHandler.h"
+#include "tests/helpers/handlers/IOHandler.h"
+#include "gtest/gtest.h"
 class ModuleTest : public ::testing::Test,
                    public FileHandler,
                    public IOHandler {
@@ -32,4 +30,3 @@ protected:
   void SetUp() override;
   void TearDown() override;
 };
-#endif // __MODULETEST_H__

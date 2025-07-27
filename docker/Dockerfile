@@ -25,8 +25,12 @@ FROM builder AS test-aot
 RUN make build-test-aot
 
 
-# ---- Final Stage ----
-# This is the final, lean image for production.
-# It only contains the compiled application, not the build tools or source code.
-FROM base
+FROM builder AS build-aot
 # Release the image
+RUN make build-aot
+
+
+
+FROM builder AS build-jit
+# Release the image
+RUN make build-jit

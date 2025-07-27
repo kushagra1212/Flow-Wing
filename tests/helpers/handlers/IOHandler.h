@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "../../Common.h"
+#include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
+#include "tests/Common.h"
+#include <iostream>
+
 using namespace FLOW_WING::DIAGNOSTIC;
 class IOHandler {
 

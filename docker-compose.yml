@@ -9,11 +9,21 @@ x-compiler-base: &compiler-base
 
 services:
   # Base compiler service for development.
-  compiler-dev:
+  build-aot:
     <<: *compiler-base
     build:
       context: .
       dockerfile: ./docker/Dockerfile # Be explicit
+      target: build-aot # Specifies to build up to the 'compiler-dev' stage in the Dockerfile.
+    command: make build-aot
+
+  build-jit:
+    <<: *compiler-base
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile # Be explicit
+      target: build-jit # Specifies to build up to the 'compiler-dev' stage in the Dockerfile.
+    command: make build-jit
   # Service for running Ahead-of-Time (AOT) tests.
   test-aot:
     <<: *compiler-base

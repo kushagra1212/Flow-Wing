@@ -17,12 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
-#include "../../helpers/handlers/FileHandler.h"
-#include "../../helpers/handlers/IOHandler.h"
+#include "tests/helpers/handlers/FileHandler.h"
+#include "tests/helpers/handlers/IOHandler.h"
 #include "gtest/gtest.h"
 
 class WarningTest : public ::testing::Test,

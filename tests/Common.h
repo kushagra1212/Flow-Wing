@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef _TESTS_COMMON_H
-#define _TESTS_COMMON_H
+#pragma once
 
 #include "../src/diagnostics/Diagnostic/DiagnosticCode.h"
 #include "AOTCompilerTest/AOTCompilerTest.h"
@@ -32,5 +30,3 @@ std::unique_ptr<BaseTest> getTest();
 
 }
 } // namespace Tests
-
-#endif // _TESTS_COMMON_H

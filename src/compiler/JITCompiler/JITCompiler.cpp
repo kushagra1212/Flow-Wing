@@ -24,6 +24,7 @@
 #include "src/diagnostics/Diagnostic/Diagnostic.h"
 #include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "src/external/include/argh.h"
+#include <gtest/gtest.h>
 #include <string>
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
