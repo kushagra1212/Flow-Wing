@@ -50,21 +50,21 @@ public:
   SourceTokenizer(const std::vector<std::string> &sourceCode,
                   FlowWing::DiagnosticHandler *diagnosticHandler);
 
-  const char currentChar() const;
+  char currentChar() const;
   void advancePosition();
   void advanceLine();
-  const char peek(const int64_t &offset) const;
+  char peek(const int64_t &offset) const;
 
-  const bool isEOLorEOF() const { return isEOL() || isEOF(); }
-  const bool isEOF() const { return currentChar() == _END_OF_FILE; }
-  const bool isEOL() const { return currentChar() == _END_OF_LINE; }
+  bool isEOLorEOF() const { return isEOL() || isEOF(); }
+  bool isEOF() const { return currentChar() == _END_OF_FILE; }
+  bool isEOL() const { return currentChar() == _END_OF_LINE; }
 
   const std::string getLine(const size_t &lineNumber) const {
     return _sourceCode[lineNumber];
   }
 
-  const size_t position() const { return _position; }
-  const size_t lineNumber() const { return _lineNumber; }
+  size_t position() const { return _position; }
+  size_t lineNumber() const { return _lineNumber; }
   FlowWing::DiagnosticHandler *diagnosticHandler() {
     return _diagnosticHandler;
   }

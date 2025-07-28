@@ -44,9 +44,8 @@ ObjectExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
     boundObjectExpression->addKeyValuePair(
         std::move(key),
-        std::move(
-            ExpressionBinderFactory::create(attribute->getValue()->getKind())
-                ->bindExpression(ctx, attribute->getValue().get())));
+        (ExpressionBinderFactory::create(attribute->getValue()->getKind())
+             ->bindExpression(ctx, attribute->getValue().get())));
   }
 
   return std::move(boundObjectExpression);

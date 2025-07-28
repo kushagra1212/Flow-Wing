@@ -55,7 +55,7 @@ llvm::Value *FunctionDeclarationGenerationStrategy::generateGlobalStatement(
 
 llvm::Function *FunctionDeclarationGenerationStrategy::generate(
     BoundStatement *statement, std::vector<llvm::Type *> classArgs,
-    std::string className) {
+    [[maybe_unused]] std::string className) {
   BoundFunctionDeclaration *fd =
       static_cast<BoundFunctionDeclaration *>(statement);
   const std::string FUNCTION_NAME = fd->getFunctionNameRef();
@@ -63,7 +63,8 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       fd->getLocation());
 
-  DEBUG_LOG("Declaring Function: " + FUNCTION_NAME);
+  DEBUG_LOG("Function Declaration Statement",
+            "Declaring Function: " + FUNCTION_NAME);
 
   auto isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
 
@@ -127,7 +128,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
   _codeGenerationContext->_functionTypes[FUNCTION_NAME]
       ->setOptionalParameterStartIndex(fd->getOptionalParameterStartIndex());
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         fd->getParametersRef()[i]->getLocation());
@@ -405,7 +406,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
           arrayType, fd->hasAsReturnType());
-      for (int64_t k = 0; k < returnDimentions.size(); k++) {
+      for (size_t k = 0; k < returnDimentions.size(); k++) {
         returnInfo += std::to_string(returnDimentions[k]) + ":";
       }
 

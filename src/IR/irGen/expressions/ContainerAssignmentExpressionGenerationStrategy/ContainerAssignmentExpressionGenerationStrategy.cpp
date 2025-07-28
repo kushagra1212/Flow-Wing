@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ContainerAssignmentExpressionGenerationStrategy.h"
 
 ContainerAssignmentExpressionGenerationStrategy::
@@ -35,7 +34,7 @@ void ContainerAssignmentExpressionGenerationStrategy::setContainerName(
   _containerName = containerName;
 }
 
-const bool ContainerAssignmentExpressionGenerationStrategy::
+bool ContainerAssignmentExpressionGenerationStrategy::
     canGenerateExpressionAssignment(BoundExpression *expr) {
   if (!_arrayType) {
     _codeGenerationContext->getLogger()->LogError(
@@ -279,7 +278,7 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
     llvm::Type *rhsArrayElementType, std::vector<llvm::Value *> &indices,
     const std::vector<uint64_t> &rhsSizes, uint64_t index) {
   if (index < rhsSizes.size()) {
-    for (int64_t i = 0; i < rhsSizes[index]; i++) {
+    for (size_t i = 0; i < rhsSizes[index]; i++) {
       indices.push_back(Builder->getInt32(i));
       assignArray(arrayType, variable, rhsVariable, rhsArrayType,
                   rhsArrayElementType, indices, rhsSizes, index + 1);
@@ -302,10 +301,11 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
 }
 
 llvm::Value *ContainerAssignmentExpressionGenerationStrategy::createExpression(
-    llvm::ArrayType *&arrayType, llvm::Value *&variable,
+    [[maybe_unused]] llvm::ArrayType *&arrayType, llvm::Value *&variable,
     llvm::Value *&rhsVariable, llvm::ArrayType *&rhsArrayType,
-    llvm::Type *arrayElementType, const std::vector<uint64_t> &lhsSizes,
-    const std::vector<uint64_t> &rhsSizes) {
+    [[maybe_unused]] llvm::Type *arrayElementType,
+    [[maybe_unused]] const std::vector<uint64_t> &lhsSizes,
+    [[maybe_unused]] const std::vector<uint64_t> &rhsSizes) {
   std::vector<llvm::Value *> indices = {Builder->getInt32(0)};
 
   llvm::LoadInst *loaded = Builder->CreateLoad(rhsArrayType, rhsVariable);

@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
-#include "src/utils/BuiltInFunction/BuiltInFunction.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundGlobalScope/BoundGlobalScope.h"
 #include "src/SemanticAnalyzer/SyntaxBinder/BoundScope/BoundScope.h"
+#include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
+#include "src/utils/BuiltInFunction/BuiltInFunction.h"
 #include <string>
 
 class SyntaxBinderContext {
@@ -39,7 +38,7 @@ public:
   //? Getters
 
   FlowWing::DiagnosticHandler *getDiagnosticHandler();
-  const bool doesModuleAlreadyExist(const std::string &moduleName);
+  bool doesModuleAlreadyExist(const std::string &moduleName);
   const std::string &getCurrentModuleName();
   std::unique_ptr<BoundScope> &getRootRef();
 

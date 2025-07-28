@@ -40,7 +40,7 @@ public:
 
   // Overrides
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   // Setters

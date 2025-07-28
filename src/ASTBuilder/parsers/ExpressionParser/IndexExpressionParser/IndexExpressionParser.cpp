@@ -34,7 +34,7 @@
 std::unique_ptr<ExpressionSyntax>
 IndexExpressionParser::parseExpression(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   ctx->setIsInsideIndexExpression(true);
 
@@ -48,7 +48,7 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
     ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
     indexExpression->addIndexExpression(
-        std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+        PrecedenceAwareExpressionParser::parse(ctx));
 
     ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
   }
@@ -74,13 +74,13 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
               SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
-        std::any value = localIdentifierToken->getValue();
+        std::any localValue = localIdentifierToken->getValue();
         std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
             std::make_unique<IndexExpressionSyntax>(
                 std::make_unique<LiteralExpressionSyntax<std::any>>(
-                    std::move(localIdentifierToken), value));
+                    std::move(localIdentifierToken), localValue));
 
         while (ctx->getKind() ==
                SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
@@ -88,7 +88,7 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
           ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
           localIndexExpression->addIndexExpression(
-              std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+              PrecedenceAwareExpressionParser::parse(ctx));
 
           ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
         }
@@ -96,12 +96,12 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
         variExp->addDotExpression(std::move(localIndexExpression));
       } else {
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-        std::any value = localIdentifierToken->getValue();
+            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+        std::any localValue = localIdentifierToken->getValue();
 
         variExp->addDotExpression(
             std::make_unique<LiteralExpressionSyntax<std::any>>(
-                std::move(localIdentifierToken), value));
+                std::move(localIdentifierToken), localValue));
       }
     }
     indexExpression->addVariableExpression(std::move(variExp));
@@ -110,11 +110,11 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> operatorToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     std::unique_ptr<ExpressionSyntax> right =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     ctx->setIsInsideIndexExpression(false);
     return std::make_unique<AssignmentExpressionSyntax>(
@@ -123,5 +123,5 @@ IndexExpressionParser::parseExpression(ParserContext *ctx) {
 
   ctx->setIsInsideIndexExpression(false);
 
-  return std::move(indexExpression);
+  return indexExpression;
 }

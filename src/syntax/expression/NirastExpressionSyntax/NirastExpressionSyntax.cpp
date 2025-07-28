@@ -27,7 +27,7 @@ NirastExpressionSyntax::NirastExpressionSyntax(
     std::unique_ptr<LiteralExpressionSyntax<std::any>> nirastExpression)
     : _nirastExpression(std::move(nirastExpression)) {}
 
-const SyntaxKindUtils::SyntaxKind NirastExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind NirastExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::NirastExpression;
 }
 const std::vector<SyntaxNode *> &NirastExpressionSyntax::getChildren() {

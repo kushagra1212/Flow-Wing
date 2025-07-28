@@ -1,0 +1,33 @@
+# =============================================================================
+# Project-Wide Settings & Build Mode
+#
+# Configures core project settings, build options (like AOT, tests),
+# and initializes tools like ccache.
+# =============================================================================
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+cmake_policy(SET CMP0075 NEW) # Allows for variable in list(REMOVE_ITEM)
+
+# Display the C and CXX compilers being used for this configuration.
+message(STATUS "C compiler: ${CMAKE_C_COMPILER}")
+message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+
+# CRITICAL FOR MACOS DEPLOYMENT: Set the minimum macOS version.
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum macOS version")
+endif()
+
+# --- Build Mode Selection ---
+option(BUILD_AOT "Enable Ahead-of-Time (AOT) compilation mode." OFF)
+option(TESTS_ENABLED "Build with tests enabled" OFF)
+option(DEV_MODE "Enable developer mode (Build with hard-coded developer paths)" OFF)
+
+# --- Find and configure ccache for faster recompilation ---
+find_program(CCACHE_FOUND ccache)
+
+if(CCACHE_FOUND)
+    message(STATUS "Using ccache, found in: ${CCACHE_FOUND}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif()

@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DoubleTypeConverter.h"
 
 DoubleTypeConverter::DoubleTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
@@ -61,7 +59,6 @@ llvm::Value *DoubleTypeConverter::convertExplicit(llvm::Value *&value) {
 }
 
 llvm::Value *DoubleTypeConverter::convertImplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());

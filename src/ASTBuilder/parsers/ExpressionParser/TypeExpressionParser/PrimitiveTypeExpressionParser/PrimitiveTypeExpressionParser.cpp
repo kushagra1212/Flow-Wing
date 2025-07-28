@@ -30,37 +30,37 @@ std::unique_ptr<SyntaxToken<std::any>>
 PrimitiveTypeExpressionParser::parseExpression(ParserContext *ctx) {
   switch (ctx->getKind()) {
   case SyntaxKindUtils::SyntaxKind::Int32Keyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::Int32Keyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::Int32Keyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::Int64Keyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::Int64Keyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::Int64Keyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::Deci32Keyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::Deci32Keyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::Deci32Keyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::Int8Keyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::Int8Keyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::Int8Keyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::DeciKeyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::DeciKeyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::DeciKeyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::StrKeyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::StrKeyword);
   }
 
   case SyntaxKindUtils::SyntaxKind::BoolKeyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::BoolKeyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::BoolKeyword);
   }
   case SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE);
   }
   case SyntaxKindUtils::SyntaxKind::NthgKeyword: {
-    return std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NthgKeyword));
+    return ctx->match(SyntaxKindUtils::SyntaxKind::NthgKeyword);
   }
 
   default:

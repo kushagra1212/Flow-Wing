@@ -23,8 +23,8 @@
 ClassStatementGenerationStrategy::ClassStatementGenerationStrategy(
     CodeGenerationContext *context)
     : StatementGenerationStrategy(context) {}
-llvm::Value *
-ClassStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
+llvm::Value *ClassStatementGenerationStrategy::generateStatement(
+    [[maybe_unused]] BoundStatement *statement) {
 
   return nullptr;
 }
@@ -39,7 +39,8 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  DEBUG_LOG("Generating Class Type : " + boundClassStatement->getClassName());
+  DEBUG_LOG("Class Statement",
+            "Generating Class Type : " + boundClassStatement->getClassName());
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
@@ -64,8 +65,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
-       i++) {
+  for (size_t i = 0; i < boundClassStatement->getCustomTypesRef().size(); i++) {
     customTypeStatementGenerationStrategy->generateCustomType(
         boundClassStatement->getCustomTypesRef()[i].get());
 
@@ -117,8 +117,8 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
   classObject->setElementIndex(
       boundClassStatement->getClassName() + "::vTableElement", 0);
 
-  for (int64_t i = 0;
-       i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
+  for (size_t i = 0; i < boundClassStatement->getAllMemberVariablesRef().size();
+       i++) {
     classElements.push_back(
         _typeGenerationFactory
             ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
@@ -145,7 +145,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
+  for (size_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());
@@ -195,7 +195,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
   _codeGenerationContext->setCurrentClassName(
       boundClassStatement->getClassName());
 
-  DEBUG_LOG("LLVM: Declaring Class: " + boundClassStatement->getClassName());
+  DEBUG_LOG("Class Statement",
+            "Declaring Class: " + boundClassStatement->getClassName());
 
   _codeGenerationContext->addClass(
       boundClassStatement->getClassName(),
@@ -219,8 +220,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
           std::make_unique<CustomTypeStatementGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getCustomTypesRef().size();
-       i++) {
+  for (size_t i = 0; i < boundClassStatement->getCustomTypesRef().size(); i++) {
     customTypeStatementGenerationStrategy->generateCustomType(
         boundClassStatement->getCustomTypesRef()[i].get());
 
@@ -272,8 +272,8 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
   classObject->setElementIndex(
       boundClassStatement->getClassName() + "::vTableElement", 0);
 
-  for (int64_t i = 0;
-       i < boundClassStatement->getAllMemberVariablesRef().size(); i++) {
+  for (size_t i = 0; i < boundClassStatement->getAllMemberVariablesRef().size();
+       i++) {
     classElements.push_back(
         _typeGenerationFactory
             ->createStrategy(boundClassStatement->getAllMemberVariablesRef()[i]
@@ -303,7 +303,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
           std::make_unique<FunctionDeclarationGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int64_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
+  for (size_t i = 0; i < boundClassStatement->getMemberFunctionsRef().size();
        i++) {
     BoundFunctionDeclaration *fd = static_cast<BoundFunctionDeclaration *>(
         boundClassStatement->getMemberFunctionsRef()[i].get());

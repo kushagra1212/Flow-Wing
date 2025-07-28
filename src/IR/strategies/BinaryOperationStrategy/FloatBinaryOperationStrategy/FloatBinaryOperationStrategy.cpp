@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "FloatBinaryOperationStrategy.h"
 
 FloatBinaryOperationStrategy::FloatBinaryOperationStrategy(
     CodeGenerationContext *context)
-    : BinaryOperationStrategy(context){};
+    : BinaryOperationStrategy(context) {};
 
 llvm::Value *FloatBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
@@ -58,8 +56,8 @@ llvm::Value *FloatBinaryOperationStrategy::performOperation(
     return Builder->CreateFMul(lhsValue, rhsValue);
   }
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
-    llvm::Value *isZero = Builder->CreateFCmpOEQ(
-        rhsValue, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)));
+    // llvm::Value *isZero = Builder->CreateFCmpOEQ(
+    //     rhsValue, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)));
 
     // llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
     // llvm::BasicBlock *ifBlock =

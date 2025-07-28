@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "NirastUnaryOperationStrategy.h"
 
 NirastUnaryOperationStrategy::NirastUnaryOperationStrategy(
     CodeGenerationContext *context)
-    : UnaryOperationStrategy(context){};
+    : UnaryOperationStrategy(context) {};
 
 llvm::Value *NirastUnaryOperationStrategy::performOperation(
     llvm::Value *val, BoundUnaryExpression *unaryExpression) {
@@ -31,7 +30,8 @@ llvm::Value *NirastUnaryOperationStrategy::performOperation(
 }
 
 llvm::Value *NirastUnaryOperationStrategy::performOperation(
-    llvm::Value *val, BinderKindUtils::BoundUnaryOperatorKind unaryOperator) {
+    [[maybe_unused]] llvm::Value *_,
+    BinderKindUtils::BoundUnaryOperatorKind unaryOperator) {
 
   if (!UnaryOperationSupport::isSupported(
           UnaryOperationSupport::NirastStrategyTag{}, unaryOperator)) {

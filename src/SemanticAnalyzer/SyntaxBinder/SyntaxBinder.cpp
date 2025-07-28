@@ -57,16 +57,16 @@ SyntaxBinder::bind(CompilationUnitSyntax *syntax) {
         functionsYetToDefine.emplace_back(i);
       }
 
-      globalBoundBlockStatement->addStatement(std::move(
-          MemberBinderFactory::create(functionDeclarationSyntax->getKind())
-              ->bindMember(_context.get(), functionDeclarationSyntax)));
+      globalBoundBlockStatement->addStatement(
+          (MemberBinderFactory::create(functionDeclarationSyntax->getKind())
+               ->bindMember(_context.get(), functionDeclarationSyntax)));
       break;
     }
     case SyntaxKindUtils::SyntaxKind::GlobalStatement: {
 
       globalBoundBlockStatement->addStatement(
-          std::move(MemberBinderFactory::create(members[i]->getKind())
-                        ->bindMember(_context.get(), members[i].get())));
+          (MemberBinderFactory::create(members[i]->getKind())
+               ->bindMember(_context.get(), members[i].get())));
       break;
     }
     default:
@@ -76,16 +76,16 @@ SyntaxBinder::bind(CompilationUnitSyntax *syntax) {
   }
 
   //? DEFINING FUNCTIONS
-  for (int i = 0; i < functionsYetToDefine.size(); i++) {
+  for (size_t i = 0; i < functionsYetToDefine.size(); i++) {
     FunctionDeclarationSyntax *functionDeclarationSyntax =
         (FunctionDeclarationSyntax *)members[functionsYetToDefine[i]].get();
 
     //? Only Defining Functions
     functionDeclarationSyntax->setIsOnlyDeclared(false);
 
-    std::unique_ptr<BoundStatement> _statement = std::move(std::move(
-        MemberBinderFactory::create(functionDeclarationSyntax->getKind())
-            ->bindMember(_context.get(), functionDeclarationSyntax)));
+    std::unique_ptr<BoundStatement> _statement =
+        ((MemberBinderFactory::create(functionDeclarationSyntax->getKind())
+              ->bindMember(_context.get(), functionDeclarationSyntax)));
 
     globalBoundBlockStatement->addStatement(std::move(_statement));
   }

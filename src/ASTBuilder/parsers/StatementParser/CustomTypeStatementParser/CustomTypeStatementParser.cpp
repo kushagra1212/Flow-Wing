@@ -35,7 +35,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     customTypeStatement->setExposeKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
   ctx->match(SyntaxKindUtils::SyntaxKind::TypeKeyword);
@@ -43,7 +43,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
 
   std::any val = "";
   std::unique_ptr<SyntaxToken<std::any>> typeToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::string MODULE_PREFIX = "";
@@ -63,7 +63,7 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
     typeToken->setValue(val);
     typeToken->setText(std::any_cast<std::string>(val));
   }
-  DEBUG_LOG("Declared Type: " + std::any_cast<std::string>(val));
+  DEBUG_LOG("Declared Type: %s", std::any_cast<std::string>(val).c_str());
   std::unique_ptr<LiteralExpressionSyntax<std::any>> typeNameExp =
       std::make_unique<LiteralExpressionSyntax<std::any>>(std::move(typeToken),
                                                           val);
@@ -82,13 +82,13 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
         ctx->getCodeFormatterRef()->getIndentAmount());
 
     std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
-    std::any val = idenfierToken->getValue();
+    std::any localVal = idenfierToken->getValue();
 
     std::unique_ptr<LiteralExpressionSyntax<std::any>> idenfierExp =
         std::make_unique<LiteralExpressionSyntax<std::any>>(
-            std::move(idenfierToken), val);
+            std::move(idenfierToken), localVal);
 
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
@@ -117,5 +117,5 @@ CustomTypeStatementParser::parseStatement(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->getIndentAmount());
 
   ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
-  return std::move(customTypeStatement);
+  return customTypeStatement;
 }

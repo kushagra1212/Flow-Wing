@@ -17,14 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "GlobalVariableInitializer.h"
 
 GlobalVariableInitializer::GlobalVariableInitializer(
     CodeGenerationContext *codeGenerationContext)
-    : _codeGenerationContext(codeGenerationContext),
-      TheModule(codeGenerationContext->getModule().get()),
-      TheContext(codeGenerationContext->getContext().get()) {
+    : TheModule(codeGenerationContext->getModule().get()),
+      TheContext(codeGenerationContext->getContext().get()),
+      _codeGenerationContext(codeGenerationContext) {
 
   i8Type = llvm::Type::getInt8Ty(*TheContext);
   i32Type = llvm::Type::getInt32Ty(*TheContext);

@@ -27,7 +27,7 @@ using namespace FLOW_WING::DIAGNOSTIC;
 class IOHandler {
 
 public:
-  IOHandler() : _test(std::move(Tests::FlowWing::getTest())) {}
+  IOHandler() : _test((Tests::FlowWing::getTest())) {}
 
   virtual inline void setInput(const std::string &input) {
     _test->setInput(input);

@@ -20,7 +20,7 @@
 #include "VariableDeclarationSyntax.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
-const SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind VariableDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableDeclaration;
 }
 

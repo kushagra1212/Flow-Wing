@@ -37,8 +37,8 @@ GlobalStatementParser::parseStatement(ParserContext *ctx) {
   }
 
   std::unique_ptr<StatementSyntax> statement =
-      std::move(StatementParserFactory::createStatementParser(currentKind)
-                    ->parseStatement(ctx));
+      StatementParserFactory::createStatementParser(currentKind)
+          ->parseStatement(ctx);
 
   ctx->getCodeFormatterRef()->appendNewLine();
   return std::make_unique<GlobalStatementSyntax>(std::move(statement));

@@ -36,11 +36,11 @@ BlockStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       std::make_unique<BoundBlockStatement>(blockStatement->getSourceLocation(),
                                             false);
 
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
-    std::unique_ptr<BoundStatement> statement = std::move(
-        StatementBinderFactory::create(
-            blockStatement->getStatements()[i]->getKind())
-            ->bindStatement(ctx, blockStatement->getStatements()[i].get()));
+  for (size_t i = 0; i < blockStatement->getStatements().size(); i++) {
+    std::unique_ptr<BoundStatement> statement =
+        (StatementBinderFactory::create(
+             blockStatement->getStatements()[i]->getKind())
+             ->bindStatement(ctx, blockStatement->getStatements()[i].get()));
 
     boundBlockStatement->addStatement(std::move(statement));
   }

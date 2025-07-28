@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoolTypeConverter.h"
 
 BoolTypeConverter::BoolTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
@@ -50,15 +48,12 @@ llvm::Value *BoolTypeConverter::convertExplicit(llvm::Value *&value) {
   case SyntaxKindUtils::SyntaxKind::StrKeyword: {
 
     llvm::BasicBlock *currentBlock = _builder->GetInsertBlock();
-    llvm::BasicBlock *nullBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NullBlock",
-                                 _builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *notNullBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::NotNullBlock",
-                                 _builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *mergeBlock =
-        llvm::BasicBlock::Create(value->getContext(), "BoolTC::MergeBlock",
-                                 _builder->GetInsertBlock()->getParent());
+    llvm::BasicBlock *nullBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::NullBlock", currentBlock->getParent());
+    llvm::BasicBlock *notNullBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::NotNullBlock", currentBlock->getParent());
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        value->getContext(), "BoolTC::MergeBlock", currentBlock->getParent());
 
     _builder->CreateCondBr(_builder->CreateIsNull(value), nullBlock,
                            notNullBlock);

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SwitchStatementGenerationStrategy.h"
 #include <cstdint>
 #include <memory>
@@ -149,7 +148,7 @@ llvm::Value *SwitchStatementGenerationStrategy::generateGlobalStatement(
 void SwitchStatementGenerationStrategy::populateSwitchStatementsBasicBlock(
     std::vector<llvm::BasicBlock *> &casesBB, const uint64_t &casesSize,
     llvm::Function *&function) {
-  for (int i = 1; i <= casesSize; i++) {
+  for (size_t i = 1; i <= casesSize; i++) {
     std::string caseName = "case:";
 
     if (i != casesSize) {

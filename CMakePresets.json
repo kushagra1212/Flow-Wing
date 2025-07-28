@@ -31,7 +31,6 @@
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
-
     {
       "name": "aot-debug-dev",
       "displayName": "AOT Debug (Dev)",
@@ -72,7 +71,6 @@
         "BUILD_AOT": "OFF"
       }
     },
-
     {
       "name": "tests-aot-dev",
       "displayName": "Tests (AOT Mode) (Dev)",
@@ -91,7 +89,6 @@
         "BUILD_AOT": "OFF"
       }
     },
-
     {
       "name": "aot-release",
       "displayName": "AOT Release",

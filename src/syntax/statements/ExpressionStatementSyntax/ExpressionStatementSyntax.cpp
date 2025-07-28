@@ -34,7 +34,7 @@ std::unique_ptr<ExpressionSyntax> &
 ExpressionStatementSyntax::getExpressionPtr() {
   return this->_expression;
 }
-const SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ExpressionStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ExpressionStatement;
 }
 

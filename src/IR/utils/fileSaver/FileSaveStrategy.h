@@ -23,6 +23,7 @@
 template <typename ContentType, typename LoggerType> class FileSaveStrategy {
 public:
   LoggerType logger = nullptr;
+  virtual ~FileSaveStrategy() = default;
   virtual bool saveToFile(const std::string &path,
                           ContentType content) const = 0;
 };

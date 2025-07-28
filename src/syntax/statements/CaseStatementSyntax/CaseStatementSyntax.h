@@ -38,7 +38,7 @@ public:
   */
 
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   /*
@@ -85,7 +85,5 @@ public:
     return _blockStatement;
   }
 
-  inline auto isDefaultCase() const -> const bool {
-    return _defaultToken != nullptr;
-  }
+  inline auto isDefaultCase() const -> bool { return _defaultToken != nullptr; }
 };

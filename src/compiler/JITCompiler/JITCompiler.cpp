@@ -36,8 +36,8 @@ void JITCompiler::execute() {
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
 
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(FlowWing::Compiler::getLinkedModule(
-          TheContext, _currentDiagnosticHandler.get()));
+      (FlowWing::Compiler::getLinkedModule(TheContext,
+                                           _currentDiagnosticHandler.get()));
 
   llvm::Function *mainFunction =
       TheModule->getFunction(FLOWWING_GLOBAL_ENTRY_POINT);
@@ -75,16 +75,11 @@ void JITCompiler::execute() {
                               DiagnosticUtils::SourceLocation(0, 0, 0, "")));
     return;
   }
-  int hasError = 1;
-  llvm::Type *returnType = mainFunction->getReturnType();
   llvm::GenericValue resultValue = llvm::GenericValue();
 
   try {
     resultValue = executionEngine->runFunction(mainFunction, {});
 
-    if (returnType->isIntegerTy()) {
-      hasError = (resultValue.IntVal != 0) ? 1 : 0;
-    }
   } catch (const std::exception &e) {
     std::cerr << e.what();
     _currentDiagnosticHandler->printDiagnostic(
@@ -120,7 +115,7 @@ int main(int argc, char **argv) {
 
 #elif JIT_MODE
 
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
 
   argh::parser _cmdl(argv);

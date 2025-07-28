@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "AssignmentExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/BracketedExpressionGenerationStrategy/BracketedExpressionGenerationStrategy.h"
@@ -50,10 +49,6 @@ void AssignmentExpressionGenerationStrategy::declare(
       assignmentExpression->getLeftPtr() &&
       assignmentExpression->getLeftPtr()->getKind() ==
           BinderKindUtils::VariableExpression) {
-
-    BoundVariableExpression *variableExpression =
-        static_cast<BoundVariableExpression *>(
-            assignmentExpression->getLeftPtr().get());
 
     BoundCallExpression *callExpression = static_cast<BoundCallExpression *>(
         assignmentExpression->getRightPtr().get());
@@ -232,9 +227,6 @@ llvm::Value *AssignmentExpressionGenerationStrategy::handleAssignmentByVariable(
       return nullptr;
     }
 
-    llvm::StructType *lhsStructType = llvm::cast<llvm::StructType>(_lhsType);
-    llvm::StructType *rhsStructType = llvm::cast<llvm::StructType>(rhsType);
-
     return Builder->CreateStore(rhsValue, _lhsPtr);
   }
 
@@ -358,9 +350,6 @@ int8_t AssignmentExpressionGenerationStrategy::handleWhenRHSIsPrimitive(
 
   const bool RHS_VALUE_IS_A_CONSTANT =
       _codeGenerationContext->getValueStackHandler()->isLLVMConstant();
-
-  const bool RHS_VALUE_IS_OF_PRIMARY_TYPE =
-      _codeGenerationContext->getValueStackHandler()->isPrimaryType();
 
   const bool RHS_VALUE_IS_OF_DYNAMIC_TYPE =
       _codeGenerationContext->getValueStackHandler()->isDynamicValueType();
@@ -523,7 +512,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
     const int64_t sizeToFillVal = std::accumulate(
         dimensions.begin(), dimensions.end(), 1, std::multiplies<uint64_t>());
 
-    for (int i = 0; i < dimensions.size(); i++) {
+    for (size_t i = 0; i < dimensions.size(); i++) {
       std::vector<llvm::BasicBlock *> blocks = {
           llvm::BasicBlock::Create(*TheContext,
                                    "AssignExpr.loopStart-" + std::to_string(i),
@@ -554,7 +543,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
 
     builder.CreateBr(loopBlocks[0][0]);
 
-    for (int i = 0; i < dimensions.size(); i++) {
+    for (size_t i = 0; i < dimensions.size(); i++) {
       // start
       builder.SetInsertPoint(loopBlocks[i][0]);
       builder.CreateStore(builder.getInt32(0), indices[i]);
@@ -581,7 +570,7 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
       if (i == dimensions.size() - 1) {
         std::vector<llvm::Value *> indexList = {builder.getInt32(0)};
 
-        for (int j = 0; j < dimensions.size(); j++) {
+        for (size_t j = 0; j < dimensions.size(); j++) {
           indexList.push_back(
               builder.CreateLoad(builder.getInt32Ty(), indices[j]));
         }
@@ -655,7 +644,7 @@ void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     llvm::IRBuilder<> builder(entry);
 
     uint64_t index = 0;
-    for (const auto &items : objectType->elements()) {
+    for ([[maybe_unused]] const auto &_ : objectType->elements()) {
 
       llvm::Value *innerElementPtr =
           builder.CreateStructGEP(objectType, fun->getArg(0), index);

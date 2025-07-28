@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "SyntaxBinderContext.h"
 
 SyntaxBinderContext::SyntaxBinderContext(
@@ -34,8 +33,8 @@ FlowWing::DiagnosticHandler *SyntaxBinderContext::getDiagnosticHandler() {
   return _diagnosticHandler;
 }
 
-const bool
-SyntaxBinderContext::doesModuleAlreadyExist(const std::string &moduleName) {
+bool SyntaxBinderContext::doesModuleAlreadyExist(
+    const std::string &moduleName) {
   return _moduleDependencyMap.find(moduleName) != _moduleDependencyMap.end();
 }
 

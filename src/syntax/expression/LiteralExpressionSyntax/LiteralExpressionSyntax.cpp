@@ -33,7 +33,7 @@ LiteralExpressionSyntax<T>::LiteralExpressionSyntax(
 }
 
 template <typename T>
-const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getSyntaxKind() {
+SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getSyntaxKind() {
   return this->_token->getKind();
 }
 
@@ -59,7 +59,7 @@ void LiteralExpressionSyntax<T>::setText(std::string text) {
 }
 
 template <typename T>
-const SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
+SyntaxKindUtils::SyntaxKind LiteralExpressionSyntax<T>::getKind() const {
   return SyntaxKindUtils::SyntaxKind::LiteralExpression;
 }
 template <typename T>

@@ -17,20 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StringTypeConverter.h"
 
 #include "src/IR/LLVMTypeConversion/GlobalTypeConverter/GStringTypeConverter.h"
 
 StringTypeConverter::StringTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
   if (llvm::isa<llvm::PointerType>(value->getType())) {
     return value;
   }
 
-  if (auto globalString = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
+  if ([[maybe_unused]] auto _ = llvm::dyn_cast<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);
 
@@ -112,7 +111,7 @@ llvm::Value *StringTypeConverter::convertExplicit(llvm::Value *&value) {
 }
 
 llvm::Value *StringTypeConverter::convertImplicit(llvm::Value *&value) {
-  if (auto globalString = llvm::isa<llvm::GlobalVariable>(value)) {
+  if ([[maybe_unused]] auto _ = llvm::isa<llvm::GlobalVariable>(value)) {
     std::unique_ptr<GStringTypeConverter> gStringConverter =
         std::make_unique<GStringTypeConverter>(this->_codeGenerationContext);
 

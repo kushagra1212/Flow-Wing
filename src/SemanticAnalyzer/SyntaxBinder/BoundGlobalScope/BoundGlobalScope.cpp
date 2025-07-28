@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundGlobalScope.h"
 
 BoundGlobalScope::BoundGlobalScope(
@@ -25,11 +24,11 @@ BoundGlobalScope::BoundGlobalScope(
     std::unordered_map<std::string, std::any> variablesValues,
     FlowWing::DiagnosticHandler *diagnosticHandler,
     std::unique_ptr<BoundBlockStatement> statement)
-    : variables(scope->variables), functions(scope->functions),
+    : previous(std::move(previous)), variables(scope->variables),
       customTypes(scope->customTypes), classes(scope->classes),
       modules(scope->modules), variablesValues(variablesValues),
-      globalStatement(std::move(statement)), previous(std::move(previous)),
-      _diagnosticHandler(diagnosticHandler) {}
+      functions(scope->functions), _diagnosticHandler(diagnosticHandler),
+      globalStatement(std::move(statement)) {}
 
 bool BoundGlobalScope::tryLookupVariable(std::string name) {
   if (this->variables.find(name) != this->variables.end()) {

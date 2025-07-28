@@ -24,7 +24,7 @@
 #include <gtest/gtest.h>
 
 AOTCompiler::AOTCompiler(std::string filePath,
-                         const bool &isFormattedCodeRequired)
+                         [[maybe_unused]] const bool &isFormattedCodeRequired)
     : Compiler(filePath) {}
 
 void AOTCompiler::link() {
@@ -45,7 +45,7 @@ void AOTCompiler::link() {
 
     std::string cmd = _commandManager->create();
 
-    LINKING_DEBUG_LOG(cmd);
+    LINKING_DEBUG_LOG("", cmd);
 
     int status = std::system(cmd.c_str());
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 }
 
 #elif AOT_MODE
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
   argh::parser _cmdl(argv);
 

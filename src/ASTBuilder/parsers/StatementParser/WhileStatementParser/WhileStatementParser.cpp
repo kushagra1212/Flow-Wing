@@ -30,11 +30,11 @@
 std::unique_ptr<StatementSyntax>
 WhileStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> keyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::WhileKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::WhileKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<ExpressionSyntax> condition =
-      std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      PrecedenceAwareExpressionParser::parse(ctx);
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 

@@ -33,7 +33,7 @@ ObjectTypeExpressionParser::parseExpression(ParserContext *ctx) {
               "NBU_OBJECT_TYPE", "NBU_OBJECT_TYPE"));
 
   std::unique_ptr<SyntaxToken<std::any>> iden =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   std::any value = iden->getValue();
 
@@ -43,5 +43,5 @@ ObjectTypeExpressionParser::parseExpression(ParserContext *ctx) {
 
   objectTypeExpression->setObjectTypeIdentifier(std::move(literalExp));
 
-  return std::move(objectTypeExpression);
+  return objectTypeExpression;
 }

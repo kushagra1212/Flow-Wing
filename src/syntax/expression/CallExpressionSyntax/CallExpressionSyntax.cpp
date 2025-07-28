@@ -71,7 +71,7 @@ CallExpressionSyntax::getCloseParenthesisToken() {
   return std::move(_closeParenthesisToken);
 }
 
-const SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind CallExpressionSyntax::getKind() const {
   return SyntaxKindUtils::CallExpression;
 }
 
@@ -86,7 +86,7 @@ const std::vector<SyntaxNode *> &CallExpressionSyntax::getChildren() {
     //? Not used
     // this->_children.push_back(_openParenthesisToken.get());
 
-    for (int i = 0; i < _arguments.size(); i++) {
+    for (size_t i = 0; i < _arguments.size(); i++) {
       this->_children.emplace_back(_arguments[i].get());
       //? Not used
       // if (i < _separators.size()) {

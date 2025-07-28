@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // ReferenceTypeBuilder.h
 #pragma once
 
@@ -26,20 +25,20 @@
 class TypeBuilderInterface;
 
 class ReferenceTypeBuilder : public TypeBuilderInterface {
- public:
+public:
   ReferenceTypeBuilder(CodeGenerationContext *context);
   void buildType() override;
   llvm::StructType *get() const override;
 
   llvm::Type *getReferencedType() const;
 
-  const bool isRef(llvm::Type *type) const;
+  bool isRef(llvm::Type *type) const;
 
   llvm::Value *getReferencedValue(llvm::Value *refValue) const;
 
   const std::vector<llvm::Type *> &getMemberTypes() const;
 
- private:
+private:
   llvm::StructType *_referenceType;
   std::vector<llvm::Type *> _memberTypes;
 };

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "WhileStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -87,16 +86,12 @@ llvm::Value *WhileStatementGenerationStrategy::generateStatement(
   // Loop Body
 
   Builder->SetInsertPoint(loopBody);
-  llvm::Value *result =
-      _statementGenerationFactory
-          ->createStrategy(whileStatement->getBodyPtr().get()->getKind())
-          ->generateStatement(whileStatement->getBodyPtr().get());
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    result = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
-  }
+
+  _statementGenerationFactory
+      ->createStrategy(whileStatement->getBodyPtr().get()->getKind())
+      ->generateStatement(whileStatement->getBodyPtr().get());
+  _codeGenerationContext->getValueStackHandler()->popAll();
+
   Builder->CreateCondBr(
       _codeGenerationContext->isCountZero(
           _codeGenerationContext->getPrefixedName(FLOWWING_BREAK_COUNT),

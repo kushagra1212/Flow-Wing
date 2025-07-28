@@ -17,16 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "DynamicValueHandler.h"
 #include "ValueCaster/ValueCaster.h"
 namespace DYNAMIC_VALUE_HANDLER {
 
-llvm::Value *assignRHSValueToLHSDynamicValue(llvm::Value *lhsPtr,
-                                             const std::string &variableName,
-                                             llvm::Value *rhsValue,
-                                             CodeGenerationContext *context,
-                                             llvm::IRBuilder<> *&Builder) {
+llvm::Value *assignRHSValueToLHSDynamicValue(
+    llvm::Value *lhsPtr, [[maybe_unused]] const std::string &_,
+    llvm::Value *rhsValue, CodeGenerationContext *context,
+    llvm::IRBuilder<> *&Builder) {
 
   llvm::StructType *dynamicValueStructType = llvm::StructType::getTypeByName(
       *context->getContext(), DYNAMIC_VALUE::TYPE::DYNAMIC_VALUE_TYPE);
@@ -208,7 +206,6 @@ void assignRHSDynamicValueToLHSVariable(llvm::Value *lhsVariable,
                                         llvm::Value *rhsDynamicValue,
                                         CodeGenerationContext *context,
                                         llvm::IRBuilder<> *&Builder) {
-  TypeMapper *_typeMapper = context->getMapper().get();
   generateDynamicDispatch(
       rhsDynamicValue, context, Builder, [&](llvm::Value *rhsValue) {
         Builder->CreateStore(

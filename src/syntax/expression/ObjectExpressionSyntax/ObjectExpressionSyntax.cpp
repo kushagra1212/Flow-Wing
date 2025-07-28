@@ -21,7 +21,7 @@
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/syntax/SyntaxKindUtils.h"
 
-const SyntaxKindUtils::SyntaxKind ObjectExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ObjectExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ObjectExpression;
 }
 const std::vector<SyntaxNode *> &ObjectExpressionSyntax::getChildren() {

@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/DerivedTypes.h>
+#pragma clang diagnostic pop
 
 #include "src/IR/irGen/Types/LLVMType/LLVMType.h"
 
@@ -28,7 +30,9 @@ class LLVMDynamicType : public LLVMType {
 public:
   LLVMDynamicType(llvm::Type *type, llvm::Type *dynamicType);
 
-  virtual inline const bool isPointerToDynamic() const override { return true; }
+  virtual ~LLVMDynamicType() = default;
+
+  virtual inline bool isPointerToDynamic() const override { return true; }
 
   inline llvm::Type *getDynamicType() const { return _dynamicType; }
 
@@ -37,6 +41,5 @@ public:
   }
 
 private:
-  llvm::Type *_type;
   llvm::Type *_dynamicType;
 };

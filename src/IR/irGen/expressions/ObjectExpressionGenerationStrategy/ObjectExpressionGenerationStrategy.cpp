@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ObjectExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -133,9 +132,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariableExp(
   std::unique_ptr<ObjectAssignmentExpressionGenerationStrategy> strategy =
       std::make_unique<ObjectAssignmentExpressionGenerationStrategy>(
           _codeGenerationContext);
-  llvm::Value *rhsValue =
-      _expressionGenerationFactory->createStrategy(expression->getKind())
-          ->generateExpression(expression);
+
+  _expressionGenerationFactory->createStrategy(expression->getKind())
+      ->generateExpression(expression);
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
 
@@ -261,8 +260,6 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       return nullptr;
     }
 
-    llvm::Value *rhs = nullptr;
-
     llvm::Value *innerElementPtr =
         Builder->CreateStructGEP(parStructType, variable, indexValue);
 
@@ -387,7 +384,6 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
 
     llvm::ArrayType *arrayType =
         llvm::cast<llvm::ArrayType>(parStructType->getElementType(indexValue));
-    llvm::Type *elementType = arrayType->getElementType();
     llvm::Type *type = arrayType;
 
     std::vector<uint64_t> sizes;

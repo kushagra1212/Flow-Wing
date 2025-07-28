@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CodeGenerationContext.h"
 #include "utils/DynamicValueHandler/ValueChecker/ValueChecker.h"
 #include <memory>
@@ -258,7 +257,7 @@ auto CodeGenerationContext::createVTableMapEntry(
         return;
       }
 
-      for (int i = 0; i < functionType->getNumParams(); i++) {
+      for (size_t i = 0; i < functionType->getNumParams(); i++) {
         if (previousFunctionType->getParamType(i) !=
             functionType->getParamType(i)) {
           this->getLogger()->LogError(
@@ -283,7 +282,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
     return constant;
   }
 
-  if (auto callInst = llvm::dyn_cast<llvm::CallInst>(myValue)) {
+  if (auto _ = llvm::dyn_cast<llvm::CallInst>(myValue)) {
     this->getLogger()->LogError("Unsupported type for conversion to constant");
     return nullptr;
   }
@@ -299,7 +298,7 @@ CodeGenerationContext::createConstantFromValue(llvm::Value *myValue) {
       return llvm::ConstantFP::get(*_context, floatValue);
     }
   } else if (valueType->isPointerTy()) {
-    if (auto ptrConstant = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
+    if (auto _ = llvm::dyn_cast<llvm::ConstantPointerNull>(myValue)) {
       return llvm::ConstantPointerNull::get(
           llvm::cast<llvm::PointerType>(valueType));
     } else if (auto constArray =
@@ -457,7 +456,7 @@ int8_t CodeGenerationContext::verifyArrayType(llvm::ArrayType *lhsType,
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < lhsSizes.size(); i++) {
+  for (size_t i = 0; i < lhsSizes.size(); i++) {
     if (lhsSizes[i] < rhsSizes[i]) {
       this->getLogger()->LogError(
           "Container size mismatch Expected " + std::to_string(i + 1) +
@@ -522,7 +521,7 @@ CodeGenerationContext::verifyType(const std::vector<llvm::Type *> &lhsTypes,
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < lhsTypes.size(); i++) {
+  for (size_t i = 0; i < lhsTypes.size(); i++) {
     if (this->verifyType(lhsTypes[i], rhsTypes[i], inExp) == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
@@ -613,12 +612,9 @@ void CodeGenerationContext::getRetrunedArrayType(
       arrayElementType = getMapper()->mapCustomTypeToLLVMType(
           (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
 
-    for (int64_t i = 5; i < strs.size(); i++) {
+    for (size_t i = 5; i < strs.size(); i++) {
       actualSizes.push_back(stoi(strs[i]));
     }
-
-    llvm::Constant *def = llvm::cast<llvm::Constant>(
-        this->getMapper()->getDefaultValue(arrayElementType));
 
     getMultiArrayType(arrayType, actualSizes, arrayElementType);
   } else if (strs[2] == "pr") {

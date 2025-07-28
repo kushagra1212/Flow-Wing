@@ -20,8 +20,12 @@
 #pragma once
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
-#include <llvm/IR/Value.h>
 #include <vector>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#include <llvm/IR/Value.h>
+#pragma clang diagnostic pop
 
 class CodeGenerationContext;
 class BoundExpression;

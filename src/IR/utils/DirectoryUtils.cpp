@@ -44,7 +44,7 @@ int8_t createFreshTempDirectory(const std::string &tempDir,
   return EXIT_SUCCESS;
 }
 
-int8_t createTempDirectories(LLVMLogger *logger) {
+int8_t createTempDirectories([[maybe_unused]] LLVMLogger *logger) {
   int8_t result = EXIT_SUCCESS;
 
 #if defined(JIT_MODE) || defined(JIT_TEST_MODE)

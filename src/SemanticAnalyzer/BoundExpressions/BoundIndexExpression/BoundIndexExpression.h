@@ -55,8 +55,8 @@ public:
     return _variableExpression;
   }
 
-  inline auto isObject() const -> const bool { return _isObject; }
-  inline auto isSelf() const -> const bool { return _isSelf; }
+  inline auto isObject() const -> bool { return _isObject; }
+  inline auto isSelf() const -> bool { return _isSelf; }
 
   // Setters
 

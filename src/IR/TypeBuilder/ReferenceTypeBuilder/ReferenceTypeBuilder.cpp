@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ReferenceTypeBuilder.h"
 
 #include "src/IR/context/CodeGenerationContext.h"
@@ -42,12 +41,12 @@ llvm::Type *ReferenceTypeBuilder::getReferencedType() const {
   return llvm::Type::getInt32Ty(*_codeGenerationContext->getContext().get());
 }
 
-const bool ReferenceTypeBuilder::isRef(llvm::Type *type) const {
+bool ReferenceTypeBuilder::isRef(llvm::Type *type) const {
   return type == this->_referenceType;
 }
 
-llvm::Value *ReferenceTypeBuilder::getReferencedValue(
-    llvm::Value *refValue) const {
+llvm::Value *
+ReferenceTypeBuilder::getReferencedValue(llvm::Value *refValue) const {
   return _codeGenerationContext->getBuilder()->CreateStructGEP(
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
           SyntaxKindUtils::SyntaxKind::Int32Keyword),

@@ -61,7 +61,7 @@ ObjectTypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   //? name -> class Type or Object Type
 
   BoundCustomTypeStatement *bCT = ctx->getRootRef()->tryGetCustomType(name);
-  BINDER_DEBUG_LOG("CURRENT_MODULE_NAME: " + name);
+  BINDER_DEBUG_LOG("CURRENT_MODULE_NAME: ", name);
 
   if (!bCT && !ctx->getRootRef()->tryGetClass(name)) {
     ctx->getDiagnosticHandler()->addDiagnostic(

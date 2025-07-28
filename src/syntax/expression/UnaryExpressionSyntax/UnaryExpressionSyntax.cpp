@@ -29,7 +29,7 @@ UnaryExpressionSyntax::UnaryExpressionSyntax(
   this->_operand = std::move(operand);
 }
 
-const SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind UnaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::UnaryExpression;
 }
 

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableDeclarationStatementGenerationStrategy.h"
 #include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 
@@ -32,7 +31,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
         const SyntaxKindUtils::SyntaxKind &variableType,
         llvm::Value *rhsValue) {
 
-  CODEGEN_DEBUG_LOG("Var Type " + Utils::typeToString(variableType));
+  CODEGEN_DEBUG_LOG("Var Type ", Utils::typeToString(variableType));
 
   llvm::Type *llvmType =
       _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
@@ -96,7 +95,7 @@ llvm::Value *VariableDeclarationStatementGenerationStrategy::
 llvm::Value *
 VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
     BoundVariableDeclaration *variableDeclaration) {
-  DEBUG_LOG("Generating Common Statement for Variable: " + _variableName);
+  DEBUG_LOG("Generating Common Statement for Variable: ", _variableName);
   if (!canGenerateStatement(variableDeclaration)) {
     return nullptr;
   }
@@ -167,7 +166,7 @@ VariableDeclarationStatementGenerationStrategy::generateCommonStatement(
 }
 llvm::Value *VariableDeclarationStatementGenerationStrategy::declare() {
 
-  CODEGEN_DEBUG_LOG("Declaring Variable: " + _variableName);
+  CODEGEN_DEBUG_LOG("Declaring Variable: ", _variableName);
   if (_variableType == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
     std::unique_ptr<ContainerDeclarationStatementGenerationStrategy>
         contDecGenStrat =
@@ -348,7 +347,7 @@ bool VariableDeclarationStatementGenerationStrategy::canGenerateStatement(
 void VariableDeclarationStatementGenerationStrategy::populateVariables(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
 
-  DEBUG_LOG("Populating Variable: " + _variableName);
+  DEBUG_LOG("Populating Variable: ", _variableName);
   _variableDeclaration = static_cast<BoundVariableDeclaration *>(statement);
 
   if (_variableDeclaration->getMemoryKind() ==
@@ -363,5 +362,5 @@ void VariableDeclarationStatementGenerationStrategy::populateVariables(
 
   _variableType =
       _variableDeclaration->getTypeExpression().get()->getSyntaxType();
-  DEBUG_LOG("Populated Variable: " + _variableName);
+  DEBUG_LOG("Populated Variable: ", _variableName);
 }

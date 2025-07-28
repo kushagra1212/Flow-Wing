@@ -25,12 +25,12 @@
 
 SourceTokenizer::SourceTokenizer(const std::vector<std::string> &sourceCode,
                                  FlowWing::DiagnosticHandler *diagnosticHandler)
-    : _sourceCode(sourceCode), _diagnosticHandler(diagnosticHandler),
-      _textSize(sourceCode.size()), _position(0), _lineNumber(0) {}
+    : _lineNumber(0), _position(0), _textSize(sourceCode.size()),
+      _sourceCode(sourceCode), _diagnosticHandler(diagnosticHandler) {}
 
-const char SourceTokenizer::currentChar() const { return peek(0); }
+char SourceTokenizer::currentChar() const { return peek(0); }
 
-const char SourceTokenizer::peek(const int64_t &offset) const {
+char SourceTokenizer::peek(const int64_t &offset) const {
   if (_lineNumber >= _textSize)
     return _END_OF_FILE;
 

@@ -40,7 +40,7 @@ const std::vector<SyntaxNode *> &ReturnStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ReturnStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ReturnStatement;
 }
 

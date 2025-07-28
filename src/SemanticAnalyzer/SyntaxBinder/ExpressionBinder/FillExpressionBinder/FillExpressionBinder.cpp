@@ -34,18 +34,18 @@ FillExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           fillExpression->getSourceLocation());
 
   if (fillExpression->getSizeToFillExpressionRef().get()) {
-    boundFillExpression->setSizeToFill(std::move(
-        ExpressionBinderFactory::create(
-            fillExpression->getSizeToFillExpressionRef()->getKind())
-            ->bindExpression(
-                ctx, fillExpression->getSizeToFillExpressionRef().get())));
+    boundFillExpression->setSizeToFill(
+        (ExpressionBinderFactory::create(
+             fillExpression->getSizeToFillExpressionRef()->getKind())
+             ->bindExpression(
+                 ctx, fillExpression->getSizeToFillExpressionRef().get())));
   }
 
   boundFillExpression->setElementToFill(
-      std::move(ExpressionBinderFactory::create(
-                    fillExpression->getElementExpressionRef()->getKind())
-                    ->bindExpression(
-                        ctx, fillExpression->getElementExpressionRef().get())));
+      (ExpressionBinderFactory::create(
+           fillExpression->getElementExpressionRef()->getKind())
+           ->bindExpression(ctx,
+                            fillExpression->getElementExpressionRef().get())));
 
-  return std::move(boundFillExpression);
+  return (boundFillExpression);
 }

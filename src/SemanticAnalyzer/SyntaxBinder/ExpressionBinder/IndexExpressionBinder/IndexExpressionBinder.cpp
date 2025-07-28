@@ -51,7 +51,7 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
                            .get()),
                    FLOW_WING::DIAGNOSTIC::DiagnosticCode::VariableNotFound));
 
-    return std::move(
+    return (
         ExpressionBinderFactory::create(
             indexExpression->getIndexIdentifierExpressionRef()->getKind())
             ->bindExpression(
@@ -75,7 +75,7 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
                 .get()),
         FLOW_WING::DIAGNOSTIC::DiagnosticCode::IndexingNonArrayVariable));
 
-    return std::move(
+    return (
         ExpressionBinderFactory::create(
             indexExpression->getIndexIdentifierExpressionRef()->getKind())
             ->bindExpression(
@@ -96,8 +96,8 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
     boundIndexExp->addBoundIndexExpression(
-        std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                      ->bindExpression(ctx, indexExp.get())));
+        (ExpressionBinderFactory::create(indexExp->getKind())
+             ->bindExpression(ctx, indexExp.get())));
   }
 
   if (indexExpression->isObject()) {
@@ -136,15 +136,15 @@ IndexExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
         for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
           localBoundIndexExp->addBoundIndexExpression(
-              std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                            ->bindExpression(ctx, indexExp.get())));
+              ExpressionBinderFactory::create(indexExp->getKind())
+                  ->bindExpression(ctx, indexExp.get()));
         }
         boundVariableExpression->addDotExpression(
             std::move(localBoundIndexExp));
       } else {
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get())));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get())));
       }
     }
 

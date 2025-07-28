@@ -17,13 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#include "src/common/Common.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Type.h>
-
-#include "src/common/Common.h"
+#pragma clang diagnostic pop
 
 class TypeTable {
 private:

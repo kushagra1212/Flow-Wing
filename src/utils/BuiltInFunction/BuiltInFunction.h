@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundTypeExpression.h"
@@ -44,7 +43,7 @@ class BuiltInFunction {
 public:
   static void setupBuiltInFunctions();
 
-  static auto isBuiltInFunction(const std::string &functionName) -> const bool;
+  static auto isBuiltInFunction(const std::string &functionName) -> bool;
   static auto getBuiltInFunction(const std::string &functionName)
       -> const std::unique_ptr<BoundFunctionDeclaration> &;
 

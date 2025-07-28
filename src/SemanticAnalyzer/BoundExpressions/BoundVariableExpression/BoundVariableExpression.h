@@ -53,7 +53,7 @@ public:
     return _variableTypeExp;
   }
 
-  inline auto isConstant() const -> const bool { return _isConstant; }
+  inline auto isConstant() const -> bool { return _isConstant; }
 
   inline auto getDotExpressionList()
       -> std::vector<std::unique_ptr<BoundExpression>> & {
@@ -64,7 +64,7 @@ public:
       -> std::unique_ptr<BoundExpression> {
     auto dotExpression = std::move(_dotExpressionList.front());
     _dotExpressionList.erase(_dotExpressionList.begin());
-    return std::move(dotExpression);
+    return dotExpression;
   }
 
   inline void addDotExpression(std::unique_ptr<BoundExpression> dotExpression) {

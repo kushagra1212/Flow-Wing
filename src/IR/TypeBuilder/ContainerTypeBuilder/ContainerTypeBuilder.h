@@ -17,22 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // ContainerTypeBuilder.h
 #pragma once
 
 #include "src/IR/TypeBuilder/TypeBuilderInterface.h"
 
 class ContainerTypeBuilder : public TypeBuilderInterface {
- public:
+public:
   ContainerTypeBuilder(CodeGenerationContext *context);
   void buildType() override;
   llvm::StructType *get() const override;
   const std::vector<llvm::Type *> &getMemberTypes() const;
 
-  const uint64_t getIndexofMemberType(llvm::Type *type) const;
+  uint64_t getIndexofMemberType(llvm::Type *type) const;
 
- private:
+private:
   llvm::StructType *_dynamicType;
   std::vector<llvm::Type *> _body;
 };

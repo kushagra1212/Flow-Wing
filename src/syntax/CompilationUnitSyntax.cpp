@@ -21,7 +21,7 @@
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
 
-const SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
+SyntaxKindUtils::SyntaxKind CompilationUnitSyntax::getKind() {
   return SyntaxKindUtils::SyntaxKind::CompilationUnit;
 }
 

@@ -30,7 +30,7 @@ BreakStatementSyntax::BreakStatementSyntax(
 std::unique_ptr<SyntaxToken<std::any>> BreakStatementSyntax::getBreakKeyword() {
   return std::move(_breakKeyword);
 }
-const SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BreakStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BreakStatement;
 }
 

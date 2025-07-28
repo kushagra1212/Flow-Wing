@@ -33,10 +33,9 @@ class TernaryExpressionSyntax : public ExpressionSyntax {
 
 public:
   TernaryExpressionSyntax() = default;
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation
-  getSourceLocation() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   inline auto
   addConditionExpression(std::unique_ptr<ExpressionSyntax> conditionExpression)

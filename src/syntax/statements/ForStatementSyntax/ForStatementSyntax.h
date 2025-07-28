@@ -43,7 +43,7 @@ public:
   std::unique_ptr<ExpressionSyntax> getStepExpression();
 
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<BlockStatementSyntax> &getStatementRef();

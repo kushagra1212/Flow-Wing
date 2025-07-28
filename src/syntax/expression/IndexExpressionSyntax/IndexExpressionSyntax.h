@@ -75,7 +75,7 @@ public:
   std::unique_ptr<LiteralExpressionSyntax<std::any>> &
   getIndexIdentifierExpressionRef();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 };

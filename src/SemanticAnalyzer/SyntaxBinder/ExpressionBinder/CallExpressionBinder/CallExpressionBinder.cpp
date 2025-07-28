@@ -171,8 +171,8 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   {
     const std::string CLASS_NAME = CALLER_NAME.substr(0, CALLER_NAME.find("."));
     std::string fLastName = CALLER_NAME.substr(CALLER_NAME.find(".") + 1);
-    PARSER_DEBUG_LOG("Class Name: " + CLASS_NAME);
-    PARSER_DEBUG_LOG("Caller Name: " + CALLER_NAME);
+    PARSER_DEBUG_LOG("Class Name: ", CLASS_NAME);
+    PARSER_DEBUG_LOG("Caller Name: ", CALLER_NAME);
     BoundClassStatement *boundClassStatement =
         ctx->getRootRef()->tryGetClass(CLASS_NAME);
 
@@ -191,15 +191,14 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
       boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
 
       boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
-      for (int i = 0; i < callExpression->getArguments().size(); i++) {
+      for (size_t i = 0; i < callExpression->getArguments().size(); i++) {
         boundCallExpression->addArgument(
-            std::move(ExpressionBinderFactory::create(
-                          callExpression->getArguments()[i]->getKind())
-                          ->bindExpression(
-                              ctx, callExpression->getArguments()[i].get())));
+            ExpressionBinderFactory::create(
+                callExpression->getArguments()[i]->getKind())
+                ->bindExpression(ctx, callExpression->getArguments()[i].get()));
       }
 
-      return std::move(boundCallExpression);
+      return (boundCallExpression);
     }
   }
 
@@ -238,12 +237,12 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
             callExpression->getIdentifierPtr()->getSourceLocation(),
             FLOW_WING::DIAGNOSTIC::DiagnosticCode::FunctionNotFound));
 
-        return std::move(boundIdentifier);
+        return (boundIdentifier);
       }
     }
 
     if (declared_fd &&
-        callExpression->getArguments().size() <
+        static_cast<int64_t>(callExpression->getArguments().size()) <
             declared_fd->getMinNumberOfParametersNeeded() &&
         !IS_A_BUILTIN_FUNCTION_CALL) {
       ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
@@ -255,7 +254,7 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           callExpression->getOpenParenthesisTokenPtr()->getSourceLocation(),
           FLOW_WING::DIAGNOSTIC::DiagnosticCode::
               FunctionArgumentCountMismatch));
-      return std::move(boundIdentifier);
+      return (boundIdentifier);
     }
   }
 
@@ -267,12 +266,12 @@ CallExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   boundCallExpression->setHasNewKeyword(callExpression->hasNewKeyword());
   boundCallExpression->setCallerIdentifier(std::move(boundIdentifier));
   boundCallExpression->setSuperFunctionCall(isSuperFunctionCall);
-  for (int i = 0; i < callExpression->getArguments().size(); i++) {
-    boundCallExpression->addArgument(std::move(
-        ExpressionBinderFactory::create(
-            callExpression->getArguments()[i]->getKind())
-            ->bindExpression(ctx, callExpression->getArguments()[i].get())));
+  for (size_t i = 0; i < callExpression->getArguments().size(); i++) {
+    boundCallExpression->addArgument(
+        (ExpressionBinderFactory::create(
+             callExpression->getArguments()[i]->getKind())
+             ->bindExpression(ctx, callExpression->getArguments()[i].get())));
   }
 
-  return std::move(boundCallExpression);
+  return (boundCallExpression);
 }

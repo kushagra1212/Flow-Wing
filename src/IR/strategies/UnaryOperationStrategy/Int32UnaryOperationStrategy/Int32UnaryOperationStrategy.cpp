@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Int32UnaryOperationStrategy.h"
 
 Int32UnaryOperationStrategy::Int32UnaryOperationStrategy(
     CodeGenerationContext *context)
-    : UnaryOperationStrategy(context){};
+    : UnaryOperationStrategy(context) {};
 
 llvm::Value *Int32UnaryOperationStrategy::performOperation(
     llvm::Value *val, BoundUnaryExpression *unaryExpression) {
@@ -32,7 +31,6 @@ llvm::Value *Int32UnaryOperationStrategy::performOperation(
 
 llvm::Value *Int32UnaryOperationStrategy::performOperation(
     llvm::Value *val, BinderKindUtils::BoundUnaryOperatorKind unaryOperator) {
-  llvm::Value *result = Builder->getInt32(1);
 
   if (!UnaryOperationSupport::isSupported(
           UnaryOperationSupport::Int32StrategyTag{}, unaryOperator)) {

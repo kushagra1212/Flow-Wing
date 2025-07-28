@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IRGenerator.h"
 #include <string>
 
@@ -108,9 +107,7 @@ std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
   return this->_irParser;
 }
 
-const int32_t IRGenerator::hasErrors() const {
-  return _llvmLogger->getErrorCount();
-}
+int32_t IRGenerator::hasErrors() const { return _llvmLogger->getErrorCount(); }
 
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {
@@ -160,15 +157,12 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   // Declare All Global Variables
 
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+  for (size_t i = 0; i < blockStatement->getStatements().size(); i++) {
     BoundStatement *statement = blockStatement->getStatements()[i].get();
 
     BinderKindUtils::BoundNodeKind kind = statement->getKind();
     bool generateStatement = true;
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
-      BoundFunctionDeclaration *functionDeclaration =
-          static_cast<BoundFunctionDeclaration *>(
-              blockStatement->getStatements()[i].get());
       generateStatement = false;
     }
 
@@ -183,7 +177,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
   Builder->CreateRet(
       llvm::ConstantInt::get(llvm::Type::getInt32Ty(*TheContext), 0, true));
 
-  for (int i = 0; i < blockStatement->getStatements().size(); i++) {
+  for (size_t i = 0; i < blockStatement->getStatements().size(); i++) {
     BinderKindUtils::BoundNodeKind kind =
         blockStatement->getStatements()[i].get()->getKind();
     if (kind == BinderKindUtils::BoundNodeKind::FunctionDeclaration) {
@@ -228,10 +222,9 @@ void IRGenerator::generateEvaluateGlobalStatement(
     }
   }
 
-  char **OutMessage = nullptr;
-
 #if DEBUG
 
+  char **OutMessage = nullptr;
   // Print LLVM IR to console
   TheModule->print(llvm::outs(), nullptr);
   LLVMVerifyModule(wrap(TheModule),
@@ -246,6 +239,7 @@ void IRGenerator::generateEvaluateGlobalStatement(
 
   if (!this->hasErrors() && m_hasTempDirectories == EXIT_SUCCESS) {
 #if defined(DEBUG)
+    char **OutMessage = nullptr;
     const std::string Filename = (std::string(
         Utils::getTempDir() + FLOWWING::IR::CONSTANTS::TEMP_BC_FILES_DIR +
         blockName + std::string(".ll")));
@@ -301,7 +295,7 @@ void IRGenerator::defineClass(BoundClassStatement *boundClassStatement) {
     }
 
     if (!functionDeclaration->isOnlyDeclared()) {
-      llvm::Value *F = _functionStatementGenerationStrategy->generate(
+      _functionStatementGenerationStrategy->generate(
           functionDeclaration, {"self"}, classType, classVariables);
     }
   }

@@ -38,7 +38,7 @@ SyntaxToken<T>::SyntaxToken(const std::string &absoluteFilePath,
 }
 
 template <typename T>
-const SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() const {
+SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() const {
   return this->kind;
 }
 template <typename T> const int &SyntaxToken<T>::getColumnNumber() {
@@ -64,7 +64,7 @@ template <typename T> const T &SyntaxToken<T>::getValue() {
 template <typename T> std::string SyntaxToken<T>::getKindText() {
   return SyntaxKindUtils::to_string(this->kind);
 }
-template <typename T> const int SyntaxToken<T>::getUnaryOperatorPrecedence() {
+template <typename T> int SyntaxToken<T>::getUnaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::PlusToken:
   case SyntaxKindUtils::SyntaxKind::MinusToken:
@@ -75,7 +75,7 @@ template <typename T> const int SyntaxToken<T>::getUnaryOperatorPrecedence() {
     return 0;
   }
 }
-template <typename T> const int SyntaxToken<T>::getBinaryOperatorPrecedence() {
+template <typename T> int SyntaxToken<T>::getBinaryOperatorPrecedence() {
   switch (this->kind) {
   case SyntaxKindUtils::SyntaxKind::StarToken:
   case SyntaxKindUtils::SyntaxKind::SlashSlashToken:

@@ -17,18 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
-
-#include <llvm/IR/LLVMContext.h>
 
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/IR/context/CodeGenerationContext.h"
 #include "src/IR/logger/LLVMLogger.h"
 #include "src/IR/mappers/TypeMapper/TypeMapper.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
+#include <llvm/IR/LLVMContext.h>
+#pragma clang diagnostic pop
+
 using namespace FLOWWING::IR::CONSTANTS;
 
 class TypeConverterBase {
@@ -42,12 +45,13 @@ public:
   llvm::LLVMContext *_llvmContext;
 
   TypeConverterBase(CodeGenerationContext *context)
-      : _module(context->getModule().get()),
+      : _codeGenerationContext(context), _builder(context->getBuilder().get()),
+        _preBuilder(nullptr), _module(context->getModule().get()),
         _mapper(context->getMapper().get()),
         _logger(context->getLogger().get()),
-        _builder(context->getBuilder().get()),
-        _llvmContext(context->getContext().get()),
-        _codeGenerationContext(context){};
+        _llvmContext(context->getContext().get()) {};
+
+  virtual ~TypeConverterBase() = default;
 
   virtual llvm::Value *convertExplicit(llvm::Value *&value) = 0;
 

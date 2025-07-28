@@ -21,9 +21,8 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundLiteralExpression/BoundLiteralExpression.h"
 #include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 
-std::unique_ptr<BoundExpression>
-LiteralExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
-                                        ExpressionSyntax *expression) {
+std::unique_ptr<BoundExpression> LiteralExpressionBinder::bindExpression(
+    [[maybe_unused]] SyntaxBinderContext *ctx, ExpressionSyntax *expression) {
   LiteralExpressionSyntax<std::any> *literalSyntax =
       static_cast<LiteralExpressionSyntax<std::any> *>(expression);
 

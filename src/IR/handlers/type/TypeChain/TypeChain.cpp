@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TypeChain.h"
 
 void TypeChain::addHandler(std::unique_ptr<TypeTable> handler) {
@@ -101,7 +100,7 @@ size_t TypeChain::getIndex(const std::string &name) {
   while (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
     index = handler->getIndex(name);
-    if (index != -1) {
+    if (index != static_cast<size_t>(-1)) {
       break;
     }
     currentHandler.push(std::move(handler));

@@ -38,7 +38,7 @@
 std::unique_ptr<StatementSyntax>
 BringStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> bringKeyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::BringKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::BringKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
   std::unique_ptr<BringStatementSyntax> bringStatement =
       std::make_unique<BringStatementSyntax>();
@@ -47,10 +47,10 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBraceToken) {
     bringStatement->addOpenBraceToken(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
     while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBraceToken) {
       std::unique_ptr<SyntaxToken<std::any>> identifier =
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+          ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
       std::string importExpName = identifier->getText();
       bringStatement->addExpression(
           std::make_unique<LiteralExpressionSyntax<std::any>>(
@@ -70,7 +70,7 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
                             SyntaxKindUtils::SyntaxKind::CloseBraceToken)},
                        Utils::getSourceLocation(ctx->getCurrent()),
                        FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
-        return std::move(bringStatement);
+        return bringStatement;
       }
     }
     ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
@@ -84,11 +84,9 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
   bool isModule = false;
   std::unique_ptr<SyntaxToken<std::any>> stringToken = nullptr;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-    stringToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+    stringToken = ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
   } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::StringToken) {
-    stringToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::StringToken));
+    stringToken = ctx->match(SyntaxKindUtils::SyntaxKind::StringToken);
   } else if (ctx->getKind() != SyntaxKindUtils::SyntaxKind::StringToken) {
     ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
         DiagnosticUtils::DiagnosticLevel::Error,
@@ -97,7 +95,7 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
          SyntaxKindUtils::to_string(SyntaxKindUtils::SyntaxKind::StringToken)},
         Utils::getSourceLocation(ctx->getCurrent()),
         FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
-    return std::move(bringStatement);
+    return bringStatement;
   }
 
   std::string relativeFilePath = "";
@@ -135,10 +133,10 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
             Utils::getSourceLocation(stringToken.get()),
             FLOW_WING::DIAGNOSTIC::DiagnosticCode::ModuleNotFound));
 
-        return std::move(bringStatement);
+        return bringStatement;
       }
 
-      DEBUG_LOG("Module File Path: " + moduleFilePath);
+      DEBUG_LOG("Module File Path: %s", moduleFilePath.c_str());
       relativeFilePath =
           std::filesystem::relative(moduleFilePath, currentDirPath);
       stringToken->setValue((relativeFilePath));
@@ -175,8 +173,8 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       currentKind = ctx->peek(1)->getKind();
     }
 
-    return std::move(StatementParserFactory::createStatementParser(currentKind)
-                         ->parseStatement(ctx));
+    return StatementParserFactory::createStatementParser(currentKind)
+        ->parseStatement(ctx);
   }
 
   ctx->updateDependencyCount(absoluteFilePath, 1);
@@ -192,11 +190,11 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       ctx->getDependencyPathsMap());
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      parser->createCompilationUnit();
 
   bringStatement->setCompilationUnit(std::move(compilationUnit));
 
   ctx->updateDependencyCount(absoluteFilePath, -1);
 
-  return std::move(bringStatement);
+  return bringStatement;
 }

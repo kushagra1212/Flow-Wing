@@ -36,13 +36,13 @@
 std::unique_ptr<ExpressionSyntax>
 ModuleIdentifierExpressionParser::parseExpression(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> moduleIdentifier =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
   ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
 
-  std::unique_ptr<ExpressionSyntax> member = std::move(
-      std::make_unique<IdentifierExpressionParser>()->parseExpression(ctx));
+  std::unique_ptr<ExpressionSyntax> member =
+      std::make_unique<IdentifierExpressionParser>()->parseExpression(ctx);
 
   std::unique_ptr<TypeExpressionSyntax> typeExpression =
       std::make_unique<TypeExpressionSyntax>(
@@ -115,5 +115,5 @@ ModuleIdentifierExpressionParser::parseExpression(ParserContext *ctx) {
 
   variExp->setModuleNameorCallExpression(std::move(member));
 
-  return std::move(variExp);
+  return variExp;
 }

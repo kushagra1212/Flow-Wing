@@ -22,6 +22,8 @@
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/utils/LogConfig.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -86,9 +88,12 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/raw_ostream.h"
 // JIT
-#include "src/common/Common.h"
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+
+#pragma clang diagnostic pop
+
+#include "src/common/Common.h"
 
 using namespace llvm;
 using namespace llvm::sys;
@@ -103,7 +108,7 @@ public:
     auto TargetTriple = module.getTargetTriple();
 
     std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+    llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
 
     if (Error.size() > 0) {
       errs() << "Error looking up target: " << Error;
@@ -118,7 +123,7 @@ public:
     const std::string destPath =
         FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
 
-    DEBUG_LOG("Writing object file to: " + destPath);
+    DEBUG_LOG("Writing object file to: %s", destPath.c_str());
 
     std::error_code EC;
     raw_fd_ostream dest(destPath, EC, sys::fs::OF_None);
@@ -202,7 +207,7 @@ public:
     std::string destPath =
         FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
 
-    CODEGEN_DEBUG_LOG("Writing object file to: " + destPath);
+    CODEGEN_DEBUG_LOG("Writing object file to: %s", destPath.c_str());
 
     LLVMTargetMachineEmitToFile(machine, module, (char *)destPath.c_str(),
                                 LLVMObjectFile, &errors);

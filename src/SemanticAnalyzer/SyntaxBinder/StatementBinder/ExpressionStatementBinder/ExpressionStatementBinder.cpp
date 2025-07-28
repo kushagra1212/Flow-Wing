@@ -34,8 +34,8 @@ ExpressionStatementBinder::bindStatement(SyntaxBinderContext *ctx,
   ExpressionSyntax *exps = expressionStatement->getExpressionPtr().get();
 
   std::unique_ptr<BoundExpression> boundExpression =
-      std::move(ExpressionBinderFactory::create(exps->getKind())
-                    ->bindExpression(ctx, exps));
+      (ExpressionBinderFactory::create(exps->getKind())
+           ->bindExpression(ctx, exps));
 
   return std::make_unique<BoundExpressionStatement>(exps->getSourceLocation(),
                                                     std::move(boundExpression));

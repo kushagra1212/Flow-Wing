@@ -36,14 +36,14 @@ WhileStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->getRootRef()->makeBreakableAndContinuable();
 
-  std::unique_ptr<BoundExpression> boundCondition = std::move(
-      ExpressionBinderFactory::create(
-          whileStatement->getConditionRef()->getKind())
-          ->bindExpression(ctx, whileStatement->getConditionRef().get()));
+  std::unique_ptr<BoundExpression> boundCondition =
+      (ExpressionBinderFactory::create(
+           whileStatement->getConditionRef()->getKind())
+           ->bindExpression(ctx, whileStatement->getConditionRef().get()));
 
-  std::unique_ptr<BoundStatement> boundBody = std::move(
-      StatementBinderFactory::create(whileStatement->getBodyRef()->getKind())
-          ->bindStatement(ctx, whileStatement->getBodyRef().get()));
+  std::unique_ptr<BoundStatement> boundBody =
+      (StatementBinderFactory::create(whileStatement->getBodyRef()->getKind())
+           ->bindStatement(ctx, whileStatement->getBodyRef().get()));
 
   ctx->removeScope();
 

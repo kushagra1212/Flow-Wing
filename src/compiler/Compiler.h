@@ -24,9 +24,13 @@
 #endif
 
 #include <filesystem>
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <string>
 #include <vector>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#pragma clang diagnostic pop
 
 class LLFileSaveStrategy;
 namespace FlowWing {
@@ -40,7 +44,7 @@ public:
   void compile(std::vector<std::string> &text, std::ostream &outputStream);
 
   void runTests(std::istream &inputStream, std::ostream &outputStream);
-
+  virtual ~Compiler() = default;
   virtual void execute() = 0;
 
   std::string _filePath;

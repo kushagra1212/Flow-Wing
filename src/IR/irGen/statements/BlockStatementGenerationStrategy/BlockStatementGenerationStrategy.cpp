@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BlockStatementGenerationStrategy.h"
 
 BlockStatementGenerationStrategy::BlockStatementGenerationStrategy(
@@ -43,8 +42,8 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
 
   std::vector<llvm::BasicBlock *> nestedBlocks, checkContinueBlocks,
       checkReturnBlocks;
-  int statementSize = blockStatement->getStatements().size();
-  int indexForStatements = 0;
+  size_t statementSize = blockStatement->getStatements().size();
+  size_t indexForStatements = 0;
 
   while (indexForStatements < statementSize) {
     llvm::BasicBlock *nestedBlock = llvm::BasicBlock::Create(
@@ -67,16 +66,14 @@ llvm::Value *BlockStatementGenerationStrategy::generateStatement(
     Builder->CreateBr(nestedBlocks[0]);
   }
 
-  for (int i = 0; i < statementSize; i++) {
+  for (size_t i = 0; i < statementSize; i++) {
     // i th nested block
 
     Builder->SetInsertPoint(nestedBlocks[i]);
 
-    llvm::Value *res =
-        _statementGenerationFactory
-            ->createStrategy(
-                blockStatement->getStatements()[i].get()->getKind())
-            ->generateStatement(blockStatement->getStatements()[i].get());
+    _statementGenerationFactory
+        ->createStrategy(blockStatement->getStatements()[i].get()->getKind())
+        ->generateStatement(blockStatement->getStatements()[i].get());
 
     Builder->CreateCondBr(
         _codeGenerationContext->isCountZero(

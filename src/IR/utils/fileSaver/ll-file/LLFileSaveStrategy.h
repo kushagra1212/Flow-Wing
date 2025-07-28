@@ -19,9 +19,13 @@
 
 #pragma once
 
-#include "src/IR/utils/fileSaver/FileSaveStrategy.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
+#pragma clang diagnostic pop
+
+#include "src/IR/utils/fileSaver/FileSaveStrategy.h"
 
 class LLVMLogger;
 

@@ -17,17 +17,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
-#include "src/common/Common.h"
 #include "src/IR/LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
 #include "src/IR/LLVMTypeConversion/Int8TypeConverter/Int8TypeConverter.h"
 #include "src/IR/LLVMTypeConversion/StringTypeConverter/StringTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/TypeSpecificValueVisitor.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBinaryExpression/BoundBinaryExpression.h"
+#include "src/common/Common.h"
 #include "utility.h"
 #include "llvm/IR/Value.h"
 
@@ -52,12 +51,12 @@ public:
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
         _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
         _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
-        _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
         _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
+        _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
         _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
         _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
-        TheContext(context->getContext().get()){};
+        TheContext(context->getContext().get()) {};
 
   virtual llvm::Value *
   performOperation(llvm::Value *lhsValue, llvm::Value *rhsValue,

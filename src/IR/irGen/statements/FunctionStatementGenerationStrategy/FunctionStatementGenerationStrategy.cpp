@@ -51,7 +51,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
   std::string FUNCTION_NAME = functionDeclaration->getFunctionNameRef();
 
-  CODEGEN_DEBUG_LOG("Defining Function : " + FUNCTION_NAME);
+  CODEGEN_DEBUG_LOG("Function Statement",
+                    "Defining Function : " + FUNCTION_NAME);
 
   llvm::Function *F = TheModule->getFunction(FUNCTION_NAME);
 
@@ -60,7 +61,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         _codeGenerationContext->getAllocaChain()->getPtr("self");
 
     if (type && value && llvm::isa<llvm::StructType>(type)) {
-      auto structType = llvm::cast<llvm::StructType>(type);
       functionDeclaration->setFunctionName(FUNCTION_NAME);
       F = TheModule->getFunction(FUNCTION_NAME);
     }
@@ -116,7 +116,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
     llvm::Value *classPtr =
         Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), argValue);
 
-    for (int j = 1; j < structT->getNumElements(); j++) {
+    for (size_t j = 1; j < structT->getNumElements(); j++) {
       llvm::Type *type = structT->getElementType(j);
       if (!type) {
         _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -282,8 +282,6 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
 
       } else if (i < llvmArgsTypes.size() &&
                  llvmArgsTypes[i]->isPointerToFunction()) {
-        LLVMFunctionType *llvmFunctionType =
-            static_cast<LLVMFunctionType *>(llvmArgsTypes[i].get());
 
         _codeGenerationContext->getAllocaChain()->setPtr(
             parameterNames[i], {argValue, llvmArgsTypes[i]->getLLVMType()});
@@ -375,7 +373,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   std::string FUNCTION_NAME = fd->getFunctionNameRef();
   std::vector<llvm::Type *> argTypes;
-  for (int i = 0; i < callArgs.size(); i++) {
+  for (size_t i = 0; i < callArgs.size(); i++) {
     argTypes.push_back(callArgs[i]->getType());
   }
 
@@ -396,11 +394,11 @@ llvm::Value *FunctionStatementGenerationStrategy::generateStatementOnFly(
 
   std::vector<std::string> parameterNames;
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     parameterNames.push_back(fd->getParametersRef()[i]->getVariableName());
   }
 
-  for (int i = 0; i < fd->getParametersRef().size(); i++) {
+  for (size_t i = 0; i < fd->getParametersRef().size(); i++) {
     llvm::Value *argValue = F->arg_begin() + i;
     argValue->setName(parameterNames[i]);
 

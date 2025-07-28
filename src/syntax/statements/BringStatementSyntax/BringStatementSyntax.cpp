@@ -63,7 +63,7 @@ const std::string &BringStatementSyntax::getAbsoluteFilePath() const {
   return absoluteFilePath;
 }
 
-const SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BringStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BringStatementSyntax;
 }
 const std::vector<SyntaxNode *> &BringStatementSyntax::getChildren() {
@@ -101,7 +101,7 @@ BringStatementSyntax::getExpressionsPtr() {
   return expressions;
 }
 
-const bool BringStatementSyntax::getIsChoosyImportPtr() {
+bool BringStatementSyntax::getIsChoosyImportPtr() {
   return this->_openBraceToken != nullptr;
 }
 const std::string &BringStatementSyntax::getAbsoluteFilePathPtr() {

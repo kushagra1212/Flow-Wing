@@ -36,12 +36,12 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       std::make_unique<ModuleStatementSyntax>();
 
   moduleStatement->addModuleKeyword(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ModuleKeyword)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ModuleKeyword));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   moduleStatement->addOpenBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
 
   std::unique_ptr<LiteralExpressionSyntax<std::any>> modNameLitExp(
       static_cast<LiteralExpressionSyntax<std::any> *>(
@@ -52,7 +52,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
   moduleStatement->addModuleName(std::move(modNameLitExp));
 
   moduleStatement->addCloseBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
 
   ctx->getCodeFormatterRef()->appendNewLine();
 
@@ -70,7 +70,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
       moduleStatement->addStatement(
-          std::move(VariableParserUtils::parseSingleVariableDeclaration(ctx)));
+          VariableParserUtils::parseSingleVariableDeclaration(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -80,8 +80,8 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       ctx->setCurrentModuleName(
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
-      moduleStatement->addStatement(std::move(
-          std::make_unique<CustomTypeStatementParser>()->parseStatement(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<CustomTypeStatementParser>()->parseStatement(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -92,8 +92,8 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       ctx->setCurrentModuleName(
           moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
-      moduleStatement->addStatement(std::move(
-          std::make_unique<ClassStatementParser>()->parseStatement(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<ClassStatementParser>()->parseStatement(ctx));
 
       ctx->setCurrentModuleName("");
       break;
@@ -103,7 +103,7 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       std::unique_ptr<SyntaxToken<std::any>> functionKeyword = nullptr;
 
       functionKeyword =
-          (std::move(ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword)));
+          (ctx->match(SyntaxKindUtils::SyntaxKind::FunctionKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
 
       std::unique_ptr<FunctionDeclarationSyntax> functionDeclaration(
@@ -119,14 +119,14 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
       break;
     }
     case SyntaxKindUtils::SyntaxKind::IdentifierToken: {
-      moduleStatement->addStatement(std::move(
-          std::make_unique<CallExpressionParser>()->parseExpression(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<CallExpressionParser>()->parseExpression(ctx));
       break;
     }
 
     case SyntaxKindUtils::SyntaxKind::ModuleKeyword: {
-      moduleStatement->addStatement(std::move(
-          std::make_unique<ModuleStatementParser>()->parseStatement(ctx)));
+      moduleStatement->addStatement(
+          std::make_unique<ModuleStatementParser>()->parseStatement(ctx));
       break;
     }
     default: {
@@ -138,5 +138,5 @@ ModuleStatementParser::parseStatement(ParserContext *ctx) {
     ctx->getCodeFormatterRef()->appendNewLine();
   }
 
-  return std::move(moduleStatement);
+  return moduleStatement;
 }

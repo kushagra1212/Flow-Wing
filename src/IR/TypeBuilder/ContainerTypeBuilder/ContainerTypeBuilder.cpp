@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // ContainerTypeBuilder.cpp
 #include "ContainerTypeBuilder.h"
 
@@ -50,8 +49,7 @@ const std::vector<llvm::Type *> &ContainerTypeBuilder::getMemberTypes() const {
   return _body;
 }
 
-const uint64_t
-ContainerTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
+uint64_t ContainerTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
   int index = -1;
   for (uint64_t i = 0; i < this->_body.size(); i++) {
     if (this->_body[i] == type) {

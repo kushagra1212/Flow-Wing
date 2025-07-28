@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "MultipleVariableDeclarationStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -176,7 +175,8 @@ MultipleVariableDeclarationStatementGenerationStrategy::declareLocal(
   BoundMultipleVariableDeclaration *multipleVariableDeclaration =
       static_cast<BoundMultipleVariableDeclaration *>(statement);
 
-  DEBUG_LOG("Setting Parent Multiple Variable Declaration: ");
+  DEBUG_LOG("Multiple Variable Declaration Statement",
+            "Setting Parent Multiple Variable Declaration: ");
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       multipleVariableDeclaration->getLocation());
 

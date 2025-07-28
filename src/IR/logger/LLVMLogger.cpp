@@ -24,9 +24,9 @@
 #include <string>
 
 LLVMLogger::LLVMLogger(FlowWing::DiagnosticHandler *diagnosticHandler)
-    : _sourceMgr(), _errs(llvm::errs()), _llvmErrorMsg("FlowWing::Error: "),
-      _llvmWarningMsg("FlowWing::Warning: "), _llvmInfoMsg("FlowWing::Info"),
-      _diagnosticHandler(diagnosticHandler), errorCount(0) {}
+    : _diagnosticHandler(diagnosticHandler), errorCount(0), _sourceMgr(),
+      _errs(llvm::errs()), _llvmErrorMsg("FlowWing::Error: "),
+      _llvmWarningMsg("FlowWing::Warning: "), _llvmInfoMsg("FlowWing::Info") {}
 
 void LLVMLogger::logLLVMError(llvm::Error E) {
   increaseErrorCount();
@@ -129,7 +129,7 @@ void LLVMLogger::setCurrentSourceLocation(
   _location = location;
 }
 
-const unsigned int LLVMLogger::getErrorCount() const { return errorCount; }
+unsigned int LLVMLogger::getErrorCount() const { return errorCount; }
 
 DiagnosticUtils::SourceLocation LLVMLogger::getCurrentSourceLocation() const {
   return _location;

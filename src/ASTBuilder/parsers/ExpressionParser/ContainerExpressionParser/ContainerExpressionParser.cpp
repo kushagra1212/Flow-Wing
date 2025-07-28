@@ -32,16 +32,16 @@ ContainerExpressionParser::parseExpression(ParserContext *ctx) {
   ctx->setIsInsideContainerExpression(true);
 
   containerExpression->setOpenBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken));
 
   while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseBracketToken &&
          ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
     std::unique_ptr<ExpressionSyntax> expression = nullptr;
 
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
-      expression = std::move(this->parseExpression(ctx));
+      expression = this->parseExpression(ctx);
     } else {
-      expression = std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      expression = PrecedenceAwareExpressionParser::parse(ctx);
     }
 
     containerExpression->setElement(std::move(expression));
@@ -53,9 +53,9 @@ ContainerExpressionParser::parseExpression(ParserContext *ctx) {
   }
 
   containerExpression->setCloseBracketToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
 
   ctx->setIsInsideContainerExpression(false);
 
-  return std::move(containerExpression);
+  return containerExpression;
 }

@@ -35,7 +35,7 @@ std::unique_ptr<BlockStatementSyntax> ElseClauseSyntax::getStatement() {
   return std::move(_statement);
 }
 
-const SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ElseClauseSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ElseClause;
 }
 

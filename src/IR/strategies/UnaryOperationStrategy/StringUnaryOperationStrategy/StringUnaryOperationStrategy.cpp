@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "StringUnaryOperationStrategy.h"
 
 StringUnaryOperationStrategy::StringUnaryOperationStrategy(
     CodeGenerationContext *context)
-    : UnaryOperationStrategy(context){};
+    : UnaryOperationStrategy(context) {};
 
 llvm::Value *StringUnaryOperationStrategy::performOperation(
     llvm::Value *val, BoundUnaryExpression *unaryExpression) {
@@ -45,15 +44,13 @@ llvm::Value *StringUnaryOperationStrategy::performOperation(
 
   case BinderKindUtils::BoundUnaryOperatorKind::LogicalNegation: {
     llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-    llvm::BasicBlock *nullBlock =
-        llvm::BasicBlock::Create(val->getContext(), "UnaryOP::NullBlock",
-                                 Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *notNullBlock =
-        llvm::BasicBlock::Create(val->getContext(), "UnaryOP::NotNullBlock",
-                                 Builder->GetInsertBlock()->getParent());
-    llvm::BasicBlock *mergeBlock =
-        llvm::BasicBlock::Create(val->getContext(), "UnaryOP::MergeBlock",
-                                 Builder->GetInsertBlock()->getParent());
+
+    llvm::BasicBlock *nullBlock = llvm::BasicBlock::Create(
+        val->getContext(), "UnaryOP::NullBlock", currentBlock->getParent());
+    llvm::BasicBlock *notNullBlock = llvm::BasicBlock::Create(
+        val->getContext(), "UnaryOP::NotNullBlock", currentBlock->getParent());
+    llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(
+        val->getContext(), "UnaryOP::MergeBlock", currentBlock->getParent());
 
     Builder->CreateCondBr(Builder->CreateIsNull(val), nullBlock, notNullBlock);
 

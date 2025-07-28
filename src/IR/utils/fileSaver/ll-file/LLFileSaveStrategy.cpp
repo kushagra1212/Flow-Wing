@@ -21,7 +21,11 @@
 #include "src/IR/logger/LLVMLogger.h"
 #include "src/utils/Utils.h"
 #include <iostream>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/Support/FileSystem.h>
+#pragma clang diagnostic pop
 
 LLFileSaveStrategy::LLFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;

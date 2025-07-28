@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class ContainerAssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -33,7 +32,7 @@ public:
   llvm::Value *generateExpression(BoundExpression *expression) override;
   llvm::Value *generateGlobalExpression(BoundExpression *expression) override;
 
-  const bool canGenerateExpressionAssignment(BoundExpression *expr);
+  bool canGenerateExpressionAssignment(BoundExpression *expr);
 
   void setVariable(llvm::Value *var);
   void setContainerName(const std::string &containerName);
@@ -65,12 +64,10 @@ private:
   std::string _containerName;
   llvm::Value *_variable = nullptr;
   llvm::ArrayType *_arrayType = nullptr;
-  llvm::Value *_size = nullptr;
 
   // RHS
   llvm::Value *_rhsVariable = nullptr;
   llvm::ArrayType *_rhsArrayType = nullptr;
-  llvm::Value *_rhsSize = nullptr;
 
   std::vector<uint64_t> _lhsSizes, _rhsSizes;
   llvm::Type *_rhsArrayElementType = nullptr, *_lhsArrayElementType = nullptr;

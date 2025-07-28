@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "BoolUnaryOperationStrategy.h"
 
 BoolUnaryOperationStrategy::BoolUnaryOperationStrategy(
     CodeGenerationContext *context)
-    : UnaryOperationStrategy(context){};
+    : UnaryOperationStrategy(context) {};
 
 llvm::Value *BoolUnaryOperationStrategy::performOperation(
     llvm::Value *val, BoundUnaryExpression *unaryExpression) {
@@ -32,7 +30,6 @@ llvm::Value *BoolUnaryOperationStrategy::performOperation(
 
 llvm::Value *BoolUnaryOperationStrategy::performOperation(
     llvm::Value *val, BinderKindUtils::BoundUnaryOperatorKind unaryOperator) {
-  llvm::Value *result = nullptr;
 
   if (!UnaryOperationSupport::isSupported(
           UnaryOperationSupport::BoolStrategyTag{}, unaryOperator)) {

@@ -58,15 +58,13 @@ MultipleAssignmentExpressionParser::parseExpression(ParserContext *ctx) {
   bool needDefaultInitialize = false;
   std::unique_ptr<SyntaxToken<std::any>> operatorToken = nullptr;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
-    operatorToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+    operatorToken = ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
   } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AssignmentToken) {
-    operatorToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AssignmentToken));
+    operatorToken = ctx->match(SyntaxKindUtils::SyntaxKind::AssignmentToken);
     needDefaultInitialize = true;
   } else {
     ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
-    return std::move(multipleAssignmentExpression);
+    return multipleAssignmentExpression;
   }
 
   uint64_t index = 0;
@@ -79,11 +77,11 @@ MultipleAssignmentExpressionParser::parseExpression(ParserContext *ctx) {
 
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
       variableExpressionsList[index]->setNewKeyword(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+          ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
     std::unique_ptr<ExpressionSyntax> right =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     multipleAssignmentExpression->addAssignmentExpression(
         std::make_unique<AssignmentExpressionSyntax>(
@@ -102,5 +100,5 @@ MultipleAssignmentExpressionParser::parseExpression(ParserContext *ctx) {
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
-  return std::move(multipleAssignmentExpression);
+  return multipleAssignmentExpression;
 }

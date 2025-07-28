@@ -50,7 +50,7 @@ AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
                    assignmentExpression->getLeftRef()->getSourceLocation(),
                    FLOW_WING::DIAGNOSTIC::DiagnosticCode::InvalidAssignment));
 
-    return std::move(
+    return (
         ExpressionBinderFactory::create(
             assignmentExpression->getLeftRef()->getKind())
             ->bindExpression(ctx, assignmentExpression->getLeftRef().get()));
@@ -73,7 +73,7 @@ AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
                    FLOW_WING::DIAGNOSTIC::DiagnosticCode::
                        InvalidAssignmentToUndeclaredVariable));
 
-    return std::move(boundIdentifierExpression);
+    return (boundIdentifierExpression);
   }
 
   if (ctx->getRootRef()->tryGetVariable(variable_str)->isConst()) {
@@ -84,14 +84,14 @@ AssignmentExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
                    FLOW_WING::DIAGNOSTIC::DiagnosticCode::
                        InvalidAssignmentToConstantVariable));
 
-    return std::move(boundIdentifierExpression);
+    return (boundIdentifierExpression);
   }
 
   if (assignmentExpression->getRightRef()) {
-    std::unique_ptr<BoundExpression> boundRight = std::move(
-        ExpressionBinderFactory::create(
-            assignmentExpression->getRightRef()->getKind())
-            ->bindExpression(ctx, assignmentExpression->getRightRef().get()));
+    std::unique_ptr<BoundExpression> boundRight =
+        (ExpressionBinderFactory::create(
+             assignmentExpression->getRightRef()->getKind())
+             ->bindExpression(ctx, assignmentExpression->getRightRef().get()));
 
     return std::make_unique<BoundAssignmentExpression>(
         assignmentExpression->getSourceLocation(),

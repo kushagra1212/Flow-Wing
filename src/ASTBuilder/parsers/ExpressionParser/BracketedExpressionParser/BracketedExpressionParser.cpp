@@ -36,13 +36,13 @@ BracketedExpressionParser::parseExpression(ParserContext *ctx) {
 
       || ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::FillKeyword) {
 
-    bracketedExpression->setExpression(std::move(
-        std::make_unique<FillExpressionParser>()->parseExpression(ctx)));
+    bracketedExpression->setExpression(
+        std::make_unique<FillExpressionParser>()->parseExpression(ctx));
 
   } else {
-    bracketedExpression->setExpression(std::move(
-        std::make_unique<ContainerExpressionParser>()->parseExpression(ctx)));
+    bracketedExpression->setExpression(
+        std::make_unique<ContainerExpressionParser>()->parseExpression(ctx));
   }
 
-  return std::move(bracketedExpression);
+  return bracketedExpression;
 }

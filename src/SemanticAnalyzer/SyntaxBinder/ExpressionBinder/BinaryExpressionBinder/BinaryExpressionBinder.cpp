@@ -30,14 +30,15 @@ BinaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   BinaryExpressionSyntax *binaryExpression =
       static_cast<BinaryExpressionSyntax *>(expression);
 
-  std::unique_ptr<BoundExpression> boundLeft = std::move(
-      ExpressionBinderFactory::create(binaryExpression->getLeftRef()->getKind())
-          ->bindExpression(ctx, binaryExpression->getLeftRef().get()));
+  std::unique_ptr<BoundExpression> boundLeft =
+      (ExpressionBinderFactory::create(
+           binaryExpression->getLeftRef()->getKind())
+           ->bindExpression(ctx, binaryExpression->getLeftRef().get()));
 
-  std::unique_ptr<BoundExpression> boundRight = std::move(
-      ExpressionBinderFactory::create(
-          binaryExpression->getRightRef()->getKind())
-          ->bindExpression(ctx, binaryExpression->getRightRef().get()));
+  std::unique_ptr<BoundExpression> boundRight =
+      (ExpressionBinderFactory::create(
+           binaryExpression->getRightRef()->getKind())
+           ->bindExpression(ctx, binaryExpression->getRightRef().get()));
 
   BinderKindUtils::BoundBinaryOperatorKind op =
       BinderKindUtils::getBinaryOperatorKind(

@@ -44,7 +44,7 @@ std::unique_ptr<BlockStatementSyntax> FunctionDeclarationSyntax::getBody() {
   return std::move(_body);
 }
 
-const SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind FunctionDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax;
 }
 
@@ -90,7 +90,7 @@ const std::vector<SyntaxNode *> &FunctionDeclarationSyntax::getChildren() {
     // if (_openParenthesisToken)
     //   _children.push_back(_openParenthesisToken.get());
 
-    for (int i = 0; i < _parameters.size(); i++) {
+    for (size_t i = 0; i < _parameters.size(); i++) {
       _children.push_back(_parameters[i].get());
 
       //? Not used

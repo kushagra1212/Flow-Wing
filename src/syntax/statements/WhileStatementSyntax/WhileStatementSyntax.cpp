@@ -45,7 +45,7 @@ std::unique_ptr<BlockStatementSyntax> WhileStatementSyntax::getBody() {
   return std::move(_body);
 }
 
-const SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind WhileStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::WhileStatement;
 }
 

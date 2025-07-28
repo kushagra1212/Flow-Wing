@@ -20,9 +20,13 @@
 #pragma once
 
 #include "src/utils/LogConfig.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
+#pragma clang diagnostic pop
 
 class BoundCustomTypeStatement;
 

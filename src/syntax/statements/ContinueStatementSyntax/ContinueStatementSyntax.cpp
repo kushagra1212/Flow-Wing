@@ -41,7 +41,7 @@ const std::vector<SyntaxNode *> &ContinueStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ContinueStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContinueStatement;
 }
 

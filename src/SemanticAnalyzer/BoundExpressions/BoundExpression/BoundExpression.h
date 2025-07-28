@@ -22,6 +22,7 @@
 #include "src/SemanticAnalyzer/BoundNode.h"
 #include "src/SemanticAnalyzer/BoundSourceLocation/BoundSourceLocation.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+#include <typeinfo>
 
 class BoundExpression : public BoundNode, public BoundSourceLocation {
 public:

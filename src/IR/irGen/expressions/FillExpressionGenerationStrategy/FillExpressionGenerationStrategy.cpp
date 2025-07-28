@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FillExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -118,7 +117,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
     return nullptr;
 
   if (index < (_actualSizes.size())) {
-    for (int64_t i = 0; i < _actualSizes[index]; i++) {
+    for (size_t i = 0; i < _actualSizes[index]; i++) {
       indices.push_back(Builder->getInt32(i));
       createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices,
                            index + 1);
@@ -277,7 +276,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
           std::make_unique<AssignmentExpressionGenerationStrategy>(
               _codeGenerationContext);
 
-  for (int i = 0; i < _actualSizes.size(); i++) {
+  for (size_t i = 0; i < _actualSizes.size(); i++) {
     std::vector<llvm::BasicBlock *> blocks = {
         llvm::BasicBlock::Create(*TheContext,
                                  "FillExpr.loopStart-" + std::to_string(i),
@@ -315,7 +314,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
 
   Builder->CreateBr(loopBlocks[0][0]);
 
-  for (int i = 0; i < _actualSizes.size(); i++) {
+  for (size_t i = 0; i < _actualSizes.size(); i++) {
     // start
     Builder->SetInsertPoint(loopBlocks[i][0]);
     Builder->CreateStore(Builder->getInt32(0), indices[i]);
@@ -342,7 +341,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
     if (i == _actualSizes.size() - 1) {
       std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-      for (int j = 0; j < _actualSizes.size(); j++) {
+      for (size_t j = 0; j < _actualSizes.size(); j++) {
         indexList.push_back(
             Builder->CreateLoad(Builder->getInt32Ty(), indices[j]));
       }

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BringStatementGenerationStrategy.h"
 
 #include "src/IR/IRGenerator.h"
@@ -93,9 +92,8 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
                               llvm::ArrayRef<llvm::Type *>(), false);
 
-  llvm::Function *F =
-      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             absoluteFilePathWithoutExtension, *TheModule);
+  llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+                         absoluteFilePathWithoutExtension, *TheModule);
 
   bringStatement->setRootCallerName(absoluteFilePathWithoutExtension);
 

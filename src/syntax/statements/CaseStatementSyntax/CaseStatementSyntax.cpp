@@ -42,7 +42,7 @@ const std::vector<SyntaxNode *> &CaseStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const SyntaxKindUtils::SyntaxKind CaseStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind CaseStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::CaseStatementSyntax;
 }
 

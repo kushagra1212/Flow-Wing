@@ -37,16 +37,16 @@ CaseStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (!boundCaseStatement->getIsDefaultCase()) {
     boundCaseStatement->setCaseExpression(
-        std::move(ExpressionBinderFactory::create(
-                      caseStatement->getCaseExpressionRef()->getKind())
-                      ->bindExpression(
-                          ctx, caseStatement->getCaseExpressionRef().get())));
+        (ExpressionBinderFactory::create(
+             caseStatement->getCaseExpressionRef()->getKind())
+             ->bindExpression(ctx,
+                              caseStatement->getCaseExpressionRef().get())));
   }
 
-  boundCaseStatement->setBodyStatement(std::move(
-      StatementBinderFactory::create(
-          caseStatement->getBlockStatementRef()->getKind())
-          ->bindStatement(ctx, caseStatement->getBlockStatementRef().get())));
+  boundCaseStatement->setBodyStatement(
+      (StatementBinderFactory::create(
+           caseStatement->getBlockStatementRef()->getKind())
+           ->bindStatement(ctx, caseStatement->getBlockStatementRef().get())));
 
   return std::move(boundCaseStatement);
 }

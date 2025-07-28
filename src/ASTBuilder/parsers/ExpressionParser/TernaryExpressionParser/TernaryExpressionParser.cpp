@@ -32,22 +32,22 @@ TernaryExpressionParser::parseExpression(ParserContext *ctx) {
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addQuestionToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::QuestionToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::QuestionToken));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addTrueExpression(
-      std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+      PrecedenceAwareExpressionParser::parse(ctx));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addColonToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ternaryExpression->addFalseExpression(
-      std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+      PrecedenceAwareExpressionParser::parse(ctx));
 
-  return std::move(ternaryExpression);
+  return ternaryExpression;
 }

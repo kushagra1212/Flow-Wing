@@ -28,28 +28,27 @@ void VariableParserUtils::handleVarDecParsePrefixKeywords(
     bool isFuncDec) {
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     varDec->setExposeKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
   if (isFuncDec &&
       SyntaxKindUtils::SyntaxKind::InOutKeyword == ctx->getKind()) {
     varDec->setInoutKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::InOutKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::InOutKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
   if (isFuncDec &&
       SyntaxKindUtils::SyntaxKind::ConstKeyword == ctx->getKind()) {
-    varDec->setKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ConstKeyword)));
+    varDec->setKeyword(ctx->match(SyntaxKindUtils::SyntaxKind::ConstKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
   if (!isFuncDec) {
-    varDec->setKeyword(std::move(
+    varDec->setKeyword(
         ctx->match(SyntaxKindUtils::SyntaxKind::VarKeyword == ctx->getKind()
                        ? SyntaxKindUtils::SyntaxKind::VarKeyword
-                       : SyntaxKindUtils::SyntaxKind::ConstKeyword)));
+                       : SyntaxKindUtils::SyntaxKind::ConstKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 }
@@ -59,17 +58,17 @@ void VariableParserUtils::handleVarDecParseInitializer(
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> equalsToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
       varDec->setNewKeyword(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+          ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
     std::unique_ptr<ExpressionSyntax> initializer =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     varDec->setInitializer(std::move(initializer));
   }
@@ -79,7 +78,7 @@ void VariableParserUtils::handleVarDecParseIdentifierAndType(
     ParserContext *ctx, std::unique_ptr<VariableDeclarationSyntax> &varDec,
     bool isForStatement) {
   std::unique_ptr<SyntaxToken<std::any>> identifier =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   varDec->setIdentifier(std::move(identifier));
 
@@ -105,16 +104,15 @@ void VariableParserUtils::handleVarDecParseIdentifierAndType(
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
-      varDec->setAsKeyword(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
+      varDec->setAsKeyword(ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
-    typeExpr = std::move(std::unique_ptr<TypeExpressionSyntax>(
+    typeExpr = std::unique_ptr<TypeExpressionSyntax>(
         static_cast<TypeExpressionSyntax *>(
             std::make_unique<TypeExpressionParser>()
                 ->parseExpression(ctx)
-                .release())));
+                .release()));
   }
   varDec->setTypeExpr(std::move(typeExpr));
 }
@@ -131,5 +129,5 @@ VariableParserUtils::parseSingleVariableDeclaration(ParserContext *ctx,
 
   handleVarDecParseInitializer(ctx, varDec);
 
-  return std::move(varDec);
+  return varDec;
 }

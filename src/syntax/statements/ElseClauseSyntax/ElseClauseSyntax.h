@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxNode.h"
@@ -36,7 +35,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getElseKeyword();
   std::unique_ptr<BlockStatementSyntax> getStatement();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 

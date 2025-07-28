@@ -28,7 +28,7 @@ VariableExpressionSyntax::VariableExpressionSyntax(
     : _identifierExpression(std::move(identifierExpression)),
       _variableTypeExpr(std::move(variableTypeExpr)), _isConstant(isConstant) {}
 
-const SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind VariableExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax;
 }
 

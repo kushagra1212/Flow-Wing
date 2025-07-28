@@ -72,7 +72,7 @@ void FunctionDeclarationBinder::handleFunctionDefAndDec(
       _prefix != "" ? _prefix + syntax->getIdentifierTokenPtr()->getText()
                     : syntax->getIdentifierTokenPtr()->getText();
 
-  DEBUG_LOG("Binder:: Declaring function: " + function_name);
+  DEBUG_LOG("Binder:: Declaring function: ", function_name);
 
   if (BuiltInFunction::isBuiltInFunction(function_name)) {
 
@@ -106,7 +106,7 @@ void FunctionDeclarationBinder::handleFunctionDefAndDec(
 
   fd->setFunctionName(function_name);
 
-  for (int64_t i = 0; i < syntax->getParametersPtr().size(); i++) {
+  for (size_t i = 0; i < syntax->getParametersPtr().size(); i++) {
     const std::string &variable_str =
         syntax->getParametersPtr()[i]->getIdentifierRef()->getText();
 

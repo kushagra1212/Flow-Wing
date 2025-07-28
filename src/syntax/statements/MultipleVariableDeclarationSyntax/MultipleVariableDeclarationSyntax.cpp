@@ -22,8 +22,7 @@
 
 MultipleVariableDeclarationSyntax::MultipleVariableDeclarationSyntax() {}
 
-const SyntaxKindUtils::SyntaxKind
-MultipleVariableDeclarationSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind MultipleVariableDeclarationSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::MultipleVariableDeclaration;
 }
 const std::vector<SyntaxNode *> &

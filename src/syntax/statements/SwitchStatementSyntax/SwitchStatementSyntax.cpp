@@ -42,7 +42,7 @@ const std::vector<SyntaxNode *> &SwitchStatementSyntax::getChildren() {
   return this->_children;
 }
 
-const SyntaxKindUtils::SyntaxKind SwitchStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind SwitchStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::SwitchStatementSyntax;
 }
 

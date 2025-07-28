@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "Colors.h"
@@ -46,34 +45,30 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
 // Macro to expand the variadic arguments correctly
 #ifdef DEBUG
 #define DEBUG_LOG(format, ...)                                                 \
-  DEBUG_LOG_IMPL("", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
 // Macro for general info logs
 #define INFO_DEBUG_LOG(format, ...)                                            \
-  DEBUG_LOG_IMPL("[INFO]", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[INFO]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
 // Macro for lexer logs
 #define LEXER_DEBUG_LOG(format, ...)                                           \
-  DEBUG_LOG_IMPL("[LEXER]", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[LEXER]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
 // Macro for parser logs
 #define PARSER_DEBUG_LOG(format, ...)                                          \
-  DEBUG_LOG_IMPL("[PARSER]", __FILE__, __LINE__, __func__, format,             \
-                 ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[PARSER]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
 // Macro for binder logs
 #define BINDER_DEBUG_LOG(format, ...)                                          \
-  DEBUG_LOG_IMPL("[BINDER]", __FILE__, __LINE__, __func__, format,             \
-                 ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[BINDER]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
 // Macro for code generation logs
 #define CODEGEN_DEBUG_LOG(format, ...)                                         \
-  DEBUG_LOG_IMPL("[CODEGEN]", __FILE__, __LINE__, __func__, format,            \
-                 ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[CODEGEN]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 // Macro for code generation logs
 #define LINKING_DEBUG_LOG(format, ...)                                         \
-  DEBUG_LOG_IMPL("[LINKING]", __FILE__, __LINE__, __func__, format,            \
-                 ##__VA_ARGS__)
+  DEBUG_LOG_IMPL("[LINKING]", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 #else
 #define DEBUG_LOG(format, ...) // No-op in release builds
 #define INFO_DEBUG_LOG(format, ...)

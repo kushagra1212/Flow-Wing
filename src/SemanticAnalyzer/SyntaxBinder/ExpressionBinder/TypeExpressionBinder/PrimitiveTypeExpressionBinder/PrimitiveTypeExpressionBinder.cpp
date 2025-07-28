@@ -20,13 +20,12 @@
 #include "PrimitiveTypeExpressionBinder.h"
 #include "src/syntax/SyntaxToken.h"
 
-std::unique_ptr<BoundExpression>
-PrimitiveTypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
-                                              ExpressionSyntax *expression) {
+std::unique_ptr<BoundExpression> PrimitiveTypeExpressionBinder::bindExpression(
+    [[maybe_unused]] SyntaxBinderContext *ctx, ExpressionSyntax *expression) {
   TypeExpressionSyntax *typeExpressionSyntax =
       static_cast<TypeExpressionSyntax *>(expression);
 
-  return std::move(std::make_unique<BoundTypeExpression>(
+  return (std::make_unique<BoundTypeExpression>(
       typeExpressionSyntax->getSourceLocation(),
       typeExpressionSyntax->getTypeRef()->getKind()));
 }

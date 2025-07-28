@@ -35,8 +35,7 @@ FillExpressionParser::parseExpression(ParserContext *ctx) {
 
   std::unique_ptr<ExpressionSyntax> sizeToFillExpression = nullptr;
 
-  auto numToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+  auto numToken = ctx->match(SyntaxKindUtils::SyntaxKind::NumberToken);
   ctx->getCodeFormatterRef()->appendWithSpace();
   std::any sizeVAL = numToken->getValue();
 
@@ -46,12 +45,12 @@ FillExpressionParser::parseExpression(ParserContext *ctx) {
   ctx->match(SyntaxKindUtils::SyntaxKind::FillKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
   std::unique_ptr<ExpressionSyntax> elementExpression =
-      std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      PrecedenceAwareExpressionParser::parse(ctx);
 
   ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
 
   fillExpression->setSizeToFillExpression(std::move(sizeToFillExpression));
   fillExpression->setElementExpression(std::move(elementExpression));
 
-  return std::move(fillExpression);
+  return (fillExpression);
 }

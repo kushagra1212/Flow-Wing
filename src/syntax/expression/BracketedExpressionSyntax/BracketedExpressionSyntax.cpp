@@ -25,7 +25,7 @@
     OVERIDES
 */
 
-const SyntaxKindUtils::SyntaxKind BracketedExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BracketedExpressionSyntax::getKind() const {
   return SyntaxKindUtils::BracketedExpression;
 }
 

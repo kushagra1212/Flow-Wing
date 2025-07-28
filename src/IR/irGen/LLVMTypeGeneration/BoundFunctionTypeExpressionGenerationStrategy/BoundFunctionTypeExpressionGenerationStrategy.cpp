@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundFunctionTypeExpressionGenerationStrategy.h"
 
 llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
@@ -28,7 +27,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
   BoundFunctionTypeExpression *bfT =
       static_cast<BoundFunctionTypeExpression *>(expression);
 
-  DEBUG_LOG("Function Type Expression: ");
+  DEBUG_LOG("Function Type Expression: %s", "");
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bfT->getLocation());
@@ -87,7 +86,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
     }
   }
 
-  for (int i = 0; i < bfT->getParameterTypes().size(); i++) {
+  for (size_t i = 0; i < bfT->getParameterTypes().size(); i++) {
     llvm::Type *parmType = nullptr;
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
         bfT->getParameterTypes()[i]->getLocation());

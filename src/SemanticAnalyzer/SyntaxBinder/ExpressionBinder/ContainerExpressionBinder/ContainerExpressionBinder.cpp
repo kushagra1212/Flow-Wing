@@ -33,12 +33,12 @@ ContainerExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
       std::make_unique<BoundContainerExpression>(
           containerExpression->getSourceLocation());
 
-  for (int i = 0; i < containerExpression->getElementsRef().size(); i++) {
+  for (size_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
     std::unique_ptr<BoundExpression> boundExpression =
-        std::move(ExpressionBinderFactory::create(
-                      containerExpression->getElementsRef()[i]->getKind())
-                      ->bindExpression(
-                          ctx, containerExpression->getElementsRef()[i].get()));
+        (ExpressionBinderFactory::create(
+             containerExpression->getElementsRef()[i]->getKind())
+             ->bindExpression(ctx,
+                              containerExpression->getElementsRef()[i].get()));
 
     boundContainerExpression->setElement(std::move(boundExpression));
   }

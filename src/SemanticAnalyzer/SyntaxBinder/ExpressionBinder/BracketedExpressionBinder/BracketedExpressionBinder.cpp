@@ -43,10 +43,10 @@ BracketedExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   case SyntaxKindUtils::SyntaxKind::ContainerExpression:
   case SyntaxKindUtils::SyntaxKind::FillExpression: {
     boundBracketedExpression->setExpression(
-        std::move(ExpressionBinderFactory::create(
-                      bracketedExpression->getExpressionRef()->getKind())
-                      ->bindExpression(
-                          ctx, bracketedExpression->getExpressionRef().get())));
+        (ExpressionBinderFactory::create(
+             bracketedExpression->getExpressionRef()->getKind())
+             ->bindExpression(ctx,
+                              bracketedExpression->getExpressionRef().get())));
     break;
   }
 

@@ -35,16 +35,16 @@ ClassStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExposeKeyword) {
     classSyn->setExposeKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::ExposeKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
   classSyn->setClassKeyword(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ClassKeyword)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ClassKeyword));
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   classSyn->setClassNameIdentifier(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   if (ctx->getCurrentModuleName() != "") {
@@ -61,15 +61,15 @@ ClassStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ExtendsKeyword) {
     classSyn->setExtendsKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ExtendsKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::ExtendsKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
     classSyn->setParentClassNameIdentifier(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
   classSyn->setClassOpenBraceToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
 
   ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
   ctx->getCodeFormatterRef()->appendNewLine();
@@ -84,29 +84,28 @@ ClassStatementParser::parseStatement(ParserContext *ctx) {
     case SyntaxKindUtils::SyntaxKind::VarKeyword:
     case SyntaxKindUtils::SyntaxKind::ConstKeyword: {
       classSyn->addClassDataMember(
-          std::move(VariableParserUtils::parseSingleVariableDeclaration(ctx)));
+          VariableParserUtils::parseSingleVariableDeclaration(ctx));
 
       break;
     }
     case SyntaxKindUtils::SyntaxKind::TypeKeyword: {
       classSyn->addCustomTypeStatement(
-          std::move(std::unique_ptr<CustomTypeStatementSyntax>(
+          std::unique_ptr<CustomTypeStatementSyntax>(
               static_cast<CustomTypeStatementSyntax *>(
                   std::make_unique<CustomTypeStatementParser>()
                       ->parseStatement(ctx)
-                      .release()))));
+                      .release())));
 
       break;
     }
 
     default: {
 
-      auto functionDeclaration =
-          std::move(std::unique_ptr<FunctionDeclarationSyntax>(
-              static_cast<FunctionDeclarationSyntax *>(
-                  std::make_unique<FunctionDeclarationParser>()
-                      ->parseStatement(ctx)
-                      .release())));
+      auto functionDeclaration = std::unique_ptr<FunctionDeclarationSyntax>(
+          static_cast<FunctionDeclarationSyntax *>(
+              std::make_unique<FunctionDeclarationParser>()
+                  ->parseStatement(ctx)
+                  .release()));
 
       functionDeclaration->setIsMemberFunction(true);
 
@@ -126,7 +125,7 @@ ClassStatementParser::parseStatement(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->getIndentAmount());
 
   classSyn->setClassCloseBraceToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
 
-  return std::move(classSyn);
+  return classSyn;
 }

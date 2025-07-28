@@ -27,7 +27,7 @@ ParameterSyntax::ParameterSyntax(
   this->_identifierToken = std::move(identifierToken);
 }
 
-const SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ParameterSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParameterSyntax;
 }
 

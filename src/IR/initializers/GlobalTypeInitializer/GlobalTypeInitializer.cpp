@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "GlobalTypeInitializer.h"
 
 GlobalTypeInitializer::GlobalTypeInitializer(
     CodeGenerationContext *codeGenerationContext)
-    : _codeGenerationContext(codeGenerationContext),
-      TheModule(codeGenerationContext->getModule().get()),
+    : TheModule(codeGenerationContext->getModule().get()),
       TheContext(codeGenerationContext->getContext().get()) {}
 
 void GlobalTypeInitializer::initialize() { this->initializeDynamicValueType(); }

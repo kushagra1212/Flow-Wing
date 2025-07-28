@@ -28,7 +28,10 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundUnaryExpression/BoundUnaryExpression.h"
 #include "src/common/Common.h"
 #include "utility.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/IR/Value.h"
+#pragma clang diagnostic pop
 
 class UnaryOperationStrategy {
 public:
@@ -55,6 +58,8 @@ public:
         _codeGenerationContext(context), TheModule(context->getModule().get()),
         Builder(context->getBuilder().get()),
         TheContext(context->getContext().get()) {};
+
+  virtual ~UnaryOperationStrategy() = default;
 
   virtual llvm::Value *
   performOperation(llvm::Value *val, BoundUnaryExpression *unaryExpression) = 0;

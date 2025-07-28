@@ -80,11 +80,11 @@ createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
   const std::string &filePath =
       FlowWing::PathUtils::getBuiltInBCPath().string();
 
-  LINKING_DEBUG_LOG(" [INFO]: Built In Module Path " + filePath);
+  LINKING_DEBUG_LOG(" [INFO]: Built In Module Path ", filePath);
 
 #if defined(RELEASE)
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(createModuleFromBitcode(filePath, TheContext, diagHandler));
+      (createModuleFromBitcode(filePath, TheContext, diagHandler));
 
 #else
   std::unique_ptr<llvm::Module> TheModule =
@@ -109,7 +109,7 @@ createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
   return TheModule;
 }
 
-const int8_t isValidLLFile(const std::string &filePath) {
+int8_t isValidLLFile(const std::string &filePath) {
   if (filePath.length() <= 3) {
     throw std::runtime_error(filePath + " is not an valid file path");
     return EXIT_FAILURE;
@@ -132,8 +132,8 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
                 FlowWing::DiagnosticHandler *diagHandler) {
 
   std::unique_ptr<llvm::Module> TheModule =
-      std::move(FlowWing::Compiler::createLLVMModuleFromCodeorIR(TheContext,
-                                                                 diagHandler));
+      (FlowWing::Compiler::createLLVMModuleFromCodeorIR(TheContext,
+                                                        diagHandler));
 
   std::vector<std::string> filesPath = FlowWing::Compiler::getIRFilePaths(
       diagHandler,
@@ -147,7 +147,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
   for (const std::string &path : filesPath) {
     llvm::SMDiagnostic err;
 
-    LINKING_DEBUG_LOG(" [INFO]: Linking " + path);
+    LINKING_DEBUG_LOG(" [INFO]: Linking ", path);
 
     bool LinkResult = llvm::Linker::linkModules(
         *TheModule.get(), llvm::parseIRFile(path, err, *TheContext.get()),
@@ -163,7 +163,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
     }
   }
 
-  LINKING_DEBUG_LOG(" [INFO]: Finished linking modules Done. ");
+  LINKING_DEBUG_LOG(" [INFO]: Finished linking modules Done. ", "");
 
   return TheModule;
 }
@@ -175,7 +175,7 @@ void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer =
       llvm::MemoryBuffer::getFile(archivePath);
 
-  LINKING_DEBUG_LOG(" [INFO]: Loading Archive: " + archivePath);
+  LINKING_DEBUG_LOG(" [INFO]: Loading Archive: ", archivePath);
 
   if (!buffer) {
     diagHandler->printDiagnostic(
@@ -207,7 +207,7 @@ void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,
   executionEngine->addArchive(llvm::object::OwningBinary<llvm::object::Archive>(
       std::move(archivePtr), std::move(bufferPtr)));
 
-  LEXER_DEBUG_LOG(" [INFO]: Finished loading archive: " + archivePath);
+  LEXER_DEBUG_LOG(" [INFO]: Finished loading archive: ", archivePath);
 }
 
 std::unique_ptr<llvm::Module>
@@ -236,7 +236,7 @@ createModuleFromBitcode(const std::string &filePath,
                         FlowWing::DiagnosticHandler *diagHandler) {
 
   std::unique_ptr<llvm::MemoryBuffer> buffer =
-      std::move(getMemoryBuffer(filePath, diagHandler));
+      (getMemoryBuffer(filePath, diagHandler));
 
   if (auto moduleOrErr =
           llvm::parseBitcodeFile(buffer->getMemBufferRef(), *TheContext)) {

@@ -17,13 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/common/Common.h"
 
 class AllocaIndexHandler {
 public:
+  virtual ~AllocaIndexHandler() = default;
+
   virtual void setTypeIndex(const std::string &name, uint64_t index) = 0;
   virtual uint64_t getTypeIndex(const std::string &name) = 0;
   virtual bool hasTypeIndex(const std::string &name) = 0;

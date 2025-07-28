@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ReturnStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -47,7 +46,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
 
   Builder->SetInsertPoint(returnBlock);
 
-  llvm::Value *hasError = Builder->getFalse();
   std::string errorMessage = "";
   llvm::Function *currentFunction = Builder->GetInsertBlock()->getParent();
   std::string functionName = currentFunction->getName().str();
@@ -232,8 +230,6 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
                                    ->createStrategy(directReturnStat->getKind())
                                    ->generateExpression(directReturnStat);
 
-    llvm::Value *returnLLVMValue =
-        _codeGenerationContext->getValueStackHandler()->getValue();
     llvm::Type *rtypeLLVM =
         _codeGenerationContext->getValueStackHandler()->getLLVMType();
 

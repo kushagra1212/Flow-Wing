@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundScope.h"
 
 BoundScope::BoundScope(std::unique_ptr<BoundScope> parent)
-    : parent(std::move(parent)), breakable(false), continuable(false),
-      functionCounted(0) {}
+    : breakable(false), continuable(false), functionCounted(0),
+      parent(std::move(parent)) {}
 
 bool BoundScope::isInFunction() {
   if (this->functionCounted) {

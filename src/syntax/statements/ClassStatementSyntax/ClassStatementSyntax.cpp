@@ -21,7 +21,7 @@
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
 ClassStatementSyntax::ClassStatementSyntax() {}
-const SyntaxKindUtils::SyntaxKind ClassStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ClassStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ClassStatement;
 }
 

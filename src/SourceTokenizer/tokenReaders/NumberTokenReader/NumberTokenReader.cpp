@@ -57,7 +57,7 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
         Utils::getSourceLocation(badSyntaxToken.get()),
         FLOW_WING::DIAGNOSTIC::DiagnosticCode::NumberTooLargeForInt));
 
-    return std::move(badSyntaxToken);
+    return (badSyntaxToken);
   }
 
   return std::make_unique<SyntaxToken<std::any>>(

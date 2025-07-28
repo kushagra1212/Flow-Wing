@@ -25,8 +25,7 @@ FunctionTypeExpressionSyntax::FunctionTypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
     : TypeExpressionSyntax(std::move(type)) {}
 
-const SyntaxKindUtils::SyntaxKind
-FunctionTypeExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind FunctionTypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FunctionTypeExpression;
 }
 

@@ -25,7 +25,7 @@
   OVERRIDES
 */
 
-const SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ContainerExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ContainerExpression;
 }
 

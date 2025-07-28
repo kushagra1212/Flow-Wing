@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableDeclarationParser.h"
 
 std::unique_ptr<StatementSyntax>
@@ -35,12 +34,12 @@ VariableDeclarationParser::parseStatement(ParserContext *ctx) {
     auto mulVarDec = std::make_unique<MultipleVariableDeclarationParser>();
     mulVarDec->setInitialVarDec(std::move(varDec));
 
-    return std::move(mulVarDec->parseStatement(ctx));
+    return mulVarDec->parseStatement(ctx);
   }
 
   VariableParserUtils::handleVarDecParseInitializer(ctx, varDec);
 
-  return std::move(varDec);
+  return varDec;
 }
 
 void VariableDeclarationParser::setIsForStatement(bool isForStatement) {

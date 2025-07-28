@@ -30,7 +30,7 @@
 std::unique_ptr<StatementSyntax>
 ForStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> keyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ForKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ForKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
   bool hadOpenParenthesis = false;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
@@ -44,25 +44,25 @@ ForStatementParser::parseStatement(ParserContext *ctx) {
     std::unique_ptr<VariableDeclarationParser> varDecParser =
         std::make_unique<VariableDeclarationParser>();
     // varDecParser->setIsForStatement(true);
-    statementSyntax = std::move(varDecParser->parseStatement(ctx));
+    statementSyntax = varDecParser->parseStatement(ctx);
   } else {
-    statementSyntax = std::move(
-        std::make_unique<ExpressionStatementParser>()->parseStatement(ctx));
+    statementSyntax =
+        std::make_unique<ExpressionStatementParser>()->parseStatement(ctx);
   }
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<SyntaxToken<std::any>> toKeyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ToKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ToKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<ExpressionSyntax> upperBound =
-      std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      PrecedenceAwareExpressionParser::parse(ctx);
   std::unique_ptr<ExpressionSyntax> step = nullptr;
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
-    step = std::move(PrecedenceAwareExpressionParser::parse(ctx));
+    step = PrecedenceAwareExpressionParser::parse(ctx);
   }
 
   if (hadOpenParenthesis) {

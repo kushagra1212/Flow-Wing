@@ -121,13 +121,13 @@ std::vector<std::string> DiagnosticHandler::getLines() {
   return lines;
 }
 
-const int8_t DiagnosticHandler::isRepl() const {
+int8_t DiagnosticHandler::isRepl() const {
   return this->_replLines.size() > 0 ? 1 : 0;
 }
 
 std::string DiagnosticHandler::getAbsoluteFilePath() { return this->_filePath; }
 
-const void DiagnosticHandler::logDiagnostics(
+void DiagnosticHandler::logDiagnostics(
     std::ostream &outputStream,
     std::function<bool(const Diagnostic &)> filter) {
 
@@ -152,7 +152,7 @@ std::string DiagnosticHandler::getFileName(const std::string &filePath) {
   if (filePath == "") {
     return "REPL";
   }
-  const int &lastSlashIndex = filePath.find_last_of("/\\");
+  const size_t &lastSlashIndex = filePath.find_last_of("/\\");
   if (lastSlashIndex == std::string::npos) {
     return "FILE NOT FOUND";
   }
@@ -271,8 +271,8 @@ void DiagnosticHandler::logJSONifAsked(const std::string &outputFilePath,
   }
 }
 
-const void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
-                                              const Diagnostic &diagnostic) {
+void DiagnosticHandler::printDiagnostic(std::ostream &outputStream,
+                                        const Diagnostic &diagnostic) {
 
   this->logJSONifAsked(_outputFilePath, diagnostic);
   outputStream << getLogString(diagnostic);

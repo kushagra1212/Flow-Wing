@@ -17,12 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/IR/context/CodeGenerationContext.h"
 #include "src/IR/irGen/GenerationStrategy.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/Value.h>
+#pragma clang diagnostic pop
 
 namespace FlowWing {
 

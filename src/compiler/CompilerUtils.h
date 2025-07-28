@@ -21,6 +21,9 @@
 
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include <cstdint>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IRReader/IRReader.h>
@@ -33,7 +36,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/TargetParser/Host.h>
 #include <llvm/TargetParser/Triple.h>
-
+#pragma clang diagnostic pop
 namespace FlowWing {
 
 namespace Compiler {
@@ -50,7 +53,7 @@ std::unique_ptr<llvm::Module>
 createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
                              FlowWing::DiagnosticHandler *diagHandler);
 
-const int8_t isValidLLFile(const std::string &filePath);
+int8_t isValidLLFile(const std::string &filePath);
 
 std::unique_ptr<llvm::Module>
 getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,

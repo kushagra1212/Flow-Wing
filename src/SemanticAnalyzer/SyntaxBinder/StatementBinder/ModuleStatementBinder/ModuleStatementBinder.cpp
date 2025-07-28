@@ -65,9 +65,9 @@ ModuleStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       CustomTypeStatementSyntax *customTypeStatement =
           static_cast<CustomTypeStatementSyntax *>(stat.get());
 
-      boundModuleStat->addCustomTypeStatement(std::move(
-          StatementBinderFactory::create(customTypeStatement->getKind())
-              ->bindStatement(ctx, customTypeStatement)));
+      boundModuleStat->addCustomTypeStatement(
+          (StatementBinderFactory::create(customTypeStatement->getKind())
+               ->bindStatement(ctx, customTypeStatement)));
 
       break;
     }
@@ -76,8 +76,8 @@ ModuleStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           static_cast<ClassStatementSyntax *>(stat.get());
 
       boundModuleStat->addClassStatement(
-          std::move(StatementBinderFactory::create(classStatement->getKind())
-                        ->bindStatement(ctx, classStatement)));
+          (StatementBinderFactory::create(classStatement->getKind())
+               ->bindStatement(ctx, classStatement)));
       break;
     }
     case SyntaxKindUtils::SyntaxKind::VariableDeclaration: {
@@ -128,8 +128,8 @@ ModuleStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           static_cast<CallExpressionSyntax *>(stat.get());
 
       boundModuleStat->addCallerExpression(
-          std::move(ExpressionBinderFactory::create(stat->getKind())
-                        ->bindExpression(ctx, call)));
+          (ExpressionBinderFactory::create(stat->getKind())
+               ->bindExpression(ctx, call)));
       break;
     }
     case SyntaxKindUtils::SyntaxKind::ModuleStatement: {
@@ -173,8 +173,7 @@ ModuleStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       funBinder->setPrefix(boundModuleStat->getModuleName() +
                            FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX);
 
-      boundModuleStat->addFunctionStatement(
-          std::move(funBinder->bindMember(ctx, fun)));
+      boundModuleStat->addFunctionStatement((funBinder->bindMember(ctx, fun)));
     }
   }
 

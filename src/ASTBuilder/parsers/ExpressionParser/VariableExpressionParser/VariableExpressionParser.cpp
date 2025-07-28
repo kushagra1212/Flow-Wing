@@ -32,15 +32,15 @@
 std::unique_ptr<ExpressionSyntax>
 VariableExpressionParser::parseExpression(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> identifierToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
   if (identifierToken->getValue().type() == typeid(std::string) &&
       std::any_cast<std::string>(identifierToken->getValue()) == "self") {
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::DotToken) {
       ctx->match(SyntaxKindUtils::SyntaxKind::DotToken);
 
-      auto expression = std::move(
-          std::make_unique<IdentifierExpressionParser>()->parseExpression(ctx));
+      auto expression =
+          std::make_unique<IdentifierExpressionParser>()->parseExpression(ctx);
 
       if (auto *variExp =
               dynamic_cast<VariableExpressionSyntax *>(expression.get())) {
@@ -50,18 +50,18 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
         indexExp->addSelfKeyword(std::move(identifierToken));
       } else if (auto *assignExp = dynamic_cast<AssignmentExpressionSyntax *>(
                      expression.get())) {
-        if (auto *memberExp = dynamic_cast<VariableExpressionSyntax *>(
+        if (auto *varExp = dynamic_cast<VariableExpressionSyntax *>(
                 assignExp->getLeftRef().get())) {
-          memberExp->setSelfKeyword(std::move(identifierToken));
-        } else if (auto *memberExp = dynamic_cast<IndexExpressionSyntax *>(
+          varExp->setSelfKeyword(std::move(identifierToken));
+        } else if (auto *newIndexExp = dynamic_cast<IndexExpressionSyntax *>(
                        assignExp->getLeftRef().get())) {
-          memberExp->addSelfKeyword(std::move(identifierToken));
+          newIndexExp->addSelfKeyword(std::move(identifierToken));
         }
       }
 
-      return std::move(expression);
+      return expression;
     } else {
-      std::any value = identifierToken->getValue();
+      std::any selfValue = identifierToken->getValue();
 
       std::unique_ptr<TypeExpressionSyntax> typeExpression =
           std::make_unique<TypeExpressionSyntax>(
@@ -73,10 +73,10 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
       std::unique_ptr<VariableExpressionSyntax> variExp =
           std::make_unique<VariableExpressionSyntax>(
               std::make_unique<LiteralExpressionSyntax<std::any>>(
-                  std::move(identifierToken), value),
+                  std::move(identifierToken), selfValue),
               false, std::move(typeExpression));
 
-      return std::move(variExp);
+      return variExp;
     }
   }
 
@@ -103,20 +103,20 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
             SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
       std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+          ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
-      std::any value = localIdentifierToken->getValue();
+      std::any localValue = localIdentifierToken->getValue();
       std::unique_ptr<IndexExpressionSyntax> localIndexExpression =
           std::make_unique<IndexExpressionSyntax>(
               std::make_unique<LiteralExpressionSyntax<std::any>>(
-                  std::move(localIdentifierToken), value));
+                  std::move(localIdentifierToken), localValue));
 
       while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
         ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
         localIndexExpression->addIndexExpression(
-            std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+            PrecedenceAwareExpressionParser::parse(ctx));
 
         ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
       }
@@ -128,21 +128,21 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
           ctx->peek(1)->getKind() ==
               SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
 
-        variExp->addDotExpression(std::move(
+        variExp->addDotExpression(
             std::make_unique<IdentifierExpressionParser>()->parseExpression(
-                ctx)));
+                ctx));
       } else {
 
         std::unique_ptr<SyntaxToken<std::any>> localIdentifierToken =
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
-        std::any value = localIdentifierToken->getValue();
+            ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
+        std::any localValue = localIdentifierToken->getValue();
 
         variExp->addDotExpression(
             std::make_unique<LiteralExpressionSyntax<std::any>>(
-                std::move(localIdentifierToken), value));
+                std::move(localIdentifierToken), localValue));
       }
     }
   }
 
-  return std::move(variExp);
+  return variExp;
 }

@@ -50,11 +50,11 @@ public:
 
   std::string getErrorProducingSnippet(int lineNumber, int columnNumber);
   void addParentDiagnostics(DiagnosticHandler *parent);
-  const void logDiagnostics(std::ostream &outputStream,
-                            std::function<bool(const Diagnostic &)> filter);
+  void logDiagnostics(std::ostream &outputStream,
+                      std::function<bool(const Diagnostic &)> filter);
 
-  const void printDiagnostic(std::ostream &outputStream,
-                             const Diagnostic &diagnostic);
+  void printDiagnostic(std::ostream &outputStream,
+                       const Diagnostic &diagnostic);
 
   void logJSONifAsked(const std::string &outputFilePath,
                       const Diagnostic &diagnostic);
@@ -71,7 +71,7 @@ public:
 
   std::vector<std::string> getLines();
 
-  const int8_t isRepl() const;
+  int8_t isRepl() const;
 
   inline auto setOutputFilePath(const std::string &outputFilePath) -> void {
     this->_outputFilePath = outputFilePath;

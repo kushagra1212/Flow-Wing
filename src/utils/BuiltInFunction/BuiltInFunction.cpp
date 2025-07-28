@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BuiltInFunction.h"
 
 auto BuiltInFunction::isBuiltInFunction(const std::string &functionName)
-    -> const bool {
+    -> bool {
   for (const auto &function : _functions) {
     if (function->getFunctionNameRef() == functionName) {
       return true;
@@ -54,7 +53,7 @@ void BuiltInFunction::setupBuiltInFunctions() {
         std::make_unique<BoundFunctionDeclaration>(
             DiagnosticUtils::SourceLocation(), false);
     func->setFunctionName(funName);
-    func->addReturnExpr(std::move(std::make_unique<BoundTypeExpression>(
+    func->addReturnExpr((std::make_unique<BoundTypeExpression>(
         DiagnosticUtils::SourceLocation(), rt)));
 
     if (!isVariadic) {

@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
+#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
-#include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 
 class IndexExpressionGenerationStrategy : public ExpressionGenerationStrategy {
 public:
@@ -41,7 +40,7 @@ public:
 
   void verifyBounds(llvm::Value *index, llvm::ConstantInt *actualSize);
 
-  const bool canGenerateExpression(const std::string &variableName);
+  bool canGenerateExpression(const std::string &variableName);
 
   inline auto setIndexExpression(BoundIndexExpression *indexExpression) {
     _indexExpression = indexExpression;
@@ -56,7 +55,7 @@ public:
     std::vector<uint64_t> sizes;
     _codeGenerationContext->createArraySizesAndArrayElementType(
         sizes, _arrayElementType);
-    for (int i = 0; i < sizes.size(); i++) {
+    for (size_t i = 0; i < sizes.size(); i++) {
       _actualSizes.push_back(Builder->getInt32(sizes[i]));
     }
   }

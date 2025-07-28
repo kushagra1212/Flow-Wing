@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BracketedExpressionGenerationStrategy.h"
 
 BracketedExpressionGenerationStrategy::BracketedExpressionGenerationStrategy(
@@ -219,7 +218,7 @@ llvm::Value *BracketedExpressionGenerationStrategy::generateGlobalExpression(
 
 llvm::Value *BracketedExpressionGenerationStrategy::assignBracketExpression(
     BoundBracketedExpression *&bracketedExpression, llvm::Value *&lhsPtr,
-    llvm::ArrayType *arrayType, std::string &containerName) {
+    llvm::ArrayType *arrayType, [[maybe_unused]] std::string &containerName) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       bracketedExpression->getLocation());

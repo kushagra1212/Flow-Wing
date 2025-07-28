@@ -100,8 +100,8 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     // cusType->setTypeNameString(typeName);
 
     boundClassStat->addCustomType(
-        std::move(StatementBinderFactory::create(cusType->getKind())
-                      ->bindStatement(ctx, cusType.get())));
+        (StatementBinderFactory::create(cusType->getKind())
+             ->bindStatement(ctx, cusType.get())));
   }
 
   std::unordered_map<std::string, int> varMemberMap;
@@ -154,8 +154,7 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     funBinder->setPrefix(className +
                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX);
 
-    boundClassStat->addMemberFunction(
-        std::move(funBinder->bindMember(ctx, fun.get())));
+    boundClassStat->addMemberFunction((funBinder->bindMember(ctx, fun.get())));
   }
 
   for (const auto &fun : classStatement->getClassMemberFunctionsRef()) {
@@ -164,8 +163,7 @@ ClassStatementBinder::bindStatement(SyntaxBinderContext *ctx,
     funBinder->setPrefix(className +
                          FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX);
 
-    boundClassStat->addMemberFunction(
-        std::move(funBinder->bindMember(ctx, fun.get())));
+    boundClassStat->addMemberFunction((funBinder->bindMember(ctx, fun.get())));
   }
 
   ctx->removeScope();

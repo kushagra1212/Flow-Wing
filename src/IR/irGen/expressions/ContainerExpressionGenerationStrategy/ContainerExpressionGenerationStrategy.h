@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundContainerExpression/BoundContainerExpression.h"
 
 class ContainerExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -48,8 +47,7 @@ public:
   llvm::Value *createExpression(llvm::Type *arrayType, llvm::Value *v,
                                 BoundContainerExpression *containerExpression);
 
-  const bool
-  canGenerateExpression(BoundContainerExpression *containerExpression);
+  bool canGenerateExpression(BoundContainerExpression *containerExpression);
 
   llvm::Value *
   createExpressionAtom(llvm::Type *&arrayType, llvm::Value *&v,

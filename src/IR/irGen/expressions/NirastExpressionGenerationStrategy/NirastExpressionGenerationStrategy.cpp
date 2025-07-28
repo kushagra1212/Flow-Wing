@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "NirastExpressionGenerationStrategy.h"
 
 NirastExpressionGenerationStrategy::NirastExpressionGenerationStrategy(
@@ -29,10 +28,10 @@ llvm::Value *NirastExpressionGenerationStrategy::generate() {
 }
 
 llvm::Value *NirastExpressionGenerationStrategy::generateExpression(
-    BoundExpression *expression) {
+    [[maybe_unused]] BoundExpression *expression) {
   return this->generate();
 }
 llvm::Value *NirastExpressionGenerationStrategy::generateGlobalExpression(
-    BoundExpression *expression) {
+    [[maybe_unused]] BoundExpression *expression) {
   return this->generate();
 }

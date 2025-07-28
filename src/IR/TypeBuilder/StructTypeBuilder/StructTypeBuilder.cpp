@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // StructTypeBuilder.cpp
 #include "StructTypeBuilder.h"
 
@@ -46,8 +45,7 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
   return _memberTypesForDynamicTypes;
 }
 
-const uint64_t
-StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
+uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
   int index = -1;
   for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
@@ -69,7 +67,7 @@ StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
   return index;
 }
 
-const bool StructTypeBuilder::isDyn(llvm::Type *type) const {
+bool StructTypeBuilder::isDyn(llvm::Type *type) const {
   return type == this->_dynamicType;
 }
 
@@ -117,6 +115,6 @@ llvm::Value *StructTypeBuilder::setMemberValueOfDynVar(
   return _codeGenerationContext->getBuilder()->CreateStore(value, elementPtr);
 }
 
-const bool StructTypeBuilder::isGlobalVar(const std::string &varName) const {
+bool StructTypeBuilder::isGlobalVar(const std::string &varName) const {
   return varName.find(FLOWWING::UTILS::CONSTANTS::GLOBAL_VARIABLE_PREFIX) == 0;
 }

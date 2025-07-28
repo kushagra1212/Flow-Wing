@@ -31,10 +31,10 @@ UnaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   UnaryExpressionSyntax *unaryExpression =
       static_cast<UnaryExpressionSyntax *>(expression);
 
-  std::unique_ptr<BoundExpression> boundOperand = std::move(
-      ExpressionBinderFactory::create(
-          unaryExpression->getOperandRef()->getKind())
-          ->bindExpression(ctx, unaryExpression->getOperandRef().get()));
+  std::unique_ptr<BoundExpression> boundOperand =
+      (ExpressionBinderFactory::create(
+           unaryExpression->getOperandRef()->getKind())
+           ->bindExpression(ctx, unaryExpression->getOperandRef().get()));
 
   BinderKindUtils::BoundUnaryOperatorKind op =
       BinderKindUtils::getUnaryOperatorKind(

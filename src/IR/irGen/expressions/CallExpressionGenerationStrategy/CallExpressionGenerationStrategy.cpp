@@ -110,11 +110,6 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
     return;
   }
 
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  BoundFunctionDeclaration *definedFunction =
-      _codeGenerationContext
-          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
-
   std::vector<llvm::Value *> functionArgs;
 
   llvm::Function *calleeFunction =
@@ -259,10 +254,9 @@ void CallExpressionGenerationStrategy::declare(BoundExpression *expression) {
   for (uint64_t i = 0; i < callExpression->getArgumentPtrList().size(); i++) {
     uint64_t callArgIndex = i;
     bool retFlag;
-
-    llvm::Value *retVal = handleExpression(
-        callArgIndex, initialLLVMArgIndex + callArgIndex, callExpression,
-        rhsValue, functionType, llvmArrayArgs, retFlag);
+    handleExpression(callArgIndex, initialLLVMArgIndex + callArgIndex,
+                     callExpression, rhsValue, functionType, llvmArrayArgs,
+                     retFlag);
   }
 
   if (Utils::isClassInit(callExpression->getCallerNameRef())) {
@@ -568,7 +562,7 @@ CallExpressionGenerationStrategy::handlePrintFunction(llvm::Value *&value) {
     llvm::Value *innerElementPtr =
         _codeGenerationContext->getValueStackHandler()->getValue();
     _codeGenerationContext->getValueStackHandler()->popAll();
-    llvm::Type *elementType = arrayType->getElementType();
+
     llvm::Type *type = arrayType;
 
     std::vector<uint64_t> sizes;
@@ -688,7 +682,6 @@ void CallExpressionGenerationStrategy::printPremitives(
 
 llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     BoundCallExpression *callExpression) {
-  std::size_t arguments_size = callExpression->getArgumentPtrList().size();
 
   llvm::Function *calleeFunction =
       TheModule->getFunction(callExpression->getCallerNameRef());
@@ -718,7 +711,6 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
     if (value && classType && llvm::isa<llvm::StructType>(classType) &&
         (!Utils::isClassInit(callExpression->getCallerNameRef()) ||
          IS_SUPER_IS_CALLED_INSIDE_INIT_FUNCTION)) {
-      llvm::StructType *structType = llvm::cast<llvm::StructType>(classType);
       std::string funName = callExpression->getCallerNameRef();
 
       if (funName.find(FLOWWING::UTILS::CONSTANTS::MEMBER_FUN_PREFIX) !=
@@ -823,11 +815,10 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
 llvm::Value *CallExpressionGenerationStrategy::generateCommonCallExpression(
     BoundCallExpression *callExpression, llvm::Function *calleeFunction,
     std::vector<llvm::Value *> &classArg, llvm::Type *_classType,
-    llvm::Value *_classPtr, llvm::Value *calleeValue) {
-  llvm::BasicBlock *currentBlock = Builder->GetInsertBlock();
-  BoundFunctionDeclaration *definedFunction =
-      _codeGenerationContext
-          ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
+    [[maybe_unused]] llvm::Value *_, llvm::Value *calleeValue) {
+
+  _codeGenerationContext
+      ->getBoundedUserFunctions()[callExpression->getCallerNameRef()];
   llvm::FunctionType *functionType = nullptr;
   if (!calleeValue && !calleeFunction &&
       !_codeGenerationContext
@@ -1147,8 +1138,7 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
         callExpressionGenerationStrategy->declare(cE);
 
       } else {
-        llvm::Value *value =
-            callExpressionGenerationStrategy->generateExpression(cE);
+        callExpressionGenerationStrategy->generateExpression(cE);
 
         llvm::Type *type =
             _codeGenerationContext->getValueStackHandler()->getLLVMType();
@@ -1195,8 +1185,6 @@ llvm::Value *CallExpressionGenerationStrategy::handleExpression(
 
     llvm::Value *value =
         callExpressionGenerationStrategy->generateExpression(cE);
-    llvm::Type *type =
-        _codeGenerationContext->getValueStackHandler()->getLLVMType();
 
     if (isCassInit) {
       rhsValue = value;
@@ -1244,8 +1232,7 @@ llvm::Value *CallExpressionGenerationStrategy::handlePremitive(
     return nullptr;
   }
 
-  DEBUG_LOG("Generating Expression for callArgIndex: " +
-            std::to_string(callArgIndex));
+  DEBUG_LOG("Generating Expression for callArgIndex: %d", callArgIndex);
 
   _codeGenerationContext->getValueStackHandler()->popAll();
   _expressionGenerationFactory
@@ -1520,10 +1507,6 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
     return nullptr;
   }
 
-  BoundVariableExpression *variableExpression =
-      static_cast<BoundVariableExpression *>(
-          callExpression->getArgumentPtrList()[callArgIndex]);
-
   _expressionGenerationFactory
       ->createStrategy(
           callExpression->getArgumentPtrList()[callArgIndex]->getKind())
@@ -1728,9 +1711,10 @@ llvm::Value *CallExpressionGenerationStrategy::handleVariableExpression(
 
 llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
     llvm::Value *&rhsValue, BoundCallExpression *callExpression,
-    uint64_t callArgIndex, uint64_t llvmArgsIndex,
-    llvm::FunctionType *functionType,
-    const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
+    uint64_t callArgIndex, [[maybe_unused]] uint64_t llvmArgsIndex,
+    [[maybe_unused]] llvm::FunctionType *functionType,
+    [[maybe_unused]] const std::vector<std::unique_ptr<LLVMType>>
+        &llvmArrayArgs,
     bool &retFlag) {
   retFlag = false;
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
@@ -1748,8 +1732,6 @@ llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
         _codeGenerationContext->getValueStackHandler()->getLLVMType(),
         _codeGenerationContext->getValueStackHandler()->getValue());
   }
-  llvm::Type *varType =
-      _codeGenerationContext->getValueStackHandler()->getLLVMType();
   _codeGenerationContext->getValueStackHandler()->popAll();
 
   return nullptr;
@@ -1906,7 +1888,7 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
     std::vector<std::vector<llvm::BasicBlock *>> loopBlocks;
     std::vector<llvm::Value *> indices;
 
-    for (int i = 0; i < actualSizes.size(); i++) {
+    for (size_t i = 0; i < actualSizes.size(); i++) {
       std::vector<llvm::BasicBlock *> blocks = {
           llvm::BasicBlock::Create(*TheContext, "con_print.loopStart",
                                    currentBlock->getParent()),
@@ -1937,7 +1919,7 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
 
     builder.CreateBr(loopBlocks[0][0]);
 
-    for (int i = 0; i < actualSizes.size(); i++) {
+    for (size_t i = 0; i < actualSizes.size(); i++) {
       // start
       builder.SetInsertPoint(loopBlocks[i][0]);
       builder.CreateStore(builder.getInt32(0), indices[i]);
@@ -1979,7 +1961,7 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
       if (i == actualSizes.size() - 1) {
         std::vector<llvm::Value *> indexList = {builder.getInt32(0)};
 
-        for (int j = 0; j < actualSizes.size(); j++) {
+        for (size_t j = 0; j < actualSizes.size(); j++) {
           indexList.push_back(
               builder.CreateLoad(builder.getInt32Ty(), indices[j]));
         }
@@ -2051,8 +2033,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
 }
 
 llvm::Value *CallExpressionGenerationStrategy::printArray(
-    llvm::ArrayType *arrayType, llvm::Type *elementType, llvm::Value *v,
-    llvm::IRBuilder<> &Builder) {
+    llvm::ArrayType *arrayType, [[maybe_unused]] llvm::Type *elementType,
+    llvm::Value *v, llvm::IRBuilder<> &Builder) {
   std::vector<uint64_t> sizes;
   _codeGenerationContext->getArraySizeMetadata(v, sizes);
   llvm::Type *elt = _codeGenerationContext->getArrayElementTypeMetadata(v);
@@ -2119,7 +2101,7 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
       std::string key = KEY_PRIFIX + "." + propertyKey;
       size_t index = _codeGenerationContext->getFlowWingType(key).getIndex();
 
-      if (index == -1) {
+      if (index == static_cast<size_t>(-1)) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + key + " not found in variable expression ");
 
@@ -2138,7 +2120,6 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
       } else if (bTE->getSyntaxType() ==
                  SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
         llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-        llvm::Type *elementType = arrayType->getElementType();
         llvm::Type *type = arrayType;
         std::vector<uint64_t> sizes;
         _codeGenerationContext->createArraySizesAndArrayElementType(sizes,

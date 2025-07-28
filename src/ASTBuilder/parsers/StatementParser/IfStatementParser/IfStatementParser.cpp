@@ -36,11 +36,11 @@ IfStatementParser::parseStatement(ParserContext *ctx) {
       std::make_unique<IfStatementSyntax>();
 
   std::unique_ptr<SyntaxToken<std::any>> keyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<ExpressionSyntax> condition =
-      std::move(PrecedenceAwareExpressionParser::parse(ctx));
+      PrecedenceAwareExpressionParser::parse(ctx);
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<BlockStatementSyntax> statement(
@@ -58,18 +58,18 @@ IfStatementParser::parseStatement(ParserContext *ctx) {
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     std::unique_ptr<SyntaxToken<std::any>> orKeyword =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OrKeyword));
+        ctx->match(SyntaxKindUtils::SyntaxKind::OrKeyword);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     std::unique_ptr<SyntaxToken<std::any>> ifKeyword =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IfKeyword);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
-    std::unique_ptr<ExpressionSyntax> condition =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+    std::unique_ptr<ExpressionSyntax> orIfCondition =
+        PrecedenceAwareExpressionParser::parse(ctx);
     ctx->getCodeFormatterRef()->appendWithSpace();
 
-    std::unique_ptr<BlockStatementSyntax> statement(
+    std::unique_ptr<BlockStatementSyntax> orIfStatement(
         static_cast<BlockStatementSyntax *>(
             std::make_unique<BlockStatementParser>()
                 ->parseStatement(ctx)
@@ -77,8 +77,8 @@ IfStatementParser::parseStatement(ParserContext *ctx) {
     // appendNewLine();
 
     ifStatement->addOrIfStatement(std::make_unique<OrIfStatementSyntax>(
-        std::move(orKeyword), std::move(ifKeyword), std::move(condition),
-        std::move(statement)));
+        std::move(orKeyword), std::move(ifKeyword), std::move(orIfCondition),
+        std::move(orIfStatement)));
   }
   std::unique_ptr<ElseClauseSyntax> elseClause = nullptr;
 
@@ -93,5 +93,5 @@ IfStatementParser::parseStatement(ParserContext *ctx) {
 
   ifStatement->addElseClause(std::move(elseClause));
 
-  return std::move(ifStatement);
+  return ifStatement;
 }

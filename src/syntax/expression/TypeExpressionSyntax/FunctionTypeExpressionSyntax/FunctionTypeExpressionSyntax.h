@@ -39,10 +39,9 @@ private:
 
 public:
   FunctionTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation
-  getSourceLocation() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   inline auto
   addParameterType(std::unique_ptr<TypeExpressionSyntax> parameterType)

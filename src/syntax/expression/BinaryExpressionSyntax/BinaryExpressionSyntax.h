@@ -39,7 +39,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getOperatorToken();
   std::unique_ptr<ExpressionSyntax> getRight();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 

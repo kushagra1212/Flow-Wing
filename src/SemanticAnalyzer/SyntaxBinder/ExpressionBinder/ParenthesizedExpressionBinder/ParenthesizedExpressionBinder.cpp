@@ -28,9 +28,8 @@ ParenthesizedExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   ParenthesizedExpressionSyntax *parenthesizedExpression =
       (ParenthesizedExpressionSyntax *)expression;
 
-  return std::move(
-      ExpressionBinderFactory::create(
-          parenthesizedExpression->getExpressionRef()->getKind())
-          ->bindExpression(ctx,
-                           parenthesizedExpression->getExpressionRef().get()));
+  return (ExpressionBinderFactory::create(
+              parenthesizedExpression->getExpressionRef()->getKind())
+              ->bindExpression(
+                  ctx, parenthesizedExpression->getExpressionRef().get()));
 }

@@ -42,7 +42,7 @@ MultipleVariableDeclarationParser::parseStatement(ParserContext *ctx) {
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
     ctx->getCodeFormatterRef()->appendWithSpace();
     std::unique_ptr<SyntaxToken<std::any>> equalsToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
     ctx->getCodeFormatterRef()->appendWithSpace();
     uint8_t index = 0;
 
@@ -53,16 +53,16 @@ MultipleVariableDeclarationParser::parseStatement(ParserContext *ctx) {
 
       if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
         mulVarDec->getVariableDeclarationListRef()[index]->setNewKeyword(
-            std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+            ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword));
         ctx->getCodeFormatterRef()->appendWithSpace();
       }
 
       std::unique_ptr<ExpressionSyntax> initializer =
-          std::move(PrecedenceAwareExpressionParser::parse(ctx));
+          PrecedenceAwareExpressionParser::parse(ctx);
       mulVarDec->getVariableDeclarationListRef()[index++]->setInitializer(
           std::move(initializer));
     } while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
   }
 
-  return std::move(mulVarDec);
+  return mulVarDec;
 }

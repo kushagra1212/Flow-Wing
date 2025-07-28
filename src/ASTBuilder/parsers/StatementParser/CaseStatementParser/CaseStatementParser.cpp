@@ -31,17 +31,17 @@ CaseStatementParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::DefaultKeyword) {
     caseStatement->setDefaultToken(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::DefaultKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::DefaultKeyword));
   } else {
     caseStatement->setCaseToken(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CaseKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::CaseKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
     caseStatement->setCaseExpression(
-        std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+        PrecedenceAwareExpressionParser::parse(ctx));
   }
   ctx->getCodeFormatterRef()->appendWithSpace();
   caseStatement->setColonToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken));
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   std::unique_ptr<BlockStatementSyntax> blockStatementSyntax(
@@ -53,5 +53,5 @@ CaseStatementParser::parseStatement(ParserContext *ctx) {
   caseStatement->setBlockStatement(std::move(blockStatementSyntax));
   ctx->getCodeFormatterRef()->appendNewLine();
 
-  return std::move(caseStatement);
+  return caseStatement;
 }

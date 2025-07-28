@@ -28,7 +28,7 @@
 std::unique_ptr<StatementSyntax>
 ReturnStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SyntaxToken<std::any>> returnKeyword =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword));
+      ctx->match(SyntaxKindUtils::SyntaxKind::ReturnKeyword);
   ctx->setIsInsideReturnStatement(true);
   std::unique_ptr<ReturnStatementSyntax> returnStatement =
       std::make_unique<ReturnStatementSyntax>(std::move(returnKeyword));
@@ -42,7 +42,7 @@ ReturnStatementParser::parseStatement(ParserContext *ctx) {
       }
 
       std::unique_ptr<ExpressionSyntax> expression =
-          std::move(PrecedenceAwareExpressionParser::parse(ctx));
+          PrecedenceAwareExpressionParser::parse(ctx);
 
       returnStatement->addReturnExpression(std::move(expression));
 
@@ -64,5 +64,5 @@ ReturnStatementParser::parseStatement(ParserContext *ctx) {
   }
 
   ctx->setIsInsideReturnStatement(false);
-  return std::move(returnStatement);
+  return returnStatement;
 }

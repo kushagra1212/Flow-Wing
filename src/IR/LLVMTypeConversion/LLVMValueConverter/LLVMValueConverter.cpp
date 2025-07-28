@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "LLVMValueConverter.h"
+#include "src/utils/LogConfig.h"
 
 LLVMValueConverter::LLVMValueConverter(CodeGenerationContext *context)
-    : _module(context->getModule().get()), _mapper(context->getMapper().get()),
+    : _builder(context->getBuilder().get()),
+      _module(context->getModule().get()), _mapper(context->getMapper().get()),
       _logger(context->getLogger().get()),
-      _builder(context->getBuilder().get()),
       _llvmContext(context->getContext().get()),
-      _codeGenerationContext(context){};
+      _codeGenerationContext(context) {};
 
 llvm::Value *
 LLVMValueConverter::convertToLLVMValue(std::any value,
@@ -238,7 +238,7 @@ LLVMValueConverter::stringToTypedLLVMValue(std::string value,
     }
   }
 
-  DEBUG_LOG("value: " + value);
+  DEBUG_LOG("value: %s", value.c_str());
 
   return _builder->CreateGlobalStringPtr(value);
 }

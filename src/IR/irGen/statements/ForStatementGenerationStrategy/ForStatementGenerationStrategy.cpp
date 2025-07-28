@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ForStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -232,9 +231,8 @@ ForStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   BoundStatement *bodyStat = forStatement->getStatementPtr().get();
 
-  llvm::Value *result =
-      _statementGenerationFactory->createStrategy(bodyStat->getKind())
-          ->generateStatement(bodyStat);
+  _statementGenerationFactory->createStrategy(bodyStat->getKind())
+      ->generateStatement(bodyStat);
 
   // Value incremented by Step
 

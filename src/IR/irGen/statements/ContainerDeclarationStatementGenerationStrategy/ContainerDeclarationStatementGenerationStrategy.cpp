@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ContainerDeclarationStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -114,7 +113,7 @@ ContainerDeclarationStatementGenerationStrategy::assignExpression() {
 
 void ContainerDeclarationStatementGenerationStrategy::initialize(
     BoundStatement *statement, BinderKindUtils::MemoryKind memoryKind) {
-  DEBUG_LOG("Initializing Container Declaration Statement");
+  DEBUG_LOG("Container Declaration Statement", "Initializing");
   _variableDeclExpr = static_cast<BoundVariableDeclaration *>(statement);
 
   // set memory kind
@@ -127,7 +126,7 @@ void ContainerDeclarationStatementGenerationStrategy::initialize(
   _arrayTypeExpression = static_cast<BoundArrayTypeExpression *>(
       _variableDeclExpr->getTypeExpression().get());
   _memoryKind = _variableDeclExpr->getMemoryKind();
-  DEBUG_LOG("Initialized Container Declaration Statement");
+  DEBUG_LOG("Container Declaration Statement", "Initialized");
 }
 
 llvm::Value *ContainerDeclarationStatementGenerationStrategy::generateStatement(

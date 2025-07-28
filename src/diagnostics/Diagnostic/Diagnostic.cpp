@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Diagnostic.h"
 #include "DiagnosticCodeData.h"
 
@@ -26,8 +25,8 @@ Diagnostic::Diagnostic(const std::string &message,
                        DiagnosticUtils::DiagnosticType type,
                        const DiagnosticUtils::SourceLocation &location,
                        const FLOW_WING::DIAGNOSTIC::DiagnosticCode &code)
-    : _message(message), _level(level), _type(type), _location(location),
-      _messageTemplate({message, "", ""}), _code(code) {}
+    : _message(message), _messageTemplate({message, "", ""}), _level(level),
+      _type(type), _location(location), _code(code) {}
 
 Diagnostic::Diagnostic(
     DiagnosticUtils::DiagnosticLevel level,

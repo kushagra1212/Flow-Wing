@@ -51,8 +51,8 @@ ReturnStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
     for (const auto &expr : returnStatement->getReturnExpressionListRef()) {
       boundRetExpression->addReturnExpression(
-          std::move(ExpressionBinderFactory::create(expr->getKind())
-                        ->bindExpression(ctx, expr.get())));
+          (ExpressionBinderFactory::create(expr->getKind())
+               ->bindExpression(ctx, expr.get())));
     }
   }
 

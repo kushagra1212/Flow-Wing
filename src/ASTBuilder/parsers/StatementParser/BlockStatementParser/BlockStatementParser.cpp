@@ -30,7 +30,7 @@ BlockStatementParser::parseStatement(ParserContext *ctx) {
       std::make_unique<BlockStatementSyntax>();
 
   std::unique_ptr<SyntaxToken<std::any>> openBraceToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken);
   ctx->getCodeFormatterRef()->appendNewLine();
 
   blockStatement->setOpenBraceToken(std::move(openBraceToken));
@@ -51,8 +51,8 @@ BlockStatementParser::parseStatement(ParserContext *ctx) {
     }
 
     blockStatement->addStatement(
-        std::move(StatementParserFactory::createStatementParser(currentKind)
-                      ->parseStatement(ctx)));
+        StatementParserFactory::createStatementParser(currentKind)
+            ->parseStatement(ctx));
 
     ctx->getCodeFormatterRef()->appendNewLine();
   }
@@ -65,9 +65,9 @@ BlockStatementParser::parseStatement(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->getIndentAmount());
 
   std::unique_ptr<SyntaxToken<std::any>> closeBraceToken =
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken);
 
   blockStatement->setCloseBraceToken(std::move(closeBraceToken));
 
-  return std::move(blockStatement);
+  return blockStatement;
 }

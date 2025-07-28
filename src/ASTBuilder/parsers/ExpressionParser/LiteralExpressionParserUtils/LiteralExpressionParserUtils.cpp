@@ -24,8 +24,7 @@
 
 std::unique_ptr<ExpressionSyntax> LiteralExpressionParserUtils::parseExpression(
     ParserContext *ctx, const SyntaxKindUtils::SyntaxKind &kind) {
-  std::unique_ptr<SyntaxToken<std::any>> syntaxToken =
-      std::move(ctx->match(kind));
+  std::unique_ptr<SyntaxToken<std::any>> syntaxToken = ctx->match(kind);
 
   std::any value = syntaxToken->getValue();
 

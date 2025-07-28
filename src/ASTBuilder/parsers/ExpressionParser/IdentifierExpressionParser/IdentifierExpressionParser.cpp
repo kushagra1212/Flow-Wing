@@ -48,28 +48,26 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::EqualsToken) {
       ctx->getCodeFormatterRef()->appendWithSpace();
 
-      operatorToken =
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken));
+      operatorToken = ctx->match(SyntaxKindUtils::SyntaxKind::EqualsToken);
     } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AssignmentToken) {
       ctx->getCodeFormatterRef()->appendWithSpace();
 
-      operatorToken =
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AssignmentToken));
+      operatorToken = ctx->match(SyntaxKindUtils::SyntaxKind::AssignmentToken);
       needDefaultInitialize = true;
     } else {
-      return std::move(variableExpression);
+      return variableExpression;
     }
 
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::NewKeyword) {
       variableExpression->setNewKeyword(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword)));
+          ctx->match(SyntaxKindUtils::SyntaxKind::NewKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
     std::unique_ptr<ExpressionSyntax> right =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     ctx->getCodeFormatterRef()->appendWithSpace();
 
@@ -80,23 +78,20 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
   } else if (ctx->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
 
-    return std::move(
-        std::make_unique<IndexExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<IndexExpressionParser>()->parseExpression(ctx);
 
   } else if (ctx->peek(1)->getKind() ==
              SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
 
-    return std::move(
-        std::make_unique<CallExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<CallExpressionParser>()->parseExpression(ctx);
 
   } else if (ctx->peek(1)->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ColonToken &&
              ctx->peek(2)->getKind() ==
                  SyntaxKindUtils::SyntaxKind::ColonToken) {
 
-    return std::move(
-        std::make_unique<ModuleIdentifierExpressionParser>()->parseExpression(
-            ctx));
+    return std::make_unique<ModuleIdentifierExpressionParser>()
+        ->parseExpression(ctx);
 
   } else if (!ctx->getIsInsideCallExpression() &&
              !ctx->getIsInsideContainerExpression() &&
@@ -104,12 +99,10 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
              ctx->peek(1)->getKind() ==
                  SyntaxKindUtils::SyntaxKind::CommaToken) {
 
-    return std::move(
-        std::make_unique<MultipleAssignmentExpressionParser>()->parseExpression(
-            ctx));
+    return std::make_unique<MultipleAssignmentExpressionParser>()
+        ->parseExpression(ctx);
 
   } else {
-    return std::move(
-        std::make_unique<VariableExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<VariableExpressionParser>()->parseExpression(ctx);
   }
 }

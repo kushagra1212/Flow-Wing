@@ -148,16 +148,9 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
       bringStatement->getDiagnosticHandlerPtr().get());
 
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
+      (SemanticAnalyzer::analyzeGlobalScope(
           nullptr, bringStatement->getCompilationUnitPtr().get(),
           bringStatement->getDiagnosticHandlerPtr().get()));
-
-  const auto LOG_ERROR = [&](const std::string &msg) {
-    ctx->getDiagnosticHandler()->addDiagnostic(Diagnostic(
-        msg, DiagnosticUtils::DiagnosticLevel::Error,
-        DiagnosticUtils::DiagnosticType::Semantic,
-        Utils::getSourceLocation(bringStatement->getBringKeywordPtr().get())));
-  };
 
   if (bringStatement->getModuleName().size() &&
       ctx->doesModuleAlreadyExist(bringStatement->getModuleName())) {
@@ -320,7 +313,7 @@ BringStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 }
 
 std::unordered_map<std::string, int> BringStatementBinder::getMemberMap(
-    const std::vector<std::unique_ptr<MemberSyntax>> &members,
+    [[maybe_unused]] const std::vector<std::unique_ptr<MemberSyntax>> &members,
     CompilationUnitSyntax *nestedCompilationUnit) {
   std::unordered_map<std::string, int> memberMap;
 
@@ -374,7 +367,8 @@ std::unordered_map<std::string, int> BringStatementBinder::getMemberMap(
             "Module ",
             moduleStatement->getModuleNameRef()->getTokenPtr()->getText());
 
-        for (int i = 0; i < moduleStatement->getStatementsRef().size(); i++) {
+        for (size_t i = 0; i < moduleStatement->getStatementsRef().size();
+             i++) {
           if (moduleStatement->getStatementsRef()[i]->getKind() ==
               SyntaxKindUtils::SyntaxKind::FunctionDeclarationSyntax) {
 

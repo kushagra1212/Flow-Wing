@@ -26,7 +26,7 @@
 
 */
 
-const SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind CustomTypeStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::CustomTypeStatement;
 }
 

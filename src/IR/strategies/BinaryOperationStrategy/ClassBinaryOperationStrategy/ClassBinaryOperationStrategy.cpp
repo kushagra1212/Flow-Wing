@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #include "ClassBinaryOperationStrategy.h"
 
 ClassBinaryOperationStrategy::ClassBinaryOperationStrategy(
     CodeGenerationContext *context)
-    : BinaryOperationStrategy(context){};
+    : BinaryOperationStrategy(context) {};
 
 llvm::Value *ClassBinaryOperationStrategy::performOperation(
     llvm::Value *lhsValue, llvm::Value *rhsValue,
@@ -215,8 +213,8 @@ llvm::Value *ClassBinaryOperationStrategy::performOperation(
 }
 
 llvm::Value *ClassBinaryOperationStrategy::performOperation(
-    llvm::Value *lhsValue, llvm::Value *rhsValue,
-    BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
-
+    [[maybe_unused]] llvm::Value *lhsValue,
+    [[maybe_unused]] llvm::Value *rhsValue,
+    [[maybe_unused]] BinderKindUtils::BoundBinaryOperatorKind binaryOperator) {
   return nullptr;
 }

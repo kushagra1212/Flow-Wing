@@ -36,7 +36,7 @@ private:
   std::vector<SyntaxNode *> _children;
 
 public:
-  const SyntaxKindUtils::SyntaxKind getKind();
+  SyntaxKindUtils::SyntaxKind getKind();
 
   std::vector<std::unique_ptr<MemberSyntax>> &getMembers();
 

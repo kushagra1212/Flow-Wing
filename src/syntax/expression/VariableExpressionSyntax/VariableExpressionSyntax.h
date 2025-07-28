@@ -33,10 +33,9 @@ public:
       const bool isConstant,
       std::unique_ptr<TypeExpressionSyntax> variableTypeExpr);
 
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation
-  getSourceLocation() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   inline void
   addDotExpression(std::unique_ptr<ExpressionSyntax> dotExpression) {
@@ -70,7 +69,7 @@ public:
     _newKeyword = std::move(newKeyword);
   }
 
-  inline auto isConstant() const -> const bool & { return _isConstant; }
+  inline auto isConstant() const -> bool { return _isConstant; }
 
   inline auto getVariableName() const -> std::string {
     return std::any_cast<std::string>(

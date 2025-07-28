@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "CustomTypeStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/LLVMTypeGeneration/LLVMTypeGenerationStrategy.h"
@@ -28,7 +27,7 @@ CustomTypeStatementGenerationStrategy::CustomTypeStatementGenerationStrategy(
     : StatementGenerationStrategy(context) {}
 
 llvm::Value *CustomTypeStatementGenerationStrategy::generateStatement(
-    BoundStatement *expression) {
+    [[maybe_unused]] BoundStatement *expression) {
   return nullptr;
 }
 
@@ -70,13 +69,15 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
 
     index++;
   }
-  DEBUG_LOG("Declaring CustomType: " +
-            boundCustomTypeStatement->getTypeNameAsString());
+  DEBUG_LOG("CustomType Statement",
+            "Declaring CustomType: " +
+                boundCustomTypeStatement->getTypeNameAsString());
   llvm::StructType *structType =
       llvm::StructType::create(*TheContext, structElements,
                                boundCustomTypeStatement->getTypeNameAsString());
 
-  DEBUG_LOG("Declaring CustomType: " + structType->getStructName().str());
+  DEBUG_LOG("CustomType Statement",
+            "Declaring CustomType: " + structType->getStructName().str());
   _codeGenerationContext
       ->_typesMap[boundCustomTypeStatement->getTypeNameAsString()] =
       FlowWing::Type::TypeBuilder()

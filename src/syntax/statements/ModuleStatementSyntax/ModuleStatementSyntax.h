@@ -30,7 +30,7 @@ class ModuleStatementSyntax : public StatementSyntax {
   std::vector<std::unique_ptr<SyntaxNode>> _statements;
 
 public:
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 

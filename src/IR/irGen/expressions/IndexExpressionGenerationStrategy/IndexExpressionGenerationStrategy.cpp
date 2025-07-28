@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IndexExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/VariableExpressionGenerationStrategy/VariableExpressionGenerationStrategy.h"
@@ -26,7 +25,7 @@ IndexExpressionGenerationStrategy::IndexExpressionGenerationStrategy(
     CodeGenerationContext *context)
     : ExpressionGenerationStrategy(context) {}
 
-const bool IndexExpressionGenerationStrategy::canGenerateExpression(
+bool IndexExpressionGenerationStrategy::canGenerateExpression(
     const std::string &variableName) {
 
   std::pair<llvm::Value *, llvm::Type *> var =
@@ -45,7 +44,7 @@ const bool IndexExpressionGenerationStrategy::canGenerateExpression(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == -1) {
+      if (atIndex == static_cast<size_t>(-1)) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in index expression Expected to be a member of "
@@ -189,7 +188,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
   _codeGenerationContext->createArraySizesAndArrayElementType(
       sizes, _arrayElementType);
 
-  for (int i = 0; i < sizes.size(); i++) {
+  for (size_t i = 0; i < sizes.size(); i++) {
     _actualSizes.push_back(Builder->getInt32(sizes[i]));
   }
 

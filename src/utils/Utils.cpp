@@ -120,7 +120,7 @@ void Utils::prettyPrint(SyntaxNode *node, std::string indent, bool isLast) {
 
   if (children.size())
     std::cout << " { Childrens = [ " << children.size() << " ] } ";
-  for (int i = 0; i < children.size(); i++) {
+  for (size_t i = 0; i < children.size(); i++) {
     // std::cout << "\n"
     //           << prevIndent << "    "
     //           << "├"
@@ -154,7 +154,7 @@ void Utils::prettyPrint(CompilationUnitSyntax *compilationUnit,
   std::cout << prevIndent << "    "
             << "Number of children in compilation unit: "
             << compilationUnit->getChildren().size() << "\n";
-  for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+  for (size_t i = 0; i < compilationUnit->getChildren().size(); i++) {
     std::cout << prevIndent << "    "
               << " { Printing child [ " << i << " ] of compilation unit }\n";
 
@@ -188,7 +188,7 @@ void Utils::prettyPrint(BoundNode *node, std::string indent, bool isLast) {
   }
   std::cout << "\n";
   std::vector<BoundNode *> children = node->getChildren();
-  for (int i = 0; i < children.size(); i++) {
+  for (size_t i = 0; i < children.size(); i++) {
     Utils::prettyPrint(children[i], indent, i == children.size() - 1);
   }
 }
@@ -211,13 +211,13 @@ void Utils::prettyPrint(BoundStatement *statement, std::string indent,
 
   std::cout << BLUE_TEXT << indent << RESET
             << BinderKindUtils::to_string(statement->getKind()) << '\n';
-  for (int i = 0; i < statement->getChildren().size(); i++) {
+  for (size_t i = 0; i < statement->getChildren().size(); i++) {
     Utils::prettyPrint(statement->getChildren()[i], indent,
                        i == statement->getChildren().size() - 1);
   }
 }
 
-JSON Utils::outJSON(BoundNode *node, bool isLast) {
+JSON Utils::outJSON(BoundNode *node, [[maybe_unused]] bool isLast) {
   if (!node) {
     return JSON();
   }
@@ -231,7 +231,7 @@ JSON Utils::outJSON(BoundNode *node, bool isLast) {
   }
 
   std::vector<BoundNode *> children = node->getChildren();
-  for (int i = 0; i < children.size(); i++) {
+  for (size_t i = 0; i < children.size(); i++) {
     jsonObject[BinderKindUtils::to_string(node->getKind())].push_back(
         Utils::outJSON(children[i], i == children.size() - 1));
   }
@@ -239,14 +239,14 @@ JSON Utils::outJSON(BoundNode *node, bool isLast) {
   return jsonObject;
 }
 
-JSON Utils::outJSON(BoundStatement *statement, bool isLast) {
+JSON Utils::outJSON(BoundStatement *statement, [[maybe_unused]] bool isLast) {
   if (!statement) {
     return JSON();
   }
 
   JSON jsonObject;
 
-  for (int i = 0; i < statement->getChildren().size(); i++) {
+  for (size_t i = 0; i < statement->getChildren().size(); i++) {
     jsonObject[BinderKindUtils::to_string(statement->getKind())].push_back(
         Utils::outJSON(statement->getChildren()[i],
                        i == statement->getChildren().size() - 1));
@@ -270,7 +270,7 @@ JSON Utils::outJSON(SyntaxNode *node) {
   }
   std::vector<SyntaxNode *> children = node->getChildren();
 
-  for (int i = 0; i < children.size(); i++) {
+  for (size_t i = 0; i < children.size(); i++) {
     jsonObject[SyntaxKindUtils::to_string(node->getKind())].push_back(
         Utils::outJSON(children[i]));
   }
@@ -284,7 +284,7 @@ JSON Utils::outJSON(CompilationUnitSyntax *compilationUnit) {
   }
   JSON jsonObject;
 
-  for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+  for (size_t i = 0; i < compilationUnit->getChildren().size(); i++) {
     jsonObject[SyntaxKindUtils::to_string(compilationUnit->getKind())]
         .push_back(Utils::outJSON(compilationUnit->getChildren()[i]));
   }
@@ -294,8 +294,6 @@ JSON Utils::outJSON(CompilationUnitSyntax *compilationUnit) {
 
 JSON Utils::outJSON(
     const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &tokens) {
-  const int kindTextWidth = 20;
-  const int textWidth = 20;
 
   JSON jsonObject;
 
@@ -333,7 +331,7 @@ std::string Utils::getSourceCode(SyntaxNode *node, bool include) {
       code += "\"" + ((SyntaxToken<std::any> *)node)->getText() + "\" ";
   }
   std::vector<SyntaxNode *> children = node->getChildren();
-  for (int i = 0; i < children.size(); i++) {
+  for (size_t i = 0; i < children.size(); i++) {
     if (children[i]) {
       bool has = include;
 
@@ -372,7 +370,7 @@ std::string Utils::getSourceCode(CompilationUnitSyntax *compilationUnit) {
   }
   std::string code = "";
 
-  for (int i = 0; i < compilationUnit->getChildren().size(); i++) {
+  for (size_t i = 0; i < compilationUnit->getChildren().size(); i++) {
     if (compilationUnit->getChildren()[i])
       code += Utils::getSourceCode(
           compilationUnit->getChildren()[i],
@@ -410,17 +408,6 @@ void Utils::printErrors(const std::vector<std::string> &errors,
     else
       outputStream << RED_TEXT << error << RESET << "\n";
   }
-}
-
-const std::string Utils::concatErrors(const std::vector<std::string> &errors,
-                                      std::ostream &outputStream,
-                                      bool isWarning) {
-  std::string res = "";
-
-  for (const std::string &error : errors) {
-    res += error + "\n";
-  }
-  return res;
 }
 
 std::string Utils::getAbsoluteFilePath(std::string relativeFilePath) {
@@ -532,7 +519,7 @@ Utils::type Utils::toContainerElementType(Utils::type containerType) {
   }
 }
 
-auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> const bool {
+auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> bool {
   switch (type) {
   case Utils::type::INT8:
   case Utils::type::INT16:
@@ -547,22 +534,22 @@ auto Utils::isStaticTypedPrimitiveType(Utils::type type) -> const bool {
     return false;
   }
 }
-auto Utils::isDynamicTypedPrimitiveType(Utils::type type) -> const bool {
+auto Utils::isDynamicTypedPrimitiveType(Utils::type type) -> bool {
   return type == Utils::type::UNKNOWN;
 }
 
-auto Utils::isContainerType(Utils::type type) -> const bool {
+auto Utils::isContainerType(Utils::type type) -> bool {
   return isStaticTypedContainerType(type) || isDynamicTypedContainerType(type);
 }
 
-auto Utils::isStaticTypedType(Utils::type type) -> const bool {
+auto Utils::isStaticTypedType(Utils::type type) -> bool {
   return isStaticTypedPrimitiveType(type) || isStaticTypedContainerType(type);
 }
-auto Utils::isDynamicTypedType(Utils::type type) -> const bool {
+auto Utils::isDynamicTypedType(Utils::type type) -> bool {
   return isDynamicTypedPrimitiveType(type) || isDynamicTypedContainerType(type);
 }
 
-auto Utils::isStaticTypedContainerType(Utils::type type) -> const bool {
+auto Utils::isStaticTypedContainerType(Utils::type type) -> bool {
   switch (type) {
   case Utils::type::INT8_CONTAINER:
   case Utils::type::INT16_CONTAINER:
@@ -578,7 +565,7 @@ auto Utils::isStaticTypedContainerType(Utils::type type) -> const bool {
   return false;
 }
 
-auto Utils::isDynamicTypedContainerType(Utils::type type) -> const bool {
+auto Utils::isDynamicTypedContainerType(Utils::type type) -> bool {
   return type == Utils::type::UNKNOWN_CONTAINER;
 }
 
@@ -750,11 +737,6 @@ void Utils::logJSON(JSON &jsonObject, std::string filePath) {
   } else {
     Utils::print_log("Could not open output.json for writing\n", ERROR_COLOR);
   }
-}
-
-const std::string Utils::getRelativePath(const std::string &filePath) {
-  std::filesystem::path path(filePath);
-  return path.relative_path().string();
 }
 
 auto Utils::isSyntaxToken(SyntaxNode *node) -> bool {

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "VariableExpressionGenerationStrategy.h"
 
 VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
@@ -25,7 +24,7 @@ VariableExpressionGenerationStrategy::VariableExpressionGenerationStrategy(
     : ExpressionGenerationStrategy(context) {}
 
 llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
-    llvm::Value *variableValue, llvm::Value *v,
+    [[maybe_unused]] llvm::Value *variableValue, llvm::Value *v,
     const std::string &variableName) {
   return _codeGenerationContext->getDynamicType()->getMemberValueOfDynVar(
       v, variableName);
@@ -177,7 +176,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == -1) {
+      if (atIndex == static_cast<size_t>(-1)) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in variable expression Expected to be a member of "
@@ -384,7 +383,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       itsClass ? classObj->getKeyValue(dotPropertyName)
                : boundCustomTypeStatement->getKeyValue(dotPropertyName);
 
-  if (atIndex == -1) {
+  if (atIndex == static_cast<size_t>(-1)) {
     _codeGenerationContext->getLogger()->LogError(
         "Property " + dotPropertyName + " does not exist in " +
         (listIndex == 0 ? (itsClass ? "class object " : "variable ")

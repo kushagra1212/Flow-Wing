@@ -94,9 +94,6 @@ void logJSON(JSON &jsonObject, std::string filePath);
 
 const std::string getFileName(const std::string &filePath);
 
-const std::string concatErrors(const std::vector<std::string> &errors,
-                               std::ostream &outputStream,
-                               bool isWarning = false);
 auto getStrongRandomString() -> std::string;
 std::string generateUniqueString();
 std::string getTypeString(const std::any &value);
@@ -107,14 +104,14 @@ std::string CE(const std::string &str);
 
 Utils::type toContainerType(Utils::type type);
 Utils::type toContainerElementType(Utils::type type);
-auto isContainerType(Utils::type type) -> const bool;
-auto isStaticTypedContainerType(Utils::type type) -> const bool;
-auto isDynamicTypedContainerType(Utils::type type) -> const bool;
-auto isStaticTypedPrimitiveType(Utils::type type) -> const bool;
-auto isDynamicTypedPrimitiveType(Utils::type type) -> const bool;
+auto isContainerType(Utils::type type) -> bool;
+auto isStaticTypedContainerType(Utils::type type) -> bool;
+auto isDynamicTypedContainerType(Utils::type type) -> bool;
+auto isStaticTypedPrimitiveType(Utils::type type) -> bool;
+auto isDynamicTypedPrimitiveType(Utils::type type) -> bool;
 
-auto isStaticTypedType(Utils::type type) -> const bool;
-auto isDynamicTypedType(Utils::type type) -> const bool;
+auto isStaticTypedType(Utils::type type) -> bool;
+auto isDynamicTypedType(Utils::type type) -> bool;
 
 auto getFileContent(const std::string &filePath) -> std::string;
 auto getSourceCodeFromFilePath(const std::string &filePath)
@@ -174,7 +171,6 @@ const std::string removeExtensionFromString(const std::string &filePath);
 DiagnosticUtils::SourceLocation getSourceLocation(SyntaxToken<std::any> *token);
 
 const std::string getNameExtension(const std::string &filePath);
-const std::string getRelativePath(const std::string &filePath);
 struct Variable {
   Utils::type type;
   std::any value;

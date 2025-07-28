@@ -32,7 +32,7 @@ IndexExpressionSyntax::getIndexIdentifierExpressionRef() {
   return this->_identifierExpression;
 }
 
-const SyntaxKindUtils::SyntaxKind IndexExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind IndexExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IndexExpression;
 }
 const std::vector<SyntaxNode *> &IndexExpressionSyntax::getChildren() {

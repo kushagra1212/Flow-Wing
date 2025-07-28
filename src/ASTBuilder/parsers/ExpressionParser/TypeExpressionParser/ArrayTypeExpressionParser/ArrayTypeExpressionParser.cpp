@@ -43,7 +43,7 @@ ArrayTypeExpressionParser::parseExpression(ParserContext *ctx) {
       ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
       ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     std::unique_ptr<SyntaxToken<std::any>> iden =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
@@ -66,23 +66,23 @@ ArrayTypeExpressionParser::parseExpression(ParserContext *ctx) {
     arrayTypeExpression->setNonTrivialElementType(std::move(objectType));
   } else if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
     arrayTypeExpression->setNonTrivialElementType(
-        std::move(std::unique_ptr<ObjectTypeExpressionSyntax>(
+        std::unique_ptr<ObjectTypeExpressionSyntax>(
             (static_cast<ObjectTypeExpressionSyntax *>(
                 std::make_unique<ObjectTypeExpressionParser>()
                     ->parseExpression(ctx)
-                    .release())))));
+                    .release()))));
 
   } else {
-    arrayTypeExpression->setElementType(std::move(
+    arrayTypeExpression->setElementType(
         std::make_unique<PrimitiveTypeExpressionParser>()->parseExpression(
-            ctx)));
+            ctx));
   }
 
   while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken) {
     ctx->match(SyntaxKindUtils::SyntaxKind::OpenBracketToken);
 
     std::unique_ptr<SyntaxToken<std::any>> numToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::NumberToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::NumberToken);
 
     std::any value = numToken->getValue();
 
@@ -93,5 +93,5 @@ ArrayTypeExpressionParser::parseExpression(ParserContext *ctx) {
     ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken);
   }
 
-  return std::move(arrayTypeExpression);
+  return arrayTypeExpression;
 }

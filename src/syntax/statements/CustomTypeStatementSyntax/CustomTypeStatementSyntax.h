@@ -32,8 +32,8 @@ private:
   std::unique_ptr<SyntaxToken<std::any>> _exposeKeyword;
 
 public:
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   /*

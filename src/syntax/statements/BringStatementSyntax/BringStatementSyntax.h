@@ -63,7 +63,7 @@ public:
 
   const std::string &getAbsoluteFilePath() const;
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
@@ -75,7 +75,7 @@ public:
     _moduleName = moduleName;
   }
 
-  const bool getIsChoosyImportPtr();
+  bool getIsChoosyImportPtr();
   const std::string &getAbsoluteFilePathPtr();
   std::unique_ptr<FlowWing::DiagnosticHandler> &getDiagnosticHandlerPtr();
   const std::string &getRelativeFilePathPtr();

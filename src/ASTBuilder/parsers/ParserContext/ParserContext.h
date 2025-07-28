@@ -68,11 +68,11 @@ public:
   //? Getters
   const std::string &getCurrentModuleName();
   FlowWing::DiagnosticHandler *getDiagnosticHandler();
-  const bool getIsInsideCallExpression() const;
-  const bool getIsInsideIndexExpression() const;
-  const bool getIsInsideContainerExpression() const;
-  const bool getIsInsideReturnStatement() const;
-  const int8_t getDependencyFileCount(const std::string &path);
+  bool getIsInsideCallExpression() const;
+  bool getIsInsideIndexExpression() const;
+  bool getIsInsideContainerExpression() const;
+  bool getIsInsideReturnStatement() const;
+  int8_t getDependencyFileCount(const std::string &path);
   const std::vector<std::unique_ptr<SyntaxToken<std::any>>> &getTokenListRef();
 
   //? Setters

@@ -17,14 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FloatTypeConverter.h"
 
 FloatTypeConverter::FloatTypeConverter(CodeGenerationContext *context)
-    : TypeConverterBase(context){};
+    : TypeConverterBase(context) {};
 
 llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());
@@ -62,7 +60,6 @@ llvm::Value *FloatTypeConverter::convertExplicit(llvm::Value *&value) {
 }
 
 llvm::Value *FloatTypeConverter::convertImplicit(llvm::Value *&value) {
-  llvm::Value *res = nullptr;
 
   SyntaxKindUtils::SyntaxKind type =
       this->_mapper->mapLLVMTypeToCustomType(value->getType());

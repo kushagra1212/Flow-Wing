@@ -51,7 +51,7 @@ std::unique_ptr<SyntaxToken<std::any>> OrIfStatementSyntax::getOrKeyword() {
   return std::move(orKeyword);
 }
 
-const SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind OrIfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::OrIfStatement;
 }
 

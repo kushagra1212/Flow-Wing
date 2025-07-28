@@ -37,7 +37,7 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
   VariableExpressionSyntax *variableExpressionSyntax =
       static_cast<VariableExpressionSyntax *>(expression);
 
-  DEBUG_LOG("Checking out variable " +
+  DEBUG_LOG("Checking out variable ",
             variableExpressionSyntax->getVariableName());
 
   BoundVariableDeclaration *variable = ctx->getRootRef()->tryGetVariable(
@@ -170,8 +170,8 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
       for (const auto &indexExp : indexExpression->getIndexExpressionsRef()) {
         localBoundIndexExp->addBoundIndexExpression(
-            std::move(ExpressionBinderFactory::create(indexExp->getKind())
-                          ->bindExpression(ctx, indexExp.get())));
+            (ExpressionBinderFactory::create(indexExp->getKind())
+                 ->bindExpression(ctx, indexExp.get())));
       }
       boundVariableExpression->addDotExpression(std::move(localBoundIndexExp));
     } else {
@@ -190,12 +190,12 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
         }
 
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(callExpression->getKind())
-                          ->bindExpression(ctx, callExpression)));
+            (ExpressionBinderFactory::create(callExpression->getKind())
+                 ->bindExpression(ctx, callExpression)));
       } else {
         std::unique_ptr<BoundExpression> localBoundExpression =
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get()));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get()));
 
         if (!classNameVariableBelongsTo.empty()) {
           BoundClassStatement *boundClassStatement =
@@ -225,8 +225,8 @@ VariableExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
           }
         }
         boundVariableExpression->addDotExpression(
-            std::move(ExpressionBinderFactory::create(dotExpression->getKind())
-                          ->bindExpression(ctx, dotExpression.get())));
+            (ExpressionBinderFactory::create(dotExpression->getKind())
+                 ->bindExpression(ctx, dotExpression.get())));
       }
     }
     DEBUG_LOG("classNameVariableBelongsTo: ", classNameVariableBelongsTo);

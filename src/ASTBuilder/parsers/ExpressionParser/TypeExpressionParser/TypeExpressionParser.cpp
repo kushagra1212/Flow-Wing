@@ -34,14 +34,13 @@ TypeExpressionParser::parseExpression(ParserContext *ctx) {
        ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
        ctx->peek(4)->getKind() ==
            SyntaxKindUtils::SyntaxKind::OpenBracketToken)) {
-    return std::move(
-        std::make_unique<ArrayTypeExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<ArrayTypeExpressionParser>()->parseExpression(ctx);
   }
 
   if (ctx->peek(1)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken &&
       ctx->peek(2)->getKind() == SyntaxKindUtils::SyntaxKind::ColonToken) {
     std::unique_ptr<SyntaxToken<std::any>> iden =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
     ctx->match(SyntaxKindUtils::SyntaxKind::ColonToken);
@@ -62,19 +61,18 @@ TypeExpressionParser::parseExpression(ParserContext *ctx) {
         (iden->getText()) + FLOWWING::UTILS::CONSTANTS::MODULE_PREFIX +
         (objectType->getObjectTypeIdentifierRef()->getTokenPtr()->getText()));
 
-    return std::move(objectType);
+    return objectType;
   }
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::OpenBracketToken &&
       ctx->peek(1)->getKind() ==
           SyntaxKindUtils::SyntaxKind::OpenParenthesisToken) {
-    return std::move(
-        std::make_unique<FunctionTypeExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<FunctionTypeExpressionParser>()->parseExpression(
+        ctx);
   }
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::IdentifierToken) {
-    return std::move(
-        std::make_unique<ObjectTypeExpressionParser>()->parseExpression(ctx));
+    return std::make_unique<ObjectTypeExpressionParser>()->parseExpression(ctx);
   }
 
   return std::make_unique<TypeExpressionSyntax>(

@@ -23,7 +23,7 @@
 
 MultipleAssignmentExpressionSyntax::MultipleAssignmentExpressionSyntax() {}
 
-const SyntaxKindUtils::SyntaxKind
+SyntaxKindUtils::SyntaxKind
 MultipleAssignmentExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::MultipleAssignmentExpression;
 }

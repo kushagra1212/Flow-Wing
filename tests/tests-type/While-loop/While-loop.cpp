@@ -17,10 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "While-loop.h"
 
-WhileLoop::WhileLoop() { _test = std::move(Tests::FlowWing::getTest()); }
+WhileLoop::WhileLoop() { _test = (Tests::FlowWing::getTest()); }
 
 void WhileLoop::SetUp() { _test->SetUp(); }
 

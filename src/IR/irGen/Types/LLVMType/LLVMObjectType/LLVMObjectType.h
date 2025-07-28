@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/DerivedTypes.h>
+#pragma clang diagnostic pop
 
 #include "src/IR/irGen/Types/LLVMType/LLVMType.h"
 
@@ -28,7 +30,9 @@ class LLVMObjectType : public LLVMType {
 public:
   LLVMObjectType(llvm::Type *type, llvm::StructType *structType);
 
-  virtual inline const bool isPointerToObject() const override { return true; }
+  virtual ~LLVMObjectType() = default;
+
+  virtual inline bool isPointerToObject() const override { return true; }
 
   inline llvm::StructType *getStructType() const { return _structType; }
 
@@ -37,6 +41,5 @@ public:
   }
 
 private:
-  llvm::Type *_type;
   llvm::StructType *_structType;
 };

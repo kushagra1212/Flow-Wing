@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ContainerExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -81,7 +80,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
   return createExpression(arrayType, _allocaInst, containerExpression);
 }
 
-const bool ContainerExpressionGenerationStrategy::canGenerateExpression(
+bool ContainerExpressionGenerationStrategy::canGenerateExpression(
     BoundContainerExpression *containerExpression) {
 
   _sizeToFill = containerExpression->getElementsRef().size();

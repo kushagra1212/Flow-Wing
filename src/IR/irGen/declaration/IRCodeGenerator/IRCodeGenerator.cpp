@@ -17,31 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IRCodeGenerator.h"
 
 IRCodeGenerator::IRCodeGenerator(CodeGenerationContext *context)
     : _variableDeclarationStatementGenerationStrategy(
           std::make_unique<VariableDeclarationStatementGenerationStrategy>(
               context)),
-      _callExpressionGenerationStrategy(
-          std::make_unique<CallExpressionGenerationStrategy>(context)),
+      _multipleVariableDeclarationStatementGenerationStrategy(
+          std::make_unique<
+              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
       _customTypeStatementGenerationStrategy(
           std::make_unique<CustomTypeStatementGenerationStrategy>(context)),
       _classStatementGenerationStrategy(
           std::make_unique<ClassStatementGenerationStrategy>(context)),
-      _multipleVariableDeclarationStatementGenerationStrategy(
-          std::make_unique<
-              MultipleVariableDeclarationStatementGenerationStrategy>(context)),
-      _multipleAssignmentExpressionGenerationStrategy(
-          std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
-              context)),
+      _callExpressionGenerationStrategy(
+          std::make_unique<CallExpressionGenerationStrategy>(context)),
       _assignmentExpressionGenerationStrategy(
           std::make_unique<AssignmentExpressionGenerationStrategy>(context)),
       _binaryExpressionGenerationStrategy(
           std::make_unique<BinaryExpressionGenerationStrategy>(context)),
       _unaryExpressionGenerationStrategy(
           std::make_unique<UnaryExpressionGenerationStrategy>(context)),
+      _multipleAssignmentExpressionGenerationStrategy(
+          std::make_unique<MultipleAssignmentExpressionGenerationStrategy>(
+              context)),
       _codeGenerationContext(context) {}
 
 void IRCodeGenerator::processChildForDeclaration(BoundNode *child,

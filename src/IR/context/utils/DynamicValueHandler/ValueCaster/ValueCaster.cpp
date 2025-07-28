@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
-
 #include "ValueCaster.h"
 
 namespace DYNAMIC_VALUE_HANDLER {
@@ -90,7 +87,8 @@ llvm::Value *toDouble(llvm::Value *value, CodeGenerationContext *context,
       value, llvm::Type::getDoubleTy(*context->getContext()));
 }
 
-llvm::Value *toBoolean(llvm::Value *value, CodeGenerationContext *context,
+llvm::Value *toBoolean(llvm::Value *value,
+                       [[maybe_unused]] CodeGenerationContext *_,
                        llvm::IRBuilder<> *&Builder) {
   return Builder->CreateICmpNE(value,
                                llvm::ConstantInt::get(value->getType(), 0));
@@ -102,8 +100,10 @@ llvm::Value *toInt8(llvm::Value *value, CodeGenerationContext *context,
       value, llvm::Type::getInt8Ty(*context->getContext()), true, "int8Value");
 }
 
-llvm::Value *toNirast(llvm::Value *value, CodeGenerationContext *context,
-                      llvm::IRBuilder<> *&Builder) {
+llvm::Value *toNirast([[maybe_unused]] llvm::Value *_,
+                      CodeGenerationContext *context,
+                      [[maybe_unused]] llvm::IRBuilder<> *&Builder) {
+
   return llvm::ConstantPointerNull::get(
       llvm::Type::getInt8PtrTy(*context->getContext()));
 }

@@ -26,6 +26,6 @@ class ExpressionSyntax;
 class PrecedenceAwareExpressionParser {
 
 public:
-  static std::unique_ptr<ExpressionSyntax>
-  parse(ParserContext *ctx, const int &parentPrecedence = 0);
+  static std::unique_ptr<ExpressionSyntax> parse(ParserContext *ctx,
+                                                 int parentPrecedence = 0);
 };

@@ -21,9 +21,13 @@
 #include "src/IR/logger/LLVMLogger.h"
 #include "src/utils/Utils.h"
 #include <iostream>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Transforms/Utils/Cloning.h>
+#pragma clang diagnostic pop
 
 BCFileSaveStrategy::BCFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;

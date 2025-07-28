@@ -19,7 +19,10 @@
 
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "src/external/include/json.hpp"
+#pragma clang diagnostic pop
 #include <sstream>
 
 using JSON = nlohmann::json;

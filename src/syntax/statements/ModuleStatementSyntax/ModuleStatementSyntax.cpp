@@ -22,7 +22,7 @@
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxToken.h"
 
-const SyntaxKindUtils::SyntaxKind ModuleStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ModuleStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ModuleStatement;
 }
 

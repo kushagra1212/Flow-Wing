@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ObjectAssignmentExpressionGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/AssignmentExpressionGenerationStrategy/AssignmentExpressionGenerationStrategy.h"
@@ -27,7 +26,7 @@ ObjectAssignmentExpressionGenerationStrategy::
     : ExpressionGenerationStrategy(context) {}
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::generateExpression(
-    BoundExpression *expression) {
+    [[maybe_unused]] BoundExpression *expression) {
   return nullptr;
 }
 
@@ -78,7 +77,7 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::copyObject(
 
 llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
     BoundObjectExpression *parObjectExpression, llvm::Value *variable,
-    llvm::StructType *parStructType, std::string lhsVarName) {
+    llvm::StructType *parStructType, [[maybe_unused]] std::string lhsVarName) {
 
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       parObjectExpression->getLocation());

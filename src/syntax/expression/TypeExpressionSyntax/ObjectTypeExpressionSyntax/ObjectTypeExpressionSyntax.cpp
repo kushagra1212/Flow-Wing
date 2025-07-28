@@ -25,7 +25,7 @@ ObjectTypeExpressionSyntax::ObjectTypeExpressionSyntax(
     std::unique_ptr<SyntaxToken<std::any>> type)
     : TypeExpressionSyntax(std::move(type)) {}
 
-const SyntaxKindUtils::SyntaxKind ObjectTypeExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ObjectTypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ObjectTypeExpression;
 }
 

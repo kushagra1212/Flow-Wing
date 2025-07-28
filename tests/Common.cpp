@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "Common.h"
 namespace Tests {
 namespace FlowWing {
@@ -35,7 +34,7 @@ std::unique_ptr<BaseTest> getTest() {
   _test = std::make_unique<ReplTest>();
 #endif
 
-  return std::move(_test);
+  return (_test);
 }
 } // namespace FlowWing
 } // namespace Tests

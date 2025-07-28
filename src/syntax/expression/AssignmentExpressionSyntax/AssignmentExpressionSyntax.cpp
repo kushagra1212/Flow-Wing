@@ -30,7 +30,7 @@ AssignmentExpressionSyntax::AssignmentExpressionSyntax(
       _operatorTokenKind(operatorToken),
       _needDefaultInitialize(needDefaultInitialize) {}
 
-const SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind AssignmentExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::AssignmentExpression;
 }
 

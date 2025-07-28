@@ -17,9 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#include "IRParser/IRParser.h"
+#include "irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/IR/context/CodeGenerationContext.h"
 #include "src/IR/declarations/FunctionDeclarationManager/FunctionDeclarationManager.h"
@@ -53,14 +54,14 @@
 #include "src/compiler/AOTCompiler/ObjectFile/ObjectFile.h"
 #include "src/syntax/CompilationUnitSyntax.h"
 #include "src/utils/Utils.h"
-#include "IRParser/IRParser.h"
-#include "irGen/declaration/IRCodeGenerator/IRCodeGenerator.h"
 #include "utils/fileSaver/bc-file/BCFileSaveStrategy.h"
 #include "utils/fileSaver/ll-file/LLFileSaveStrategy.h"
 #include "utils/fileSaver/o-file/OFileSaveStrategy.h"
 
 using namespace FLOWWING::IR::CONSTANTS;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 // LLVM Imports
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/StringRef.h>
@@ -106,14 +107,14 @@ using namespace FLOWWING::IR::CONSTANTS;
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
 #include <llvm/Linker/Linker.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/SourceMgr.h>
-#
+
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
+#pragma clang diagnostic pop
 
 #include <sstream>
 
@@ -136,7 +137,7 @@ public:
 
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
-  const int32_t hasErrors() const;
+  int32_t hasErrors() const;
 
 private:
   llvm::LLVMContext *TheContext;
@@ -149,7 +150,6 @@ private:
 
   std::unique_ptr<IRParser> _irParser;
 
-  int showNewLineForRepl = 0;
   int _moduleCount = 0;
   int _environment;
 

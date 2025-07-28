@@ -39,7 +39,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       variableDeclaration->getIdentifierRef()->getValue());
   bool isConst = false;
 
-  DEBUG_LOG("Declaring variable " + variable_str);
+  DEBUG_LOG("Declaring variable ", variable_str);
 
   if (variableDeclaration->getKeywordRef()) {
     isConst = variableDeclaration->getKeywordRef()->getKind() ==
@@ -79,7 +79,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       BoundObjectTypeExpression *objectTypeExpression =
           static_cast<BoundObjectTypeExpression *>(boundTypeExpression.get());
 
-      DEBUG_LOG("TNAME " + objectTypeExpression->getTypeName());
+      DEBUG_LOG("TNAME ", objectTypeExpression->getTypeName());
 
       //! This Handles when the Type is Class Type in that Case Since we are
       //! only receiving class Name not the type along with Module name e.g A
@@ -102,7 +102,7 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       if (boundClassStatement) {
         _className = boundClassStatement->getClassName();
       }
-      DEBUG_LOG("CN " + _className);
+      DEBUG_LOG("CN ", _className);
     }
 
     variable->setTypeExpression(std::move(boundTypeExpression));
@@ -113,10 +113,10 @@ VariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
 
   if (variableDeclaration->getInitializerRef()) {
     std::unique_ptr<BoundExpression> boundInitializerExpression =
-        std::move(ExpressionBinderFactory::create(
-                      variableDeclaration->getInitializerRef()->getKind())
-                      ->bindExpression(
-                          ctx, variableDeclaration->getInitializerRef().get()));
+        (ExpressionBinderFactory::create(
+             variableDeclaration->getInitializerRef()->getKind())
+             ->bindExpression(ctx,
+                              variableDeclaration->getInitializerRef().get()));
 
     variable->setInitializer(std::move(boundInitializerExpression));
   }

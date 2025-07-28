@@ -30,10 +30,9 @@ private:
   bool _isTrivial = false;
 
 public:
-  const virtual SyntaxKindUtils::SyntaxKind getKind() const override;
-  const virtual std::vector<SyntaxNode *> &getChildren() override;
-  const virtual DiagnosticUtils::SourceLocation
-  getSourceLocation() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
+  const std::vector<SyntaxNode *> &getChildren() override;
+  const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   ArrayTypeExpressionSyntax(std::unique_ptr<SyntaxToken<std::any>> type);
 

@@ -44,7 +44,7 @@ std::unique_ptr<ExpressionSyntax> BinaryExpressionSyntax::getRight() {
   return std::move(this->_right);
 }
 
-const SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BinaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BinaryExpression;
 }
 

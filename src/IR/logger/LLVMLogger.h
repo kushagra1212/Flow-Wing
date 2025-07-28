@@ -22,8 +22,13 @@
 #include "src/diagnostics/Diagnostic/DiagnosticCode.h"
 #include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/SourceMgr.h"
+#pragma clang diagnostic pop
+
 namespace FlowWing {
 class DiagnosticHandler;
 }
@@ -59,7 +64,7 @@ public:
 
   DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
 
-  const unsigned int getErrorCount() const;
+  unsigned int getErrorCount() const;
 
   auto increaseErrorCount() -> void;
 

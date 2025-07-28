@@ -26,7 +26,7 @@
 
 */
 
-const SyntaxKindUtils::SyntaxKind FillExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind FillExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::FillExpression;
 }
 

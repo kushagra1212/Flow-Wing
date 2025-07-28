@@ -17,12 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "ReplTest.h"
 
 ReplTest::ReplTest() { repl = std::make_unique<Repl>(); }
 
-void ReplTest::SetUp() {
+void ReplTest::SetUp([[maybe_unused]] bool captureStderr) {
   saved_cout_buf = std::cout.rdbuf(output_stream.rdbuf());
 }
 void ReplTest::TearDown() { std::cout.rdbuf(saved_cout_buf); }
@@ -30,7 +29,10 @@ void ReplTest::TearDown() { std::cout.rdbuf(saved_cout_buf); }
 void ReplTest::setInput(const std::string &input) { input_stream.str(input); }
 
 std::string ReplTest::getOutput() const { return output_stream.str(); }
-void ReplTest::runEvaluator() { repl->runTests(input_stream, output_stream); }
+void ReplTest::runEvaluator(std::istream &inputStream,
+                            std::ostream &outputStream) {
+  repl->runTests(inputStream, outputStream);
+}
 
 #ifdef REPL_TEST_MODE
 

@@ -38,27 +38,28 @@ ForStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   ctx->getRootRef()->makeBreakableAndContinuable();
 
-  std::unique_ptr<BoundStatement> boundIntializer = std::move(
-      StatementBinderFactory::create(
-          forStatement->getInitializationRef()->getKind())
-          ->bindStatement(ctx, forStatement->getInitializationRef().get()));
+  std::unique_ptr<BoundStatement> boundIntializer =
+      (StatementBinderFactory::create(
+           forStatement->getInitializationRef()->getKind())
+           ->bindStatement(ctx, forStatement->getInitializationRef().get()));
 
-  std::unique_ptr<BoundExpression> boundUpperBound = std::move(
-      ExpressionBinderFactory::create(
-          forStatement->getUpperBoundRef()->getKind())
-          ->bindExpression(ctx, forStatement->getUpperBoundRef().get()));
+  std::unique_ptr<BoundExpression> boundUpperBound =
+      (ExpressionBinderFactory::create(
+           forStatement->getUpperBoundRef()->getKind())
+           ->bindExpression(ctx, forStatement->getUpperBoundRef().get()));
 
   std::unique_ptr<BoundExpression> boundStepExpression = nullptr;
 
   if (forStatement->getStepExpressionRef().get())
-    boundStepExpression = std::move(
-        ExpressionBinderFactory::create(
-            forStatement->getStepExpressionRef()->getKind())
-            ->bindExpression(ctx, forStatement->getStepExpressionRef().get()));
+    boundStepExpression =
+        (ExpressionBinderFactory::create(
+             forStatement->getStepExpressionRef()->getKind())
+             ->bindExpression(ctx, forStatement->getStepExpressionRef().get()));
 
-  std::unique_ptr<BoundStatement> boundBody = std::move(
-      StatementBinderFactory::create(forStatement->getStatementRef()->getKind())
-          ->bindStatement(ctx, forStatement->getStatementRef().get()));
+  std::unique_ptr<BoundStatement> boundBody =
+      (StatementBinderFactory::create(
+           forStatement->getStatementRef()->getKind())
+           ->bindStatement(ctx, forStatement->getStatementRef().get()));
 
   ctx->removeScope();
 

@@ -55,7 +55,8 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
 
   llvm::Value *ptr = nullptr;
 
-  DEBUG_LOG("Declaring Object: " + structType->getStructName().str());
+  DEBUG_LOG("Object Declaration Statement",
+            "Declaring Object: " + structType->getStructName().str());
 
   if (_codeGenerationContext->isValidClassType(structType)) {
 
@@ -117,7 +118,8 @@ llvm::Value *ObjectDeclarationStatementGenerationStrategy::declare() {
     }
   }
 
-  CODEGEN_DEBUG_LOG("Declared Object: " + _variableName);
+  CODEGEN_DEBUG_LOG("Object Declaration Statement",
+                    "Declared Object: " + _variableName);
   return nullptr;
 }
 

@@ -685,7 +685,7 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
 
   std::string var_value = std::any_cast<std::string>(value);
 
-  if (index_value < 0 || index_value >= var_value.length()) {
+  if (index_value < 0 || index_value >= static_cast<int>(var_value.length())) {
     this->_interpreterUtils->logError("Index out of bound");
     return nullptr;
   }
@@ -762,7 +762,7 @@ template <typename T> T Interpreter::evaluate(BoundExpression *node) {
 
       this->return_type_stack.push({returnTypeExpression->getSyntaxType(), 0});
 
-      for (int i = 0; i < arguments_size; i++) {
+      for (size_t i = 0; i < arguments_size; i++) {
         std::any value = this->evaluate<std::any>(
             callExpression->getArgumentsRef()[i].get());
 

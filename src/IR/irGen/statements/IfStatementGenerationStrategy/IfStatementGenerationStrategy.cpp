@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "IfStatementGenerationStrategy.h"
 
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
@@ -85,14 +84,14 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
 
   std::vector<llvm::BasicBlock *> orIfBlock;
 
-  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+  for (size_t i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfBlock.push_back(llvm::BasicBlock::Create(
         *TheContext, "orIf" + std::to_string(i), function));
   }
 
   std::vector<llvm::BasicBlock *> orIfThenBlocks;
 
-  for (int i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
+  for (size_t i = 0; i < ifStatement->getOrIfStatementsPtr().size(); i++) {
     orIfThenBlocks.push_back(llvm::BasicBlock::Create(
         *TheContext, "orIfThen" + std::to_string(i), function));
   }
@@ -111,7 +110,7 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
                           thenBlock, elseBlock);
   }
 
-  for (int i = 0; i < orIfBlock.size(); i++) {
+  for (size_t i = 0; i < orIfBlock.size(); i++) {
     Builder->SetInsertPoint(orIfBlock[i]);
 
     BoundExpression *conditionExp =
@@ -176,29 +175,25 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   Builder->SetInsertPoint(thenBlock);
 
   BoundStatement *thenStat = ifStatement->getThenStatementPtr().get();
-  llvm::Value *thenValue =
-      _statementGenerationFactory->createStrategy(thenStat->getKind())
-          ->generateStatement(thenStat);
 
-  if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-    thenValue = Builder->CreateLoad(
-        _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-        _codeGenerationContext->getValueStackHandler()->getValue());
-    _codeGenerationContext->getValueStackHandler()->popAll();
-  }
+  _statementGenerationFactory->createStrategy(thenStat->getKind())
+      ->generateStatement(thenStat);
+
+  _codeGenerationContext->getValueStackHandler()->popAll();
 
   Builder->CreateBr(afterIfElse);
 
   // Or If Then Block
 
-  for (int i = 0; i < orIfThenBlocks.size(); i++) {
+  for (size_t i = 0; i < orIfThenBlocks.size(); i++) {
     Builder->SetInsertPoint(orIfThenBlocks[i]);
 
     BoundStatement *ofIfThenStat =
         ifStatement->getOrIfStatementsPtr()[i]->getThenStatementPtr().get();
-    llvm::Value *orIfThenValue =
-        _statementGenerationFactory->createStrategy(ofIfThenStat->getKind())
-            ->generateStatement(ofIfThenStat);
+
+    _statementGenerationFactory->createStrategy(ofIfThenStat->getKind())
+        ->generateStatement(ofIfThenStat);
+    _codeGenerationContext->getValueStackHandler()->popAll();
 
     Builder->CreateBr(afterIfElse);
   }
@@ -209,16 +204,10 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
   BoundStatement *elseStat = ifStatement->getElseStatementPtr().get();
 
   if (elseStat) {
-    llvm::Value *elseValue =
-        _statementGenerationFactory->createStrategy(elseStat->getKind())
-            ->generateStatement(elseStat);
+    _statementGenerationFactory->createStrategy(elseStat->getKind())
+        ->generateStatement(elseStat);
 
-    if (_codeGenerationContext->getValueStackHandler()->isPrimaryType()) {
-      elseValue = Builder->CreateLoad(
-          _codeGenerationContext->getValueStackHandler()->getLLVMType(),
-          _codeGenerationContext->getValueStackHandler()->getValue());
-      _codeGenerationContext->getValueStackHandler()->popAll();
-    }
+    _codeGenerationContext->getValueStackHandler()->popAll();
   }
 
   Builder->CreateBr(afterIfElse);

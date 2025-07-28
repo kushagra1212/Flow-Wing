@@ -31,21 +31,21 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
       std::make_unique<FunctionDeclarationSyntax>();
 
   functionDeclaration->setIdentifierToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
 
   functionDeclaration->setOpenParenthesisToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenParenthesisToken));
 
   while (ctx->getKind() != SyntaxKindUtils::SyntaxKind::CloseParenthesisToken &&
          ctx->getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
 
-    std::unique_ptr<VariableDeclarationSyntax> parameter = std::move(
-        VariableParserUtils::parseSingleVariableDeclaration(ctx, true));
+    std::unique_ptr<VariableDeclarationSyntax> parameter =
+        VariableParserUtils::parseSingleVariableDeclaration(ctx, true);
 
     functionDeclaration->addParameter(std::move(parameter));
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
       functionDeclaration->addSeparator(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
+          ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
   }
@@ -55,8 +55,8 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
           ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
           SyntaxKindUtils::SyntaxKind::StrKeyword, 0, "str", "str")));
 
-  functionDeclaration->setCloseParenthesisToken(std::move(
-      ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken)));
+  functionDeclaration->setCloseParenthesisToken(
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseParenthesisToken));
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   ctx->match(SyntaxKindUtils::SyntaxKind::MinusToken);
@@ -65,7 +65,7 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
     functionDeclaration->setAsKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
@@ -75,8 +75,8 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
-    functionDeclaration->addReturnExpression(std::move(
-        std::make_unique<TypeExpressionParser>()->parseExpression(ctx)));
+    functionDeclaration->addReturnExpression(
+        std::make_unique<TypeExpressionParser>()->parseExpression(ctx));
 
   } while (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken);
 
@@ -84,7 +84,7 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::DeclKeyword)
     functionDeclaration->setDeclKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::DeclKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::DeclKeyword));
   else {
     std::unique_ptr<BlockStatementSyntax> body(
         static_cast<BlockStatementSyntax *>(
@@ -98,5 +98,5 @@ FunctionDeclarationParser::parseStatement(ParserContext *ctx) {
   ctx->getCodeFormatterRef()->appendNewLine();
   ctx->getCodeFormatterRef()->appendNewLine();
 
-  return std::move(functionDeclaration);
+  return functionDeclaration;
 }

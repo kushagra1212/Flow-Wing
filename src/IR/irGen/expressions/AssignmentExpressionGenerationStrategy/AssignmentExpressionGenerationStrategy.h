@@ -17,21 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
 #include "src/IR/context/utils/DynamicValueHandler/DynamicValueHandler.h"
 #include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/ContainerAssignmentExpressionGenerationStrategy/ContainerAssignmentExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/ContainerExpressionGenerationStrategy/ContainerExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/NirastExpressionGenerationStrategy/NirastExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/ObjectAssignmentExpressionGenerationStrategy/ObjectAssignmentExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundAssignmentExpression/BoundAssignmentExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundBracketedExpression/BoundBracketedExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundIndexExpression/BoundIndexExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundNirastExpression/BoundNirastExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundObjectExpression/BoundObjectExpression.h"
 
 class AssignmentExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -75,17 +74,13 @@ public:
 
 private:
   std::string _variableName;
-  llvm::Value *_allocaInst = nullptr;
-  llvm::GlobalVariable *_previousGlobalVariable = nullptr;
-  SyntaxKindUtils::SyntaxKind _variableType;
   std::vector<llvm::Value *> _indices;
   BoundVariableExpression *_variableExpression = nullptr;
-  BoundExpression *_rhsExpression = nullptr;
 
   // Complete Assignment
   std::string _lhsVariableName;
-  llvm::Type *_lhsType = nullptr, *_rhsType = nullptr;
-  llvm::Value *_lhsPtr = nullptr, *_rhsPtr = nullptr;
+  llvm::Type *_lhsType = nullptr;
+  llvm::Value *_lhsPtr = nullptr;
   SyntaxKindUtils::SyntaxKind _lhsTypeKind;
 
   int8_t m_isLHSDynamicValue = 0;

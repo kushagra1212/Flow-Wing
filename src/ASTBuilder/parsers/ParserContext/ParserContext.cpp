@@ -46,7 +46,7 @@ ParserContext::~ParserContext() {
 */
 
 SyntaxToken<std::any> *ParserContext::peek(const int &offset) {
-  const int index = _position + offset;
+  size_t index = _position + static_cast<size_t>(offset);
   if (index >= _tokens.size()) {
     return _tokens[_tokens.size() - 1].get();
   }
@@ -94,7 +94,7 @@ ParserContext::match(const SyntaxKindUtils::SyntaxKind &kind) {
   _codeFormatter->append(getCurrent()->getText());
 
   if (getKind() == kind) {
-    return std::move(nextToken());
+    return nextToken();
   }
   _diagnosticHandler->addDiagnostic(Diagnostic(
       DiagnosticUtils::DiagnosticLevel::Error,
@@ -103,7 +103,7 @@ ParserContext::match(const SyntaxKindUtils::SyntaxKind &kind) {
       Utils::getSourceLocation(getCurrent()),
       FLOW_WING::DIAGNOSTIC::DiagnosticCode::UnexpectedToken));
   if (getKind() != SyntaxKindUtils::SyntaxKind::EndOfFileToken) {
-    return std::move(nextToken());
+    return nextToken();
   } else {
 
     return std::make_unique<SyntaxToken<std::any>>(
@@ -140,20 +140,20 @@ FlowWing::DiagnosticHandler *ParserContext::getDiagnosticHandler() {
   return _diagnosticHandler;
 }
 
-const bool ParserContext::getIsInsideCallExpression() const {
+bool ParserContext::getIsInsideCallExpression() const {
   return _isInsideCallExpression;
 }
-const bool ParserContext::getIsInsideIndexExpression() const {
+bool ParserContext::getIsInsideIndexExpression() const {
   return _isInsideIndexExpression;
 }
-const bool ParserContext::getIsInsideContainerExpression() const {
+bool ParserContext::getIsInsideContainerExpression() const {
   return _isInsideContainerExpression;
 }
-const bool ParserContext::getIsInsideReturnStatement() const {
+bool ParserContext::getIsInsideReturnStatement() const {
   return _isInsideReturnStatement;
 }
 
-const int8_t ParserContext::getDependencyFileCount(const std::string &path) {
+int8_t ParserContext::getDependencyFileCount(const std::string &path) {
   return _dependencyPathsMap[path];
 }
 
@@ -197,8 +197,7 @@ void ParserContext::buildTokenList(SourceTokenizer *lexer) {
   bool isEncounteredEndOfLineBefore = false;
 
   do {
-    std::unique_ptr<SyntaxToken<std::any>> token =
-        std::move(lexer->nextToken());
+    std::unique_ptr<SyntaxToken<std::any>> token = lexer->nextToken();
     _kind = token->getKind();
 
     handleDiagnosticsForBadToken(token.get());

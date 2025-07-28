@@ -52,7 +52,7 @@ MultipleVariableDeclarationBinder::bindStatement(SyntaxBinderContext *ctx,
       boundMultipleVariableDeclaration->getVariableDeclarationListRef()[0]
           .get();
 
-  for (auto i = 1;
+  for (size_t i = 1;
        i <
        boundMultipleVariableDeclaration->getVariableDeclarationListRef().size();
        i++) {

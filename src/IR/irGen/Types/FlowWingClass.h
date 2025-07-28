@@ -19,14 +19,16 @@
 
 #pragma once
 
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/IRBuilder.h>
-
 #include "LLVMType/LLVMArrayType/LLVMArrayType.h"
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "src/common/constants/FlowWingUtilsConstants.h"
-#include "llvm/IR/Module.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#include "llvm/IR/Module.h"
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/IRBuilder.h>
+#pragma clang diagnostic pop
 class FlowWingClass {
 private:
   std::string _className;
@@ -184,7 +186,7 @@ public:
   }
 
   inline auto getFunctionPtr(llvm::IRBuilder<> *builder,
-                             llvm::Module *TheModule,
+                             [[maybe_unused]] llvm::Module *_,
                              llvm::LLVMContext *context,
                              std::string functionName, llvm::Value *ptr)
       -> llvm::Value * {

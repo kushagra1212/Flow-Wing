@@ -39,7 +39,7 @@ const std::vector<SyntaxNode *> &ArrayTypeExpressionSyntax::getChildren() {
   return this->_children;
 }
 
-const SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ArrayTypeExpressionSyntax::getKind() const {
   return SyntaxKindUtils::ArrayTypeExpression;
 }
 const DiagnosticUtils::SourceLocation

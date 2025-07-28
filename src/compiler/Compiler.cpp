@@ -63,9 +63,6 @@ void Compiler::compile(std::vector<std::string> &text,
                                    ".tokens.json");
   }
 
-  // parser->setIsFormattedCodeRequired(FlowWing::Cli::isFlag::format() ||
-  //                                    FlowWing::Cli::isFlag::shortFormat());
-
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Lexical)) {
     currentDiagnosticHandler->logDiagnostics(
@@ -78,7 +75,7 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      (parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -106,8 +103,8 @@ void Compiler::compile(std::vector<std::string> &text,
     Utils::logJSON(jsonObject, _outputFilePath);
   }
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(nullptr, compilationUnit.get(),
+                                            currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);
@@ -187,7 +184,8 @@ void Compiler::compile(std::vector<std::string> &text,
   }
 }
 
-void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
+void Compiler::runTests([[maybe_unused]] std::istream &inputStream,
+                        std::ostream &outputStream) {
   std::unique_ptr<FlowWing::DiagnosticHandler> currentDiagnosticHandler =
       std::make_unique<FlowWing::DiagnosticHandler>();
 
@@ -206,7 +204,7 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<CompilationUnitSyntax> compilationUnit =
-      std::move(parser->createCompilationUnit());
+      (parser->createCompilationUnit());
 
   if (currentDiagnosticHandler->hasError(
           DiagnosticUtils::DiagnosticType::Syntactic)) {
@@ -223,8 +221,8 @@ void Compiler::runTests(std::istream &inputStream, std::ostream &outputStream) {
   }
 
   std::unique_ptr<BoundGlobalScope> globalScope =
-      std::move(SemanticAnalyzer::analyzeGlobalScope(
-          nullptr, compilationUnit.get(), currentDiagnosticHandler.get()));
+      (SemanticAnalyzer::analyzeGlobalScope(nullptr, compilationUnit.get(),
+                                            currentDiagnosticHandler.get()));
 
   const bool &hasSemanticError = currentDiagnosticHandler->hasError(
       DiagnosticUtils::DiagnosticType::Semantic);

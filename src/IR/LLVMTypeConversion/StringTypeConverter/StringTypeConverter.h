@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
@@ -27,6 +26,7 @@
 class StringTypeConverter : public TypeConverterBase {
 public:
   StringTypeConverter(CodeGenerationContext *context);
+  ~StringTypeConverter() override = default;
 
   llvm::Value *convertExplicit(llvm::Value *&value) override;
   llvm::Value *convertImplicit(llvm::Value *&value) override;

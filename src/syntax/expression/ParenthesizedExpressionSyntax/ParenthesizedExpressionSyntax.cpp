@@ -46,8 +46,7 @@ ParenthesizedExpressionSyntax::getCloseParenthesisToken() {
   return std::move(this->_closeParenthesisToken);
 }
 
-const SyntaxKindUtils::SyntaxKind
-ParenthesizedExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ParenthesizedExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ParenthesizedExpression;
 }
 const std::vector<SyntaxNode *> &ParenthesizedExpressionSyntax::getChildren() {

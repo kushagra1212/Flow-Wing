@@ -38,10 +38,10 @@ SwitchStatementBinder::bindStatement(SyntaxBinderContext *ctx,
           switchStatement->getSourceLocation());
 
   boundSwitchStatement->setSwitchExpression(
-      std::move(ExpressionBinderFactory::create(
-                    switchStatement->getSwitchExpressionRef()->getKind())
-                    ->bindExpression(
-                        ctx, switchStatement->getSwitchExpressionRef().get())));
+      (ExpressionBinderFactory::create(
+           switchStatement->getSwitchExpressionRef()->getKind())
+           ->bindExpression(ctx,
+                            switchStatement->getSwitchExpressionRef().get())));
 
   std::unique_ptr<CaseStatementBinder> caseStatementBinder =
       std::make_unique<CaseStatementBinder>();

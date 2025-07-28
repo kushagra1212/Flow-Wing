@@ -26,7 +26,11 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundStatement/BoundStatement.h"
 #include "src/SemanticAnalyzer/MemoryNode.h"
 #include <any>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/DerivedTypes.h>
+#pragma clang diagnostic pop
 
 class BoundMultipleVariableDeclaration;
 

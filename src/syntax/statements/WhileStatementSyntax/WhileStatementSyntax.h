@@ -47,7 +47,7 @@ public:
   std::unique_ptr<ExpressionSyntax> getCondition();
   std::unique_ptr<BlockStatementSyntax> getBody();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 

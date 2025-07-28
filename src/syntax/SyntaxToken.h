@@ -46,16 +46,18 @@ public:
 
   std::string getKindText();
 
-  const int getUnaryOperatorPrecedence();
+  int getUnaryOperatorPrecedence();
 
-  const int getBinaryOperatorPrecedence();
+  int getBinaryOperatorPrecedence();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
 
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   const std::vector<SyntaxNode *> &getChildren() override;
 
-  inline auto setText(const std::string text) -> void { this->text = text; }
-  inline auto setValue(const T &value) -> void { this->value = value; }
+  inline auto setText(const std::string newText) -> void {
+    this->text = newText;
+  }
+  inline auto setValue(const T &newValue) -> void { this->value = newValue; }
 };

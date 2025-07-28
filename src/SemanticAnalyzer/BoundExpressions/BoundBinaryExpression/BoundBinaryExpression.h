@@ -20,7 +20,12 @@
 #pragma once
 
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/IRBuilder.h>
+
+#pragma clang diagnostic pop
 
 namespace BinderKindUtils {
 enum BoundBinaryOperatorKind : int;

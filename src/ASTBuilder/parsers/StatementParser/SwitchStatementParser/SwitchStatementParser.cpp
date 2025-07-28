@@ -31,17 +31,17 @@ SwitchStatementParser::parseStatement(ParserContext *ctx) {
   std::unique_ptr<SwitchStatementSyntax> switchStatement =
       std::make_unique<SwitchStatementSyntax>();
   switchStatement->setSwitchToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::SwitchKeyword)));
+      (ctx->match(SyntaxKindUtils::SyntaxKind::SwitchKeyword)));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   switchStatement->setSwitchExpression(
-      std::move(PrecedenceAwareExpressionParser::parse(ctx)));
+      PrecedenceAwareExpressionParser::parse(ctx));
 
   ctx->getCodeFormatterRef()->appendWithSpace();
 
   switchStatement->setOpenCurlyToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
 
   ctx->getCodeFormatterRef()->appendNewLine();
 
@@ -65,7 +65,7 @@ SwitchStatementParser::parseStatement(ParserContext *ctx) {
           0, ctx->getCodeFormatterRef()->getIndentAmount().length() -
                  (sizeof(TAB_SPACE) - 1)));
   switchStatement->setCloseCurlyToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
 
   ctx->getCodeFormatterRef()->appendNewLine();
 

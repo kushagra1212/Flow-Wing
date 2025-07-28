@@ -54,7 +54,7 @@ void BlockStatementSyntax::setCloseBraceToken(
   this->_closeBraceToken = std::move(closeBraceToken);
 }
 
-const SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind BlockStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::BlockStatement;
 }
 

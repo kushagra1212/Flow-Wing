@@ -50,8 +50,6 @@ public:
 
 private:
   std::any last_value = nullptr;
-  CompilationUnitSyntax *compilation_unit = nullptr;
-  Interpreter *previous = nullptr;
   std::stack<std::unordered_map<std::string, BoundVariableDeclaration *>>
       variable_stack;
   std::stack<std::unordered_map<std::string, std::any>> value_stack;

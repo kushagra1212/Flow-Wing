@@ -37,7 +37,7 @@ public:
   std::unique_ptr<SyntaxToken<std::any>> getContinueKeyword();
 
   const std::vector<SyntaxNode *> &getChildren() override;
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 
   std::unique_ptr<SyntaxToken<std::any>> &getContinueKeywordPtr();

@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 #include "src/IR/irGen/Types/LLVMType/LLVMType.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundArrayTypeExpression/BoundArrayTypeExpression.h"
 
 class LLVMArrayType : public LLVMType {
 public:
@@ -30,7 +29,9 @@ public:
                 const std::vector<uint64_t> &dimensions,
                 BoundArrayTypeExpression *arrayTypeExpression);
 
-  inline const bool isPointerToArray() const override { return true; }
+  virtual ~LLVMArrayType() = default;
+
+  inline bool isPointerToArray() const override { return true; }
 
   inline llvm::Type *getElementType() const { return _elementType; }
 
@@ -49,7 +50,6 @@ public:
   }
 
 private:
-  llvm::Type *_type;
   llvm::Type *_elementType;
   std::vector<uint64_t> _dimensions;
   llvm::Type *_arrayElementType;

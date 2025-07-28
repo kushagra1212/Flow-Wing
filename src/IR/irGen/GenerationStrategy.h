@@ -17,12 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BinderKindUtils.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
-#include "src/syntax/SyntaxKindUtils.h"
+#include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
+#include "expressions/ExpressionGenerationFactory.h"
 #include "src/IR/LLVMTypeConversion/BoolTypeConverter/BoolTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/DoubleTypeConverter/DoubleTypeConverter.h"
 #include "src/IR/LLVMTypeConversion/Int32TypeConverter/Int32TypeConverter.h"
@@ -47,8 +45,9 @@
 #include "src/IR/strategies/UnaryOperationStrategy/NirastUnaryOperationStrategy/NirastUnaryOperationStrategy.h"
 #include "src/IR/strategies/UnaryOperationStrategy/StringUnaryOperationStrategy/StringUnaryOperationStrategy.h"
 #include "src/IR/strategies/UnaryOperationStrategy/UnaryOperationStrategy.h"
-#include "LLVMTypeGeneration/LLVMTypeGenerationFactory.h"
-#include "expressions/ExpressionGenerationFactory.h"
+#include "src/SemanticAnalyzer/BinderKindUtils.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
+#include "src/syntax/SyntaxKindUtils.h"
 #include "statements/StatementGenerationFactory.h"
 
 class GenerationStrategy {
@@ -62,6 +61,23 @@ public:
         // Initialize the expression generation factory
 
         // Initialize the unary operation strategies
+        _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
+        _int32BinaryOperationStrategy(
+            std::make_unique<Int32BinaryOperationStrategy>(context)),
+        _boolBinaryOperationStrategy(
+            std::make_unique<BoolBinaryOperationStrategy>(context)),
+        _doubleBinaryOperationStrategy(
+            std::make_unique<DoubleBinaryOperationStrategy>(context)),
+        _floatBinaryOperationStrategy(
+            std::make_unique<FloatBinaryOperationStrategy>(context)),
+        _stringBinaryOperationStrategy(
+            std::make_unique<StringBinaryOperationStrategy>(context)),
+        _nirastBinaryOperationStrategy(
+            std::make_unique<NirastBinaryOperationStrategy>(context)),
+
+        // Initialize the binary operation strategies
+        _classBinaryOperationStrategy(
+            std::make_unique<ClassBinaryOperationStrategy>(context)),
         _int32UnaryOperationStrategy(
             std::make_unique<Int32UnaryOperationStrategy>(context)),
         _boolUnaryOperationStrategy(
@@ -72,44 +88,27 @@ public:
             std::make_unique<FloatUnaryOperationStrategy>(context)),
         _stringUnaryOperationStrategy(
             std::make_unique<StringUnaryOperationStrategy>(context)),
+
+        // Initialize the type converters
         _nirastUnaryOperationStrategy(
             std::make_unique<NirastUnaryOperationStrategy>(context)),
         _classUnaryOperationStrategy(
             std::make_unique<ClassUnaryOperationStrategy>(context)),
-
-        // Initialize the binary operation strategies
-        _int32BinaryOperationStrategy(
-            std::make_unique<Int32BinaryOperationStrategy>(context)),
-        _boolBinaryOperationStrategy(
-            std::make_unique<BoolBinaryOperationStrategy>(context)),
-        _doubleBinaryOperationStrategy(
-            std::make_unique<DoubleBinaryOperationStrategy>(context)),
-        _stringBinaryOperationStrategy(
-            std::make_unique<StringBinaryOperationStrategy>(context)),
-        _floatBinaryOperationStrategy(
-            std::make_unique<FloatBinaryOperationStrategy>(context)),
-        _nirastBinaryOperationStrategy(
-            std::make_unique<NirastBinaryOperationStrategy>(context)),
-
-        // Initialize the type converters
         _boolTypeConverter(std::make_unique<BoolTypeConverter>(context)),
         _doubleTypeConverter(std::make_unique<DoubleTypeConverter>(context)),
-        _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
-        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
-        _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
         _floatTypeConverter(std::make_unique<FloatTypeConverter>(context)),
-        _classBinaryOperationStrategy(
-            std::make_unique<ClassBinaryOperationStrategy>(context)),
+        _int8TypeConverter(std::make_unique<Int8TypeConverter>(context)),
+        _int32TypeConverter(std::make_unique<Int32TypeConverter>(context)),
 
         // Initialize the value visitor
-        _typeSpecificValueVisitor(std::make_unique<TypeSpecificValueVisitor>()),
+        _stringTypeConverter(std::make_unique<StringTypeConverter>(context)),
 
         _expressionGenerationFactory(
             std::make_unique<ExpressionGenerationFactory>(context)),
         _statementGenerationFactory(
             std::make_unique<StatementGenerationFactory>(context)),
         _typeGenerationFactory(
-            std::make_unique<LLVMTypeGenerationFactory>(context)){};
+            std::make_unique<LLVMTypeGenerationFactory>(context)) {};
   CodeGenerationContext *_codeGenerationContext;
 
   llvm::Module *TheModule = nullptr;

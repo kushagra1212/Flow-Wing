@@ -17,13 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // StructTypeBuilder.h
 #pragma once
 
-#include "src/common/constants/FlowWingUtilsConstants.h"
 #include "src/IR/TypeBuilder/ReferenceTypeBuilder/ReferenceTypeBuilder.h"
 #include "src/IR/TypeBuilder/TypeBuilderInterface.h"
+#include "src/common/constants/FlowWingUtilsConstants.h"
 
 class StructTypeBuilder : public TypeBuilderInterface {
 public:
@@ -32,11 +31,11 @@ public:
   llvm::StructType *get() const override;
   const std::vector<llvm::Type *> &getMemberTypes() const;
 
-  const uint64_t getMemberTypeofDynVar(llvm::Type *type) const;
+  uint64_t getMemberTypeofDynVar(llvm::Type *type) const;
 
-  const bool isDyn(llvm::Type *type) const;
+  bool isDyn(llvm::Type *type) const;
 
-  const bool isGlobalVar(const std::string &varName) const;
+  bool isGlobalVar(const std::string &varName) const;
 
   llvm::Value *getMemberValueOfDynVar(llvm::Value *v,
                                       const std::string &varName) const;

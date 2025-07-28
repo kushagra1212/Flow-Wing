@@ -28,7 +28,7 @@ ObjectExpressionParser::parseExpression(ParserContext *ctx) {
   std::unique_ptr<ObjectExpressionSyntax> objES =
       std::make_unique<ObjectExpressionSyntax>();
   objES->setOpenBraceToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::OpenBraceToken));
   ctx->getCodeFormatterRef()->appendNewLine();
 
   ctx->getCodeFormatterRef()->appendIndentAmount(TAB_SPACE);
@@ -40,7 +40,7 @@ ObjectExpressionParser::parseExpression(ParserContext *ctx) {
         ctx->getCodeFormatterRef()->getIndentAmount());
 
     std::unique_ptr<SyntaxToken<std::any>> idenfierToken =
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken));
+        ctx->match(SyntaxKindUtils::SyntaxKind::IdentifierToken);
 
     std::any val = idenfierToken->getValue();
 
@@ -52,7 +52,7 @@ ObjectExpressionParser::parseExpression(ParserContext *ctx) {
     ctx->getCodeFormatterRef()->appendWithSpace();
 
     std::unique_ptr<ExpressionSyntax> expression =
-        std::move(PrecedenceAwareExpressionParser::parse(ctx));
+        PrecedenceAwareExpressionParser::parse(ctx);
 
     objES->addAttribute(std::move(idenfierExp), std::move(expression));
 
@@ -72,7 +72,7 @@ ObjectExpressionParser::parseExpression(ParserContext *ctx) {
       ctx->getCodeFormatterRef()->getIndentAmount());
 
   objES->setCloseBraceToken(
-      std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken)));
+      ctx->match(SyntaxKindUtils::SyntaxKind::CloseBraceToken));
 
-  return std::move(objES);
+  return objES;
 }

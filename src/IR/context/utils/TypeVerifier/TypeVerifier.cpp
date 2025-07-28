@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "TypeVerifier.h"
 
 namespace TYPE_VERIFIER {
@@ -52,7 +51,7 @@ int8_t verifyArrayType(
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < lhsSizes.size(); i++) {
+  for (size_t i = 0; i < lhsSizes.size(); i++) {
     if (lhsSizes[i] < rhsSizes[i]) {
       _diagnosticArgs.emplace_back(ctx->getMapper()->getLLVMTypeName(lhsType));
       _diagnosticArgs.emplace_back(std::to_string(i + 1));

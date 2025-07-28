@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/DerivedTypes.h>
+#pragma clang diagnostic pop
 
 #include "src/IR/irGen/Types/LLVMType/LLVMType.h"
 
@@ -28,9 +30,9 @@ class LLVMPrimitiveType : public LLVMType {
 public:
   LLVMPrimitiveType(llvm::Type *type, llvm::Type *primitiveType);
 
-  virtual inline const bool isPointerToPrimitive() const override {
-    return true;
-  }
+  virtual ~LLVMPrimitiveType() = default;
+
+  virtual inline bool isPointerToPrimitive() const override { return true; }
 
   inline llvm::Type *getPrimitiveType() const { return _primitiveType; }
 
@@ -39,6 +41,5 @@ public:
   }
 
 private:
-  llvm::Type *_type;
   llvm::Type *_primitiveType;
 };

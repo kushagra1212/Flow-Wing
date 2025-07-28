@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "BoolTypeConverter/BoolTypeConverter.h"
@@ -29,6 +28,7 @@
 
 class ValueVisitor {
 public:
+  virtual ~ValueVisitor() = default;
   virtual llvm::Value *visit(Int32TypeConverter *converter,
                              llvm::Value *&value) = 0;
   virtual llvm::Value *visit(DoubleTypeConverter *converter,

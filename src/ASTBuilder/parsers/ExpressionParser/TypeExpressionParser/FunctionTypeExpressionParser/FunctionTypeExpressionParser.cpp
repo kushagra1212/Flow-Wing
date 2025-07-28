@@ -51,8 +51,7 @@ FunctionTypeExpressionParser::parseExpression(ParserContext *ctx) {
 
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
       funcTypeExpression->addAsParameterKeyword(
-          parameterCount,
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
+          parameterCount, ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
@@ -79,14 +78,14 @@ FunctionTypeExpressionParser::parseExpression(ParserContext *ctx) {
 
   if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::AsKeyword) {
     funcTypeExpression->setAsKeyword(
-        std::move(ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword)));
+        ctx->match(SyntaxKindUtils::SyntaxKind::AsKeyword));
     ctx->getCodeFormatterRef()->appendWithSpace();
   }
 
   do {
     if (ctx->getKind() == SyntaxKindUtils::SyntaxKind::CommaToken) {
       funcTypeExpression->addSeparator(
-          std::move(ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken)));
+          ctx->match(SyntaxKindUtils::SyntaxKind::CommaToken));
       ctx->getCodeFormatterRef()->appendWithSpace();
     }
 
@@ -102,5 +101,5 @@ FunctionTypeExpressionParser::parseExpression(ParserContext *ctx) {
       ctx->match(SyntaxKindUtils::SyntaxKind::CloseBracketToken));
   ctx->getCodeFormatterRef()->appendWithSpace();
 
-  return std::move(funcTypeExpression);
+  return funcTypeExpression;
 }

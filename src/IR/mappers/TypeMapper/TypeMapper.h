@@ -17,17 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+#pragma clang diagnostic pop
 
+#include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/common/Common.h"
 #include "src/utils/Utils.h"
-#include "src/IR/constants/FlowWingIRConstants.h"
 using namespace FLOWWING::IR::CONSTANTS;
 class CodeGenerationContext;
 class TypeMapper {
@@ -56,25 +58,25 @@ public:
   }
 
   inline auto restoreBuilder() { _builder = _PreviousBuilder; }
-  const bool isVoidType(llvm::Type *type) const;
-  const bool isStringType(llvm::Type *type) const;
-  const bool isNirastValue(llvm::Value *value) const;
-  const bool isBoolType(llvm::Type *type) const;
-  const bool isDoubleType(llvm::Type *type) const;
-  const bool isFloatType(llvm::Type *type) const;
-  const bool isInt32Type(llvm::Type *type) const;
-  const bool isInt8Type(llvm::Type *type) const;
-  const bool isInt64Type(llvm::Type *type) const;
-  const bool isPtrType(llvm::Type *type) const;
-  const bool isPrimitiveType(llvm::Type *type) const;
-  const bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;
-  const bool isEquivalentType(llvm::Type *type,
-                              SyntaxKindUtils::SyntaxKind customType) const;
-  const bool isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
-                              llvm::Type *type) const;
-  const bool isEquivalentType(llvm::Type *type1, llvm::Type *type2) const;
-  const bool isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
-                              SyntaxKindUtils::SyntaxKind type2) const;
+  bool isVoidType(llvm::Type *type) const;
+  bool isStringType(llvm::Type *type) const;
+  bool isNirastValue(llvm::Value *value) const;
+  bool isBoolType(llvm::Type *type) const;
+  bool isDoubleType(llvm::Type *type) const;
+  bool isFloatType(llvm::Type *type) const;
+  bool isInt32Type(llvm::Type *type) const;
+  bool isInt8Type(llvm::Type *type) const;
+  bool isInt64Type(llvm::Type *type) const;
+  bool isPtrType(llvm::Type *type) const;
+  bool isPrimitiveType(llvm::Type *type) const;
+  bool isPrimitiveType(SyntaxKindUtils::SyntaxKind type) const;
+  bool isEquivalentType(llvm::Type *type,
+                        SyntaxKindUtils::SyntaxKind customType) const;
+  bool isEquivalentType(SyntaxKindUtils::SyntaxKind customType,
+                        llvm::Type *type) const;
+  bool isEquivalentType(llvm::Type *type1, llvm::Type *type2) const;
+  bool isEquivalentType(SyntaxKindUtils::SyntaxKind type1,
+                        SyntaxKindUtils::SyntaxKind type2) const;
 
   llvm::Value *getDefaultValue(SyntaxKindUtils::SyntaxKind type);
   llvm::Value *getDefaultValue(llvm::Type *type);

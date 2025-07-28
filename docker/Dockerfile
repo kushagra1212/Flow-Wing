@@ -4,6 +4,11 @@
 FROM kushagra711/common-base-llvm:latest AS base
 WORKDIR /compiler
 
+# --- SET COMPILER ENVIRONMENT VARIABLES HERE ---
+# These variables will now be inherited by all subsequent stages based on 'base'.
+ENV CC=/usr/bin/clang-17
+ENV CXX=/usr/bin/clang++-17
+
 # ---- Builder Stage ----
 # This stage compiles the source code.
 FROM base AS builder

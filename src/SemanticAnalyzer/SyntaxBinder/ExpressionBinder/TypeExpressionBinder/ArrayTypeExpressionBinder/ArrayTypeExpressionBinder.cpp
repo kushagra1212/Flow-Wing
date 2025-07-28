@@ -53,8 +53,8 @@ ArrayTypeExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   for (const auto &size : arrayTypeExpressionSyntax->getDimensions()) {
     boundArrayTypeExpression->addDimension(
-        std::move(ExpressionBinderFactory::create(size->getKind())
-                      ->bindExpression(ctx, size.get())));
+        (ExpressionBinderFactory::create(size->getKind())
+             ->bindExpression(ctx, size.get())));
   }
 
   return std::move(boundArrayTypeExpression);

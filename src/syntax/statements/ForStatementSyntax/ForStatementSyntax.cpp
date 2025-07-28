@@ -51,7 +51,7 @@ std::unique_ptr<StatementSyntax> ForStatementSyntax::getInitialization() {
   return std::move(this->_initialization);
 }
 
-const SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind ForStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::ForStatement;
 }
 

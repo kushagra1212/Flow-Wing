@@ -23,7 +23,7 @@
 
 EmptyStatementSyntax::EmptyStatementSyntax() {}
 
-const SyntaxKindUtils::SyntaxKind EmptyStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind EmptyStatementSyntax::getKind() const {
   return SyntaxKindUtils::EmptyStatement;
 }
 

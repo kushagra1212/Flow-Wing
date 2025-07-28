@@ -44,7 +44,7 @@ std::unique_ptr<ElseClauseSyntax> IfStatementSyntax::getElseClause() {
   return std::move(elseClause);
 }
 
-const SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind IfStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::IfStatement;
 }
 

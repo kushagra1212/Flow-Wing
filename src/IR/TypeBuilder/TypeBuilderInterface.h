@@ -17,18 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 // TypeBuilderInterface.h
 #pragma once
 
-#include <llvm/IR/DerivedTypes.h>
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "llvm/IR/Instructions.h"
+#include <llvm/IR/DerivedTypes.h>
+#pragma clang diagnostic pop
 
 class CodeGenerationContext;
 
 class TypeBuilderInterface {
- public:
+public:
   CodeGenerationContext *_codeGenerationContext;
 
   TypeBuilderInterface(CodeGenerationContext *context)

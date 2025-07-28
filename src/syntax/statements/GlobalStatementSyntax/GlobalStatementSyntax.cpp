@@ -31,7 +31,7 @@ std::unique_ptr<StatementSyntax> GlobalStatementSyntax::getStatement() {
   return std::move(_statement);
 }
 
-const SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind GlobalStatementSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::GlobalStatement;
 }
 

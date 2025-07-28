@@ -30,21 +30,17 @@ TernaryExpressionBinder::bindExpression(SyntaxBinderContext *ctx,
 
   return std::make_unique<BoundTernaryExpression>(
       ternaryExpressionSyntax->getSourceLocation(),
-      std::move(
-          ExpressionBinderFactory::create(
-              ternaryExpressionSyntax->getConditionExpressionRef()->getKind())
-              ->bindExpression(
-                  ctx,
-                  ternaryExpressionSyntax->getConditionExpressionRef().get())),
-      std::move(
-          ExpressionBinderFactory::create(
-              ternaryExpressionSyntax->getTrueExpressionRef()->getKind())
-              ->bindExpression(
-                  ctx, ternaryExpressionSyntax->getTrueExpressionRef().get())),
-      std::move(
-          ExpressionBinderFactory::create(
-              ternaryExpressionSyntax->getFalseExpressionRef()->getKind())
-              ->bindExpression(
-                  ctx,
-                  ternaryExpressionSyntax->getFalseExpressionRef().get())));
+      (ExpressionBinderFactory::create(
+           ternaryExpressionSyntax->getConditionExpressionRef()->getKind())
+           ->bindExpression(
+               ctx,
+               ternaryExpressionSyntax->getConditionExpressionRef().get())),
+      (ExpressionBinderFactory::create(
+           ternaryExpressionSyntax->getTrueExpressionRef()->getKind())
+           ->bindExpression(
+               ctx, ternaryExpressionSyntax->getTrueExpressionRef().get())),
+      (ExpressionBinderFactory::create(
+           ternaryExpressionSyntax->getFalseExpressionRef()->getKind())
+           ->bindExpression(
+               ctx, ternaryExpressionSyntax->getFalseExpressionRef().get())));
 }

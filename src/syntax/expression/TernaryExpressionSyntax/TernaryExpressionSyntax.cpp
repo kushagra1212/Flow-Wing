@@ -21,7 +21,7 @@
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 #include "src/syntax/SyntaxKindUtils.h"
 
-const SyntaxKindUtils::SyntaxKind TernaryExpressionSyntax::getKind() const {
+SyntaxKindUtils::SyntaxKind TernaryExpressionSyntax::getKind() const {
   return SyntaxKindUtils::SyntaxKind::TernaryExpression;
 }
 

@@ -50,7 +50,8 @@ CustomTypeStatementBinder::bindStatement(SyntaxBinderContext *ctx,
 
   std::unordered_map<std::string, int8_t> attributes;
 
-  for (int i = 0; i < customTypeStatement->getKeyTypePairsRef().size(); i++) {
+  for (size_t i = 0; i < customTypeStatement->getKeyTypePairsRef().size();
+       i++) {
     const std::string &key = customTypeStatement->getKeyTypePairsRef()[i]
                                  ->getKey()
                                  ->getTokenPtr()

@@ -33,7 +33,7 @@ public:
 
   std::unique_ptr<SyntaxToken<std::any>> getBreakKeyword();
 
-  const SyntaxKindUtils::SyntaxKind getKind() const override;
+  SyntaxKindUtils::SyntaxKind getKind() const override;
   const std::vector<SyntaxNode *> &getChildren() override;
   const DiagnosticUtils::SourceLocation getSourceLocation() const override;
 

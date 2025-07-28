@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-#ifndef BASE_TEST_H
-#define BASE_TEST_H
+#pragma once
 
 #include <gtest/gtest.h>
 
@@ -30,7 +28,7 @@
 
 class BaseTest {
 public:
-  virtual ~BaseTest() {}
+  virtual ~BaseTest() = default;
 
   virtual void SetUp(bool captureStderr = false) = 0;
   virtual void TearDown() = 0;
@@ -44,5 +42,3 @@ public:
   std::stringstream output_stream;
   std::streambuf *saved_cout_buf;
 };
-
-#endif // BASE_TEST_H

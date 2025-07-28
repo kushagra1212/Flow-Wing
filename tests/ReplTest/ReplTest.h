@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #ifndef REPL_TEST_H
 #define REPL_TEST_H
 
@@ -27,12 +26,13 @@
 class ReplTest : public BaseTest {
 public:
   ReplTest();
-  void SetUp();
+  void SetUp(bool captureStderr = false);
   void TearDown();
   void setInput(const std::string &input);
-  void runEvaluator();
   std::string getOutput() const;
 
+  void runEvaluator(std::istream &inputStream = std::cin,
+                    std::ostream &outputStream = std::cout);
   std::unique_ptr<Repl> repl;
 };
 
