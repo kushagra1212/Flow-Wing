@@ -11,7 +11,8 @@
       "hidden": true,
       "inherits": "base",
       "cacheVariables": {
-        "DEV_MODE": "ON"
+        "DEV_MODE": "ON",
+        "FETCHCONTENT_QUIET": "OFF"
       }
     },
     {

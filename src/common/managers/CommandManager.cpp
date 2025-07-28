@@ -37,6 +37,10 @@ auto CommandManager::create() -> std::string {
 
   cmd += FlowWing::PathUtils::getAOTLinkerPath() + " ";
 
+#if defined(__APPLE__)
+  cmd += std::string(MACOS_SDK_SYSROOT_FLAG) + " ";
+#endif
+
   cmd += this->getOptimizationLevel();
 
   cmd += this->getOutputArgument();

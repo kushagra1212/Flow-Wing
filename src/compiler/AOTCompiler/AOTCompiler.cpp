@@ -21,7 +21,10 @@
 #include "src/common/commandLineOptions/commandLineOptions.h"
 #include "src/common/version.h"
 #include "src/external/include/argh.h"
+
+#ifdef TESTS_ENABLED
 #include <gtest/gtest.h>
+#endif
 
 AOTCompiler::AOTCompiler(std::string filePath,
                          [[maybe_unused]] const bool &isFormattedCodeRequired)

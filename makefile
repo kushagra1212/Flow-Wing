@@ -15,6 +15,7 @@ TESTS_JIT := tests-jit-dev
 AOT_PROD_RELEASE := aot-release
 JIT_PROD_RELEASE := jit-release
 
+DEPS_BUILD := deps-build
 # --- Directory Variables ---
 AOT_DEBUG_DIR   := build/aot-debug-dev
 AOT_RELEASE_DIR := build/aot-release-dev
@@ -24,6 +25,14 @@ TESTS_AOT_DIR   := build/tests-aot-dev
 TESTS_JIT_DIR   := build/tests-jit-dev
 AOT_PROD_DIR    := build/aot-release
 JIT_PROD_DIR    := build/jit-release
+
+
+# --- NEW: Dependency Variables ---
+DEPS_DIR := .fw_dependencies
+
+DEPS_INSTALL_DIR := $(DEPS_DIR)/install
+# This is the stamp file that indicates our dependencies are built and installed.
+DEPS_STAMP_FILE := $(DEPS_INSTALL_DIR)/.installed
 
 # --- Local Running Variables ---
 # The FlowWing source file to compile. Can be overridden from the command line.
@@ -37,6 +46,21 @@ RUN_OUT_DIR := build/bin
 RUN_OUT_NAME := $(basename $(notdir $(FILE)))
 RUN_OUT_EXE := $(RUN_OUT_DIR)/$(RUN_OUT_NAME)
 
+# Determine the number of CPU cores for parallel builds
+ifeq ($(OS),Windows_NT)
+    NPROC := $(NUMBER_OF_PROCESSORS)
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        NPROC := $(shell nproc)
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        NPROC := $(shell sysctl -n hw.ncpu)
+    endif
+endif
+# Set the jobs flag, defaulting to all cores. Can be overridden.
+JOBS ?= -j$(NPROC)
+
 
 # To disable status messages, run: make SILENT=1 <target>
 # By default, SILENT is not 1, so messages are shown.
@@ -49,7 +73,7 @@ else
 endif
 
 # --- Phony Targets (Commands that are not files) ---
-.PHONY: all build build-aot build-aot-release build-jit test test-aot test-jit package package-aot package-jit clean help run run-aot run-aot-release run-jit run-jit-release
+.PHONY: all build build-aot build-aot-release build-jit test test-aot test-jit package package-aot package-jit clean clean-all help run run-aot run-aot-release run-jit run-jit-release deps-build
 
 # --- Default Command ---
 all: build
@@ -85,33 +109,39 @@ help:
 	$(ECHO_MSG) ""
 	$(ECHO_MSG) "Utility Targets:"
 	$(ECHO_MSG) "  clean               Deletes the entire 'build' and 'run_output' directories."
+	$(ECHO_MSG) "  clean-all           Deletes everything, INCLUDING downloaded dependencies."
+	$(ECHO_MSG) ""
+	$(ECHO_MSG) "Dependency Management:"
+	$(ECHO_MSG) "  deps-build          Manually build external dependencies (LLVM, GTest)."
+	$(ECHO_MSG) ""
 	$(ECHO_MSG) "Options:"
 	$(ECHO_MSG) "  FILE=<path>         Sets the .fg file for 'run' targets."
 	$(ECHO_MSG) "  FILTER=<pattern>    Sets the GTest filter for 'test' targets."
 	$(ECHO_MSG) "  SILENT=1            Suppresses build status messages for a cleaner log."
-	@echo ""
+	$(ECHO_MSG) "  JOBS=-j<N>          Sets the number of parallel build jobs (default: all cores)."
+	$(ECHO_MSG) ""
 	$(ECHO_MSG) "-----------------------------------------------------------------"
 
 # --- Build Targets ---
 build: build-aot
 build-aot: $(AOT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT Debug (Dev)..."
-	@cmake --build --preset $(AOT_DEBUG_DEV)
+	@cmake --build --preset $(AOT_DEBUG_DEV) -- $(JOBS)
 build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT Release (Dev)..."
-	@cmake --build --preset $(AOT_RELEASE_DEV)
+	@cmake --build --preset $(AOT_RELEASE_DEV) -- $(JOBS)
 build-jit: $(JIT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT Debug (Dev)..."
-	@cmake --build --preset $(JIT_DEBUG_DEV)
+	@cmake --build --preset $(JIT_DEBUG_DEV) -- $(JOBS)
 build-jit-release: $(JIT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT Release (Dev)..."
-	@cmake --build --preset $(JIT_RELEASE_DEV)
+	@cmake --build --preset $(JIT_RELEASE_DEV) -- $(JOBS)
 build-test-jit: $(TESTS_JIT_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT tests (Dev)..."
-	@cmake --build --preset $(TESTS_JIT)
+	@cmake --build --preset $(TESTS_JIT) -- $(JOBS)
 build-test-aot: $(TESTS_AOT_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT tests (Dev)..."
-	@cmake --build --preset $(TESTS_AOT)
+	@cmake --build --preset $(TESTS_AOT) -- $(JOBS)
 
 
 # --- NEW! Local Development & Running Targets ---
@@ -143,6 +173,12 @@ run-jit-release: build-jit-release
 	$(ECHO_MSG) "---------------------------------"
 	@$(JIT_RELEASE_DIR)/FlowWing $(FILE)
 
+# -- Debug
+run-jit-with-lldb: build-jit
+	$(ECHO_MSG) "--> Interpreting $(FILE) with JIT Debug compiler..."
+	$(ECHO_MSG) "---------------------------------"
+	@lldb $(JIT_DEBUG_DIR)/FlowWing $(FILE) 
+
 
 # --- Test Targets ---
 test: test-aot
@@ -170,30 +206,54 @@ package-jit: $(JIT_PROD_DIR)/.configured
 	@cd $(JIT_PROD_DIR) && cpack
 
 
+
+# The 'deps' target is a user-friendly alias for building the dependencies.
+deps-build: $(DEPS_STAMP_FILE)
+	$(ECHO_MSG) "--> Dependencies are up to date."
+
+# Dependency Build Target ---
+# This rule is triggered if the stamp file is missing.
+
+$(DEPS_STAMP_FILE):
+	$(ECHO_MSG) "--> External dependencies (LLVM, GTest) not found. Building them now..."
+	$(ECHO_MSG) "--> This is a one-time process and will take a very long time."
+	@# Check if dependencies are already built
+	@if [ -f "$(DEPS_INSTALL_DIR)/lib/cmake/llvm/LLVMConfig.cmake" ] && \
+	   [ -f "$(DEPS_INSTALL_DIR)/lib/cmake/GTest/GTestConfig.cmake" ]; then \
+		$(ECHO_MSG) "--> Using existing dependencies"; \
+		touch $(DEPS_STAMP_FILE); \
+	else \
+		$(ECHO_MSG) "--> Building dependencies..."; \
+		cmake -S ./cmake/deps_builder -B $(DEPS_DIR)/build -G Ninja \
+			-DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_DIR); \
+		cmake --build $(DEPS_DIR)/build --preset $(DEPS_BUILD) --target install -- $(JOBS); \
+	fi
+
+
 # --- Configuration Stamp Files ---
-$(AOT_DEBUG_DIR)/.configured:
+$(AOT_DEBUG_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring AOT Debug (Dev)..."
 	@cmake --preset $(AOT_DEBUG_DEV) && touch $@
 # ... (all other stamp file rules are the same) ...
-$(AOT_RELEASE_DIR)/.configured:
+$(AOT_RELEASE_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring AOT Release (Dev)..."
 	@cmake --preset $(AOT_RELEASE_DEV) && touch $@
-$(JIT_DEBUG_DIR)/.configured:
+$(JIT_DEBUG_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring JIT Debug (Dev)..."
 	@cmake --preset $(JIT_DEBUG_DEV) && touch $@
-$(JIT_RELEASE_DIR)/.configured:
+$(JIT_RELEASE_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring JIT Release (Dev)..."
 	@cmake --preset $(JIT_RELEASE_DEV) && touch $@
-$(TESTS_AOT_DIR)/.configured:
+$(TESTS_AOT_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring AOT tests..."
 	@cmake --preset $(TESTS_AOT) && touch $@
-$(TESTS_JIT_DIR)/.configured:
+$(TESTS_JIT_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring JIT tests..."
 	@cmake --preset $(TESTS_JIT) && touch $@
-$(AOT_PROD_DIR)/.configured:
+$(AOT_PROD_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring final AOT release..."
 	@cmake --preset $(AOT_PROD_RELEASE) && touch $@
-$(JIT_PROD_DIR)/.configured:
+$(JIT_PROD_DIR)/.configured: deps-build
 	$(ECHO_MSG) "--> Configuring final JIT release..."
 	@cmake --preset $(JIT_PROD_RELEASE) && touch $@
 
@@ -202,3 +262,9 @@ $(JIT_PROD_DIR)/.configured:
 clean:
 	$(ECHO_MSG) "--> Deleting the build and bin directories..."
 	@rm -rf build bin
+
+
+# A more aggressive clean target that also removes dependencies.
+clean-all:
+	$(ECHO_MSG) "--> Deleting ALL build artifacts, including downloaded dependencies..."
+	@rm -rf build bin $(DEPS_DIR)

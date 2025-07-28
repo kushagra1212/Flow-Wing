@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-
 # =============================================================================
 # Target Definitions
 #
@@ -95,19 +93,54 @@ add_dependencies(${EXECUTABLE_NAME} version)
 # --- Include Directories ---
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${LLVM_INCLUDE_DIRS})
+
+    # Add LLVM and Clang headers explicitly for the FetchContent build
+    ${LLVM_INCLUDE_DIRS}
+)
 
 # --- Link Libraries ---
-llvm_map_components_to_libnames(LLVM_STATIC_LIBRARIES
-    core executionengine orcjit native interpreter mcjit
-    target analysis aarch64info)
-
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-    ${LLVM_STATIC_LIBRARIES}
+
+    # JIT and Execution Components
+    LLVMOrcJIT
+    LLVMExecutionEngine
+    LLVMJITLink
+    LLVMRuntimeDyld
+    LLVMMCJIT
+    LLVMInterpreter
+
+    # Code Generation and Optimization
+    LLVMCodeGen
+    LLVMTarget
+    LLVMTransformUtils
+    LLVMAnalysis
+    LLVMipo
+    LLVMObject
+
+    # AArch64 Target Specifics
+    LLVMAArch64CodeGen
+    LLVMAArch64AsmParser
+    LLVMAArch64Desc
+    LLVMAArch64Info
+
+    # X86 Target Specifics
+    # LLVMX86CodeGen
+    # LLVMX86AsmParser
+    # LLVMX86Desc
+    # LLVMX86Info
+
+    # Core LLVM Components
+    LLVMCore
+    LLVMMC
+    LLVMSupport
+    LLVMBinaryFormat
+    LLVMDemangle
+
+    # System Libraries
     Threads::Threads)
 
 if(TESTS_ENABLED)
-    target_include_directories(${EXECUTABLE_NAME} PRIVATE ${GTest_INCLUDE_DIRS})
+    target_include_directories(${EXECUTABLE_NAME} PRIVATE ${googletest_INCLUDE_DIRS})
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE GTest::gtest_main)
 endif()
 
@@ -132,6 +165,9 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     $<$<CONFIG:Debug>:DEBUG>
     $<$<CONFIG:Release>:RELEASE>
     ${LLVM_DEFINITIONS}
+
+    "MACOS_SDK_SYSROOT_FLAG=\"${MACOS_SDK_SYSROOT_FLAG}\""
+
     "DEV_MODULES_PATH=\"${DEV_MODULES_PATH}\""
     "DEV_LIBS_PATH=\"${DEV_LIBS_PATH}\""
     "INSTALL_MODULES_PATH=\"${INSTALL_MODULES_DEST}\""
@@ -143,7 +179,8 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
 target_compile_options(${EXECUTABLE_NAME} PRIVATE
     ${PROJECT_WARNING_FLAGS}
     $<$<CONFIG:Debug>:-g -fsanitize=undefined>
-    $<$<CONFIG:Release>:-O3>)
+    $<$<CONFIG:Release>:-O3>
+    -frtti)
 
 # --- Linker Options / Flags ---
 target_link_options(${EXECUTABLE_NAME} PRIVATE

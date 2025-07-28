@@ -10,3 +10,4 @@ new-test.txt
 **/repl/**build*/
 temp
 compile_commands.json
+.fw_dependencies

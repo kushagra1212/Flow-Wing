@@ -24,8 +24,11 @@
 #include "src/diagnostics/Diagnostic/Diagnostic.h"
 #include "src/diagnostics/DiagnosticUtils/DiagnosticUtils.h"
 #include "src/external/include/argh.h"
-#include <gtest/gtest.h>
 #include <string>
+
+#ifdef TESTS_ENABLED
+#include <gtest/gtest.h>
+#endif
 
 JITCompiler::JITCompiler(std::string filePath) : Compiler(filePath) {}
 
@@ -78,7 +81,20 @@ void JITCompiler::execute() {
   llvm::GenericValue resultValue = llvm::GenericValue();
 
   try {
-    resultValue = executionEngine->runFunction(mainFunction, {});
+
+    std::vector<llvm::GenericValue> args;
+
+    // 2. Add argc (argument count). We'll simulate 1 argument.
+    llvm::GenericValue argc_val;
+    argc_val.IntVal = llvm::APInt(32, 1); // 32-bit integer with value 1
+    args.push_back(argc_val);
+
+    // 3. Add argv (argument vector). We'll pass a null pointer for simplicity.
+    llvm::GenericValue argv_val;
+    argv_val.PointerVal = nullptr;
+    args.push_back(argv_val);
+
+    resultValue = executionEngine->runFunction(mainFunction, args);
 
   } catch (const std::exception &e) {
     std::cerr << e.what();

@@ -39,6 +39,19 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
     std::unique_ptr<ExpressionSyntax> expression =
         std::make_unique<VariableExpressionParser>()->parseExpression(ctx);
 
+    // VariableExpressionSyntax *rawVariableExpression =
+    //     dynamic_cast<VariableExpressionSyntax *>(expression.get());
+
+    // // If the cast fails, it means VariableExpressionParser returned a
+    // different
+    // // expression type (e.g., from parsing `self.x = 5`). In this case, we
+    // // should just return the expression as-is.
+    // if (!rawVariableExpression) {
+    //   return expression;
+    // }
+
+    // The cast was successful, so we can now safely manage the pointer.
+    // Release from the old unique_ptr
     std::unique_ptr<VariableExpressionSyntax> variableExpression(
         static_cast<VariableExpressionSyntax *>(expression.release()));
 

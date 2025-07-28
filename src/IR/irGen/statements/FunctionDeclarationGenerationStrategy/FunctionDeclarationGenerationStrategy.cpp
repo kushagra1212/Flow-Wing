@@ -64,7 +64,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       fd->getLocation());
 
   DEBUG_LOG("Function Declaration Statement",
-            "Declaring Function: " + FUNCTION_NAME);
+            "Declaring Function: ", FUNCTION_NAME);
 
   auto isFunctionAlreadyDeclared = TheModule->getFunction(FUNCTION_NAME);
 
@@ -317,6 +317,7 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       llvm::Type *elementType =
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
+
       returnType = llvm::PointerType::get(elementType, 0);
 
       FT = llvm::FunctionType::get(fd->hasAsReturnType()

@@ -22,8 +22,8 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
-#include "llvm/IR/Instructions.h"
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Instructions.h>
 #pragma clang diagnostic pop
 
 class CodeGenerationContext;

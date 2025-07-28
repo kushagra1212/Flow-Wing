@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #ifndef AOT_LINKER_PATH
@@ -39,4 +38,8 @@
 
 #ifndef DEV_MODE_PATH
 #define DEV_MODE_PATH ""
+#endif
+
+#ifndef MACOS_SDK_SYSROOT_FLAG
+#define MACOS_SDK_SYSROOT_FLAG ""
 #endif

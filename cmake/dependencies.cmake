@@ -20,30 +20,65 @@
 
 
 # =============================================================================
-# Dependency Management
+# Dependency Management (Refactored)
 #
-# Finds and configures all external dependencies required by the project,
-# such as LLVM, Threads, and GTest.
+# This file finds pre-built dependencies that were installed by the
+# external 'build_deps.cmake' script. It does NOT build them.
 # =============================================================================
+
+# Tell find_package() where to look for our pre-built libraries.
+# This is the most important line.
+set(DEPS_INSTALL_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies/install)
+list(APPEND CMAKE_PREFIX_PATH ${DEPS_INSTALL_DIR})
+
+set(CMAKE_FIND_ROOT_PATH ${DEPS_INSTALL_DIR})
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # --- LLVM ---
 find_package(LLVM 17 REQUIRED CONFIG)
-message(STATUS "Found LLVM ${LLVM_VERSION} for static linking.")
-
-# --- Threads ---
-find_package(Threads REQUIRED)
-message(STATUS "Found Threads for threading support.")
-
-# --- AOT Linker (Conditional) ---
-if(BUILD_AOT)
-    find_program(AOT_LINKER_PATH
-        NAMES clang-17 clang++ clang
-        REQUIRED
-        DOC "Path to the clang compiler for AOT linking.")
-    message(STATUS "AOT linker for user code: ${AOT_LINKER_PATH}")
-endif()
+message(STATUS "Found pre-built LLVM ${LLVM_VERSION} at ${LLVM_DIR}")
 
 # --- GTest (Conditional) ---
 if(TESTS_ENABLED)
-    find_package(GTest REQUIRED)
+    find_package(GTest REQUIRED CONFIG)
+    message(STATUS "Found pre-built GTest at ${GTest_DIR}")
+endif()
+
+# --- System Dependencies ---
+find_package(Threads REQUIRED)
+message(STATUS "Found Threads for threading support.")
+
+if(APPLE)
+    # Find the macOS SDK path to pass to our custom clang
+    execute_process(
+        COMMAND xcrun --show-sdk-path
+        OUTPUT_VARIABLE MACOS_SDK_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    if(NOT MACOS_SDK_PATH)
+        message(FATAL_ERROR "Could not determine macOS SDK path using 'xcrun'. Make sure Xcode command line tools are installed.")
+    endif()
+
+    message(STATUS "Found macOS SDK for linker at: ${MACOS_SDK_PATH}")
+
+    # This will be passed to your C++ code
+    set(MACOS_SDK_SYSROOT_FLAG "-isysroot ${MACOS_SDK_PATH}" CACHE INTERNAL "")
+else()
+    # On other platforms like Linux, this is not needed.
+    set(MACOS_SDK_SYSROOT_FLAG "" CACHE INTERNAL "")
+endif()
+
+if(BUILD_AOT) # Use the clang from our local LLVM installation
+    set(LLVM_CLANG_PATH "${LLVM_TOOLS_BINARY_DIR}/clang")
+    set(LLVM_CLANG_17_PATH "${LLVM_TOOLS_BINARY_DIR}/clang-17")
+
+    # Prefer clang++ for C++ linking, but fallback to clang
+    if(EXISTS "${LLVM_CLANG_17_PATH}")
+        set(AOT_LINKER_PATH "${LLVM_CLANG_17_PATH}" CACHE FILEPATH "Path to clang-17 compiler")
+    else()
+        set(AOT_LINKER_PATH "${LLVM_CLANG_PATH}" CACHE FILEPATH "Path to clang compiler")
+    endif()
+
+    message(STATUS "AOT linker for user code: ${AOT_LINKER_PATH}")
 endif()

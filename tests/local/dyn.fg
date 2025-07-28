@@ -1,15 +1,11 @@
 
 class A {
   var x:int 
-  init(x:int) -> nthg {
+  init(y:int) -> nthg {
       self.x = x 
     }
 }
 
 var a:A = new A(2)
 
-if(!a){
-  print("A")
-}or if(a){
-    print("or A")
-  }
+print(a.x)
