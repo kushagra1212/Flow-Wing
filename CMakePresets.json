@@ -111,6 +111,17 @@
         "BUILD_AOT": "OFF",
         "TESTS_ENABLED": "OFF"
       }
+    },
+    {
+      "name": "deps-build",
+      "displayName": "Build Dependencies",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/.fw_dependencies/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_AOT": "OFF",
+        "TESTS_ENABLED": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -145,6 +156,10 @@
     {
       "name": "tests-aot-dev",
       "configurePreset": "tests-aot-dev"
+    },
+    {
+      "name": "deps-build",
+      "configurePreset": "deps-build"
     }
   ],
   "testPresets": [
