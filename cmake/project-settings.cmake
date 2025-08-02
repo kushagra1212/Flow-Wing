@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-
 # =============================================================================
 # Project-Wide Settings & Build Mode
 #
@@ -31,9 +29,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_policy(SET CMP0075 NEW) # Allows for variable in list(REMOVE_ITEM)
 
-# Display the C and CXX compilers being used for this configuration.
-message(STATUS "C compiler: ${CMAKE_C_COMPILER}")
-message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+# C and CXX compilers being used for this configuration.
+set(C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/.fw_dependencies/install/bin/clang")
+set(CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/.fw_dependencies/install/bin/clang-17")
+message(STATUS "C compiler: ${C_COMPILER}")
+message(STATUS "C++ compiler: ${CXX_COMPILER}")
 
 # CRITICAL FOR MACOS DEPLOYMENT: Set the minimum macOS version.
 if(APPLE)
