@@ -16,6 +16,9 @@ find . -type f \( -name "*.h" -o -name "*.cpp" -o -name "CMakeLists.txt" -o -nam
 -not -path "./build/*" \
 -not -path "./.git/*" \
 -not -path "./src/external/*" \
+-not -path "./.fw_dependencies/*" \
+-not -path "./.fw_dependencies_debug_bak/*" \
+-not -path "./.fw_dependencies_release_bak/*" \
 -print0 | while IFS= read -r -d $'\0' file; do
     process_file "$file"
 done

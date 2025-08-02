@@ -15,7 +15,10 @@ TESTS_JIT := tests-jit-dev
 AOT_PROD_RELEASE := aot-release
 JIT_PROD_RELEASE := jit-release
 
-DEPS_BUILD := deps-build
+# Preset for installing dependencies
+DEPS_INSTALL_DEBUG := deps-install-debug
+DEPS_INSTALL_RELEASE := deps-install-release
+
 # --- Directory Variables ---
 AOT_DEBUG_DIR   := build/aot-debug-dev
 AOT_RELEASE_DIR := build/aot-release-dev
@@ -27,12 +30,8 @@ AOT_PROD_DIR    := build/aot-release
 JIT_PROD_DIR    := build/jit-release
 
 
-# --- NEW: Dependency Variables ---
+# --- Dependency Variables ---
 DEPS_DIR := .fw_dependencies
-
-DEPS_INSTALL_DIR := $(DEPS_DIR)/install
-# This is the stamp file that indicates our dependencies are built and installed.
-DEPS_STAMP_FILE := $(DEPS_INSTALL_DIR)/.installed
 
 # --- Local Running Variables ---
 # The FlowWing source file to compile. Can be overridden from the command line.
@@ -73,7 +72,7 @@ else
 endif
 
 # --- Phony Targets (Commands that are not files) ---
-.PHONY: all build build-aot build-aot-release build-jit test test-aot test-jit package package-aot package-jit clean clean-all help run run-aot run-aot-release run-jit run-jit-release deps-build
+.PHONY: all build build-aot build-aot-release build-jit test test-aot test-jit package package-aot package-jit clean clean-all help run run-aot run-aot-release run-jit run-jit-release deps-install-debug deps-install-release
 
 # --- Default Command ---
 all: build
@@ -112,7 +111,8 @@ help:
 	$(ECHO_MSG) "  clean-all           Deletes everything, INCLUDING downloaded dependencies."
 	$(ECHO_MSG) ""
 	$(ECHO_MSG) "Dependency Management:"
-	$(ECHO_MSG) "  deps-build          Manually build external dependencies (LLVM, GTest)."
+	$(ECHO_MSG) "  deps-install-debug    Manually build external dependencies (LLVM, GTest)."
+	$(ECHO_MSG) "  deps-install-release  Manually build external dependencies (LLVM, GTest)."
 	$(ECHO_MSG) ""
 	$(ECHO_MSG) "Options:"
 	$(ECHO_MSG) "  FILE=<path>         Sets the .fg file for 'run' targets."
@@ -206,56 +206,63 @@ package-jit: $(JIT_PROD_DIR)/.configured
 	@cd $(JIT_PROD_DIR) && cpack
 
 
+#  Install Dependencies'
+deps-install-debug: $(DEPS_DIR)/.installed-debug
+	$(ECHO_MSG) "--> Installing dependencies..."
+	@cd cmake/deps_builder && \
+	cmake --build --preset $(DEPS_INSTALL_DEBUG) -- $(JOBS)
 
-# The 'deps' target is a user-friendly alias for building the dependencies.
-deps-build: $(DEPS_STAMP_FILE)
-	$(ECHO_MSG) "--> Dependencies are up to date."
-
-# Dependency Build Target ---
-# This rule is triggered if the stamp file is missing.
-
-$(DEPS_STAMP_FILE):
-	$(ECHO_MSG) "--> External dependencies (LLVM, GTest) not found. Building them now..."
-	$(ECHO_MSG) "--> This is a one-time process and will take a very long time."
-	@# Check if dependencies are already built
-	@if [ -f "$(DEPS_INSTALL_DIR)/lib/cmake/llvm/LLVMConfig.cmake" ] && \
-	   [ -f "$(DEPS_INSTALL_DIR)/lib/cmake/GTest/GTestConfig.cmake" ]; then \
-		$(ECHO_MSG) "--> Using existing dependencies"; \
-		touch $(DEPS_STAMP_FILE); \
-	else \
-		$(ECHO_MSG) "--> Building dependencies..."; \
-		cmake -S ./cmake/deps_builder -B $(DEPS_DIR)/build -G Ninja \
-			-DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_DIR); \
-		cmake --build $(DEPS_DIR)/build --preset $(DEPS_BUILD) --target install -- $(JOBS); \
-	fi
+deps-install-release: $(DEPS_DIR)/.installed-release
+	$(ECHO_MSG) "--> Installing dependencies..."
+	@cd cmake/deps_builder && \
+	cmake --build --preset $(DEPS_INSTALL_RELEASE) -- $(JOBS)
 
 
 # --- Configuration Stamp Files ---
-$(AOT_DEBUG_DIR)/.configured: deps-build
+$(AOT_DEBUG_DIR)/.configured: deps-install-debug
 	$(ECHO_MSG) "--> Configuring AOT Debug (Dev)..."
 	@cmake --preset $(AOT_DEBUG_DEV) && touch $@
 # ... (all other stamp file rules are the same) ...
-$(AOT_RELEASE_DIR)/.configured: deps-build
+$(AOT_RELEASE_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring AOT Release (Dev)..."
 	@cmake --preset $(AOT_RELEASE_DEV) && touch $@
-$(JIT_DEBUG_DIR)/.configured: deps-build
+
+
+$(JIT_DEBUG_DIR)/.configured: deps-install-debug
 	$(ECHO_MSG) "--> Configuring JIT Debug (Dev)..."
 	@cmake --preset $(JIT_DEBUG_DEV) && touch $@
-$(JIT_RELEASE_DIR)/.configured: deps-build
+$(JIT_RELEASE_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring JIT Release (Dev)..."
 	@cmake --preset $(JIT_RELEASE_DEV) && touch $@
-$(TESTS_AOT_DIR)/.configured: deps-build
+
+
+$(TESTS_AOT_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring AOT tests..."
 	@cmake --preset $(TESTS_AOT) && touch $@
-$(TESTS_JIT_DIR)/.configured: deps-build
+$(TESTS_JIT_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring JIT tests..."
 	@cmake --preset $(TESTS_JIT) && touch $@
-$(AOT_PROD_DIR)/.configured: deps-build
+
+
+
+$(AOT_PROD_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring final AOT release..."
 	@cmake --preset $(AOT_PROD_RELEASE) && touch $@
-$(JIT_PROD_DIR)/.configured: deps-build
+$(JIT_PROD_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring final JIT release..."
 	@cmake --preset $(JIT_PROD_RELEASE) && touch $@
+
+$(DEPS_DIR)/.installed-debug:
+	$(ECHO_MSG) "--> Configuring dependencies (Debug)..."
+	@cd cmake/deps_builder && \
+	 cmake --preset $(DEPS_INSTALL_DEBUG) && \
+	 touch ../../$(DEPS_DIR)/.installed
+
+$(DEPS_DIR)/.installed-release:
+	$(ECHO_MSG) "--> Configuring dependencies (Release)..."
+	@cd cmake/deps_builder && \
+	 cmake --preset $(DEPS_INSTALL_RELEASE) && \
+	 touch ../../$(DEPS_DIR)/.installed
 
 
 # --- Utility Targets ---
