@@ -31,7 +31,7 @@ cmake_policy(SET CMP0075 NEW) # Allows for variable in list(REMOVE_ITEM)
 
 # C and CXX compilers being used for this configuration.
 set(C_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/.fw_dependencies/install/bin/clang")
-set(CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/.fw_dependencies/install/bin/clang-17")
+set(CXX_COMPILER "${CMAKE_CURRENT_SOURCE_DIR}/.fw_dependencies/install/bin/clang++")
 message(STATUS "C compiler: ${C_COMPILER}")
 message(STATUS "C++ compiler: ${CXX_COMPILER}")
 

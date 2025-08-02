@@ -41,7 +41,11 @@ auto CommandManager::create() -> std::string {
   cmd += std::string(MACOS_SDK_SYSROOT_FLAG) + " ";
 #endif
 
-  cmd += this->getOptimizationLevel();
+#if defined(__linux__)
+  cmd += " -fuse-ld=lld ";
+#endif
+
+  // cmd += this->getOptimizationLevel();
 
   cmd += this->getOutputArgument();
 

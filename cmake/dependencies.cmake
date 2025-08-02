@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-
 # =============================================================================
 # Dependency Management (Refactored)
 #
@@ -62,7 +60,7 @@ if(APPLE)
 
     message(STATUS "Found macOS SDK for linker at: ${MACOS_SDK_PATH}")
 
-    # This will be passed to your C++ code
+    # This will be passed to C++ code
     set(MACOS_SDK_SYSROOT_FLAG "-isysroot ${MACOS_SDK_PATH}" CACHE INTERNAL "")
 else()
     # On other platforms like Linux, this is not needed.
@@ -70,14 +68,9 @@ else()
 endif()
 
 if(BUILD_AOT) # Use the clang from our local LLVM installation
-    set(LLVM_CLANG_PATH "${LLVM_TOOLS_BINARY_DIR}/clang")
-    set(LLVM_CLANG_17_PATH "${LLVM_TOOLS_BINARY_DIR}/clang-17")
-
     # Prefer clang++ for C++ linking, but fallback to clang
-    if(EXISTS "${LLVM_CLANG_17_PATH}")
-        set(AOT_LINKER_PATH "${LLVM_CLANG_17_PATH}" CACHE FILEPATH "Path to clang-17 compiler")
-    else()
-        set(AOT_LINKER_PATH "${LLVM_CLANG_PATH}" CACHE FILEPATH "Path to clang compiler")
+    if(EXISTS "${CXX_COMPILER}")
+        set(AOT_LINKER_PATH "${CXX_COMPILER}" CACHE FILEPATH "Path to clang/clang++ compiler")
     endif()
 
     message(STATUS "AOT linker for user code: ${AOT_LINKER_PATH}")
