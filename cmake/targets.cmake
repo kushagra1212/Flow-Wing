@@ -89,6 +89,7 @@ add_dependencies(${EXECUTABLE_NAME} version)
 # =============================================================================
 # Target-Specific Properties
 # =============================================================================
+message(STATUS "[LLVM_INCLUDE_DIRS]: ${LLVM_INCLUDE_DIRS}")
 
 # --- Include Directories ---
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

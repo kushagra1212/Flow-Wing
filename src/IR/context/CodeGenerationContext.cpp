@@ -43,6 +43,9 @@ CodeGenerationContext ::CodeGenerationContext(
   auto Target =
       llvm::TargetRegistry::lookupTarget(_module->getTargetTriple(), Error);
 
+  // Initialize  LLVM_Logger
+  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
+
   if (Error.size() > 0) {
     this->_llvmLogger->LogError("Failed to lookup target: " + Error);
     exit(1);
@@ -65,9 +68,6 @@ CodeGenerationContext ::CodeGenerationContext(
   // Initialize
   _typeMapper = std::make_unique<TypeMapper>(_context.get(), _builder.get(),
                                              _module.get(), this);
-
-  // Initialize  LLVM_Logger
-  _llvmLogger = std::make_unique<LLVMLogger>(diagnosticHandler);
 
   // Initialize the alloca chain
   _allocaChain = std::make_unique<AllocaChain>();
