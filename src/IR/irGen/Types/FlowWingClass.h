@@ -60,6 +60,7 @@ private:
 public:
   FlowWingClass(std::string className, BoundClassStatement *boundClassStatement)
       : _className(className), _boundClassStatement(boundClassStatement) {}
+  ~FlowWingClass() = default;
   inline auto setClassType(llvm::StructType *type) { _classType = type; }
   inline auto getClassType() -> llvm::StructType * { return _classType; }
   inline auto setElementIndex(std::string key, uint64_t index) {

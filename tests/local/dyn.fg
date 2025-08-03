@@ -1,11 +1,2 @@
-
-class A {
-  var x:int 
-  init(y:int) -> nthg {
-      self.x = x 
-    }
-}
-
-var a:A = new A(2)
-
-print(a.x)
+var x:int =new 5
+print(x)

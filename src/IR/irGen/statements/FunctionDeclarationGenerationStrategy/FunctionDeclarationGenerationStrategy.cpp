@@ -28,6 +28,7 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundFunctionTypeExpression/BoundFunctionTypeExpression.h"
 #include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "src/utils/LogConfig.h"
+#include "llvm/Support/Debug.h"
 
 FunctionDeclarationGenerationStrategy::FunctionDeclarationGenerationStrategy(
     CodeGenerationContext *context)
@@ -318,7 +319,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
 
-      returnType = llvm::PointerType::get(elementType, 0);
+      CODEGEN_DEBUG_LOG("elementType", __FILE__, __LINE__, __FUNCTION__,
+                        "elementType: {}",
+                        SyntaxKindUtils::to_string(bTE->getSyntaxType()));
+
+      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+        returnType = llvm::PointerType::get(elementType, 0);
+      }
 
       FT = llvm::FunctionType::get(fd->hasAsReturnType()
                                        ? elementType

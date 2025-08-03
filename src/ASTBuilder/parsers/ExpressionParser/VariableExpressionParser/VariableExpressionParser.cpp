@@ -24,10 +24,13 @@
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
+#include "src/syntax/expression/CallExpressionSyntax/CallExpressionSyntax.h"
 #include "src/syntax/expression/IndexExpressionSyntax/IndexExpressionSyntax.h"
 #include "src/syntax/expression/LiteralExpressionSyntax/LiteralExpressionSyntax.h"
 #include "src/syntax/expression/TypeExpressionSyntax/TypeExpressionSyntax.h"
 #include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
+#include <cassert>
 
 std::unique_ptr<ExpressionSyntax>
 VariableExpressionParser::parseExpression(ParserContext *ctx) {
@@ -42,41 +45,42 @@ VariableExpressionParser::parseExpression(ParserContext *ctx) {
       auto expression =
           std::make_unique<IdentifierExpressionParser>()->parseExpression(ctx);
 
-      if (auto *variExp =
-              dynamic_cast<VariableExpressionSyntax *>(expression.get())) {
-        variExp->setSelfKeyword(std::move(identifierToken));
-      } else if (auto *indexExp =
-                     dynamic_cast<IndexExpressionSyntax *>(expression.get())) {
-        indexExp->addSelfKeyword(std::move(identifierToken));
-      } else if (auto *assignExp = dynamic_cast<AssignmentExpressionSyntax *>(
-                     expression.get())) {
+      if (expression->getKind() ==
+          SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax) {
+        static_cast<VariableExpressionSyntax *>(expression.get())
+            ->setSelfKeyword(std::move(identifierToken));
+        return expression;
+      } else if (expression->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::IndexExpression) {
+        static_cast<IndexExpressionSyntax *>(expression.get())
+            ->setSelfKeyword(std::move(identifierToken));
+        return expression;
+      } else if (expression->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::AssignmentExpression) {
+
+        auto assignmentExpression =
+            static_cast<AssignmentExpressionSyntax *>(expression.get());
+
         if (auto *varExp = dynamic_cast<VariableExpressionSyntax *>(
-                assignExp->getLeftRef().get())) {
+                assignmentExpression->getLeftRef().get())) {
           varExp->setSelfKeyword(std::move(identifierToken));
+
         } else if (auto *newIndexExp = dynamic_cast<IndexExpressionSyntax *>(
-                       assignExp->getLeftRef().get())) {
-          newIndexExp->addSelfKeyword(std::move(identifierToken));
+                       assignmentExpression->getLeftRef().get())) {
+          newIndexExp->setSelfKeyword(std::move(identifierToken));
         }
+
+      } else if (expression->getKind() ==
+                 SyntaxKindUtils::SyntaxKind::CallExpression) {
+        return expression;
+      } else {
+        DEBUG_LOG("expression: {}",
+                  SyntaxKindUtils::to_string(expression->getKind()));
+        assert(false &&
+               "Failed to cast expression to VariableExpressionSyntax");
       }
 
       return expression;
-    } else {
-      std::any selfValue = identifierToken->getValue();
-
-      std::unique_ptr<TypeExpressionSyntax> typeExpression =
-          std::make_unique<TypeExpressionSyntax>(
-              std::make_unique<SyntaxToken<std::any>>(
-                  ctx->getDiagnosticHandler()->getAbsoluteFilePath(), 0,
-                  SyntaxKindUtils::SyntaxKind::NBU_UNKNOWN_TYPE, 0,
-                  "NBU_UNKNOWN_TYPE", "NBU_UNKNOWN_TYPE"));
-
-      std::unique_ptr<VariableExpressionSyntax> variExp =
-          std::make_unique<VariableExpressionSyntax>(
-              std::make_unique<LiteralExpressionSyntax<std::any>>(
-                  std::move(identifierToken), selfValue),
-              false, std::move(typeExpression));
-
-      return variExp;
     }
   }
 

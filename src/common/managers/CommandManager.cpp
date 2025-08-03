@@ -21,6 +21,7 @@
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/common/LibUtils/LibUtils.h"
 #include "src/common/commandLineOptions/commandLineOptions.h"
+#include "src/utils/LogConfig.h"
 #include "src/utils/PathUtils.h"
 #include "src/utils/Utils.h"
 
@@ -171,21 +172,24 @@ auto CommandManager::getRuntimeLibrariesLinked() -> std::string {
   // A. Discover the location of our installed libraries at runtime.
   //    getAppResourcesPath() points to '.../share/FlowWing'
   //    So we navigate to '../lib/FlowWing' from there.
-  std::filesystem::path runtimeLibPath =
-      FlowWing::PathUtils::getLibrariesPath();
+  std::string runtimeLibPath = FlowWing::PathUtils::getLibrariesPath().string();
 
   std::string linkCmd = "";
 
-  CODEGEN_DEBUG_LOG("runtimeLibPath", runtimeLibPath.string());
+  CODEGEN_DEBUG_LOG("runtimeLibPath", runtimeLibPath);
+
+  const std::string &libPath = createLibPathArg(runtimeLibPath);
 
   // B. Add the "-L" flag to tell the linker where to search.
-  linkCmd += createLibPathArg(runtimeLibPath.string());
+  linkCmd += libPath;
 
   // C. Add the "-l" flags for each of your static libraries.
   for (const auto &lib :
        STATIC_LINKING_LIBRARIES) { // Assuming you have this list
     linkCmd += createLibArgs(lib);
   }
+
+  CODEGEN_DEBUG_LOG("linkCmd", linkCmd);
   return linkCmd;
 }
 

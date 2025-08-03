@@ -29,6 +29,9 @@
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/expression/AssignmentExpressionSyntax/AssignmentExpressionSyntax.h"
 #include "src/syntax/expression/VariableExpressionSyntax/VariableExpressionSyntax.h"
+#include "src/utils/LogConfig.h"
+#include <cassert>
+#include <memory>
 
 std::unique_ptr<ExpressionSyntax>
 IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
@@ -52,8 +55,6 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
 
     // The cast was successful, so we can now safely manage the pointer.
     // Release from the old unique_ptr
-    std::unique_ptr<VariableExpressionSyntax> variableExpression(
-        static_cast<VariableExpressionSyntax *>(expression.release()));
 
     bool needDefaultInitialize = false;
 
@@ -67,9 +68,25 @@ IdentifierExpressionParser::parseExpression(ParserContext *ctx) {
 
       operatorToken = ctx->match(SyntaxKindUtils::SyntaxKind::AssignmentToken);
       needDefaultInitialize = true;
+    } else if (expression->getKind() ==
+                   SyntaxKindUtils::SyntaxKind::VariableExpressionSyntax ||
+               expression->getKind() ==
+                   SyntaxKindUtils::SyntaxKind::AssignmentExpression ||
+               expression->getKind() ==
+                   SyntaxKindUtils::SyntaxKind::CallExpression ||
+               expression->getKind() ==
+                   SyntaxKindUtils::SyntaxKind::IndexExpression) {
+      return expression;
     } else {
-      return variableExpression;
+      DEBUG_LOG("expression: {}",
+                SyntaxKindUtils::to_string(expression->getKind()));
+      assert(false &&
+             "Failed to cast expression to VariableExpressionSyntax "
+             "or AssignmentExpression or CallExpression or IndexExpression");
     }
+
+    std::unique_ptr<VariableExpressionSyntax> variableExpression(
+        static_cast<VariableExpressionSyntax *>(expression.release()));
 
     ctx->getCodeFormatterRef()->appendWithSpace();
 

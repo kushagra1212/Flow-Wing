@@ -17,9 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-extern const char *STATIC_LINKING_LIBRARIES[3];
+extern const char *STATIC_LINKING_LIBRARIES[5];
 
 extern const char *DYNAMIC_LINKING_LIBRARIES[2];

@@ -78,7 +78,6 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateCallExp(
   _codeGenerationContext->getLogger()->setCurrentSourceLocation(
       expression->getLocation());
   llvm::StructType *lhsStructType = nullptr;
-  std::cout << "Type name " << _typeName << std::endl;
   if (_typeName != "" && _codeGenerationContext->_classTypes.find(_typeName) !=
                              _codeGenerationContext->_classTypes.end()) {
 

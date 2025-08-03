@@ -50,8 +50,7 @@ void RUN_ON_DEBUG_GENERATE_BC_FROM_LL() {
     std::string cmd = (FlowWing::PathUtils::getAOTLinkerPath()) + space +
                       llFile + " -emit-llvm -c " + " -o " +
                       llFile.substr(0, llFile.length() - 3) + ".bc";
-    std::cout << BLUE_TEXT << "Compiling: " << GREEN << llFile << RESET
-              << std::endl;
+    CODEGEN_DEBUG_LOG("Compiling: ", llFile);
 
     CODEGEN_DEBUG_LOG("Emit LLVM IR as BC file: ", cmd);
 

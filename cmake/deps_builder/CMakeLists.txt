@@ -24,11 +24,9 @@ include(ExternalProject)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LLVM_ASSERTIONS_SETTING ON)
-    set(IS_DEBUG_BUILD ON)
     message(STATUS "Configuring for a Debug build: LLVM Assertions will be ON.")
 else()
     set(LLVM_ASSERTIONS_SETTING OFF)
-    set(IS_DEBUG_BUILD OFF)
     message(STATUS "Configuring for a Release build: LLVM Assertions will be OFF.")
 endif()
 

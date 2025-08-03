@@ -243,7 +243,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
       llvm::Type *elementType =
           _codeGenerationContext->getMapper()->mapCustomTypeToLLVMType(
               bTE->getSyntaxType());
-      returnType = llvm::PointerType::get(elementType, 0);
+      if (bTE->getSyntaxType() != SyntaxKindUtils::SyntaxKind::NthgKeyword) {
+        returnType = llvm::PointerType::get(elementType, 0);
+      }
 
       FT = llvm::FunctionType::get(bfT->hasAsReturnType()
                                        ? elementType

@@ -53,7 +53,7 @@ public:
     _variableExpression = std::move(variableExpression);
   }
 
-  inline auto addSelfKeyword(std::unique_ptr<SyntaxToken<std::any>> selfKeyword)
+  inline auto setSelfKeyword(std::unique_ptr<SyntaxToken<std::any>> selfKeyword)
       -> void {
     _selfKeyword = std::move(selfKeyword);
   }
