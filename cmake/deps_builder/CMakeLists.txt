@@ -55,7 +55,7 @@ else()
         # ---- FIX #2: Use semicolons to separate list items for CMake ----
         -DLLVM_ENABLE_PROJECTS=clang;lld
 
-        -DLLVM_TARGETS_TO_BUILD=AArch64
+        -DLLVM_TARGETS_TO_BUILD=Native
         -DLLVM_ENABLE_TERMINFO=OFF
         -DLLVM_ENABLE_ASSERTIONS=${LLVM_ASSERTIONS_SETTING}
         -DLLVM_ENABLE_RTTI=ON

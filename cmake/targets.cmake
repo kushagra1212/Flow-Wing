@@ -118,18 +118,6 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     LLVMipo
     LLVMObject
 
-    # AArch64 Target Specifics
-    LLVMAArch64CodeGen
-    LLVMAArch64AsmParser
-    LLVMAArch64Desc
-    LLVMAArch64Info
-
-    # X86 Target Specifics
-    # LLVMX86CodeGen
-    # LLVMX86AsmParser
-    # LLVMX86Desc
-    # LLVMX86Info
-
     # Core LLVM Components
     LLVMCore
     LLVMMC
@@ -139,6 +127,27 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 
     # System Libraries
     Threads::Threads)
+
+# --- Conditionally Link Target-Specific Backends ---
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    message(STATUS "Linking against X86 backend.")
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+        LLVMX86CodeGen
+        LLVMX86AsmParser
+        LLVMX86Desc
+        LLVMX86Info
+    )
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    message(STATUS "Linking against AArch64 backend.")
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+        LLVMAArch64CodeGen
+        LLVMAArch64AsmParser
+        LLVMAArch64Desc
+        LLVMAArch64Info
+    )
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}. Please add linking logic for this target.")
+endif()
 
 if(TESTS_ENABLED)
     target_include_directories(${EXECUTABLE_NAME} PRIVATE ${googletest_INCLUDE_DIRS})
