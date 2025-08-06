@@ -56,6 +56,7 @@ else()
     set(INSTALL_LIBS_DEST "lib/flowwing")
 endif()
 
+
 # --- Custom Version Target ---
 add_custom_target(version
     COMMAND ${CMAKE_COMMAND} -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake

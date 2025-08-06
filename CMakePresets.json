@@ -17,7 +17,8 @@
       "inherits": "base",
       "cacheVariables": {
         "DEV_MODE": "ON",
-        "FETCHCONTENT_QUIET": "OFF"
+        "FETCHCONTENT_QUIET": "OFF",   
+        "CMAKE_LINKER_TYPE": "LLD"
       }
     },
     {
