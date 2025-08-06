@@ -24,6 +24,10 @@ RUN apt-get update && apt-get install -y \
     ccache \
     build-essential \
     python3 \
+    # Require to compile gc
+    automake \
+    autoconf \
+    libtool \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build and install CMake 3.29.6 from source to ensure compatibility with x86_64 and ARM64
