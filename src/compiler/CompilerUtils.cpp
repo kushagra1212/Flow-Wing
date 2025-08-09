@@ -74,26 +74,10 @@ getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
 }
 
 std::unique_ptr<llvm::Module>
-createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
-                             FlowWing::DiagnosticHandler *diagHandler) {
+createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
-  const std::string &filePath =
-      FlowWing::PathUtils::getBuiltInBCPath().string();
-
-  LINKING_DEBUG_LOG(" [INFO]: Built In Module Path ", filePath);
-
-#if defined(RELEASE)
   std::unique_ptr<llvm::Module> TheModule =
-      (createModuleFromBitcode(filePath, TheContext, diagHandler));
-
-#else
-  std::unique_ptr<llvm::Module> TheModule =
-      isValidLLFile(filePath) == EXIT_SUCCESS
-          ? std::move(createModuleFromIR(filePath, TheContext, diagHandler))
-          : std::move(
-                createModuleFromBitcode(filePath, TheContext, diagHandler));
-
-#endif
+      std::make_unique<llvm::Module>("FlowWing", *TheContext.get());
 
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -132,8 +116,7 @@ getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
                 FlowWing::DiagnosticHandler *diagHandler) {
 
   std::unique_ptr<llvm::Module> TheModule =
-      (FlowWing::Compiler::createLLVMModuleFromCodeorIR(TheContext,
-                                                        diagHandler));
+      (FlowWing::Compiler::createLLVMModule(TheContext));
 
   std::vector<std::string> filesPath = FlowWing::Compiler::getIRFilePaths(
       diagHandler,
@@ -228,27 +211,6 @@ createModuleFromIR(const std::string &filePath,
   }
 
   return TheModule;
-}
-
-std::unique_ptr<llvm::Module>
-createModuleFromBitcode(const std::string &filePath,
-                        std::unique_ptr<llvm::LLVMContext> &TheContext,
-                        FlowWing::DiagnosticHandler *diagHandler) {
-
-  std::unique_ptr<llvm::MemoryBuffer> buffer =
-      (getMemoryBuffer(filePath, diagHandler));
-
-  if (auto moduleOrErr =
-          llvm::parseBitcodeFile(buffer->getMemBufferRef(), *TheContext)) {
-    return std::move(*moduleOrErr);
-  } else {
-    diagHandler->printDiagnostic(
-        std::cerr, Diagnostic("Error reading bitcode file: " + filePath,
-                              DiagnosticUtils::DiagnosticLevel::Error,
-                              DiagnosticUtils::DiagnosticType::Linker,
-                              DiagnosticUtils::SourceLocation(0, 0, 0, "")));
-    return nullptr;
-  }
 }
 
 void logNoErrorJSONIfAsked(const std::string &outputFilePath) {

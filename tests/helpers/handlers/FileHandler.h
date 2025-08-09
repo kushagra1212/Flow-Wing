@@ -20,6 +20,8 @@
 #pragma once
 
 #include "src/common/constants/FlowWingUtilsConstants.h"
+#include "src/utils/FlowWingConfig.h"
+#include "src/utils/LogConfig.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -55,40 +57,23 @@ public:
     }
   }
 
-  void initialize() {
-
-    std::string makeCommand =
-        "make build-" + compilerType + "-release SILENT=1";
-
-    std::string ninjaCommand =
-        ("cd " + currentPath.string() + "/../../ && " + makeCommand + " ") +
-        " > " + FLOWWING::UTILS::CONSTANTS::NULL_DEVICE + " 2>&1";
-
-    if (std::system(ninjaCommand.c_str()) != EXIT_SUCCESS) {
-      std::cerr << "Failed to run ninja command" << std::endl;
-      return;
-    }
-    return;
+  std::string getCodeFilePath(const std::string &fileName) {
+    return std::filesystem::path(TEST_SDK_PATH) / fileName;
   }
 
   void writeFile(const std::string &filename, const std::string &code) {
-    std::string moduleFilePath = currentPath.string() + "/" + filename;
-    std::ofstream exportFile(moduleFilePath);
+    std::ofstream exportFile(getCodeFilePath(filename));
     exportFile << code;
     exportFile.close();
   }
 
   std::string createBuildAndRunCmd(const std::string &fileName) {
 
-    const std::string buildFolder = compilerType + "-release-dev";
-    std::string runCMD =
-        ("cd " + currentPath.string() + "/../" + buildFolder + " && " +
-         "./FlowWing " + currentPath.string() + "/" + fileName + " ");
+    const std::string codeFilePath = getCodeFilePath(fileName);
 
-#if AOT_TEST_MODE
-    runCMD += " && " + currentPath.string() + "/../" + buildFolder +
-              "/build/bin/" + fileName.substr(0, fileName.find_last_of('.'));
-#endif
+    std::string runCMD = "cd " + std::filesystem::path(PROJECT_DIR).string() +
+                         " && make run-" + compilerType +
+                         "-release SILENT=1 FILE=" + codeFilePath;
 
     return runCMD;
   }

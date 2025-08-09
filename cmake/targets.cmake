@@ -25,38 +25,6 @@
 # definitions for each target.
 # =============================================================================
 
-# --- Path and Platform Configuration ---
-if(APPLE)
-    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64")
-        set(PLATFORM_SUBDIR "mac-silicon")
-    else()
-        set(PLATFORM_SUBDIR "mac-intel")
-    endif()
-elseif(UNIX)
-    set(PLATFORM_SUBDIR "linux-x86_64")
-elseif(WIN32)
-    set(PLATFORM_SUBDIR "windows-x64")
-endif()
-
-set(DEV_MODULES_PATH "lib/modules")
-set(DEV_LIBS_PATH "lib/${PLATFORM_SUBDIR}")
-message(STATUS "Found platform libraries to install at: ${DEV_LIBS_PATH}")
-
-set(IS_MACOS_BUNDLE OFF)
-
-if(APPLE AND NOT TESTS_ENABLED AND CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT DEV_MODE)
-    set(IS_MACOS_BUNDLE ON)
-endif()
-
-if(IS_MACOS_BUNDLE)
-    set(INSTALL_MODULES_DEST "Resources/modules")
-    set(INSTALL_LIBS_DEST "Resources")
-else()
-    set(INSTALL_MODULES_DEST "share/flowwing/modules")
-    set(INSTALL_LIBS_DEST "lib/flowwing")
-endif()
-
-
 # --- Custom Version Target ---
 add_custom_target(version
     COMMAND ${CMAKE_COMMAND} -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake
@@ -75,15 +43,14 @@ else()
     set(EXECUTABLE_NAME "FlowWing")
 endif()
 
+# --- 1. Define the platform-specific library directory ---
+# Creates a path like 'lib/Darwin-arm64' or 'lib/Linux-x86_64'.
+set(FLOWWING_PLATFORM_LIB_DIR "lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+    CACHE STRING "Platform-specific directory for FlowWing libraries.")
+message(STATUS "SDK Platform Library Path: ${FLOWWING_PLATFORM_LIB_DIR}")
+
 # --- Executable Target Definition ---
-if(IS_MACOS_BUNDLE)
-    add_executable(${EXECUTABLE_NAME} MACOSX_BUNDLE ${EXECUTABLE_SOURCES})
-    set_target_properties(${EXECUTABLE_NAME} PROPERTIES
-        OUTPUT_NAME "FlowWing"
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Info.plist)
-else()
-    add_executable(${EXECUTABLE_NAME} ${EXECUTABLE_SOURCES})
-endif()
+add_executable(${EXECUTABLE_NAME} ${EXECUTABLE_SOURCES})
 
 add_dependencies(${EXECUTABLE_NAME} version)
 
@@ -152,7 +119,7 @@ endif()
 
 if(TESTS_ENABLED)
     target_include_directories(${EXECUTABLE_NAME} PRIVATE ${googletest_INCLUDE_DIRS})
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE GTest::gtest_main)
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE GTest::gtest)
 endif()
 
 # --- Compile Definitions ---
@@ -172,19 +139,51 @@ else()
     endif()
 endif()
 
+if(NOT BUILD_AOT)
+    message(STATUS "JIT build detected. Forcing link of static JIT dependencies.")
+
+    # Get the path from your dependencies.cmake file
+    set(DEPS_LIB_DIR "${CMAKE_SOURCE_DIR}/.fw_dependencies/install/lib")
+
+    if(APPLE)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+            "-Wl,-all_load"
+            "-Wl,-force_load,$<TARGET_FILE:built_in_module>"
+            "-Wl,-force_load,${DEPS_LIB_DIR}/libgc.a"
+            "-Wl,-force_load,${DEPS_LIB_DIR}/libgccpp.a"
+            "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
+        )
+    elseif(UNIX)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+            "-Wl,--whole-archive"
+            built_in_module
+            "${DEPS_LIB_DIR}/libgc.a"
+            "${DEPS_LIB_DIR}/libgccpp.a"
+            "${DEPS_LIB_DIR}/libatomic_ops.a"
+            "-Wl,--no-whole-archive"
+        )
+    endif()
+endif()
+
 target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     $<$<CONFIG:Debug>:DEBUG>
     $<$<CONFIG:Release>:RELEASE>
     ${LLVM_DEFINITIONS}
 
     "MACOS_SDK_SYSROOT_FLAG=\"${MACOS_SDK_SYSROOT_FLAG}\""
-
-    "DEV_MODULES_PATH=\"${DEV_MODULES_PATH}\""
-    "DEV_LIBS_PATH=\"${DEV_LIBS_PATH}\""
-    "INSTALL_MODULES_PATH=\"${INSTALL_MODULES_DEST}\""
-    "INSTALL_LIBS_PATH=\"${INSTALL_LIBS_DEST}\""
+    "FLOWWING_PLATFORM_LIB_DIR=\"${FLOWWING_PLATFORM_LIB_DIR}\""
     "AOT_LINKER_PATH=\"${AOT_LINKER_PATH}\""
-    "DEV_MODE_PATH=\"${CMAKE_SOURCE_DIR}\"")
+    "PROJECT_DIR=\"${CMAKE_SOURCE_DIR}\""
+)
+
+if(TESTS_ENABLED)
+    # Define the SDK path relative to the project root. This must match the Makefile.
+    set(TEST_SDK_PATH "${CMAKE_SOURCE_DIR}/build/test-sdk")
+
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+        "TEST_SDK_PATH=\"${TEST_SDK_PATH}\""
+    )
+endif()
 
 # --- Compile Options / Flags ---
 target_compile_options(${EXECUTABLE_NAME} PRIVATE

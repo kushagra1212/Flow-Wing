@@ -52,3 +52,7 @@ if(CCACHE_FOUND)
     message(STATUS "Using ccache, found in: ${CCACHE_FOUND}")
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 endif()
+
+if(UNIX AND NOT APPLE)
+    set(CMAKE_LINKER_TYPE "LLD")
+endif()

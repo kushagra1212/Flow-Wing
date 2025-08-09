@@ -71,10 +71,13 @@ if(UNIX)
 endif()
 
 set(DEPS_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/../install")
+message("DEPS_INSTALL_DIR: ${DEPS_INSTALL_DIR}")
 
-if(EXISTS "${DEPS_INSTALL_DIR}/lib/cmake/llvm/LLVMConfig.cmake")
+set(STAMP_FILE "${CMAKE_CURRENT_BINARY_DIR}/../stamps/.installed-${CMAKE_BUILD_TYPE}")
+message("STAMP FILE: ${STAMP_FILE}")
+
+if(EXISTS "${STAMP_FILE}")
     message(STATUS "Dependencies already built in ${DEPS_INSTALL_DIR}")
-    install(CODE "file(TOUCH \"${DEPS_INSTALL_DIR}/.installed\")")
 else()
     set(GC_DEPENDENCY "")
 
@@ -156,6 +159,4 @@ else()
         USES_TERMINAL_BUILD true
         USES_TERMINAL_INSTALL true
     )
-
-    install(CODE "file(TOUCH \"${DEPS_INSTALL_DIR}/.installed\")")
 endif()

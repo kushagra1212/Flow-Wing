@@ -50,8 +50,7 @@ getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
                const std::string &directoryPath);
 
 std::unique_ptr<llvm::Module>
-createLLVMModuleFromCodeorIR(std::unique_ptr<llvm::LLVMContext> &TheContext,
-                             FlowWing::DiagnosticHandler *diagHandler);
+createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext);
 
 int8_t isValidLLFile(const std::string &filePath);
 
@@ -65,11 +64,6 @@ std::unique_ptr<llvm::Module>
 createModuleFromIR(const std::string &filePath,
                    std::unique_ptr<llvm::LLVMContext> &TheContext,
                    FlowWing::DiagnosticHandler *diagHandler);
-
-std::unique_ptr<llvm::Module>
-createModuleFromBitcode(const std::string &filePath,
-                        std::unique_ptr<llvm::LLVMContext> &TheContext,
-                        FlowWing::DiagnosticHandler *diagHandler);
 
 // Function to load the .a file into the ExecutionEngine
 void loadArchiveIntoExecutionEngine(llvm::ExecutionEngine *executionEngine,

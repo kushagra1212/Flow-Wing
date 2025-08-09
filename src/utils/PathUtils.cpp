@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "PathUtils.h"
+#include <string>
 
 namespace FlowWing {
 
@@ -56,46 +56,33 @@ std::filesystem::path getExecutablePath() {
 }
 // Gets the path to the language modules (.fg files).
 std::filesystem::path getModulesPath() {
-
-#if defined(DEV_MODE_PATH)
-  // Developer Mode: Use the dev path macro.
-  return std::filesystem::path(DEV_MODE_PATH) / DEV_MODULES_PATH;
-
-#endif
-
-  // Installed Mode: Use the install path macro.
+  auto exePath = getExecutablePath();
 #if defined(__APPLE__)
-  if (getExecutablePath().string().find(".app/Contents/MacOS") !=
-      std::string::npos) {
-    // For .app bundles, paths are relative to Contents directory
-    return getExecutablePath().parent_path().parent_path() /
-           INSTALL_MODULES_PATH;
+  if (exePath.string().find(".app/Contents/MacOS") != std::string::npos) {
+    return exePath.parent_path().parent_path() / "Resources/modules";
   }
 #endif
-  // For standard FHS installs, paths are relative to the installation root.
-  return getExecutablePath().parent_path().parent_path() / INSTALL_MODULES_PATH;
+  // For standard installs (and SDK), it's relative to the 'bin' dir.
+  return exePath.parent_path().parent_path() / "lib/modules";
 }
 
 // Gets the path to the pre-built libraries (.so, .bc, etc).
 std::filesystem::path getLibrariesPath() {
+  auto exePath = getExecutablePath();
 
-  DEBUG_LOG("DEV_MODE_PATH", DEV_MODE_PATH);
-  DEBUG_LOG("DEV_LIBS_PATH", DEV_LIBS_PATH);
+  if (std::string(TEST_SDK_PATH) != "") {
+    return std::filesystem::path(TEST_SDK_PATH) / FLOWWING_PLATFORM_LIB_DIR;
+  }
 
-#if defined(DEV_MODE_PATH)
-  // Developer Mode: Use the dev path macro.
-  return std::filesystem::path(DEV_MODE_PATH) / DEV_LIBS_PATH;
-
-#endif
-
-// Installed Mode: Use the install path macro.
 #if defined(__APPLE__)
-  if (getExecutablePath().string().find(".app/Contents/MacOS") !=
-      std::string::npos) {
-    return getExecutablePath().parent_path().parent_path() / INSTALL_LIBS_PATH;
+  if (exePath.string().find(".app/Contents/MacOS") != std::string::npos) {
+    return exePath.parent_path().parent_path() / "Resources";
   }
 #endif
-  return getExecutablePath().parent_path().parent_path() / INSTALL_LIBS_PATH;
+  // In our SDK, this will resolve to 'build/sdk/bin/../lib/Darwin-arm64'
+  return exePath.parent_path().parent_path() /
+         FLOWWING_PLATFORM_LIB_DIR; // Use the variable from
+                                    // sdk-layout.cmake
 }
 
 // Helper to get the full path to the crucial built-in bitcode file.

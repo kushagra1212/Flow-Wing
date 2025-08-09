@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-
 # =============================================================================
 # FlowWing | CMake Main Entry Point
 #
@@ -29,22 +27,16 @@
 cmake_minimum_required(VERSION 3.29)
 project(FlowWing VERSION 0.0.2 LANGUAGES C CXX)
 
-# =============================================================================
-# Configure Persistent FetchContent
-#
-# Tell CMake to use a single, persistent directory within our source tree
-# for all FetchContent downloads. This prevents re-downloading dependencies
-# every time the build directory is cleaned.
-# This directory should be added to .gitignore.
-# =============================================================================
-include(FetchContent)
-set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies)
-
 # Include modular CMake scripts to configure the build.
 # The order of inclusion is critical.
 include(cmake/project-settings.cmake)
 include(cmake/compiler-warnings.cmake)
 include(cmake/dependencies.cmake)
+
+# Add the module sources to the build. This will define the library
+# targets like 'flowwing_string' and 'flowwing_map'.
+add_subdirectory(fw-modules)
+
 include(cmake/targets.cmake)
 include(cmake/installation.cmake)
 include(cmake/packaging.cmake)

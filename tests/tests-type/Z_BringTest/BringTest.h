@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #ifndef __BRINGTEST_H__
 #define __BRINGTEST_H__
 
@@ -26,7 +25,6 @@
 
 class BringTest : public ::testing::Test, public FileHandler, public IOHandler {
 protected:
-  BringTest() { this->initialize(); }
   void SetUp() override;
   void TearDown() override;
 };

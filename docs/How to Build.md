@@ -6,88 +6,122 @@
 - C++ Compiler (clang-17)
 - Docker (Optional)
 
-## Commands to Build, Run, Test, Package FlowWing Compiler Project
+# Building FlowWing
 
-### Build
+This guide provides instructions for building the FlowWing compiler from source on macOS and Linux.
+
+The build system is managed by CMake, with a convenient `Makefile` providing shortcuts for all common operations.
+
+## 1. Prerequisites
+
+Before you begin, you need to install the necessary build tools for your platform.
+
+### macOS
+
+You will need Homebrew to install the dependencies.
 
 ```bash
-make build
+# Install Homebrew (if you don't have it)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install build tools
+brew install cmake ninja automake autoconf libtool
 ```
 
-### Run FlowWing Compiler Project
+### Linux (Ubuntu/Debian)
 
 ```bash
-make run
+sudo apt-get update
+sudo apt-get install build-essential cmake ninja-build automake autoconf libtool
 ```
 
-### Test FlowWing Compiler Project
+## 2. First-Time Setup: Installing Dependencies
+
+The FlowWing compiler depends on several third-party libraries, including LLVM, Clang, and the Boehm GC. These are managed automatically.
+
+You only need to run this command once for each build type (Debug and Release).
 
 ```bash
-make test
+# To install dependencies for DEBUG builds (most common for development)
+make deps-install-debug
+
+# To install dependencies for RELEASE builds
+make deps-install-release
 ```
 
-### Package FlowWing Compiler Project
+This process will download and compile all necessary libraries into the `.fw_dependencies` directory in the project root. This can take a significant amount of time.
+
+## 3. Daily Development Workflow
+
+These are the commands you will use most often for writing and testing code.
+
+### Building the Compiler
+
+You can build the compiler in two modes: AOT (Ahead-of-Time) and JIT (Just-in-Time), each in either Debug or Release configuration.
 
 ```bash
-make package
+# Build the AOT compiler in Debug mode (recommended for development)
+make build-aot-debug
+
+# Build the JIT compiler in Debug mode
+make build-jit-debug
+
+# Build in Release mode for performance testing
+make build-aot-release
+make build-jit-release
 ```
 
-## Usage: `make <target>` [FILE=<path/to/your.fg>]
+### Running a `.fg` File
 
-### Primary Development Targets:
+The `run-*` targets automatically build the compiler, stage a clean SDK, and then execute your file.
 
-- `help` Show all available targets.
-- `build` Builds the AOT debug version (default).
-- `build-aot` Builds the AOT debug version.
-- `build-aot-release` Builds the AOT release version.
-- `build-jit` Builds the JIT debug version.
-- `run` Compile & run `myProgram.fg` file with the AOT Debug compiler.
-- `run-aot` Same as 'run'.
-- `run-aot-release` Compile & run `myProgram.fg` file with the AOT Release compiler.
-- `run-jit` Run `myProgram.fg` file with the JIT Debug.
-- `run-jit-release` Run `myProgram.fg` file with the JIT Release.
-
-### Local Running Targets (for scratch files):
-
-- `run` Compile & run `myProgram.fg` file with the AOT Debug compiler.
-- `run-aot` Same as 'run'.
-- `run-aot-release` Compile & run `myProgram.fg` file with the AOT Release compiler.
-- `run-jit` Run `myProgram.fg` file with the JIT Debug.
-- `run-jit-release` Run `myProgram.fg` file with the JIT Release.
-
-### Testing Targets:
-
-- `test` Run all AOT tests. (default)
-- `test-aot` Configure, build, and run the AOT tests.
-  Example: `make test-aot FILTER=SomeTestSuite.\*`
-- `test-jit` Configure, build, and run the JIT tests.
-
-### Packaging Targets (for distribution):
-
-- `package` Create the final AOT release package.
-- `package-aot` Create the final AOT release package.
-- `package-jit` Create the final JIT release package.
-
-### Utility Targets:
-
-- `clean` Deletes the entire 'build' and 'run_output' directories. (default)
-- `clean-all` Deletes everything, INCLUDING downloaded dependencies.
-  Example: `make clean-all`
-
-### Dependency Management:
-
-- `deps-build` Manually build external dependencies (LLVM, GTest).
-  Example: `make deps-build`
-
-### Options:
-
-- `FILE=<path>` Sets the .fg file for 'run' targets. (default)
-- `FILTER=<pattern>` Sets the GTest filter for 'test' targets. (default)
-- `SILENT=1` Suppresses build status messages for a cleaner log. (default)
-- `JOBS=-j<N>` Sets the number of parallel build jobs (default: all cores). (default)
-
-### Example:
+**This is the primary command for testing your code changes.**
 
 ```bash
-make run FILE=my_tests/feature.fg
+# Run a file using the AOT Debug compiler
+make run-aot-debug FILE=path/to/your/program.fg
+
+# Run a file using the JIT Debug compiler
+make run-jit-debug FILE=path/to/your/program.fg
+```
+
+To see a clean output showing only your program's results (and not the build messages), add the `SILENT=1` option:
+
+```bash
+make run-aot-debug FILE=path/to/your/program.fg SILENT=1
+```
+
+### Running Tests
+
+The project uses Google Test for its test suites. The `test-*` targets will automatically build the test runner and execute all tests.
+
+```bash
+# Run the entire AOT test suite
+make test-aot
+
+# Run the entire JIT test suite
+make test-jit
+```
+
+To run only a specific subset of tests, use the `FILTER` option with a `gtest_filter` pattern:
+
+```bash
+# Run only tests related to the Parser
+make test-aot FILTER=Parser*
+
+# Run a single specific test
+make test-jit FILTER=MyTestSuite.MySpecificTest
+```
+
+## 4. Cleaning
+
+To clean up build artifacts:
+
+```bash
+# Remove all build output (but keep dependencies)
+make clean
+
+# Remove all build output AND all downloaded dependencies
+# This will require you to run 'make deps-install-*' again.
+make clean-all
 ```

@@ -16,35 +16,34 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-
 # =============================================================================
-# Installation Rules
-#
-# Defines the rules for installing project artifacts, such as the main
-# executable, language modules, and shared libraries.
+# FlowWing | Installation Rules
 # =============================================================================
 
-# Install the final binary
-if(IS_MACOS_BUNDLE)
-    install(TARGETS ${EXECUTABLE_NAME} BUNDLE DESTINATION .)
-else()
-    install(TARGETS ${EXECUTABLE_NAME} DESTINATION bin)
-endif()
+# Get the list of all components that constitute our SDK.
+include(cmake/sdk-layout.cmake)
 
-# Install the language modules (.fg files)
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${DEV_MODULES_PATH}/
-    DESTINATION ${INSTALL_MODULES_DEST}
+# --Install the main compiler executable.
+# The EXECUTABLE_NAME is set in targets.cmake (e.g., "FlowWing" or "runTests").
+install(TARGETS ${EXECUTABLE_NAME}
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION . # Correctly handles macOS .app bundles
 )
 
-# Install the shared libraries (.so, .a, .dll, etc.)
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${DEV_LIBS_PATH}/
-    DESTINATION ${INSTALL_LIBS_DEST}
-    FILES_MATCHING
-    PATTERN "*.so*"
-    PATTERN "*.a"
-    PATTERN "*.dylib"
-    PATTERN "*.dll"
-    PATTERN "*.bc"
+# --Install the custom-built C/C++ libraries from fw-modules.
+install(TARGETS ${SDK_LIBRARY_TARGETS}
+    ARCHIVE DESTINATION ${FLOWWING_PLATFORM_LIB_DIR}
+    LIBRARY DESTINATION ${FLOWWING_PLATFORM_LIB_DIR}
 )
+
+# --Install the .fg module source files from fw-modules.
+install(FILES ${FG_MODULE_FILES}
+    DESTINATION lib/modules
+)
+
+# --Install the required third-party dependencies from .fw_dependencies.
+install(FILES ${THIRD_PARTY_LIBS}
+    DESTINATION ${FLOWWING_PLATFORM_LIB_DIR}
+)
+
+message(STATUS "Installation rules configured for the FlowWing SDK.")

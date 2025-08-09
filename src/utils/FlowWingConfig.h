@@ -23,23 +23,18 @@
 #define AOT_LINKER_PATH ""
 #endif
 
-#ifndef DEV_MODULES_PATH
-#define DEV_MODULES_PATH ""
-#endif
-#ifndef DEV_LIBS_PATH
-#define DEV_LIBS_PATH ""
-#endif
-#ifndef INSTALL_MODULES_PATH
-#define INSTALL_MODULES_PATH ""
-#endif
-#ifndef INSTALL_LIBS_PATH
-#define INSTALL_LIBS_PATH ""
-#endif
-
-#ifndef DEV_MODE_PATH
-#define DEV_MODE_PATH ""
-#endif
-
 #ifndef MACOS_SDK_SYSROOT_FLAG
 #define MACOS_SDK_SYSROOT_FLAG ""
+#endif
+
+#ifndef FLOWWING_PLATFORM_LIB_DIR
+#define FLOWWING_PLATFORM_LIB_DIR ""
+#endif
+
+#ifndef PROJECT_DIR
+#define PROJECT_DIR ""
+#endif
+
+#ifndef TEST_SDK_PATH
+#define TEST_SDK_PATH ""
 #endif

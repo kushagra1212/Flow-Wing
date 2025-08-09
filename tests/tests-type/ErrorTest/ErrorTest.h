@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
-
 #pragma once
 
 #include "../../helpers/handlers/FileHandler.h"
@@ -27,7 +25,6 @@
 
 class ErrorTest : public ::testing::Test, public FileHandler, public IOHandler {
 protected:
-  ErrorTest() { this->initialize(); }
   void SetUp() override;
   void TearDown() override;
 };

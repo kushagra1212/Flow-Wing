@@ -27,6 +27,7 @@
 # Tell find_package() where to look for our pre-built libraries.
 # This is the most important line.
 set(DEPS_INSTALL_DIR ${CMAKE_SOURCE_DIR}/.fw_dependencies/install)
+set(DEPS_INCLUDE_DIR ${DEPS_INSTALL_DIR}/include)
 list(APPEND CMAKE_PREFIX_PATH ${DEPS_INSTALL_DIR})
 
 set(CMAKE_FIND_ROOT_PATH ${DEPS_INSTALL_DIR})
@@ -62,9 +63,6 @@ if(APPLE)
 
     # This will be passed to C++ code
     set(MACOS_SDK_SYSROOT_FLAG "-isysroot ${MACOS_SDK_PATH}" CACHE INTERNAL "")
-else()
-    # On other platforms like Linux, this is not needed.
-    set(MACOS_SDK_SYSROOT_FLAG "" CACHE INTERNAL "")
 endif()
 
 if(BUILD_AOT) # Use the clang from our local LLVM installation
