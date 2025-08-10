@@ -37,6 +37,7 @@ if(UNIX)
 elseif(WIN32)
     # On Windows, the default tar extractor fails on long paths.
     # We use 7-Zip instead, which must be installed on the system (e.g., via choco).
+    message(STATUS "WINDOWS DETECTED: Configuring 7-Zip for LLVM extraction.")
     find_program(SEVEN_ZIP_EXECUTABLE 7z REQUIRED)
     set(LLVM_EXTRACT_COMMAND EXTRACT_COMMAND ${SEVEN_ZIP_EXECUTABLE} x <DOWNLOADED_FILE>)
 endif()
