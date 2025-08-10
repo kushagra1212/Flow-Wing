@@ -22,19 +22,19 @@ RUN make clean
 # ---- Test Stage (JIT) ----
 # This stage runs the just-in-time (JIT) tests
 FROM builder AS test-jit
-RUN make build-test-jit
+RUN make test-jit
 
 # ---- Test Stage (AOT) ----
 # This stage runs the ahead-of-time (AOT) tests
 FROM builder AS test-aot
-RUN make build-test-aot
+RUN make test-aot
 
 # ---- Build Stage (AOT) ----
 # This stage creates the AOT release
 FROM builder AS build-aot
-RUN make build-aot
+RUN make test-aot
 
 # ---- Build Stage (JIT) ----
 # This stage creates the JIT release
 FROM builder AS build-jit
-RUN make build-jit
+RUN make test-jit
