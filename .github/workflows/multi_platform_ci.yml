@@ -1,0 +1,113 @@
+name: Build and Test on All Platforms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  #----------------------------------------------------
+  # macOS Jobs
+  #----------------------------------------------------
+  test_macos_arm64:
+    name: Test on macOS (Apple Silicon)
+    runs-on: macos-14 # ARM64 runner
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          # ✅ Corrected: Cache both the output and the makefile stamps
+          path: |
+            cmake/install
+            .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Build and Test
+        env:
+          CC: $(brew --prefix llvm@17)/bin/clang
+          CXX: $(brew --prefix llvm@17)/bin/clang++
+        run: make test-jit
+
+  test_macos_x86_64:
+    name: Test on macOS (Intel)
+    runs-on: macos-12 # x86_64 runner
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          # ✅ Corrected: Cache both the output and the makefile stamps
+          path: |
+            cmake/install
+            .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Build and Test
+        env:
+          CC: $(brew --prefix llvm@17)/bin/clang
+          CXX: $(brew --prefix llvm@17)/bin/clang++
+        run: make test-jit
+
+  #----------------------------------------------------
+  # Windows Job
+  #----------------------------------------------------
+  test_windows_x86_64:
+    name: Test on Windows (x86_64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tools
+        run: choco install -y cmake ninja ccache
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          # ✅ Corrected: Cache both the output and the makefile stamps
+          path: |
+            cmake/install
+            .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Build and Test
+        shell: msvc_dev_cmd
+        run: make test-jit
+
+  #----------------------------------------------------
+  # Linux Job
+  #----------------------------------------------------
+  test_linux_x86_64:
+    name: Test on Linux (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          # ✅ Corrected: Cache both the output and the makefile stamps
+          path: |
+            cmake/install
+            .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Build and Test
+        env:
+          CC: clang-17
+          CXX: clang++-17
+        run: make test-jit
