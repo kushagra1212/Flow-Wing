@@ -93,6 +93,7 @@ jobs:
           # This uses 'pacman' to install all your required packages
           pacman-keys: "C004855F62E25434"
           install: >-
+            git
             make
             automake
             autoconf
