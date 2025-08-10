@@ -4,7 +4,7 @@ name: JIT Tests
 on: [pull_request]
 
 jobs:
-  aot_test:
+  jit_test:
     runs-on: ubuntu-latest # You can try 'ubuntu-22.04' for a slightly more recent base
 
     steps:
