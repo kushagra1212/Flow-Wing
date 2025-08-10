@@ -1,24 +1,33 @@
+# JIT Tests Workflow with Caching for Performance
 name: JIT Tests
 
 on: [pull_request]
 
 jobs:
-  jit_test: # The job is for testing, not just building
-    runs-on: ubuntu-latest
+  aot_test:
+    runs-on: ubuntu-latest # You can try 'ubuntu-22.04' for a slightly more recent base
 
     steps:
       - name: Checkout code
-        # Use the latest version for security and features
         uses: actions/checkout@v4
 
+      # New Step: Cache Docker layers
+      # This step checks for an existing cache of Docker layers and restores it.
+      # If a cache is not found, it creates a new one after the build step.
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker/test-jit/
+          # The paths are updated to reflect the docker-compose.yml in the root and Dockerfile in the docker folder
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', 'docker/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Build the specific test service image
-        # We use docker-compose build, which respects the 'target: test'
-        # in your docker-compose.yml file. This is simpler and more consistent
-        # than using docker/build-push-action for this use case.
-        run: docker compose build test-jit
+        # Using a shared cache directory for the build to enable layer caching
+        # No working directory is needed since the docker-compose file is in the root
+        run: docker compose build test-jit --build-arg BUILDKIT_INLINE_CACHE=1
 
       - name: Run JIT tests
-        # This command starts the container from the image we just built.
-        # It runs `command: make test-jit`. If tests fail, this step fails.
-        # --no-build ensures it uses the image from the previous step.
+        # No working directory is needed here either
         run: docker compose up --no-build --exit-code-from test-jit test-jit
