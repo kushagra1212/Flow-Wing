@@ -42,7 +42,7 @@ jobs:
         run: make test-jit
 
   test_macos_x86_64:
-    name: Test on macOS (Intel)
+    name: Test on macOS (x86_64)
     runs-on: macos-12 # x86_64 runner
     steps:
       - name: Checkout repository
@@ -102,6 +102,8 @@ jobs:
             ninja
             ccache
             wget
+            curl
+            ca-certificates
             mingw-w64-x86_64-toolchain
 
       - name: Cache Dependencies
