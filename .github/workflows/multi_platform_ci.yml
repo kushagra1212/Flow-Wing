@@ -78,12 +78,32 @@ jobs:
   test_windows_x86_64:
     name: Test on Windows (x86_64)
     runs-on: windows-latest
+
+    # Use the MSYS2 shell for all run steps in this job
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Tools
-        run: choco install -y cmake ninja ccache
+      # MSYS2 needs to update its package database first
+      - name: Update MSYS2
+        run: pacman -Syu --noconfirm
+
+      - name: Install Build Tools with Pacman
+        run: |
+          pacman -S --noconfirm --needed \
+            make \
+            automake \
+            autoconf \
+            libtool \
+            cmake \
+            ninja \
+            ccache \
+            wget \
+            mingw-w64-x86_64-toolchain
 
       - name: Cache Dependencies
         id: cache-deps
@@ -94,12 +114,8 @@ jobs:
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
-      # ✅ Step 1 (New): Set up the MSVC compiler environment
-      - name: Set up MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-
-      # ✅ Step 2 (Fixed): Remove the incorrect "shell:" line
       - name: Build and Test
+        # This will now run inside the MSYS2 shell and can execute .sh scripts
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
