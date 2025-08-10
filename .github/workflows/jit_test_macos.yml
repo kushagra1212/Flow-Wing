@@ -1,29 +1,41 @@
-# JIT Tests Workflow with Caching for Performance
-name: JIT Tests on macOS
+name: macOS Native Build
 
-on: [pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  jit_test_macos: # Renamed job for clarity
-    # Change this line to use a macOS runner
-    runs-on: macos-latest # This will use the latest available macOS version
+  build-on-macos:
+    # Use the latest native macOS runner provided by GitHub
+    runs-on: macos-latest
 
     steps:
-      - name: Checkout code
+      # 1. Check out your repository code
+      # This is the equivalent of the `COPY` commands in your Dockerfile
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          # The path is valid for macOS runners as well
-          path: /tmp/.docker/test-jit/
-          # The key will automatically change because ${{ runner.os }} will become 'macOS'
-          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', 'docker/Dockerfile') }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
+      # 2. Install all required dependencies using Homebrew
+      # This step replaces your `apt-get install` commands.
+      # Note: Xcode Command Line Tools (Clang, g++, build-essential) are pre-installed.
+      - name: Install Dependencies via Homebrew
+        run: |
+          # Update Homebrew and install all necessary packages
+          brew update
+          brew install llvm@17 googletest gdb wget ninja zstd openssl@3 ccache automake autoconf libtool cmake
 
-      - name: Build the specific test service image
-        run: docker compose build test-jit --build-arg BUILDKIT_INLINE_CACHE=1
+      # 3. Set up environment variables for the Clang compiler
+      # This replaces the `ENV` commands and points to the Homebrew-installed Clang
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
 
-      - name: Run JIT tests
-        run: docker compose up --no-build --exit-code-from test-jit test-jit
+      # 4. Run your build command
+      # This is the final `RUN` command from your Dockerfile
+      - name: Build Dependencies
+        run: make test-jit
