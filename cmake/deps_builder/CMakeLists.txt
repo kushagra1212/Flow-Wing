@@ -34,6 +34,11 @@ if(UNIX)
     find_program(AUTOCONF_EXECUTABLE autoconf REQUIRED)
     find_program(AUTOMAKE_EXECUTABLE automake REQUIRED)
     message(STATUS "Found Autotools for UNIX build.")
+elseif(WIN32)
+    # On Windows, the default tar extractor fails on long paths.
+    # We use 7-Zip instead, which must be installed on the system (e.g., via choco).
+    find_program(SEVEN_ZIP_EXECUTABLE 7z REQUIRED)
+    set(LLVM_EXTRACT_COMMAND EXTRACT_COMMAND ${SEVEN_ZIP_EXECUTABLE} x <DOWNLOADED_FILE>)
 endif()
 
 set(LLVM_ASSERTIONS_SETTING OFF)
@@ -141,6 +146,11 @@ else()
         URL "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/llvm-project-17.0.6.src.tar.xz"
         URL_HASH "SHA256=58a8818c60e6627064f312dbf46c02d9949956558340938b71cf731ad8bc0813"
         SOURCE_SUBDIR llvm
+
+        # This variable is ONLY set on Windows. On other platforms, it's empty,
+        # and CMake uses its default tar extractor.
+        ${LLVM_EXTRACT_COMMAND}
+
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DLLVM_ENABLE_PROJECTS=clang;lld -DLLVM_TARGETS_TO_BUILD=Native -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_ASSERTIONS=${LLVM_ASSERTIONS_SETTING} -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON
         USES_TERMINAL_DOWNLOAD true
         USES_TERMINAL_CONFIGURE true
