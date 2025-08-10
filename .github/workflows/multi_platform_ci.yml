@@ -77,25 +77,15 @@ jobs:
   test_windows_x86_64:
     name: Test on Windows (x86_64)
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up MSYS2 (for shell and basic tools ONLY)
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          pacman-keys: "C004855F62E25434"
-          # ✅ Corrected: REMOVED the MinGW toolchain. We only need the shell and autotools.
-          install: >-
-            git make automake autoconf libtool cmake ninja ccache wget curl
-            ca-certificates
+      - name: Install Build Tools
+        # Install 7-Zip for extraction and a native 'make' for Windows
+        run: choco install -y 7zip make
 
-      # ✅ Step 1 (New): Set up the MSVC compiler environment
       - name: Set up MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
 
@@ -103,20 +93,15 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          shell: msys2 {0}
           path: |
             cmake/install
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
-      # ✅ Step 2 (Modified): Tell Make/CMake to use the MSVC compiler (cl.exe)
       - name: Build and Test
-        shell: msys2 {0}
-        env:
-          CC: cl.exe
-          CXX: cl.exe
+        # No special shell or env vars needed. The environment is now
+        # a pure native Windows setup, which your CMake script handles.
         run: make test-jit
-
   ## ------------------ Linux Job ------------------ ##
 
   test_linux_x86_64:
