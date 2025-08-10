@@ -124,10 +124,7 @@ else()
             bdwgc_external
             GIT_REPOSITORY "https://github.com/ivmai/bdwgc.git"
             GIT_TAG "v8.2.4"
-
-            # ✅ CORRECTED: Replace the other flags with an explicit command
-            # This forcefully initializes all submodules after the initial clone.
-            UPDATE_COMMAND git submodule update --init --recursive
+            UPDATE_COMMAND ""
 
             CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF
             USES_TERMINAL_DOWNLOAD true
