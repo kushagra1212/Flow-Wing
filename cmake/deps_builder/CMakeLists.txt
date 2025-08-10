@@ -34,7 +34,9 @@ if(UNIX)
     find_program(AUTOCONF_EXECUTABLE autoconf REQUIRED)
     find_program(AUTOMAKE_EXECUTABLE automake REQUIRED)
     message(STATUS "Found Autotools for UNIX build.")
-elseif(WIN32)
+endif()
+
+if(WIN32)
     # On Windows, the default tar extractor fails on long paths.
     # We use 7-Zip instead, which must be installed on the system (e.g., via choco).
     message(STATUS "WINDOWS DETECTED: Configuring 7-Zip for LLVM extraction.")
