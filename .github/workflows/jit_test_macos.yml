@@ -1,0 +1,29 @@
+# JIT Tests Workflow with Caching for Performance
+name: JIT Tests on macOS
+
+on: [pull_request]
+
+jobs:
+  jit_test_macos: # Renamed job for clarity
+    # Change this line to use a macOS runner
+    runs-on: macos-latest # This will use the latest available macOS version
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          # The path is valid for macOS runners as well
+          path: /tmp/.docker/test-jit/
+          # The key will automatically change because ${{ runner.os }} will become 'macOS'
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', 'docker/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Build the specific test service image
+        run: docker compose build test-jit --build-arg BUILDKIT_INLINE_CACHE=1
+
+      - name: Run JIT tests
+        run: docker compose up --no-build --exit-code-from test-jit test-jit
