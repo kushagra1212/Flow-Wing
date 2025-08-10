@@ -73,7 +73,7 @@ public:
 
     std::string runCMD = "cd " + std::filesystem::path(PROJECT_DIR).string() +
                          " && make run-" + compilerType +
-                         "-release SILENT=1 FILE=" + codeFilePath;
+                         "-release SILENT=1 -s FILE=" + codeFilePath;
 
     return runCMD;
   }

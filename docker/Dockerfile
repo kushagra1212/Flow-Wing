@@ -28,13 +28,3 @@ RUN make test-jit
 # This stage runs the ahead-of-time (AOT) tests
 FROM builder AS test-aot
 RUN make test-aot
-
-# ---- Build Stage (AOT) ----
-# This stage creates the AOT release
-FROM builder AS build-aot
-RUN make test-aot
-
-# ---- Build Stage (JIT) ----
-# This stage creates the JIT release
-FROM builder AS build-jit
-RUN make test-jit

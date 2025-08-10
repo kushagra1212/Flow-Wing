@@ -49,6 +49,10 @@ set(FLOWWING_PLATFORM_LIB_DIR "lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR
     CACHE STRING "Platform-specific directory for FlowWing libraries.")
 message(STATUS "SDK Platform Library Path: ${FLOWWING_PLATFORM_LIB_DIR}")
 
+set(FLOWWING_MODULES_DIR "lib/modules"
+    CACHE STRING "Platform-specific directory for FlowWing modules.")
+message(STATUS "SDK Modules Path: ${FLOWWING_MODULES_DIR}")
+
 # --- Executable Target Definition ---
 add_executable(${EXECUTABLE_NAME} ${EXECUTABLE_SOURCES})
 
@@ -154,6 +158,7 @@ if(NOT BUILD_AOT)
             "-Wl,-force_load,${DEPS_LIB_DIR}/libatomic_ops.a"
         )
     elseif(UNIX)
+        # This is the corrected section for Linux
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
             "-Wl,--whole-archive"
             built_in_module
@@ -161,6 +166,10 @@ if(NOT BUILD_AOT)
             "${DEPS_LIB_DIR}/libgccpp.a"
             "${DEPS_LIB_DIR}/libatomic_ops.a"
             "-Wl,--no-whole-archive"
+
+            # This flag forces all global symbols to be added to the dynamic symbol table,
+            # which is necessary for the JIT to find them at runtime.
+            "-Wl,--export-dynamic"
         )
     endif()
 endif()
