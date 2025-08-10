@@ -85,19 +85,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ✅ Step 1: Install 7-Zip using Chocolatey
-      - name: Install 7-Zip
-        shell: powershell
-        run: choco install -y 7zip
-
-      - name: Set up MSYS2
+      - name: Set up MSYS2 (for shell and basic tools ONLY)
         uses: msys2/setup-msys2@v2
         with:
           update: true
           pacman-keys: "C004855F62E25434"
+          # ✅ Corrected: REMOVED the MinGW toolchain. We only need the shell and autotools.
           install: >-
             git make automake autoconf libtool cmake ninja ccache wget curl
-            ca-certificates mingw-w64-x86_64-toolchain
+            ca-certificates
+
+      # ✅ Step 1 (New): Set up the MSVC compiler environment
+      - name: Set up MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Cache Dependencies
         id: cache-deps
@@ -109,8 +109,12 @@ jobs:
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
+      # ✅ Step 2 (Modified): Tell Make/CMake to use the MSVC compiler (cl.exe)
       - name: Build and Test
         shell: msys2 {0}
+        env:
+          CC: cl.exe
+          CXX: cl.exe
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
