@@ -81,15 +81,12 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
-
+        working-directory: S # Run all steps inside the 'S' directory
     steps:
-      - name: Checkout repository
+      - name: Checkout repository to a short path
         uses: actions/checkout@v4
-
-      # ✅ Step 1 (New): Enable long path support on the Windows runner
-      - name: Enable Long Paths
-        shell: powershell
-        run: Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
+        with:
+          path: S # Checkout to 'S' instead of the default repo name
 
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
@@ -97,18 +94,8 @@ jobs:
           update: true
           pacman-keys: "C004855F62E25434"
           install: >-
-            git
-            make
-            automake
-            autoconf
-            libtool
-            cmake
-            ninja
-            ccache
-            wget
-            curl
-            ca-certificates
-            mingw-w64-x86_64-toolchain
+            git make automake autoconf libtool cmake ninja ccache wget curl
+            ca-certificates mingw-w64-x86_64-toolchain
 
       - name: Cache Dependencies
         id: cache-deps
@@ -116,12 +103,11 @@ jobs:
         with:
           shell: msys2 {0}
           path: |
-            cmake/install
-            .fw_dependencies
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+            S/cmake/install
+            S/.fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('S/cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Build and Test
-        shell: msys2 {0}
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
