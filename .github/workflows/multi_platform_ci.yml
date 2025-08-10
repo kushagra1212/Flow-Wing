@@ -78,44 +78,45 @@ jobs:
   test_windows_x86_64:
     name: Test on Windows (x86_64)
     runs-on: windows-latest
-
-    # Use the MSYS2 shell for all run steps in this job
-    defaults:
-      run:
-        shell: msys2 {0}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # MSYS2 needs to update its package database first
-      - name: Update MSYS2
-        run: pacman -Syu --noconfirm
-
-      - name: Install Build Tools with Pacman
-        run: |
-          pacman -S --noconfirm --needed \
-            make \
-            automake \
-            autoconf \
-            libtool \
-            cmake \
-            ninja \
-            ccache \
-            wget \
+      # ✅ Step 1 (New): Use the official action to set up MSYS2
+      # This action installs MSYS2, updates it, and installs all your tools.
+      # It also automatically configures the shell for all subsequent steps.
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          # This runs the initial 'pacman -Syu' update for you
+          update: true
+          # This uses 'pacman' to install all your required packages
+          pacman-keys: "C004855F62E25434"
+          install: >-
+            make
+            automake
+            autoconf
+            libtool
+            cmake
+            ninja
+            ccache
+            wget
             mingw-w64-x86_64-toolchain
 
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
         with:
+          # The shell is now correctly set to MSYS2 Bash, so pathing is Unix-style
+          shell: msys2 {0}
           path: |
             cmake/install
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Build and Test
-        # This will now run inside the MSYS2 shell and can execute .sh scripts
+        # This step will automatically run in the MSYS2 shell configured by the setup action
+        shell: msys2 {0}
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
