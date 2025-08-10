@@ -1,49 +1,30 @@
-# .github/workflows/aot-test-optimized.yml
-
-name: AOT Tests (Optimized)
+# AOT Tests Workflow with Caching for Performance
+name: AOT Tests
 
 on: [pull_request]
 
 jobs:
   aot_test:
-    # You can experiment with larger runners for more speed, e.g., 'ubuntu-latest-4-cores'
-    # This requires being on a paid GitHub plan.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # You can try 'ubuntu-22.04' for a slightly more recent base
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # This action sets up Docker Buildx, which is required for the caching feature.
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # The core of the optimization. This step builds the image using the
-      # GitHub Actions cache as a remote cache. On the first run, it builds
-      # and saves the layers. On subsequent runs, it pulls unchanged layers
-      # from the cache instead of rebuilding them.
-      - name: Build and cache test image
-        uses: docker/build-push-action@v5
+      # New Step: Cache Docker layers
+      # This step checks for an existing cache of Docker layers and restores it.
+      # If a cache is not found, it creates a new one after the build step.
+      - name: Cache Docker layers
+        uses: actions/cache@v4
         with:
-          context: .
-          # This should be the 'target' stage for your tests inside your Dockerfile.
-          target: test-aot
-          # We 'load' the image into the local Docker daemon so the next step can use it.
-          load: true
-          # We tag the image with a unique name. We'll reference this in the next step.
-          tags: aot-test-image:${{ github.sha }}
-          # Enable caching using the GitHub Actions cache backend.
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          path: /tmp/.docker/test-aot/
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', '**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
 
-      # This step now runs tests using the pre-built, cached image.
-      # The 'env' section passes the image tag to docker-compose.
+      - name: Build the specific test service image
+        # Using a shared cache directory for the build to enable layer caching
+        run: docker compose build test-aot --build-arg BUILDKIT_INLINE_CACHE=1
+
       - name: Run AOT tests
-        env:
-          # This environment variable will be used by docker-compose.yml
-          AOT_IMAGE_TAG: aot-test-image:${{ github.sha }}
-        run: >
-          docker compose up
-          --no-build
-          --exit-code-from test-aot
-          test-aot
+        run: docker compose up --no-build --exit-code-from test-aot test-aot
