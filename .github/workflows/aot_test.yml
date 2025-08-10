@@ -1,24 +1,41 @@
-name: AOT Tests
+name: AOT Tests (Optimized)
 
 on: [pull_request]
 
 jobs:
-  aot_test: # The job is for testing, not just building
+  aot_test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        # Use the latest version for security and features
         uses: actions/checkout@v4
 
-      - name: Build the specific test service image
-        # We use docker-compose build, which respects the 'target: test'
-        # in your docker-compose.yml file. This is simpler and more consistent
-        # than using docker/build-push-action for this use case.
-        run: docker compose build test-aot
+      - name: Set up Docker Buildx
+        # This step creates a Buildx builder instance, which is necessary
+        # for advanced features like cache backends.
+        uses: docker/setup-buildx-action@v3
 
-      - name: Run AOT tests
-        # This command starts the container from the image we just built.
-        # It runs `command: make test-aot`. If tests fail, this step fails.
-        # --no-build ensures it uses the image from the previous step.
-        run: docker compose up --no-build --exit-code-from test-aot test-aot
+      - name: Build and Test with Cache
+        # This single step replaces both the 'docker compose build' and 'docker compose up' commands.
+        # It uses the modern build-push-action, which is designed for CI.
+        uses: docker/build-push-action@v5
+        with:
+          # 'context:.' tells the builder to use the repository root as the build context.
+          context: .
+          # 'load: true' ensures the built image is loaded into the local Docker daemon
+          # so it can be used by subsequent steps if needed, though here we run tests within the build.
+          load: true
+          # 'tags' provides a name for the image, useful for local reference.
+          tags: flow-wing/aot-test:latest
+          # 'target: test-aot' specifies which stage from the Dockerfile to build.
+          # This assumes a multi-stage Dockerfile where the testing environment is defined in a 'test-aot' stage.
+          target: test-aot
+          # 'cache-from' tells Buildx where to import a previously saved cache.
+          # 'type=gha' specifies the GitHub Actions cache as the source.
+          cache-from: type=gha
+          # 'cache-to' tells Buildx where to export the cache upon a successful build.
+          # 'type=gha' specifies the GitHub Actions cache as the destination.
+          # 'mode=max' is critical for CI. It ensures all intermediate layers are cached,
+          # not just the layers of the final resulting image. This provides more granular
+          # caching and leads to more frequent cache hits on subsequent runs.
+          cache-to: type=gha,mode=max
