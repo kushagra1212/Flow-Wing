@@ -94,8 +94,12 @@ jobs:
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
+      # ✅ Step 1 (New): Set up the MSVC compiler environment
+      - name: Set up MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # ✅ Step 2 (Fixed): Remove the incorrect "shell:" line
       - name: Build and Test
-        shell: msvc_dev_cmd
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
