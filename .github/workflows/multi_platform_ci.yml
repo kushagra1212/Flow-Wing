@@ -7,14 +7,18 @@ on:
     branches: [main]
 
 jobs:
-  #----------------------------------------------------
-  # macOS Jobs
-  #----------------------------------------------------
+  ## ------------------ macOS Jobs ------------------ ##
+
   test_macos_arm64:
     name: Test on macOS (Apple Silicon)
     runs-on: macos-14 # ARM64 runner
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
       - name: Install Tools
         run: brew install ninja ccache automake autoconf libtool llvm@17
 
@@ -22,23 +26,31 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          # ✅ Corrected: Cache both the output and the makefile stamps
           path: |
             cmake/install
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
       - name: Build and Test
-        env:
-          CC: $(brew --prefix llvm@17)/bin/clang
-          CXX: $(brew --prefix llvm@17)/bin/clang++
         run: make test-jit
 
   test_macos_x86_64:
     name: Test on macOS (Intel)
     runs-on: macos-12 # x86_64 runner
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
+
       - name: Install Tools
         run: brew install ninja ccache automake autoconf libtool llvm@17
 
@@ -46,26 +58,30 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          # ✅ Corrected: Cache both the output and the makefile stamps
           path: |
             cmake/install
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
       - name: Build and Test
-        env:
-          CC: $(brew --prefix llvm@17)/bin/clang
-          CXX: $(brew --prefix llvm@17)/bin/clang++
         run: make test-jit
 
-  #----------------------------------------------------
-  # Windows Job
-  #----------------------------------------------------
+  ## ------------------ Windows Job ------------------ ##
+
   test_windows_x86_64:
     name: Test on Windows (x86_64)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install Tools
         run: choco install -y cmake ninja ccache
 
@@ -73,7 +89,6 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          # ✅ Corrected: Cache both the output and the makefile stamps
           path: |
             cmake/install
             .fw_dependencies
@@ -83,14 +98,15 @@ jobs:
         shell: msvc_dev_cmd
         run: make test-jit
 
-  #----------------------------------------------------
-  # Linux Job
-  #----------------------------------------------------
+  ## ------------------ Linux Job ------------------ ##
+
   test_linux_x86_64:
     name: Test on Linux (x86_64)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install Tools
         run: |
           sudo apt-get update
@@ -100,7 +116,6 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          # ✅ Corrected: Cache both the output and the makefile stamps
           path: |
             cmake/install
             .fw_dependencies
