@@ -72,7 +72,6 @@ jobs:
 
       - name: Build and Test
         run: make test-jit
-
   ## ------------------ Windows Job ------------------ ##
 
   test_windows_x86_64:
@@ -81,12 +80,15 @@ jobs:
     defaults:
       run:
         shell: msys2 {0}
-        working-directory: S # Run all steps inside the 'S' directory
+
     steps:
-      - name: Checkout repository to a short path
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: S # Checkout to 'S' instead of the default repo name
+
+      # ✅ Step 1: Install 7-Zip using Chocolatey
+      - name: Install 7-Zip
+        shell: powershell
+        run: choco install -y 7zip
 
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
@@ -103,11 +105,12 @@ jobs:
         with:
           shell: msys2 {0}
           path: |
-            S/cmake/install
-            S/.fw_dependencies
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('S/cmake/deps_builder/CMakeLists.txt') }}
+            cmake/install
+            .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Build and Test
+        shell: msys2 {0}
         run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
