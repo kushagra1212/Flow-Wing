@@ -141,11 +141,11 @@ IfStatementGenerationStrategy::generateStatement(BoundStatement *statement) {
             "Using Objects in Or If Statement is not allowed");
         return nullptr;
       }
-      conditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
+      orIfConditionValue = Builder->CreateIsNotNull(Builder->CreateLoad(
           llvm::Type::getInt8PtrTy(*TheContext), orIfConditionValue));
     } else if (_codeGenerationContext->getValueStackHandler()
                    ->isPrimaryType()) {
-      conditionValue = Builder->CreateLoad(
+      orIfConditionValue = Builder->CreateLoad(
           _codeGenerationContext->getValueStackHandler()->getLLVMType(),
           _codeGenerationContext->getValueStackHandler()->getValue());
     }
