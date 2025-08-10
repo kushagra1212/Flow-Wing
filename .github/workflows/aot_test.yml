@@ -5,29 +5,34 @@ on: [pull_request]
 
 jobs:
   aot_test:
-    runs-on: ubuntu-latest # You can try 'ubuntu-22.04' for a slightly more recent base
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # New Step: Cache Docker layers
-      # This step checks for an existing cache of Docker layers and restores it.
-      # If a cache is not found, it creates a new one after the build step.
-      - name: Cache Docker layers
+      # Install ccache on the runner
+      - name: Install ccache
+        run: sudo apt-get update && sudo apt-get install ccache -y
+
+      # Cache the ccache directory
+      # The key is based on the OS and the hash of your source files
+      # so it's invalidated only when your code changes significantly.
+      - name: Cache ccache
+        id: ccache
         uses: actions/cache@v4
         with:
-          path: /tmp/.docker/test-aot/
-          # The paths are updated to reflect the docker-compose.yml in the root and Dockerfile in the docker folder
-          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', 'docker/Dockerfile') }}
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/Dockerfile') }}-${{ hashFiles('**/*.cpp', '**/*.cxx', '**/*.c', '**/*.h') }}
           restore-keys: |
-            ${{ runner.os }}-docker-
+            ${{ runner.os }}-ccache-
 
-      - name: Build the specific test service image
-        # Using a shared cache directory for the build to enable layer caching
-        # No working directory is needed since the docker-compose file is in the root
-        run: docker compose build test-aot --build-arg BUILDKIT_INLINE_CACHE=1
-
-      - name: Run AOT tests
-        # No working directory is needed here either
-        run: docker compose up --no-build --exit-code-from test-aot test-aot
+      - name: Build and Run AOT tests with ccache
+        # We now use a single `docker compose run` command.
+        # This command mounts the ccache directory and sets the CCACHE_DIR environment variable
+        # so the compiler inside the container can use the cache.
+        run: docker compose run --rm test-aot
+        env:
+          CCACHE_DIR: /ccache
+        volumes:
+          - ~/.ccache:/ccache
