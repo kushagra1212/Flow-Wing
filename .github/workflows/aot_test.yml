@@ -18,13 +18,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.docker/test-aot/
-          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', '**/Dockerfile') }}
+          # The paths are updated to reflect the docker-compose.yml in the root and Dockerfile in the docker folder
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml', 'docker/Dockerfile') }}
           restore-keys: |
             ${{ runner.os }}-docker-
 
       - name: Build the specific test service image
         # Using a shared cache directory for the build to enable layer caching
+        # No working directory is needed since the docker-compose file is in the root
         run: docker compose build test-aot --build-arg BUILDKIT_INLINE_CACHE=1
 
       - name: Run AOT tests
+        # No working directory is needed here either
         run: docker compose up --no-build --exit-code-from test-aot test-aot
