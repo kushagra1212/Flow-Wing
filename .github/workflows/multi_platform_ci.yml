@@ -7,10 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  ## ------------------ macOS Jobs ------------------ ##
+  ## ------------------ macOS Jobs (Apple Silicon) ------------------ ##
 
-  test_macos_arm64:
-    name: Test on macOS (Apple Silicon)
+  macos_arm64_build_deps:
+    name: Build and Cache Dependencies for macOS (Apple Silicon)
     runs-on: macos-14 # ARM64 runner
     steps:
       - name: Checkout repository
@@ -26,9 +26,8 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: |
-            cmake/install
-            .fw_dependencies
+          # This is the directory where dependencies are built and installed.
+          path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Set Compiler Environment
@@ -42,12 +41,44 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
+  test_macos_arm64:
+    name: Test JIT on macOS (Apple Silicon)
+    runs-on: macos-14
+    needs: macos_arm64_build_deps # <-- This job waits for the build-deps job to succeed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
       - name: Build and Test
         run: make test-jit
 
-  ## ------------------ Windows Job ------------------ ##
+  ## ------------------ Windows Jobs (x86_64) ------------------ ##
 
-  windows-x86_64-build-deps:
+  windows_x86_64_build_deps:
     name: Build and Cache Dependencies for Windows (x86_64)
     runs-on: windows-latest
     steps:
@@ -64,8 +95,7 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: |
-            .fw_dependencies
+          path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Install Dependencies
@@ -73,10 +103,9 @@ jobs:
         run: make deps-install-release
 
   test_windows_x86_64:
-    name: Test on Windows (x86_64)
+    name: Test JIT on Windows (x86_64)
     runs-on: windows-latest
-    needs: windows-x86_64-build-deps
-
+    needs: windows_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,12 +116,11 @@ jobs:
       - name: Set up MSVC Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Cache Dependencies
+      - name: Restore Dependencies from Cache
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: |
-            .fw_dependencies
+          path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Fail if cache not found
@@ -100,12 +128,12 @@ jobs:
         run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
       - name: Build and Test
-        # The environment is now correctly configured for your presets (MSVC + Ninja).
         run: make test-jit
 
-  ## ------------------ Linux Job ------------------ ##
-  test_linux_x86_64:
-    name: Test on Linux (x86_64)
+  ## ------------------ Linux Jobs (x86_64) ------------------ ##
+
+  linux_x86_64_build_deps:
+    name: Build and Cache Dependencies for Linux (x86_64)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -120,14 +148,39 @@ jobs:
         id: cache-deps
         uses: actions/cache@v4
         with:
-          path: |
-            cmake/install
-            .fw_dependencies
+          path: .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       - name: Install Dependencies
+        env:
+          CC: clang-17
+          CXX: clang++-17
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
+
+  test_linux_x86_64:
+    name: Test JIT on Linux (x86_64)
+    runs-on: ubuntu-latest
+    needs: linux_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
       - name: Build and Test
         env:
