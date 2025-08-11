@@ -100,19 +100,9 @@ jobs:
 
       # ✅ CORRECTED: Replaced 'make' with direct CMake commands using the Visual Studio generator
       - name: Build and Test
-        run: |
-          # 1. Configure and build the dependencies
-          # We use the Visual Studio 17 2022 generator for maximum compatibility
-          cmake -S cmake/deps_builder -B .fw_dependencies/build -G "Visual Studio 17 2022" -A x64
-          cmake --build .fw_dependencies/build --config Release
-
-          # 2. Configure and build the tests (which link against the dependencies)
-          cmake -S . -B build/test-jit -G "Visual Studio 17 2022" -A x64
-          cmake --build build/test-jit --config Release
-
-          # 3. Run the tests
-          cd build/test-jit
-          ctest --output-on-failure -C Release
+        # We go back to using your simple 'make' command.
+        # The environment is now correctly configured for your presets (MSVC + Ninja).
+        run: make test-jit
 
   ## ------------------ Linux Job ------------------ ##
   test_linux_x86_64:
