@@ -119,12 +119,13 @@ else()
         set(GC_DEPENDENCY "bdwgc_external")
 
     elseif(WIN32)
-        # (Windows section remains unchanged)
         ExternalProject_Add(
             bdwgc_external
             GIT_REPOSITORY "https://github.com/ivmai/bdwgc.git"
             GIT_TAG "v8.2.4"
 
+            # Add this to clone libatomic_ops into the source dir
+            PATCH_COMMAND git clone https://github.com/ivmai/libatomic_ops.git libatomic_ops && cd libatomic_ops && git checkout v7.8.0
             CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -Dbuild_tests=OFF -Dbuild_gctests=OFF -Denable_cplusplus=ON -DBUILD_SHARED_LIBS=OFF
             USES_TERMINAL_DOWNLOAD true
             USES_TERMINAL_CONFIGURE true
