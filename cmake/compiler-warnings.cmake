@@ -26,7 +26,7 @@
 
 if(MSVC)
     # /W4 is a high warning level, /WX treats warnings as errors
-    set(PROJECT_WARNING_FLAGS "/W4 /WX")
+    set(PROJECT_WARNING_FLAGS "/W4" "/WX")
 else()
     # -Wall, -Wextra, -Wpedantic provide a comprehensive set of warnings
     # -Werror treats all warnings as errors
