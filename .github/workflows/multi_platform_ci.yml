@@ -38,6 +38,10 @@ jobs:
           echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
           echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
 
+      - name: Install Dependencies
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: make deps-install-release
+
       - name: Build and Test
         run: make test-jit
 
@@ -70,6 +74,10 @@ jobs:
           echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
           echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
 
+      - name: Install Dependencies
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: make deps-install-release
+
       - name: Build and Test
         run: make test-jit
 
@@ -98,6 +106,10 @@ jobs:
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-v2-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
+      - name: Install Dependencies
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: make deps-install-release
+
       - name: Build and Test
         # The environment is now correctly configured for your presets (MSVC + Ninja).
         run: make test-jit
@@ -123,6 +135,10 @@ jobs:
             cmake/install
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Install Dependencies
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: make deps-install-release
 
       - name: Build and Test
         env:
