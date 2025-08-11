@@ -98,9 +98,7 @@ jobs:
             .fw_dependencies
           key: ${{ runner.os }}-${{ runner.arch }}-deps-v2-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
-      # ✅ CORRECTED: Replaced 'make' with direct CMake commands using the Visual Studio generator
       - name: Build and Test
-        # We go back to using your simple 'make' command.
         # The environment is now correctly configured for your presets (MSVC + Ninja).
         run: make test-jit
 
