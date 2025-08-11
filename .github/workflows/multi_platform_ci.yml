@@ -96,7 +96,7 @@ jobs:
           path: |
             cmake/install
             .fw_dependencies
-          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-v2-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
 
       # ✅ CORRECTED: Replaced 'make' with direct CMake commands using the Visual Studio generator
       - name: Build and Test
