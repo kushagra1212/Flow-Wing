@@ -46,7 +46,7 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
 }
 
 uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
-  uint64_t index = -1;
+  uint64_t index = UINT64_MAX;
   for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
       index = i;
@@ -54,7 +54,7 @@ uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
     }
   }
 
-  if (index == -1) {
+  if (index == UINT64_MAX) {
     std::string typeUsedByUser =
         _codeGenerationContext->getMapper()->getLLVMTypeName(type);
 
