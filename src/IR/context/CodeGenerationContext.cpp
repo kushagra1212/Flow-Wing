@@ -258,8 +258,8 @@ auto CodeGenerationContext::createVTableMapEntry(
       }
 
       for (size_t i = 0; i < functionType->getNumParams(); i++) {
-        if (previousFunctionType->getParamType(i) !=
-            functionType->getParamType(i)) {
+        if (previousFunctionType->getParamType(static_cast<unsigned int>(i)) !=
+            functionType->getParamType(static_cast<unsigned int>(i))) {
           this->getLogger()->LogError(
               "Function " + fName + " has different parameter type in class " +
               className + " and its parent class " +
@@ -713,9 +713,15 @@ llvm::Value *CodeGenerationContext::createMemoryGetPtr(
   }
 
   default:
+    std::string prettyFunctionName = "";
+#if defined(_MSC_VER)
+    prettyFunctionName = __FUNCSIG__;
+#else
+    prettyFunctionName = __PRETTY_FUNCTION__;
+#endif
     this->getLogger()->LogError(
         "Unknown Memory Kind " + BinderKindUtils::to_string(memoryKind) +
-        " for " + variableName + " in " + __PRETTY_FUNCTION__);
+        " for " + variableName + " in " + prettyFunctionName);
     return nullptr;
   }
 }

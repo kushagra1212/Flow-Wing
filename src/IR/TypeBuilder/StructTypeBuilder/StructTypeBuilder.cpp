@@ -46,7 +46,7 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
 }
 
 uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
-  int index = -1;
+  uint64_t index = -1;
   for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
       index = i;
@@ -74,7 +74,7 @@ bool StructTypeBuilder::isDyn(llvm::Type *type) const {
 llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
     llvm::Value *v, const std::string &variableName) const {
 
-  uint64_t index = -1;
+  uint64_t index;
 
   if (isGlobalVar(variableName)) {
     index = _codeGenerationContext->getAllocaChain()->getGlobalTypeIndex(
