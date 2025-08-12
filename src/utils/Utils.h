@@ -22,6 +22,7 @@
 #include "src/external/include/json.hpp"
 #include "src/utils/Colors.h"
 #include <any>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -193,7 +194,7 @@ inline auto hasFileExtenstion(const std::string &filePath,
     return EXIT_FAILURE;
   }
 
-  unsigned long lastPositionWithDot = filePath.find_last_of(".") + 1;
+  size_t lastPositionWithDot = filePath.find_last_of(".") + 1;
 
   if (filePath.substr(lastPositionWithDot,
                       filePath.length() - lastPositionWithDot) == ext) {

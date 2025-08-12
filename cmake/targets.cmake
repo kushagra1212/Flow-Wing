@@ -197,9 +197,16 @@ endif()
 # --- Compile Options / Flags ---
 target_compile_options(${EXECUTABLE_NAME} PRIVATE
     ${PROJECT_WARNING_FLAGS}
-    $<$<CONFIG:Debug>:-g -fsanitize=undefined>
+
+    # MSVC-specific flags
+    $<$<CXX_COMPILER_ID:MSVC>:/EHsc $<$<CONFIG:Release>:/O2>>
+
+    # GCC/Clang-specific flags
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+    -frtti
     $<$<CONFIG:Release>:-O3>
-    -frtti)
+    $<$<CONFIG:Debug>:-g -fsanitize=undefined>
+    >)
 
 # --- Linker Options / Flags ---
 target_link_options(${EXECUTABLE_NAME} PRIVATE
