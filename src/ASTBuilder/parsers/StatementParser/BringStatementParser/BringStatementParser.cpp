@@ -119,7 +119,7 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
       CODEGEN_DEBUG_LOG("modulesPath", modulesPath);
 
       std::string moduleFilePath = Utils::findFile(
-          std::string(modulesPath), relativeFilePath + "-module.fg");
+          modulesPath.string(), relativeFilePath + "-module.fg");
 
       if (moduleFilePath.empty()) {
         moduleFilePath =
