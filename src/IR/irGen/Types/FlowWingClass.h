@@ -208,7 +208,8 @@ public:
 
     return builder->CreateLoad(
         llvm::PointerType::getInt8PtrTy(*context),
-        builder->CreateStructGEP(_vTableType, vTablePtr, index));
+        builder->CreateStructGEP(_vTableType, vTablePtr,
+                                 static_cast<unsigned int>(index)));
   }
 
   inline auto isChildOf(std::string className) -> bool {
