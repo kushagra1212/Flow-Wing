@@ -19,13 +19,14 @@
 
 #pragma once
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 #include "src/IR/constants/FlowWingIRConstants.h"
 #include "src/common/Common.h"

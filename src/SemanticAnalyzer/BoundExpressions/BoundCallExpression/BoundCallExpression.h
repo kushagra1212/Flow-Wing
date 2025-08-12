@@ -22,10 +22,11 @@
 #include "src/SemanticAnalyzer/BoundExpressions/BoundExpression/BoundExpression.h"
 #include <any>
 #include <map>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/DerivedTypes.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class BoundExpression;
 template <typename T> class BoundLiteralExpression;

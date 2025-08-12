@@ -22,10 +22,11 @@
 #include "src/IR/context/CodeGenerationContext.h"
 #include "src/IR/irGen/GenerationStrategy.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/Value.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 namespace FlowWing {
 

@@ -23,11 +23,12 @@
 #include "src/diagnostics/Diagnostic/DiagnosticCodeData.h"
 #include "src/diagnostics/DiagnosticUtils/SourceLocation.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/SourceMgr.h"
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 namespace FlowWing {
 class DiagnosticHandler;

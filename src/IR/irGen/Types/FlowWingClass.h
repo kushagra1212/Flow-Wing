@@ -23,12 +23,14 @@
 #include "src/SemanticAnalyzer/BoundStatements/BoundClassStatement/BoundClassStatement.h"
 #include "src/common/constants/FlowWingUtilsConstants.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
+
 class FlowWingClass {
 private:
   std::string _className;
@@ -117,7 +119,8 @@ public:
   inline auto getElement(std::string key)
       -> std::tuple<llvm::Type *, uint64_t, std::string, llvm::StructType *> {
     uint64_t index = _classElementsIndexMap[key];
-    llvm::Type *elementType = _classType->getElementType(index);
+    llvm::Type *elementType =
+        _classType->getElementType(static_cast<unsigned int>(index));
     std::string elementName = "primitive";
 
     if (llvm::isa<llvm::StructType>(elementType)) {
@@ -180,7 +183,8 @@ public:
       llvm::Function *f = TheModule->getFunction(fName);
 
       llvm::Value *vTableElementPtr = builder->CreateStructGEP(
-          _vTableType, vTablePtr, std::get<1>(element.second));
+          _vTableType, vTablePtr,
+          static_cast<unsigned int>(std::get<1>(element.second)));
 
       builder->CreateStore(f, vTableElementPtr);
     }
@@ -199,7 +203,8 @@ public:
       return nullptr;
     }
 
-    uint64_t index = std::get<1>(_vTableElementsMap[fName]);
+    uint64_t index =
+        static_cast<uint64_t>(std::get<1>(_vTableElementsMap[fName]));
 
     return builder->CreateLoad(
         llvm::PointerType::getInt8PtrTy(*context),

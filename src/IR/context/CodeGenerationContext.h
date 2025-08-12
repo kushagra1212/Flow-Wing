@@ -32,8 +32,8 @@
 #include "src/utils/BuiltInFunction/BuiltInFunction.h"
 #include "utils/ValueStack/ValueStackHandler.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LegacyPassManager.h"
@@ -98,7 +98,8 @@
 // JIT
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/raw_ostream.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class TypeMapper;
 class BoundFunctionDeclaration;

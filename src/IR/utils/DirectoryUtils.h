@@ -22,10 +22,11 @@
 #include "src/IR/logger/LLVMLogger.h"
 #include "src/utils/Utils.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/Support/FileSystem.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 namespace FLOWWING::IR::UTILS {
 

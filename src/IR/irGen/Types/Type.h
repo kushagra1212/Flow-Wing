@@ -21,12 +21,13 @@
 
 #include "src/utils/LogConfig.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include "llvm/IR/Module.h"
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class BoundCustomTypeStatement;
 
@@ -39,11 +40,11 @@ class Type {
 
 public:
   Type() = default;
-  Type(const std::string &name, llvm::Type *type, int64_t index,
+  Type(const std::string &name, llvm::Type *type, int64_t inIndex,
        BoundCustomTypeStatement *customType)
-      : name(name), type(type), index(index), customType(customType) {
+      : name(name), type(type), index(inIndex), customType(customType) {
 
-    CODEGEN_DEBUG_LOG("Type: " + name + " ", type, index);
+    CODEGEN_DEBUG_LOG("Type: " + name + " ", type, inIndex);
   }
 
   const std::string &getName() const { return name; }

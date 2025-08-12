@@ -17,28 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#pragma once
 
-#include "src/IR/irGen/Types/LLVMType/LLVMType.h"
+/*
+ * This header is intended to be included multiple times.
+ * It does not have a #pragma once guard.
+ *
+ * It is used to restore compiler warning settings that were
+ * previously saved by diagnostic_push.h.
+ */
 
-// clang-format off
-#include "src/diagnostics/Diagnostic/diagnostic_push.h"
-#include <llvm/IR/DerivedTypes.h>
-#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
-// clang-format on
-
-class LLVMFunctionType : public LLVMType {
-public:
-  LLVMFunctionType(llvm::Type *type, llvm::FunctionType *fType);
-
-  virtual ~LLVMFunctionType() = default;
-
-  virtual inline bool isPointerToFunction() const override { return true; }
-
-  inline llvm::FunctionType *getFunctionType() const { return _fType; }
-
-  virtual inline llvm::Type *getLLVMType() const override { return _fType; }
-
-private:
-  llvm::FunctionType *_fType;
-};
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#endif

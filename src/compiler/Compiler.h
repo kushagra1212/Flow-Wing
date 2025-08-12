@@ -27,10 +27,11 @@
 #include <string>
 #include <vector>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class LLFileSaveStrategy;
 namespace FlowWing {

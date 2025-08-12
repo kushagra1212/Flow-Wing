@@ -19,11 +19,12 @@
 
 #pragma once
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 #include "src/IR/utils/fileSaver/FileSaveStrategy.h"
 

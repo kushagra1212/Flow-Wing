@@ -22,10 +22,11 @@
 #include "src/IR/irGen/statements/StatementGenerationStrategy/StatementGenerationStrategy.h"
 #include <vector>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/IR/Value.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 class CodeGenerationContext;
 class BoundStatement;

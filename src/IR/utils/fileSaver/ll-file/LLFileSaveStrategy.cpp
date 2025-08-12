@@ -22,10 +22,11 @@
 #include "src/utils/Utils.h"
 #include <iostream>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#include <llvm/Support/FileSystem.h>
-#pragma clang diagnostic pop
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
+#include <llvm/Support/FileSystem.h> 
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
 
 LLFileSaveStrategy::LLFileSaveStrategy(LLVMLogger *llvmLogger) {
   logger = llvmLogger;

@@ -22,8 +22,8 @@
 #include "src/diagnostics/DiagnosticHandler/DiagnosticHandler.h"
 #include <cstdint>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+// clang-format off
+#include "src/diagnostics/Diagnostic/diagnostic_push.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IRReader/IRReader.h>
@@ -36,7 +36,9 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/TargetParser/Host.h>
 #include <llvm/TargetParser/Triple.h>
-#pragma clang diagnostic pop
+#include "src/diagnostics/Diagnostic/diagnostic_pop.h"
+// clang-format on
+
 namespace FlowWing {
 
 namespace Compiler {
