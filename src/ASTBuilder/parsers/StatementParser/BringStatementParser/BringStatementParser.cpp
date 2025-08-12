@@ -138,7 +138,7 @@ BringStatementParser::parseStatement(ParserContext *ctx) {
 
       DEBUG_LOG("Module File Path: %s", moduleFilePath.c_str());
       relativeFilePath =
-          std::filesystem::relative(moduleFilePath, currentDirPath);
+          std::filesystem::relative(moduleFilePath, currentDirPath).string();
       stringToken->setValue((relativeFilePath));
     }
     // appendNewLine();
