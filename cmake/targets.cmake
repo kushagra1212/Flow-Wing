@@ -206,7 +206,12 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     -frtti
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Debug>:-g -fsanitize=undefined>
-    >)
+    >
+
+    # ! --- FLAGS TO DISABLE SPECIFIC WARNINGS (ADD THIS BLOCK) ---
+    # MSVC: Disable C4458 (variable shadowing)
+    $<$<CXX_COMPILER_ID:MSVC>:/wd4458>
+)
 
 # --- Linker Options / Flags ---
 target_link_options(${EXECUTABLE_NAME} PRIVATE
