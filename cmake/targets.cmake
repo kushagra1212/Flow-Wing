@@ -202,16 +202,17 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/EHsc $<$<CONFIG:Release>:/O2>>
 
     # GCC/Clang-specific flags
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
-    -frtti
-    -Wconversion # <--  enable implicit conversion warnings
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -frtti
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Debug>:-g -fsanitize=undefined>
     >
 
     # ! --- FLAGS TO DISABLE SPECIFIC WARNINGS (ADD THIS BLOCK) ---
-    # MSVC: Disable C4458 (variable shadowing)
-    $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4458>
+    # MSVC: Disable shadowing warnings
+    # C4456: hiding previous local declaration
+    # C4457: hiding function parameter
+    # C4458: hiding class member
+    $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4458 /wd4458>
 )
 
 # --- Linker Options / Flags ---

@@ -32,7 +32,9 @@ std::filesystem::path getExecutablePath() {
 #elif defined(__linux__)
   char result[PATH_MAX];
   ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-  return std::filesystem::path(std::string(result, (count > 0) ? count : 0));
+  size_t string_size = static_cast<size_t>((count > 0) ? count : 0);
+
+  return std::filesystem::path(std::string(result, string_size));
 #elif defined(__APPLE__)
   char path[PATH_MAX];
   uint32_t size = sizeof(path);

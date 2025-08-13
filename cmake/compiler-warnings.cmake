@@ -30,7 +30,7 @@ if(MSVC)
 else()
     # -Wall, -Wextra, -Wpedantic provide a comprehensive set of warnings
     # -Werror treats all warnings as errors
-    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Wpedantic -Werror)
+    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Wpedantic -Werror -Wconversion -Wfloat-conversion)
 endif()
 
 message(STATUS "Strict compiler warnings enabled: ${PROJECT_WARNING_FLAGS}")

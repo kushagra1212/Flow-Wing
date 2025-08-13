@@ -172,7 +172,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
           arrayType, v,
           (BoundContainerExpression *)containerExpression->getElementsRef()[i]
               .get(),
-          indices, index + 1);
+          indices, index + static_cast<uint64_t>(1));
     } else {
       std::unique_ptr<AssignmentExpressionGenerationStrategy> assignmentEGS =
           std::make_unique<AssignmentExpressionGenerationStrategy>(
