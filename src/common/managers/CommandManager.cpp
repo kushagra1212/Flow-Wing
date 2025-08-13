@@ -147,8 +147,7 @@ auto CommandManager::getEntryPoint(const std::string &key,
   return "";
 #elif defined(__linux__)
   return "";
-#endif
-
+#elif defined(__APPLE__)
   if (!hasEntryPoint &&
       FlowWing::Cli::OPTIONS::EntryPoint.name.c_str() == "-" + key) {
     hasEntryPoint = true;
@@ -156,6 +155,7 @@ auto CommandManager::getEntryPoint(const std::string &key,
   }
 
   return "";
+#endif
 }
 
 auto CommandManager::getOutputArgument() -> std::string {
