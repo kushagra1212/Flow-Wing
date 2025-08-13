@@ -298,13 +298,13 @@ enum FlowWing::Cli::STATUS handleFileArgs(std::vector<std::string> &text,
     Utils::printErrors({"Unable to open file: " + std::string(filePath),
                         "Usage: " + std::string(argv[0]) + " <file_path> "},
                        std::cerr);
-
+#if !defined(_WIN32)
     if (access(filePath.c_str(), R_OK) != 0) {
       Utils::printErrors({"Please check if the file exists and you have "
                           "read permissions."},
                          std::cerr);
     }
-
+#endif
     return FlowWing::Cli::STATUS::FAILURE;
   }
   //! Close the file

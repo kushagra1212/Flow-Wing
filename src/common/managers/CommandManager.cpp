@@ -140,8 +140,9 @@ auto CommandManager::getDefaultEntryPoint() -> std::string {
   return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
 }
 
-auto CommandManager::getEntryPoint(const std::string &key,
-                                   const std::string &value) -> std::string {
+auto CommandManager::getEntryPoint([[maybe_unused]] const std::string &key,
+                                   [[maybe_unused]] const std::string &value)
+    -> std::string {
 
 #if defined(_WIN32)
   return "";
