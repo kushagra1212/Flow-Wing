@@ -27,6 +27,9 @@
 cmake_minimum_required(VERSION 3.29)
 project(FlowWing VERSION 0.0.2 LANGUAGES C CXX)
 
+# Disable C++ extensions
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Include modular CMake scripts to configure the build.
 # The order of inclusion is critical.
 include(cmake/project-settings.cmake)
