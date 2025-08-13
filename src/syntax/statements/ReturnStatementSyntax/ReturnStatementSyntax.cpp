@@ -49,9 +49,8 @@ ReturnStatementSyntax::getSourceLocation() const {
   if (_returnKeyword)
     return _returnKeyword->getSourceLocation();
 
-  for (const auto &expression : _expressionList) {
-    return expression->getSourceLocation();
-  }
+  if (!_expressionList.empty())
+    return _expressionList[0]->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }

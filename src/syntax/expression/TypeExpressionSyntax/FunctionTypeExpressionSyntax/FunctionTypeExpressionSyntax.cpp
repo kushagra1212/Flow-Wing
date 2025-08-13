@@ -72,8 +72,8 @@ FunctionTypeExpressionSyntax::getSourceLocation() const {
     if (parameterType)
       return parameterType->getSourceLocation();
   }
-  for (auto &asType : _asParametersKeywords) {
-    return (asType.second->getSourceLocation());
+  if (_asParametersKeywords.size() > 0) {
+    return _asParametersKeywords[0].second->getSourceLocation();
   }
 
   if (_closeParenthesisToken)
@@ -82,8 +82,9 @@ FunctionTypeExpressionSyntax::getSourceLocation() const {
   if (_asKeyword)
     return _asKeyword->getSourceLocation();
 
-  for (auto &returnType : _returnTypes)
-    return returnType->getSourceLocation();
+  if (_returnTypes.size() > 0) {
+    return _returnTypes[0]->getSourceLocation();
+  }
 
   return DiagnosticUtils::SourceLocation();
 }

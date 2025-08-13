@@ -86,16 +86,16 @@ ClassStatementSyntax::getSourceLocation() const {
   if (_classOpenBraceToken)
     return _classOpenBraceToken->getSourceLocation();
 
-  for (const auto &m : _customTypeStatements) {
-    return m->getSourceLocation();
+  if (_customTypeStatements.size() > 0) {
+    return _customTypeStatements[0]->getSourceLocation();
   }
 
-  for (const auto &m : _classDataMembers) {
-    return m->getSourceLocation();
+  if (_classDataMembers.size() > 0) {
+    return _classDataMembers[0]->getSourceLocation();
   }
 
-  for (const auto &m : _classMemberFunctions) {
-    return m->getSourceLocation();
+  if (_classMemberFunctions.size() > 0) {
+    return _classMemberFunctions[0]->getSourceLocation();
   }
 
   if (_classCloseBraceToken)

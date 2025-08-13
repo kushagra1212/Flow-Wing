@@ -37,8 +37,8 @@ MultipleVariableDeclarationSyntax::getChildren() {
 }
 const DiagnosticUtils::SourceLocation
 MultipleVariableDeclarationSyntax::getSourceLocation() const {
-  for (const auto &item : _variableDeclarationList)
-    return item->getSourceLocation();
+  if (!_variableDeclarationList.empty())
+    return _variableDeclarationList[0]->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }

@@ -338,35 +338,9 @@ uint64_t TypeMapper::getSizeOf(llvm::Type *type) {
   if (type == llvm::Type::getInt8PtrTy(*_context))
     return sizeof(int8_t);
 
-  if (llvm::isa<llvm::ArrayType>(type)) {
+  llvm::DataLayout *TD = new llvm::DataLayout(_module);
 
-    llvm::DataLayout *TD = new llvm::DataLayout(_module);
-
-    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(type);
-    return TD->getTypeAllocSize(arrayType);
-    llvm::Type *type = arrayType;
-    std::vector<uint64_t> sizes;
-    while (llvm::ArrayType *arrayType = llvm::dyn_cast<llvm::ArrayType>(type)) {
-      sizes.push_back(arrayType->getNumElements());
-      type = arrayType->getElementType();
-    }
-    uint64_t elementSize = getSizeOf(type);
-    uint64_t totalSize = elementSize;
-    for (const auto &size : sizes) {
-      totalSize *= size;
-    }
-    return totalSize;
-  }
-
-  if (llvm::isa<llvm::StructType>(type)) {
-
-    llvm::DataLayout *TD = new llvm::DataLayout(_module);
-
-    llvm::StructType *structType = llvm::cast<llvm::StructType>(type);
-    return TD->getTypeAllocSize(structType);
-  }
-
-  return 0;
+  return TD->getTypeAllocSize(type);
 }
 
 uint64_t TypeMapper::getSizeOf(SyntaxKindUtils::SyntaxKind type) {

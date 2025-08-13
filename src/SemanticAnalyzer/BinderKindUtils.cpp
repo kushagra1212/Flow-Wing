@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BinderKindUtils.h"
+#include <cassert>
 
 std::string BinderKindUtils::to_string(BoundNodeKind kind) {
   switch (kind) {
@@ -206,7 +206,7 @@ BinderKindUtils::getUnaryOperatorKind(SyntaxKindUtils::SyntaxKind kind) {
     return BinderKindUtils::BoundUnaryOperatorKind::BitwiseNegation;
 
   default:
-    throw "Unexpected unary operator";
+    assert(false && "Unexpected unary operator");
   }
   return BinderKindUtils::BoundUnaryOperatorKind::Identity;
 }
@@ -272,8 +272,7 @@ BinderKindUtils::getBinaryOperatorKind(SyntaxKindUtils::SyntaxKind kind) {
     return BinderKindUtils::BoundBinaryOperatorKind::AssignmentToken;
 
   default:
-    throw "Unexpected binary operator";
+    assert(false && "Unexpected binary operator");
   }
-
   return BinderKindUtils::BoundBinaryOperatorKind::Addition;
 }

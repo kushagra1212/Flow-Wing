@@ -232,10 +232,6 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
     return this->getGlobalVariableValue(
         variableName, TheModule->getGlobalVariable(variableName));
   }
-
-  _codeGenerationContext->getLogger()->LogError(
-      "Variable " + variableName + " not found in variable expression ");
-  return nullptr;
 }
 
 llvm::Value *VariableExpressionGenerationStrategy::generateExpression(
@@ -459,11 +455,6 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
         _codeGenerationContext->getMapper()->getLLVMTypeName(objElementType) +
         " instead of a array element");
     return nullptr;
-
-    _codeGenerationContext->getValueStackHandler()->push("", innerElementPtr,
-                                                         "array", arrayType);
-
-    return innerElementPtr;
   }
 
   _codeGenerationContext->getValueStackHandler()->push(

@@ -57,8 +57,8 @@ SwitchStatementSyntax::getSourceLocation() const {
   if (_openCurlyToken)
     return _openCurlyToken->getSourceLocation();
 
-  for (const auto &caseStatement : _caseStatements)
-    return caseStatement->getSourceLocation();
+  if (!_caseStatements.empty())
+    return _caseStatements[0]->getSourceLocation();
 
   if (_closeCurlyToken)
     return _closeCurlyToken->getSourceLocation();

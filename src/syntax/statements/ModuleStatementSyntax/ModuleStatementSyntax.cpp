@@ -41,9 +41,8 @@ ModuleStatementSyntax::getSourceLocation() const {
   if (_closeBracketToken)
     return _closeBracketToken->getSourceLocation();
 
-  for (const auto &s : _statements) {
-    return s->getSourceLocation();
-  }
+  if (!_statements.empty())
+    return _statements[0]->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }

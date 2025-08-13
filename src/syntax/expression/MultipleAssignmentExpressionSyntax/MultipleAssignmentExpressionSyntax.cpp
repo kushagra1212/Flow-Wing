@@ -41,8 +41,8 @@ MultipleAssignmentExpressionSyntax::getChildren() {
 
 const DiagnosticUtils::SourceLocation
 MultipleAssignmentExpressionSyntax::getSourceLocation() const {
-  for (const auto &assignmentExpr : _assignmentExprList) {
-    return assignmentExpr->getSourceLocation();
+  if (_assignmentExprList.size() > 0) {
+    return _assignmentExprList[0]->getSourceLocation();
   }
 
   return DiagnosticUtils::SourceLocation();

@@ -75,9 +75,7 @@ VariableExpressionSyntax::getSourceLocation() const {
     return _selfKeyword->getSourceLocation();
 
   if (_dotExpressionList.size()) {
-    for (const auto &item : _dotExpressionList) {
-      return item->getSourceLocation();
-    }
+    return _dotExpressionList[0]->getSourceLocation();
   }
 
   return DiagnosticUtils::SourceLocation();

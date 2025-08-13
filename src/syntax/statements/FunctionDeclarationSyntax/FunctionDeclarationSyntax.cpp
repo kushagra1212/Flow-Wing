@@ -71,8 +71,8 @@ FunctionDeclarationSyntax::getSourceLocation() const {
   if (_body)
     return _body->getSourceLocation();
 
-  for (const auto &expr : _returnTypeExpressionList)
-    return expr->getSourceLocation();
+  if (!_returnTypeExpressionList.empty())
+    return _returnTypeExpressionList[0]->getSourceLocation();
 
   return DiagnosticUtils::SourceLocation();
 }
