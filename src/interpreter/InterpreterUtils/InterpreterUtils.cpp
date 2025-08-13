@@ -332,7 +332,11 @@ std::any InterpreterUtils::getResultFromBinaryOperationOnBool(
       return result;
     }
 
-    return InterpreterConversion::explicitConvertAnyToBool(lhsValue / rhsValue);
+    return InterpreterConversion::explicitConvertAnyToBool(
+        this->getResultFromBinaryOperationOnInt(
+            InterpreterConversion::explicitConvertBoolToInt(lhsValue),
+            InterpreterConversion::explicitConvertBoolToInt(rhsValue),
+            binaryExpression));
   }
 
   case BinderKindUtils::BoundBinaryOperatorKind::LogicalAnd:
