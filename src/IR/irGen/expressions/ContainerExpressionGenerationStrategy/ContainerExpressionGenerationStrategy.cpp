@@ -186,7 +186,7 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
             static_cast<BoundCallExpression *>(
                 containerExpression->getElementsRef()[i].get());
 
-        innerCallExpression->setArgumentAlloca(0., {elementPtr, _elementType});
+        innerCallExpression->setArgumentAlloca(0, {elementPtr, _elementType});
       }
 
       // if (containerExpression->getElementsRef()[i].get()->getKind() ==
