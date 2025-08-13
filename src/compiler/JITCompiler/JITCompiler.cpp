@@ -112,12 +112,33 @@ void JITCompiler::execute() {
 #if defined(JIT_MODE) || defined(JIT_TEST_MODE)
 
 void signalHandler(int signal) {
-  // Output information about the signal:
+  std::cerr << RED_TEXT << "Signal " << signal << " (";
 
-  std::cerr << RED_TEXT << "Signal " << signal << " (" << strsignal(signal)
-            << ") received." << RESET << std::endl;
+// Provide a platform-specific way to get the signal's name.
+#if defined(_WIN32)
+  // On Windows, there is no direct equivalent to strsignal.
+  // We can provide descriptions for the most common signals.
+  switch (signal) {
+  case SIGSEGV:
+    std::cerr << "Segmentation fault";
+    break;
+  case SIGILL:
+    std::cerr << "Illegal instruction";
+    break;
+  case SIGFPE:
+    std::cerr << "Floating-point exception";
+    break;
+  default:
+    std::cerr << "Unknown signal";
+    break;
+  }
+#else
+  // On POSIX systems, strsignal is available.
+  std::cerr << strsignal(signal);
+#endif
 
-  exit(1); // Exit with a non-zero status to indicate an error.
+  std::cerr << ") received." << RESET << std::endl;
+  exit(1);
 }
 
 #endif

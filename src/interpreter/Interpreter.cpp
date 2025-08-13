@@ -560,7 +560,7 @@ T Interpreter::evaluateBinaryExpression(BoundExpression *node) {
   try {
     return this->binaryExpressionEvaluator<std::any>(binaryExpression, left_any,
                                                      right_any);
-  } catch (const std::exception &e) {
+  } catch ([[maybe_unused]] const std::exception &e) {
     this->_interpreterUtils->logError(
         "Unexpected Binary Expression " +
         std::to_string(left_any.type().hash_code()) + " " +
