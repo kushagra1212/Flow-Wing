@@ -39,7 +39,11 @@ void LLVMLogger::logLLVMError(llvm::Error E) {
 #if not defined(JIT_TEST_MODE) && not defined(AOT_TEST_MODE)
     exit(0);
 #endif
+    // clang-format off
+
+
   });
+  // clang-format on
 }
 
 void LLVMLogger::logLLVMWarning(llvm::Error E) {
