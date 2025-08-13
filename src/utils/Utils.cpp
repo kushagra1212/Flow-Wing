@@ -36,7 +36,10 @@
 #include <regex>
 #include <sstream>
 #include <sys/stat.h>
+
+#if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #include <windows.h>

@@ -213,6 +213,9 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     # C4457: hiding function parameter
     # C4458: hiding class member
     $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4457 /wd4458>
+
+    # Define NOMINMAX to stop <windows.h> from breaking std::max and LLVM.
+    $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
 )
 
 # --- Linker Options / Flags ---

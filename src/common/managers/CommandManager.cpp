@@ -239,7 +239,8 @@ auto CommandManager::getFramework(const std::string &key,
 
 auto CommandManager::checkForRestOfFlags(std::string &cmd) -> void {
   if (FlowWing::Cli::isFlag::server() || FlowWing::Cli::isFlag::shortServer()) {
-    cmd += " " + createLibPathArg(FlowWing::PathUtils::getLibrariesPath()) +
+    cmd += " " +
+           createLibPathArg(FlowWing::PathUtils::getLibrariesPath().string()) +
            createLibArgs("flowwing_vortex") + " ";
   }
 }

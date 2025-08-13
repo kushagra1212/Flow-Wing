@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 /*
  * This header is intended to be included multiple times.
  * It does not have a #pragma once guard.
@@ -44,5 +43,9 @@
 #pragma clang diagnostic ignored "-Wshadow"
 // Disables warnings about unused function parameters
 #pragma clang diagnostic ignored "-Wunused-parameter"
+
+#pragma clang diagnostic ignored "-Wfloat-conversion"
+
+#pragma clang diagnostic ignored "-Wunreachable-code"
 
 #endif

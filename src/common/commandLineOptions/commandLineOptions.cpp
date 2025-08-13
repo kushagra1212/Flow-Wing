@@ -22,8 +22,11 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+
+#if defined(__linux__) || defined(__APPLE__)
 #include <sys/unistd.h>
 #include <unistd.h>
+#endif
 
 namespace FlowWing {
 namespace Cli {
