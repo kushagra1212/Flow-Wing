@@ -179,6 +179,8 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     $<$<CONFIG:Release>:RELEASE>
     ${LLVM_DEFINITIONS}
 
+    $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+
     "MACOS_SDK_SYSROOT_FLAG=\"${MACOS_SDK_SYSROOT_FLAG}\""
     "FLOWWING_PLATFORM_LIB_DIR=\"${FLOWWING_PLATFORM_LIB_DIR}\""
     "AOT_LINKER_PATH=\"${AOT_LINKER_PATH}\""
@@ -213,9 +215,6 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     # C4457: hiding function parameter
     # C4458: hiding class member
     $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4457 /wd4458>
-
-    # Define NOMINMAX to stop <windows.h> from breaking std::max and LLVM.
-    $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
 )
 
 # --- Linker Options / Flags ---
