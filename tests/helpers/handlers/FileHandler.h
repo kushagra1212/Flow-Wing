@@ -58,7 +58,7 @@ public:
   }
 
   std::string getCodeFilePath(const std::string &fileName) {
-    return std::filesystem::path(TEST_SDK_PATH) / fileName;
+    return (std::filesystem::path(TEST_SDK_PATH) / fileName).string();
   }
 
   void writeFile(const std::string &filename, const std::string &code) {

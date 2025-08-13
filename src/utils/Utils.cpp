@@ -544,7 +544,7 @@ auto Utils::isStaticTypedContainerType(Utils::type type) -> bool {
   case Utils::type::STRING_CONTAINER:
     return true;
   default:
-    return false;
+    break;
   }
   return false;
 }
