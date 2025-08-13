@@ -162,8 +162,8 @@ llvm::Value *ObjectAssignmentExpressionGenerationStrategy::assignObject(
             static_cast<BoundCallExpression *>(bExpr.get());
 
         innerCallExpression->setArgumentAlloca(
-            0., {innerElementPtr, parStructType->getElementType(
-                                      static_cast<uint32_t>(indexValue))});
+            0, {innerElementPtr, parStructType->getElementType(
+                                     static_cast<uint32_t>(indexValue))});
       }
 
       assignmentEGS->handleAssignExpression(
