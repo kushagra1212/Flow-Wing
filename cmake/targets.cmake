@@ -212,7 +212,7 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     # C4456: hiding previous local declaration
     # C4457: hiding function parameter
     # C4458: hiding class member
-    $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4458 /wd4458>
+    $<$<CXX_COMPILER_ID:MSVC>:/wd4456 /wd4457 /wd4458>
 )
 
 # --- Linker Options / Flags ---
