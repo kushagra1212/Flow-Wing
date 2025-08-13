@@ -47,23 +47,23 @@ void DiagnosticHandler::addParentDiagnostics(DiagnosticHandler *pat) {
   }
 }
 
-std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
-                                                        int columnNumber) {
+std::string DiagnosticHandler::getErrorProducingSnippet(size_t lineNumber,
+                                                        size_t columnNumber) {
   std::string snippet = "\n";
   std::vector<std::string> lines = isRepl() ? getReplLines() : getLines();
-  int lineCount = lines.size();
-  int currentLineNumber = 1;
+  size_t lineCount = lines.size();
+  size_t currentLineNumber = 1;
 
   auto errorMarker = [&]() {
     std::string marker = "";
     marker += GREEN;
     marker += BOLD;
-    for (int i = 0; i < columnNumber; i++) {
+    for (size_t i = 0; i < columnNumber; i++) {
       marker += " ";
     }
     marker += "\n";
     marker += "   ";
-    for (int i = 0; i < columnNumber; i++) {
+    for (size_t i = 0; i < columnNumber; i++) {
       if (i == columnNumber - 1) {
         marker += "^";
       } else {
@@ -85,7 +85,7 @@ std::string DiagnosticHandler::getErrorProducingSnippet(int lineNumber,
       } else {
         snippet += RESET;
       }
-      snippet += lines[currentLineNumber - 1] + "\n";
+      snippet += lines[static_cast<size_t>(currentLineNumber) - 1] + "\n";
       snippet += RESET;
       if (lineNumber == currentLineNumber) {
 
@@ -177,10 +177,11 @@ std::string DiagnosticHandler::getLogString(const Diagnostic &diagnostic) {
     line = "";
   } else {
 
-    logString =
-        diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
-            ? getErrorProducingSnippet(stoi(lineNumber), stoi(columnNumber))
-            : " ";
+    logString = diagnostic.getLevel() != DiagnosticUtils::DiagnosticLevel::Info
+                    ? getErrorProducingSnippet(
+                          static_cast<size_t>(std::stoi(lineNumber)),
+                          static_cast<size_t>(std::stoi(columnNumber)))
+                    : " ";
 
     fileName += BOLD_YELLOW_TEXT;
     fileName += "File: ----> ";
@@ -306,6 +307,6 @@ bool DiagnosticHandler::hasError(DiagnosticUtils::DiagnosticType type) const {
   return hasError;
 }
 
-void DiagnosticHandler::updatePreviousLineCount(const int count) {
+void DiagnosticHandler::updatePreviousLineCount(const size_t count) {
   this->previousLineCount = count;
 }

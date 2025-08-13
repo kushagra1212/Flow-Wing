@@ -279,7 +279,7 @@ void ContainerAssignmentExpressionGenerationStrategy::assignArray(
     const std::vector<uint64_t> &rhsSizes, uint64_t index) {
   if (index < rhsSizes.size()) {
     for (size_t i = 0; i < rhsSizes[index]; i++) {
-      indices.push_back(Builder->getInt32(i));
+      indices.push_back(Builder->getInt32(static_cast<uint32_t>(i)));
       assignArray(arrayType, variable, rhsVariable, rhsArrayType,
                   rhsArrayElementType, indices, rhsSizes, index + 1);
       indices.pop_back();

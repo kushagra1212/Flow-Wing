@@ -28,7 +28,7 @@
 
 std::unique_ptr<SyntaxToken<std::any>>
 NumberTokenReader::readToken(SourceTokenizer &lexer) {
-  int start = lexer.position();
+  size_t start = lexer.position();
 
   while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
     lexer.advancePosition();
@@ -66,7 +66,7 @@ NumberTokenReader::readToken(SourceTokenizer &lexer) {
 }
 
 std::unique_ptr<SyntaxToken<std::any>>
-NumberTokenReader::readDecimal(SourceTokenizer &lexer, const int &start) {
+NumberTokenReader::readDecimal(SourceTokenizer &lexer, const size_t &start) {
   lexer.advancePosition();
   while (!lexer.isEOLorEOF() && isdigit(lexer.currentChar())) {
     lexer.advancePosition();
@@ -76,7 +76,7 @@ NumberTokenReader::readDecimal(SourceTokenizer &lexer, const int &start) {
     lexer.advancePosition();
   }
 
-  const int &length = lexer.position() - start;
+  const size_t &length = lexer.position() - start;
   const std::string &text =
       lexer.getLine(lexer.lineNumber()).substr(start, length);
 

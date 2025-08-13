@@ -21,6 +21,7 @@
 #include "ContainerTypeBuilder.h"
 
 #include "src/IR/context/CodeGenerationContext.h"
+#include <cstdint>
 
 ContainerTypeBuilder::ContainerTypeBuilder(
     CodeGenerationContext *_codeGenerationContext)
@@ -50,15 +51,15 @@ const std::vector<llvm::Type *> &ContainerTypeBuilder::getMemberTypes() const {
 }
 
 uint64_t ContainerTypeBuilder::getIndexofMemberType(llvm::Type *type) const {
-  int index = -1;
-  for (uint64_t i = 0; i < this->_body.size(); i++) {
+  size_t index = std::numeric_limits<size_t>::max();
+  for (size_t i = 0; i < this->_body.size(); i++) {
     if (this->_body[i] == type) {
       index = i;
       break;
     }
   }
 
-  if (index == -1) {
+  if (index == std::numeric_limits<size_t>::max()) {
     std::string typeUsedByUser =
         _codeGenerationContext->getMapper()->getLLVMTypeName(type);
 

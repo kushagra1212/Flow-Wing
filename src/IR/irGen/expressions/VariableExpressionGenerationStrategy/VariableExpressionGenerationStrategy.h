@@ -17,15 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
-#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 #include "src/IR/irGen/expressions/CallExpressionGenerationStrategy/CallExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/ExpressionGenerationStrategy/ExpressionGenerationStrategy.h"
 #include "src/IR/irGen/expressions/IndexExpressionGenerationStrategy/IndexExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundCallExpression/BoundCallExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundVariableExpression/BoundVariableExpression.h"
 
 class VariableExpressionGenerationStrategy
     : public ExpressionGenerationStrategy {
@@ -63,13 +62,13 @@ public:
   std::string getPropertyName(size_t listIndex);
 
   llvm::Value *getVariable(llvm::Value *v, llvm::Type *variableType,
-                           const std::string &variableName, int64_t pos = 0);
+                           const std::string &variableName, size_t pos = 0);
 
   llvm::Value *handleSingleVariable(llvm::Type *&variableType, llvm::Value *v,
                                     const std::string &variableName);
 
-  llvm::Value *getClassPtr(llvm::StructType *parObjType, int64_t pos,
-                           llvm::Value *v, int64_t finalPosition);
+  llvm::Value *getClassPtr(llvm::StructType *parObjType, size_t pos,
+                           llvm::Value *v, size_t finalPosition);
 
   llvm::Value *getClassMemberFunctionValue(std::string className,
                                            std::string memberName,

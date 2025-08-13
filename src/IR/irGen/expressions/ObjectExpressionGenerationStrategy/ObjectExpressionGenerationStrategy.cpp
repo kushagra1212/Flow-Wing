@@ -259,8 +259,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
       return nullptr;
     }
 
-    llvm::Value *innerElementPtr =
-        Builder->CreateStructGEP(parStructType, variable, indexValue);
+    llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+        parStructType, variable, static_cast<uint32_t>(indexValue));
 
     _codeGenerationContext->getValueStackHandler()->popAll();
     if (propertiesMap[propertyName]->getSyntaxType() ==
@@ -299,7 +299,8 @@ llvm::Value *ObjectExpressionGenerationStrategy::createExpressionNP(
               _codeGenerationContext);
 
       assignmentEGS->handleAssignExpression(
-          innerElementPtr, parStructType->getElementType(index),
+          innerElementPtr,
+          parStructType->getElementType(static_cast<uint32_t>(index)),
           variable->getName().str() + "." + propertyName, bExpr.get());
     }
 
@@ -355,8 +356,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
     llvm::Value *variable, uint64_t indexValue, BoundTypeExpression *bExpr) {
   std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
 
-  llvm::Value *innerElementPtr =
-      Builder->CreateStructGEP(parStructType, variable, indexValue);
+  llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+      parStructType, variable, static_cast<uint32_t>(indexValue));
   if (bExpr->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
     BoundObjectTypeExpression *boundObjectTypeExpression =
         static_cast<BoundObjectTypeExpression *>(bExpr);
@@ -381,8 +382,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
   } else if (bExpr->getSyntaxType() ==
              SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
 
-    llvm::ArrayType *arrayType =
-        llvm::cast<llvm::ArrayType>(parStructType->getElementType(indexValue));
+    llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(
+        parStructType->getElementType(static_cast<uint32_t>(indexValue)));
     llvm::Type *type = arrayType;
 
     std::vector<uint64_t> sizes;
@@ -413,7 +414,8 @@ void ObjectExpressionGenerationStrategy::handleCreateDef(
     Builder->CreateStore(
         llvm::cast<llvm::Constant>(
             _codeGenerationContext->getMapper()->getDefaultValue(
-                parStructType->getElementType(indexValue))),
+                parStructType->getElementType(
+                    static_cast<uint32_t>(indexValue)))),
         innerElementPtr);
   }
 }
@@ -624,13 +626,17 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
        boundCustomTypeStatement->getKeyPairs()) {
     std::string propertyName = std::any_cast<std::string>(bLitExpr->getValue());
 
-    llvm::Value *elementPtr = Builder->CreateGEP(
-        structType, variable, {Builder->getInt32(0), Builder->getInt32(index)});
+    llvm::Value *elementPtr =
+        Builder->CreateGEP(structType, variable,
+                           {Builder->getInt32(0),
+                            Builder->getInt32(static_cast<uint32_t>(index))});
 
     llvm::Value *toValue = nullptr;
 
-    llvm::Value *fromElementPtr = Builder->CreateGEP(
-        structType, fromVar, {Builder->getInt32(0), Builder->getInt32(index)});
+    llvm::Value *fromElementPtr =
+        Builder->CreateGEP(structType, fromVar,
+                           {Builder->getInt32(0),
+                            Builder->getInt32(static_cast<uint32_t>(index))});
 
     if (bExpr->getSyntaxType() ==
         SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
@@ -691,8 +697,9 @@ llvm::Value *ObjectExpressionGenerationStrategy::generateVariable(
       Builder->CreateStore(toValue, elementPtr);
 
     } else {
-      toValue = Builder->CreateLoad(structType->getElementType(index),
-                                    fromElementPtr);
+      toValue = Builder->CreateLoad(
+          structType->getElementType(static_cast<uint32_t>(index)),
+          fromElementPtr);
       Builder->CreateStore(toValue, elementPtr);
     }
 

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 
 #include "src/SourceTokenizer/tokenReaders/TokenReader.h"
@@ -25,7 +24,7 @@
 class NumberTokenReader : public TokenReader {
 
   std::unique_ptr<SyntaxToken<std::any>> readDecimal(SourceTokenizer &lexer,
-                                                     const int &start);
+                                                     const size_t &start);
 
 public:
   std::unique_ptr<SyntaxToken<std::any>>

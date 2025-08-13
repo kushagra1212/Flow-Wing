@@ -34,10 +34,11 @@ char SourceTokenizer::peek(const int64_t &offset) const {
   if (_lineNumber >= _textSize)
     return _END_OF_FILE;
 
-  if (_position + offset >= _sourceCode[_lineNumber].length())
+  if (_position + static_cast<size_t>(offset) >=
+      _sourceCode[_lineNumber].length())
     return _END_OF_LINE;
 
-  return _sourceCode[_lineNumber][_position + offset];
+  return _sourceCode[_lineNumber][_position + static_cast<size_t>(offset)];
 }
 
 void SourceTokenizer::advancePosition() { _position++; }

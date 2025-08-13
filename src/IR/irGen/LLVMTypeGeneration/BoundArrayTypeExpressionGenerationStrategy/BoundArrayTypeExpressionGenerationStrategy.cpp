@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "BoundArrayTypeExpressionGenerationStrategy.h"
 
-#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 #include "src/IR/irGen/expressions/LiteralExpressionGenerationStrategy/LiteralExpressionGenerationStrategy.h"
+#include "src/SemanticAnalyzer/BoundExpressions/BoundTypeExpression/BoundObjectTypeExpression/BoundObjectTypeExpression.h"
 
 llvm::Type *BoundArrayTypeExpressionGenerationStrategy::getType(
     BoundTypeExpression *expression) {
@@ -58,23 +57,29 @@ llvm::Type *BoundArrayTypeExpressionGenerationStrategy::getType(
   std::vector<uint64_t> dimensions(
       boundArrayTypeExpression->getDimensions().size(), 0);
 
-  for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1; k >= 0;
-       k--) {
+  for (int64_t k = static_cast<int64_t>(
+                       boundArrayTypeExpression->getDimensions().size()) -
+                   1;
+       k >= 0; k--) {
     llvm::Value *arraySize =
         literalExpressionGenerationStrategy->generateExpression(
-            boundArrayTypeExpression->getDimensions()[k].get());
+            boundArrayTypeExpression->getDimensions()[static_cast<size_t>(k)]
+                .get());
 
     _codeGenerationContext->getLogger()->setCurrentSourceLocation(
-        boundArrayTypeExpression->getDimensions()[k]->getLocation());
+        boundArrayTypeExpression->getDimensions()[static_cast<size_t>(k)]
+            ->getLocation());
 
     if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
       _codeGenerationContext->getLogger()->LogError(
           "Array size must be a constant integer");
     }
 
-    dimensions[k] = llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+    dimensions[static_cast<size_t>(k)] =
+        llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-    finalType = llvm::ArrayType::get(finalType, dimensions[k]);
+    finalType =
+        llvm::ArrayType::get(finalType, dimensions[static_cast<size_t>(k)]);
   }
   return finalType;
   ;

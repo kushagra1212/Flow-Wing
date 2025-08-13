@@ -187,20 +187,22 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
-      for (int64_t k = multiDimSize - 1; k >= 0; k--) {
+      for (int64_t k = static_cast<int64_t>(multiDimSize) - 1; k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
-                arrayTypeExpression->getDimensions()[k].get());
+                arrayTypeExpression->getDimensions()[static_cast<size_t>(k)]
+                    .get());
 
         if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
           _codeGenerationContext->getLogger()->LogError(
               "Array size must be a constant integer");
         }
 
-        dimensions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        dimensions[static_cast<size_t>(k)] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        parmType = llvm::ArrayType::get(parmType, dimensions[k]);
+        parmType =
+            llvm::ArrayType::get(parmType, dimensions[static_cast<size_t>(k)]);
       }
 
       if (fd->getParametersRef()[i]->getHasAsKeyword()) {
@@ -377,23 +379,28 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
 
       llvm::Type *arrayType = elementType;
 
-      std::vector<uint64_t> returnDimentions(
+      std::vector<uint64_t> returnDimensions(
           boundArrayTypeExpression->getDimensions().size(), 0);
-      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+      for (int64_t k = static_cast<int64_t>(
+                           boundArrayTypeExpression->getDimensions().size()) -
+                       1;
            k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
-                boundArrayTypeExpression->getDimensions()[k].get());
+                boundArrayTypeExpression
+                    ->getDimensions()[static_cast<size_t>(k)]
+                    .get());
 
         if (!llvm::isa<llvm::ConstantInt>(arraySize)) {
           _codeGenerationContext->getLogger()->LogError(
               "Array size must be a constant integer");
         }
 
-        returnDimentions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        returnDimensions[static_cast<size_t>(k)] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
+        arrayType = llvm::ArrayType::get(
+            arrayType, returnDimensions[static_cast<size_t>(k)]);
       }
       llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
 
@@ -409,13 +416,13 @@ llvm::Function *FunctionDeclarationGenerationStrategy::generate(
       _codeGenerationContext->getReturnTypeHandler()->addReturnType(
           FUNCTION_NAME,
           std::make_unique<LLVMArrayType>(returnType, arrayType, elementType,
-                                          returnDimentions,
+                                          returnDimensions,
                                           boundArrayTypeExpression),
           fd->hasAsReturnType());
       _codeGenerationContext->_functionTypes[FUNCTION_NAME]->setReturnType(
           arrayType, fd->hasAsReturnType());
-      for (size_t k = 0; k < returnDimentions.size(); k++) {
-        returnInfo += std::to_string(returnDimentions[k]) + ":";
+      for (size_t k = 0; k < returnDimensions.size(); k++) {
+        returnInfo += std::to_string(returnDimensions[k]) + ":";
       }
 
       attributeTypes.push_back({argTypes.size(), arrayType});

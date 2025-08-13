@@ -30,13 +30,14 @@ private:
   T value;
 
 public:
-  SyntaxToken(const std::string &absoluteFilePath, const int &lineNumber,
-              const SyntaxKindUtils::SyntaxKind &kind, const int &columnNumber,
-              const std::string &text, const T &value);
+  SyntaxToken(const std::string &absoluteFilePath, const size_t &lineNumber,
+              const SyntaxKindUtils::SyntaxKind &kind,
+              const size_t &columnNumber, const std::string &text,
+              const T &value);
 
-  const int &getColumnNumber();
+  const size_t &getColumnNumber();
 
-  const int &getLineNumber();
+  const size_t &getLineNumber();
 
   const std::string &getAbsoluteFilePath() const;
 

@@ -43,7 +43,7 @@ public:
     if (_key_index_map.find(name) != _key_index_map.end()) {
       return _key_index_map[name];
     }
-    return -1; // Not found
+    return std::numeric_limits<size_t>::max(); // Not found
   }
 
   inline void setIndex(const std::string &name, size_t value) {

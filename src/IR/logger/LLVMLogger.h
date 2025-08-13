@@ -36,7 +36,7 @@ class DiagnosticHandler;
 
 class LLVMLogger {
   FlowWing::DiagnosticHandler *_diagnosticHandler;
-  unsigned int errorCount;
+  uint64_t errorCount;
 
 public:
   LLVMLogger(FlowWing::DiagnosticHandler *diagnosticHandler);
@@ -65,7 +65,7 @@ public:
 
   DiagnosticUtils::SourceLocation getCurrentSourceLocation() const;
 
-  unsigned int getErrorCount() const;
+  uint64_t getErrorCount() const;
 
   auto increaseErrorCount() -> void;
 

@@ -17,16 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #pragma once
 #include <string>
 
 namespace DiagnosticUtils {
 struct SourceLocation {
 public:
-  int lineNumber;
-  int columnNumber;
-  int length;
+  size_t lineNumber;
+  size_t columnNumber;
+  size_t length;
   std::string absoluteFilePath;
 
   SourceLocation() {
@@ -35,7 +34,7 @@ public:
     this->absoluteFilePath = "";
   }
 
-  SourceLocation(int lineNumber, int columnNumber, int length,
+  SourceLocation(size_t lineNumber, size_t columnNumber, size_t length,
                  std::string absoluteFilePath) {
     this->lineNumber = lineNumber;
     this->columnNumber = columnNumber;

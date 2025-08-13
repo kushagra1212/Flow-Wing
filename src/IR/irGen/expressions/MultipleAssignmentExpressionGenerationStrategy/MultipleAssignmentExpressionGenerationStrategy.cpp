@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "MultipleAssignmentExpressionGenerationStrategy.h"
 
 MultipleAssignmentExpressionGenerationStrategy::
@@ -112,7 +111,7 @@ void MultipleAssignmentExpressionGenerationStrategy::
       Builder->CreateStore(ptr, Builder->CreateStructGEP(
                                     callExpression->getArgumentAlloca(0).second,
                                     callExpression->getArgumentAlloca(0).first,
-                                    offset++));
+                                    static_cast<uint32_t>(offset++)));
     }
 
     assignmentEGS->handleAssignExpression(

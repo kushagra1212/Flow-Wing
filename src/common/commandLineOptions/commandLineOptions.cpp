@@ -361,13 +361,14 @@ void printHelp() {
   }
 
   // Print options with formatted alignment
-  std::cout << std::left << std::setw(maxFlagLength + 2) << "Options"
+  std::cout << std::left << std::setw(static_cast<int>(maxFlagLength) + 2)
+            << "Options"
             << "Description\n";
   std::cout << std::string(maxFlagLength + 2 + 20, '-') << "\n";
 
   for (const auto &option : options) {
-    std::cout << std::left << std::setw(maxFlagLength + 2) << option.first
-              << option.second << "\n";
+    std::cout << std::left << std::setw(static_cast<int>(maxFlagLength) + 2)
+              << option.first << option.second << "\n";
   }
 
   std::cout << "\nUse " << OPTIONS::Help.name << " or "

@@ -136,7 +136,7 @@
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
-  "workbench.colorTheme": "Snazzy Operator",
+  "workbench.colorTheme": "Default Dark Modern",
   "editor.codeActionsOnSave": {},
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",

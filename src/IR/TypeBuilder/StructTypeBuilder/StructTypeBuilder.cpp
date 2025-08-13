@@ -46,7 +46,7 @@ const std::vector<llvm::Type *> &StructTypeBuilder::getMemberTypes() const {
 }
 
 uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
-  uint64_t index = UINT64_MAX;
+  uint64_t index = std::numeric_limits<size_t>::max();
   for (uint64_t i = 0; i < this->_memberTypesForDynamicTypes.size(); i++) {
     if (this->_memberTypesForDynamicTypes[i] == type) {
       index = i;
@@ -54,7 +54,7 @@ uint64_t StructTypeBuilder::getMemberTypeofDynVar(llvm::Type *type) const {
     }
   }
 
-  if (index == UINT64_MAX) {
+  if (index == std::numeric_limits<size_t>::max()) {
     std::string typeUsedByUser =
         _codeGenerationContext->getMapper()->getLLVMTypeName(type);
 
@@ -85,8 +85,8 @@ llvm::Value *StructTypeBuilder::getMemberValueOfDynVar(
   }
 
   llvm::Value *elementPtr =
-      _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
-                                                            v, index);
+      _codeGenerationContext->getBuilder()->CreateStructGEP(
+          this->_dynamicType, v, static_cast<uint32_t>(index));
 
   _codeGenerationContext->getValueStackHandler()->push(
       "", elementPtr, "dynamic", this->getMemberTypes()[index], v);
@@ -109,8 +109,8 @@ llvm::Value *StructTypeBuilder::setMemberValueOfDynVar(
   }
 
   llvm::Value *elementPtr =
-      _codeGenerationContext->getBuilder()->CreateStructGEP(this->_dynamicType,
-                                                            v, index);
+      _codeGenerationContext->getBuilder()->CreateStructGEP(
+          this->_dynamicType, v, static_cast<uint32_t>(index));
 
   return _codeGenerationContext->getBuilder()->CreateStore(value, elementPtr);
 }

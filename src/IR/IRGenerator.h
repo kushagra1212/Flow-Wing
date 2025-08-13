@@ -138,7 +138,7 @@ public:
 
   std::unique_ptr<IRParser> &getIRParserPtr();
   void setModuleCount(int count);
-  int32_t hasErrors() const;
+  int8_t hasErrors() const;
 
 private:
   llvm::LLVMContext *TheContext;

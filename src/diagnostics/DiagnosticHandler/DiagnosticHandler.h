@@ -33,7 +33,7 @@ class DiagnosticHandler {
 private:
   std::vector<Diagnostic> diagnostics;
   DiagnosticHandler *parent;
-  int previousLineCount = 0;
+  size_t previousLineCount = 0;
   std::string _filePath;
   std::vector<std::string> _replLines;
 
@@ -48,7 +48,7 @@ public:
 
   std::string getAbsoluteFilePath();
 
-  std::string getErrorProducingSnippet(int lineNumber, int columnNumber);
+  std::string getErrorProducingSnippet(size_t lineNumber, size_t columnNumber);
   void addParentDiagnostics(DiagnosticHandler *parent);
   void logDiagnostics(std::ostream &outputStream,
                       std::function<bool(const Diagnostic &)> filter);
@@ -63,7 +63,7 @@ public:
 
   bool hasError(DiagnosticUtils::DiagnosticType) const;
 
-  void updatePreviousLineCount(const int count);
+  void updatePreviousLineCount(const size_t count);
 
   void setReplLines(const std::vector<std::string> &replLines);
 

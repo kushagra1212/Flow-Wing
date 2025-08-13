@@ -87,7 +87,7 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
 
     classObject->addMemberVariableTypeName(typeName);
     {
-      size_t index = 0;
+      int64_t index = 0;
 
       for (auto &[boundLiteralExpression, bTE] :
            boundCustomTypeStatement->getKeyPairs()) {
@@ -95,8 +95,10 @@ ClassStatementGenerationStrategy::generateClassType(BoundStatement *statement) {
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
         const std::string key = typeName + "." + propertyName;
-        _codeGenerationContext->_typesMap[key] =
-            FlowWing::Type::TypeBuilder().setName(key).setIndex(index).build();
+        _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
+                                                     .setName(key)
+                                                     .setIndex((index))
+                                                     .build();
         classObject->addMemberVariableTypeName(key);
 
         index++;
@@ -242,7 +244,7 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
 
     classObject->addMemberVariableTypeName(typeName);
     {
-      size_t index = 0;
+      int64_t index = 0;
 
       for (auto &[boundLiteralExpression, bTE] :
            boundCustomTypeStatement->getKeyPairs()) {
@@ -250,8 +252,10 @@ llvm::Value *ClassStatementGenerationStrategy::generateClassTypeForBring(
             std::any_cast<std::string>(boundLiteralExpression->getValue());
 
         const std::string key = typeName + "." + propertyName;
-        _codeGenerationContext->_typesMap[key] =
-            FlowWing::Type::TypeBuilder().setName(key).setIndex(index).build();
+        _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
+                                                     .setName(key)
+                                                     .setIndex((index))
+                                                     .build();
         classObject->addMemberVariableTypeName(key);
 
         index++;

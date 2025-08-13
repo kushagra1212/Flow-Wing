@@ -44,7 +44,7 @@ bool IndexExpressionGenerationStrategy::canGenerateExpression(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == static_cast<size_t>(-1)) {
+      if (atIndex == std::numeric_limits<size_t>::max()) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in index expression Expected to be a member of "
@@ -53,8 +53,8 @@ bool IndexExpressionGenerationStrategy::canGenerateExpression(
         return false;
       }
 
-      llvm::Value *elementPtr =
-          Builder->CreateStructGEP(classType, cl.first, atIndex);
+      llvm::Value *elementPtr = Builder->CreateStructGEP(
+          classType, cl.first, static_cast<uint32_t>(atIndex));
 
       _arrayType = llvm::cast<llvm::ArrayType>(elementType);
       _variable = elementPtr;
@@ -189,7 +189,7 @@ llvm::Value *IndexExpressionGenerationStrategy::generateExpression(
       sizes, _arrayElementType);
 
   for (size_t i = 0; i < sizes.size(); i++) {
-    _actualSizes.push_back(Builder->getInt32(sizes[i]));
+    _actualSizes.push_back(Builder->getInt32(static_cast<uint32_t>(sizes[i])));
   }
 
   return this->handleArrayTypeIndexing();
@@ -268,15 +268,15 @@ llvm::Value *IndexExpressionGenerationStrategy::handleArrayTypeIndexing() {
     return nullptr;
   }
 
-  int64_t n = _actualSizes.size();
+  size_t n = _actualSizes.size();
 
-  for (int64_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     this->verifyBounds(_indices[i], _actualSizes[i]);
   }
 
   std::vector<llvm::Value *> indexList = {Builder->getInt32(0)};
 
-  for (int i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     indexList.push_back(_indices[i]);
   }
 

@@ -45,7 +45,7 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
       boundCustomTypeStatement->getLocation());
 
   std::vector<llvm::Type *> structElements = {};
-  size_t index = 0;
+  int64_t index = 0;
 
   const std::string KEY_PRIFIX =
       boundCustomTypeStatement->getTypeNameAsString();
@@ -64,7 +64,7 @@ llvm::Value *CustomTypeStatementGenerationStrategy::generateCustomType(
     _codeGenerationContext->_typesMap[key] = FlowWing::Type::TypeBuilder()
                                                  .setName(key)
                                                  .setType(type)
-                                                 .setIndex(index)
+                                                 .setIndex((index))
                                                  .build();
 
     index++;

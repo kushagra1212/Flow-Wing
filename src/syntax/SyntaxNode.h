@@ -32,9 +32,9 @@ enum SyntaxKind : int;
 
 class SyntaxNode {
 public:
-  int lineNumber;
-  int columnNumber;
-  int length;
+  size_t lineNumber;
+  size_t columnNumber;
+  size_t length;
   std::string absoluteFilePath;
   std::vector<SyntaxNode *> _children;
 

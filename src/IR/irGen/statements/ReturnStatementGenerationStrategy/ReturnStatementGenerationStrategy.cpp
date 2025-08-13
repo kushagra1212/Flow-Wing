@@ -163,8 +163,8 @@ llvm::Value *ReturnStatementGenerationStrategy::generateStatement(
         }
         _codeGenerationContext->getValueStackHandler()->popAll();
 
-        llvm::Value *rtElementGEP =
-            Builder->CreateStructGEP(rtType, rtPtr, offset);
+        llvm::Value *rtElementGEP = Builder->CreateStructGEP(
+            rtType, rtPtr, static_cast<uint32_t>(offset));
 
         llvm::Value *rtElementPtr = Builder->CreateLoad(
             llvm::Type::getInt8PtrTy(*TheContext), rtElementGEP);

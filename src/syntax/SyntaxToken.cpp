@@ -24,9 +24,9 @@
 
 template <typename T>
 SyntaxToken<T>::SyntaxToken(const std::string &absoluteFilePath,
-                            const int &lineNumber,
+                            const size_t &lineNumber,
                             const SyntaxKindUtils::SyntaxKind &kind,
-                            const int &columnNumber, const std::string &text,
+                            const size_t &columnNumber, const std::string &text,
                             const T &value) {
   this->kind = kind;
   this->text = text;
@@ -41,11 +41,11 @@ template <typename T>
 SyntaxKindUtils::SyntaxKind SyntaxToken<T>::getKind() const {
   return this->kind;
 }
-template <typename T> const int &SyntaxToken<T>::getColumnNumber() {
+template <typename T> const size_t &SyntaxToken<T>::getColumnNumber() {
   return this->columnNumber;
 }
 
-template <typename T> const int &SyntaxToken<T>::getLineNumber() {
+template <typename T> const size_t &SyntaxToken<T>::getLineNumber() {
   return this->lineNumber;
 }
 

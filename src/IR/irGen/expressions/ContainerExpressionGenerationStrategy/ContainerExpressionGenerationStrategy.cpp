@@ -29,8 +29,9 @@ ContainerExpressionGenerationStrategy::ContainerExpressionGenerationStrategy(
       _elementType(elementType), _containerName(containerName),
       _isGlobal(false) {
 
-  _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
-                               std::multiplies<uint64_t>());
+  _totalSize =
+      std::accumulate(_actualSizes.begin(), _actualSizes.end(),
+                      static_cast<uint64_t>(1), std::multiplies<uint64_t>());
 }
 
 llvm::Value *ContainerExpressionGenerationStrategy::generateExpression(
@@ -162,8 +163,8 @@ llvm::Value *ContainerExpressionGenerationStrategy::createExpressionAtom(
     return nullptr;
   }
 
-  for (uint64_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
-    indices.push_back(Builder->getInt32(i));
+  for (size_t i = 0; i < containerExpression->getElementsRef().size(); i++) {
+    indices.push_back(Builder->getInt32(static_cast<uint32_t>(i)));
 
     if (containerExpression->getElementsRef()[i].get()->getKind() ==
         BinderKindUtils::BoundContainerExpression) {

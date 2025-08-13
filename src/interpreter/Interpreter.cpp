@@ -691,7 +691,7 @@ T Interpreter::evaluateIndexExpression(BoundExpression *node) {
   }
 
   std::string result = "";
-  result += var_value[index_value];
+  result += var_value[static_cast<size_t>(index_value)];
   return result;
 }
 

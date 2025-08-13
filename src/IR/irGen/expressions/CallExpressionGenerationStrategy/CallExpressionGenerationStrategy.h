@@ -91,10 +91,6 @@ public:
       const std::vector<std::unique_ptr<LLVMType>> &llvmArrayArgs,
       bool &retFlag);
 
-  void handleArrayArgs(const std::vector<llvm::Type *> &paramTypes,
-                       const int &i, const std::vector<llvm::Value *> &args,
-                       BoundCallExpression *callExpression, int &retFlag);
-
   llvm::Value *printArray(llvm::ArrayType *arrayType, llvm::Type *elementType,
                           llvm::Value *v, llvm::IRBuilder<> &Builder);
 

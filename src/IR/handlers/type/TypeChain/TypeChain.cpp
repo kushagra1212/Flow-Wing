@@ -96,11 +96,11 @@ void TypeChain::setType(const std::string &name, llvm::StructType *typeValue) {
 
 size_t TypeChain::getIndex(const std::string &name) {
   std::stack<std::unique_ptr<TypeTable>> currentHandler;
-  size_t index = -1;
+  size_t index = std::numeric_limits<size_t>::max();
   while (!handlers.empty()) {
     std::unique_ptr<TypeTable> &handler = handlers.top();
     index = handler->getIndex(name);
-    if (index != static_cast<size_t>(-1)) {
+    if (index != std::numeric_limits<size_t>::max()) {
       break;
     }
     currentHandler.push(std::move(handler));

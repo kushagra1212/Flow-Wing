@@ -553,12 +553,12 @@ void AssignmentExpressionGenerationStrategy::initArrayWithDefaultValue(
       builder.SetInsertPoint(loopBlocks[i][1]);
       llvm::Value *currentIndex =
           builder.CreateLoad(builder.getInt32Ty(), indices[i]);
-      llvm::Value *isLessThan =
-          builder.CreateICmpSLT(currentIndex, builder.getInt32(dimensions[i]));
+      llvm::Value *isLessThan = builder.CreateICmpSLT(
+          currentIndex, builder.getInt32(static_cast<uint32_t>(dimensions[i])));
       //?------Comparison Count Increment------
       llvm::Value *isAllElementsFilled = builder.CreateICmpSLT(
           builder.CreateLoad(builder.getInt32Ty(), numberOfElementsFilled),
-          builder.getInt32(sizeToFillVal));
+          builder.getInt32(static_cast<uint32_t>(sizeToFillVal)));
       //?
 
       llvm::Value *success = builder.CreateAnd(isLessThan, isAllElementsFilled);
@@ -646,11 +646,11 @@ void AssignmentExpressionGenerationStrategy::initObjectWithDefaultValue(
     uint64_t index = 0;
     for ([[maybe_unused]] const auto &_ : objectType->elements()) {
 
-      llvm::Value *innerElementPtr =
-          builder.CreateStructGEP(objectType, fun->getArg(0), index);
+      llvm::Value *innerElementPtr = builder.CreateStructGEP(
+          objectType, fun->getArg(0), static_cast<uint32_t>(index));
 
-      initDefaultValue(objectType->getElementType(index), innerElementPtr,
-                       builder);
+      initDefaultValue(objectType->getElementType(static_cast<uint32_t>(index)),
+                       innerElementPtr, builder);
 
       index++;
     }

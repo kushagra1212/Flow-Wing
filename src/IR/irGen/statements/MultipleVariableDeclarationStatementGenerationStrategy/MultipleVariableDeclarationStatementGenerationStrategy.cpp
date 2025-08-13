@@ -228,7 +228,8 @@ void MultipleVariableDeclarationStatementGenerationStrategy::
          multipleVariableDeclaration->getVariableDeclarationListRef()) {
       auto [ptr, ptrType] = var->getLLVMVariable();
       Builder->CreateStore(
-          ptr, Builder->CreateStructGEP(_structType, _stPtr, offset++));
+          ptr, Builder->CreateStructGEP(_structType, _stPtr,
+                                        static_cast<uint32_t>(offset++)));
       if (!hasAlreadyReturnedTypeList)
         callExpression->addReturnTypeToList(ptrType);
     }

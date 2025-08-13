@@ -107,7 +107,9 @@ std::unique_ptr<IRParser> &IRGenerator::getIRParserPtr() {
   return this->_irParser;
 }
 
-int32_t IRGenerator::hasErrors() const { return _llvmLogger->getErrorCount(); }
+int8_t IRGenerator::hasErrors() const {
+  return _llvmLogger->getErrorCount() > 0;
+}
 
 void IRGenerator::generateEvaluateGlobalStatement(
     BoundBlockStatement *blockStatement, std::string blockName) {

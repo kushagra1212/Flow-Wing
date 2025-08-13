@@ -49,12 +49,14 @@ LLVMValueConverter::convertToLLVMValue(std::any value,
   }
 
   else {
+
     return nullptr;
   }
 }
 
 llvm::Value *LLVMValueConverter::int32ToLLVMValue(int value) {
-  return llvm::ConstantInt::get(*_llvmContext, llvm::APInt(32, value, true));
+  return llvm::ConstantInt::get(
+      *_llvmContext, llvm::APInt(32, static_cast<uint32_t>(value), true));
 }
 
 llvm::Value *LLVMValueConverter::doubleToLLVMValue(double value) {
@@ -106,7 +108,8 @@ LLVMValueConverter::stringToLLVMValue(std::string value,
     }
 
     if (value.length() == 1) {
-      return llvm::ConstantInt::get(_builder->getInt8Ty(), value[0]);
+      return llvm::ConstantInt::get(_builder->getInt8Ty(),
+                                    static_cast<uint64_t>(value[0]));
     } else if (value.length() == 2 && value[0] == '\\' && value[1] == 'n') {
       return llvm::ConstantInt::get(_builder->getInt8Ty(), '\n');
     } else if (value.length() == 2 && value[0] == '\\' && value[1] == 't') {

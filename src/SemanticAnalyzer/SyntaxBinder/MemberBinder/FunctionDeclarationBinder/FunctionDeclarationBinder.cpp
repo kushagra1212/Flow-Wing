@@ -118,7 +118,7 @@ void FunctionDeclarationBinder::handleFunctionDefAndDec(
                 .release()));
 
     if (varDeclaration->getInitializerPtr() && !fd->hasOptionalParameters()) {
-      fd->setOptionalParameterStartIndex(i);
+      fd->setOptionalParameterStartIndex(static_cast<int64_t>(i));
     } else if (!varDeclaration->getInitializerPtr() &&
                fd->hasOptionalParameters()) {
 

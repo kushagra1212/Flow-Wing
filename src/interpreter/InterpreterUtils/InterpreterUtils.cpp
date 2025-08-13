@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "InterpreterUtils.h"
 
 InterpreterUtils::InterpreterUtils(
@@ -121,7 +120,7 @@ std::any InterpreterUtils::getResultFromBinaryOperationOnDouble(
   case BinderKindUtils::BoundBinaryOperatorKind::Division: {
     // Check if rhsValue is zero
 
-    if (!rhsValue) {
+    if (!static_cast<bool>(rhsValue)) {
       std::string errorMessage =
           "Division by zero of " + lhsStr + " and " + rhsStr;
 

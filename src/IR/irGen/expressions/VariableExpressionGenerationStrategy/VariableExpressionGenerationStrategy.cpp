@@ -32,7 +32,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getUnTypedLocalVariableValue(
 
 llvm::Value *VariableExpressionGenerationStrategy::getVariable(
     llvm::Value *v, llvm::Type *variableType, const std::string &variableName,
-    int64_t pos) {
+    size_t pos) {
 
   DEBUG_LOG("Variable Name", variableName);
 
@@ -104,8 +104,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleSingleVariable(
 
 llvm::Value *
 VariableExpressionGenerationStrategy::getClassPtr(llvm::StructType *parObjType,
-                                                  int64_t pos, llvm::Value *v,
-                                                  int64_t finalPosition) {
+                                                  size_t pos, llvm::Value *v,
+                                                  size_t finalPosition) {
 
   std::string className =
       Utils::getActualTypeName(parObjType->getStructName().str()).c_str();
@@ -141,8 +141,8 @@ VariableExpressionGenerationStrategy::getClassPtr(llvm::StructType *parObjType,
 
     llvm::Value *ptr =
         Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), v);
-    llvm::Value *elementPtr =
-        Builder->CreateStructGEP(parObjType, ptr, elementIndex);
+    llvm::Value *elementPtr = Builder->CreateStructGEP(
+        parObjType, ptr, static_cast<uint32_t>(elementIndex));
 
     if (pos == finalPosition) {
 
@@ -176,7 +176,7 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
       auto [elementType, atIndex, memberName, _classType] =
           _codeGenerationContext->_classTypes[className]->getElement(
               variableName);
-      if (atIndex == static_cast<size_t>(-1)) {
+      if (atIndex == std::numeric_limits<size_t>::max()) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + variableName +
             " not found in variable expression Expected to be a member of "
@@ -185,8 +185,8 @@ llvm::Value *VariableExpressionGenerationStrategy::getVariableValue(
         return nullptr;
       }
 
-      llvm::Value *elementPtr =
-          Builder->CreateStructGEP(classType, cl.first, atIndex);
+      llvm::Value *elementPtr = Builder->CreateStructGEP(
+          classType, cl.first, static_cast<uint32_t>(atIndex));
       if (_variableExpression &&
           _variableExpression->getDotExpressionList().size() != 0) {
 
@@ -383,7 +383,7 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       itsClass ? classObj->getKeyValue(dotPropertyName)
                : boundCustomTypeStatement->getKeyValue(dotPropertyName);
 
-  if (atIndex == static_cast<size_t>(-1)) {
+  if (atIndex == std::numeric_limits<size_t>::max()) {
     _codeGenerationContext->getLogger()->LogError(
         "Property " + dotPropertyName + " does not exist in " +
         (listIndex == 0 ? (itsClass ? "class object " : "variable ")
@@ -394,7 +394,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
     return nullptr;
   }
 
-  llvm::Type *objElementType = parObjType->getElementType(atIndex);
+  llvm::Type *objElementType =
+      parObjType->getElementType(static_cast<uint32_t>(atIndex));
 
   if (isNested) {
     if (bTE->getSyntaxType() == SyntaxKindUtils::SyntaxKind::NBU_ARRAY_TYPE) {
@@ -419,8 +420,8 @@ llvm::Value *VariableExpressionGenerationStrategy::handleVariableGet(
       return logError();
   }
 
-  llvm::Value *innerElementPtr =
-      Builder->CreateStructGEP(parObjType, outerElementPtr, atIndex);
+  llvm::Value *innerElementPtr = Builder->CreateStructGEP(
+      parObjType, outerElementPtr, static_cast<uint32_t>(atIndex));
 
   if (!isNested) {
 

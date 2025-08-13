@@ -27,8 +27,9 @@ FillExpressionGenerationStrategy::FillExpressionGenerationStrategy(
     llvm::Type *elementType, const std::string &containerName)
     : ExpressionGenerationStrategy(context), _actualSizes(actualSizes),
       _elementType(elementType), _containerName(containerName) {
-  _totalSize = std::accumulate(_actualSizes.begin(), _actualSizes.end(), 1,
-                               std::multiplies<uint64_t>());
+  _totalSize =
+      std::accumulate(_actualSizes.begin(), _actualSizes.end(),
+                      static_cast<uint64_t>(1), std::multiplies<uint64_t>());
 }
 
 llvm::Value *FillExpressionGenerationStrategy::generateExpression(
@@ -118,7 +119,7 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionAtom(
 
   if (index < (_actualSizes.size())) {
     for (size_t i = 0; i < _actualSizes[index]; i++) {
-      indices.push_back(Builder->getInt32(i));
+      indices.push_back(Builder->getInt32(static_cast<uint32_t>(i)));
       createExpressionAtom(arrayType, v, elementToFill, sizeToFillVal, indices,
                            index + 1);
       indices.pop_back();
@@ -167,7 +168,7 @@ bool FillExpressionGenerationStrategy::canGenerateExpression(
   if (llvm::isa<llvm::ConstantInt>(sizeToFillVal)) {
     llvm::ConstantInt *c = llvm::cast<llvm::ConstantInt>(sizeToFillVal);
 
-    _sizeToFillInt = c->getSExtValue();
+    _sizeToFillInt = c->getZExtValue();
 
     if (_sizeToFillInt > _totalSize || _sizeToFillInt < 0) {
       _codeGenerationContext->getLogger()->LogError(
@@ -325,11 +326,12 @@ llvm::Value *FillExpressionGenerationStrategy::createExpressionLoop(
     llvm::Value *currentIndex =
         Builder->CreateLoad(Builder->getInt32Ty(), indices[i]);
     llvm::Value *isLessThan = Builder->CreateICmpSLT(
-        currentIndex, Builder->getInt32(_actualSizes[i]));
+        currentIndex,
+        Builder->getInt32(static_cast<uint32_t>(_actualSizes[i])));
     //?------Comparison Count Increment------
     llvm::Value *isAllElementsFilled = Builder->CreateICmpSLT(
         Builder->CreateLoad(Builder->getInt32Ty(), numberOfElementsFilled),
-        Builder->getInt32(sizeToFillVal));
+        Builder->getInt32(static_cast<uint32_t>(sizeToFillVal)));
     //?
 
     llvm::Value *success = Builder->CreateAnd(isLessThan, isAllElementsFilled);

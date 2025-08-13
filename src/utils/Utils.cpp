@@ -437,12 +437,12 @@ const std::string Utils::getExtension(const std::string &filePath) {
 }
 
 bool Utils::isSubstring(const std::string &s1, const std::string &s2) {
-  int M = s1.length();
-  int N = s2.length();
+  size_t M = s1.length();
+  size_t N = s2.length();
 
   /* A loop to slide pat[] one by one */
-  for (int i = 0; i <= N - M; i++) {
-    int j;
+  for (size_t i = 0; i <= N - M; i++) {
+    size_t j;
 
     /* For current index i, check for
     pattern match */

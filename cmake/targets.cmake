@@ -204,6 +204,8 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
     # GCC/Clang-specific flags
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
     -frtti
+
+    -Wconversion # <--  enable implicit conversion warnings
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Debug>:-g -fsanitize=undefined>
     >

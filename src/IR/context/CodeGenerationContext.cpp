@@ -396,7 +396,7 @@ void CodeGenerationContext::getArraySizeMetadata(llvm::Value *array,
   Utils::split(metaData, ":", sizesStr);
 
   for (const auto &sizeStr : sizesStr) {
-    sizes.push_back(std::stoll(sizeStr));
+    sizes.push_back(static_cast<uint64_t>(std::stoll(sizeStr)));
   }
 }
 
@@ -425,11 +425,13 @@ CodeGenerationContext::getArrayElementTypeMetadata(llvm::Value *array) {
 void CodeGenerationContext::getMultiArrayType(
     llvm::ArrayType *&arrayType, const std::vector<uint64_t> &actualSizes,
     llvm::Type *elementType) {
-  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+  for (int64_t i = static_cast<int64_t>(actualSizes.size()) - 1; i >= 0; i--) {
     if (arrayType == nullptr) {
-      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+      arrayType = llvm::ArrayType::get(elementType,
+                                       actualSizes[static_cast<size_t>(i)]);
     } else {
-      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+      arrayType =
+          llvm::ArrayType::get(arrayType, actualSizes[static_cast<size_t>(i)]);
     }
   }
 }
@@ -579,15 +581,18 @@ int8_t CodeGenerationContext::verifyType(llvm::Type *lhsType,
 void CodeGenerationContext::getMultiArrayTypeForGlobal(
     llvm::ArrayType *&arrayType, llvm::Constant *&def,
     const std::vector<uint64_t> &actualSizes, llvm::Type *elementType) {
-  for (int64_t i = actualSizes.size() - 1; i >= 0; i--) {
+  for (int64_t i = static_cast<int64_t>(actualSizes.size()) - 1; i >= 0; i--) {
     if (arrayType == nullptr) {
-      arrayType = llvm::ArrayType::get(elementType, actualSizes[i]);
+      arrayType = llvm::ArrayType::get(elementType,
+                                       actualSizes[static_cast<size_t>(i)]);
     } else {
-      arrayType = llvm::ArrayType::get(arrayType, actualSizes[i]);
+      arrayType =
+          llvm::ArrayType::get(arrayType, actualSizes[static_cast<size_t>(i)]);
     }
 
     def = llvm::ConstantArray::get(
-        arrayType, std::vector<llvm::Constant *>(actualSizes[i], def));
+        arrayType, std::vector<llvm::Constant *>(
+                       actualSizes[static_cast<size_t>(i)], def));
   }
 }
 
@@ -613,7 +618,7 @@ void CodeGenerationContext::getRetrunedArrayType(
           (SyntaxKindUtils::SyntaxKind)stoi(strs[3]));
 
     for (size_t i = 5; i < strs.size(); i++) {
-      actualSizes.push_back(stoi(strs[i]));
+      actualSizes.push_back(static_cast<uint64_t>(stoi(strs[i])));
     }
 
     getMultiArrayType(arrayType, actualSizes, arrayElementType);

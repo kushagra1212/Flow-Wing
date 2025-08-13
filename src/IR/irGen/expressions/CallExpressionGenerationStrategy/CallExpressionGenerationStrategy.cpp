@@ -779,8 +779,8 @@ llvm::Value *CallExpressionGenerationStrategy::userDefinedFunctionCall(
               auto [elementType, index, elementName, _classType] =
                   _codeGenerationContext->_classTypes[className]->getElement(
                       varDec->getVariableName());
-              llvm::Value *elementPtr =
-                  Builder->CreateStructGEP(_classType, classPtr, index);
+              llvm::Value *elementPtr = Builder->CreateStructGEP(
+                  _classType, classPtr, static_cast<uint32_t>(index));
               if (varDec->getInitializerPtr().get()) {
                 assignmentEGS->handleAssignExpression(
                     elementPtr, elementType, varDec->getVariableName(),
@@ -1737,63 +1737,6 @@ llvm::Value *CallExpressionGenerationStrategy::handleIndexExpression(
   return nullptr;
 }
 
-void CallExpressionGenerationStrategy::handleArrayArgs(
-    const std::vector<llvm::Type *> &paramTypes, const int &i,
-    const std::vector<llvm::Value *> &args, BoundCallExpression *callExpression,
-    int &retFlag) {
-  retFlag = 1;
-  llvm::ArrayType *arrayType = llvm::cast<llvm::ArrayType>(paramTypes[i]);
-  llvm::ArrayType *argArrayType = nullptr;
-
-  // Local Array
-  if (llvm::isa<llvm::AllocaInst>(args[i])) {
-    llvm::AllocaInst *allocaInst = llvm::cast<llvm::AllocaInst>(args[i]);
-    if (llvm::isa<llvm::ArrayType>(allocaInst->getAllocatedType())) {
-      argArrayType =
-          llvm::cast<llvm::ArrayType>(allocaInst->getAllocatedType());
-    }
-  }
-
-  // Global Array
-  if (llvm::isa<llvm::GlobalVariable>(args[i])) {
-    llvm::GlobalVariable *globalVariable =
-        llvm::cast<llvm::GlobalVariable>(args[i]);
-    if (llvm::isa<llvm::ArrayType>(globalVariable->getValueType())) {
-      argArrayType =
-          llvm::cast<llvm::ArrayType>(globalVariable->getValueType());
-    }
-  }
-
-  if (!argArrayType) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type Mismatch in " + callExpression->getCallerNameRef() +
-        " Expected  Array of " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            arrayType->getElementType()) +
-        " Found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            args[i]->getType()));
-
-    return;
-  }
-
-  if (argArrayType->getElementType() != arrayType->getElementType()) {
-    _codeGenerationContext->getLogger()->LogError(
-        "Type of Array Element is not same in function call "
-        "expression " +
-        callExpression->getCallerNameRef() + " Expected " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            arrayType->getElementType()) +
-        " Found " +
-        _codeGenerationContext->getMapper()->getLLVMTypeName(
-            argArrayType->getElementType()));
-    return;
-  }
-  {
-    retFlag = 3;
-  };
-}
-
 llvm::Value *CallExpressionGenerationStrategy::generateGlobalExpression(
     BoundExpression *expression) {
   _isGlobal = true;
@@ -1930,8 +1873,9 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
       builder.SetInsertPoint(loopBlocks[i][1]);
       llvm::Value *currentIndex =
           builder.CreateLoad(builder.getInt32Ty(), indices[i]);
-      llvm::Value *isLessThanActualSize =
-          builder.CreateICmpSLT(currentIndex, builder.getInt32(actualSizes[i]));
+      llvm::Value *isLessThanActualSize = builder.CreateICmpSLT(
+          currentIndex,
+          builder.getInt32(static_cast<uint32_t>(actualSizes[i])));
       //!
       llvm::Value *isGreaterThanZero =
           builder.CreateICmpSGT(currentIndex, builder.getInt32(0));
@@ -1952,7 +1896,8 @@ llvm::Value *CallExpressionGenerationStrategy::printArrayAtom(
       llvm::Value *currentIndex_stage =
           builder.CreateLoad(builder.getInt32Ty(), indices[i]);
       llvm::Value *isLessThanActualSize_Stage = builder.CreateICmpSLT(
-          currentIndex_stage, builder.getInt32(actualSizes[i]));
+          currentIndex_stage,
+          builder.getInt32(static_cast<uint32_t>(actualSizes[i])));
       builder.CreateCondBr(isLessThanActualSize_Stage, loopBlocks[i][2],
                            loopBlocks[i][3]);
 
@@ -2099,19 +2044,20 @@ CallExpressionGenerationStrategy::printObject(llvm::Value *outerElementPtr,
           {builder.CreateGlobalStringPtr(propertyKey), builder.getInt1(false)});
       printUnit(" : ", " : ", builder);
       std::string key = KEY_PRIFIX + "." + propertyKey;
-      size_t index = _codeGenerationContext->getFlowWingType(key).getIndex();
+      size_t index = static_cast<size_t>(
+          _codeGenerationContext->getFlowWingType(key).getIndex());
 
-      if (index == static_cast<size_t>(-1)) {
+      if (index == std::numeric_limits<size_t>::max()) {
         _codeGenerationContext->getLogger()->LogError(
             "Variable " + key + " not found in variable expression ");
 
         return nullptr;
       }
 
-      llvm::Value *innerElementPtr =
-          builder.CreateStructGEP(parObjType, fun->getArg(0), i);
+      llvm::Value *innerElementPtr = builder.CreateStructGEP(
+          parObjType, fun->getArg(0), static_cast<uint32_t>(i));
 
-      llvm::Type *type = parObjType->getElementType(i);
+      llvm::Type *type = parObjType->getElementType(static_cast<uint32_t>(i));
       if (bTE->getSyntaxType() ==
           SyntaxKindUtils::SyntaxKind::NBU_OBJECT_TYPE) {
         llvm::StructType *structType = llvm::cast<llvm::StructType>(type);

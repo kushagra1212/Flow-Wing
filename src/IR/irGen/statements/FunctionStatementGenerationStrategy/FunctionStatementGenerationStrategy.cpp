@@ -117,7 +117,7 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
         Builder->CreateLoad(llvm::Type::getInt8PtrTy(*TheContext), argValue);
 
     for (size_t j = 1; j < structT->getNumElements(); j++) {
-      llvm::Type *type = structT->getElementType(j);
+      llvm::Type *type = structT->getElementType(static_cast<uint32_t>(j));
       if (!type) {
         _codeGenerationContext->getLogger()->setCurrentSourceLocation(
             functionDeclaration->getParametersRef()[j - 1]->getLocation());
@@ -125,7 +125,8 @@ llvm::Value *FunctionStatementGenerationStrategy::generate(
             "Type not found for variable " + classVariables[j - 1]);
         return nullptr;
       }
-      llvm::Value *elementPtr = Builder->CreateStructGEP(structT, classPtr, j);
+      llvm::Value *elementPtr =
+          Builder->CreateStructGEP(structT, classPtr, static_cast<uint32_t>(j));
       _codeGenerationContext->getAllocaChain()->setPtr(classVariables[j - 1],
                                                        {elementPtr, type});
     }

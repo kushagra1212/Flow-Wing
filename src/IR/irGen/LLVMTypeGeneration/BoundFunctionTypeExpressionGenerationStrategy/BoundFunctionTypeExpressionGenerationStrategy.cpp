@@ -131,7 +131,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
       }
 
       std::vector<uint64_t> dimensions(multiDimSize, 0);
-      for (int64_t k = multiDimSize - 1; k >= 0; k--) {
+      for (size_t k = multiDimSize - 1; k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
                 arrayTypeExpression->getDimensions()[k].get());
@@ -142,7 +142,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
         }
 
         dimensions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
         parmType = llvm::ArrayType::get(parmType, dimensions[k]);
       }
@@ -284,9 +284,9 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
 
       llvm::Type *arrayType = elementType;
 
-      std::vector<uint64_t> returnDimentions(
+      std::vector<uint64_t> returnDimensions(
           boundArrayTypeExpression->getDimensions().size(), 0);
-      for (int64_t k = boundArrayTypeExpression->getDimensions().size() - 1;
+      for (size_t k = boundArrayTypeExpression->getDimensions().size() - 1;
            k >= 0; k--) {
         llvm::Value *arraySize =
             literalExpressionGenerationStrategy->generateExpression(
@@ -297,10 +297,10 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
               "Array size must be a constant integer");
         }
 
-        returnDimentions[k] =
-            llvm::cast<llvm::ConstantInt>(arraySize)->getSExtValue();
+        returnDimensions[k] =
+            llvm::cast<llvm::ConstantInt>(arraySize)->getZExtValue();
 
-        arrayType = llvm::ArrayType::get(arrayType, returnDimentions[k]);
+        arrayType = llvm::ArrayType::get(arrayType, returnDimensions[k]);
       }
       llvm::Type *returnType = llvm::PointerType::get(arrayType, 0);
 
@@ -312,7 +312,7 @@ llvm::Type *BoundFunctionTypeExpressionGenerationStrategy::getType(
                                    argTypes, false);
 
       _llvmReturnType = std::make_unique<LLVMArrayType>(
-          returnType, arrayType, elementType, returnDimentions,
+          returnType, arrayType, elementType, returnDimensions,
           boundArrayTypeExpression);
       _codeGenerationContext
           ->_functionLocalTypes[bfT->getVariableNameItBelongsTo()]

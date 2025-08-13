@@ -56,7 +56,8 @@ public:
     _codeGenerationContext->createArraySizesAndArrayElementType(
         sizes, _arrayElementType);
     for (size_t i = 0; i < sizes.size(); i++) {
-      _actualSizes.push_back(Builder->getInt32(sizes[i]));
+      _actualSizes.push_back(
+          Builder->getInt32(static_cast<uint32_t>(sizes[i])));
     }
   }
 

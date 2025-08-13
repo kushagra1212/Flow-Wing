@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "LiteralExpressionGenerationStrategy.h"
+#include "src/syntax/SyntaxKindUtils.h"
 
 LiteralExpressionGenerationStrategy::LiteralExpressionGenerationStrategy(
     CodeGenerationContext *context)
@@ -26,8 +26,9 @@ LiteralExpressionGenerationStrategy::LiteralExpressionGenerationStrategy(
 
 llvm::Value *LiteralExpressionGenerationStrategy::generateExpression(
     BoundExpression *expression) {
+
   BoundLiteralExpression<std::any> *literalExpression =
-      (BoundLiteralExpression<std::any> *)expression;
+      static_cast<BoundLiteralExpression<std::any> *>(expression);
   std::any value = literalExpression->getValue();
 
   CODEGEN_DEBUG_LOG(
