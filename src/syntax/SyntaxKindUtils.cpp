@@ -67,7 +67,7 @@ bool SyntaxKindUtils::isValidInteger(const std::string &str) {
 
   try {
     size_t pos;
-    std::stoll(str, &pos);
+    (void)std::stoll(str, &pos);
 
     // To be a valid integer, the stoll function must consume the entire string.
     // If pos is not equal to str.size(), it means there were trailing
@@ -108,7 +108,7 @@ bool SyntaxKindUtils::isNumberTooLarge(const std::string &str) {
   // Step 2: Now that we know it's a well-formatted integer string,
   // try to parse it and see if it's out of range.
   try {
-    std::stoll(str);
+    (void)std::stoll(str);
   } catch (const std::out_of_range &) {
     // The string represents a number, but it's too big or too small
     // to fit in a long long. This is the exact case we want to catch.
