@@ -127,6 +127,7 @@ void signalHandler(int signal) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   signal(SIGSEGV, signalHandler);
+  enableVirtualTerminalProcessing();
   return RUN_ALL_TESTS();
 }
 
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
 
 int main([[maybe_unused]] int argc, char *argv[]) {
   signal(SIGSEGV, signalHandler);
-
+  enableVirtualTerminalProcessing();
   argh::parser _cmdl(argv);
 
   FlowWing::Cli::cmdl = &(_cmdl);

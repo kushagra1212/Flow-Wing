@@ -23,6 +23,7 @@
 #include <gtest/gtest.h>
 #endif
 
+#include "src/utils/platform/windows/VirtualTerminalProcessing.h"
 #include <filesystem>
 #include <string>
 #include <vector>
