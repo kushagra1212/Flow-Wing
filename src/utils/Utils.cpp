@@ -28,7 +28,6 @@
 #include "src/syntax/SyntaxToken.h"
 #include <algorithm>
 #include <cstdint>
-#include <dirent.h>
 #include <fstream>
 #include <iostream>
 #include <queue>
