@@ -47,7 +47,12 @@ std::string Utils::getTempDir() {
 #if defined(DEBUG)
   return "";
 #endif
-  return std::filesystem::temp_directory_path().string();
+  char tempPath[MAX_PATH];
+  DWORD pathLen = GetTempPath(MAX_PATH, tempPath);
+  if (pathLen > 0 && pathLen < MAX_PATH) {
+    return std::string(tempPath);
+  }
+  return "";
 }
 #else
 #include <cstdlib>
