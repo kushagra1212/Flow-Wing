@@ -1,0 +1,33 @@
+{
+  "name": "FlowWing Windows CI Environment",
+
+  // This is the base image. It's a Windows container from Microsoft that
+  // comes pre-installed with the C++ Build Tools (MSVC), CMake, Git, and more.
+  // This effectively replaces the `runs-on: windows-latest` and the
+  // `uses: ilammy/msvc-dev-cmd@v1` steps from your workflow.
+  "image": "mcr.microsoft.com/devcontainers/windows/cpp:0-v0.2",
+
+  // This is the one-time setup command that runs when the Codespace is
+  // first created. It replicates your "Install Build Tools" step exactly.
+  // Note: This command only runs ONCE. Subsequent starts of the Codespace
+  // will be much faster.
+  "onCreateCommand": "choco install -y 7zip make",
+
+  // --- VS Code Customizations (Highly Recommended) ---
+  // This section configures the VS Code editor inside the Codespace for a
+  // professional C++ experience out-of-the-box.
+  "customizations": {
+    "vscode": {
+      // Sets the default terminal to PowerShell.
+      "settings": {
+        "terminal.integrated.defaultProfile.windows": "PowerShell"
+      },
+      // Automatically installs essential C++ extensions.
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools-extension-pack"
+      ]
+    }
+  }
+}
