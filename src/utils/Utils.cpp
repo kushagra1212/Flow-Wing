@@ -48,7 +48,7 @@ std::string Utils::getTempDir() {
   return "";
 #endif
   char tempPath[MAX_PATH];
-  DWORD pathLen = GetTempPath(MAX_PATH, tempPath);
+  DWORD pathLen = GetTempPathA(MAX_PATH, tempPath);
   if (pathLen > 0 && pathLen < MAX_PATH) {
     return std::string(tempPath);
   }
