@@ -1,4 +1,4 @@
-bring local
 
+if(false) { print(5) }
 
-print(local::main())
+print("This is a test file for Flow-Wing project. It contains recent edits and should not suggest deleted code.")

@@ -41,7 +41,7 @@ void RUN_ON_DEBUG_GENERATE_BC_FROM_LL() {
 #if (defined(DEBUG) && defined(JIT_MODE)) ||                                   \
     (defined(DEBUG) && defined(AOT_MODE))
   std::vector<std::string> llFiles = Utils::getAllFilesInDirectoryWithExtension(
-      std::filesystem::current_path(), ".ll", false);
+      std::filesystem::current_path().string(), ".ll", false);
 
   for (auto llFile : llFiles) {
 
@@ -80,8 +80,9 @@ auto getFileNameWithoutExtension(FlowWing::DiagnosticHandler *diagHandler)
 auto deleteObjectFiles() -> void {
   std::vector<std::string> objectFiles =
       Utils::getAllFilesInDirectoryWithExtension(
-          FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, ".o", false);
+          FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR, FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION, false);
   for (const auto &objectFile : objectFiles) {
+    LINKING_DEBUG_LOG("Deleting object file: ", objectFile);
     std::filesystem::remove(objectFile);
   }
 }

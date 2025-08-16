@@ -190,7 +190,6 @@ struct Variable {
 inline auto hasFileExtenstion(const std::string &filePath,
                               const std::string &ext) -> int8_t {
   if (filePath.length() <= 3) {
-    throw std::runtime_error(filePath + " is not a valid file path");
     return EXIT_FAILURE;
   }
 

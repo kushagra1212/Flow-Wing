@@ -65,8 +65,17 @@ BringStatementGenerationStrategy::declare(BoundStatement *statement) {
       Utils::removeExtensionFromString(
           bringStatement->getDiagnosticHandlerPtr()->getAbsoluteFilePath());
 
+#if defined(__linux__) || defined(__APPLE__)
   std::replace(absoluteFilePathWithoutExtension.begin(),
                absoluteFilePathWithoutExtension.end(), '/', '-');
+#elif defined(_WIN32)   
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+      absoluteFilePathWithoutExtension.end(), '/', '_');
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+	  absoluteFilePathWithoutExtension.end(), '\\', '_');   
+  std::replace(absoluteFilePathWithoutExtension.begin(),
+	  absoluteFilePathWithoutExtension.end(), ':', '_');
+#endif
 
   std::unique_ptr<IRGenerator> _evaluator = std::make_unique<IRGenerator>(
       ENVIRONMENT::SOURCE_FILE, bringStatement->getDiagnosticHandlerPtr(),

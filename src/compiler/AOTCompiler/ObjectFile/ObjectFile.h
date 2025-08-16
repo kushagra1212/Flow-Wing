@@ -122,7 +122,8 @@ public:
     llvm::sys::fs::create_directories(FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR);
 
     const std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + 
+        FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
     DEBUG_LOG("Writing object file to: %s", destPath.c_str());
 
@@ -206,13 +207,15 @@ public:
     LLVMDisposeMessage(datalayout_str);
 
     std::string destPath =
-        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + ".o";
+        FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR + fileName + FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION;
 
-    CODEGEN_DEBUG_LOG("Writing object file to: %s", destPath.c_str());
+    CODEGEN_DEBUG_LOG("Creating object ", destPath.c_str());
 
     LLVMTargetMachineEmitToFile(machine, module, (char *)destPath.c_str(),
                                 LLVMObjectFile, &errors);
 
+    
+    
     LLVMDisposeMessage(errors);
   }
 };

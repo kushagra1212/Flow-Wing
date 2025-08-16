@@ -24,9 +24,13 @@
 #include <sstream>
 #include <string>
 
-#define AOT_TEST_MODE_RELEASE_IN_LINUX                                         \
+
+
+ #define AOT_TEST_MODE_RELEASE_IN_LINUX                                         \
   defined(AOT_TEST_MODE) && defined(RELEASE) && defined(__linux__)
 
+
+#ifdef ENABLE_LOGGING 
 // Implementation function
 // Implementation of the debug log function
 template <typename... Args>
@@ -42,8 +46,9 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
             << format << YELLOW_TEXT << ss.str() << RESET << std::endl;
 }
 
+
 // Macro to expand the variadic arguments correctly
-#ifdef DEBUG
+
 #define DEBUG_LOG(format, ...)                                                 \
   DEBUG_LOG_IMPL("", __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 
@@ -78,3 +83,4 @@ void DEBUG_LOG_IMPL(const std::string &type, const std::string &file, int line,
 #define CODEGEN_DEBUG_LOG(format, ...)
 #define LINKING_DEBUG_LOG(format, ...)
 #endif
+

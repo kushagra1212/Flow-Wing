@@ -95,6 +95,8 @@ else()
             USES_TERMINAL_CONFIGURE true
             USES_TERMINAL_BUILD true
             USES_TERMINal_INSTALL true
+
+            GIT_PROGRESS TRUE
         )
 
         # FIX: Append the library/include path flags to the list for bdw-gc
@@ -115,11 +117,30 @@ else()
             USES_TERMINAL_CONFIGURE true
             USES_TERMINAL_BUILD true
             USES_TERMINAL_INSTALL true
+
+            GIT_PROGRESS TRUE
         )
         set(GC_DEPENDENCY "bdwgc_external")
 
-    elseif(WIN32)
-        ExternalProject_Add(
+   elseif(WIN32)
+
+   ExternalProject_Add(
+  libatomic_ops_external
+  GIT_REPOSITORY "https://github.com/ivmai/libatomic_ops.git"
+  GIT_TAG "v7.8.0" # Use a specific version for stability
+
+  # Set the install directory for libatomic_ops
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_INSTALL_DIR}
+             -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE}
+             -Denable_gpl=OFF # Exclude GPL parts if you want
+  USES_TERMINAL_DOWNLOAD true
+  USES_TERMINAL_CONFIGURE true
+  USES_TERMINAL_BUILD true
+  USES_TERMINAL_INSTALL true
+  GIT_PROGRESS TRUE
+)
+
+    ExternalProject_Add(
             bdwgc_external
             GIT_REPOSITORY "https://github.com/ivmai/bdwgc.git"
             GIT_TAG "v8.2.4"
@@ -131,9 +152,11 @@ else()
             USES_TERMINAL_CONFIGURE true
             USES_TERMINAL_BUILD true
             USES_TERMINAL_INSTALL true
+
+            GIT_PROGRESS TRUE
         )
-        set(GC_DEPENDENCY "bdwgc_external")
-    endif()
+    set(GC_DEPENDENCY "bdwgc_external")
+endif()
 
     set(LLVM_BUILD_SHARED OFF)
 
@@ -159,6 +182,8 @@ else()
         USES_TERMINAL_CONFIGURE true
         USES_TERMINAL_BUILD true
         USES_TERMINAL_INSTALL true
+        
+        GIT_PROGRESS TRUE
     )
 
     ExternalProject_Add(
@@ -167,6 +192,8 @@ else()
         URL "https://github.com/google/googletest/releases/download/v1.17.0/googletest-1.17.0.tar.gz"
         URL_HASH "SHA256=65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c"
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${DEPS_INSTALL_DIR} -DCMAKE_BUILD_TYPE=${CMAKE_CONFIG_TYPE} -DBUILD_GMOCK=OFF
+
+     
         USES_TERMINAL_DOWNLOAD true
         USES_TERMINAL_CONFIGURE true
         USES_TERMINAL_BUILD true

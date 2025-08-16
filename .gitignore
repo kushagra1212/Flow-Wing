@@ -13,3 +13,4 @@ compile_commands.json
 .fw_dependencies/
 .fw_dependencies_release_bak/
 .fw_dependencies_debug_bak/
+.vs

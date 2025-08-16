@@ -34,6 +34,7 @@ set(CMAKE_FIND_ROOT_PATH ${DEPS_INSTALL_DIR})
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # --- LLVM ---
+
 find_package(LLVM 17 REQUIRED CONFIG)
 message(STATUS "Found pre-built LLVM ${LLVM_VERSION} at ${LLVM_DIR}")
 
@@ -67,7 +68,12 @@ endif()
 
 if(BUILD_AOT) # Use the clang from our local LLVM installation
     # Prefer clang++ for C++ linking, but fallback to clang
-    if(EXISTS "${CXX_COMPILER}")
+
+    if(MSVC)
+    # On Windows with the Visual Studio toolchain, the linker is link.exe.
+        set(AOT_LINKER_PATH "link.exe" CACHE FILEPATH "Path to the MSVC linker")
+    else()
+        # For other toolchains like GCC/Clang on Linux/macOS, the C++ compiler is also used as the linker driver.
         set(AOT_LINKER_PATH "${CXX_COMPILER}" CACHE FILEPATH "Path to clang/clang++ compiler")
     endif()
 

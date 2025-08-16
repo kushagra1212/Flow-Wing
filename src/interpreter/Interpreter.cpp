@@ -614,7 +614,6 @@ Interpreter::handleBuiltInFunction(BoundCallExpression *callExpression) {
       }
       return nullptr;
     }
-    return nullptr;
   } else if (fd->getFunctionNameRef() == FW::BI::FUNCTION::String) {
     if (arguments_size == 1) {
       std::any value = (this->evaluate<std::any>(
@@ -870,9 +869,4 @@ T Interpreter::binaryExpressionEvaluator(
         binaryExpression);
   }
 
-  this->_interpreterUtils->logError(
-      "Unexpected operand type" + std::to_string(left.type().hash_code()) +
-      " " + std::to_string(right.type().hash_code()) + " for binary operator");
-
-  return nullptr;
 }

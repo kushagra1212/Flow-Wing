@@ -34,6 +34,22 @@
 // Disables warnings about a local variable hiding a class member
 #pragma warning(disable : 4458)
 
+
+#pragma warning(disable : 4100) // Unreferenced formal parameter
+#pragma warning(disable : 4146) // Unary minus operator applied to unsigned type
+#pragma warning(disable : 4245) // Conversion, signed/unsigned mismatch
+#pragma warning(disable : 4267) // Conversion from 'size_t' to 'type', possible loss of data
+
+#pragma warning(disable : 4324) // Structure was padded due to alignment specifier
+
+#pragma warning(disable : 4127) // Conditional expression is constant
+#pragma warning(disable : 4310) // Cast truncates constant value
+
+#pragma warning(disable : 24624) // Truncation from 'type1' to 'type2'
+
+#pragma warning(disable : 4624) // Conversion from 'type1' to 'type2', possible loss of data
+
+
 #elif defined(__clang__)
 // GCC and Clang
 #pragma clang diagnostic push

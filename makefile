@@ -1,5 +1,5 @@
 # =============================================================================
-# Makefile for FlowWing
+# Makefile for FlowWing (Cross-Platform)
 # A simple and memorable command-line interface for the CMake build system.
 # =============================================================================
 
@@ -53,16 +53,13 @@ TESTS_JIT_PRESET := test-jit
 
 #? Test JIT Directories
 TESTS_JIT_DIR := build/$(TESTS_JIT_PRESET)
-#
-
-
 
 # --- Local Running Variables ---
 # The FlowWing source file to compile. Can be overridden from the command line.
 FILE ?= 
 
 # The filter pattern to pass to GTest. Defaults to '*' (all tests).
-FILTER ?= *
+FILTER ?= .*
 # The directory where compiled scratch files will go.
 RUN_OUT_DIR := build/bin
 # The name of the output executable, derived from the input FILE.
@@ -84,21 +81,44 @@ endif
 # Set the jobs flag, defaulting to all cores. Can be overridden.
 JOBS ?= -j$(NPROC)
 
-SILENT_CMD :=
+# --- Cross-Platform Command Abstractions ---
+# This block defines variables for common shell commands, providing a
+# compatible version for both Windows (cmd.exe) and POSIX (bash).
+ifeq ($(OS),Windows_NT)
+    # Windows commands
+    MKDIR_P      = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+    TOUCH        = type nul > $(subst /,\,$(1))
+    RM_RF        = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
+    CHMOD_X      = @REM chmod is not applicable on Windows
+    CD_AND_EXEC  = cd /d $(subst /,\,$(1)) && $(2)
+    RUN_EXE      = $(subst /,\,$(1))
+else
+    # POSIX commands (Linux, macOS)
+    MKDIR_P      = mkdir -p $(1)
+    TOUCH        = touch $(1)
+    RM_RF        = rm -rf $(1)
+    CHMOD_X      = chmod +x $(1)
+    CD_AND_EXEC  = cd $(1) && $(2)
+    RUN_EXE      = ./$(1)
+endif
 
 # To disable status messages, run: make SILENT=1 <target>
-# By default, SILENT is not 1, so messages are shown.
 ifeq ($(SILENT), 1)
-  # In silent mode, ECHO_MSG does nothing. '@:' is a silent, no-op command.
   ECHO_MSG = @:
-  SILENT_CMD := > /dev/null 2>&1
+  # Detect OS for redirection
+  ifeq ($(OS),Windows_NT)
+    SILENT_CMD := > NUL 2>&1
+  else
+    SILENT_CMD := > /dev/null 2>&1
+  endif
 else
-  # In normal mode, ECHO_MSG is an alias for $(ECHO_MSG).
-  ECHO_MSG = @echo 
+  ECHO_MSG = @echo
+  SILENT_CMD :=
 endif
 
 
 #! --- Help Command ---
+# ... (help section is unchanged, no shell commands) ...
 help:
 	@echo ""
 	@echo "FlowWing Compiler Build System"
@@ -143,223 +163,169 @@ help:
 #? Configured Dependencies 
 $(DEBUG_DEPS_DIR)/.configured-debug:
 	$(ECHO_MSG) "--> Configuring dependencies (Debug)..."
-	@cd cmake/deps_builder && cmake --preset deps-install-debug  $(SILENT_CMD)
+	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-debug $(SILENT_CMD))
 
 $(RELEASE_DEPS_DIR)/.configured-release:
 	$(ECHO_MSG) "--> Configuring dependencies (Release)..."
-	@cd cmake/deps_builder && cmake --preset deps-install-release  $(SILENT_CMD)
+	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-release $(SILENT_CMD))
 	
-
 #? Install dependencies 
 $(DEBUG_DEPS_DIR)/.installed-debug: $(DEBUG_DEPS_DIR)/.configured-debug
 	$(ECHO_MSG) "--> Installing dependencies (Debug)..."
-	@mkdir -p $(STAMPS_DIR)
-	@cd cmake/deps_builder && cmake --build --preset deps-install-debug -- $(JOBS)  $(SILENT_CMD)
-	@touch $(CURDIR)/$(DEBUG_DEPS_DIR)/.installed-debug 
+	@$(call MKDIR_P, $(STAMPS_DIR))
+	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-debug -- $(JOBS) $(SILENT_CMD))
+	@$(call TOUCH, $(CURDIR)/$(DEBUG_DEPS_DIR)/.installed-debug)
 	
 $(RELEASE_DEPS_DIR)/.installed-release: $(RELEASE_DEPS_DIR)/.configured-release
 	$(ECHO_MSG) "--> Installing dependencies (Release)..."
-	@mkdir -p $(STAMPS_DIR)
-	@cd cmake/deps_builder && cmake --build --preset deps-install-release -- $(JOBS)  $(SILENT_CMD)
-	@touch $(CURDIR)/$(RELEASE_DEPS_DIR)/.installed-release
-
+	@$(call MKDIR_P, $(STAMPS_DIR))
+	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-release -- $(JOBS) $(SILENT_CMD))
+	@$(call TOUCH, $(CURDIR)/$(RELEASE_DEPS_DIR)/.installed-release)
 
 #? Dependencies Aliases
 .PHONY: deps-install-debug deps-install-release
 deps-install-debug: $(DEBUG_DEPS_DIR)/.installed-debug
 deps-install-release: $(RELEASE_DEPS_DIR)/.installed-release
 
-
-
 #! ----- JIT -----
 
 #? Configured JIT
-
 $(JIT_DEBUG_DIR)/.configured: deps-install-debug
 	$(ECHO_MSG) "--> Configuring JIT (Debug)..."
-	@cmake --preset $(JIT_DEBUG_PRESET)  $(SILENT_CMD) && touch $@
+	@cmake --preset $(JIT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
 $(JIT_RELEASE_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring JIT (Release)..."
-	@cmake --preset $(JIT_RELEASE_PRESET)  $(SILENT_CMD) && touch $@
-
-
+	@cmake --preset $(JIT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
 #? Build JIT
-
 .PHONY: build-jit-debug build-jit-release
-
 build-jit-debug: $(JIT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT (Debug)..."
 	@cmake --build --preset $(JIT_DEBUG_PRESET) -- $(JOBS) $(SILENT_CMD)
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(JIT_DEBUG_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
-	@mkdir -p $(RUN_OUT_DIR) 
-	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..." 
-	@chmod +x $(SDK_DIR)/bin/FlowWing
+	@$(call MKDIR_P, $(RUN_OUT_DIR))
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
 
 build-jit-release: $(JIT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT (Release)..."
 	@cmake --build --preset $(JIT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(JIT_RELEASE_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
-	@mkdir -p $(RUN_OUT_DIR)
-	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
-	@chmod +x $(SDK_DIR)/bin/FlowWing
-
-
+	@$(call MKDIR_P, $(RUN_OUT_DIR))
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
 
 #? Run JIT
-
 .PHONY: run-jit-debug run-jit-release
-
 run-jit-debug: build-jit-debug
-	@$(SDK_DIR)/bin/FlowWing $(FILE)
+	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..." 
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE)
 
 run-jit-release: build-jit-release
-	@$(SDK_DIR)/bin/FlowWing $(FILE) 
-
+	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE)
 
 #! ----- JIT Tests -----
 
 #? Configured JIT Tests
 $(TESTS_JIT_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring JIT tests..."
-	@cmake --preset $(TESTS_JIT_PRESET) && touch $@
+	@cmake --preset $(TESTS_JIT_PRESET) && $(call TOUCH, $@)
 
 .PHONY: test-jit
-
 #? Build and Run JIT Tests
 test-jit: $(TESTS_JIT_DIR)/.configured
 	$(ECHO_MSG) "--> Building and running JIT tests... (Filter: $(FILTER))"
 	@cmake --build --preset $(TESTS_JIT_PRESET)
-    
 	$(ECHO_MSG) "--> Staging SDK for tests..."
 	@cmake --install $(TESTS_JIT_DIR) --prefix $(TEST_SDK_DIR)
-	
-	@GTEST_FILTER=$(FILTER) ctest --preset $(TESTS_JIT_PRESET)
-
+	@ctest --preset $(TESTS_JIT_PRESET)  -R $(FILTER)
 
 #! ----- AOT -----
 
 #? Configured AOT
-
 $(AOT_DEBUG_DIR)/.configured: deps-install-debug
 	$(ECHO_MSG) "--> Configuring AOT (Debug)..."
-	@cmake --preset $(AOT_DEBUG_PRESET)  $(SILENT_CMD) && touch $@
+	@cmake --preset $(AOT_DEBUG_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
 $(AOT_RELEASE_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring AOT (Release)..."
-	@cmake --preset $(AOT_RELEASE_PRESET)  $(SILENT_CMD) && touch $@
-
+	@cmake --preset $(AOT_RELEASE_PRESET)  $(SILENT_CMD) && $(call TOUCH, $@)
 
 #? Build AOT
-
 .PHONY: build-aot-debug build-aot-release
-
 build-aot-debug: $(AOT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT (Debug)..."
 	@cmake --build --preset $(AOT_DEBUG_PRESET) -- $(JOBS) $(SILENT_CMD)
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(AOT_DEBUG_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
-	@mkdir -p $(RUN_OUT_DIR) 
-	$(ECHO_MSG) "--> Compiling $(FILE) with AOT (Debug)..." 
-	@chmod +x $(SDK_DIR)/bin/FlowWing
+	@$(call MKDIR_P, $(RUN_OUT_DIR))
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
 
 build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT (Release)..."
 	@cmake --build --preset $(AOT_RELEASE_PRESET) -- $(JOBS) $(SILENT_CMD)
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(AOT_RELEASE_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
-	@mkdir -p $(RUN_OUT_DIR)
-	$(ECHO_MSG) "--> Compiling $(FILE) with AOT (Release)..."
-	@chmod +x $(SDK_DIR)/bin/FlowWing
-
-
+	@$(call MKDIR_P, $(RUN_OUT_DIR))
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
 
 #? Run AOT
-
 .PHONY: run-aot-debug run-aot-release
-
 run-aot-debug: build-aot-debug
-	@$(SDK_DIR)/bin/FlowWing $(FILE) -o $(RUN_OUT_EXE)
-	$(ECHO_MSG) "--> Executing ./$(RUN_OUT_EXE)..."
+	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	$(ECHO_MSG) "---------------------------------"
-	@./$(RUN_OUT_EXE)
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
 
 run-aot-release: build-aot-release
-	@$(SDK_DIR)/bin/FlowWing $(FILE) -o $(RUN_OUT_EXE)
-	$(ECHO_MSG) "--> Executing ./$(RUN_OUT_EXE)..."
+	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
 	$(ECHO_MSG) "---------------------------------"
-	@./$(RUN_OUT_EXE)
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
 #? Configured AOT Tests
 $(TESTS_AOT_DIR)/.configured: deps-install-release
 	$(ECHO_MSG) "--> Configuring AOT tests..."
-	@cmake --preset $(TESTS_AOT_PRESET) && touch $@
+	@cmake --preset $(TESTS_AOT_PRESET) && $(call TOUCH, $@)
 
 .PHONY: test-aot
-
 #? Build and Run AOT Tests
 test-aot: $(TESTS_AOT_DIR)/.configured
 	$(ECHO_MSG) "--> Building and running AOT tests... (Filter: $(FILTER))"
 	@cmake --build --preset $(TESTS_AOT_PRESET)
-    
 	$(ECHO_MSG) "--> Staging SDK for tests..."
 	@cmake --install $(TESTS_AOT_DIR) --prefix $(TEST_SDK_DIR)
-	
-	@GTEST_FILTER=$(FILTER) ctest --preset $(TESTS_AOT_PRESET)
-
-
-
-
+	@ctest --preset $(TESTS_AOT_PRESET)  -R $(FILTER)
 
 #! ----- Clean -----
 
-.PHONY: clean clean-debug clean-release clean-all
-
+.PHONY: clean clean-all
 #? Clean Targets (Only Build Artifacts)
 clean:
-	$(ECHO_MSG) "--> Deleting the build and bin directories..."
-	@rm -rf build bin
-
-#? Clean Debug Targets (All Build Artifacts, Including Dependencies)
-clean-debug:
-	$(ECHO_MSG) "--> Deleting ALL build artifacts, including downloaded dependencies..."
-	@rm -rf build bin $(DEBUG_DEPS_DIR)
-
-#? Clean Release Targets (All Build Artifacts, Including Dependencies)
-clean-release:
-	$(ECHO_MSG) "--> Deleting ALL build artifacts, including downloaded dependencies..."
-	@rm -rf build bin $(RELEASE_DEPS_DIR)
+	$(ECHO_MSG) "--> Deleting the build, bin..."
+	@$(call RM_RF, build)
+	@$(call RM_RF, bin)
 
 #? Clean All Targets (All Build Artifacts, Including Dependencies)
 clean-all:
 	$(ECHO_MSG) "--> Deleting ALL build artifacts, including downloaded dependencies..."
-	@read -p "Are you sure? [y/N]: " -n 1 -r; \
+ifeq ($(OS),Windows_NT)
+    # No confirmation prompt on Windows for non-interactive shells
+	@$(call RM_RF, build)
+	@$(call RM_RF, bin)
+	@$(call RM_RF, .fw_dependencies)
+else
+    # Interactive confirmation for POSIX systems
+	@read -p "Are you sure? This will delete all dependencies. [y/N]: " -n 1 -r; \
 	echo; \
-	case "$$REPLY" in \
-	  [yY]) \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 	    echo "--> Deleting files..."; \
-	    rm -rf build bin $(DEBUG_DEPS_DIR) $(RELEASE_DEPS_DIR) ;; \
-	  *) \
-	    echo "--> Aborted.";; \
-	esac
-
-
-
-# -- Debug
-run-jit-with-lldb: build-jit
-	$(ECHO_MSG) "--> Interpreting $(FILE) with JIT Debug compiler..."
-	$(ECHO_MSG) "---------------------------------"
-	@lldb $(JIT_DEBUG_DIR)/FlowWing $(FILE) 
-
-
-
-
-
-
-
-
+	    $(call RM_RF, build); \
+	    $(call RM_RF, bin); \
+	    $(call RM_RF, .fw_dependencies); \
+	else \
+	    echo "--> Aborted."; \
+	fi
+endif

@@ -44,14 +44,14 @@ const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 #if defined(__linux__)
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 #else
-const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 #endif
 
 #if defined(_WIN32)
 const std::string TEMP_BIN_DIR = "build\\bin\\";
 const std::string TEMP_OBJECT_FILES_DIR = "build\\objects\\";
 const std::string OBJECT_FILE_EXTENSION = ".obj";
-const std::string TEMP_BC_FILES_DIR = "\\flowwing\\bc\\";
+const std::string TEMP_BC_FILES_DIR = "flowwing\\bc\\";
 #else
 const std::string TEMP_OBJECT_FILES_DIR = "build/objects/";
 const std::string TEMP_BIN_DIR = "build/bin/";

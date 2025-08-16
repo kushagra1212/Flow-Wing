@@ -54,8 +54,6 @@ getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
 std::unique_ptr<llvm::Module>
 createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext);
 
-int8_t isValidLLFile(const std::string &filePath);
-
 std::unique_ptr<llvm::Module>
 getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,
                 FlowWing::DiagnosticHandler *diagHandler);

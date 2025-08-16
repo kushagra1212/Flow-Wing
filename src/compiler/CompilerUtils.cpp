@@ -43,7 +43,6 @@ getMemoryBuffer(const std::string &filePath,
                               DiagnosticUtils::DiagnosticType::Linker,
                               DiagnosticUtils::SourceLocation()));
     throw std::runtime_error("Error reading bitcode file: " + filePath);
-    return nullptr;
   }
 }
 
@@ -70,6 +69,8 @@ getIRFilePaths(FlowWing::DiagnosticHandler *diagHandler,
     return {};
   }
 
+  DEBUG_LOG("Found IR files: ", irFilesPath.size());
+
   return irFilesPath;
 }
 
@@ -85,31 +86,20 @@ createLLVMModule(std::unique_ptr<llvm::LLVMContext> &TheContext) {
 
 #if defined(__APPLE__)
   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-#elif defined(__linux__)
+#elif defined(__linux__) 
   TheModule->setTargetTriple(
       llvm::Triple::normalize(llvm::sys::getDefaultTargetTriple()));
+// #else
+//   TheModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 #endif
+
+
+DEBUG_LOG("Created LLVM Module with target triple: ",
+          TheModule->getTargetTriple());
 
   return TheModule;
 }
 
-int8_t isValidLLFile(const std::string &filePath) {
-  if (filePath.length() <= 3) {
-    throw std::runtime_error(filePath + " is not an valid file path");
-    return EXIT_FAILURE;
-  }
-
-  if (Utils::hasFileExtenstion(filePath, "ll") == EXIT_SUCCESS) {
-    return EXIT_SUCCESS;
-  }
-
-  if (Utils::hasFileExtenstion(filePath, "bc") == EXIT_SUCCESS) {
-    return EXIT_FAILURE;
-  }
-
-  throw std::runtime_error(filePath + " is not an valid file path");
-  return EXIT_FAILURE;
-}
 
 std::unique_ptr<llvm::Module>
 getLinkedModule(std::unique_ptr<llvm::LLVMContext> &TheContext,

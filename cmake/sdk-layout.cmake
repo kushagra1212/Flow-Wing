@@ -50,6 +50,9 @@ file(GLOB THIRD_PARTY_LIBS
     "${DEPS_LIB_DIR}/libgc.a"
     "${DEPS_LIB_DIR}/libgccpp.a"
     "${DEPS_LIB_DIR}/libatomic_ops.a"
+    "${DEPS_LIB_DIR}/gc.lib"
+    "${DEPS_LIB_DIR}/gccpp.lib"
+    "${DEPS_LIB_DIR}/atomic_ops.lib"
 
     # This glob will also find any other .a files you might need.
 )

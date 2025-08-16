@@ -249,6 +249,6 @@ public:
   }
 
   inline auto addMemberVariableTypeName(std::string name) -> void {
-    _memberVariablesTypeNameMap.insert({name, 1});
+    _memberVariablesTypeNameMap.insert({name, static_cast<int8_t>(1)});
   }
 };

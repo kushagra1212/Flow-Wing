@@ -44,6 +44,7 @@ endif()
 option(BUILD_AOT "Enable Ahead-of-Time (AOT) compilation mode." OFF)
 option(TESTS_ENABLED "Build with tests enabled" OFF)
 option(DEV_MODE "Enable developer mode (Build with hard-coded developer paths)" OFF)
+option(ENABLE_LOGGING "Enable logging in the compiler" OFF)
 
 # --- Find and configure ccache for faster recompilation ---
 find_program(CCACHE_FOUND ccache)

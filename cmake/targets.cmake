@@ -25,6 +25,8 @@
 # definitions for each target.
 # =============================================================================
 
+
+
 # --- Custom Version Target ---
 add_custom_target(version
     COMMAND ${CMAKE_COMMAND} -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake
@@ -44,9 +46,16 @@ else()
 endif()
 
 # --- 1. Define the platform-specific library directory ---
-# Creates a path like 'lib/Darwin-arm64' or 'lib/Linux-x86_64'.
-set(FLOWWING_PLATFORM_LIB_DIR "lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+
+if(UNIX)
+ set(FLOWWING_PLATFORM_LIB_DIR "lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
     CACHE STRING "Platform-specific directory for FlowWing libraries.")
+# Creates a path like 'lib/Darwin-arm64' or 'lib/Linux-x86_64'.
+else()
+set(FLOWWING_PLATFORM_LIB_DIR "lib\\\\${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}"
+    CACHE STRING "Platform-specific directory for FlowWing libraries.")
+endif()
+
 message(STATUS "SDK Platform Library Path: ${FLOWWING_PLATFORM_LIB_DIR}")
 
 set(FLOWWING_MODULES_DIR "lib/modules"
@@ -171,8 +180,25 @@ if(NOT BUILD_AOT)
             # which is necessary for the JIT to find them at runtime.
             "-Wl,--export-dynamic"
         )
+    elseif(WIN32)
+        # On Windows, we use the static libraries directly
+       # On Windows (MSVC), force inclusion of all static lib objects
+         target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+            built_in_module
+            "${DEPS_LIB_DIR}/gc.lib"
+            "${DEPS_LIB_DIR}/gccpp.lib"
+            "${DEPS_LIB_DIR}/atomic_ops.lib"
+        )
+
+        target_link_options(${EXECUTABLE_NAME} PRIVATE
+            "/WHOLEARCHIVE:$<TARGET_FILE:built_in_module>"
+            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gc.lib"
+            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/gccpp.lib"
+            "/WHOLEARCHIVE:${DEPS_LIB_DIR}/atomic_ops.lib"
+        )
     endif()
 endif()
+
 
 target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     $<$<CONFIG:Debug>:DEBUG>
@@ -180,6 +206,9 @@ target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
     ${LLVM_DEFINITIONS}
 
     $<$<CXX_COMPILER_ID:MSVC>:NOMINMAX>
+
+     "$<$<BOOL:${ENABLE_LOGGING}>:ENABLE_LOGGING=1>"
+
 
     "MACOS_SDK_SYSROOT_FLAG=\"${MACOS_SDK_SYSROOT_FLAG}\""
     "FLOWWING_PLATFORM_LIB_DIR=\"${FLOWWING_PLATFORM_LIB_DIR}\""
@@ -219,4 +248,5 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE
 
 # --- Linker Options / Flags ---
 target_link_options(${EXECUTABLE_NAME} PRIVATE
-    $<$<CONFIG:Debug>:-fsanitize=undefined>)
+    $<$<CONFIG:Debug>:-fsanitize=undefined>
+    )

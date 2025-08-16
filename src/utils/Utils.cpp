@@ -26,6 +26,7 @@
 #include "src/syntax/SyntaxKindUtils.h"
 #include "src/syntax/SyntaxNode.h"
 #include "src/syntax/SyntaxToken.h"
+#include "src\utils\LogConfig.h"
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
@@ -46,13 +47,14 @@
 std::string Utils::getTempDir() {
 #if defined(DEBUG)
   return "";
-#endif
+#else
   char tempPath[MAX_PATH];
   DWORD pathLen = GetTempPathA(MAX_PATH, tempPath);
   if (pathLen > 0 && pathLen < MAX_PATH) {
     return std::string(tempPath);
   }
   return "";
+  #endif
 }
 #else
 #include <cstdlib>
@@ -715,8 +717,18 @@ std::vector<std::string> Utils::getAllFilesInDirectoryWithExtension(
       std::vector<std::string> subFiles = getAllFilesInDirectoryWithExtension(
           entry.path().string(), extension, recursive);
       files.insert(files.end(), subFiles.begin(), subFiles.end());
-    }
+  
   }
+  }
+
+  // LINKING_DEBUG_LOG("Searching in directory: ", directoryPath);
+
+  // LINKING_DEBUG_LOG("Found ", static_cast<int>(files.size()), " files with extension: ", extension);
+
+  // for(auto &file : files) {
+	//   LINKING_DEBUG_LOG("Found file: " ,file);
+  // }
+
   return files;
 }
 
