@@ -54,17 +54,24 @@ TESTS_JIT_PRESET := test-jit
 #? Test JIT Directories
 TESTS_JIT_DIR := build/$(TESTS_JIT_PRESET)
 
+# --- Determine executable extension and other platform specifics ---
+ifeq ($(OS),Windows_NT)
+    EXE_EXT := .exe
+else
+    EXE_EXT :=
+endif
+
 # --- Local Running Variables ---
 # The FlowWing source file to compile. Can be overridden from the command line.
-FILE ?= 
+FILE ?=
 
-# The filter pattern to pass to GTest. Defaults to '*' (all tests).
+# The filter pattern to pass to GTest. Defaults to '.*' (all tests).
 FILTER ?= .*
 # The directory where compiled scratch files will go.
 RUN_OUT_DIR := build/bin
 # The name of the output executable, derived from the input FILE.
 RUN_OUT_NAME := $(basename $(notdir $(FILE)))
-RUN_OUT_EXE := $(RUN_OUT_DIR)/$(RUN_OUT_NAME)
+RUN_OUT_EXE := $(RUN_OUT_DIR)/$(RUN_OUT_NAME)$(EXE_EXT)
 
 # Determine the number of CPU cores for parallel builds
 ifeq ($(OS),Windows_NT)
@@ -86,22 +93,22 @@ JOBS ?= -j$(NPROC)
 # compatible version for both Windows (cmd.exe) and POSIX (bash).
 ifeq ($(OS),Windows_NT)
     # Windows commands
-    MKDIR_P      = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
-    TOUCH        = type nul > "$(subst /,\,$(1))"
-    RM_RF        = if exist "$(subst /,\,$(1))" rmdir /s /q "$(subst /,\,$(1))"
+    # Use PowerShell for a robust, recursive mkdir -p equivalent, which is safe in CI environments.
+    MKDIR_P      = powershell -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))'"
+    TOUCH        = type nul > $(subst /,\,$(1))
+    RM_RF        = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
     CHMOD_X      = @REM chmod is not applicable on Windows
-    CD_AND_EXEC  = cd /d "$(subst /,\,$(1))" && $(2)
-    RUN_EXE      = "$(subst /,\,$(1))"
+    CD_AND_EXEC  = cd /d $(subst /,\,$(1)) && $(2)
+    RUN_EXE      = $(subst /,\,$(1))
 else
     # POSIX commands (Linux, macOS)
-    MKDIR_P      = mkdir -p "$(1)"
-    TOUCH        = touch "$(1)"
-    RM_RF        = rm -rf "$(1)"
-    CHMOD_X      = chmod +x "$(1)"
-    CD_AND_EXEC  = cd "$(1)" && $(2)
-    RUN_EXE      = ./"$(1)"
+    MKDIR_P      = mkdir -p $(1)
+    TOUCH        = touch $(1)
+    RM_RF        = rm -rf $(1)
+    CHMOD_X      = chmod +x $(1)
+    CD_AND_EXEC  = cd $(1) && $(2)
+    RUN_EXE      = ./$(1)
 endif
-
 
 # To disable status messages, run: make SILENT=1 <target>
 ifeq ($(SILENT), 1)
@@ -119,7 +126,7 @@ endif
 
 
 #! --- Help Command ---
-# ... (help section is unchanged, no shell commands) ...
+# ... (help section is unchanged) ...
 help:
 	@echo ""
 	@echo "FlowWing Compiler Build System"
@@ -151,6 +158,7 @@ help:
 	@echo "  Cleaning:"
 	@echo "    clean                    Delete all build and binary output directories."
 	@echo "    clean-all                Delete all build artifacts AND downloaded dependencies."
+	@echo "    (For CI, use: make clean-all FORCE=1)"
 	@echo ""
 	@echo "  Options:"
 	@echo "    FILE=<path>              Required for 'run-*' targets. Specifies the .fg file to execute."
@@ -161,7 +169,7 @@ help:
 
 #! ----- Dependencies -----
 
-#? Configured Dependencies 
+#? Configured Dependencies
 $(DEBUG_DEPS_DIR)/.configured-debug:
 	$(ECHO_MSG) "--> Configuring dependencies (Debug)..."
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-debug $(SILENT_CMD))
@@ -169,14 +177,14 @@ $(DEBUG_DEPS_DIR)/.configured-debug:
 $(RELEASE_DEPS_DIR)/.configured-release:
 	$(ECHO_MSG) "--> Configuring dependencies (Release)..."
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --preset deps-install-release $(SILENT_CMD))
-	
-#? Install dependencies 
+
+#? Install dependencies
 $(DEBUG_DEPS_DIR)/.installed-debug: $(DEBUG_DEPS_DIR)/.configured-debug
 	$(ECHO_MSG) "--> Installing dependencies (Debug)..."
 	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-debug -- $(JOBS) $(SILENT_CMD))
 	@$(call TOUCH, $(CURDIR)/$(DEBUG_DEPS_DIR)/.installed-debug)
-	
+
 $(RELEASE_DEPS_DIR)/.installed-release: $(RELEASE_DEPS_DIR)/.configured-release
 	$(ECHO_MSG) "--> Installing dependencies (Release)..."
 	@$(call MKDIR_P, $(STAMPS_DIR))
@@ -207,7 +215,7 @@ build-jit-debug: $(JIT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(JIT_DEBUG_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
-	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
 
 build-jit-release: $(JIT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building JIT (Release)..."
@@ -215,17 +223,17 @@ build-jit-release: $(JIT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(JIT_RELEASE_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
-	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
 
 #? Run JIT
 .PHONY: run-jit-debug run-jit-release
 run-jit-debug: build-jit-debug
-	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..." 
-	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE)
+	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..."
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
 
 run-jit-release: build-jit-release
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
-	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE)
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
 
 #! ----- JIT Tests -----
 
@@ -262,7 +270,7 @@ build-aot-debug: $(AOT_DEBUG_DIR)/.configured
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(AOT_DEBUG_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
-	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
 
 build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Building AOT (Release)..."
@@ -270,19 +278,19 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 	$(ECHO_MSG) "--> Staging SDK to $(SDK_DIR)..."
 	@cmake --install $(AOT_RELEASE_DIR) --prefix $(SDK_DIR) $(SILENT_CMD)
 	@$(call MKDIR_P, $(RUN_OUT_DIR))
-	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing)
+	@$(call CHMOD_X, $(SDK_DIR)/bin/FlowWing$(EXE_EXT))
 
 #? Run AOT
 .PHONY: run-aot-debug run-aot-release
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	$(ECHO_MSG) "---------------------------------"
-	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
 	$(ECHO_MSG) "---------------------------------"
-	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
+	@$(call RUN_EXE, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(RUN_OUT_EXE) && $(call RUN_EXE, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
@@ -310,23 +318,30 @@ clean:
 	@$(call RM_RF, bin)
 
 #? Clean All Targets (All Build Artifacts, Including Dependencies)
+# For non-interactive environments (like CI/CD), set FORCE=1
+# Example: make clean-all FORCE=1
 clean-all:
 	$(ECHO_MSG) "--> Deleting ALL build artifacts, including downloaded dependencies..."
 ifeq ($(OS),Windows_NT)
-    # No confirmation prompt on Windows for non-interactive shells
 	@$(call RM_RF, build)
 	@$(call RM_RF, bin)
 	@$(call RM_RF, .fw_dependencies)
 else
-    # Interactive confirmation for POSIX systems
-	@read -p "Are you sure? This will delete all dependencies. [y/N]: " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-	    echo "--> Deleting files..."; \
-	    $(call RM_RF, build); \
-	    $(call RM_RF, bin); \
-	    $(call RM_RF, .fw_dependencies); \
+	@if [ "$(FORCE)" = "1" ]; then \
+		echo "--> Deleting files (non-interactive)..."; \
+		$(call RM_RF, build); \
+		$(call RM_RF, bin); \
+		$(call RM_RF, .fw_dependencies); \
 	else \
-	    echo "--> Aborted."; \
+		read -p "Are you sure? This will delete all dependencies? [y/N] " -n 1 -r; \
+		echo; \
+		if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+			echo "--> Deleting files..."; \
+			$(call RM_RF, build); \
+			$(call RM_RF, bin); \
+			$(call RM_RF, .fw_dependencies); \
+		else \
+			echo "--> Aborted."; \
+		fi; \
 	fi
 endif
