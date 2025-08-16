@@ -47,7 +47,7 @@ auto CommandManager::create() -> std::string {
   cmd += " -fuse-ld=lld ";
 #endif
 #if defined(_WIN32)
-  cmd += " /nologo "; 
+  cmd += " /nologo ";
 #endif
 
   // cmd += this->getOptimizationLevel();
@@ -82,21 +82,21 @@ auto CommandManager::create() -> std::string {
   // Linking with BuiltIn Module
   cmd += this->getRuntimeLibrariesLinked();
 
-
 #if defined(__linux__)
   cmd += " -lstdc++ ";
 #endif
 
 #if defined(_WIN32)
-  cmd += "  ucrt.lib vcruntime.lib kernel32.lib user32.lib advapi32.lib msvcrt.lib legacy_stdio_definitions.lib ";
+  cmd += "  ucrt.lib vcruntime.lib kernel32.lib user32.lib advapi32.lib "
+         "msvcrt.lib legacy_stdio_definitions.lib ";
   cmd += " /SUBSYSTEM:CONSOLE /IGNORE:4210 ";
 #endif
 
-
-#if defined(AOT_TEST_MODE) && defined(_unix_) 
-  cmd += " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName +" ";
+#if defined(AOT_TEST_MODE) && (defined(__linux__) || defined(__APPLE__))
+  cmd +=
+      " && ./" + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName + " ";
 #elif defined(AOT_TEST_MODE) && defined(_WIN32)
-  cmd += " && " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName +" ";
+  cmd += " && " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName + " ";
 #endif
 
   return cmd;
@@ -107,7 +107,6 @@ auto CommandManager::getObjectFilesJoinedAsString() -> std::string {
       Utils::getAllFilesInDirectoryWithExtension(
           FLOWWING::IR::CONSTANTS::TEMP_OBJECT_FILES_DIR,
           FLOWWING::IR::CONSTANTS::OBJECT_FILE_EXTENSION, false);
-
 
   std::string joined = "";
   for (const auto &objectFile : objectFiles) {
@@ -146,7 +145,7 @@ auto CommandManager::getDefaultEntryPoint() -> std::string {
 #elif defined(__APPLE__)
   return " -e _" + FLOWWING::IR::CONSTANTS::FLOWWING_GLOBAL_ENTRY_POINT + " ";
 
-  #endif
+#endif
 }
 
 auto CommandManager::getEntryPoint([[maybe_unused]] const std::string &key,
@@ -175,7 +174,7 @@ auto CommandManager::getOutputArgument() -> std::string {
          " ";
 #else
   return " -o " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName + " ";
-  #endif
+#endif
 }
 
 auto CommandManager::getRuntimeLibrariesLinked() -> std::string {
@@ -209,8 +208,7 @@ auto CommandManager::createLibArgs(const std::string &libName) -> std::string {
   return " " + libName + ".lib ";
 #else
   return " -l" + libName + " ";
-  #endif
-
+#endif
 }
 
 auto CommandManager::getOtherLibrariesPath(const std::string &key,

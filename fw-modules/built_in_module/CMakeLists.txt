@@ -3,12 +3,13 @@ add_library(built_in_module STATIC
     built_in_module.c
 )
 
-
-add_compile_definitions(
-   built_in_module 
-   PRIVATE
-   GC_NOT_DLL
-)
+if(WIN32)
+    add_compile_definitions(
+        built_in_module
+        PRIVATE
+        GC_NOT_DLL
+    )
+endif()
 
 # This module needs to know where the Boehm GC headers are.
 target_include_directories(built_in_module PRIVATE

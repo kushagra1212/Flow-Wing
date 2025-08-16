@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-
 #include "FlowWingIRConstants.h"
 #include <string>
 
@@ -43,6 +42,8 @@ const std::string FLOWWING_GLOBAL_FALSE = "FLOWWING_GLOBAL_FALSE";
 
 #if defined(__linux__)
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
+#elif defined(__APPLE__)
+const std::string FLOWWING_GLOBAL_ENTRY_POINT = "flowmain";
 #else
 const std::string FLOWWING_GLOBAL_ENTRY_POINT = "main";
 #endif
