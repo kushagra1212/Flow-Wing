@@ -3,6 +3,14 @@
 # A simple and memorable command-line interface for the CMake build system.
 # =============================================================================
 
+# --- Set the shell for Make ---
+# On Windows, GNU Make might default to sh.exe if it's in the PATH (e.g., from Git).
+# We explicitly set the shell to cmd.exe to ensure that Windows-specific
+# commands (like 'cd /d' and 'if exist') are interpreted correctly.
+ifeq ($(OS),Windows_NT)
+    SHELL := cmd.exe
+endif
+
 #! ----- Dependencies -----
 
 #? Dependency Presets
@@ -93,7 +101,6 @@ JOBS ?= -j$(NPROC)
 # compatible version for both Windows (cmd.exe) and POSIX (bash).
 ifeq ($(OS),Windows_NT)
     # Windows commands
-    # Use PowerShell for a robust, recursive mkdir -p equivalent, which is safe in CI environments.
     MKDIR_P      = powershell -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))'"
     TOUCH        = type nul > $(subst /,\,$(1))
     RM_RF        = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
