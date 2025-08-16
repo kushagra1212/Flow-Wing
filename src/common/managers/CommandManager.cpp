@@ -82,9 +82,9 @@ auto CommandManager::create() -> std::string {
   // Linking with BuiltIn Module
   cmd += this->getRuntimeLibrariesLinked();
 
-#if defined(__linux__)
-  cmd += " -lstdc++ ";
-#endif
+  // #if defined(__linux__)
+  //   cmd += " -lstdc++ ";
+  // #endif
 
 #if defined(_WIN32)
   cmd += "  ucrt.lib vcruntime.lib kernel32.lib user32.lib advapi32.lib "
