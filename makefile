@@ -86,21 +86,22 @@ JOBS ?= -j$(NPROC)
 # compatible version for both Windows (cmd.exe) and POSIX (bash).
 ifeq ($(OS),Windows_NT)
     # Windows commands
-    MKDIR_P      = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
-    TOUCH        = type nul > $(subst /,\,$(1))
-    RM_RF        = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
+    MKDIR_P      = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
+    TOUCH        = type nul > "$(subst /,\,$(1))"
+    RM_RF        = if exist "$(subst /,\,$(1))" rmdir /s /q "$(subst /,\,$(1))"
     CHMOD_X      = @REM chmod is not applicable on Windows
-    CD_AND_EXEC  = cd /d $(subst /,\,$(1)) && $(2)
-    RUN_EXE      = $(subst /,\,$(1))
+    CD_AND_EXEC  = cd /d "$(subst /,\,$(1))" && $(2)
+    RUN_EXE      = "$(subst /,\,$(1))"
 else
     # POSIX commands (Linux, macOS)
-    MKDIR_P      = mkdir -p $(1)
-    TOUCH        = touch $(1)
-    RM_RF        = rm -rf $(1)
-    CHMOD_X      = chmod +x $(1)
-    CD_AND_EXEC  = cd $(1) && $(2)
-    RUN_EXE      = ./$(1)
+    MKDIR_P      = mkdir -p "$(1)"
+    TOUCH        = touch "$(1)"
+    RM_RF        = rm -rf "$(1)"
+    CHMOD_X      = chmod +x "$(1)"
+    CD_AND_EXEC  = cd "$(1)" && $(2)
+    RUN_EXE      = ./"$(1)"
 endif
+
 
 # To disable status messages, run: make SILENT=1 <target>
 ifeq ($(SILENT), 1)
