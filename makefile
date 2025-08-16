@@ -188,13 +188,13 @@ $(DEBUG_DEPS_DIR)/.installed-debug: $(DEBUG_DEPS_DIR)/.configured-debug
 	$(ECHO_MSG) "--> Installing dependencies (Debug)..."
 	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-debug -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(CURDIR)/$(DEBUG_DEPS_DIR)/.installed-debug)
+	@$(call TOUCH, $(DEBUG_DEPS_DIR)/.installed-debug)
 
 $(RELEASE_DEPS_DIR)/.installed-release: $(RELEASE_DEPS_DIR)/.configured-release
 	$(ECHO_MSG) "--> Installing dependencies (Release)..."
 	@$(call MKDIR_P, $(STAMPS_DIR))
 	@$(call CD_AND_EXEC, cmake/deps_builder, cmake --build --preset deps-install-release -- $(JOBS) $(SILENT_CMD))
-	@$(call TOUCH, $(CURDIR)/$(RELEASE_DEPS_DIR)/.installed-release)
+	@$(call TOUCH, $(RELEASE_DEPS_DIR)/.installed-release)
 
 #? Dependencies Aliases
 .PHONY: deps-install-debug deps-install-release
