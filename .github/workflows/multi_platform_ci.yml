@@ -102,7 +102,35 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
-  test_windows_x86_64:
+  windows_x86_64_test_aot:
+    name: Test AOT on Windows (x86_64)
+    runs-on: windows-latest
+    needs: windows_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Tools
+        run: choco install -y 7zip make
+
+      - name: Set up MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Build and Test
+        run: make test-aot
+
+  windows_x86_64_test_jit:
     name: Test JIT on Windows (x86_64)
     runs-on: windows-latest
     needs: windows_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
