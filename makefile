@@ -17,7 +17,7 @@ endif
 DEPS_INSTALL_PRESET ?= deps-install-debug
 
 #? Dependency Stamps
-STAMPS_DIR := .fw_dependencies/stamps
+STAMPS_DIR :=.fw_dependencies/stamps
 
 #? Dependency Directories
 DEBUG_DEPS_DIR := $(STAMPS_DIR)
@@ -101,11 +101,12 @@ JOBS ?= -j$(NPROC)
 # compatible version for both Windows (cmd.exe) and POSIX (bash).
 ifeq ($(OS),Windows_NT)
     # Windows commands
-    MKDIR_P      = powershell -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))'"
+    MKDIR_P      = if not exist $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
     TOUCH        = type nul > $(subst /,\,$(1))
     RM_RF        = if exist $(subst /,\,$(1)) rmdir /s /q $(subst /,\,$(1))
     CHMOD_X      = @REM chmod is not applicable on Windows
     CD_AND_EXEC  = cd /d $(subst /,\,$(1)) && $(2)
+	NATIVE_PATH  = $(subst /,\,$(1))
 else
     # POSIX commands (Linux, macOS)
     MKDIR_P      = mkdir -p $(1)
@@ -113,6 +114,7 @@ else
     RM_RF        = rm -rf $(1)
     CHMOD_X      = chmod +x $(1)
     CD_AND_EXEC  = cd $(1) && $(2)
+	NATIVE_PATH  = $(1)
 endif
 
 # To disable status messages, run: make SILENT=1 <target>
@@ -234,11 +236,11 @@ build-jit-release: $(JIT_RELEASE_DIR)/.configured
 .PHONY: run-jit-debug run-jit-release
 run-jit-debug: build-jit-debug
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Debug)..."
-	@$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
 
 run-jit-release: build-jit-release
 	$(ECHO_MSG) "--> Compiling $(FILE) with JIT (Release)..."
-	@$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(FILE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE)
 
 #! ----- JIT Tests -----
 
@@ -290,12 +292,12 @@ build-aot-release: $(AOT_RELEASE_DIR)/.configured
 run-aot-debug: build-aot-debug
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Debug)..."
 	$(ECHO_MSG) "---------------------------------"
-	@$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(FILE) -o $(RUN_OUT_EXE) && $(RUN_OUT_EXE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
 
 run-aot-release: build-aot-release
 	$(ECHO_MSG) "--> Compiling and executing $(FILE) with AOT (Release)..."
 	$(ECHO_MSG) "---------------------------------"
-	@$(SDK_DIR)/bin/FlowWing$(EXE_EXT) $(FILE) -o $(RUN_OUT_EXE) && $(RUN_OUT_EXE)
+	@$(call NATIVE_PATH, $(SDK_DIR)/bin/FlowWing$(EXE_EXT)) $(FILE) -o $(call NATIVE_PATH, $(RUN_OUT_EXE)) && $(call NATIVE_PATH, $(RUN_OUT_EXE))
 
 #! ----- AOT Tests -----
 
