@@ -41,7 +41,42 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
-  test_macos_arm64:
+  macos_arm64_test_aot:
+    name: Test AOT on macOS (Apple Silicon)
+    runs-on: macos-14
+    needs: macos_arm64_build_deps # <-- This job waits for the build-deps job to succeed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
+      - name: Build and Test
+        run: make test-aot
+
+  macos_arm64_test_jit:
     name: Test JIT on macOS (Apple Silicon)
     runs-on: macos-14
     needs: macos_arm64_build_deps # <-- This job waits for the build-deps job to succeed
@@ -186,7 +221,37 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
-  test_linux_x86_64:
+  linux_x86_64_test_aot:
+    name: Test AOT on Linux (x86_64)
+    runs-on: ubuntu-latest
+    needs: linux_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Build and Test
+        env:
+          CC: clang-17
+          CXX: clang++-17
+        run: make test-aot
+
+  linux_x86_64_test_jit:
     name: Test JIT on Linux (x86_64)
     runs-on: ubuntu-latest
     needs: linux_x86_64_build_deps # <-- This job waits for the build-deps job to succeed
@@ -214,4 +279,107 @@ jobs:
         env:
           CC: clang-17
           CXX: clang++-17
+        run: make test-jit
+
+        ## ------------------ macOS Jobs (Intel x86_64) ------------------ ##
+
+  macos_x86_64_build_deps:
+    name: Build and Cache Dependencies for macOS (Intel x86_64)
+    runs-on: macos-13-large # Intel runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: make deps-install-release
+
+  macos_x86_64_test_aot:
+    name: Test AOT on macOS (Intel x86_64)
+    runs-on: macos-13-large # Intel runner
+    needs: macos_x86_64_build_deps
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
+      - name: Build and Test
+        run: make test-aot
+
+  macos_x86_64_test_jit:
+    name: Test JIT on macOS (Intel x86_64)
+    runs-on: macos-13-large # Intel runner
+    needs: macos_x86_64_build_deps
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install Tools
+        run: brew install ninja ccache automake autoconf libtool llvm@17
+
+      - name: Restore Dependencies from Cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: .fw_dependencies
+          key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cmake/deps_builder/CMakeLists.txt') }}
+
+      - name: Fail if cache not found
+        if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
+        run: echo "Cache not found, the build-deps job should have created it." && exit 1
+
+      - name: Set Compiler Environment
+        run: |
+          echo "CC=$(brew --prefix llvm@17)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm@17)/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$(brew --prefix llvm@17)/lib -fuse-ld=lld" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix llvm@17)/include" >> $GITHUB_ENV
+
+      - name: Build and Test
         run: make test-jit
