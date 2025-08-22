@@ -177,7 +177,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17  lld-17  ninja-build ccache automake autoconf libtool wget
 
       - name: Cache Dependencies
         id: cache-deps
@@ -190,6 +190,7 @@ jobs:
         env:
           CC: clang-17
           CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: make deps-install-release
 
@@ -221,7 +222,7 @@ jobs:
         env:
           CC: clang-17
           CXX: clang++-17
-        run: make run-aot-release FILE=tests/local/dyn.fg
+        run: make test-aot
 
   linux_x86_64_test_jit:
     name: Test JIT on Linux (x86_64)
@@ -234,7 +235,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 ninja-build ccache automake autoconf libtool wget
+          sudo apt-get install -y clang-17 lld-17  ninja-build ccache automake autoconf libtool wget
 
       - name: Restore Dependencies from Cache
         id: cache-deps
@@ -251,4 +252,5 @@ jobs:
         env:
           CC: clang-17
           CXX: clang++-17
+          LDFLAGS: -fuse-ld=lld
         run: make test-jit
