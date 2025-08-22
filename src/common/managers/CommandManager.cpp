@@ -99,8 +99,6 @@ auto CommandManager::create() -> std::string {
   cmd += " && " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName + " ";
 #endif
 
-  std::cout << "Command: " << cmd << std::endl;
-
   return cmd;
 }
 
