@@ -221,7 +221,7 @@ jobs:
         env:
           CC: clang-17
           CXX: clang++-17
-        run: make test-aot
+        run: make run FILE=tests/local/dyn.fg
 
   linux_x86_64_test_jit:
     name: Test JIT on Linux (x86_64)
