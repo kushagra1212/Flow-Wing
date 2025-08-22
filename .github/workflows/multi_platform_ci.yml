@@ -218,6 +218,11 @@ jobs:
         if: ${{ steps.cache-deps.outputs.cache-hit != 'true' }}
         run: echo "Cache not found, the build-deps job should have created it." && exit 1
 
+      - name: List lld linkers and create symlink
+        run: |
+          ls -l /usr/bin/lld*
+          sudo ln -s /usr/bin/lld-17 /usr/bin/lld
+
       - name: Build and Test
         env:
           CC: clang-17
