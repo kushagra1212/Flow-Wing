@@ -82,9 +82,9 @@ auto CommandManager::create() -> std::string {
   // Linking with BuiltIn Module
   cmd += this->getRuntimeLibrariesLinked();
 
-  // #if defined(__linux__)
-  //   cmd += " -lstdc++ ";
-  // #endif
+#if defined(__linux__)
+  cmd += " -lstdc++ ";
+#endif
 
 #if defined(_WIN32)
   cmd += "  ucrt.lib vcruntime.lib kernel32.lib user32.lib advapi32.lib "
@@ -98,6 +98,8 @@ auto CommandManager::create() -> std::string {
 #elif defined(AOT_TEST_MODE) && defined(_WIN32)
   cmd += " && " + FLOWWING::IR::CONSTANTS::TEMP_BIN_DIR + _outputFileName + " ";
 #endif
+
+  std::cout << "Command: " << cmd << std::endl;
 
   return cmd;
 }
